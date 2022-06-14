@@ -4,11 +4,14 @@
 #ifndef INTEGRATION_POINT_INCLUDE_H
 #define INTEGRATION_POINT_INCLUDE_H
 
+#include <memory>
 #include "geometries/point3.h"
 
 class IntegrationPoint : public Point3
 {
 public:
+    typedef std::shared_ptr<IntegrationPoint> Pointer;
+
     // Default constructor
     IntegrationPoint() : Point3()
     {}

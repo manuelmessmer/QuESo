@@ -28,12 +28,15 @@
 #include <chrono>
 
 /// Type Definitions
-typedef std::size_t  SizeType;
-typedef std::vector<Element> ElementVectorType;
 
 class TrIGA
 {
 public:
+
+    // Typedefs
+    typedef std::size_t  SizeType;
+    typedef std::size_t  IndexType;
+    typedef std::vector<Element> ElementVectorType;
 
     // Constructor
     TrIGA(const std::string filename,
@@ -153,6 +156,7 @@ private:
     // Private Members
     vtkSmartPointer<vtkPolyData> mPolyhedron;
     std::unique_ptr<InsideTest> mpInsideTest;
+    std::vector<Element::IntegrationPointPtrType> mPoints{};
     std::unique_ptr<ElementContainer> mpElementContainer;
     const std::string mFilename;
     const Parameters mParameters;
@@ -160,6 +164,15 @@ private:
 
     // Private Member Functions
     void Run();
+
+    std::vector<IntegrationPoint*> GetPoints(){
+        const auto element_itr_begin = mpElementContainer->begin();
+        for( int i = 0; i < mpElementContainer->size(); ++i){
+            auto element_itr = *(element_itr_begin + i);
+
+            mPoints.insert( mPoints.end(), element_itr->GetIntegrationPointsTrimmed().begin(), element_itr->GetIntegrationPointsTrimmed().end() );
+        }
+    }
 };
 
 #endif // TrIGA_H

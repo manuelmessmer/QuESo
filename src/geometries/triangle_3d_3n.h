@@ -10,16 +10,18 @@
 // Project includes
 #include "geometries/triangle_gauss_legendre_integration_points.h"
 
-typedef std::array<std::array<double,2>,3> Matrix;
-typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-typedef std::unique_ptr<IntegrationPointVectorType> IntegrationPointVectorPtrType;
-typedef std::array<double,3> PointType;
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
-
 class Triangle3D3N
 {
 public:
+
+    typedef std::array<std::array<double,2>,3> Matrix;
+    typedef std::shared_ptr<IntegrationPoint> IntegrationPointPtrType;
+    typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
+    typedef std::unique_ptr<IntegrationPointPtrVectorType> IntegrationPointPtrVectorPtrType;
+    typedef std::array<double,3> PointType;
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
+
     Triangle3D3N(PointType P1, PointType P2, PointType P3, PointType Normal) :
         mP1(P1), mP2(P2), mP3(P3), mNormalVector(Normal)
     {}
@@ -77,9 +79,9 @@ public:
         return rResults;
     }
 
-    static const std::vector<IntegrationPointVectorType>& AllIntegrationPoints()
+    static const std::vector<IntegrationPointPtrVectorType>& AllIntegrationPoints()
     {
-        static const std::vector<IntegrationPointVectorType> integration_points =
+        static const std::vector<IntegrationPointPtrVectorType> integration_points =
         {
             TriangleGaussLegendrePoints1::IntegrationPoints(),
             TriangleGaussLegendrePoints2::IntegrationPoints(),
@@ -91,33 +93,33 @@ public:
     }
 
     // Todo: Add checl is method is larger than 3
-    static const IntegrationPointVectorType& GetIntegrationPoints( IndexType Method ){
+    static const IntegrationPointPtrVectorType& GetIntegrationPoints( IndexType Method ){
 
         return AllIntegrationPoints()[Method];
     }
 
-    IntegrationPointVectorPtrType GetIntegrationPointsGlobal( IndexType Method ) {
+    IntegrationPointPtrVectorPtrType GetIntegrationPointsGlobal( IndexType Method ) {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
-        IntegrationPointVectorPtrType p_global_integration_points
-            = std::make_unique<IntegrationPointVectorType>(point_numbers);
+        IntegrationPointPtrVectorPtrType p_global_integration_points
+            = std::make_unique<IntegrationPointPtrVectorType>(point_numbers);
 
         for( int i = 0; i < point_numbers; ++i){
-            const double xx  = this->ShapeFunctionValue( 0, s_integration_points[i] ) * mP1[0] +
-                               this->ShapeFunctionValue( 1, s_integration_points[i] ) * mP2[0] +
-                               this->ShapeFunctionValue( 2, s_integration_points[i] ) * mP3[0] ;
+            const double xx  = this->ShapeFunctionValue( 0, *s_integration_points[i] ) * mP1[0] +
+                               this->ShapeFunctionValue( 1, *s_integration_points[i] ) * mP2[0] +
+                               this->ShapeFunctionValue( 2, *s_integration_points[i] ) * mP3[0] ;
 
-            const double yy = this->ShapeFunctionValue( 0, s_integration_points[i] ) * mP1[1] +
-                              this->ShapeFunctionValue( 1, s_integration_points[i] ) * mP2[1] +
-                              this->ShapeFunctionValue( 2, s_integration_points[i] ) * mP3[1] ;
+            const double yy = this->ShapeFunctionValue( 0, *s_integration_points[i] ) * mP1[1] +
+                              this->ShapeFunctionValue( 1, *s_integration_points[i] ) * mP2[1] +
+                              this->ShapeFunctionValue( 2, *s_integration_points[i] ) * mP3[1] ;
 
-            const double zz = this->ShapeFunctionValue( 0, s_integration_points[i] ) * mP1[2] +
-                              this->ShapeFunctionValue( 1, s_integration_points[i] ) * mP2[2] +
-                              this->ShapeFunctionValue( 2, s_integration_points[i] ) * mP3[2] ;
+            const double zz = this->ShapeFunctionValue( 0, *s_integration_points[i] ) * mP1[2] +
+                              this->ShapeFunctionValue( 1, *s_integration_points[i] ) * mP2[2] +
+                              this->ShapeFunctionValue( 2, *s_integration_points[i] ) * mP3[2] ;
 
-            (*p_global_integration_points)[i] = IntegrationPoint(xx, yy, zz, s_integration_points[i].GetWeightConst() );
+            (*p_global_integration_points)[i] = std::make_shared<IntegrationPoint>(xx, yy, zz, s_integration_points[i]->GetWeightConst() );
         }
 
         return std::move(p_global_integration_points);

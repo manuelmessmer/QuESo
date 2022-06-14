@@ -30,7 +30,8 @@ class Element
 public:
 
     // Typedefs
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    typedef std::shared_ptr<IntegrationPoint> IntegrationPointPtrType;
+    typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
     typedef std::vector<Triangle3D3N> TriangleVectorType;
     typedef std::array<double,3> PointType;
@@ -71,13 +72,13 @@ public:
         return GetTriangles().size();
     }
 
-    IntegrationPointVectorType& GetIntegrationPointsTrimmed(){
+    IntegrationPointPtrVectorType& GetIntegrationPointsTrimmed(){
         return mIntegrationPointsTrimmed;
     }
-    IntegrationPointVectorType& GetIntegrationPointsInside(){
+    IntegrationPointPtrVectorType& GetIntegrationPointsInside(){
         return mIntegrationPointsInside;
     }
-    IntegrationPointVectorType& GetIntegrationPointsFictitious(){
+    IntegrationPointPtrVectorType& GetIntegrationPointsFictitious(){
         return mIntegrationPointsFictitious;
     }
 
@@ -185,9 +186,9 @@ public:
     }
 
 private:
-    IntegrationPointVectorType mIntegrationPointsTrimmed;
-    IntegrationPointVectorType mIntegrationPointsInside;
-    IntegrationPointVectorType mIntegrationPointsFictitious;
+    IntegrationPointPtrVectorType mIntegrationPointsTrimmed;
+    IntegrationPointPtrVectorType mIntegrationPointsInside;
+    IntegrationPointPtrVectorType mIntegrationPointsFictitious;
 
     TriangleVectorType mTriangles{};
     TriangleVectorType mNeumannTriangles;
