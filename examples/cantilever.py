@@ -87,7 +87,7 @@ def main():
     os.mkdir(folder_path + "meshes/vtu/")
     os.mkdir(folder_path + "meshes/mesh/")
 
-    filename = "data/cylinder_medium.stl"
+    filename = "data/cylinder.stl"
 
     lower_point = [-1.5, -1.5, -1]
     upper_point = [1.5, 1.5, 11]

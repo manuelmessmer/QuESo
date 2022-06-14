@@ -167,13 +167,13 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         return super().FinalizeSolutionStep()
 
     def Finalize(self):
-        import matplotlib.pyplot as plt
+        /import matplotlib.pyplot as plt
 
 
-        import scipy
-        from scipy.io import savemat
-        mdic = {"x_sim": self.time_, "y_sim": self.displacement}
-        savemat("matlab_mdisp.mat", mdic)
+        # import scipy
+        # from scipy.io import savemat
+        # mdic = {"x_sim": self.time_, "y_sim": self.displacement}
+        # savemat("matlab_mdisp.mat", mdic)
         return super().Finalize()
 
     def postprocess_mdpa(self, filename, nurbs_volume, volume_ref):

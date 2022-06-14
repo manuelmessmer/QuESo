@@ -3,3 +3,4 @@ libs/*
 TestExecutables/*
 TrIGA_PythonApplication/*
 __pycache__/*
+examples/output/*
