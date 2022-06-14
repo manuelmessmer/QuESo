@@ -16,6 +16,7 @@
 #include "utilities/parameters.h"
 #include "utilities/inside_test.h"
 #include "utilities/mesh_utilities.h"
+#include "utilities/mapping_utilities.h"
 
 // External includes
 #include "omp.h"
@@ -127,6 +128,14 @@ public:
 
     PointType GetLocalLowerPoint(){
         return mLocalLowerPoint;
+    }
+
+    PointType GetGlobalUpperPoint(){
+        return MappingUtilities::FromLocalToGlobalSpace(mLocalUpperPoint, mParameters.PointA(), mParameters.PointB());
+    }
+
+    PointType GetGlobalLowerPoint(){
+        return MappingUtilities::FromLocalToGlobalSpace(mLocalLowerPoint, mParameters.PointA(), mParameters.PointB());
     }
 
     IntegrationPoint1DVectorType& IntegrationPoints1D(int i){
