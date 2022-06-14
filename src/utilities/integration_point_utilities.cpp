@@ -97,7 +97,7 @@ void IntegrationPointUtilities::CreateGaussLegendrePoints(
 
     IntegrationPointPtrVectorType tmp_integration_points;
     tmp_integration_points.reserve(number_of_integration_points);
-    IntegrationPoints3D(
+    IntegrationPointUtilities::IntegrationPoints3D(
         rInsideTest,
         tmp_integration_points,
         OrderU+1, OrderV+1, OrderW+1,

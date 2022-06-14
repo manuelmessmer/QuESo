@@ -17,7 +17,12 @@
 #include "utilities/integration_points/integration_points_factory.h"
 #include "utilities/parameters.h"
 
+
 namespace Testing{
+
+typedef IntegrationPoint::Pointer IntegrationPointPtrType;
+typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
+typedef std::size_t SizeType;
 
 BOOST_AUTO_TEST_CASE(MomentFittingTestLegendrePolynomials1) {
     std::cout << "Testing :: Test Moment Fitting :: Legendre Polynomials1" << std::endl;
@@ -99,7 +104,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
 
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
-        point.SetWeight(0.0);
+        point->SetWeight(0.0);
     }
 
     IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsInside(),
@@ -114,8 +119,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
     double error_norm = 0.0;
     // Check if weights are similar
     for( int i = 0; i < 27; ++i){
-        double weight_mf = points_moment_fitting[i].GetWeight();
-        double weight_gl = points_gauss_legendre[i].GetWeight();
+        double weight_mf = points_moment_fitting[i]->GetWeight();
+        double weight_gl = points_gauss_legendre[i]->GetWeight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-7);
@@ -166,7 +171,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
 
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
-        point.SetWeight(0.0);
+        point->SetWeight(0.0);
     }
 
     IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsInside(),
@@ -181,8 +186,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
     double error_norm = 0.0;
     // Check if weights are similar
     for( int i = 0; i < 64; ++i){
-        double weight_mf = points_moment_fitting[i].GetWeight();
-        double weight_gl = points_gauss_legendre[i].GetWeight();
+        double weight_mf = points_moment_fitting[i]->GetWeight();
+        double weight_gl = points_gauss_legendre[i]->GetWeight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);

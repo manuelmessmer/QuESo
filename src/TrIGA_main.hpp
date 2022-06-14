@@ -165,14 +165,14 @@ private:
     // Private Member Functions
     void Run();
 
-    std::vector<IntegrationPoint*> GetPoints(){
-        const auto element_itr_begin = mpElementContainer->begin();
-        for( int i = 0; i < mpElementContainer->size(); ++i){
-            auto element_itr = *(element_itr_begin + i);
+    // std::vector<IntegrationPoint*> GetPoints(){
+    //     const auto element_itr_begin = mpElementContainer->begin();
+    //     for( int i = 0; i < mpElementContainer->size(); ++i){
+    //         auto element_itr = *(element_itr_begin + i);
 
-            mPoints.insert( mPoints.end(), element_itr->GetIntegrationPointsTrimmed().begin(), element_itr->GetIntegrationPointsTrimmed().end() );
-        }
-    }
+    //         mPoints.insert( mPoints.end(), element_itr->GetIntegrationPointsTrimmed().begin(), element_itr->GetIntegrationPointsTrimmed().end() );
+    //     }
+    // }
 };
 
 #endif // TrIGA_H

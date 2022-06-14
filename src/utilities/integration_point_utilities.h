@@ -14,7 +14,7 @@
 
 namespace IntegrationPointUtilities {
 
-typedef std::shared_ptr<IntegrationPoint> IntegrationPointPtrType;
+typedef IntegrationPoint::Pointer IntegrationPointPtrType;
 typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
 typedef size_t SizeType;
 
