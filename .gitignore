@@ -2,3 +2,4 @@ build/*
 libs/*
 TestExecutables/*
 TrIGA_PythonApplication/*
+__pycache__/*
