@@ -146,9 +146,9 @@ void TrIGA::Run(){
     }
   }
 
-  std::cout << "time_intersection:" << time_intersection.count() << std::endl;
-  std::cout << "time: " << Elapsed_Time.count() << std::endl;
-  std::cout << "trimming_count:  " << trimming_count << std::endl;
+  // std::cout << "time_intersection:" << time_intersection.count() << std::endl;
+  // std::cout << "trimming_count:  " << trimming_count << std::endl;
+  std::cout << "TrIGA :: Elapsed Time: " << Elapsed_Time.count() << std::endl;
   if( (mParameters.IntegrationMethod() != IntegrationPointFactory::IntegrationMethod::Gauss)
         && (mParameters.IntegrationMethod() != IntegrationPointFactory::IntegrationMethod::ReducedGauss1)
           && (mParameters.IntegrationMethod() != IntegrationPointFactory::IntegrationMethod::ReducedGauss2) ){
