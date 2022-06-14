@@ -17,17 +17,20 @@
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
 
-typedef std::vector<IntegrationPoint> IntegrationPointType;
+typedef std::size_t IndexType;
+typedef IntegrationPoint::Pointer IntegrationPointPtrType;
+typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
 typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
 typedef std::vector<Triangle3D3N> TriangleVectorType;
 
-PYBIND11_MAKE_OPAQUE(IntegrationPointType);
+PYBIND11_MAKE_OPAQUE(IntegrationPointPtrVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(TriangleVectorType);
 
 namespace Python {
 
 namespace py = pybind11;
+
 
 static const std::vector<std::array<double, 2>>& GetIntegrationPointsexport( int PolynomialDegree, int NumberKnotSpans  ){
 
@@ -48,7 +51,7 @@ PYBIND11_MODULE(TrIGA_Application,m) {
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 
-    py::bind_vector<IntegrationPointType,std::shared_ptr<IntegrationPointType>>
+    py::bind_vector<IntegrationPointPtrVectorType,std::shared_ptr<IntegrationPointPtrVectorType>>
         (m, "VectorOfIntegrationPoints")
     ;
 
@@ -59,8 +62,8 @@ PYBIND11_MODULE(TrIGA_Application,m) {
         .def("Normal", &Triangle3D3N::Normal)
         .def("Area", &Triangle3D3N::Area)
         .def("GetIntegrationPointsGlobal", [](Triangle3D3N& self, IndexType Method){
-            IntegrationPointVectorPtrType ptr;
-            ptr = self.GetIntegrationPointsGlobal(Method);
+            //IntegrationPointPtrVectorPtrType ptr;
+            auto ptr = self.GetIntegrationPointsGlobal(Method);
 
             return *ptr;
         })

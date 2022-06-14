@@ -167,7 +167,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         return super().FinalizeSolutionStep()
 
     def Finalize(self):
-        /import matplotlib.pyplot as plt
+        #import matplotlib.pyplot as plt
 
 
         # import scipy
