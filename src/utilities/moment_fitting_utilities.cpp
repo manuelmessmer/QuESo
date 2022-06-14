@@ -27,7 +27,7 @@ typedef boost::numeric::ublas::vector<double> VectorType;
 
 using namespace MomentFitting;
 
-void MomentFitting::DistributeIntegrationPoints(Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam){
+void MomentFitting::DistributeIntegrationPoints(Element& rElement, IntegrationPointPtrVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam){
 
     const double factor = PointDistributionFactor;
     rIntegrationPoint.reserve( (int) factor*(rParam.Order()[0]+1)*factor*(rParam.Order()[1]+1)*factor*(rParam.Order()[2]+1) );
@@ -46,7 +46,7 @@ void MomentFitting::DistributeIntegrationPoints(Element& rElement, IntegrationPo
             while( zz < bounding_box[1][2]){
                 PointType tmp_point = {xx,yy,zz};
                 if( rElement.IsPointInTrimmedDomain(tmp_point) ){
-                    rIntegrationPoint.push_back(IntegrationPoint((xx - rParam.PointA()[0]) / std::abs(rParam.PointB()[0] - rParam.PointA()[0]),
+                    rIntegrationPoint.push_back(std::make_shared<IntegrationPoint>((xx - rParam.PointA()[0]) / std::abs(rParam.PointB()[0] - rParam.PointA()[0]),
                                                     (yy - rParam.PointA()[1]) / std::abs(rParam.PointB()[1] - rParam.PointA()[1]),
                                                     (zz - rParam.PointA()[2]) / std::abs(rParam.PointB()[2] - rParam.PointA()[2]),
                                                      0.0 ));
@@ -83,7 +83,7 @@ void MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, const
 
 double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, const int PointDistributionFactor, const Parameters& rParam) {
 
-    IntegrationPointVectorType new_integration_points;
+    IntegrationPointPtrVectorType new_integration_points;
     int maximum_iteration;
 
     if( !rParam.UseCustomizedTrimmedPositions() ){
@@ -117,7 +117,7 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
                     auto p_global_integration_points = triangle.GetIntegrationPointsGlobal(1);
 
                     for( auto global_point : (*p_global_integration_points)){
-                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(global_point, rParam.PointA(), rParam.PointB());
+                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*global_point, rParam.PointA(), rParam.PointB());
                         PointType value;
                         value[0] = f_x_integral(local_point[0], i_x, a[0], b[0])*f_x(local_point[1], i_y, a[1], b[1])*f_x(local_point[2], i_z, a[2], b[2]);
                         value[1] = f_x(local_point[0], i_x, a[0], b[0])*f_x_integral(local_point[1], i_y, a[1], b[1])*f_x(local_point[2], i_z, a[2], b[2]);
@@ -131,7 +131,7 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
                         // Normalize weights to 1
                         const double factor = 2.0;
                         // Add contribution to constant terms
-                        constant_terms[row_index] += 1.0/3.0*integrand * area * global_point.GetWeight() * factor;
+                        constant_terms[row_index] += 1.0/3.0*integrand * area * global_point->GetWeight() * factor;
                     }
                 }
                 row_index++;
@@ -143,7 +143,7 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
     const double allowed_residual = rParam.MomentFittingResidual();
     int number_iterations = 0;
     bool change = false;
-    IntegrationPointVectorType prev_solution{};
+    IntegrationPointPtrVectorType prev_solution{};
     double prev_residual = 0.0;
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
@@ -158,7 +158,7 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
                     // Loop over all faces/triangels in r_surface_mesg
                     const auto points_it_begin = new_integration_points.begin();
                     for( int column_index = 0; column_index < number_reduced_points; ++column_index ){
-                        auto point_it = points_it_begin + column_index;
+                        auto point_it = *(points_it_begin + column_index);
                         const double value = f_x(point_it->X(), i_x, a[0], b[0]) * f_x(point_it->Y(), i_y, a[1], b[1]) *f_x(point_it->Z(), i_z, a[2], b[2]);
                         //const double value = f_x(point_it->X(), i_x) * f_x(point_it->Y(), i_y) *f_x(point_it->Z(), i_z);
                         fitting_matrix(row_index,column_index) = value;
@@ -177,7 +177,7 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
         for( int i = 0; i < number_reduced_points; ++i){
             // Divide by det_jacobian to account for the corresponding multiplication during the element integration within the used external solver.
             double new_weight = weights[i]/(jacobian_x*jacobian_y*jacobian_z);
-            new_integration_points[i].SetWeight(new_weight);
+            new_integration_points[i]->SetWeight(new_weight);
         }
         change = false;
         if( !rParam.UseCustomizedTrimmedPositions() ){
@@ -186,8 +186,8 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
                     //std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << global_residual << std::endl;
                 }
                 // Sort integration points according to weight
-                sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
-                        return point_a.GetWeightConst() > point_b.GetWeightConst();
+                sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPointPtrType& point_a, const IntegrationPointPtrType& point_b) -> bool {
+                        return point_a->GetWeightConst() > point_b->GetWeightConst();
                     });
                 new_integration_points.erase(new_integration_points.begin()+number_of_functions, new_integration_points.end());
                 change = true;
@@ -196,32 +196,32 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
                 prev_solution.clear();
                 prev_solution.insert(prev_solution.begin(), new_integration_points.begin(), new_integration_points.end());
                 prev_residual = global_residual;
-                auto min_value_it = new_integration_points.begin();
+                auto min_value_it_ptr = new_integration_points.begin();
                 double min_value = 1e10;
                 double max_value = -1e10;
-                auto begin_it = new_integration_points.begin();
+                auto begin_it_ptr = new_integration_points.begin();
                 for(int i = 0; i < new_integration_points.size(); i++){
-                    auto it = begin_it + i;
-                    if( it->GetWeight() < min_value ) {
-                        min_value_it = it;
-                        min_value = it->GetWeight();
+                    auto it_ptr = (begin_it_ptr + i);
+                    if( (*it_ptr)->GetWeight() < min_value ) {
+                        min_value_it_ptr = it_ptr;
+                        min_value = (*it_ptr)->GetWeight();
                     }
-                    if( it->GetWeight() > max_value ) {
-                        max_value = it->GetWeight();
+                    if( (*it_ptr)->GetWeight() > max_value ) {
+                        max_value = (*it_ptr)->GetWeight();
                     }
                 }
-                begin_it = new_integration_points.begin();
+                begin_it_ptr = new_integration_points.begin();
                 int counter = 0;
                 for(int i = 0; i < new_integration_points.size(); i++){
-                    auto it = begin_it + i;
-                    if( it->GetWeight() < 0.0001*max_value && new_integration_points.size() > 4){
-                        new_integration_points.erase(it);
+                    auto it_ptr = begin_it_ptr + i;
+                    if( (*it_ptr)->GetWeight() < 0.0001*max_value && new_integration_points.size() > 4){
+                        new_integration_points.erase(it_ptr);
                         change = true;
                         counter++;
                     }
                 }
                 if( counter == 0 && new_integration_points.size() > 4){
-                    new_integration_points.erase(min_value_it);
+                    new_integration_points.erase(min_value_it_ptr);
                     change = true;
                 }
                 if( new_integration_points.size() == 4){

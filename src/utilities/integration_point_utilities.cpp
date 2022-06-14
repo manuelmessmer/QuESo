@@ -6,7 +6,7 @@
 
 void IntegrationPointUtilities::IntegrationPoints3D(
         InsideTest& rInsideTest,
-        IntegrationPointType& rIntegrationPoints,
+        IntegrationPointPtrVectorType& rIntegrationPoints,
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1)
 {
@@ -35,12 +35,12 @@ void IntegrationPointUtilities::IntegrationPoints3D(
                                                     W0 + distance_w * integration_point_list_w[w][0] };
 
                 if( !rInsideTest.is_inside_local_coordinates(tmp_point) ){
-                    rIntegrationPoints.push_back( IntegrationPoint( tmp_point[0],
-                                                                    tmp_point[1],
-                                                                    tmp_point[2],
-                                                                    integration_point_list_u[u][1] * length_u *
-                                                                    integration_point_list_v[v][1] * length_v *
-                                                                    integration_point_list_w[w][1] * length_w ) );
+                    rIntegrationPoints.push_back( std::make_shared<IntegrationPoint>( tmp_point[0],
+                                                                                      tmp_point[1],
+                                                                                      tmp_point[2],
+                                                                                      integration_point_list_u[u][1] * length_u *
+                                                                                      integration_point_list_v[v][1] * length_v *
+                                                                                      integration_point_list_w[w][1] * length_w ) );
                 }
             }
         }
@@ -48,7 +48,7 @@ void IntegrationPointUtilities::IntegrationPoints3D(
 }
 
 void IntegrationPointUtilities::IntegrationPoints3D(
-        IntegrationPointType& rIntegrationPoints,
+        IntegrationPointPtrVectorType& rIntegrationPoints,
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1)
 {
@@ -72,12 +72,12 @@ void IntegrationPointUtilities::IntegrationPoints3D(
     for (SizeType u = 0; u < PointsInU; ++u) {
         for (SizeType v = 0; v < PointsInV; ++v) {
             for( SizeType w = 0; w < PointsInW; ++w) {
-                rIntegrationPoints.push_back( IntegrationPoint( U0 + distance_u * integration_point_list_u[u][0],
-                                                                V0 + distance_v * integration_point_list_v[v][0],
-                                                                W0 + distance_w * integration_point_list_w[w][0],
-                                                                integration_point_list_u[u][1] * length_u *
-                                                                integration_point_list_v[v][1] * length_v *
-                                                                integration_point_list_w[w][1] * length_w ) );
+                rIntegrationPoints.push_back( std::make_shared<IntegrationPoint>( U0 + distance_u * integration_point_list_u[u][0],
+                                                                                  V0 + distance_v * integration_point_list_v[v][0],
+                                                                                  W0 + distance_w * integration_point_list_w[w][0],
+                                                                                  integration_point_list_u[u][1] * length_u *
+                                                                                  integration_point_list_v[v][1] * length_v *
+                                                                                  integration_point_list_w[w][1] * length_w ) );
             }
         }
     }
@@ -85,7 +85,7 @@ void IntegrationPointUtilities::IntegrationPoints3D(
 
 void IntegrationPointUtilities::CreateGaussLegendrePoints(
     InsideTest& rInsideTest,
-    IntegrationPointType& rIntegrationPoints,
+    IntegrationPointPtrVectorType& rIntegrationPoints,
     std::array<double,3> point_A,
     std::array<double,3> point_B,
     SizeType OrderU,
@@ -95,7 +95,7 @@ void IntegrationPointUtilities::CreateGaussLegendrePoints(
 
     const SizeType number_of_integration_points = (OrderU + 1)*(OrderV + 1)*(OrderW + 1);
 
-    IntegrationPointType tmp_integration_points;
+    IntegrationPointPtrVectorType tmp_integration_points;
     tmp_integration_points.reserve(number_of_integration_points);
     IntegrationPoints3D(
         rInsideTest,
@@ -110,7 +110,7 @@ void IntegrationPointUtilities::CreateGaussLegendrePoints(
 }
 
 void IntegrationPointUtilities::CreateGaussLegendrePoints(
-    IntegrationPointType& rIntegrationPoints,
+    IntegrationPointPtrVectorType& rIntegrationPoints,
     std::array<double,3> point_A,
     std::array<double,3> point_B,
     SizeType OrderU,
@@ -120,7 +120,7 @@ void IntegrationPointUtilities::CreateGaussLegendrePoints(
 
     const SizeType number_of_integration_points = (OrderU +1)*(OrderV +1)*(OrderW +1);
 
-    IntegrationPointType tmp_integration_points;
+    IntegrationPointPtrVectorType tmp_integration_points;
     tmp_integration_points.reserve(number_of_integration_points);
     IntegrationPointUtilities::IntegrationPoints3D(
         tmp_integration_points,

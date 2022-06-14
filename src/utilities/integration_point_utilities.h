@@ -11,25 +11,27 @@
 #include "geometries/integration_point.h"
 #include "utilities/inside_test.h"
 
-typedef std::vector<IntegrationPoint> IntegrationPointType;
-typedef size_t SizeType;
 
 namespace IntegrationPointUtilities {
 
+typedef std::shared_ptr<IntegrationPoint> IntegrationPointPtrType;
+typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
+typedef size_t SizeType;
+
 void IntegrationPoints3D(
         InsideTest& rInsideTest,
-        IntegrationPointType& rIntegrationPoints,
+        IntegrationPointPtrVectorType& rIntegrationPoints,
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1);
 
 void IntegrationPoints3D(
-        IntegrationPointType& rIntegrationPoints,
+        IntegrationPointPtrVectorType& rIntegrationPoints,
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1);
 
 void CreateGaussLegendrePoints(
         InsideTest& rInsideTest,
-        IntegrationPointType& rIntegrationPoints,
+        IntegrationPointPtrVectorType& rIntegrationPoints,
         std::array<double,3> point_A,
         std::array<double,3> point_B,
         SizeType OrderU,
@@ -37,7 +39,7 @@ void CreateGaussLegendrePoints(
         SizeType OrderW);
 
 void CreateGaussLegendrePoints(
-        IntegrationPointType& rIntegrationPoints,
+        IntegrationPointPtrVectorType& rIntegrationPoints,
         std::array<double,3> point_A,
         std::array<double,3> point_B,
         SizeType OrderU,

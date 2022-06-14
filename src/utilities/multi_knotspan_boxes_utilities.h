@@ -7,10 +7,13 @@
 #include "geometries/element_container.h"
 #include "utilities/parameters.h"
 
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
+
 
 namespace MultiKnotspanBoxesUtilities {
+
+    typedef std::array<double,3> PointType;
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
 
     void ComputeIntegrationPoints(ElementContainer& rElements, const Parameters& rParameter);
 

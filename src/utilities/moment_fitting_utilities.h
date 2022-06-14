@@ -12,15 +12,18 @@
 #include "geometries/element.h"
 #include "utilities/parameters.h"
 
-typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
 
 namespace MomentFitting{
+
+typedef Element::IntegrationPointPtrType IntegrationPointPtrType;
+typedef Element::IntegrationPointPtrVectorType IntegrationPointPtrVectorType;
+typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
 double ComputeReducedPointsSurfaceIntegral(Element& rElement, const int PointDistributionFactor, const Parameters& rParam);
 
 void ComputeReducedPointsSurfaceIntegral(Element& rElement, const Parameters& rParam);
 
-void DistributeIntegrationPoints(Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
+void DistributeIntegrationPoints(Element& rElement, IntegrationPointPtrVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
 
 double f_x(double x, int order);
 

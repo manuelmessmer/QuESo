@@ -2,8 +2,6 @@
 #include "utilities/multi_knotspan_boxes_utilities.h"
 #include "utilities/integration_points/integration_points_factory.h"
 
-typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
-
 void MultiKnotspanBoxesUtilities::ComputeIntegrationPoints(ElementContainer& rElements, const Parameters& rParameters){
 
     // Loop over all 3 space dimensions
@@ -329,7 +327,7 @@ void MultiKnotspanBoxesUtilities::StoreIntegrationPoints(ElementContainer::Eleme
                     for( SizeType w = 0; w < PointsInW; ++w) {
                         const double weight = tmp_integration_points[0][u][1]*tmp_integration_points[1][v][1]*tmp_integration_points[2][w][1];
                         element_it->GetIntegrationPointsInside().push_back(
-                                                        IntegrationPoint( tmp_integration_points[0][u][0],
+                                                        std::make_shared<IntegrationPoint>( tmp_integration_points[0][u][0],
                                                                           tmp_integration_points[1][v][0],
                                                                           tmp_integration_points[2][w][0],
                                                                           weight ) );
