@@ -138,6 +138,10 @@ public:
         return MappingUtilities::FromLocalToGlobalSpace(mLocalLowerPoint, mParameters.PointA(), mParameters.PointB());
     }
 
+    const Parameters& GetParameters() const {
+        return mParameters;
+    }
+
     IntegrationPoint1DVectorType& IntegrationPoints1D(int i){
         if(i ==0)
             return mIntegrationPointsX;
