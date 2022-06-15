@@ -4,15 +4,18 @@
 #ifndef ELEMENT_CONTAINER_INCLUDE_H
 #define ELEMENT_CONTAINER_INCLUDE_H
 
+
 #include "geometries/element.h"
 #include "utilities/parameters.h"
-
 
 class ElementContainer {
 
 public:
 
     // Typedefs
+    typedef IntegrationPoint::Pointer IntegrationPointPtrType;
+    typedef std::vector<IntegrationPointPtrType> IntegrationPointPtrVectorType;
+    typedef std::unique_ptr<IntegrationPointPtrVectorType> IntegrationPointPtrVectorPtrType;
     typedef std::shared_ptr<Element> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
     typedef std::size_t SizeType;
@@ -202,6 +205,30 @@ public:
         }
 
         return found_element;
+    }
+
+    IntegrationPointPtrVectorPtrType pGetPoints(const char* type){
+        IntegrationPointPtrVectorPtrType points = std::make_unique<IntegrationPointPtrVectorType>();
+        const auto begin_el_itr_ptr = this->begin();
+        for( int i = 0; i < this->size(); ++i){
+            auto el_itr = *(begin_el_itr_ptr + i);
+            IntegrationPointPtrVectorType points_tmp;
+            if( strcmp(type,"Trimmed") == 0 || strcmp(type,"All") == 0){
+                points_tmp = el_itr->GetIntegrationPointsTrimmed();
+            }
+            else if( strcmp(type,"Inside") == 0 || strcmp(type,"All") == 0){
+                points_tmp = el_itr->GetIntegrationPointsInside();
+            }
+            else {
+                std::stringstream error_message;
+                error_message << "Element Container: Given type '" << type << "' not available.";
+                throw std::runtime_error(error_message.str());
+            }
+
+            points->insert(points->end(), points_tmp.begin(), points_tmp.end());
+        }
+
+        return std::move(points);
     }
 
     bool IsLast(std::size_t id, std::size_t direction ){
