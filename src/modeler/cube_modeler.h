@@ -5,13 +5,16 @@
 //VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
+#include <vtkHexahedron.h>
 
 
 namespace CubeModeler {
 
 typedef std::array<double,3> PointType;
 
-vtkSmartPointer<vtkPolyData> make_cube_3( std::array<double,3> lower_point, std::array<double,3> upper_point);
+vtkSmartPointer<vtkPolyData> GetPolyData( std::array<double,3> lower_point, std::array<double,3> upper_point);
+
+vtkSmartPointer<vtkHexahedron> GetHexahedron( std::array<double,3> lower_point, std::array<double,3> upper_point);
 
 }// End Namespace TestHelper
 
