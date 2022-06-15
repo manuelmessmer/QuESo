@@ -13,10 +13,13 @@
 
 namespace IO_Utilities {
 
-void WriteVTK(const vtkSmartPointer<vtkPolyData> pPolyMesh, //PolygonMesh
+void WritePolyDataToVTK(const vtkSmartPointer<vtkPolyData> pPolyMesh, //PolygonMesh
                 const char* filename);
 
 void WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
+                        const char* filename);
+
+void WritePointsToVTK(ElementContainer& rElementContainer, const char* type, //PolygonMesh
                         const char* filename);
 
 } // end namespace
