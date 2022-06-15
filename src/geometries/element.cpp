@@ -112,7 +112,9 @@ void Element::pSetSurfaceMesh(SurfaceMeshPtrType& pSurfaceMesh ){
                 }
 
                 // Construct triangle to get integration points
-                mTriangles.push_back(Triangle3D3N(coordinates[0], coordinates[1], coordinates[2], normal));
+                Triangle3D3N tmp_triangle(coordinates[0], coordinates[1], coordinates[2], normal);
+                if( tmp_triangle.Area() > 1e-12 )
+                    mTriangles.push_back(tmp_triangle);
             }
         }
         //this->ClearSurfaceMesh();
