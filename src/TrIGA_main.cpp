@@ -66,7 +66,7 @@ void TrIGA::Run(){
     std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
 
     InsideTest::IntersectionStatus status;
-    auto cube = CubeModeler::make_cube_3(cube_point_A, cube_point_B);
+    auto cube = CubeModeler::GetPolyData(cube_point_A, cube_point_B);
 
     if( mEmbeddingFlag ){
       #pragma omp critical // Todo mak this threadsafe!!

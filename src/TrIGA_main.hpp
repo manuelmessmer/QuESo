@@ -87,7 +87,7 @@ public:
 
             // Write Surface Mesh to vtk file if echo_level > 0
             if( mParameters.EchoLevel() > 0){
-                IO_Utilities::WriteVTK(mPolyhedron, "output/geometry.vtk");
+                IO_Utilities::WritePolyDataToVTK(mPolyhedron, "output/geometry.vtk");
             }
             mpInsideTest = std::make_unique<InsideTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
 
@@ -134,11 +134,13 @@ public:
             }
         }
 
-        IO_Utilities::WriteElementsToVTK(*mpElementContainer, "test.vtk");
 
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
         if( mParameters.EchoLevel() > 0) {
+            IO_Utilities::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk");
+            IO_Utilities::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk");
+            IO_Utilities::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk");
             std::cout << "TrIGA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "TrIGA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
             std::cout << "TrIGA :: Elapsed Time: " << elapsed_time.count() << std::endl;
