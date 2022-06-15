@@ -1,5 +1,5 @@
 # Project imports
-import TrIGAPythonApplication as TrIGA_App
+import TrIGA_PythonApplication as TrIGA_App
 from kratos_interface.kratos_analysis import Analysis
 from kratos_interface.bounding_box_bcs import DirichletCondition
 from kratos_interface.bounding_box_bcs import NeumannCondition
@@ -75,7 +75,11 @@ def run_analysis(number_z_elements, reduction_flag, polynomial_degree):
 
     minimum_number_of_triangles = 5000
     initial_triangle_edge_length = 1
-    reduced_points_inside = reduction_flag
+    if reduction_flag == False:
+        integration_method = "Gauss"
+    else:
+        integration_method = "ReducedExact"
+
     moment_fitting_residual = 1e-8
     point_distribution_factor = 5
     echo_level = 2
@@ -87,7 +91,7 @@ def run_analysis(number_z_elements, reduction_flag, polynomial_degree):
                                     minimum_number_of_triangles,
                                     moment_fitting_residual,
                                     point_distribution_factor,
-                                    reduced_points_inside,
+                                    integration_method,
                                     echo_level,
                                     embedding_flag)
 
@@ -185,50 +189,50 @@ class TestReductionOfIntegrationPoints(unittest.TestCase):
         print( "Rel error: ", (disp_reduced-disp_full)/disp_full )
         self.assertAlmostEqual(disp_reduced, disp_full, 11)
 
-    # def test_1_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(1)
-    #     self.compare_full_vs_reduced_p_3(1)
-    #     self.compare_full_vs_reduced_p_4(1)
+    def test_1_knotspans(self):
+        self.compare_full_vs_reduced_p_2(1)
+        self.compare_full_vs_reduced_p_3(1)
+        self.compare_full_vs_reduced_p_4(1)
 
-    # def test_2_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(2)
-    #     self.compare_full_vs_reduced_p_3(2)
-    #     self.compare_full_vs_reduced_p_4(2)
+    def test_2_knotspans(self):
+        self.compare_full_vs_reduced_p_2(2)
+        self.compare_full_vs_reduced_p_3(2)
+        self.compare_full_vs_reduced_p_4(2)
 
-    # def test_3_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(3)
-    #     self.compare_full_vs_reduced_p_3(3)
-    #     self.compare_full_vs_reduced_p_4(3)
+    def test_3_knotspans(self):
+        self.compare_full_vs_reduced_p_2(3)
+        self.compare_full_vs_reduced_p_3(3)
+        self.compare_full_vs_reduced_p_4(3)
 
-    # def test_4_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(4)
-    #     self.compare_full_vs_reduced_p_3(4)
-    #     self.compare_full_vs_reduced_p_4(4)
+    def test_4_knotspans(self):
+        self.compare_full_vs_reduced_p_2(4)
+        self.compare_full_vs_reduced_p_3(4)
+        self.compare_full_vs_reduced_p_4(4)
 
-    # def test_5_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(5)
-    #     self.compare_full_vs_reduced_p_3(5)
-    #     self.compare_full_vs_reduced_p_4(5)
+    def test_5_knotspans(self):
+        self.compare_full_vs_reduced_p_2(5)
+        self.compare_full_vs_reduced_p_3(5)
+        self.compare_full_vs_reduced_p_4(5)
 
-    # def test_6_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(6)
-    #     self.compare_full_vs_reduced_p_3(6)
-    #     self.compare_full_vs_reduced_p_4(6)
+    def test_6_knotspans(self):
+        self.compare_full_vs_reduced_p_2(6)
+        self.compare_full_vs_reduced_p_3(6)
+        self.compare_full_vs_reduced_p_4(6)
 
-    # def test_7_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(7)
-    #     self.compare_full_vs_reduced_p_3(7)
-    #     self.compare_full_vs_reduced_p_4(7)
+    def test_7_knotspans(self):
+        self.compare_full_vs_reduced_p_2(7)
+        self.compare_full_vs_reduced_p_3(7)
+        self.compare_full_vs_reduced_p_4(7)
 
-    # def test_8_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(8)
-    #     self.compare_full_vs_reduced_p_3(8)
-    #     self.compare_full_vs_reduced_p_4(8)
+    def test_8_knotspans(self):
+        self.compare_full_vs_reduced_p_2(8)
+        self.compare_full_vs_reduced_p_3(8)
+        self.compare_full_vs_reduced_p_4(8)
 
-    # def test_9_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(9)
-    #     self.compare_full_vs_reduced_p_3(9)
-    #     self.compare_full_vs_reduced_p_4(9)
+    def test_9_knotspans(self):
+        self.compare_full_vs_reduced_p_2(9)
+        self.compare_full_vs_reduced_p_3(9)
+        self.compare_full_vs_reduced_p_4(9)
 
     def test_10_knotspans(self):
         self.compare_full_vs_reduced_p_2(10)
