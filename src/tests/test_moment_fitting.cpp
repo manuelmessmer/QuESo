@@ -67,12 +67,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
     std::array<double,3> point_b_outer = {2.1, 2.1, 3.1};
 
-    auto geometry_outer = CubeModeler::make_cube_3(point_a_outer, point_b_outer);
+    auto geometry_outer = CubeModeler::GetPolyData(point_a_outer, point_b_outer);
 
     std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
     std::array<double,3> point_b_inner = {2.0, 2.0, 3.0};
 
-    auto geometry_inner = CubeModeler::make_cube_3(point_a_inner, point_b_inner);
+    auto geometry_inner = CubeModeler::GetPolyData(point_a_inner, point_b_inner);
 
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
     std::array<double, 3> point_B = {2.0, 2.0, 3.0};
@@ -137,12 +137,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
     std::array<double,3> point_b_outer = {1.1, 1.1, 1.1};
 
-    auto geometry_outer = CubeModeler::make_cube_3(point_a_outer, point_b_outer);
+    auto geometry_outer = CubeModeler::GetPolyData(point_a_outer, point_b_outer);
 
     std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
     std::array<double,3> point_b_inner = {1.0, 1.0, 1.0};
 
-    auto geometry_inner = CubeModeler::make_cube_3(point_a_inner, point_b_inner);
+    auto geometry_inner = CubeModeler::GetPolyData(point_a_inner, point_b_inner);
 
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
     std::array<double, 3> point_B = {1.0, 1.0, 1.0};
@@ -203,12 +203,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
 //     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
 //     std::array<double,3> point_b_outer = {1.1, 1.1, 1.1};
 
-//     auto geometry_outer = CubeModeler::make_cube_3(point_a_outer, point_b_outer);
+//     auto geometry_outer = CubeModeler::GetPolyData(point_a_outer, point_b_outer);
 
 //     std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
 //     std::array<double,3> point_b_inner = {1.0, 1.0, 1.0};
 
-//     auto geometry_inner = CubeModeler::make_cube_3(point_a_inner, point_b_inner);
+//     auto geometry_inner = CubeModeler::GetPolyData(point_a_inner, point_b_inner);
 
 //     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
 //     std::array<double, 3> point_B = {1.0, 1.0, 1.0};

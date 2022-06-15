@@ -64,7 +64,7 @@ void MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, const
 
     double residual = 1e10;
     int point_distribution_factor = rParam.GetPointDistributionFactor();
-    const int max_iteration = 2;
+    const int max_iteration = 5;
     int iteration = 1;
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
         auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
