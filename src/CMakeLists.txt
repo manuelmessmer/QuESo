@@ -71,13 +71,13 @@ file(GLOB TrIGA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
 )
 ## CGAL python interface sources
-file(GLOB_RECURSE STL_EMBEDDER_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
+file(GLOB_RECURSE TrIGA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 add_library(TrIGA_ApplicationCore SHARED ${TrIGA_ApplicationSource})
 target_link_libraries(TrIGA_ApplicationCore PUBLIC CGAL CGAL::Eigen_support ${VTK_LIBRARIES})
 set_target_properties(TrIGA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TrIGA_Application=EXPORT,API")
 
-pybind11_add_module(TrIGA_Application MODULE THIN_LTO ${STL_EMBEDDER_PYTHON_INTERFACE})
+pybind11_add_module(TrIGA_Application MODULE THIN_LTO ${TrIGA_PYTHON_INTERFACE})
 target_link_libraries( TrIGA_Application PRIVATE TrIGA_ApplicationCore )
 set_target_properties( TrIGA_Application PROPERTIES PREFIX "")
 

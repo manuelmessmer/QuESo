@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "utilities/mapping_utilities.h"
-#include "stl_embedder.hpp"
+#include "TrIGA.hpp"
 
 typedef std::array<double,3> PointType;
 
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(SurfaceMeshPoints) {
 
     std::string filename = "Examples/data/cylinder.off";
 
-    STLEmbedder embedder(filename, point_A, point_B, number_of_elements, order,
+    TrIGA triga(filename, point_A, point_B, number_of_elements, order,
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 

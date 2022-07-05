@@ -11,7 +11,7 @@
 #include <vector>
 
 // Project includes
-#include "stl_embedder.hpp"
+#include "TrIGA.hpp"
 #include "geometries/element.h"
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
@@ -99,12 +99,11 @@ PYBIND11_MODULE(TrIGA_Application,m) {
     ;
 
 
-    py::class_<STLEmbedder,std::shared_ptr<STLEmbedder>>(m,"STLEmbedder")
+    py::class_<TrIGA,std::shared_ptr<TrIGA>>(m,"TrIGA")
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
-        .def("GetElements",  &STLEmbedder::ExportElements, py::return_value_policy::reference_internal )
+        .def("GetElements",  &TrIGA::ExportElements, py::return_value_policy::reference_internal )
     ;
-
 
 
     m.def("GetIntegrationPoints", &GetIntegrationPointsexport )

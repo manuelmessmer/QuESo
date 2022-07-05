@@ -5,7 +5,7 @@
 #include <CGAL/Polygon_mesh_processing/intersection.h>
 
 //// Project includes
-#include "stl_embedder.hpp"
+#include "TrIGA.hpp"
 #include "utilities/integration_point_utilities.h"
 #include "utilities/moment_fitting_utilities.h"
 #include "utilities/embedding_utilities.h"
@@ -22,7 +22,7 @@
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
 
 /// Functions
-void STLEmbedder::ComputeIntegrationPoints(){
+void TrIGA::ComputeIntegrationPoints(){
   // Obtain discretization of background mesh.
   const double delta_x = std::abs(mParameters.PointA()[0] - mParameters.PointB()[0])/(mParameters.NumberOfElements()[0]);
   const double delta_y = std::abs(mParameters.PointA()[1] - mParameters.PointB()[1])/(mParameters.NumberOfElements()[1]);

@@ -1,14 +1,15 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef STL_EMBEDDER_H
-#define STL_EMBEDDER_H
+#ifndef TrIGA_H
+#define TrIGA_H
 
 /// CGAL includes
 // Domain
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Mesh_polyhedron_3.h>
 #include <CGAL/Surface_mesh.h>
+#include <CGAL/boost/graph/IO/STL.h>
 /// Mesh Processing
 #include <CGAL/Polygon_mesh_processing/measure.h>
 
@@ -39,12 +40,12 @@ typedef std::size_t  SizeType;
 
 typedef std::vector<Element> ElementVectorType;
 
-class STLEmbedder
+class TrIGA
 {
 public:
 
     // Constructor
-    STLEmbedder(const std::string filename,
+    TrIGA(const std::string filename,
                 std::array<double, 3> PointA,
                 std::array<double, 3> PointB,
                 std::array<int, 3> NumberOfElements,
@@ -71,22 +72,8 @@ public:
 
         // Read geometry
         if( mEmbeddingFlag ) {
-            std::ifstream input(mFilename);
-            if (!input || !(input >> mPolyhedron))
-            {
-                throw  std::runtime_error("Mesh is not a valid off file. File: " + mFilename + " has been tried to read. \n");
-            }
+            CGAL::IO::read_STL(mFilename, mPolyhedron);
 
-            std::ifstream input2(mFilename);
-            if (!input2 || !(input2 >> mPolyhedronForExport))
-            {
-                throw  std::runtime_error("Mesh is not a valid off file. File: " + mFilename + " has been tried to read. \n");
-            }
-
-            if(CGAL::is_closed(mPolyhedron)){
-                std::cout << "True..." << std::endl;
-                std::cout << "Test: " << mPolyhedron.num_vertices() << std::endl;
-            }
             // Write Surface Mesh to vtk file if eco_level > 0
             if( mParameters.EchoLevel() > 0){
                 CGAL::polygon_mesh_to_vtkUnstructured_(mPolyhedron, "output/geometry.vtu");

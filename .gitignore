@@ -1,0 +1,6 @@
+build/
+examples/output/
+kratos_interface/__pycache__/
+libs/
+TestExecutables/
+TrIGA_PythonApplication/
