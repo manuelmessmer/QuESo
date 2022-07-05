@@ -1,11 +1,17 @@
 # Project imports
-import TrIGAPythonApplication as EmbedderApplication
-from kratos_interface.kratos_analysis import Analysis
-from kratos_interface.bounding_box_bcs import DirichletCondition
-from kratos_interface.bounding_box_bcs import NeumannCondition
+import TrIGA_PythonApplication as TrIGA_APP
 
-# Kratos import
-import KratosMultiphysics as KM
+try:
+    import KratosMultiphysics as KM
+    kratos_available = True
+except:
+    print("KratosMultiphysics is not available")
+    kratos_available = False
+
+if kratos_available:
+    from kratos_interface.kratos_analysis import Analysis
+    from kratos_interface.bounding_box_bcs import DirichletCondition
+    from kratos_interface.bounding_box_bcs import NeumannCondition
 
 # External imports
 import unittest
@@ -57,76 +63,81 @@ def GetParams():
     return analysis_parameters
 
 def run_analysis(number_z_elements, reduction_flag, polynomial_degree):
-    filename = "dummy_filename"
+    if kratos_available:
+        filename = "dummy_filename"
 
 
-    lower_point = [0, 0, 0]
-    upper_point = [2, 2, 10]
+        lower_point = [0, 0, 0]
+        upper_point = [2, 2, 10]
 
-    number_of_elements = [2,2,number_z_elements]
+        number_of_elements = [2,2,number_z_elements]
 
-    analysis_parameters = GetParams()
-    for modeler in analysis_parameters["modelers"]:
-        if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
-            modeler["Parameters"]["lower_point"].SetVector(lower_point)
-            modeler["Parameters"]["upper_point"].SetVector(upper_point)
-            modeler["Parameters"]["number_of_knot_spans"].SetVector(number_of_elements)
-            modeler["Parameters"]["polynomial_order"].SetVector(polynomial_degree)
+        analysis_parameters = GetParams()
+        for modeler in analysis_parameters["modelers"]:
+            if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
+                modeler["Parameters"]["lower_point"].SetVector(lower_point)
+                modeler["Parameters"]["upper_point"].SetVector(upper_point)
+                modeler["Parameters"]["number_of_knot_spans"].SetVector(number_of_elements)
+                modeler["Parameters"]["polynomial_order"].SetVector(polynomial_degree)
 
-    minimum_number_of_triangles = 5000
-    initial_triangle_edge_length = 1
-    reduced_points_inside = reduction_flag
-    moment_fitting_residual = 1e-8
-    point_distribution_factor = 5
-    echo_level = 2
-    embedding_flag = False
-    material_properties = [210000, 0.3, 7.8e-6]
-
-    embedder = EmbedderApplication.STLEmbedder(filename, lower_point, upper_point, number_of_elements, polynomial_degree,
-                                    initial_triangle_edge_length,
-                                    minimum_number_of_triangles,
-                                    moment_fitting_residual,
-                                    point_distribution_factor,
-                                    reduced_points_inside,
-                                    echo_level,
-                                    embedding_flag)
-
-
-    points_all = EmbedderApplication.VectorOfIntegrationPoints()
-    elements = embedder.GetElements()
-
-    for element in elements:
-        if element.IsTrimmed():
-            for point_trimmed_reduced in element.GetIntegrationPointsTrimmed():
-                if(point_trimmed_reduced.GetWeight() > 0.0):
-                    points_all.append(point_trimmed_reduced)
+        minimum_number_of_triangles = 5000
+        initial_triangle_edge_length = 1
+        if reduction_flag == False:
+            integration_method = "Gauss"
         else:
-            for point_inside in element.GetIntegrationPointsInside():
-                points_all.append(point_inside)
+            integration_method = "ReducedExact"
+
+        moment_fitting_residual = 1e-8
+        point_distribution_factor = 5
+        echo_level = 0
+        embedding_flag = False
+        material_properties = [210000, 0.3, 7.8e-6]
+
+        embedder = TrIGA_APP.TrIGA(filename, lower_point, upper_point, number_of_elements, polynomial_degree,
+                                        initial_triangle_edge_length,
+                                        minimum_number_of_triangles,
+                                        moment_fitting_residual,
+                                        point_distribution_factor,
+                                        integration_method,
+                                        echo_level,
+                                        embedding_flag)
 
 
-    # Chose mesh for postprocessing/ visualization
-    surface_mesh_file = "pseudo"
+        points_all = TrIGA_APP.VectorOfIntegrationPoints()
+        elements = embedder.GetElements()
 
-    p = 100
-    boundary_condition = []
-    boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
-    boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], p) )
-    postprocess_flag = False
-    output_dest = "dummy"
-    analysis = Analysis(surface_mesh_file, points_all, analysis_parameters, boundary_condition, material_properties, postprocess_flag, output_dest)
-    geometry = analysis.GetGeometry()
-    model_part = analysis.GetModelPart()
+        for element in elements:
+            if element.IsTrimmed():
+                for point_trimmed_reduced in element.GetIntegrationPointsTrimmed():
+                    if(point_trimmed_reduced.GetWeight() > 0.0):
+                        points_all.append(point_trimmed_reduced)
+            else:
+                for point_inside in element.GetIntegrationPointsInside():
+                    points_all.append(point_inside)
 
-    number_of_elements = model_part.NumberOfElements()
-    param = KM.Vector(3)
-    param[0] = 0.5
-    param[1] = 0.5
-    param[2] = 1
-    coord = geometry.GlobalCoordinates(param)
-    disp_simulation = coord[1]-1
 
-    return [disp_simulation, number_of_elements]
+        # Chose mesh for postprocessing/ visualization
+        surface_mesh_file = "pseudo"
+
+        p = 100
+        boundary_condition = []
+        boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
+        boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], p) )
+        postprocess_flag = False
+        output_dest = "dummy"
+        analysis = Analysis(surface_mesh_file, points_all, analysis_parameters, boundary_condition, material_properties, postprocess_flag, output_dest)
+        geometry = analysis.GetGeometry()
+        model_part = analysis.GetModelPart()
+
+        number_of_elements = model_part.NumberOfElements()
+        param = KM.Vector(3)
+        param[0] = 0.5
+        param[1] = 0.5
+        param[2] = 1
+        coord = geometry.GlobalCoordinates(param)
+        disp_simulation = coord[1]-1
+
+        return [disp_simulation, number_of_elements]
 
 class TestReductionOfIntegrationPoints(unittest.TestCase):
     def compare_full_vs_reduced_p_2(self, number_knotspans):
@@ -185,55 +196,55 @@ class TestReductionOfIntegrationPoints(unittest.TestCase):
         print( "Rel error: ", (disp_reduced-disp_full)/disp_full )
         self.assertAlmostEqual(disp_reduced, disp_full, 11)
 
-    # def test_1_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(1)
-    #     self.compare_full_vs_reduced_p_3(1)
-    #     self.compare_full_vs_reduced_p_4(1)
+    def test_1_knotspans(self):
+        self.compare_full_vs_reduced_p_2(1)
+        self.compare_full_vs_reduced_p_3(1)
+        self.compare_full_vs_reduced_p_4(1)
 
-    # def test_2_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(2)
-    #     self.compare_full_vs_reduced_p_3(2)
-    #     self.compare_full_vs_reduced_p_4(2)
+    def test_2_knotspans(self):
+        self.compare_full_vs_reduced_p_2(2)
+        self.compare_full_vs_reduced_p_3(2)
+        self.compare_full_vs_reduced_p_4(2)
 
-    # def test_3_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(3)
-    #     self.compare_full_vs_reduced_p_3(3)
-    #     self.compare_full_vs_reduced_p_4(3)
+    def test_3_knotspans(self):
+        self.compare_full_vs_reduced_p_2(3)
+        self.compare_full_vs_reduced_p_3(3)
+        self.compare_full_vs_reduced_p_4(3)
 
-    # def test_4_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(4)
-    #     self.compare_full_vs_reduced_p_3(4)
-    #     self.compare_full_vs_reduced_p_4(4)
+    def test_4_knotspans(self):
+        self.compare_full_vs_reduced_p_2(4)
+        self.compare_full_vs_reduced_p_3(4)
+        self.compare_full_vs_reduced_p_4(4)
 
-    # def test_5_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(5)
-    #     self.compare_full_vs_reduced_p_3(5)
-    #     self.compare_full_vs_reduced_p_4(5)
+    def test_5_knotspans(self):
+        self.compare_full_vs_reduced_p_2(5)
+        self.compare_full_vs_reduced_p_3(5)
+        self.compare_full_vs_reduced_p_4(5)
 
-    # def test_6_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(6)
-    #     self.compare_full_vs_reduced_p_3(6)
-    #     self.compare_full_vs_reduced_p_4(6)
+    def test_6_knotspans(self):
+        self.compare_full_vs_reduced_p_2(6)
+        self.compare_full_vs_reduced_p_3(6)
+        self.compare_full_vs_reduced_p_4(6)
 
-    # def test_7_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(7)
-    #     self.compare_full_vs_reduced_p_3(7)
-    #     self.compare_full_vs_reduced_p_4(7)
+    def test_7_knotspans(self):
+        self.compare_full_vs_reduced_p_2(7)
+        self.compare_full_vs_reduced_p_3(7)
+        self.compare_full_vs_reduced_p_4(7)
 
-    # def test_8_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(8)
-    #     self.compare_full_vs_reduced_p_3(8)
-    #     self.compare_full_vs_reduced_p_4(8)
+    def test_8_knotspans(self):
+        self.compare_full_vs_reduced_p_2(8)
+        self.compare_full_vs_reduced_p_3(8)
+        self.compare_full_vs_reduced_p_4(8)
 
-    # def test_9_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(9)
-    #     self.compare_full_vs_reduced_p_3(9)
-    #     self.compare_full_vs_reduced_p_4(9)
+    def test_9_knotspans(self):
+        self.compare_full_vs_reduced_p_2(9)
+        self.compare_full_vs_reduced_p_3(9)
+        self.compare_full_vs_reduced_p_4(9)
 
     def test_10_knotspans(self):
         self.compare_full_vs_reduced_p_2(10)
-        #self.compare_full_vs_reduced_p_3(10)
-        #self.compare_full_vs_reduced_p_4(10)
+        self.compare_full_vs_reduced_p_3(10)
+        self.compare_full_vs_reduced_p_4(10)
 
     # def test_11_knotspans(self):
     #     self.compare_full_vs_reduced_p_2(11)
