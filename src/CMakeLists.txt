@@ -28,9 +28,6 @@ endif()
 
 # include for local directory
 
-# include for local package
-#find_package(Eigen3 3.2.0) #(requires 3.2.0 or greater)
-#include(CGAL_Eigen_support)
 
 # include vtk
 find_package(VTK REQUIRED)
