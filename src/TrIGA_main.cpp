@@ -5,7 +5,7 @@
 #include <CGAL/Polygon_mesh_processing/intersection.h>
 
 //// Project includes
-#include "TrIGA.hpp"
+#include "TrIGA_main.hpp"
 #include "utilities/integration_point_utilities.h"
 #include "utilities/moment_fitting_utilities.h"
 #include "utilities/embedding_utilities.h"

@@ -65,7 +65,7 @@ include(pybind11Tools)
 
 #include source directories
 file(GLOB TrIGA_ApplicationSource
-  ${CMAKE_CURRENT_SOURCE_DIR}/TrIGA.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/TrIGA_main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp

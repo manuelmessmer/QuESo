@@ -11,7 +11,7 @@
 #include <vector>
 
 // Project includes
-#include "TrIGA.hpp"
+#include "TrIGA_main.hpp"
 #include "geometries/element.h"
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"

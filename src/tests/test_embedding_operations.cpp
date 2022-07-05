@@ -8,7 +8,7 @@
 
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
-#include "TrIGA.hpp"
+#include "TrIGA_main.hpp"
 
 typedef std::array<double,3> PointType;
 
