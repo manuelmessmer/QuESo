@@ -29,8 +29,8 @@ endif()
 # include for local directory
 
 # include for local package
-find_package(Eigen3 3.2.0) #(requires 3.2.0 or greater)
-include(CGAL_Eigen_support)
+#find_package(Eigen3 3.2.0) #(requires 3.2.0 or greater)
+#include(CGAL_Eigen_support)
 
 # include vtk
 find_package(VTK REQUIRED)
@@ -75,7 +75,7 @@ file(GLOB TrIGA_ApplicationSource
 file(GLOB_RECURSE TrIGA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 add_library(TrIGA_ApplicationCore SHARED ${TrIGA_ApplicationSource})
-target_link_libraries(TrIGA_ApplicationCore PUBLIC CGAL CGAL::Eigen_support ${VTK_LIBRARIES})
+target_link_libraries(TrIGA_ApplicationCore PUBLIC CGAL ${VTK_LIBRARIES})
 set_target_properties(TrIGA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TrIGA_Application=EXPORT,API")
 
 pybind11_add_module(TrIGA_Application MODULE THIN_LTO ${TrIGA_PYTHON_INTERFACE})

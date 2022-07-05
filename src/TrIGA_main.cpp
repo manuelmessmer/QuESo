@@ -10,7 +10,6 @@
 #include "utilities/moment_fitting_utilities.h"
 #include "utilities/embedding_utilities.h"
 #include "geometries/triangle_3d_3n.h"
-#include "utilities/multi_knotspan_utilities.h"
 #include "utilities/multi_knotspan_boxes_utilities.h"
 #include "utilities/integration_points/integration_points_factory.h"
 #include "modeler/modeler.h"
