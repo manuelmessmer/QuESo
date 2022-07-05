@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(SurfaceMeshPoints) {
     std::string integration_method = "Gauss";
     int echo_level = 0;
 
-    std::string filename = "Examples/data/cylinder.off";
+    std::string filename = "examples/data/cylinder.stl";
 
     TrIGA triga(filename, point_A, point_B, number_of_elements, order,
                          initial_triangle_edge_length, minimum_number_of_triangles,

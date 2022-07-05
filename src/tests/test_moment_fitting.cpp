@@ -29,7 +29,7 @@ namespace Testing{
 
 
 BOOST_AUTO_TEST_CASE(MomentFittingTestLegendrePolynomials1) {
-    std::cout << "Testing :: Test Moment Fitting :: Legendre Polynomials1" << std::endl;
+    std::cout << "Testing :: Test Moment Fitting :: Legendre Polynomials 1" << std::endl;
     for(int order = 1; order <= 9; ++order){
         for( int order2 = 1; order2 <= 9; ++order2){
             if( order != order2){
@@ -50,8 +50,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingTestLegendrePolynomials1) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(MomentFittingTestLegendrePolynomials) {
-    std::cout << "Testing :: Test Moment Fitting :: Legendre Polynomials" << std::endl;
+BOOST_AUTO_TEST_CASE(MomentFittingTestLegendrePolynomials2) {
+    std::cout << "Testing :: Test Moment Fitting :: Legendre Polynomials 2" << std::endl;
     for(int order = 1; order <= 9; ++order){
 
         auto ips = IntegrationPointFactory::GetIntegrationPoints(order, IntegrationPointFactory::IntegrationMethod::Gauss);
