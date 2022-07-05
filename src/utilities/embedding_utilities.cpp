@@ -56,13 +56,13 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   const double volume_cube = CGAL::Polygon_mesh_processing::volume(tmp_cube);
   const double volume_intersection_surface_mesh = CGAL::Polygon_mesh_processing::volume(intersection_mesh);
 
-  //Only consider intersections, which are larger than 0.5% with respect to the original element.
-  // if( volume_intersection_surface_mesh/volume_cube < 0.001){
-  //   // std::cout << "Warning :: Intersection neglected! Intersection Polyhedron To Cube Volume Ratio: "
-  //   //   << volume_intersection_surface_mesh/volume_cube << std::endl;
+  //Only consider intersections, which are larger than 0.1% with respect to the original element.
+  if( volume_intersection_surface_mesh/volume_cube < 0.001){
+    // std::cout << "Warning :: Intersection neglected! Intersection Polyhedron To Cube Volume Ratio: "
+    //   << volume_intersection_surface_mesh/volume_cube << std::endl;
 
-  //   return 0;
-  // }
+    return 0;
+  }
 
   // Construct ptr to SurfaceMesh
   std::unique_ptr<SurfaceMeshType> refinend_intersection_mesh = std::make_unique<SurfaceMeshType>();

@@ -21,6 +21,6 @@ namespace MultiKnotspanBoxesUtilities {
     void StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters);
 
     bool AllElementsVisited(ElementContainer& rElements);
-} // End Namespace MultiKnotspanUtilities
+} // End Namespace MultiKnotspanBoxesUtilities
 
 #endif

@@ -13,13 +13,13 @@
 #include "geometries/integration_point.h"
 #include "utilities/parameters.h"
 
+
+namespace EmbeddingUtilities {
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_3 Point_3;
 typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
-
 typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
-
-namespace EmbeddingUtilities {
 
 bool ComputeIntersectionMesh(const SurfaceMeshType& rGeometry, SurfaceMeshType& rCube,
                                     Element& rElement, const Parameters& rParam);
