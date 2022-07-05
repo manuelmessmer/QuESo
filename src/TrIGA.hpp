@@ -14,7 +14,7 @@
 #include <CGAL/Polygon_mesh_processing/measure.h>
 
 /// Project includes
-#include "io/vtk_utilities.h"
+#include "io/io_utilities.h"
 #include "utilities/inside_test.h"
 #include "geometries/element.h"
 #include "utilities/mapping_utilities.h"
@@ -76,7 +76,7 @@ public:
 
             // Write Surface Mesh to vtk file if eco_level > 0
             if( mParameters.EchoLevel() > 0){
-                CGAL::polygon_mesh_to_vtkUnstructured_(mPolyhedron, "output/geometry.vtu");
+                IO::polygon_mesh_to_vtk(mPolyhedron, "output/geometry.vtu");
             }
             mpInsideTest = std::make_unique<InsideTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
             // Compute volume
@@ -123,6 +123,9 @@ public:
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
         if( mParameters.EchoLevel() > 0) {
+            IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk");
+            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk");
+            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk");
             std::cout << "STLEmbedder :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "STLEmbedder :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
             std::cout << "STLEmbedder :: Elapsed Time: " << elapsed_time.count() << std::endl;

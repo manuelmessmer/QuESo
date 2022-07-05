@@ -1,23 +1,7 @@
+// Project includes
+#include "modeler/modeler.h"
 
-#ifndef CUBE_MODELER_INCLUDE_H
-#define CUBE_MODELER_INCLUDE_H
-
-// CGAL includes
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Side_of_triangle_mesh.h>
-#include <CGAL/Mesh_polyhedron_3.h>
-#include <CGAL/Surface_mesh.h>
-#include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
-
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Mesh_polyhedron_3<K>::type                 Mesh;
-typedef CGAL::Surface_mesh<K::Point_3>        SurfaceMeshType;
-
-typedef std::array<double,3> PointType;
-
-namespace CubeModeler {
-
-std::unique_ptr<SurfaceMeshType> make_cube_3( std::array<double,3> lower_point, std::array<double,3> upper_point) {
+std::unique_ptr<Modeler::SurfaceMeshType> Modeler::make_cube_3( std::array<double,3> lower_point, std::array<double,3> upper_point) {
 
     typedef typename Mesh::Point_3         Point;
     typedef typename Mesh::Halfedge_handle Halfedge_handle;
@@ -57,7 +41,7 @@ std::unique_ptr<SurfaceMeshType> make_cube_3( std::array<double,3> lower_point, 
     return std::make_unique<SurfaceMeshType>(surface_mesh);
 }
 
-void make_cube_3( SurfaceMeshType& rSurfaceMesh, std::array<double,3> lower_point, std::array<double,3> upper_point) {
+void Modeler::make_cube_3( Modeler::SurfaceMeshType& rSurfaceMesh, std::array<double,3> lower_point, std::array<double,3> upper_point) {
     typedef typename Mesh::Point_3           Point;
     typedef typename Mesh::Halfedge_handle   Halfedge_handle;
 
@@ -93,6 +77,21 @@ void make_cube_3( SurfaceMeshType& rSurfaceMesh, std::array<double,3> lower_poin
     CGAL::copy_face_graph(P, rSurfaceMesh);
 }
 
-}// End Namespace TestHelper
+vtkSmartPointer<vtkHexahedron> Modeler::GetVTKHexahedron( std::array<double,3> lower_point, std::array<double,3> upper_point){
 
-#endif // CUBE_MODELER_INCLUDE_H
+    auto hexahedron = vtkSmartPointer<vtkHexahedron>::New();
+    for (int i = 0; i < hexahedron->GetNumberOfPoints(); ++i)
+    {
+        hexahedron->GetPointIds()->SetId(i, i);
+    }
+    hexahedron->GetPoints()->SetPoint(0,lower_point[0], lower_point[1], lower_point[2]);
+    hexahedron->GetPoints()->SetPoint(1,upper_point[0], lower_point[1], lower_point[2]);
+    hexahedron->GetPoints()->SetPoint(2,upper_point[0], upper_point[1], lower_point[2]);
+    hexahedron->GetPoints()->SetPoint(3,lower_point[0], upper_point[1], lower_point[2]);
+    hexahedron->GetPoints()->SetPoint(4,lower_point[0], lower_point[1], upper_point[2]);
+    hexahedron->GetPoints()->SetPoint(5,upper_point[0], lower_point[1], upper_point[2]);
+    hexahedron->GetPoints()->SetPoint(6,upper_point[0], upper_point[1], upper_point[2]);
+    hexahedron->GetPoints()->SetPoint(7,lower_point[0], upper_point[1], upper_point[2]);
+
+    return hexahedron;
+}

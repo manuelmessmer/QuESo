@@ -7,6 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "utilities/mapping_utilities.h"
+#include "io/io_utilities.h"
 #include "TrIGA.hpp"
 
 typedef std::array<double,3> PointType;
@@ -34,7 +35,7 @@ BOOST_AUTO_TEST_CASE(SurfaceMeshPoints) {
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = embedder.GetElements();
+    auto elements = triga.GetElements();
 
     BOOST_CHECK_EQUAL(elements->size(), 1);
 

@@ -34,7 +34,7 @@ std::unique_ptr<ElementContainer> CreateTestElementContainer(std::array<int,3> r
     for( int i = 1; i <= number_elements; ++i){
         std::array<double, 3> tmp_point_A = {0.0, 0.0, 0.0};
         std::array<double, 3> tmp_point_B = {0.1, 0.1, 0.1};
-        std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i, tmp_point_A, tmp_point_B);
+        std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i, tmp_point_A, tmp_point_B, param);
         if( i != 10)
             container.AddElement(tmp_element);
     }

@@ -13,7 +13,7 @@
 #include "utilities/multi_knotspan_utilities.h"
 #include "utilities/multi_knotspan_boxes_utilities.h"
 #include "utilities/integration_points/integration_points_factory.h"
-#include "modeler/cube_modeler.h"
+#include "modeler/modeler.h"
 
 //// External includes
 #include <fstream>
@@ -61,12 +61,12 @@ void TrIGA::ComputeIntegrationPoints(){
     cube_point_B_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_B, mParameters.PointA(), mParameters.PointB());
 
     // Construct element and check status
-    std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param);
+    std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
 
     InsideTest::IntersectionStatus status;
 
     SurfaceMeshType cube;
-    CubeModeler::make_cube_3(cube, cube_point_A, cube_point_B);
+    Modeler::make_cube_3(cube, cube_point_A, cube_point_B);
     if( mEmbeddingFlag ){
       status = mpInsideTest->check_intersection_status_via_element_vertices( *tmp_element);
 

@@ -14,6 +14,7 @@
 #include "geometries/integration_point.h"
 #include "geometries/triangle_3d_3n.h"
 #include "utilities/parameters.h"
+#include "utilities/mapping_utilities.h"
 
 // External includes
 #include "omp.h"
@@ -43,7 +44,8 @@ public:
     typedef CGAL::Surface_mesh<Point_3>::Property_map<vertex_descriptor, CGAL::Surface_mesh<Point_3>::Point> PositionType;
 
     // Constructor
-    Element(std::size_t ID, PointType PointLocalA, PointType PointLocalB) : mElementId(ID), mLocalLowerPoint(PointLocalA), mLocalUpperPoint(PointLocalB)
+    Element(std::size_t ID, PointType PointLocalA, PointType PointLocalB, const Parameters& rParam) :
+        mElementId(ID), mLocalLowerPoint(PointLocalA), mLocalUpperPoint(PointLocalB), mParameters(rParam)
     {
         mIsTrimmed = false;
         mSurfaceMeshSetFlag = false;
@@ -70,6 +72,10 @@ public:
 
     int GetNumberBoundaryTriangles(){
         return mpSurfaceMesh->number_of_faces();
+    }
+
+    const Parameters& GetParameters() const {
+        return mParameters;
     }
 
     IntegrationPointVectorType& GetIntegrationPointsTrimmed(){
@@ -216,6 +222,14 @@ public:
         return mLocalLowerPoint;
     }
 
+    PointType GetGlobalUpperPoint(){
+        return MappingUtilities::FromLocalToGlobalSpace(mLocalUpperPoint, mParameters.PointA(), mParameters.PointB());
+    }
+
+    PointType GetGlobalLowerPoint(){
+        return MappingUtilities::FromLocalToGlobalSpace(mLocalLowerPoint, mParameters.PointA(), mParameters.PointB());
+    }
+
     IntegrationPoint1DVectorType& IntegrationPoints1D(int i){
         if(i ==0)
             return mIntegrationPointsX;
@@ -331,6 +345,7 @@ private:
     TriangleVectorType mNeumannTriangles;
     TriangleVectorType mDirichletTriangles;
 
+    const Parameters& mParameters;
     PointType mLocalUpperPoint;
     PointType mLocalLowerPoint;
 

@@ -15,12 +15,12 @@
 // Project includes
 #include "utilities/inside_test.h"
 #include "utilities/moment_fitting_utilities.h"
-#include "modeler/cube_modeler.h"
+#include "modeler/modeler.h"
 #include "utilities/embedding_utilities.h"
 #include "utilities/integration_point_utilities.h"
 #include "utilities/integration_points/integration_points_factory.h"
 #include "utilities/parameters.h"
-#include "io/vtk_utilities.h"
+#include "io/io_utilities.h"
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
@@ -71,12 +71,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
     std::array<double,3> point_b_outer = {2.1, 2.1, 3.1};
 
-    auto geometry_outer = CubeModeler::make_cube_3(point_a_outer, point_b_outer);
+    auto geometry_outer = Modeler::make_cube_3(point_a_outer, point_b_outer);
 
     std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
     std::array<double,3> point_b_inner = {2.0, 2.0, 3.0};
 
-    auto geometry_inner = CubeModeler::make_cube_3(point_a_inner, point_b_inner);
+    auto geometry_inner = Modeler::make_cube_3(point_a_inner, point_b_inner);
 
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
     std::array<double, 3> point_B = {2.0, 2.0, 3.0};
@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
     param.SetUseCustomizedTrimmedPointsPositionFlag(true);
 
     point_B = {1.0, 1.0, 1.0};
-    Element element(1, point_A, point_B);
+    Element element(1, point_A, point_B, param);
     auto status = EmbeddingUtilities::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
 
     element.GetIntegrationPointsTrimmed().clear();
@@ -138,12 +138,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
     std::array<double,3> point_b_outer = {1.1, 1.1, 1.1};
 
-    auto geometry_outer = CubeModeler::make_cube_3(point_a_outer, point_b_outer);
+    auto geometry_outer = Modeler::make_cube_3(point_a_outer, point_b_outer);
 
     std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
     std::array<double,3> point_b_inner = {1.0, 1.0, 1.0};
 
-    auto geometry_inner = CubeModeler::make_cube_3(point_a_inner, point_b_inner);
+    auto geometry_inner = Modeler::make_cube_3(point_a_inner, point_b_inner);
 
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
     std::array<double, 3> point_B = {1.0, 1.0, 1.0};
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
         minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
     param.SetUseCustomizedTrimmedPointsPositionFlag(true);
 
-    Element element(1, point_A, point_B);
+    Element element(1, point_A, point_B, param);
     auto status = EmbeddingUtilities::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
 
     element.GetIntegrationPointsTrimmed().clear();

@@ -13,7 +13,7 @@
 //#include <fstream>
 // Project includes
 #include "utilities/embedding_utilities.h"
-#include "io/vtk_utilities.h"
+#include "io/io_utilities.h"
 
 #include <chrono>
 #include <stdexcept>

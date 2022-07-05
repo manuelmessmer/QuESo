@@ -226,6 +226,29 @@ public:
         }
     }
 
+    IntegrationPointVectorPtrType pGetPoints(const char* type){
+        IntegrationPointVectorPtrType points = std::make_unique<IntegrationPointVectorType>();
+        const auto begin_el_itr_ptr = this->begin();
+        for( int i = 0; i < this->size(); ++i){
+            auto el_itr = *(begin_el_itr_ptr + i);
+            IntegrationPointVectorType points_tmp;
+            if( strcmp(type,"Trimmed") == 0 || strcmp(type,"All") == 0){
+                points_tmp = el_itr->GetIntegrationPointsTrimmed();
+            }
+            else if( strcmp(type,"Inside") == 0 || strcmp(type,"All") == 0){
+                points_tmp = el_itr->GetIntegrationPointsInside();
+            }
+            else {
+                std::stringstream error_message;
+                error_message << "Element Container: Given type '" << type << "' not available.";
+                throw std::runtime_error(error_message.str());
+            }
+
+            points->insert(points->end(), points_tmp.begin(), points_tmp.end());
+        }
+
+        return std::move(points);
+    }
 private:
 
     IndexType GetNextIndexX(IndexType i){
