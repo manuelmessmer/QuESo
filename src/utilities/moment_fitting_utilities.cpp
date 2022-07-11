@@ -68,7 +68,7 @@ void MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, const
 
     double residual = 1e10;
     int point_distribution_factor = rParam.GetPointDistributionFactor();
-    const int max_iteration = 5;
+    const int max_iteration = 3;
     int iteration = 1;
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
         auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
@@ -250,12 +250,17 @@ double MomentFitting::ComputeReducedPointsSurfaceIntegral(Element& rElement, con
         number_iterations++;
     }
     auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
+
     if( global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration){
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
+        reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
+            return point.GetWeightConst() < 1e-14; }), reduced_points.end());
         return prev_residual;
     }
     else{
         reduced_points.insert(reduced_points.begin(), new_integration_points.begin(), new_integration_points.end());
+        reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
+            return point.GetWeightConst() < 1e-14; }), reduced_points.end());
         return global_residual;
     }
 
