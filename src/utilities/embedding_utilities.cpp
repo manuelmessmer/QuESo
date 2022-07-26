@@ -88,9 +88,18 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     PMP::detect_sharp_edges(*refinend_intersection_mesh, 10, eif);
 
     unsigned int nb_iterations = 3;
-    CGAL::Polygon_mesh_processing::isotropic_remeshing(faces(*refinend_intersection_mesh), edge_length,
-                  *refinend_intersection_mesh,  PMP::parameters::number_of_iterations(nb_iterations).use_safety_constraints(false) // authorize all moves
-                                        .edge_is_constrained_map(eif));
+    try {
+      CGAL::Polygon_mesh_processing::isotropic_remeshing(faces(*refinend_intersection_mesh), edge_length,
+                    *refinend_intersection_mesh,  PMP::parameters::number_of_iterations(nb_iterations).use_safety_constraints(false) // authorize all moves
+                                          .edge_is_constrained_map(eif));
+    }
+    catch(const std::exception& exc) {
+        if( !CGAL::is_closed(*refinend_intersection_mesh) ){
+          std::cout << "Remeshing Exception: " << exc.what() << std::endl;
+          std::cout << "Mesh is not closed. Knot spans will be neglected" << std::endl;
+          return 0;
+        }
+    }
     edge_length = edge_length * 0.95*std::sqrt((double)refinend_intersection_mesh->number_of_faces() / (double) rParam.MinimumNumberOfTriangles()); // Todo: Make this better!!!
     iteration_count++;
   }
