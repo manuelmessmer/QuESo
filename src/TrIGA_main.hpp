@@ -76,7 +76,7 @@ public:
 
             // Write Surface Mesh to vtk file if eco_level > 0
             if( mParameters.EchoLevel() > 0){
-                IO::polygon_mesh_to_vtk(mPolyhedron, "output/geometry.vtu");
+                IO::polygon_mesh_to_vtk(mPolyhedron, "output/geometry.vtk", true);
             }
             mpInsideTest = std::make_unique<InsideTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
             // Compute volume
@@ -122,10 +122,14 @@ public:
 
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
+        std::cout << "We are here: " << std::endl;
         if( mParameters.EchoLevel() > 0) {
-            IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk");
-            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk");
-            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk");
+            std::cout << "000000: " << std::endl;
+            IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
+            std::cout << "111111: " << std::endl;
+            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk", true);
+            std::cout << "222222: " << std::endl;
+            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk", true);
             std::cout << "STLEmbedder :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "STLEmbedder :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
             std::cout << "STLEmbedder :: Elapsed Time: " << elapsed_time.count() << std::endl;
