@@ -18,14 +18,6 @@ if ( NOT CGAL_FOUND )
   return()
 endif()
 
-# Boost and its components
-find_package( Boost REQUIRED )
-# So far boost is not required
-if ( NOT Boost_FOUND )
-  message(STATUS "This project requires the Boost library, and will not be compiled.")
-  return()
-endif()
-
 # OMP support
 find_package(OpenMP)
 if (OPENMP_FOUND)
