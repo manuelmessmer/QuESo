@@ -6,21 +6,10 @@
 #include <CGAL/Surface_mesh.h>
 
 #include <CGAL/number_utils.h>
-#include <CGAL/IO/Complex_3_in_triangulation_3_to_vtk.h>
+
 // Boost
 //#include <CGAL/boost/graph/graph_traits.h>
 #include <CGAL/boost/graph/properties.h>
-// VTK includes
-#include <vtkUnstructuredGrid.h>
-#include <vtkMergeCells.h>
-#include <vtkCellData.h>
-#include <vtkPointData.h>
-#include <vtkDoubleArray.h>
-#include <vtkXMLUnstructuredGridWriter.h>
-#include <vtkUnstructuredGridWriter.h>
-#include <vtkHexahedron.h>
-#include <vtkVertex.h>
-#include <vtkPolyDataWriter.h>
 
 // Project includes
 #include "io/io_utilities.h"
@@ -284,73 +273,35 @@ void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
   }
   file << std::endl;
 
-  file << "CELL_DATA 4" << std::endl;
-  file << "GLOBAL_IDS GlobalCellIds vtkIdType" << std::endl;
-  for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
-      if( binary ){
-        int k = i;
-        SwapEnd(k);
-        file.write(reinterpret_cast<char*>(&k), sizeof(int));
-      }
-      else {
-        file << i << ' ';
-        if( i%4 == 0 && i > 0){
-          file << std::endl;
-        }
-      }
-  }
-  file << std::endl;
+  // file << "CELL_DATA 4" << std::endl;
+  // file << "GLOBAL_IDS GlobalCellIds vtkIdType" << std::endl;
+  // for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
+  //     if( binary ){
+  //       int k = i;
+  //       SwapEnd(k);
+  //       file.write(reinterpret_cast<char*>(&k), sizeof(int));
+  //     }
+  //     else {
+  //       file << i << ' ';
+  //       if( i%4 == 0 && i > 0){
+  //         file << std::endl;
+  //       }
+  //     }
+  // }
+  // file << std::endl;
 
   file.close();
-
-  // auto grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-  // // Todo: makehexahedron
-  // auto merge = vtkSmartPointer<vtkMergeCells>::New();
-
-  // merge->SetTotalNumberOfPoints(8*rElementContainer.size());
-  // merge->SetTotalNumberOfCells(rElementContainer.size());
-  // merge->SetTotalNumberOfDataSets(rElementContainer.size());
-  // merge->SetPointMergeTolerance(1e-5);
-  // merge->SetUseGlobalCellIds(1);
-  // merge->SetUseGlobalIds(0);
-
-
-  // merge->SetUnstructuredGrid(grid);
-  // //const auto begin_el_itr = rElementContainer.begin();
-  // for( int i = 0; i < rElementContainer.size(); ++i){
-  //   auto el_itr = *(begin_el_itr + i);
-  //   auto lower_point = el_itr->GetGlobalLowerPoint();
-  //   auto upper_point = el_itr->GetGlobalUpperPoint();
-
-  //   auto tmp_grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-  //   auto hexahedron = Modeler::GetVTKHexahedron(lower_point, upper_point);
-  //   tmp_grid->SetPoints(hexahedron->GetPoints());
-  //   tmp_grid->InsertNextCell(hexahedron->GetCellType(), hexahedron->GetPointIds() );
-  //   auto ids1 = vtkSmartPointer<vtkIdTypeArray>::New();
-  //   ids1->SetName("GlobalCellIds");
-  //   ids1->SetNumberOfValues(1);
-  //   tmp_grid->GetCellData()->SetGlobalIds(ids1);
-  //   tmp_grid->GetCellData()->GetGlobalIds()->SetTuple1(0,i);
-
-  //   merge->MergeDataSet(tmp_grid);
-
-  // }
-  // merge->Finish();
-
-  // auto grid_writer = vtkSmartPointer<vtkUnstructuredGridWriter>::New();
-  // grid_writer->SetFileName(filename);
-  // grid_writer->SetInputData(grid);
-  // grid_writer->Write();
 }
 
 
-void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,  //PolygonMesh
+void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
                                     const char* filename,
                                     const bool binary){
 
   auto p_points = rElementContainer.pGetPoints(type);
   const auto begin_points_it_ptr = p_points->begin();
   const int num_points = p_points->size();
+  const int num_elements = p_points->size();
 
   std::ofstream file;
   if(binary)
@@ -393,6 +344,56 @@ void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
     }
   }
   file << std::endl;
+
+  //Write Cells
+  file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( binary ){
+      int k = 1;
+      SwapEnd(k);
+      file.write(reinterpret_cast<char*>(&k), sizeof(int));
+
+      k = i;
+      SwapEnd(k);
+      file.write(reinterpret_cast<char*>(&k), sizeof(int));
+
+    }
+    else {
+      file << 1 << ' ' << i << std::endl;
+    }
+  }
+  file << std::endl;
+
+  file << "CELL_TYPES " << num_elements << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( binary ){
+        int k = 1;
+        SwapEnd(k);
+        file.write(reinterpret_cast<char*>(&k), sizeof(int));
+    }
+    else {
+      file << 1 << std::endl;
+    }
+  }
+  file << std::endl;
+
+  file << "POINT_DATA " << num_points << std::endl;
+  file << "SCALARS Weights double 1" << std::endl;
+  file << "LOOKUP_TABLE default" << std::endl;
+  for(int i = 0; i < num_points; ++i){
+      auto points_it = (begin_points_it_ptr + i);
+
+      if( binary ){
+        double rw = points_it->GetWeight();
+        SwapEnd(rw);
+        file.write(reinterpret_cast<char*>(&rw), sizeof(double));
+      }
+      else {
+        file << points_it->GetWeight() << std::endl;
+      }
+  }
+  file << std::endl;
+
   file.close();
 }
 

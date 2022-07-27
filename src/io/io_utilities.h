@@ -2,8 +2,6 @@
 #define IO_UTILTIES_H
 
 #include "geometries/element_container.h"
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
 
 namespace IO{
 
