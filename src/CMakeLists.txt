@@ -26,24 +26,6 @@ if ( NOT Boost_FOUND )
   return()
 endif()
 
-# include for local directory
-
-
-# include vtk
-find_package(VTK REQUIRED)
-if(VTK_FOUND)
-  if(VTK_USE_FILE)
-    include(${VTK_USE_FILE})
-  endif()
-  if ("${VTK_VERSION_MAJOR}" GREATER "5" OR VTK_VERSION VERSION_GREATER 5)
-    message("found VTK. Version:" ${VTK_VERSION}. VTK_DIR: ${VTK_DIR})
-  else()
-    message(STATUS "VTK version 6.0 or greater is required")
-  endif()
-else()
-  message(STATUS "VTK was not found")
-endif()
-
 # OMP support
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -55,8 +37,13 @@ else()
   return()
 endif()
 
+# Try to use python executable from env variable
+if(DEFINED ENV{PYTHON_EXECUTABLE})
+set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
+endif(DEFINED ENV{PYTHON_EXECUTABLE})
+
 ################### PYBIND11
-# Set kratos specific module path
+# Set TrIGA specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(pybind11Tools)
 
@@ -72,7 +59,7 @@ file(GLOB TrIGA_ApplicationSource
 file(GLOB_RECURSE TrIGA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 add_library(TrIGA_ApplicationCore SHARED ${TrIGA_ApplicationSource})
-target_link_libraries(TrIGA_ApplicationCore PUBLIC CGAL ${VTK_LIBRARIES})
+target_link_libraries(TrIGA_ApplicationCore PUBLIC CGAL ${PYTHON_LIBRARIES})
 set_target_properties(TrIGA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TrIGA_Application=EXPORT,API")
 
 pybind11_add_module(TrIGA_Application MODULE THIN_LTO ${TrIGA_PYTHON_INTERFACE})
