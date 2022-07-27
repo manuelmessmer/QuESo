@@ -76,22 +76,3 @@ void Modeler::make_cube_3( Modeler::SurfaceMeshType& rSurfaceMesh, std::array<do
     CGAL_postcondition( P.is_valid());
     CGAL::copy_face_graph(P, rSurfaceMesh);
 }
-
-vtkSmartPointer<vtkHexahedron> Modeler::GetVTKHexahedron( std::array<double,3> lower_point, std::array<double,3> upper_point){
-
-    auto hexahedron = vtkSmartPointer<vtkHexahedron>::New();
-    for (int i = 0; i < hexahedron->GetNumberOfPoints(); ++i)
-    {
-        hexahedron->GetPointIds()->SetId(i, i);
-    }
-    hexahedron->GetPoints()->SetPoint(0,lower_point[0], lower_point[1], lower_point[2]);
-    hexahedron->GetPoints()->SetPoint(1,upper_point[0], lower_point[1], lower_point[2]);
-    hexahedron->GetPoints()->SetPoint(2,upper_point[0], upper_point[1], lower_point[2]);
-    hexahedron->GetPoints()->SetPoint(3,lower_point[0], upper_point[1], lower_point[2]);
-    hexahedron->GetPoints()->SetPoint(4,lower_point[0], lower_point[1], upper_point[2]);
-    hexahedron->GetPoints()->SetPoint(5,upper_point[0], lower_point[1], upper_point[2]);
-    hexahedron->GetPoints()->SetPoint(6,upper_point[0], upper_point[1], upper_point[2]);
-    hexahedron->GetPoints()->SetPoint(7,lower_point[0], upper_point[1], upper_point[2]);
-
-    return hexahedron;
-}

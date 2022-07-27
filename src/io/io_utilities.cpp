@@ -1,188 +1,336 @@
+// Author: Manuel Meßmer
+// Email: manuel.messmer@tum.de
 
 // CGAL includes
 // Domain
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Mesh_polyhedron_3.h>
 #include <CGAL/Surface_mesh.h>
-
-#include <CGAL/number_utils.h>
-#include <CGAL/IO/Complex_3_in_triangulation_3_to_vtk.h>
 // Boost
-//#include <CGAL/boost/graph/graph_traits.h>
 #include <CGAL/boost/graph/properties.h>
-// VTK includes
-#include <vtkUnstructuredGrid.h>
-#include <vtkMergeCells.h>
-#include <vtkCellData.h>
-#include <vtkPointData.h>
-#include <vtkDoubleArray.h>
-#include <vtkXMLUnstructuredGridWriter.h>
-#include <vtkUnstructuredGridWriter.h>
-#include <vtkHexahedron.h>
-#include <vtkVertex.h>
-#include <vtkPolyDataWriter.h>
+
+// External includes
+//#include <fstream>      // std::ofstream
 
 // Project includes
 #include "io/io_utilities.h"
 #include "modeler/modeler.h"
 
-
-
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Mesh_polyhedron_3<K>::type Mesh; // Todo: Rename to Polyhedron
 typedef CGAL::Surface_mesh<K::Point_3> SurfaceMesh;
+typedef std::size_t SizeType;
 
-
-template<typename PM>
-void IO::polygon_mesh_to_vtk(const PM& pmesh,//PolygonMesh
-                                      const char* filename)
+template<typename SM>
+void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
+                        const char* Filename,
+                        const bool Binary)
 {
-  typedef typename boost::graph_traits<PM>::vertex_descriptor   vertex_descriptor;
-  typedef typename boost::graph_traits<PM>::face_descriptor     face_descriptor;
-  typedef typename boost::graph_traits<PM>::halfedge_descriptor halfedge_descriptor;
+  typedef typename boost::graph_traits<SM>::vertex_descriptor   vertex_descriptor;
+  typedef typename boost::graph_traits<SM>::face_descriptor     face_descriptor;
+  typedef typename boost::graph_traits<SM>::halfedge_descriptor halfedge_descriptor;
 
-  typedef typename boost::property_map<PM, CGAL::vertex_point_t>::const_type VPMap;
-  typedef typename boost::property_map_value<PM, CGAL::vertex_point_t>::type Point_3;
-  VPMap vpmap = get(CGAL::vertex_point, pmesh);
+  typedef typename boost::property_map<SM, CGAL::vertex_point_t>::const_type VPMap;
+  typedef typename boost::property_map_value<SM, CGAL::vertex_point_t>::type Point_3;
 
-  vtkPoints* const vtk_points = vtkPoints::New();
-  vtkCellArray* const vtk_cells = vtkCellArray::New();
+  VPMap vpmap = CGAL::get(CGAL::vertex_point, rSurfaceMesh);
 
-  vtk_points->Allocate(num_vertices(pmesh));
-  vtk_cells->Allocate(num_faces(pmesh));
+  const SizeType num_elements = rSurfaceMesh.number_of_faces();
+  const SizeType num_points = rSurfaceMesh.number_of_vertices();
 
-  std::map<vertex_descriptor, vtkIdType> Vids;
-  vtkIdType inum = 0;
+  std::ofstream file;
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
+  else
+    file.open(Filename);
 
-  for(vertex_descriptor v : vertices(pmesh))
+  file << "# vtk DataFile Version 4.1" << std::endl;
+  file << "vtk output" << std::endl;
+  if(Binary)
+    file << "BINARY"<< std::endl;
+  else
+    file << "ASCII"<< std::endl;
+
+  file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+  file << "POINTS " << num_points << " double" << std::endl;
+
+  std::map<vertex_descriptor, IndexType> vids;
+  IndexType inum = 0;
+  for(vertex_descriptor v : vertices(rSurfaceMesh))
   {
     const Point_3& p = get(vpmap, v);
-    vtk_points->InsertNextPoint(CGAL::to_double(p.x()),
-                                CGAL::to_double(p.y()),
-                                CGAL::to_double(p.z()));
-    Vids[v] = inum++;
-  }
-  for(face_descriptor f : faces(pmesh))
-  {
-    vtkIdList* cell = vtkIdList::New();
-    for(halfedge_descriptor h :
-                  halfedges_around_face(halfedge(f, pmesh), pmesh))
-    {
-      cell->InsertNextId(Vids[target(h, pmesh)]);
+    if( Binary ){
+      double rx = CGAL::to_double(p.x());
+      double ry = CGAL::to_double(p.y());
+      double rz = CGAL::to_double(p.z());
+
+      WriteBinary(file, rx);
+      WriteBinary(file, ry);
+      WriteBinary(file, rz);
     }
-    vtk_cells->InsertNextCell(cell);
-    cell->Delete();
+    else {
+      file << CGAL::to_double(p.x()) << ' ' << CGAL::to_double(p.y()) << ' ' << CGAL::to_double(p.z()) << std::endl;
+
+    }
+    vids[v] = inum++;
   }
+  file << std::endl;
 
-  vtkSmartPointer<vtkUnstructuredGrid> usg =
-    vtkSmartPointer<vtkUnstructuredGrid>::New();
+  // Write Cells
+  file << "Cells " << num_elements << " " << num_elements*4 << std::endl;
 
-  usg->SetPoints(vtk_points);
-  vtk_points->Delete();
+  for(face_descriptor f : faces(rSurfaceMesh))
+  {
+    if( Binary ){
+      int k = 3;
+      WriteBinary(file, k);
+      for(halfedge_descriptor h :
+                    halfedges_around_face(halfedge(f, rSurfaceMesh), rSurfaceMesh))
+      {
+        k = vids[target(h, rSurfaceMesh)];
+        WriteBinary(file, k);
+      }
+    }
+    else {
+      file << 3;
+      for(halfedge_descriptor h :
+                    halfedges_around_face(halfedge(f, rSurfaceMesh), rSurfaceMesh))
+      {
+          file << ' ' << vids[target(h, rSurfaceMesh)];
+      }
+      file << std::endl;
+    }
+  }
+  file << std::endl;
 
-  usg->SetCells(5,vtk_cells);
-  vtk_cells->Delete();
+  file << "CELL_TYPES " << num_elements << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( Binary ){
+        int k = 5;
+        WriteBinary(file, k);
+    }
+    else {
+      file << 5 << std::endl;
+    }
+  }
+  file << std::endl;
 
-  // Write the unstructured grid
-  vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer =
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
-  writer->SetFileName(filename);
-  writer->SetInputData(usg);
-  writer->Write();
+  file.close();
 }
 
-template void IO::polygon_mesh_to_vtk<Mesh>(const Mesh& pmesh,//PolygonMesh
-                                                const char* filename);
-template void IO::polygon_mesh_to_vtk<SurfaceMesh>(const SurfaceMesh& pmesh,//PolygonMesh
-                                                const char* filename);
-
+// Instantiation
+template void IO::WriteMeshToVTK<SurfaceMesh>(const SurfaceMesh& rSurfaceMesh,//PolygonMesh
+                                              const char* Filename,
+                                              const bool Binary);
 
 void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
-                        const char* filename){
-
-  auto grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-  // Todo: makehexahedron
-  auto merge = vtkSmartPointer<vtkMergeCells>::New();
-
-  merge->SetTotalNumberOfPoints(8*rElementContainer.size());
-  merge->SetTotalNumberOfCells(rElementContainer.size());
-  merge->SetTotalNumberOfDataSets(rElementContainer.size());
-  merge->SetPointMergeTolerance(1e-5);
-  merge->SetUseGlobalCellIds(1);
-  merge->SetUseGlobalIds(0);
+                            const char* Filename,
+                            const bool Binary){
 
 
-  merge->SetUnstructuredGrid(grid);
+  const SizeType num_elements = rElementContainer.size();
+
+  std::ofstream file;
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
+  else
+    file.open(Filename);
+
+  file << "# vtk DataFile Version 4.1" << std::endl;
+  file << "vtk output" << std::endl;
+  if(Binary)
+    file << "BINARY"<< std::endl;
+  else
+    file << "ASCII"<< std::endl;
+
+  file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+  file << "POINTS " << num_elements*8 << " double" << std::endl;
+
   const auto begin_el_itr = rElementContainer.begin();
   for( int i = 0; i < rElementContainer.size(); ++i){
     auto el_itr = *(begin_el_itr + i);
     auto lower_point = el_itr->GetGlobalLowerPoint();
     auto upper_point = el_itr->GetGlobalUpperPoint();
 
-    auto tmp_grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-    auto hexahedron = Modeler::GetVTKHexahedron(lower_point, upper_point);
-    tmp_grid->SetPoints(hexahedron->GetPoints());
-    tmp_grid->InsertNextCell(hexahedron->GetCellType(), hexahedron->GetPointIds() );
-    auto ids1 = vtkSmartPointer<vtkIdTypeArray>::New();
-    ids1->SetName("GlobalCellIds");
-    ids1->SetNumberOfValues(1);
-    tmp_grid->GetCellData()->SetGlobalIds(ids1);
-    tmp_grid->GetCellData()->GetGlobalIds()->SetTuple1(0,i);
+    if( Binary ){
 
-    merge->MergeDataSet(tmp_grid);
+      double rx0 = lower_point[0];
+      SwapEnd(rx0);
+      double rx1 = upper_point[0];
+      SwapEnd(rx1);
+      double ry0 = lower_point[1];
+      SwapEnd(ry0);
+      double ry1 = upper_point[1];
+      SwapEnd(ry1);
+      double rz0 = lower_point[2];
+      SwapEnd(rz0);
+      double rz1 = upper_point[2];
+      SwapEnd(rz1);
 
+      file.write(reinterpret_cast<char*>(&rx0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz0), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz0), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz0), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz0), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz1), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz1), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz1), sizeof(double));
+
+      file.write(reinterpret_cast<char*>(&rx0), sizeof(double));
+      file.write(reinterpret_cast<char*>(&ry1), sizeof(double));
+      file.write(reinterpret_cast<char*>(&rz1), sizeof(double));
+    }
+    else {
+      file << lower_point[0] << ' ' << lower_point[1] << ' ' << lower_point[2] << std::endl;
+      file << upper_point[0] << ' ' << lower_point[1] << ' ' << lower_point[2] << std::endl;
+      file << upper_point[0] << ' ' << upper_point[1] << ' ' << lower_point[2] << std::endl;
+      file << lower_point[0] << ' ' << upper_point[1] << ' ' << lower_point[2] << std::endl;
+      file << lower_point[0] << ' ' << lower_point[1] << ' ' << upper_point[2] << std::endl;
+      file << upper_point[0] << ' ' << lower_point[1] << ' ' << upper_point[2] << std::endl;
+      file << upper_point[0] << ' ' << upper_point[1] << ' ' << upper_point[2] << std::endl;
+      file << lower_point[0] << ' ' << upper_point[1] << ' ' << upper_point[2] << std::endl;
+    }
   }
-  merge->Finish();
+  file << std::endl;
+  // Write Cells
+  file << "Cells " << num_elements << " " << num_elements*9 << std::endl;
+  for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
+    if( Binary ){
+      int k = 8;
+      WriteBinary(file, k);
+      for( int j = 0; j < 8; ++j){
+        k = 8*i+j;
+        WriteBinary(file, k);
+      }
+    }
+    else {
+      file << 8 << ' ' << 8*i     << ' ' << 8*i + 1 << ' ' << 8*i + 2 << ' ' << 8*i + 3
+                << ' ' << 8*i + 4 << ' ' << 8*i + 5 << ' ' << 8*i + 6 << ' ' << 8*i + 7 << std::endl;
+    }
+  }
+  file << std::endl;
 
-  auto grid_writer = vtkSmartPointer<vtkUnstructuredGridWriter>::New();
-  grid_writer->SetFileName(filename);
-  grid_writer->SetInputData(grid);
-  grid_writer->Write();
+  file << "CELL_TYPES " << rElementContainer.size() << std::endl;
+  for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
+    if( Binary ){
+        int k = 12;
+        WriteBinary(file, k);
+    }
+    else {
+      file << 12 << std::endl;
+    }
+  }
+  file << std::endl;
+
+  file.close();
 }
 
 
-void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,  //PolygonMesh
-                                    const char* filename){
+void IO::WritePointsToVTK(ElementContainer& rElementContainer,
+                          const char* type,
+                          const char* Filename,
+                          const bool Binary){
+
   auto p_points = rElementContainer.pGetPoints(type);
-  auto vtk_points = vtkSmartPointer<vtkPoints>::New();
-  auto vtk_verts = vtkSmartPointer<vtkCellArray>::New();
-
-
-  auto weights = vtkSmartPointer<vtkDoubleArray>::New();
-  auto polys = vtkSmartPointer<vtkCellArray>::New();
-  polys->InitTraversal();
-
   const auto begin_points_it_ptr = p_points->begin();
+  const int num_points = p_points->size();
+  const int num_elements = p_points->size();
+
+  std::ofstream file;
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
+  else
+    file.open(Filename);
+
+  file << "# vtk DataFile Version 4.1" << std::endl;
+  file << "vtk output" << std::endl;
+  if(Binary)
+    file << "BINARY"<< std::endl;
+  else
+    file << "ASCII"<< std::endl;
+
+
+  file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+  file << "POINTS " << num_points << " double" << std::endl;
+
   const Parameters& param = (*rElementContainer.begin())->GetParameters();
-  for(int i = 0; i < p_points->size(); ++i){
+  for(int i = 0; i < num_points; ++i){
     auto points_it = (begin_points_it_ptr + i);
     auto point_global = MappingUtilities::FromLocalToGlobalSpace(*points_it, param.PointA(), param.PointB() );
-    auto id =  vtk_points->InsertNextPoint(point_global.data());
-    weights->InsertNextTuple1(points_it->GetWeight());
 
-    vtkSmartPointer<vtkVertex> tmp_vertex = vtkSmartPointer<vtkVertex>::New();
-    tmp_vertex->GetPointIds()->SetId(0,i);
-    polys->InsertNextCell(tmp_vertex);
+    if( Binary ){
+      WriteBinary(file, point_global[0]);
+      WriteBinary(file, point_global[1]);
+      WriteBinary(file, point_global[2]);
+    }
+    else {
+      file << point_global[0] << ' ' << point_global[1] << ' ' << point_global[2] << std::endl;
+    }
   }
-  auto vtk_poly_data = vtkSmartPointer<vtkPolyData>::New();
+  file << std::endl;
 
-  vtk_poly_data->SetPoints(vtk_points);
-  vtk_poly_data->SetPolys(polys);
-  auto point_data = vtk_poly_data->GetPointData();
-  weights->SetName("Weights");
-  point_data->SetScalars(weights);
+  //Write Cells
+  file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( Binary ){
+      int k = 1;
+      WriteBinary(file, k);
+      k = i;
+      WriteBinary(file, k);
+    }
+    else {
+      file << 1 << ' ' << i << std::endl;
+    }
+  }
+  file << std::endl;
 
-  WriteVTKPolyDataToVTK(vtk_poly_data, filename);
+  file << "CELL_TYPES " << num_elements << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( Binary ){
+        int k = 1;
+        WriteBinary(file, k);
+    }
+    else {
+      file << 1 << std::endl;
+    }
+  }
+  file << std::endl;
+
+  file << "POINT_DATA " << num_points << std::endl;
+  file << "SCALARS Weights double 1" << std::endl;
+  file << "LOOKUP_TABLE default" << std::endl;
+  for(int i = 0; i < num_points; ++i){
+      auto points_it = (begin_points_it_ptr + i);
+
+      if( Binary ){
+        double rw = points_it->GetWeight();
+        WriteBinary(file, rw);
+      }
+      else {
+        file << points_it->GetWeight() << std::endl;
+      }
+  }
+  file << std::endl;
+
+  file.close();
 }
 
-void IO::WriteVTKPolyDataToVTK(const vtkSmartPointer<vtkPolyData> pPolyMesh, //PolygonMesh
-                               const char* filename)
-{
-  vtkSmartPointer<vtkPolyDataWriter> writer =
-    vtkSmartPointer<vtkPolyDataWriter>::New();
-  writer->SetFileName(filename);
-  writer->SetInputData(pPolyMesh);
-  writer->Write();
- }
 
 

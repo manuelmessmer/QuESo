@@ -21,7 +21,6 @@
 
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
 typedef K::Point_3 Point_3;
 typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
 typedef CGAL::Side_of_triangle_mesh<SurfaceMeshType, K> InsideTestType;

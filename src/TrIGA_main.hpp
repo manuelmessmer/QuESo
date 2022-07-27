@@ -65,7 +65,7 @@ public:
     {
         auto start_time = std::chrono::high_resolution_clock::now();
         if( mParameters.EchoLevel() > 0)
-            std::cout << "STLEmbedder :: Start: " << std::endl;
+            std::cout << "TrIGA :: Start: " << std::endl;
 
         // Allocate element/knotspans container
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
@@ -76,7 +76,7 @@ public:
 
             // Write Surface Mesh to vtk file if eco_level > 0
             if( mParameters.EchoLevel() > 0){
-                IO::polygon_mesh_to_vtk(mPolyhedron, "output/geometry.vtu");
+                IO::WriteMeshToVTK(mPolyhedron, "output/geometry.vtk", true);
             }
             mpInsideTest = std::make_unique<InsideTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
             // Compute volume
@@ -119,17 +119,19 @@ public:
             }
         }
 
+        if( mParameters.EchoLevel() > 0) {
+            // Write vtk files (binary = true)
+            IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
+            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk", true);
+            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk", true);
+
+            std::cout << "TrIGA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
+            std::cout << "TrIGA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
+        }
 
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
-        if( mParameters.EchoLevel() > 0) {
-            IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk");
-            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk");
-            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk");
-            std::cout << "STLEmbedder :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
-            std::cout << "STLEmbedder :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
-            std::cout << "STLEmbedder :: Elapsed Time: " << elapsed_time.count() << std::endl;
-        }
+        std::cout << "TrIGA :: Elapsed Time: " << elapsed_time.count() << std::endl;
         // ExportVolumeMesh();
         // ExportSTL();
     }
