@@ -1,52 +1,50 @@
+// Author: Manuel Meßmer
+// Email: manuel.messmer@tum.de
 
 // CGAL includes
 // Domain
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Mesh_polyhedron_3.h>
 #include <CGAL/Surface_mesh.h>
-
-#include <CGAL/number_utils.h>
-
 // Boost
-//#include <CGAL/boost/graph/graph_traits.h>
 #include <CGAL/boost/graph/properties.h>
+
+// External includes
+//#include <fstream>      // std::ofstream
 
 // Project includes
 #include "io/io_utilities.h"
 #include "modeler/modeler.h"
 
-
-
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Mesh_polyhedron_3<K>::type Mesh; // Todo: Rename to Polyhedron
 typedef CGAL::Surface_mesh<K::Point_3> SurfaceMesh;
 typedef std::size_t SizeType;
 
-template<typename PM>
-void IO::polygon_mesh_to_vtk(const PM& pmesh,//PolygonMesh
-                                      const char* filename, const bool binary)
+template<typename SM>
+void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
+                        const char* Filename,
+                        const bool Binary)
 {
-  typedef typename boost::graph_traits<PM>::vertex_descriptor   vertex_descriptor;
-  typedef typename boost::graph_traits<PM>::face_descriptor     face_descriptor;
-  typedef typename boost::graph_traits<PM>::halfedge_descriptor halfedge_descriptor;
+  typedef typename boost::graph_traits<SM>::vertex_descriptor   vertex_descriptor;
+  typedef typename boost::graph_traits<SM>::face_descriptor     face_descriptor;
+  typedef typename boost::graph_traits<SM>::halfedge_descriptor halfedge_descriptor;
 
-  typedef typename boost::property_map<PM, CGAL::vertex_point_t>::const_type VPMap;
-  typedef typename boost::property_map_value<PM, CGAL::vertex_point_t>::type Point_3;
+  typedef typename boost::property_map<SM, CGAL::vertex_point_t>::const_type VPMap;
+  typedef typename boost::property_map_value<SM, CGAL::vertex_point_t>::type Point_3;
 
-  VPMap vpmap = CGAL::get(CGAL::vertex_point, pmesh);
+  VPMap vpmap = CGAL::get(CGAL::vertex_point, rSurfaceMesh);
 
-  const SizeType num_elements = pmesh.number_of_faces();
-  const SizeType num_points = pmesh.number_of_vertices();
+  const SizeType num_elements = rSurfaceMesh.number_of_faces();
+  const SizeType num_points = rSurfaceMesh.number_of_vertices();
 
   std::ofstream file;
-  if(binary)
-    file.open(filename, std::ios::out | std::ios::binary);
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
   else
-    file.open(filename);
+    file.open(Filename);
 
   file << "# vtk DataFile Version 4.1" << std::endl;
   file << "vtk output" << std::endl;
-  if(binary)
+  if(Binary)
     file << "BINARY"<< std::endl;
   else
     file << "ASCII"<< std::endl;
@@ -54,58 +52,49 @@ void IO::polygon_mesh_to_vtk(const PM& pmesh,//PolygonMesh
   file << "DATASET UNSTRUCTURED_GRID" << std::endl;
   file << "POINTS " << num_points << " double" << std::endl;
 
-
-  std::map<vertex_descriptor, IndexType> Vids;
+  std::map<vertex_descriptor, IndexType> vids;
   IndexType inum = 0;
-  for(vertex_descriptor v : vertices(pmesh))
+  for(vertex_descriptor v : vertices(rSurfaceMesh))
   {
     const Point_3& p = get(vpmap, v);
-    if( binary ){
-
+    if( Binary ){
       double rx = CGAL::to_double(p.x());
       double ry = CGAL::to_double(p.y());
       double rz = CGAL::to_double(p.z());
-      SwapEnd(rx);
-      SwapEnd(ry);
-      SwapEnd(rz);
 
-      file.write(reinterpret_cast<char*>(&rx), sizeof(double));
-      file.write(reinterpret_cast<char*>(&ry), sizeof(double));
-      file.write(reinterpret_cast<char*>(&rz), sizeof(double));
-
+      WriteBinary(file, rx);
+      WriteBinary(file, ry);
+      WriteBinary(file, rz);
     }
     else {
       file << CGAL::to_double(p.x()) << ' ' << CGAL::to_double(p.y()) << ' ' << CGAL::to_double(p.z()) << std::endl;
 
     }
-    Vids[v] = inum++;
+    vids[v] = inum++;
   }
   file << std::endl;
 
   // Write Cells
   file << "Cells " << num_elements << " " << num_elements*4 << std::endl;
 
-  for(face_descriptor f : faces(pmesh))
+  for(face_descriptor f : faces(rSurfaceMesh))
   {
-    if( binary ){
+    if( Binary ){
       int k = 3;
-      SwapEnd(k);
-      file.write(reinterpret_cast<char*>(&k), sizeof(int));
+      WriteBinary(file, k);
       for(halfedge_descriptor h :
-                    halfedges_around_face(halfedge(f, pmesh), pmesh))
+                    halfedges_around_face(halfedge(f, rSurfaceMesh), rSurfaceMesh))
       {
-        k = Vids[target(h, pmesh)];
-        SwapEnd(k);
-        file.write(reinterpret_cast<char*>(&k), sizeof(int));
-
+        k = vids[target(h, rSurfaceMesh)];
+        WriteBinary(file, k);
       }
     }
     else {
       file << 3;
       for(halfedge_descriptor h :
-                    halfedges_around_face(halfedge(f, pmesh), pmesh))
+                    halfedges_around_face(halfedge(f, rSurfaceMesh), rSurfaceMesh))
       {
-          file << ' ' << Vids[target(h, pmesh)];
+          file << ' ' << vids[target(h, rSurfaceMesh)];
       }
       file << std::endl;
     }
@@ -114,10 +103,9 @@ void IO::polygon_mesh_to_vtk(const PM& pmesh,//PolygonMesh
 
   file << "CELL_TYPES " << num_elements << std::endl;
   for( int i = 0; i < num_elements; ++i){
-    if( binary ){
+    if( Binary ){
         int k = 5;
-        SwapEnd(k);
-        file.write(reinterpret_cast<char*>(&k), sizeof(int));
+        WriteBinary(file, k);
     }
     else {
       file << 5 << std::endl;
@@ -125,49 +113,30 @@ void IO::polygon_mesh_to_vtk(const PM& pmesh,//PolygonMesh
   }
   file << std::endl;
 
-  // file << "CELL_DATA 4" << std::endl;
-  // file << "GLOBAL_IDS GlobalCellIds vtkIdType" << std::endl;
-  // for( int i = 0; i < num_elements; ++i){
-  //     if( binary ){
-  //       int k = i;
-  //       SwapEnd(k);
-  //       file.write(reinterpret_cast<char*>(&k), sizeof(int));
-  //     }
-  //     else {
-  //       file << i << ' ';
-  //       if( i%4 == 0 && i > 0){
-  //         file << std::endl;
-  //       }
-  //     }
-  // }
-  // file << std::endl;
-
   file.close();
-
 }
 
-// template void IO::polygon_mesh_to_vtk<Mesh>(const Mesh& pmesh,//PolygonMesh
-//                                                 const char* filename,
-//                                                 const bool binary);
-template void IO::polygon_mesh_to_vtk<SurfaceMesh>(const SurfaceMesh& pmesh,//PolygonMesh
-                                                const char* filename,
-                                                const bool binary);
+// Instantiation
+template void IO::WriteMeshToVTK<SurfaceMesh>(const SurfaceMesh& rSurfaceMesh,//PolygonMesh
+                                              const char* Filename,
+                                              const bool Binary);
 
 void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
-                        const char* filename, const bool binary){
+                            const char* Filename,
+                            const bool Binary){
 
 
   const SizeType num_elements = rElementContainer.size();
 
   std::ofstream file;
-  if(binary)
-    file.open(filename, std::ios::out | std::ios::binary);
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
   else
-    file.open(filename);
+    file.open(Filename);
 
   file << "# vtk DataFile Version 4.1" << std::endl;
   file << "vtk output" << std::endl;
-  if(binary)
+  if(Binary)
     file << "BINARY"<< std::endl;
   else
     file << "ASCII"<< std::endl;
@@ -181,7 +150,7 @@ void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
     auto lower_point = el_itr->GetGlobalLowerPoint();
     auto upper_point = el_itr->GetGlobalUpperPoint();
 
-    if( binary ){
+    if( Binary ){
 
       double rx0 = lower_point[0];
       SwapEnd(rx0);
@@ -243,14 +212,12 @@ void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
   // Write Cells
   file << "Cells " << num_elements << " " << num_elements*9 << std::endl;
   for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
-    if( binary ){
+    if( Binary ){
       int k = 8;
-      SwapEnd(k);
-      file.write(reinterpret_cast<char*>(&k), sizeof(int));
+      WriteBinary(file, k);
       for( int j = 0; j < 8; ++j){
         k = 8*i+j;
-        SwapEnd(k);
-        file.write(reinterpret_cast<char*>(&k), sizeof(int));
+        WriteBinary(file, k);
       }
     }
     else {
@@ -262,10 +229,9 @@ void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
 
   file << "CELL_TYPES " << rElementContainer.size() << std::endl;
   for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
-    if( binary ){
+    if( Binary ){
         int k = 12;
-        SwapEnd(k);
-        file.write(reinterpret_cast<char*>(&k), sizeof(int));
+        WriteBinary(file, k);
     }
     else {
       file << 12 << std::endl;
@@ -273,30 +239,14 @@ void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
   }
   file << std::endl;
 
-  // file << "CELL_DATA 4" << std::endl;
-  // file << "GLOBAL_IDS GlobalCellIds vtkIdType" << std::endl;
-  // for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
-  //     if( binary ){
-  //       int k = i;
-  //       SwapEnd(k);
-  //       file.write(reinterpret_cast<char*>(&k), sizeof(int));
-  //     }
-  //     else {
-  //       file << i << ' ';
-  //       if( i%4 == 0 && i > 0){
-  //         file << std::endl;
-  //       }
-  //     }
-  // }
-  // file << std::endl;
-
   file.close();
 }
 
 
-void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
-                                    const char* filename,
-                                    const bool binary){
+void IO::WritePointsToVTK(ElementContainer& rElementContainer,
+                          const char* type,
+                          const char* Filename,
+                          const bool Binary){
 
   auto p_points = rElementContainer.pGetPoints(type);
   const auto begin_points_it_ptr = p_points->begin();
@@ -304,14 +254,14 @@ void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
   const int num_elements = p_points->size();
 
   std::ofstream file;
-  if(binary)
-    file.open(filename, std::ios::out | std::ios::binary);
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
   else
-    file.open(filename);
+    file.open(Filename);
 
   file << "# vtk DataFile Version 4.1" << std::endl;
   file << "vtk output" << std::endl;
-  if(binary)
+  if(Binary)
     file << "BINARY"<< std::endl;
   else
     file << "ASCII"<< std::endl;
@@ -325,19 +275,10 @@ void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
     auto points_it = (begin_points_it_ptr + i);
     auto point_global = MappingUtilities::FromLocalToGlobalSpace(*points_it, param.PointA(), param.PointB() );
 
-    if( binary ){
-
-      double rx = point_global[0];
-      double ry = point_global[1];
-      double rz = point_global[2];
-      SwapEnd(rx);
-      SwapEnd(ry);
-      SwapEnd(rz);
-
-      file.write(reinterpret_cast<char*>(&rx), sizeof(double));
-      file.write(reinterpret_cast<char*>(&ry), sizeof(double));
-      file.write(reinterpret_cast<char*>(&rz), sizeof(double));
-
+    if( Binary ){
+      WriteBinary(file, point_global[0]);
+      WriteBinary(file, point_global[1]);
+      WriteBinary(file, point_global[2]);
     }
     else {
       file << point_global[0] << ' ' << point_global[1] << ' ' << point_global[2] << std::endl;
@@ -348,15 +289,11 @@ void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
   //Write Cells
   file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
   for( int i = 0; i < num_elements; ++i){
-    if( binary ){
+    if( Binary ){
       int k = 1;
-      SwapEnd(k);
-      file.write(reinterpret_cast<char*>(&k), sizeof(int));
-
+      WriteBinary(file, k);
       k = i;
-      SwapEnd(k);
-      file.write(reinterpret_cast<char*>(&k), sizeof(int));
-
+      WriteBinary(file, k);
     }
     else {
       file << 1 << ' ' << i << std::endl;
@@ -366,10 +303,9 @@ void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
 
   file << "CELL_TYPES " << num_elements << std::endl;
   for( int i = 0; i < num_elements; ++i){
-    if( binary ){
+    if( Binary ){
         int k = 1;
-        SwapEnd(k);
-        file.write(reinterpret_cast<char*>(&k), sizeof(int));
+        WriteBinary(file, k);
     }
     else {
       file << 1 << std::endl;
@@ -383,10 +319,9 @@ void IO::WritePointsToVTK(ElementContainer& rElementContainer, const char* type,
   for(int i = 0; i < num_points; ++i){
       auto points_it = (begin_points_it_ptr + i);
 
-      if( binary ){
+      if( Binary ){
         double rw = points_it->GetWeight();
-        SwapEnd(rw);
-        file.write(reinterpret_cast<char*>(&rw), sizeof(double));
+        WriteBinary(file, rw);
       }
       else {
         file << points_it->GetWeight() << std::endl;
