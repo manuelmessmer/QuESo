@@ -7,6 +7,7 @@ TrIGA is an IGA preprocessor to prepare analysis suitable models from volumetric
 
 - CMAKE (minimum 3.15)
 - BOOST Unit Test Framework
+- OpenMP
 - CGAL - https://www.cgal.org/ (minimum version 5.3.2) 
 
 ## Installation
