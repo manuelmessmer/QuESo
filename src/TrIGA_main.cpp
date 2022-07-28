@@ -21,7 +21,7 @@
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
 
 /// Functions
-void TrIGA::ComputeIntegrationPoints(){
+void TrIGA::Run(){
   // Obtain discretization of background mesh.
   const double delta_x = std::abs(mParameters.PointA()[0] - mParameters.PointB()[0])/(mParameters.NumberOfElements()[0]);
   const double delta_y = std::abs(mParameters.PointA()[1] - mParameters.PointB()[1])/(mParameters.NumberOfElements()[1]);
@@ -95,7 +95,7 @@ void TrIGA::ComputeIntegrationPoints(){
         // IntegrationPointUtilities::( (*mpInsideTest), tmp_element->GetIntegrationPointsFictitious(),
         //  cube_point_A_param, cube_point_B_param, mParameters.Order()[0], mParameters.Order()[1], mParameters.Order()[2]);
 
-        MomentFitting::ComputeReducedPointsSurfaceIntegral(*tmp_element, mParameters);
+        MomentFitting::CreateIntegrationPointsTrimmed(*tmp_element, mParameters);
 
         if( tmp_element->GetIntegrationPointsTrimmed().size() == 0 ){
           valid_element = false;
@@ -135,7 +135,7 @@ void TrIGA::ComputeIntegrationPoints(){
     //MultiKnotspanUtilities::ComputeIntegrationPoints(*mpElementContainer, mParameters);
 
     #pragma omp single
-    MultiKnotspanBoxesUtilities::ComputeIntegrationPoints(*mpElementContainer, mParameters);
+    MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(*mpElementContainer, mParameters);
   }
 }
 
