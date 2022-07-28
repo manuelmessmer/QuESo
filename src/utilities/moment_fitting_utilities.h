@@ -5,33 +5,30 @@
 #define MOMENT_FITTING_UTILITIES_INCLUDE_H
 
 // External includes
+#include <boost/numeric/ublas/matrix.hpp>
 #include <vector>
 #include <array>
+#include <variant>
 
 // Project includes
 #include "geometries/element.h"
 #include "utilities/parameters.h"
 
-typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
 
-namespace MomentFitting{
 
-double ComputeReducedPointsSurfaceIntegral(Element& rElement, const int PointDistributionFactor, const Parameters& rParam);
+class MomentFitting{
+public:
+    typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
+    typedef boost::numeric::ublas::vector<double> VectorType;
 
-void ComputeReducedPointsSurfaceIntegral(Element& rElement, const Parameters& rParam);
+    static void CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam);
 
-void DistributeIntegrationPoints(Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
+private:
+    static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
 
-double f_x(double x, int order);
+    static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
 
-double f_x_integral(double x, int order);
-
-double p_n(double x, int order);
-
-double f_x(double x, int order, double a, double b);
-
-double f_x_integral(double x, int order, double a, double b);
-
-} // End Namespace
+    static void ComputeConstantTerms(const Element& rElement, VectorType& rConstantTerms, const Parameters& rParam);
+}; // End Class
 
 #endif // MOMENT_FITTING_UTILITIES_INCLUDE_H
