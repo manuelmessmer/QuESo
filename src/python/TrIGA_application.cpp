@@ -92,8 +92,6 @@ PYBIND11_MODULE(TrIGA_Application,m) {
         .def("GetLocalLowerPoint", &Element::GetLocalLowerPoint)
         .def("GetLocalUpperPoint", &Element::GetLocalUpperPoint)
         .def("GetNumberBoundaryTriangles", &Element::GetNumberBoundaryTriangles)
-        .def("MfIterationsResidual", &Element::MfIterationsResidual)
-        .def("MfIterationsPoints", &Element::MfIterationsPoints)
         .def("ID", &Element::GetId)
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
@@ -102,7 +100,7 @@ PYBIND11_MODULE(TrIGA_Application,m) {
     py::class_<TrIGA,std::shared_ptr<TrIGA>>(m,"TrIGA")
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
-        .def("GetElements",  &TrIGA::ExportElements, py::return_value_policy::reference_internal )
+        .def("GetElements",  &TrIGA::GetElements, py::return_value_policy::reference_internal )
     ;
 
 
