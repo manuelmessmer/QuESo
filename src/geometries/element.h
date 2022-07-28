@@ -10,15 +10,16 @@
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
 
+// External includes
+#include <stdexcept>
+#include "omp.h"
+#include <memory>
+
 // Project includes
 #include "geometries/integration_point.h"
 #include "geometries/triangle_3d_3n.h"
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
-
-// External includes
-#include "omp.h"
-#include <memory>
 
 
 class Element

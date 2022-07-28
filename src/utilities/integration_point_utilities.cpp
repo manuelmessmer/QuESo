@@ -1,5 +1,10 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
+
+// External includes
+#include <stdexcept>
+
+// Project includes
 #include "utilities/integration_points/integration_points_factory.h"
 #include "utilities/integration_point_utilities.h"
 
@@ -11,7 +16,7 @@ void IntegrationPointUtilities::IntegrationPoints3D(
 {
 
    if(PointsInU < 1 || PointsInV < 1 || PointsInW < 1){
-        throw  std::runtime_error("PointsInU, -V and -W need to be bigger than 0 - PointsInU:" + std::to_string(PointsInU)
+        throw  std::invalid_argument("PointsInU, -V and -W need to be bigger than 0 - PointsInU:" + std::to_string(PointsInU)
             + ", PointsInV:" + std::to_string(PointsInV) + " and PointsInW:" + std::to_string(PointsInW) + "\n");
    }
 
@@ -53,7 +58,7 @@ void IntegrationPointUtilities::IntegrationPoints3D(
 {
 
    if(PointsInU < 1 || PointsInV < 1 || PointsInW < 1){
-        throw  std::runtime_error("PointsInU, -V and -W need to be bigger than 0 - PointsInU:" + std::to_string(PointsInU)
+        throw  std::invalid_argument("PointsInU, -V and -W need to be bigger than 0 - PointsInU:" + std::to_string(PointsInU)
             + ", PointsInV:" + std::to_string(PointsInV) + " and PointsInW:" + std::to_string(PointsInW) + "\n");
    }
 

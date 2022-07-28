@@ -6,6 +6,7 @@
 
 // External includes
 #include <boost/numeric/ublas/matrix.hpp>
+#include <stdexcept>
 
 // Project includes
 #include "geometries/triangle_gauss_legendre_integration_points.h"
@@ -133,7 +134,8 @@ public:
         case 2:
             return( rPoint[1] );
         default:
-            throw std::runtime_error(" Triangle3D3N Wrong Index of Shape Function! ");
+            throw std::invalid_argument(" Triangle3D3N Wrong Index of Shape Function! ");
+            break;
         }
 
         return 0;
