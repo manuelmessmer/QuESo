@@ -1,6 +1,10 @@
 #ifndef INTEGRATION_POINTS_FACTORY_H
 #define INTEGRATION_POINTS_FACTORY_H
 
+// External includes
+#include <stdexcept>
+
+// Project includes
 #include "gauss_legendre_integration_points.h"
 #include "knot_span_integration_points_p_2.h"
 #include "knot_span_integration_points_p_3.h"
@@ -27,7 +31,8 @@ public:
             case ReducedOrder2:
                 return AllMultiKnotSpanIntegrationPointsReducedOrder2()[PolynomialDegree-2][NumberKnotSpans-1];
             default:
-                throw std::runtime_error("IntegrationPointFactory: Method not available");
+                throw std::invalid_argument("IntegrationPointFactory: Method not available");
+                break;
         }
     }
 
@@ -41,7 +46,8 @@ public:
             case ReducedGauss2:
                 return GetGaussLegendrePoints(PolynomialDegree-2);
             default:
-                throw std::runtime_error("IntegrationPointFactory: Method not available");
+                throw std::invalid_argument("IntegrationPointFactory: Method not available");
+                break;
         }
     }
 

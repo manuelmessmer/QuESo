@@ -87,7 +87,7 @@ public:
         }
 
         // Start computation
-        ComputeIntegrationPoints();
+        Run();
 
         // Compute number of trimmed elements
         auto element_it_begin = mpElementContainer->begin();
@@ -137,11 +137,11 @@ public:
     }
 
     // Public Member Functions
-    std::unique_ptr<ElementContainer> GetElements(){ // Maybe Rename to get ElementContainer
+    std::unique_ptr<ElementContainer> GetElementContainer(){ // Maybe Rename to get ElementContainer
         return std::move(mpElementContainer);
     }
 
-    ElementContainer::ElementVectorPtrType& ExportElements(){
+    ElementContainer::ElementVectorPtrType& GetElements(){
         return mpElementContainer->GetElements();
     }
 
@@ -156,7 +156,7 @@ private:
     const bool mEmbeddingFlag;
 
     // Private Member Functions
-    void ComputeIntegrationPoints();
+    void Run();
 
     //void ExportVolumeMesh();
 

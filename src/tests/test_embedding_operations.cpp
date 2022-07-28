@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(SurfaceMeshPoints) {
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = triga.GetElements();
+    auto elements = triga.GetElementContainer();
 
     BOOST_CHECK_EQUAL(elements->size(), 1);
 

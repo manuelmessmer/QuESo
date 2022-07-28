@@ -4,6 +4,10 @@
 #ifndef ELEMENT_CONTAINER_INCLUDE_H
 #define ELEMENT_CONTAINER_INCLUDE_H
 
+// External includes
+#include <stdexcept>
+
+// Project includes
 #include "geometries/element.h"
 #include "utilities/parameters.h"
 
@@ -15,6 +19,8 @@ public:
     // Typedefs
     typedef std::shared_ptr<Element> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
+    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    typedef std::unique_ptr<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
     typedef std::unordered_map<IndexType, IndexType> ElementHashMap;
@@ -208,7 +214,7 @@ public:
         case 5: // Backward Z
             return (indices[2] == 0);
         default:
-            throw std::runtime_error("Element Container: There are only 6 different directions!" );
+            throw std::invalid_argument("Element Container: There are only 6 different directions!" );
         }
     }
 
@@ -227,14 +233,13 @@ public:
             else {
                 std::stringstream error_message;
                 error_message << "Element Container: Given type '" << type << "' not available.";
-                throw std::runtime_error(error_message.str());
+                throw std::invalid_argument(error_message.str());
             }
-
             points->insert(points->end(), points_tmp.begin(), points_tmp.end());
         }
-
         return std::move(points);
     }
+
 private:
 
     IndexType GetNextIndexX(IndexType i){

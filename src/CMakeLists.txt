@@ -18,6 +18,8 @@ if ( NOT CGAL_FOUND )
   return()
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -funroll-loops -ffast-math -std=c++17 ")
+
 # OMP support
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -27,7 +29,9 @@ if (OPENMP_FOUND)
 else()
   message(STATUS "OMP was not found")
   return()
-endif()
+  endif()
+
+message("CXX FLAGS: ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # Try to use python executable from env variable
 if(DEFINED ENV{PYTHON_EXECUTABLE})

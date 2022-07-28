@@ -5,6 +5,7 @@
 #define POLYNOMIAL_UTILITIES_INCLUDE_H
 
 // External includes
+#include <vector>
 #include <variant>
 #include <cmath>
 
@@ -136,4 +137,5 @@ double inline f_x_int( double x, int order, double a, double b ){
 }
 
 } // End Namespace
+
 #endif

@@ -93,7 +93,7 @@ def main():
     minimum_number_of_triangles = 2000
     moment_fitting_residual = 1e-12
     integration_method = "Gauss"
-    echo_level = 2
+    echo_level = 1
     E = 100
     nu = 0.0
     material_properties = [E, nu, 7.8e-6]

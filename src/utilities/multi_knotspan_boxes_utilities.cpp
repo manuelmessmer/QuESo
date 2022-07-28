@@ -4,7 +4,7 @@
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
-void MultiKnotspanBoxesUtilities::ComputeIntegrationPoints(ElementContainer& rElements, const Parameters& rParameters){
+void MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(ElementContainer& rElements, const Parameters& rParameters){
 
     // Loop over all 3 space dimensions
     // i = 0: x

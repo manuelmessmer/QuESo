@@ -20,15 +20,16 @@
 #include <map>
 
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef K::Point_3 Point_3;
-typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
-typedef CGAL::Side_of_triangle_mesh<SurfaceMeshType, K> InsideTestType;
-typedef std::array<double,3> PointType;
 
 class InsideTest {
 
 public:
+    typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+    typedef K::Point_3 Point_3;
+    typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
+    typedef CGAL::Side_of_triangle_mesh<SurfaceMeshType, K> InsideTestType;
+    typedef std::array<double,3> PointType;
+
     enum IntersectionStatus {Inside, Outside, Trimmed};
 
     InsideTest(SurfaceMeshType& Polyhedron, PointType LowerPoint, PointType UpperPoint) :
