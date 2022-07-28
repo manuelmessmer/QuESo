@@ -11,7 +11,10 @@
 #include "nnls_impl.h"
 #include "nnls.h"
 
+
 double NNLS::nnls(MatrixType& A, VectorType& b, VectorType& x){
+    typedef boost::numeric::ublas::matrix<double> MatrixType;
+    typedef boost::numeric::ublas::vector<double> VectorType;
 
     // Get Dimension
     int m = A.size1();

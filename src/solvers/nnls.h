@@ -6,10 +6,11 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 
-typedef boost::numeric::ublas::matrix<double> MatrixType;
-typedef boost::numeric::ublas::vector<double> VectorType;
 
 namespace NNLS {
+
+typedef boost::numeric::ublas::matrix<double> MatrixType;
+typedef boost::numeric::ublas::vector<double> VectorType;
 
 // Wrapper for nnls solver
 double nnls(MatrixType& A, VectorType& b, VectorType& x);
