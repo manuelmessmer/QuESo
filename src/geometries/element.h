@@ -215,11 +215,11 @@ public:
         return mDirichletTriangles;
     }
 
-    PointType GetLocalUpperPoint(){
+    PointType GetLocalUpperPoint() const {
         return mLocalUpperPoint;
     }
 
-    PointType GetLocalLowerPoint(){
+    PointType GetLocalLowerPoint() const {
         return mLocalLowerPoint;
     }
 
@@ -260,6 +260,13 @@ public:
         return *mpSurfaceMesh;
     }
 
+    const SurfaceMeshType& GetSurfaceMesh() const {
+        if( !mSurfaceMeshSetFlag ){
+            throw  std::runtime_error("Element :: Surface Mesh Pointer has not been set" );
+        }
+        return *mpSurfaceMesh;
+    }
+
     void ClearSurfaceMesh(){
         mpInsideTest.reset();
         mpSurfaceMesh.reset();
@@ -267,7 +274,7 @@ public:
     }
 
     // TODO: Use inside_test.h and remove corresponding include.
-    bool IsPointInTrimmedDomain(PointType& rTestPoint){
+    bool IsPointInTrimmedDomain(PointType& rTestPoint) const {
         if( !mSurfaceMeshSetFlag ){
             throw  std::runtime_error("Element :: Surface Mesh Pointer has not been set" );
         }
@@ -279,7 +286,7 @@ public:
         return false;
     }
 
-    BoundingBox ComputeTrimmedBoundingBox(){
+    const BoundingBox ComputeTrimmedBoundingBox() const {
         if( !mSurfaceMeshSetFlag ){
             throw  std::runtime_error("Element :: Surface Mesh Pointer has not been set" );
         }
@@ -321,20 +328,6 @@ public:
 
     bool IsVisited(){
         return mIsVisited;
-    }
-
-    // Information to keep track of iterations of point elimination algorithm. Only for publication.
-    void AddResidual(double value){
-        mResidual.push_back(value);
-    }
-    void AddNumberIps(int value){
-        mNumberIntegrationPoints.push_back(value);
-    }
-    std::vector<double> MfIterationsResidual(){
-        return mResidual;
-    }
-    std::vector<int> MfIterationsPoints(){
-        return mNumberIntegrationPoints;
     }
 
 private:
