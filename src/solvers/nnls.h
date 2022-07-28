@@ -13,7 +13,7 @@ typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
 
 // Wrapper for nnls solver
-double nnls(MatrixType& A, VectorType& b, VectorType& x);
+double nnls(MatrixType& A, const VectorType& b, VectorType& x);
 
 } // End Namespace NNLS
 

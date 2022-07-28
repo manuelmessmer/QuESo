@@ -12,7 +12,7 @@
 #include "nnls.h"
 
 
-double NNLS::nnls(MatrixType& A, VectorType& b, VectorType& x){
+double NNLS::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     typedef boost::numeric::ublas::matrix<double> MatrixType;
     typedef boost::numeric::ublas::vector<double> VectorType;
 

@@ -27,7 +27,7 @@ typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
 
 namespace Testing{
 
-BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
+BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
 
     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
         point_A, point_B, order[0], order[1], order[2]);
 
     // Run Moment Fitting
-    MomentFitting::ComputeReducedPointsSurfaceIntegral(element, point_distribution_factor, param);
+    MomentFitting::CreateIntegrationPointsTrimmed(element, param);
 
     auto& points_moment_fitting = element.GetIntegrationPointsTrimmed();
     auto& points_gauss_legendre = element.GetIntegrationPointsInside();
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegral) {
 } // End Testcase
 
 
-BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
+BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
     std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingSurfaceIntegralP3) {
         point_A, point_B, order[0], order[1], order[2]);
 
     // Run Moment Fitting
-    MomentFitting::ComputeReducedPointsSurfaceIntegral(element, point_distribution_factor, param);
+    MomentFitting::CreateIntegrationPointsTrimmed(element, param);
 
     auto& points_moment_fitting = element.GetIntegrationPointsTrimmed();
     auto& points_gauss_legendre = element.GetIntegrationPointsInside();
