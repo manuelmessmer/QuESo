@@ -7,12 +7,12 @@
 #include "geometries/element_container.h"
 #include "utilities/parameters.h"
 
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
-
 namespace MultiKnotspanBoxesUtilities {
 
-    void ComputeIntegrationPoints(ElementContainer& rElements, const Parameters& rParameter);
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
+
+    void CreateIntegrationPointsNonTrimmed(ElementContainer& rElements, const Parameters& rParameter);
 
     void AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters);
 
