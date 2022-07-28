@@ -18,19 +18,20 @@
 #include <chrono>
 #include <stdexcept>
 
-// Typedefs
-typedef CGAL::Polyhedral_mesh_domain_with_features_3<K> Mesh_domain;
-// Warning: Do not use parallel tag, as global omp parallization is implemented.
-typedef CGAL::Sequential_tag Concurrency_tag;
-typedef K::Vector_3 Vector;
-
-typedef boost::property_map<CGAL::Surface_mesh<Point_3>, CGAL::edge_is_feature_t>::type EIFMap;
 
 // Namespaces
 namespace PMP = CGAL::Polygon_mesh_processing;
 using namespace CGAL::parameters;
 
 bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometry, SurfaceMeshType& rCube, Element& rElement, const Parameters& rParam){
+
+  // Typedefs
+  typedef CGAL::Polyhedral_mesh_domain_with_features_3<K> Mesh_domain;
+  // Warning: Do not use parallel tag, as global omp parallization is implemented.
+  typedef CGAL::Sequential_tag Concurrency_tag;
+  typedef K::Vector_3 Vector;
+
+  typedef boost::property_map<CGAL::Surface_mesh<Point_3>, CGAL::edge_is_feature_t>::type EIFMap;
 
   // Make sure cube is triangulated.
   CGAL::Polygon_mesh_processing::triangulate_faces(rCube);

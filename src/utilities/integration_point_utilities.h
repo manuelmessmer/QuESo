@@ -11,10 +11,10 @@
 #include "geometries/integration_point.h"
 #include "utilities/inside_test.h"
 
+namespace IntegrationPointUtilities {
+
 typedef std::vector<IntegrationPoint> IntegrationPointType;
 typedef size_t SizeType;
-
-namespace IntegrationPointUtilities {
 
 void IntegrationPoints3D(
         InsideTest& rInsideTest,

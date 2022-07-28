@@ -8,11 +8,10 @@
 #include <array>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 
+namespace MappingUtilities {
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_3 Point_3;
-
-namespace MappingUtilities
-{
 
 std::array<double,3> FromGlobalToLocalSpace(  const std::array<double,3>& rGlobalCoord,
                                               const std::array<double,3>& rLowerPoint,
