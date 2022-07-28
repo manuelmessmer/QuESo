@@ -1,4 +1,3 @@
-
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 

@@ -5,15 +5,23 @@
 #ifndef PARAMETERS_INCLUDE_H
 #define PARAMETERS_INCLUDE_H
 
+// External includes
+#include <stdexcept>
 #include <array>
+
+// Project includes
 #include "utilities/integration_points/integration_points_factory.h"
 
-typedef std::array<double, 3> DoublePointType;
-typedef std::array<int, 3> IntPointType;
 
 class Parameters
 {
+
 public:
+    // Typedefs
+    typedef std::array<double, 3> DoublePointType;
+    typedef std::array<int, 3> IntPointType;
+
+    // Constructor
     Parameters(DoublePointType PointA, DoublePointType PointB, IntPointType NumberOfElements, IntPointType Order,
                double InitialTriangleEdgeLength, int MinimumNumberOfTriangles, double MomentFittingResidual,
                double PointDistributionFactor, std::string IntegrationMethod, int EchoLevel) :
@@ -66,7 +74,7 @@ public:
         else if( mIntegrationMethod == "ReducedOrder2")
             return IntegrationPointFactory::IntegrationMethod::ReducedOrder2;
         else
-            throw  std::runtime_error("Parameters: Integration Method: " + mIntegrationMethod + " not available! \n");
+            throw  std::invalid_argument("Parameters: Integration Method: " + mIntegrationMethod + " not available! \n");
     }
     int EchoLevel() const {
         return mEchoLevel;
