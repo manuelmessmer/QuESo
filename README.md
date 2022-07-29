@@ -11,4 +11,4 @@ Required dependencies:
 
 Execute `sh configure.sh` to install TrIGA.
 
-You can add ```-DCGAL_DIR="Path-To_CGAL" \``` to the `configure.sh.`
+If CGAL is installed manually, you can add ```-DCGAL_DIR="Path-To_CGAL" \``` to the `configure.sh.`
