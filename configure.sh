@@ -1,8 +1,8 @@
 #!/bin/bash
 # Please do not modify this script
 
-# Change directory to src/
-cd "src/"
+# Change directory to triga/
+cd "triga/"
 # Set compiler
 #export CC=gcc-10
 #export CXX=g++-10
@@ -22,6 +22,7 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
+    -DCGAL_DIR="Path_to_CGAL" \
 
 # Buid
 cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j8
