@@ -1,0 +1,44 @@
+{
+        "problem_data"    : {
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings" : {
+        "solver_type"              : "Static",
+        "analysis_type"            : "linear",
+        "model_part_name"          : "NurbsMesh",
+        "echo_level"    : 1,
+        "domain_size"              : 3,
+        "model_import_settings"    : {
+            "input_type"     : "use_input_model_part"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "src/tests/data/StructuralMaterials.json"
+        },
+        "time_stepping"            : {
+            "time_step" : 1.1
+        },
+        "linear_solver_settings":{
+            "solver_type": "amgcl",
+            "tolerance" : 1e-10
+        },
+        "rotation_dofs"            : false,
+        "builder_and_solver_settings" : {
+            "use_block_builder" : true
+        },
+        "residual_relative_tolerance"        : 0.000001
+    },
+    "modelers": [{
+        "modeler_name": "NurbsGeometryModeler",
+        "Parameters": {
+            "model_part_name" : "NurbsMesh",
+            "geometry_name"   : "NurbsVolume",
+            "lower_point": [-2, -2,  0],
+            "upper_point": [2, 2, 5],
+            "polynomial_order" : [2, 2, 2],
+            "number_of_knot_spans" : [17,17,20]
+        }
+    }]
+}
