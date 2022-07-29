@@ -54,8 +54,10 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
 
   std::map<vertex_descriptor, IndexType> vids;
   IndexType inum = 0;
+  auto raw_points = rSurfaceMesh.points().data()->cartesian_begin();
   for(vertex_descriptor v : vertices(rSurfaceMesh))
   {
+
     const Point_3& p = get(vpmap, v);
     if( Binary ){
       double rx = CGAL::to_double(p.x());
@@ -113,6 +115,7 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
   }
   file << std::endl;
 
+
   file.close();
 }
 
@@ -120,6 +123,41 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
 template void IO::WriteMeshToVTK<SurfaceMesh>(const SurfaceMesh& rSurfaceMesh,//PolygonMesh
                                               const char* Filename,
                                               const bool Binary);
+
+
+void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+                                const char* Filename,
+                                const bool Binary){
+
+  // const SizeType num_elements = rSurfaceMesh.number_of_faces();
+  // const SizeType num_points = rSurfaceMesh.number_of_vertices();
+  const SizeType num_points = rDisplacement.size();
+
+  std::ofstream file;
+  if(Binary)
+    file.open(Filename, std::ios::app | std::ios::binary);
+  else
+    file.open(Filename);
+
+  file << "POINT_DATA " << num_points << std::endl;
+  file << "VECTORS Displacement double" << std::endl;
+  for(int i = 0; i < num_points; ++i){
+      if( Binary ){
+        double rw1 = rDisplacement[i][0];
+        WriteBinary(file, rw1);
+        double rw2 = rDisplacement[i][1];
+        WriteBinary(file, rw2);
+        double rw3 = rDisplacement[i][2];
+        WriteBinary(file, rw3);
+      }
+      else {
+        //file << points_it->GetWeight() << std::endl;
+      }
+  }
+  file << std::endl;
+
+  file.close();
+}
 
 void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
                             const char* Filename,

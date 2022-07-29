@@ -1,3 +1,7 @@
+// Author: Manuel Meßmer
+// Email: manuel.messmer@tum.de
+
+// Project includes
 #include "utilities/mapping_utilities.h"
 #include "utilities/multi_knotspan_boxes_utilities.h"
 #include "utilities/integration_points/integration_points_factory.h"
