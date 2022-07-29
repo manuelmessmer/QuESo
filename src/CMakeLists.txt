@@ -91,4 +91,4 @@ install(TARGETS TrIGA_ApplicationCore DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/..
 
 # Install Python module
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/TrIGA_Application.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TrIGA_PythonApplication RENAME __init__.py)
-
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/PyTrIGA.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TrIGA_PythonApplication)

@@ -9,6 +9,7 @@ except:
     kratos_available = False
 
 if kratos_available:
+    import json
     from kratos_interface.kratos_analysis import Analysis
     from kratos_interface.bounding_box_bcs import DirichletCondition
     from kratos_interface.bounding_box_bcs import NeumannCondition
@@ -17,68 +18,14 @@ if kratos_available:
 import unittest
 import numpy as np
 
-def GetParams():
-    analysis_parameters = KM.Parameters("""{
-            "problem_data"    : {
-                "parallel_type" : "OpenMP",
-                "echo_level"    : 1,
-                "start_time"    : 0.0,
-                "end_time"      : 1.0
-            },
-            "solver_settings" : {
-                "solver_type"              : "Static",
-                "analysis_type"            : "linear",
-                "model_part_name"          : "NurbsMesh",
-                "echo_level"    : 1,
-                "domain_size"              : 3,
-                "model_import_settings"    : {
-                    "input_type"     : "use_input_model_part"
-                },
-                "time_stepping"            : {
-                    "time_step" : 1.1
-                },
-                "linear_solver_settings":{
-                    "solver_type": "amgcl",
-                    "tolerance" : 1e-10
-                },
-                "rotation_dofs"            : false,
-                "builder_and_solver_settings" : {
-                    "use_block_builder" : true
-                },
-                "residual_relative_tolerance"        : 0.000001
-            },
-            "modelers": [{
-                "modeler_name": "NurbsGeometryModeler",
-                "Parameters": {
-                    "model_part_name" : "NurbsMesh",
-                    "geometry_name"   : "NurbsVolume",
-                    "lower_point": [-2, -2,  0],
-                    "upper_point": [2, 2, 5],
-                    "polynomial_order" : [2, 2, 2],
-                    "number_of_knot_spans" : [17,17,20]
-                }
-            }]
-        }""")
-
-    return analysis_parameters
 
 def run_analysis(number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
         filename = "dummy_filename"
 
-
         lower_point = [0, 0, 0]
         upper_point = [2, 2, 10]
-
         number_of_elements = [2,2,number_z_elements]
-
-        analysis_parameters = GetParams()
-        for modeler in analysis_parameters["modelers"]:
-            if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
-                modeler["Parameters"]["lower_point"].SetVector(lower_point)
-                modeler["Parameters"]["upper_point"].SetVector(upper_point)
-                modeler["Parameters"]["number_of_knot_spans"].SetVector(number_of_elements)
-                modeler["Parameters"]["polynomial_order"].SetVector(polynomial_degree)
 
         minimum_number_of_triangles = 5000
         initial_triangle_edge_length = 1
@@ -91,7 +38,6 @@ def run_analysis(number_z_elements, reduction_flag, polynomial_degree):
         point_distribution_factor = 5
         echo_level = 0
         embedding_flag = False
-        material_properties = [210000, 0.3, 7.8e-6]
 
         embedder = TrIGA_APP.TrIGA(filename, lower_point, upper_point, number_of_elements, polynomial_degree,
                                         initial_triangle_edge_length,
@@ -115,19 +61,25 @@ def run_analysis(number_z_elements, reduction_flag, polynomial_degree):
                 for point_inside in element.GetIntegrationPointsInside():
                     points_all.append(point_inside)
 
-
-        # Chose mesh for postprocessing/ visualization
-        surface_mesh_file = "pseudo"
-
         p = 100
         boundary_condition = []
         boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
         boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], p) )
-        postprocess_flag = False
-        output_dest = "dummy"
-        analysis = Analysis(surface_mesh_file, points_all, analysis_parameters, boundary_condition, material_properties, postprocess_flag, output_dest)
-        geometry = analysis.GetGeometry()
+
+        with open("src/tests/data/TrIGAParameters.json", 'r') as file:
+            settings = json.load(file)
+
+        mesh_settings = settings["mesh_settings"]
+        mesh_settings["lower_point"] = lower_point
+        mesh_settings["upper_point"] = upper_point
+        mesh_settings["polynomial_order"] = polynomial_degree
+        mesh_settings["number_of_knot_spans"] = number_of_elements
+
+        kratos_settings_filename = "src/tests/data/KratosParameters.json"
+
+        analysis = Analysis(mesh_settings, kratos_settings_filename, points_all, boundary_condition)
         model_part = analysis.GetModelPart()
+        geometry = model_part.GetGeometry("NurbsVolume")
 
         number_of_elements = model_part.NumberOfElements()
         param = KM.Vector(3)
