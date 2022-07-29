@@ -15,8 +15,12 @@ class IO{
 public:
   template<typename SM>
   static void WriteMeshToVTK(const SM& rSurfaceMesh,
-                      const char* Filename,
-                      const bool Binary);
+                             const char* Filename,
+                             const bool Binary);
+
+  static void WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+                                     const char* Filename,
+                                     const bool Binary);
 
   static void WriteElementsToVTK(ElementContainer& rElementContainer,
                           const char* Filename,

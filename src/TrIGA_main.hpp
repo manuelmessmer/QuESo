@@ -132,8 +132,7 @@ public:
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
         std::cout << "TrIGA :: Elapsed Time: " << elapsed_time.count() << std::endl;
-        // ExportVolumeMesh();
-        // ExportSTL();
+
     }
 
     // Public Member Functions
@@ -145,10 +144,19 @@ public:
         return mpElementContainer->GetElements();
     }
 
+    void ReadWritePostMesh(const std::string& Filename){
+        CGAL::IO::read_STL(Filename, mPolyhedronPost);
+        IO::WriteMeshToVTK(mPolyhedronPost, "output/results.vtk", true);
+    }
+
+    const SurfaceMeshType& GetPostMesh() const {
+        return mPolyhedronPost;
+    }
+
 private:
     // Private Members
     SurfaceMeshType mPolyhedron;
-    SurfaceMeshType mPolyhedronForExport;
+    SurfaceMeshType mPolyhedronPost;
     std::unique_ptr<InsideTest> mpInsideTest;
     std::unique_ptr<ElementContainer> mpElementContainer;
     const std::string mFilename;
@@ -157,10 +165,6 @@ private:
 
     // Private Member Functions
     void Run();
-
-    //void ExportVolumeMesh();
-
-    //void ExportSTL();
 };
 
 #endif // STL_EMBEDDER_H

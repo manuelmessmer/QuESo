@@ -16,6 +16,7 @@
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
+#include "io/io_utilities.h"
 
 typedef std::vector<IntegrationPoint> IntegrationPointType;
 typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
@@ -29,14 +30,55 @@ namespace Python {
 
 namespace py = pybind11;
 
-static const std::vector<std::array<double, 2>>& GetIntegrationPointsexport( int PolynomialDegree, int NumberKnotSpans  ){
 
-    return IntegrationPointFactory::GetIntegrationPoints(PolynomialDegree, NumberKnotSpans, IntegrationPointFactory::IntegrationMethod::ReducedOrder2 );
-}
+template <class T> class ptr_wrapper
+{
+    public:
+        ptr_wrapper() : ptr(nullptr) {}
+        ptr_wrapper(const T* ptr, std::size_t size) : ptr(ptr), size(size) {}
+        ptr_wrapper(const ptr_wrapper& other) : ptr(other.ptr), size(other.size) {}
+        const T& operator* () const { return *ptr; }
+        const T* operator->() const { return  ptr; }
+        const T* get() const { return ptr; }
+        std::size_t get_size() const {return size; };
+        void destroy() { delete ptr; }
+        const T& operator[](std::size_t idx) const { return ptr[idx]; }
+    private:
+        const T* ptr;
+        std::size_t size;
+};
+
+
+//ptr_wrapper<double> get_ptr(const TrIGA& v) { return const_cast<double*>(v.GetMeshPoints()); }
+// double array[3] = { 3.14, 2.18, -1 };
+// static ptr_wrapper<double> get_ptr() { return ptr_wrapper<double>(array, 3); }
 
 PYBIND11_MODULE(TrIGA_Application,m) {
 
-    m.doc() = "This is a Python binding for the STLEmbedder";
+    m.doc() = "This is a Python binding for TrIGA";
+
+    py::class_<ptr_wrapper<double>>(m,"pdouble")
+        .def(py::init<>())
+        .def("__len__", [](const ptr_wrapper<double> &v) { return v.get_size(); })
+        .def("__getitem__",  [](const ptr_wrapper<double> &v, unsigned int i){return v[i];} )
+        .def("__iter__", [](ptr_wrapper<double> &v) {
+            return py::make_iterator(v.get(), v.get() + v.get_size()) ;
+        }, py::keep_alive<0, 1>())
+        ;
+
+// void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+//                                 const char* Filename,
+//                                 const bool Binary){
+    // py::class_<ElementVectorPtrType>(m, "ElementVector")
+    //     .def(py::init<>())
+    //     .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
+    //     .def("__iter__", [](ElementVectorPtrType &v) {
+    //         return py::make_iterator( v.begin(), v.end() );
+    //     }, py::keep_alive<0, 1>())
+    //     ;
+
+    //m.def("get_ptr", &get_ptr);
+    //py::class_<ptr_wrapper<double>>(m,"pdouble");
 
     py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
@@ -101,11 +143,17 @@ PYBIND11_MODULE(TrIGA_Application,m) {
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
         .def("GetElements",  &TrIGA::GetElements, py::return_value_policy::reference_internal )
+        .def("ReadWritePostMesh", &TrIGA::ReadWritePostMesh )
+        .def("GetPostMeshPointsRaw", [](const TrIGA& v){
+            auto& mesh = v.GetPostMesh();
+            const std::size_t num_p = mesh.num_vertices();
+            const auto raw_ptr = mesh.points().data()->cartesian_begin();
+            return  ptr_wrapper<double>(raw_ptr, num_p*3);
+        });
     ;
 
 
-    m.def("GetIntegrationPoints", &GetIntegrationPointsexport )
-    ;
+    m.def("WriteDisplacementToVTK", &IO::WriteDisplacementToVTK);
 }
 
 }// namespace Python
