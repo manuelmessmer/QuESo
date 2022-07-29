@@ -1,5 +1,6 @@
 build/
-examples/output/
+examples/cantilever/output/
+examples_test/
 kratos_interface/__pycache__/
 libs/
 TestExecutables/
