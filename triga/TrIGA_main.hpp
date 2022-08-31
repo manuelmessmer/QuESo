@@ -15,7 +15,7 @@
 
 /// Project includes
 #include "io/io_utilities.h"
-#include "utilities/inside_test.h"
+#include "utilities/intersection_test.h"
 #include "geometries/element.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/parameters.h"
@@ -30,6 +30,9 @@
 #include <string>
 #include <chrono>
 
+
+extern std::chrono::duration<double> elapsed_time_intersection;
+extern std::chrono::duration<double> elapsed_time_remeshed;
 /// Type Definitions
 // Domain
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
@@ -78,7 +81,7 @@ public:
             if( mParameters.EchoLevel() > 0){
                 IO::WriteMeshToVTK(mPolyhedron, "output/geometry.vtk", true);
             }
-            mpInsideTest = std::make_unique<InsideTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
+            mpIntersectionTest = std::make_unique<IntersectionTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
             // Compute volume
             const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);
             if( mParameters.EchoLevel() > 0)
@@ -133,6 +136,8 @@ public:
         std::chrono::duration<double> elapsed_time = end_time - start_time;
         std::cout << "TrIGA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 
+        std::cout << "Intersection: " << elapsed_time_intersection.count() << std::endl;
+        std::cout << "Remesh: " << elapsed_time_remeshed.count() << std::endl;
     }
 
     // Public Member Functions
@@ -157,7 +162,7 @@ private:
     // Private Members
     SurfaceMeshType mPolyhedron;
     SurfaceMeshType mPolyhedronPost;
-    std::unique_ptr<InsideTest> mpInsideTest;
+    std::unique_ptr<IntersectionTest> mpIntersectionTest;
     std::unique_ptr<ElementContainer> mpElementContainer;
     const std::string mFilename;
     const Parameters mParameters;

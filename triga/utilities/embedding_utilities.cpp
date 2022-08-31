@@ -7,6 +7,7 @@
 // Meshing/ Triangulation
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
+//#include <CGAL/Polygon_mesh_processing/clip.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
 // IO
 #include <CGAL/IO/output_to_vtu.h>
@@ -18,6 +19,9 @@
 #include <chrono>
 #include <stdexcept>
 
+
+std::chrono::duration<double> elapsed_time_intersection;
+std::chrono::duration<double> elapsed_time_remeshed;
 
 // Namespaces
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -41,9 +45,20 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   SurfaceMeshType tmp_cube = rCube;
 
   // Compute intersection surface mesh
-  SurfaceMeshType intersection_mesh;
+  SurfaceMeshType intersection_mesh = rGeometry;
   bool valid_intersection = false;
+  auto start_time = std::chrono::high_resolution_clock::now();
   try {
+    auto lower_point = rElement.GetGlobalLowerPoint();
+    auto upper_point = rElement.GetGlobalUpperPoint();
+    const Point_3 point1(lower_point[0], lower_point[1], lower_point[2]);
+    const Point_3 point2(upper_point[0], upper_point[1], upper_point[2]);
+    const CGAL::Iso_cuboid_3<K> tmp_cuboid( point1, point2, 0);
+    //PMP::compute_face_normals(Q, fnormals);
+
+    //valid_intersection = PMP::clip(intersection_mesh, tmp_cuboid, PMP::parameters::clip_volume(false).throw_on_self_intersection(true) );
+
+    intersection_mesh.clear();
     valid_intersection = PMP::corefine_and_compute_intersection(tmp_polyhedron, tmp_cube, intersection_mesh);
   }
   catch(const std::exception& exc) {
@@ -54,11 +69,18 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     std::cerr << "No Valid Intersetion!" << std::endl;
     return 0;
   }
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  #pragma omp critical
+  elapsed_time_intersection += end_time-start_time;
+  //IO::WriteMeshToVTK(tmp_polyhedron, "output/test.vtk", true);
+  //intersection_mesh = tmp_polyhedron;
+  //intersection_mesh = tmp_polyhedron;
   const double volume_cube = CGAL::Polygon_mesh_processing::volume(tmp_cube);
   const double volume_intersection_surface_mesh = CGAL::Polygon_mesh_processing::volume(intersection_mesh);
 
   //Only consider intersections, which are larger than 0.1% with respect to the original element.
-  if( volume_intersection_surface_mesh/volume_cube < 0.001){
+  if( volume_intersection_surface_mesh/volume_cube < 1e-10){
     // std::cout << "Warning :: Intersection neglected! Intersection Polyhedron To Cube Volume Ratio: "
     //   << volume_intersection_surface_mesh/volume_cube << std::endl;
 
@@ -68,6 +90,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   // Construct ptr to SurfaceMesh
   std::unique_ptr<SurfaceMeshType> refinend_intersection_mesh = std::make_unique<SurfaceMeshType>();
 
+  start_time = std::chrono::high_resolution_clock::now();
   // Remesh intersected domain until minimum number of boundary triangles is reached.
   double edge_length = rParam.InitialTriangleEdgeLength();
   int iteration_count = 0;
@@ -92,7 +115,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     try {
       CGAL::Polygon_mesh_processing::isotropic_remeshing(faces(*refinend_intersection_mesh), edge_length,
                     *refinend_intersection_mesh,  PMP::parameters::number_of_iterations(nb_iterations).use_safety_constraints(false) // authorize all moves
-                                          .edge_is_constrained_map(eif));
+                                          .edge_is_constrained_map(eif).number_of_relaxation_steps(1));
     }
     catch(const std::exception& exc) {
         if( !CGAL::is_closed(*refinend_intersection_mesh) ){
@@ -104,7 +127,9 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     edge_length = edge_length * 0.95*std::sqrt((double)refinend_intersection_mesh->number_of_faces() / (double) rParam.MinimumNumberOfTriangles()); // Todo: Make this better!!!
     iteration_count++;
   }
-
+  end_time = std::chrono::high_resolution_clock::now();
+  #pragma omp critical
+  elapsed_time_remeshed += end_time - start_time;
   // Element::PositionType positions = refinend_intersection_mesh->points();
   // for (auto vi = refinend_intersection_mesh->vertices_begin(); vi != refinend_intersection_mesh->vertices_end(); ++vi)
   // {
@@ -120,7 +145,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
       << refinend_intersection_mesh->number_of_faces() << " / " <<  rParam.MinimumNumberOfTriangles() << std::endl;
   }
 
-  rElement.pSetSurfaceMesh(refinend_intersection_mesh); // Ptr is lost after this function call.
+  rElement.pSetSurfaceMesh( refinend_intersection_mesh ); // Ptr is lost after this function call.
 
   return 1;
 }

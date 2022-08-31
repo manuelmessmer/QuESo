@@ -13,6 +13,7 @@
 #include "geometries/integration_point.h"
 #include "utilities/parameters.h"
 
+#include <chrono>
 
 namespace EmbeddingUtilities {
 

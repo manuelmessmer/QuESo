@@ -39,7 +39,7 @@ class PyTrIGA:
         self.lower_point = self.mesh_settings["lower_point"]
         self.upper_point = self.mesh_settings["upper_point"]
         polynomial_order = self.mesh_settings["polynomial_order"]
-        number_of_knot_spans = self.mesh_settings["number_of_knot_spans"]
+        self.number_of_knot_spans = self.mesh_settings["number_of_knot_spans"]
 
         trimmed_quadrature_rule_settings = self.settings["trimmed_quadrature_rule_settings"]
         initial_triangle_edge_length = trimmed_quadrature_rule_settings["initial_triangle_edge_length"]
@@ -51,7 +51,7 @@ class PyTrIGA:
         integration_method = non_trimmed_quadrature_rule_settings["integration_method"]
 
         self.triga = TrIGA_Application.TrIGA(input_filename,
-                                             self.lower_point, self.upper_point, number_of_knot_spans, polynomial_order,
+                                             self.lower_point, self.upper_point, self.number_of_knot_spans, polynomial_order,
                                              initial_triangle_edge_length,
                                              min_num_boundary_triangles,
                                              moment_fitting_residual,
@@ -63,6 +63,9 @@ class PyTrIGA:
 
     def GetElements(self):
         return self.elements
+
+    def GetNumberElements(self):
+        return self.number_of_knot_spans
 
     def GetIntegrationPoints(self):
         integration_points = TrIGA_Application.VectorOfIntegrationPoints()
@@ -138,4 +141,5 @@ class PyTrIGA:
         TrIGA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
         #print(displacements[0])
 
-
+    def GetAnalysis(self):
+        return self.analysis

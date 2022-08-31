@@ -1,9 +1,6 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-//// CGAL includes
-#include <CGAL/Polygon_mesh_processing/intersection.h>
-
 //// Project includes
 #include "TrIGA_main.hpp"
 #include "utilities/integration_point_utilities.h"
@@ -19,7 +16,10 @@
 #include <omp.h>
 
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
-
+std::chrono::duration<double> elapsed_time_do_intersect;
+std::chrono::duration<double> elapsed_time_compute_inter;
+std::chrono::duration<double> elapsed_time_mf;
+std::chrono::duration<double> elapsed_new_function;
 /// Functions
 void TrIGA::Run(){
   // Obtain discretization of background mesh.
@@ -62,48 +62,55 @@ void TrIGA::Run(){
     // Construct element and check status
     std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
 
-    InsideTest::IntersectionStatus status;
+    IntersectionTest::IntersectionStatus status;
 
     SurfaceMeshType cube;
     Modeler::make_cube_3(cube, cube_point_A, cube_point_B);
     if( mEmbeddingFlag ){
-      status = mpInsideTest->check_intersection_status_via_element_vertices( *tmp_element);
-
-      // Check if any actually trimmed elements have not been catched previously.
-      if( status != InsideTest::Trimmed){
-        if( CGAL::Polygon_mesh_processing::do_intersect( cube, mPolyhedron) ){
-          status = InsideTest::Trimmed;
-        }
-      }
-
+      auto start_time = std::chrono::high_resolution_clock().now();
+      status = mpIntersectionTest->CheckIntersection(mPolyhedron, cube, *tmp_element);
+      auto end_time = std::chrono::high_resolution_clock().now();
+      #pragma omp critical
+      elapsed_time_do_intersect += end_time - start_time;
     }
     else { // If flag is false, consider all knotspans/ elements as inside
-      status = InsideTest::Inside;
+      status = IntersectionTest::Inside;
     }
 
     bool valid_element = false;
-
     // Distinguish between trimmed and non-trimmed elements.
-    if( status == InsideTest::Trimmed) {
+    if( status == IntersectionTest::Trimmed) {
       tmp_element->SetIsTrimmed(true);
       // Create a cubic mesh for each trimmed knotspan
-      valid_element = EmbeddingUtilities::ComputeIntersectionMesh(mPolyhedron, cube, *tmp_element, mParameters);
+      auto start_time_5 = std::chrono::high_resolution_clock().now();
+      // valid_element = mpIntersectionTest->GetIntersectionMesh(mPolyhedron, cube, *tmp_element, mParameters);
 
+      auto end_time_5 = std::chrono::high_resolution_clock().now();
+      #pragma omp critical
+      elapsed_new_function += end_time_5 - start_time_5;
+      //IO::WriteMeshToVTK(cube, "cube.vtk", true);
+
+      auto start_time_2 = std::chrono::high_resolution_clock().now();
+      valid_element = EmbeddingUtilities::ComputeIntersectionMesh(mPolyhedron, cube, *tmp_element, mParameters);
+      auto end_time_2 = std::chrono::high_resolution_clock().now();
+      elapsed_time_compute_inter += end_time_2 - start_time_2;
       if( valid_element ){
         // ExportVolumeMesh(tmp_element->GetSurfaceMesh(), tmp_element->GetId() );
         // Get Gauss-Legendre points in fictitios domain (Only the ones that are outside the material domain)
         // IntegrationPointUtilities::( (*mpInsideTest), tmp_element->GetIntegrationPointsFictitious(),
         //  cube_point_A_param, cube_point_B_param, mParameters.Order()[0], mParameters.Order()[1], mParameters.Order()[2]);
-
+        auto start_time_3 = std::chrono::high_resolution_clock().now();
         MomentFitting::CreateIntegrationPointsTrimmed(*tmp_element, mParameters);
-
+        auto end_time_3 = std::chrono::high_resolution_clock().now();
+        #pragma omp critical
+        elapsed_time_mf += end_time_3 - start_time_3;
         if( tmp_element->GetIntegrationPointsTrimmed().size() == 0 ){
+          std::cout << "False: " << std::endl;
           valid_element = false;
         }
       }
-
     }
-    else if( status == InsideTest::Inside){
+    else if( status == IntersectionTest::Inside){
       // Get standard gauss legendre points
       if( mParameters.IntegrationMethod() == IntegrationPointFactory::IntegrationMethod::Gauss ){
         IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
@@ -137,6 +144,11 @@ void TrIGA::Run(){
     #pragma omp single
     MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(*mpElementContainer, mParameters);
   }
+
+  std::cout << "Do Intersect: " << elapsed_time_do_intersect.count() << std::endl;
+  std::cout << "Compute Intersection: " << elapsed_time_compute_inter.count() << std::endl;
+  std::cout << "Moment fitting: " << elapsed_time_mf.count() << std::endl;
+  std::cout << "elapsed_new_function: " << elapsed_new_function.count() << std::endl;
 }
 
 // #include <CGAL/Mesh_triangulation_3.h>
