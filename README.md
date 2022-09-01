@@ -4,7 +4,7 @@ TIBRA is an IGA preprocessor to generate analysis suitable models from volumetri
 
 This project is still under development.
 
-Before using TrIGA, please check if all unit tests pass: `./run_all_test cpp`
+Before using TIBRA, please check if all unit tests pass: `./run_all_test cpp`
 
 The python tests require a Kratos Multiphysics installation: `./run_all_test py`
 
