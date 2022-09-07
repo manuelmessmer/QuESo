@@ -1,7 +1,7 @@
 # Created by the script cgal_create_CMakeLists
 # This is the CMake script for compiling CGAL Python Module.
 cmake_minimum_required(VERSION 3.1...3.15)
-project( TrIGA_Application )
+project( TIBRA_Application )
 
 # Set build type to Release
 set(CMAKE_BUILD_TYPE RELEASE)
@@ -18,7 +18,7 @@ if ( NOT CGAL_FOUND )
   return()
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -funroll-loops -ffast-math -std=c++17 ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -funroll-loops -std=c++17 ")
 
 # OMP support
 find_package(OpenMP)
@@ -31,7 +31,7 @@ else()
   return()
   endif()
 
-message("CXX FLAGS: ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # Try to use python executable from env variable
 if(DEFINED ENV{PYTHON_EXECUTABLE})
@@ -39,28 +39,28 @@ set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
 
 ################### PYBIND11
-# Set TrIGA specific module path
+# Set TIBRA specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(pybind11Tools)
 
 #include source directories
-file(GLOB TrIGA_ApplicationSource
-  ${CMAKE_CURRENT_SOURCE_DIR}/TrIGA_main.cpp
+file(GLOB TIBRA_ApplicationSource
+  ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/modeler/*.cpp
 )
 ## CGAL python interface sources
-file(GLOB_RECURSE TrIGA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
+file(GLOB_RECURSE TIBRA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
-add_library(TrIGA_ApplicationCore SHARED ${TrIGA_ApplicationSource})
-target_link_libraries(TrIGA_ApplicationCore PUBLIC CGAL ${PYTHON_LIBRARIES})
-set_target_properties(TrIGA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TrIGA_Application=EXPORT,API")
+add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource})
+target_link_libraries(TIBRA_ApplicationCore PUBLIC CGAL ${PYTHON_LIBRARIES})
+set_target_properties(TIBRA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TIBRA_Application=EXPORT,API")
 
-pybind11_add_module(TrIGA_Application MODULE THIN_LTO ${TrIGA_PYTHON_INTERFACE})
-target_link_libraries( TrIGA_Application PRIVATE TrIGA_ApplicationCore )
-set_target_properties( TrIGA_Application PROPERTIES PREFIX "")
+pybind11_add_module(TIBRA_Application MODULE THIN_LTO ${TIBRA_PYTHON_INTERFACE})
+target_link_libraries( TIBRA_Application PRIVATE TIBRA_ApplicationCore )
+set_target_properties( TIBRA_Application PROPERTIES PREFIX "")
 
 #include testing directories
 enable_testing()
@@ -74,7 +74,7 @@ foreach(testSrc ${TEST_SRCS})
         #Add compile target
         add_executable(${testName} ${testSrc})
         #link to Boost libraries AND your targets and dependencies
-        target_link_libraries(${testName} ${Boost_LIBRARIES} TrIGA_ApplicationCore)
+        target_link_libraries(${testName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
         #I like to move testing binaries into a testBin directory
         set_target_properties(${testName} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
@@ -86,9 +86,9 @@ foreach(testSrc ${TEST_SRCS})
 endforeach(testSrc)
 
 #Setting the libs folder for the shared objects built in kratos
-install(TARGETS TrIGA_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
-install(TARGETS TrIGA_ApplicationCore DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
+install(TARGETS TIBRA_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
+install(TARGETS TIBRA_ApplicationCore DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
 
 # Install Python module
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/TrIGA_Application.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TrIGA_PythonApplication RENAME __init__.py)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/PyTrIGA.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TrIGA_PythonApplication)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_Application.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TIBRA_PythonApplication RENAME __init__.py)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/PyTIBRA.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TIBRA_PythonApplication)

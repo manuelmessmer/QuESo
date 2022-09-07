@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-from triga.python_scripts.helper import *
+from tibra.python_scripts.helper import *
 import numpy as np
 
 class WeakBcsBase():

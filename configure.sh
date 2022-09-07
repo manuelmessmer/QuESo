@@ -1,8 +1,8 @@
 #!/bin/bash
 # Please do not modify this script
 
-# Change directory to triga/
-cd "triga/"
+# Change directory to tibra/
+cd "tibra/"
 # Set compiler
 #export CC=gcc-10
 #export CXX=g++-10

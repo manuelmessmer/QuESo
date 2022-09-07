@@ -11,7 +11,7 @@
 #include <vector>
 
 // Project includes
-#include "TrIGA_main.hpp"
+#include "TIBRA_main.hpp"
 #include "geometries/element.h"
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
@@ -49,13 +49,13 @@ template <class T> class ptr_wrapper
 };
 
 
-//ptr_wrapper<double> get_ptr(const TrIGA& v) { return const_cast<double*>(v.GetMeshPoints()); }
+//ptr_wrapper<double> get_ptr(const TIBRA& v) { return const_cast<double*>(v.GetMeshPoints()); }
 // double array[3] = { 3.14, 2.18, -1 };
 // static ptr_wrapper<double> get_ptr() { return ptr_wrapper<double>(array, 3); }
 
-PYBIND11_MODULE(TrIGA_Application,m) {
+PYBIND11_MODULE(TIBRA_Application,m) {
 
-    m.doc() = "This is a Python binding for TrIGA";
+    m.doc() = "This is a Python binding for TIBRA";
 
     py::class_<ptr_wrapper<double>>(m,"pdouble")
         .def(py::init<>())
@@ -139,12 +139,12 @@ PYBIND11_MODULE(TrIGA_Application,m) {
     ;
 
 
-    py::class_<TrIGA,std::shared_ptr<TrIGA>>(m,"TrIGA")
+    py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
-        .def("GetElements",  &TrIGA::GetElements, py::return_value_policy::reference_internal )
-        .def("ReadWritePostMesh", &TrIGA::ReadWritePostMesh )
-        .def("GetPostMeshPointsRaw", [](const TrIGA& v){
+        .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
+        .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
+        .def("GetPostMeshPointsRaw", [](const TIBRA& v){
             auto& mesh = v.GetPostMesh();
             const std::size_t num_p = mesh.num_vertices();
             const auto raw_ptr = mesh.points().data()->cartesian_begin();

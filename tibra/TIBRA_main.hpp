@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef TrIGA_H
-#define TrIGA_H
+#ifndef TIBRA_HPP
+#define TIBRA_HPP
 
 /// CGAL includes
 // Domain
@@ -40,12 +40,12 @@ typedef std::size_t  SizeType;
 
 typedef std::vector<Element> ElementVectorType;
 
-class TrIGA
+class TIBRA
 {
 public:
 
     // Constructor
-    TrIGA(const std::string filename,
+    TIBRA(const std::string filename,
                 std::array<double, 3> PointA,
                 std::array<double, 3> PointB,
                 std::array<int, 3> NumberOfElements,
@@ -166,4 +166,4 @@ private:
     void Run();
 };
 
-#endif // STL_EMBEDDER_H
+#endif // TIBRA_HPP
