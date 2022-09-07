@@ -55,9 +55,9 @@ void MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(ElementConta
                 }
             }
 
-            if( door_to_door_neighbours.size() >= 40 ){ // Maximum number of points is reached or element is trimmed
-                 local_end = true;
-            }
+            // if( door_to_door_neighbours.size() >= 40 ){ // Maximum number of points is reached or element is trimmed
+            //     local_end = true;
+            // }
 
             if( local_end ){
                 if(door_to_door_neighbours.size() > 0 ){
@@ -347,8 +347,6 @@ void MultiKnotspanBoxesUtilities::StoreIntegrationPoints(ElementContainer::Eleme
 }
 
 // void MultiKnotspanBoxesUtilities::Assemble1DIntegrationPoints(ElementContainer& rElements, const Parameters& rParameter){
-
-
 
 //     auto elemet_it_begin = rElements.begin();
 //     for( int i = 0; i < rElements.size(); ++i){

@@ -18,6 +18,7 @@
 #include "geometries/element.h"
 #include "geometries/triangle_3d_3n.h"
 #include "solvers/nnls.h"
+#include "io/io_utilities.h"
 
 typedef std::size_t SizeType;
 typedef std::array<double, 3> PointType;
@@ -75,15 +76,19 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, VectorType& rC
     PointType b = rElement.GetLocalUpperPoint();
 
     const int ffactor = 1;
-    const std::size_t number_of_functions = (rParam.Order()[0]*ffactor + 1) * (rParam.Order()[1]*ffactor+1) * (rParam.Order()[2]*ffactor + 1);
+    const int order_u = rParam.Order()[0];
+    const int order_v = rParam.Order()[1];
+    const int order_w = rParam.Order()[2];
+
+    const std::size_t number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
     rConstantTerms.resize(number_of_functions, false);
     std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
 
     std::size_t row_index = 0;
-    for( int i_x = 0; i_x <= rParam.Order()[0]*ffactor; ++i_x){
-        for( int i_y = 0; i_y <= rParam.Order()[1]*ffactor; ++i_y ){
-            for( int i_z = 0; i_z <= rParam.Order()[2]*ffactor; ++i_z){
+    for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
+        for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+            for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
                 // Loop over all faces/triangels in r_surface_mesg
                 for(auto fd : faces(r_surface_mesh)) {
                     // Compute normal for each face/triangle.
@@ -145,12 +150,16 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
         residual = CreateIntegrationPointsTrimmed(rElement, constant_terms, point_distribution_factor, rParam);
         point_distribution_factor *= 2;
         if( residual > 1e-5 ) {
+            //std::cout << "size: " << reduced_points.size() << std::endl;
             reduced_points.clear();
         }
         iteration++;
     }
-    if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 1){
+
+    if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
+        std::cout << "size: " << rElement.GetIntegrationPointsTrimmed().size() << std::endl;
         std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
+        // IO::WriteMeshToVTK(rElement.GetSurfaceMesh(), "fail.vtk", true);
     }
 }
 
@@ -177,7 +186,11 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     PointType b = rElement.GetLocalUpperPoint();
 
     const int ffactor = 1;
-    const std::size_t number_of_functions = (rParam.Order()[0]*ffactor + 1) * (rParam.Order()[1]*ffactor+1) * (rParam.Order()[2]*ffactor + 1);
+    const int order_u = rParam.Order()[0];
+    const int order_v = rParam.Order()[1];
+    const int order_w = rParam.Order()[2];
+
+    const std::size_t number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
     double global_residual = 1e-15;
     const double allowed_residual = rParam.MomentFittingResidual();
@@ -185,7 +198,6 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     bool change = false;
     IntegrationPointVectorType prev_solution{};
     double prev_residual = 0.0;
-
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
         const std::size_t number_reduced_points = new_integration_points.size();
@@ -193,9 +205,9 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         MatrixType fitting_matrix(number_of_functions, number_reduced_points);
 
         std::size_t row_index = 0;
-        for( int i_x = 0; i_x <= rParam.Order()[0]*ffactor; ++i_x){
-            for( int i_y = 0; i_y <= rParam.Order()[1]*ffactor; ++i_y ){
-                for( int i_z = 0; i_z <= rParam.Order()[2]*ffactor; ++i_z){
+        for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
                     // Loop over all faces/triangels in r_surface_mesg
                     const auto points_it_begin = new_integration_points.begin();
                     for( int column_index = 0; column_index < number_reduced_points; ++column_index ){
@@ -256,7 +268,8 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                 int counter = 0;
                 for(int i = 0; i < new_integration_points.size(); i++){
                     auto it = begin_it + i;
-                    if( it->GetWeight() < 0.0001*max_value && new_integration_points.size() > 4){
+                    // TODO: Fix this > 2..4
+                    if( it->GetWeight() < 1e-8*max_value && new_integration_points.size() > 4){
                         new_integration_points.erase(it);
                         change = true;
                         counter++;
@@ -275,7 +288,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     }
     auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
 
-    if( global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration){
+    if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) {
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
             return point.GetWeightConst() < 1e-14; }), reduced_points.end());

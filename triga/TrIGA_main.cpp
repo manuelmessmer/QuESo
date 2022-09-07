@@ -1,9 +1,6 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-//// CGAL includes
-#include <CGAL/Polygon_mesh_processing/intersection.h>
-
 //// Project includes
 #include "TrIGA_main.hpp"
 #include "utilities/integration_point_utilities.h"
@@ -16,10 +13,10 @@
 
 //// External includes
 #include <fstream>
+#include <thread>
 #include <omp.h>
 
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
-
 /// Functions
 void TrIGA::Run(){
   // Obtain discretization of background mesh.
@@ -27,10 +24,6 @@ void TrIGA::Run(){
   const double delta_y = std::abs(mParameters.PointA()[1] - mParameters.PointB()[1])/(mParameters.NumberOfElements()[1]);
   const double delta_z = std::abs(mParameters.PointA()[2] - mParameters.PointB()[2])/(mParameters.NumberOfElements()[2]);
 
-  std::array<double, 3> cube_point_A = {0.0, 0.0, 0.0};
-  std::array<double, 3> cube_point_B = {0.0, 0.0, 0.0};
-  std::array<double, 3> cube_point_A_param = {0.0, 0.0, 0.0};
-  std::array<double, 3> cube_point_B_param = {0.0, 0.0, 0.0};
   const int number_elements_w = mParameters.NumberOfElements()[2];
   const int number_elements_v = mParameters.NumberOfElements()[1];
   const int number_elements_u = mParameters.NumberOfElements()[0];
@@ -39,7 +32,12 @@ void TrIGA::Run(){
   mpElementContainer->reserve(global_number_of_elements);
   int num = 0;
 
-  #pragma omp parallel for firstprivate(num, cube_point_A, cube_point_B, cube_point_A_param, cube_point_B_param) schedule(dynamic)
+  // Time Variables
+  double et_check_intersect = 0.0;
+  double et_compute_intersection = 0.0;
+  double et_moment_fitting = 0.0;
+
+  #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_check_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
   for( int i = 0; i < global_number_of_elements; ++i){
     // Unroll for loop to enable better parallelization.
     // First walk along rows (x), then columns (y) then into depths (z).
@@ -49,6 +47,11 @@ void TrIGA::Run(){
     int zz = i / (number_elements_u*number_elements_v);   // depth
 
     // Construct bounding box for each element
+    std::array<double, 3> cube_point_A = {0.0, 0.0, 0.0};
+    std::array<double, 3> cube_point_B = {0.0, 0.0, 0.0};
+    std::array<double, 3> cube_point_A_param = {0.0, 0.0, 0.0};
+    std::array<double, 3> cube_point_B_param = {0.0, 0.0, 0.0};
+
     cube_point_A[0] = mParameters.PointA()[0] + (xx)*delta_x;
     cube_point_A[1] = mParameters.PointA()[1] + (yy)*delta_y;
     cube_point_A[2] = mParameters.PointA()[2] + (zz)*delta_z;;
@@ -62,32 +65,31 @@ void TrIGA::Run(){
     // Construct element and check status
     std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
 
-    InsideTest::IntersectionStatus status;
+    IntersectionTest::IntersectionStatus status;
 
     SurfaceMeshType cube;
     Modeler::make_cube_3(cube, cube_point_A, cube_point_B);
     if( mEmbeddingFlag ){
-      status = mpInsideTest->check_intersection_status_via_element_vertices( *tmp_element);
-
-      // Check if any actually trimmed elements have not been catched previously.
-      if( status != InsideTest::Trimmed){
-        if( CGAL::Polygon_mesh_processing::do_intersect( cube, mPolyhedron) ){
-          status = InsideTest::Trimmed;
-        }
-      }
-
+      auto t_begin_di = std::chrono::high_resolution_clock().now();
+      status = mpIntersectionTest->CheckIntersection(mPolyhedron, cube, *tmp_element);
+      auto t_end_di = std::chrono::high_resolution_clock().now();
+      std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
+      et_check_intersect += t_delta_di.count();
     }
     else { // If flag is false, consider all knotspans/ elements as inside
-      status = InsideTest::Inside;
+      status = IntersectionTest::Inside;
     }
 
     bool valid_element = false;
-
     // Distinguish between trimmed and non-trimmed elements.
-    if( status == InsideTest::Trimmed) {
+    if( status == IntersectionTest::Trimmed) {
       tmp_element->SetIsTrimmed(true);
-      // Create a cubic mesh for each trimmed knotspan
+
+      auto t_begin_ci = std::chrono::high_resolution_clock().now();
       valid_element = EmbeddingUtilities::ComputeIntersectionMesh(mPolyhedron, cube, *tmp_element, mParameters);
+      auto t_end_ci = std::chrono::high_resolution_clock().now();
+      std::chrono::duration<double> t_delta_ci = (t_end_ci - t_begin_ci);
+      et_compute_intersection += t_delta_ci.count();
 
       if( valid_element ){
         // ExportVolumeMesh(tmp_element->GetSurfaceMesh(), tmp_element->GetId() );
@@ -95,15 +97,18 @@ void TrIGA::Run(){
         // IntegrationPointUtilities::( (*mpInsideTest), tmp_element->GetIntegrationPointsFictitious(),
         //  cube_point_A_param, cube_point_B_param, mParameters.Order()[0], mParameters.Order()[1], mParameters.Order()[2]);
 
+        auto t_begin_mf = std::chrono::high_resolution_clock().now();
         MomentFitting::CreateIntegrationPointsTrimmed(*tmp_element, mParameters);
+        auto t_end_mf = std::chrono::high_resolution_clock().now();
+        std::chrono::duration<double> t_delta_mf = (t_end_mf - t_begin_mf);
+        et_moment_fitting += t_delta_mf.count();
 
         if( tmp_element->GetIntegrationPointsTrimmed().size() == 0 ){
           valid_element = false;
         }
       }
-
     }
-    else if( status == InsideTest::Inside){
+    else if( status == IntersectionTest::Inside){
       // Get standard gauss legendre points
       if( mParameters.IntegrationMethod() == IntegrationPointFactory::IntegrationMethod::Gauss ){
         IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
@@ -137,6 +142,18 @@ void TrIGA::Run(){
     #pragma omp single
     MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(*mpElementContainer, mParameters);
   }
+
+  // Average time spend for each task
+  if( mParameters.EchoLevel() > 1 ){
+    const int num_procs = std::thread::hardware_concurrency();
+    std::cout << "#########################################\n";
+    std::cout << "Elapsed times of individual tasks: \n";
+    std::cout << "Detection of Trimmed Elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
+    std::cout << "Compute Intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
+    std::cout << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
+    std::cout << "#########################################\n";
+  }
+
 }
 
 // #include <CGAL/Mesh_triangulation_3.h>

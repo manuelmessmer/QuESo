@@ -15,7 +15,7 @@
 
 /// Project includes
 #include "io/io_utilities.h"
-#include "utilities/inside_test.h"
+#include "utilities/intersection_test.h"
 #include "geometries/element.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/parameters.h"
@@ -65,7 +65,7 @@ public:
     {
         auto start_time = std::chrono::high_resolution_clock::now();
         if( mParameters.EchoLevel() > 0)
-            std::cout << "TrIGA :: Start: " << std::endl;
+            std::cout << "TIBRA :: Start: " << std::endl;
 
         // Allocate element/knotspans container
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
@@ -78,7 +78,7 @@ public:
             if( mParameters.EchoLevel() > 0){
                 IO::WriteMeshToVTK(mPolyhedron, "output/geometry.vtk", true);
             }
-            mpInsideTest = std::make_unique<InsideTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
+            mpIntersectionTest = std::make_unique<IntersectionTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
             // Compute volume
             const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);
             if( mParameters.EchoLevel() > 0)
@@ -125,14 +125,13 @@ public:
             IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk", true);
             IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk", true);
 
-            std::cout << "TrIGA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
-            std::cout << "TrIGA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
+            std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
+            std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
-        std::cout << "TrIGA :: Elapsed Time: " << elapsed_time.count() << std::endl;
-
+        std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
     }
 
     // Public Member Functions
@@ -157,7 +156,7 @@ private:
     // Private Members
     SurfaceMeshType mPolyhedron;
     SurfaceMeshType mPolyhedronPost;
-    std::unique_ptr<InsideTest> mpInsideTest;
+    std::unique_ptr<IntersectionTest> mpIntersectionTest;
     std::unique_ptr<ElementContainer> mpElementContainer;
     const std::string mFilename;
     const Parameters mParameters;

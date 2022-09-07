@@ -7,6 +7,7 @@
 // Meshing/ Triangulation
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
+//#include <CGAL/Polygon_mesh_processing/clip.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
 // IO
 #include <CGAL/IO/output_to_vtu.h>
@@ -17,7 +18,6 @@
 
 #include <chrono>
 #include <stdexcept>
-
 
 // Namespaces
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -41,8 +41,9 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   SurfaceMeshType tmp_cube = rCube;
 
   // Compute intersection surface mesh
-  SurfaceMeshType intersection_mesh;
+  SurfaceMeshType intersection_mesh{};
   bool valid_intersection = false;
+
   try {
     valid_intersection = PMP::corefine_and_compute_intersection(tmp_polyhedron, tmp_cube, intersection_mesh);
   }
@@ -54,11 +55,12 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     std::cerr << "No Valid Intersetion!" << std::endl;
     return 0;
   }
+
   const double volume_cube = CGAL::Polygon_mesh_processing::volume(tmp_cube);
   const double volume_intersection_surface_mesh = CGAL::Polygon_mesh_processing::volume(intersection_mesh);
 
   //Only consider intersections, which are larger than 0.1% with respect to the original element.
-  if( volume_intersection_surface_mesh/volume_cube < 0.001){
+  if( volume_intersection_surface_mesh/volume_cube < 1e-3){
     // std::cout << "Warning :: Intersection neglected! Intersection Polyhedron To Cube Volume Ratio: "
     //   << volume_intersection_surface_mesh/volume_cube << std::endl;
 
@@ -92,7 +94,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     try {
       CGAL::Polygon_mesh_processing::isotropic_remeshing(faces(*refinend_intersection_mesh), edge_length,
                     *refinend_intersection_mesh,  PMP::parameters::number_of_iterations(nb_iterations).use_safety_constraints(false) // authorize all moves
-                                          .edge_is_constrained_map(eif));
+                                          .edge_is_constrained_map(eif).number_of_relaxation_steps(1));
     }
     catch(const std::exception& exc) {
         if( !CGAL::is_closed(*refinend_intersection_mesh) ){
@@ -120,7 +122,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
       << refinend_intersection_mesh->number_of_faces() << " / " <<  rParam.MinimumNumberOfTriangles() << std::endl;
   }
 
-  rElement.pSetSurfaceMesh(refinend_intersection_mesh); // Ptr is lost after this function call.
+  rElement.pSetSurfaceMesh( refinend_intersection_mesh ); // Ptr is lost after this function call.
 
   return 1;
 }

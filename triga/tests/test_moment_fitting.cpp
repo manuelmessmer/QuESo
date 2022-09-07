@@ -13,7 +13,6 @@
 #include "math.h"
 
 // Project includes
-#include "utilities/inside_test.h"
 #include "utilities/moment_fitting_utilities.h"
 #include "modeler/modeler.h"
 #include "utilities/embedding_utilities.h"

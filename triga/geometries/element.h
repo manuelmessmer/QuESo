@@ -223,11 +223,11 @@ public:
         return mLocalLowerPoint;
     }
 
-    PointType GetGlobalUpperPoint(){
+    PointType GetGlobalUpperPoint() const {
         return MappingUtilities::FromLocalToGlobalSpace(mLocalUpperPoint, mParameters.PointA(), mParameters.PointB());
     }
 
-    PointType GetGlobalLowerPoint(){
+    PointType GetGlobalLowerPoint() const{
         return MappingUtilities::FromLocalToGlobalSpace(mLocalLowerPoint, mParameters.PointA(), mParameters.PointB());
     }
 
