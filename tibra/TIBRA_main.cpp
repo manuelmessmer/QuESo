@@ -2,7 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "TrIGA_main.hpp"
+#include "TIBRA_main.hpp"
 #include "utilities/integration_point_utilities.h"
 #include "utilities/moment_fitting_utilities.h"
 #include "utilities/embedding_utilities.h"
@@ -18,7 +18,7 @@
 
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
 /// Functions
-void TrIGA::Run(){
+void TIBRA::Run(){
   // Obtain discretization of background mesh.
   const double delta_x = std::abs(mParameters.PointA()[0] - mParameters.PointB()[0])/(mParameters.NumberOfElements()[0]);
   const double delta_y = std::abs(mParameters.PointA()[1] - mParameters.PointB()[1])/(mParameters.NumberOfElements()[1]);

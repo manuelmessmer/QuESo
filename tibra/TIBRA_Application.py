@@ -13,6 +13,6 @@ class Paths(object):
 
 # import core library (Kratos.so)
 sys.path.append(Paths.cgal_libs)
-from TrIGA_Application import *
+from TIBRA_Application import *
 
 

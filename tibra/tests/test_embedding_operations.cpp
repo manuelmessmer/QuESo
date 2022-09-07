@@ -8,7 +8,7 @@
 
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
-#include "TrIGA_main.hpp"
+#include "TIBRA_main.hpp"
 
 typedef std::array<double,3> PointType;
 
@@ -29,13 +29,13 @@ BOOST_AUTO_TEST_CASE(SurfaceMeshPoints) {
     std::string integration_method = "Gauss";
     int echo_level = 0;
 
-    std::string filename = "triga/tests/data/cylinder.stl";
+    std::string filename = "tibra/tests/data/cylinder.stl";
 
-    TrIGA triga(filename, point_A, point_B, number_of_elements, order,
+    TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = triga.GetElementContainer();
+    auto elements = tibra.GetElementContainer();
 
     BOOST_CHECK_EQUAL(elements->size(), 1);
 

@@ -1,5 +1,5 @@
-import TrIGA_PythonApplication as TrIGA_Application
-from triga.python_scripts.helper import *
+import TIBRA_PythonApplication as TIBRA_Application
+from tibra.python_scripts.helper import *
 import json
 import os
 import shutil
@@ -18,7 +18,7 @@ if kratos_available:
     from kratos_interface.bounding_box_bcs import DirichletCondition
     from kratos_interface.bounding_box_bcs import NeumannCondition
 
-class PyTrIGA:
+class PyTIBRA:
     def __init__(self, json_filename):
         folder_path = "./output/"
         if os.path.exists(folder_path):
@@ -50,7 +50,7 @@ class PyTrIGA:
         non_trimmed_quadrature_rule_settings = self.settings["non_trimmed_quadrature_rule_settings"]
         integration_method = non_trimmed_quadrature_rule_settings["integration_method"]
 
-        self.triga = TrIGA_Application.TrIGA(input_filename,
+        self.tibra = TIBRA_Application.TIBRA(input_filename,
                                              self.lower_point, self.upper_point, self.number_of_knot_spans, polynomial_order,
                                              initial_triangle_edge_length,
                                              min_num_boundary_triangles,
@@ -59,7 +59,7 @@ class PyTrIGA:
                                              integration_method,
                                              echo_level,
                                              embedding_flag)
-        self.elements = self.triga.GetElements()
+        self.elements = self.tibra.GetElements()
 
     def GetElements(self):
         return self.elements
@@ -68,7 +68,7 @@ class PyTrIGA:
         return self.number_of_knot_spans
 
     def GetIntegrationPoints(self):
-        integration_points = TrIGA_Application.VectorOfIntegrationPoints()
+        integration_points = TIBRA_Application.VectorOfIntegrationPoints()
         # Gather all poitnts (TODO: make this in C++)
         for element in self.elements:
             if element.IsTrimmed():
@@ -82,7 +82,7 @@ class PyTrIGA:
         return integration_points
 
     def GetTrianglesOnDirichletBoundary(self, dirichlet_condition):
-        dirichlet_triangles = TrIGA_Application.VectorOfTriangles()
+        dirichlet_triangles = TIBRA_Application.VectorOfTriangles()
         #Loop over all elements
         for element in self.elements:
             if element.IsTrimmed():
@@ -91,7 +91,7 @@ class PyTrIGA:
         return dirichlet_triangles
 
     def GetTrianglesOnNeumannBoundary(self, neumann_condition):
-        neumann_triangles = TrIGA_Application.VectorOfTriangles()
+        neumann_triangles = TIBRA_Application.VectorOfTriangles()
         #Loop over all elements
         for element in self.elements:
             if element.IsTrimmed():
@@ -117,8 +117,8 @@ class PyTrIGA:
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
         # Mesh points are stored in one consecutive array
-        self.triga.ReadWritePostMesh(self.post_filename)
-        raw_mesh_points = self.triga.GetPostMeshPointsRaw()
+        self.tibra.ReadWritePostMesh(self.post_filename)
+        raw_mesh_points = self.tibra.GetPostMeshPointsRaw()
         num_points = len(raw_mesh_points)//3
         #print(num_points)
         displacements = []
@@ -138,7 +138,7 @@ class PyTrIGA:
             deformed_pos[2] = global_point[2] - deformed_pos_kratos[2]
             displacements.append( deformed_pos )
 
-        TrIGA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
+        TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
         #print(displacements[0])
 
     def GetAnalysis(self):

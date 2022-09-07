@@ -85,6 +85,7 @@ double inline f_x( double x, int order, double a, double b ){
     return f_x_visit( legendre[order], x, a, b);
 }
 
+// TODO: Improve std::pow()
 struct F_x_int{
     // Integral of shifted legendre polynomial (p=0)
     double operator()(const p0& p) const {
