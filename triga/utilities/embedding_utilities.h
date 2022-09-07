@@ -13,8 +13,6 @@
 #include "geometries/integration_point.h"
 #include "utilities/parameters.h"
 
-#include <chrono>
-
 namespace EmbeddingUtilities {
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;

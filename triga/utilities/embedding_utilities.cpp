@@ -45,16 +45,6 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   bool valid_intersection = false;
 
   try {
-    auto lower_point = rElement.GetGlobalLowerPoint();
-    auto upper_point = rElement.GetGlobalUpperPoint();
-    const Point_3 point1(lower_point[0], lower_point[1], lower_point[2]);
-    const Point_3 point2(upper_point[0], upper_point[1], upper_point[2]);
-    const CGAL::Iso_cuboid_3<K> tmp_cuboid( point1, point2, 0);
-    //PMP::compute_face_normals(Q, fnormals);
-
-    //valid_intersection = PMP::clip(intersection_mesh, tmp_cuboid, PMP::parameters::clip_volume(false).throw_on_self_intersection(true) );
-
-    intersection_mesh.clear();
     valid_intersection = PMP::corefine_and_compute_intersection(tmp_polyhedron, tmp_cube, intersection_mesh);
   }
   catch(const std::exception& exc) {
@@ -66,14 +56,11 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     return 0;
   }
 
-  //IO::WriteMeshToVTK(tmp_polyhedron, "output/test.vtk", true);
-  //intersection_mesh = tmp_polyhedron;
-  //intersection_mesh = tmp_polyhedron;
   const double volume_cube = CGAL::Polygon_mesh_processing::volume(tmp_cube);
   const double volume_intersection_surface_mesh = CGAL::Polygon_mesh_processing::volume(intersection_mesh);
 
   //Only consider intersections, which are larger than 0.1% with respect to the original element.
-  if( volume_intersection_surface_mesh/volume_cube < 1e-10){
+  if( volume_intersection_surface_mesh/volume_cube < 1e-3){
     // std::cout << "Warning :: Intersection neglected! Intersection Polyhedron To Cube Volume Ratio: "
     //   << volume_intersection_surface_mesh/volume_cube << std::endl;
 
