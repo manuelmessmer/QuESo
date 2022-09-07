@@ -33,11 +33,11 @@ void TrIGA::Run(){
   int num = 0;
 
   // Time Variables
-  double et_do_intersect = 0.0;
+  double et_check_intersect = 0.0;
   double et_compute_intersection = 0.0;
   double et_moment_fitting = 0.0;
 
-  #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_do_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
+  #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_check_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
   for( int i = 0; i < global_number_of_elements; ++i){
     // Unroll for loop to enable better parallelization.
     // First walk along rows (x), then columns (y) then into depths (z).
@@ -74,7 +74,7 @@ void TrIGA::Run(){
       status = mpIntersectionTest->CheckIntersection(mPolyhedron, cube, *tmp_element);
       auto t_end_di = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
-      et_do_intersect += t_delta_di.count();
+      et_check_intersect += t_delta_di.count();
     }
     else { // If flag is false, consider all knotspans/ elements as inside
       status = IntersectionTest::Inside;
@@ -148,7 +148,7 @@ void TrIGA::Run(){
     const int num_procs = std::thread::hardware_concurrency();
     std::cout << "#########################################\n";
     std::cout << "Elapsed times of individual tasks: \n";
-    std::cout << "Detection of Trimmed Elements: --- " << et_do_intersect / ((double) num_procs) << '\n';
+    std::cout << "Detection of Trimmed Elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
     std::cout << "Compute Intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
     std::cout << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
     std::cout << "#########################################\n";
