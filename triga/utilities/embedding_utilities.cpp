@@ -41,7 +41,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   SurfaceMeshType tmp_cube = rCube;
 
   // Compute intersection surface mesh
-  SurfaceMeshType intersection_mesh = rGeometry;
+  SurfaceMeshType intersection_mesh{};
   bool valid_intersection = false;
 
   try {

@@ -139,7 +139,7 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     int point_distribution_factor = rParam.GetPointDistributionFactor();
     VectorType constant_terms{};
     ComputeConstantTerms(rElement, constant_terms, rParam);
-    const int max_iteration = 2;
+    const int max_iteration = 3;
     int iteration = 1;
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
         auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
@@ -155,12 +155,11 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
         }
         iteration++;
     }
-    // std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
-    // std::cout << "size: " << rElement.GetIntegrationPointsTrimmed().size() << std::endl;
+
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
         std::cout << "size: " << rElement.GetIntegrationPointsTrimmed().size() << std::endl;
         std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
-        IO::WriteMeshToVTK(rElement.GetSurfaceMesh(), "fail.vtk", true);
+        // IO::WriteMeshToVTK(rElement.GetSurfaceMesh(), "fail.vtk", true);
     }
 }
 
@@ -199,7 +198,6 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     bool change = false;
     IntegrationPointVectorType prev_solution{};
     double prev_residual = 0.0;
-    //bool limit_reached = false;
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
         const std::size_t number_reduced_points = new_integration_points.size();
@@ -271,7 +269,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                 for(int i = 0; i < new_integration_points.size(); i++){
                     auto it = begin_it + i;
                     // TODO: Fix this > 2..4
-                    if( it->GetWeight() < 0.0000000000001*max_value && new_integration_points.size() > 4){
+                    if( it->GetWeight() < 1e-8*max_value && new_integration_points.size() > 4){
                         new_integration_points.erase(it);
                         change = true;
                         counter++;
@@ -283,7 +281,6 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                 }
                 if( new_integration_points.size() == 4){
                     number_iterations = maximum_iteration + 1;
-                    //limit_reached = true;
                 }
             }
         }
@@ -291,12 +288,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     }
     auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
 
-    if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) { //} || limit_reached){
-        // std::cout << "num point k=0: " << prev_solution.size() << std::endl;
-        // std::cout << "Residual k=0: " << prev_residual << std::endl;
-        // std::cout << "num point k=1: " << new_integration_points.size() << std::endl;
-        // std::cout << "Residual k=1: " << global_residual << std::endl;
-        // std::cout << "########" << std::endl;
+    if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) {
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
             return point.GetWeightConst() < 1e-14; }), reduced_points.end());
