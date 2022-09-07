@@ -19,10 +19,6 @@
 #include <chrono>
 #include <stdexcept>
 
-
-std::chrono::duration<double> elapsed_time_intersection;
-std::chrono::duration<double> elapsed_time_remeshed;
-
 // Namespaces
 namespace PMP = CGAL::Polygon_mesh_processing;
 using namespace CGAL::parameters;
@@ -47,7 +43,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   // Compute intersection surface mesh
   SurfaceMeshType intersection_mesh = rGeometry;
   bool valid_intersection = false;
-  auto start_time = std::chrono::high_resolution_clock::now();
+
   try {
     auto lower_point = rElement.GetGlobalLowerPoint();
     auto upper_point = rElement.GetGlobalUpperPoint();
@@ -70,9 +66,6 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     return 0;
   }
 
-  auto end_time = std::chrono::high_resolution_clock::now();
-  #pragma omp critical
-  elapsed_time_intersection += end_time-start_time;
   //IO::WriteMeshToVTK(tmp_polyhedron, "output/test.vtk", true);
   //intersection_mesh = tmp_polyhedron;
   //intersection_mesh = tmp_polyhedron;
@@ -90,7 +83,6 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
   // Construct ptr to SurfaceMesh
   std::unique_ptr<SurfaceMeshType> refinend_intersection_mesh = std::make_unique<SurfaceMeshType>();
 
-  start_time = std::chrono::high_resolution_clock::now();
   // Remesh intersected domain until minimum number of boundary triangles is reached.
   double edge_length = rParam.InitialTriangleEdgeLength();
   int iteration_count = 0;
@@ -127,9 +119,7 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
     edge_length = edge_length * 0.95*std::sqrt((double)refinend_intersection_mesh->number_of_faces() / (double) rParam.MinimumNumberOfTriangles()); // Todo: Make this better!!!
     iteration_count++;
   }
-  end_time = std::chrono::high_resolution_clock::now();
-  #pragma omp critical
-  elapsed_time_remeshed += end_time - start_time;
+
   // Element::PositionType positions = refinend_intersection_mesh->points();
   // for (auto vi = refinend_intersection_mesh->vertices_begin(); vi != refinend_intersection_mesh->vertices_end(); ++vi)
   // {

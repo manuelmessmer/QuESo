@@ -30,9 +30,6 @@
 #include <string>
 #include <chrono>
 
-
-extern std::chrono::duration<double> elapsed_time_intersection;
-extern std::chrono::duration<double> elapsed_time_remeshed;
 /// Type Definitions
 // Domain
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
@@ -68,7 +65,7 @@ public:
     {
         auto start_time = std::chrono::high_resolution_clock::now();
         if( mParameters.EchoLevel() > 0)
-            std::cout << "TrIGA :: Start: " << std::endl;
+            std::cout << "TIBRA :: Start: " << std::endl;
 
         // Allocate element/knotspans container
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
@@ -128,16 +125,13 @@ public:
             IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk", true);
             IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk", true);
 
-            std::cout << "TrIGA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
-            std::cout << "TrIGA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
+            std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
+            std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_time = end_time - start_time;
-        std::cout << "TrIGA :: Elapsed Time: " << elapsed_time.count() << std::endl;
-
-        std::cout << "Intersection: " << elapsed_time_intersection.count() << std::endl;
-        std::cout << "Remesh: " << elapsed_time_remeshed.count() << std::endl;
+        std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
     }
 
     // Public Member Functions
