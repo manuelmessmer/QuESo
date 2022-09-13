@@ -8,6 +8,8 @@ Before using TIBRA, please check if all unit tests pass: `./run_all_test cpp`
 
 The python tests require a Kratos Multiphysics installation: `./run_all_test py`
 
+A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
+
 ## Installation
 Required dependencies (C++):
 - CMAKE (minimum 3.15)
