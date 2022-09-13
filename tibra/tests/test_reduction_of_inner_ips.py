@@ -193,10 +193,10 @@ class TestReductionOfIntegrationPoints(unittest.TestCase):
     #     self.compare_full_vs_reduced_p_3(9)
     #     self.compare_full_vs_reduced_p_4(9)
 
-    def test_10_knotspans(self):
-        self.compare_full_vs_reduced_p_2(10)
-        self.compare_full_vs_reduced_p_3(10)
-        self.compare_full_vs_reduced_p_4(10)
+    # def test_10_knotspans(self):
+    #     self.compare_full_vs_reduced_p_2(10)
+    #     self.compare_full_vs_reduced_p_3(10)
+    #     self.compare_full_vs_reduced_p_4(10)
 
     # def test_11_knotspans(self):
     #     self.compare_full_vs_reduced_p_2(11)
