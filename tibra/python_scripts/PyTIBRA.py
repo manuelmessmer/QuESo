@@ -20,13 +20,19 @@ if kratos_available:
 
 class PyTIBRA:
     def __init__(self, json_filename):
-        folder_path = "./output/"
-        if os.path.exists(folder_path):
-            shutil.rmtree(folder_path)
-        os.mkdir(folder_path)
 
         with open(json_filename, 'r') as file:
             self.settings = json.load(file)
+
+        general_settings = self.settings["general_settings"]
+        echo_level = general_settings["echo_level"]
+        if echo_level > 0:
+            folder_path = "./output/"
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path)
+            os.mkdir(folder_path)
+
+
 
     def Run(self):
         general_settings = self.settings["general_settings"]
@@ -66,6 +72,12 @@ class PyTIBRA:
 
     def GetNumberElements(self):
         return self.number_of_knot_spans
+
+    def GetLowerPoint(self):
+        return self.lower_point
+
+    def GetUpperPoint(self):
+        return self.upper_point
 
     def GetIntegrationPoints(self):
         integration_points = TIBRA_Application.VectorOfIntegrationPoints()
