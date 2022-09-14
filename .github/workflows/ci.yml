@@ -22,12 +22,14 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Build
+      shell: bash
       # Build your program with the given configuration
       run: |
         export CC=/usr/bin/gcc
         export CXX=/usr/bin/g++
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
+
     - name: Test
       shell: bash
       run: ./run_all_tests cpp
