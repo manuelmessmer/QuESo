@@ -24,6 +24,7 @@ rm -rf "${APP_BUILD}/${CMAKE_BUILD_TYPE}/CMakeFiles"
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
     -DCGAL_DIR="../external_libraries/cgal" \
     -DCGAL_NO_GMP=1 \
+    -DCGAL_DISABLE_GMP \
 
 # Buid
 cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j2
