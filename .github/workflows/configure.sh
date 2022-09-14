@@ -3,9 +3,6 @@
 
 # Change directory to tibra/
 cd "tibra/"
-# Set compiler
-#export CC=gcc-10
-#export CXX=g++-10
 
 export APP_SOURCE="${APP_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"}"
 export APP_BUILD="${APP_SOURCE}/../build/"
@@ -23,7 +20,6 @@ rm -rf "${APP_BUILD}/${CMAKE_BUILD_TYPE}/CMakeFiles"
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
     -DCGAL_DIR="../external_libraries/cgal" \
-    -DCGAL_NO_GMP=1 \
 
 # Buid
 cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j2
