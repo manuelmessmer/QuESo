@@ -28,7 +28,6 @@ jobs:
         export CC=/usr/bin/gcc
         export CXX=/usr/bin/g++
         cp .github/workflows/configure.sh configure.sh
-        cd tibra
         bash configure.sh
 
     - name: Test
