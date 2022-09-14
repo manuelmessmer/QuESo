@@ -5,3 +5,4 @@ kratos_interface/__pycache__/
 libs/
 TestExecutables/
 TIBRA_PythonApplication/
+*.pyc

@@ -112,7 +112,7 @@ class PyTIBRA:
                     neumann_triangles.append(triangle)
         return neumann_triangles
 
-    def RunKratosAnalysis(self, dirichlet_settings, neumann_settings):
+    def RunKratosAnalysis(self, dirichlet_settings, neumann_settings, kratos_settings="KratosParameters.json"):
         integration_points = self.GetIntegrationPoints()
         boundary_conditions = []
         for bc in dirichlet_settings:
@@ -122,7 +122,7 @@ class PyTIBRA:
             neumann_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
             boundary_conditions.append( SurfaceLoad(neumann_triangles, self.lower_point, self.upper_point,bc[1], False) )
 
-        self.analysis = Analysis( self.mesh_settings, "KratosParameters.json", integration_points, boundary_conditions)
+        self.analysis = Analysis( self.mesh_settings, kratos_settings, integration_points, boundary_conditions)
 
     def PostProcess(self):
         model_part = self.analysis.GetModelPart()
