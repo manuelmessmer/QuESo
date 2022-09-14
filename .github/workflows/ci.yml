@@ -23,8 +23,8 @@ jobs:
       with:
         submodules: 'true'
 
-    - name: install dependencies
-      run: sudo apt-get install -y libboost-all-dev libmpfr-dev
+    - name: Install Dependencies
+      run: sudo apt-get install -y libboost-test-dev libmpfr-dev
 
     - name: Build
       shell: bash
