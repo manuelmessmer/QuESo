@@ -37,4 +37,4 @@ jobs:
 
     - name: Test
       shell: bash
-      run: ./run_all_tests cpp
+      run: ./TestExecutables/test_embedding_operations
