@@ -1,13 +1,12 @@
 #!/bin/bash
 
-cp tibra/tests/test_reduction_of_inner_ips.py TestExecutables
-for file in TestExecutables/*
-do
-  if ( [ ${file: -3} == ".py" ] && ( [ $1 == "all" ] || [ $1 == "py" ]) )
-  then
-    python3 "$file"
-  fi
-done
+if ( [ $1 == "all" ] || [ $1 == "py" ] )
+then
+  cd tibra/tests
+  python3 test_tibra.py
+  cd ../..
+fi
+
 for file in TestExecutables/*
 do
   if ( [ ! ${file: -3} == ".py" ] && ( [ $1 == "all" ] || [ $1 == "cpp" ]) )
