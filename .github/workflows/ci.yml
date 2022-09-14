@@ -23,6 +23,9 @@ jobs:
       with:
         submodules: 'true'
 
+    - name: install dependencies
+      run: sudo apt-get install -y libboost-dev libmpfr-dev
+
     - name: Build
       shell: bash
       # Build your program with the given configuration
