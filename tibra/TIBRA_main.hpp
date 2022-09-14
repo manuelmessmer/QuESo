@@ -127,11 +127,11 @@ public:
 
             std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
-        }
 
-        auto end_time = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_time = end_time - start_time;
-        std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
+            auto end_time = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_time = end_time - start_time;
+            std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
+        }
     }
 
     // Public Member Functions
