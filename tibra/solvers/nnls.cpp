@@ -8,7 +8,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
-#include "nnls_impl.h"
+#include "nnls/nnls_impl.h"
 #include "nnls.h"
 
 

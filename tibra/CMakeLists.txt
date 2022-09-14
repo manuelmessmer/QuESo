@@ -7,7 +7,7 @@ project( TIBRA_Application )
 set(CMAKE_BUILD_TYPE RELEASE)
 # Include local directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/includes)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
 
 # Import CGAL and its components
 find_package( CGAL QUIET COMPONENTS  )
