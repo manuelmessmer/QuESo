@@ -2,8 +2,6 @@
 // Email: manuel.messmer@tum.de
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "BaseClassModule"
-
 #include <boost/test/unit_test.hpp>
 
 #include "utilities/mapping_utilities.h"
@@ -13,6 +11,8 @@
 typedef std::array<double,3> PointType;
 
 namespace Testing{
+
+BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
 
 BOOST_AUTO_TEST_CASE(Intersection) {
     std::cout << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     std::string integration_method = "Gauss";
     int echo_level = 0;
 
-    std::string filename = "tibra/tests/data/cylinder.stl";
+    std::string filename = "tibra/tests/cpp_tests/data/cylinder.stl";
 
     TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
                          initial_triangle_edge_length, minimum_number_of_triangles,
@@ -84,7 +84,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
     std::string integration_method = IntegrationMethod;
     int echo_level = 0;
 
-    std::string filename = "tibra/tests/data/elephant.stl";
+    std::string filename = "tibra/tests/cpp_tests/data/elephant.stl";
 
     TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
                          initial_triangle_edge_length, minimum_number_of_triangles,
@@ -151,7 +151,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
     std::string integration_method = IntegrationMethod;
     int echo_level = 0;
 
-    std::string filename = "tibra/tests/data/elephant.stl";
+    std::string filename = "tibra/tests/cpp_tests/data/elephant.stl";
 
     TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
                          initial_triangle_edge_length, minimum_number_of_triangles,
@@ -202,6 +202,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
     const double ref_volume_tot = 0.0462012;
     const double rel_error_tot = std::abs(volume_tot-ref_volume_tot)/ref_volume_tot;
     BOOST_CHECK_LT(rel_error_tot, Tolerance);
+
 }
 
 // p=2
@@ -235,5 +236,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant6) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
     TestElephantSmall("Gauss", 4, 625, 0.0002);
 }
+
+BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing

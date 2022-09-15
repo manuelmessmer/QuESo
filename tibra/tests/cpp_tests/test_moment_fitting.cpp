@@ -2,7 +2,6 @@
 // Email: manuel.messmer@tum.de
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "BaseClassModule"
 
 #include <boost/test/unit_test.hpp>
 
@@ -25,6 +24,8 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
 
 namespace Testing{
+
+BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
@@ -158,6 +159,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     BOOST_CHECK_LT(1.0/64.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase
 
+BOOST_AUTO_TEST_SUITE_END()
+
+} // End namespace Testing
+
 // BOOST_AUTO_TEST_CASE(MomentFittingVolumeIntegral) {
 //     std::cout << "Testing :: Test Moment Fitting :: Volume Integral" << std::endl;
 
@@ -222,4 +227,3 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 //     BOOST_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 0.0003);
 // } // End Testcase
 
-} // End namespace Testing
