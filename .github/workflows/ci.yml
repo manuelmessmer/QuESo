@@ -37,4 +37,4 @@ jobs:
 
     - name: Test
       shell: bash
-      run: ./TestExecutables/test_embedding_operations
+      run: ./TestExecutables/test_tibra --log_level=test_suite
