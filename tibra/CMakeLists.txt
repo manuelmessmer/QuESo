@@ -31,7 +31,7 @@ else()
   return()
   endif()
 
-message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
 # Try to use python executable from env variable
 if(DEFINED ENV{PYTHON_EXECUTABLE})

@@ -119,7 +119,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
             num_elements_inside++;
         }
     }
-    BOOST_REQUIRE_EQUAL(num_elements_inside, 107);
+    BOOST_REQUIRE_EQUAL(num_elements_inside, 108);
     BOOST_CHECK_EQUAL(num_elements_trimmed, 604);
     BOOST_CHECK_EQUAL(num_points_inside, NumPointsInside);
 
