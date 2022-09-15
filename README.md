@@ -12,15 +12,11 @@ The python tests require a Kratos Multiphysics installation: `./run_all_test py`
 
 A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
 
-## Installation
+## Installation (Linux)
 Required dependencies (C++):
-- CMAKE (minimum 3.15)
-- BOOST Unit Test Framework
-- OpenMP
-- CGAL - https://www.cgal.org/ (minimum version 5.3.2) 
 
-Required Python modules:
-- json
+ &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev libmpfr-dev`
+
 
 Execute `sh configure.sh` to install TIBRA.
 
