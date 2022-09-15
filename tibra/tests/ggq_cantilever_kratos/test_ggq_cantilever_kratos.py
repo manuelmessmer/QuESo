@@ -66,7 +66,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
         boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
         boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], p) )
 
-        with open("ggq_cantilever_kratos/TIBRAParameters.json", 'r') as file:
+        with open("tibra/tests/ggq_cantilever_kratos/TIBRAParameters.json", 'r') as file:
             settings = json.load(file)
 
         mesh_settings = settings["mesh_settings"]
@@ -75,7 +75,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
         mesh_settings["polynomial_order"] = polynomial_degree
         mesh_settings["number_of_knot_spans"] = number_of_elements
 
-        kratos_settings_filename = "ggq_cantilever_kratos/KratosParameters.json"
+        kratos_settings_filename = "tibra/tests/ggq_cantilever_kratos/KratosParameters.json"
 
         analysis = Analysis(mesh_settings, kratos_settings_filename, points_all, boundary_condition)
         model_part = analysis.GetModelPart()

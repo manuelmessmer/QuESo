@@ -25,20 +25,20 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=2
         #"number_of_knot_spans" : [2,2,10]
         #el=1000
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters1.json", 0.002)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters1.json", 0.002)
 
     def test_2(self):
         #p=2
         #"number_of_knot_spans" : [2,2,3]
         #el=3000
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters2.json", 0.015)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters2.json", 0.015)
 
     def test_3(self):
         #p=2
         #"number_of_knot_spans" : [8,8,10]
         #"integration_method" : "Gauss"
         #el=1000
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters3.json", 0.0005)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters3.json", 0.0005)
         ips_inside = 0
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
@@ -53,7 +53,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_knot_spans" : [8,8,10]
         #"integration_method : "ReducedExact"
         #el=1000
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters4.json", 0.0005)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters4.json", 0.0005)
 
         ips_inside = 0
         for element in self.pytibra.GetElements():
@@ -68,7 +68,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_knot_spans" : [8,8,10]
         #"integration_method : "ReducedOrder1"
         #el=1000
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters5.json", 0.0005)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters5.json", 0.0005)
 
         ips_inside = 0
         for element in self.pytibra.GetElements():
@@ -83,7 +83,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_knot_spans" : [8,8,10]
         #"integration_method : "ReducedOrder2"
         #el=1000
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters6.json", 0.0005)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters6.json", 0.0005)
 
         ips_inside = 0
         for element in self.pytibra.GetElements():
@@ -97,7 +97,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=3
         #"number_of_knot_spans" : [2,2,2]
         #"integration_method : "Gauss"
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters7.json", 0.0008)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters7.json", 0.0008)
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 4*4*4)
@@ -106,7 +106,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=3
         #"number_of_knot_spans" : [2,2,2]
         #"integration_method : "Gauss"
-        self.RunTest("trimmed_cantilever_kratos/TIBRAParameters8.json", 0.0008)
+        self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters8.json", 0.0008)
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 5*5*5)
@@ -121,7 +121,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
             neumann_boundaries = [[neumann_condition, surface_force]]
             penalty_factor = 1e10
             dirichlet_boundaries = [[dirichlet_condition, penalty_factor]]
-            self.pytibra.RunKratosAnalysis(dirichlet_boundaries, neumann_boundaries, "trimmed_cantilever_kratos/KratosParameters.json")
+            self.pytibra.RunKratosAnalysis(dirichlet_boundaries, neumann_boundaries, "tibra/tests/trimmed_cantilever_kratos/KratosParameters.json")
 
             model_part = self.pytibra.GetAnalysis().GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")

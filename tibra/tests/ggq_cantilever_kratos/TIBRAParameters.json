@@ -1,7 +1,7 @@
 {
     "general_settings"   : {
-        "input_filename"  : "ggq_cantilever_kratos/cylinder.stl",
-        "postprocess_filename" : "ggq_cantilever_kratos/cylinder_post.stl",
+        "input_filename"  : "tibra/tests/ggq_cantilever_kratos/cylinder.stl",
+        "postprocess_filename" : "tibra/tests/ggq_cantilever_kratos/cylinder_post.stl",
         "echo_level"      : 1,
         "embedding_flag"  : true
     },
