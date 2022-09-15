@@ -1,5 +1,3 @@
-import unittest
-
 from tibra.tests.ggq_tube.test_ggq_tube import TestGGQTube
 try:
     import KratosMultiphysics as KM
@@ -10,6 +8,9 @@ except:
 if kratos_available:
     from tibra.tests.ggq_cantilever_kratos.test_ggq_cantilever_kratos import TestGGQCantileverKratos
     from tibra.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
+
+import unittest
+import sys
 
 def PyTIBRATestSuite():
     test_suite = unittest.TestSuite()
@@ -28,7 +29,9 @@ def main():
 
     test_suite = PyTIBRATestSuite()
     runner = unittest.TextTestRunner()
-    return runner.run(test_suite)
+    result = runner.run(test_suite)
+
+    sys.exit(not result.wasSuccessful())
 
 if __name__ == "__main__":
     main()
