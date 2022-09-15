@@ -7,16 +7,16 @@ import json
 class TestGGQTube(unittest.TestCase):
     #p=2
     def test_1(self):
-        self.RunTest("ggq_tube/TIBRAParameters1.json", "ggq_tube/result_ips_gauss.json")
+        self.RunTest("tibra/tests/ggq_tube/TIBRAParameters1.json", "tibra/tests/ggq_tube/result_ips_gauss.json")
 
     def test_2(self):
-        self.RunTest("ggq_tube/TIBRAParameters2.json", "ggq_tube/result_ips_reduced_exact.json")
+        self.RunTest("tibra/tests/ggq_tube/TIBRAParameters2.json", "tibra/tests/ggq_tube/result_ips_reduced_exact.json")
 
     def test_3(self):
-        self.RunTest("ggq_tube/TIBRAParameters3.json", "ggq_tube/result_ips_reduced_order1.json")
+        self.RunTest("tibra/tests/ggq_tube/TIBRAParameters3.json", "tibra/tests/ggq_tube/result_ips_reduced_order1.json")
 
     def test_4(self):
-        self.RunTest("ggq_tube/TIBRAParameters4.json", "ggq_tube/result_ips_reduced_order2.json")
+        self.RunTest("tibra/tests/ggq_tube/TIBRAParameters4.json", "tibra/tests/ggq_tube/result_ips_reduced_order2.json")
 
     def RunTest(self,filename, filename_result):
         self.pytibra = PyTIBRA(filename)

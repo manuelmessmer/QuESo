@@ -2,9 +2,7 @@
 
 if ( [ $1 == "all" ] || [ $1 == "py" ] )
 then
-  cd tibra/tests
-  python3 test_tibra.py
-  cd ../..
+  python3 tibra/tests/test_tibra.py
 fi
 
 for file in TestExecutables/*

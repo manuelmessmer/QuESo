@@ -1,7 +1,7 @@
 {
     "general_settings"   : {
-        "input_filename"  : "ggq_tube/tube.stl",
-        "postprocess_filename" : "ggq_tube/tube.stl",
+        "input_filename"  : "tibra/tests/ggq_tube/tube.stl",
+        "postprocess_filename" : "tibra/tests/ggq_tube/tube.stl",
         "echo_level"      : 0,
         "embedding_flag"  : true
     },
