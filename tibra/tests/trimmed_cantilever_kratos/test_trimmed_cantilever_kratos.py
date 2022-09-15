@@ -2,7 +2,6 @@
 from platform import release
 import re
 from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
-from tibra.python_scripts.write_ls_dyna_keyword import keyword_writer
 
 try:
     import KratosMultiphysics as KM
