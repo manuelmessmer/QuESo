@@ -1,0 +1,23 @@
+{
+    "general_settings"   : {
+        "input_filename"  : "tibra/tests/ggq_tube/tube.stl",
+        "postprocess_filename" : "tibra/tests/ggq_tube/tube.stl",
+        "echo_level"      : 0,
+        "embedding_flag"  : true
+    },
+    "mesh_settings"     : {
+        "lower_point": [-1.99, -1.99, 0],
+        "upper_point": [1.99, 1.99, 5],
+        "polynomial_order" : [2, 2, 2],
+        "number_of_knot_spans" : [12,12,15]
+    },
+    "trimmed_quadrature_rule_settings"     : {
+        "initial_triangle_edge_length" : 1,
+        "min_num_boundary_triangles"  : 1,
+        "moment_fitting_residual": 1e-10,
+        "init_point_distribution_factor": 1
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+        "integration_method" : "ReducedOrder1"
+    }
+}

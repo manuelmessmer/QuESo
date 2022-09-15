@@ -5,6 +5,7 @@ import os
 import shutil
 
 try:
+    # TODO: Move to analysis
     import KratosMultiphysics as KM
     kratos_available = True
 except:

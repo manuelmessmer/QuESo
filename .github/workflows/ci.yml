@@ -1,10 +1,13 @@
 name: CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
+# for cancelling redundant runs
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -35,6 +38,14 @@ jobs:
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
 
-    - name: Test
+    - name: Test py
+      shell: bash
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
+        python3 tibra/tests/test_tibra.py
+
+    - name: Test cpp
       shell: bash
       run: ./TestExecutables/test_tibra --log_level=test_suite
+

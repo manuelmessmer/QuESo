@@ -1,12 +1,26 @@
-import unittest
+from tibra.tests.ggq_tube.test_ggq_tube import TestGGQTube
+try:
+    import KratosMultiphysics as KM
+    kratos_available = True
+except:
+    kratos_available = False
 
-from generalized_Gaussian_quadrature.test_generalized_Gaussian_quadrature import TestGeneralizedGaussianQuadrature
-from trimmed_cantilever.test_trimmed_cantilever import TestTrimmedCantilever
+if kratos_available:
+    from tibra.tests.ggq_cantilever_kratos.test_ggq_cantilever_kratos import TestGGQCantileverKratos
+    from tibra.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
+
+import unittest
+import sys
 
 def PyTIBRATestSuite():
     test_suite = unittest.TestSuite()
-    #test_suite.addTest(unittest.makeSuite(TestGeneralizedGaussianQuadrature))
-    test_suite.addTest(unittest.makeSuite(TestTrimmedCantilever))
+    if kratos_available:
+        test_suite.addTest(unittest.makeSuite(TestGGQCantileverKratos))
+        test_suite.addTest(unittest.makeSuite(TestTrimmedCantileverKratos))
+    else:
+        print("Warning :: Tests with KratosMultiphysics dependencies are skipped.")
+
+    test_suite.addTest(unittest.makeSuite(TestGGQTube))
 
     return test_suite
 
@@ -14,9 +28,10 @@ def PyTIBRATestSuite():
 def main():
 
     test_suite = PyTIBRATestSuite()
-
     runner = unittest.TextTestRunner()
-    runner.run(test_suite)
+    result = runner.run(test_suite)
+
+    sys.exit(not result.wasSuccessful())
 
 if __name__ == "__main__":
     main()

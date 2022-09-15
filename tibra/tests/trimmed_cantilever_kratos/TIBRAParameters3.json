@@ -1,7 +1,7 @@
 {
     "general_settings"   : {
-        "input_filename"  : "trimmed_cantilever/cylinder.stl",
-        "postprocess_filename" : "trimmed_cantilever/cylinder.stl",
+        "input_filename"  : "trimmed_cantilever_kratos/cylinder.stl",
+        "postprocess_filename" : "trimmed_cantilever_kratos/cylinder.stl",
         "echo_level"      : 0,
         "embedding_flag"  : true
     },
@@ -9,7 +9,7 @@
         "lower_point": [-1.5, -1.5, -1.00],
         "upper_point": [1.5, 1.5, 11.00],
         "polynomial_order" : [2, 2, 2],
-        "number_of_knot_spans" : [2,2,10]
+        "number_of_knot_spans" : [8,8,10]
     },
     "trimmed_quadrature_rule_settings"     : {
         "initial_triangle_edge_length" : 1,
