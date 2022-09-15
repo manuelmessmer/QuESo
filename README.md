@@ -1,5 +1,7 @@
 # Trivariate Isogeometric B-Rep Analysis - TIBRA 
 
+[![Build Status](https://github.com/manuelmessmer/TIBRA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/manuelmessmer/TIBRA/actions)
+
 TIBRA is an IGA preprocessor to generate analysis suitable models from volumetric B-Reps. The B-Rep is embedded into a trivariate B-Spline cuboid defined by a bounding box (`lower_point`, `upper_point`). The user can specify the polynomial degree (`p=1..4`) and the number of knot spans in each spatial direction. TIBRA reads an STL file and computes the integration points required for a FE analysis. An interface to the FE framework [Kratos Multiphysics](https://github.com/KratosMultiphysics/Kratos) is provided. More information about the theoretical background of TIBRA can be found in [1]. Please do not hesitate to contact me if you have any questions about TIBRA.
 
 This project is still under development.
