@@ -27,9 +27,8 @@ def PyTIBRATestSuite():
 def main():
 
     test_suite = PyTIBRATestSuite()
-
     runner = unittest.TextTestRunner()
-    runner.run(test_suite)
+    return runner.run(test_suite)
 
 if __name__ == "__main__":
     main()
