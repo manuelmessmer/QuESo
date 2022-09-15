@@ -35,11 +35,11 @@ jobs:
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
 
-    - name: Test cpp
-      shell: bash
-      run: python3
-
     - name: Test py
       shell: bash
       run: python3 tibra/tests/test_tibra.py
+
+    - name: Test cpp
+      shell: bash
+      run: ./TestExecutables/test_tibra --log_level=test_suite
 
