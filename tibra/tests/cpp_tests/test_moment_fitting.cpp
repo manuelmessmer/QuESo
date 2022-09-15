@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-7);
     }
-    std::cout << "Error Norm: " << 1.0/27.0*std::sqrt(error_norm) << std::endl;
+    //std::cout << "Error Norm: " << 1.0/27.0*std::sqrt(error_norm) << std::endl;
 
     BOOST_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 1e-8);
 } // End Testcase
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);
     }
-    std::cout << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
+    //std::cout << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
 
     BOOST_CHECK_LT(1.0/64.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase

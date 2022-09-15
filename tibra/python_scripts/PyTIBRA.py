@@ -114,45 +114,47 @@ class PyTIBRA:
         return neumann_triangles
 
     def RunKratosAnalysis(self, dirichlet_settings, neumann_settings, kratos_settings="KratosParameters.json"):
-        integration_points = self.GetIntegrationPoints()
-        boundary_conditions = []
-        for bc in dirichlet_settings:
-            dirichlet_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
-            boundary_conditions.append( PenaltySupport(dirichlet_triangles, self.lower_point, self.upper_point, bc[1]) )
-        for bc in neumann_settings:
-            neumann_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
-            boundary_conditions.append( SurfaceLoad(neumann_triangles, self.lower_point, self.upper_point,bc[1], False) )
+        if kratos_available:
+            integration_points = self.GetIntegrationPoints()
+            boundary_conditions = []
+            for bc in dirichlet_settings:
+                dirichlet_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
+                boundary_conditions.append( PenaltySupport(dirichlet_triangles, self.lower_point, self.upper_point, bc[1]) )
+            for bc in neumann_settings:
+                neumann_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
+                boundary_conditions.append( SurfaceLoad(neumann_triangles, self.lower_point, self.upper_point,bc[1], False) )
 
-        self.analysis = Analysis( self.mesh_settings, kratos_settings, integration_points, boundary_conditions)
+            self.analysis = Analysis( self.mesh_settings, kratos_settings, integration_points, boundary_conditions)
 
     def PostProcess(self):
-        model_part = self.analysis.GetModelPart()
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
+        if kratos_available:
+            model_part = self.analysis.GetModelPart()
+            nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        # Mesh points are stored in one consecutive array
-        self.tibra.ReadWritePostMesh(self.post_filename)
-        raw_mesh_points = self.tibra.GetPostMeshPointsRaw()
-        num_points = len(raw_mesh_points)//3
-        #print(num_points)
-        displacements = []
-        for i in range(num_points):
-            global_point = [raw_mesh_points[3*i], raw_mesh_points[3*i+1], raw_mesh_points[3*i+2]]
-            local_point = FromGlobalToParamSpace(global_point, self.lower_point, self.upper_point)
+            # Mesh points are stored in one consecutive array
+            self.tibra.ReadWritePostMesh(self.post_filename)
+            raw_mesh_points = self.tibra.GetPostMeshPointsRaw()
+            num_points = len(raw_mesh_points)//3
+            #print(num_points)
+            displacements = []
+            for i in range(num_points):
+                global_point = [raw_mesh_points[3*i], raw_mesh_points[3*i+1], raw_mesh_points[3*i+2]]
+                local_point = FromGlobalToParamSpace(global_point, self.lower_point, self.upper_point)
 
-            local_point_kratos = KM.Vector(3)
-            local_point_kratos[0] = local_point[0]
-            local_point_kratos[1] = local_point[1]
-            local_point_kratos[2] = local_point[2]
-            # Evaluate deformed nurbs_volume
-            deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
-            deformed_pos = [0, 0, 0]
-            deformed_pos[0] = global_point[0] - deformed_pos_kratos[0]
-            deformed_pos[1] = global_point[1] - deformed_pos_kratos[1]
-            deformed_pos[2] = global_point[2] - deformed_pos_kratos[2]
-            displacements.append( deformed_pos )
+                local_point_kratos = KM.Vector(3)
+                local_point_kratos[0] = local_point[0]
+                local_point_kratos[1] = local_point[1]
+                local_point_kratos[2] = local_point[2]
+                # Evaluate deformed nurbs_volume
+                deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
+                deformed_pos = [0, 0, 0]
+                deformed_pos[0] = global_point[0] - deformed_pos_kratos[0]
+                deformed_pos[1] = global_point[1] - deformed_pos_kratos[1]
+                deformed_pos[2] = global_point[2] - deformed_pos_kratos[2]
+                displacements.append( deformed_pos )
 
-        TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
-        #print(displacements[0])
+            TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
+            #print(displacements[0])
 
     def GetAnalysis(self):
         return self.analysis
