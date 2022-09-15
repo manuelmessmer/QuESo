@@ -1,12 +1,22 @@
 import unittest
 
-from generalized_Gaussian_quadrature.test_generalized_Gaussian_quadrature import TestGeneralizedGaussianQuadrature
-from trimmed_cantilever.test_trimmed_cantilever import TestTrimmedCantilever
+from tibra.tests.ggq_cantilever_kratos.test_ggq_cantilever_kratos import TestGGQCantileverKratos
+from tibra.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
+
+try:
+    import KratosMultiphysics as KM
+    kratos_available = True
+except:
+    print("KratosMultiphysics is not available")
+    kratos_available = False
 
 def PyTIBRATestSuite():
     test_suite = unittest.TestSuite()
-    #test_suite.addTest(unittest.makeSuite(TestGeneralizedGaussianQuadrature))
-    test_suite.addTest(unittest.makeSuite(TestTrimmedCantilever))
+    if kratos_available:
+        test_suite.addTest(unittest.makeSuite(TestGGQCantileverKratos))
+        test_suite.addTest(unittest.makeSuite(TestTrimmedCantileverKratos))
+    else:
+        print("Warning :: Tests with KratosMultiphysics dependency are skipped.")
 
     return test_suite
 
