@@ -13,7 +13,7 @@ The python tests require a Kratos Multiphysics installation: `./run_all_test py`
 A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
 
 ## Installation (Linux)
-Required dependencies (C++):
+Required dependencies:
 
  &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev libmpfr-dev`
 
