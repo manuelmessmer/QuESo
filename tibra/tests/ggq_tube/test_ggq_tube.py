@@ -45,7 +45,7 @@ class TestGGQTube(unittest.TestCase):
                 self.assertLess( abs(ref_point[0]-point[0])/ref_point[0], 1e-14 )
                 self.assertLess( abs(ref_point[1]-point[1])/ref_point[1], 1e-14 )
                 self.assertLess( abs(ref_point[2]-point[2])/ref_point[2], 1e-14 )
-                self.assertLess( abs(ref_point[1]-point[3])/ref_point[3], 1e-14 )
+                self.assertLess( abs(ref_point[3]-point[3])/ref_point[3], 1e-14 )
 
 if __name__ == "__main__":
     unittest.main()
