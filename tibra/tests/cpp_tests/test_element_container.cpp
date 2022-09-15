@@ -2,7 +2,6 @@
 // Email: manuel.messmer@tum.de
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "BaseClassModule"
 
 #include <boost/test/unit_test.hpp>
 
@@ -12,6 +11,8 @@
 #include "geometries/element_container.h"
 
 namespace Testing{
+
+BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
 std::unique_ptr<ElementContainer> CreateTestElementContainer(std::array<int,3> rNumberOfElemnts){
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
@@ -185,5 +186,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
     }
     BOOST_CHECK_EQUAL(active_element_counter, 23);
 } // End Testcase
+
+BOOST_AUTO_TEST_SUITE_END()
 
 } // Namespace Testing

@@ -31,7 +31,7 @@ else()
   return()
   endif()
 
-message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
 # Try to use python executable from env variable
 if(DEFINED ENV{PYTHON_EXECUTABLE})
@@ -66,24 +66,21 @@ set_target_properties( TIBRA_Application PROPERTIES PREFIX "")
 enable_testing()
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 include_directories (${Boost_INCLUDE_DIRS})
-file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-#Run through each source
-foreach(testSrc ${TEST_SRCS})
-        #Extract the filename without an extension (NAME_WE)
-        get_filename_component(testName ${testSrc} NAME_WE)
-        #Add compile target
-        add_executable(${testName} ${testSrc})
-        #link to Boost libraries AND your targets and dependencies
-        target_link_libraries(${testName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
-        #I like to move testing binaries into a testBin directory
-        set_target_properties(${testName} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
-        #Finally add it to test execution -
-        #Notice the WORKING_DIRECTORY and COMMAND
-        add_test(NAME ${testName}
-                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
-                 COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testName} )
-endforeach(testSrc)
+file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+
+# Run compile cpp tests
+# Extract the filename without an extension (NAME_WE)
+get_filename_component(testName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra.cpp NAME_WE)
+# Add compile target
+add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra.cpp ${TEST_SRCS})
+# Link to Boost libraries and TIBRA
+target_link_libraries (${testName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
+# Move to TestExecutables
+set_target_properties(${testName} PROPERTIES
+             RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
+add_test(NAME ${testName}
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testName} )
 
 #Setting the libs folder for the shared objects built in kratos
 install(TARGETS TIBRA_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)

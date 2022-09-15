@@ -24,8 +24,6 @@ namespace Polynomial {
     using Lp = std::variant<p0,p1,p2,p3,p4,p5,p6,p7,p8>;
     using Legendre = std::vector<Lp>;
 
-    Legendre legendre{p0{}, p1{}, p2{}, p3{}, p4{}, p5{}, p6{}, p7{}, p8{}};
-
     struct F_x{
         // Shifted legendre polynomial (p=0)
         double inline operator()(const p0& p) const {
@@ -81,7 +79,9 @@ double inline f_x_visit( const Lp& s, double x, double a, double b ) {
 }
 
 // Caller for F_x
+// Wrap this in class and make static. To avoid Legendre to be constructed at each call.
 double inline f_x( double x, int order, double a, double b ){
+    Legendre legendre{p0{}, p1{}, p2{}, p3{}, p4{}, p5{}, p6{}, p7{}, p8{}};
     return f_x_visit( legendre[order], x, a, b);
 }
 
@@ -134,6 +134,7 @@ double inline f_x_int_visit( const Lp& s, double x, double a, double b ){
 }
 
 double inline f_x_int( double x, int order, double a, double b ){
+    Legendre legendre{p0{}, p1{}, p2{}, p3{}, p4{}, p5{}, p6{}, p7{}, p8{}};
     return f_x_int_visit( legendre[order], x, a, b);
 }
 

@@ -2,7 +2,6 @@
 // Email: manuel.messmer@tum.de
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "BaseClassModule"
 
 #include <boost/test/unit_test.hpp>
 
@@ -10,6 +9,8 @@
 #include "utilities/polynomial_utilities.h"
 
 namespace Testing{
+
+BOOST_AUTO_TEST_SUITE( PolynomialTestSuite )
 
 BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
     std::cout << "Testing :: Test Polynomials :: Legendre Polynomials 1" << std::endl;
@@ -46,7 +47,8 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
         double analytical_int = Polynomial::f_x_int(0.3,order-1, 0.1, 0.3) - Polynomial::f_x_int(0.1,order-1, 0.1, 0.3);
         BOOST_CHECK_LT(std::abs(analytical_int-numerical_integral), 1e-12);
     }
-
 }
+
+BOOST_AUTO_TEST_SUITE_END()
 
 }// Namespace Testing

@@ -2,13 +2,14 @@
 // Email: manuel.messmer@tum.de
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "BaseClassModule"
 
 #include <boost/test/unit_test.hpp>
 
 #include "solvers/nnls.h"
 
 namespace Testing{
+
+BOOST_AUTO_TEST_SUITE( NNLSTestSuite )
 
 BOOST_AUTO_TEST_CASE(NNLS_Rectangle_Matrix) {
     std::cout << "Testing :: Test NNLS :: Rectangle Matrix" << std::endl;
@@ -66,5 +67,7 @@ BOOST_AUTO_TEST_CASE(NNLS_Square_Matrix) {
     for( int i = 0; i < 4; ++i)
         BOOST_CHECK_CLOSE(x(i), x_reference(i), 1e-10);
 }
+
+BOOST_AUTO_TEST_SUITE_END()
 
 }// Namespace Testing
