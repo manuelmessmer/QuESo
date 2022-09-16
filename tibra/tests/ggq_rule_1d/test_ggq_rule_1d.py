@@ -10,7 +10,7 @@ class TestGGQ1d(unittest.TestCase):
     def test_1(self):
         p = 4
         r = 0
-        e = 26
+        e = 34
         a = 0.0
         b = 1.0
         points = TIBRA_PythonApplication.GGQRule.GetGGQ_Rule(p, r, e, a, b)
@@ -24,12 +24,14 @@ class TestGGQ1d(unittest.TestCase):
         knots = np.concatenate( (knots, np.linspace(a, b, e+1)), axis=0)
         knots = np.concatenate( (knots, b*np.ones(p)), axis=0)
 
-        # Requries scipy 1.8.0 maybe there is a better way to do this..
-        design_matrix = BSpline.design_matrix(cps, knots, p).toarray()
-        design_matrix.toarray()
+        spline = BSpline(knots, cps, p)
+        print( spline.integrate(0,1.0, extrapolate=False) )
 
-        # for point in points:
-        #     print(point)
+        test = 0.0
+        for point in points:
+            test += spline(point[0])*point[1]
+        print(test)
+
 
 if __name__ == "__main__":
     unittest.main()
