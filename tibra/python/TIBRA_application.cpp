@@ -16,13 +16,16 @@
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
+#include "utilities/ggq_utilities.h"
 #include "io/io_utilities.h"
 
-typedef std::vector<IntegrationPoint> IntegrationPointType;
+typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
+typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
 typedef std::vector<Triangle3D3N> TriangleVectorType;
 
-PYBIND11_MAKE_OPAQUE(IntegrationPointType);
+PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
+PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(TriangleVectorType);
 
@@ -66,20 +69,6 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         }, py::keep_alive<0, 1>())
         ;
 
-// void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
-//                                 const char* Filename,
-//                                 const bool Binary){
-    // py::class_<ElementVectorPtrType>(m, "ElementVector")
-    //     .def(py::init<>())
-    //     .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
-    //     .def("__iter__", [](ElementVectorPtrType &v) {
-    //         return py::make_iterator( v.begin(), v.end() );
-    //     }, py::keep_alive<0, 1>())
-    //     ;
-
-    //m.def("get_ptr", &get_ptr);
-    //py::class_<ptr_wrapper<double>>(m,"pdouble");
-
     py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
         .def("GetX", &IntegrationPoint::X)
@@ -90,7 +79,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 
-    py::bind_vector<IntegrationPointType,std::shared_ptr<IntegrationPointType>>
+    py::bind_vector<IntegrationPointVectorType,std::shared_ptr<IntegrationPointVectorType>>
         (m, "VectorOfIntegrationPoints")
     ;
 
@@ -138,6 +127,13 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
 
+    py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
+        (m, "VectorOfIntegrationPoints1D")
+    ;
+
+    py::class_<GGQRule, std::shared_ptr<GGQRule>>(m,"GGQRule")
+        .def_static("GetGGQ_Rule", &GGQRule::GetGGQ_Rule, py::return_value_policy::reference)
+    ;
 
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
