@@ -16,7 +16,7 @@
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
-#include "utilities/ggq_utilities.h"
+#include "utilities/integration_points/integration_points_factory.h"
 #include "io/io_utilities.h"
 
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
@@ -32,7 +32,6 @@ PYBIND11_MAKE_OPAQUE(TriangleVectorType);
 namespace Python {
 
 namespace py = pybind11;
-
 
 template <class T> class ptr_wrapper
 {
@@ -131,8 +130,18 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         (m, "VectorOfIntegrationPoints1D")
     ;
 
-    py::class_<GGQRule, std::shared_ptr<GGQRule>>(m,"GGQRule")
-        .def_static("GetGGQ_Rule", &GGQRule::GetGGQ_Rule, py::return_value_policy::reference)
+    py::enum_<IntegrationPointFactory::IntegrationMethod>(m, "IntegrationMethod")
+        .value("Gauss", IntegrationPointFactory::IntegrationMethod::Gauss)
+        .value("ReducedGauss1", IntegrationPointFactory::IntegrationMethod::ReducedGauss1)
+        .value("ReducedGauss2", IntegrationPointFactory::IntegrationMethod::ReducedGauss2)
+        .value("ReducedExact", IntegrationPointFactory::IntegrationMethod::ReducedExact)
+        .value("ReducedOrder1", IntegrationPointFactory::IntegrationMethod::ReducedOrder1)
+        .value("ReducedOrder2", IntegrationPointFactory::IntegrationMethod::ReducedOrder2)
+        .export_values()
+    ;
+
+    py::class_<IntegrationPointFactory, std::shared_ptr<IntegrationPointFactory>>(m,"IntegrationPointFactory")
+        .def_static("GetGGQ", &IntegrationPointFactory::GetGGQ, py::return_value_policy::move)
     ;
 
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
@@ -141,6 +150,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPointsRaw", [](const TIBRA& v){
+
             auto& mesh = v.GetPostMesh();
             const std::size_t num_p = mesh.num_vertices();
             const auto raw_ptr = mesh.points().data()->cartesian_begin();
