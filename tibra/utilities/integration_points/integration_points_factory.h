@@ -1,7 +1,19 @@
+// Author: Manuel Meßmer
+// Email: manuel.messmer@tum.de
+
 #ifndef INTEGRATION_POINTS_FACTORY_H
 #define INTEGRATION_POINTS_FACTORY_H
 
 // External includes
+#include <cstddef>
+#include <cmath>
+#include <vector>
+#include <array>
+#include <iostream>
+#include <algorithm>
+#include <memory>
+#include <utility>
+
 #include <stdexcept>
 
 // Project includes
@@ -12,86 +24,53 @@
 
 class IntegrationPointFactory {
 public:
-    // TODO: Change to enum!!
+    // Typefef
+    typedef std::size_t SizeType;
+    typedef std::vector<std::array<double,2>> Ip1DVectorType;
+    typedef std::unique_ptr<Ip1DVectorType> Ip1DVectorPtrType;
+
+    typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
+    typedef std::shared_ptr<Ip1DVectorVectorType> Ip1DVectorVectorPtrType;
+    // Enum Definition
     enum IntegrationMethod {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2};
 
-    static const std::vector<std::array<double, 2>>& GetIntegrationPoints( int PolynomialDegree, int NumberKnotSpans, IntegrationMethod method ){
-        switch(method)
-        {
-            case Gauss:
-                return GetGaussLegendrePoints(PolynomialDegree);
-            case ReducedGauss1:
-                return GetGaussLegendrePoints(PolynomialDegree-1);
-            case ReducedGauss2:
-                return GetGaussLegendrePoints(PolynomialDegree-2);
-            case ReducedExact:
-                return AllMultiKnotSpanIntegrationPointsExact()[PolynomialDegree-2][NumberKnotSpans-1];
-            case ReducedOrder1:
-                return AllMultiKnotSpanIntegrationPointsReducedOrder1()[PolynomialDegree-2][NumberKnotSpans-1];
-            case ReducedOrder2:
-                return AllMultiKnotSpanIntegrationPointsReducedOrder2()[PolynomialDegree-2][NumberKnotSpans-1];
-            default:
-                throw std::invalid_argument("IntegrationPointFactory: Method not available");
-                break;
-        }
-    }
+    IntegrationPointFactory() = default;
+    IntegrationPointFactory(const IntegrationPointFactory &m) = delete;
+    IntegrationPointFactory & operator= (const IntegrationPointFactory &) = delete;
 
-    static const std::vector<std::array<double, 2>>& GetIntegrationPoints( int PolynomialDegree, IntegrationMethod method ){
-        switch(method)
-        {
-            case Gauss:
-                return GetGaussLegendrePoints(PolynomialDegree);
-            case ReducedGauss1:
-                return GetGaussLegendrePoints(PolynomialDegree-1);
-            case ReducedGauss2:
-                return GetGaussLegendrePoints(PolynomialDegree-2);
-            default:
-                throw std::invalid_argument("IntegrationPointFactory: Method not available");
-                break;
-        }
-    }
+    static Ip1DVectorPtrType GetGGQ( int PolynomialDegree, int NumberKnotSpans, IntegrationMethod method );
+
+    static Ip1DVectorPtrType GetGauss( int PolynomialDegree, IntegrationMethod method );
 
 private:
 
-    static const std::vector<std::vector<std::vector<std::array<double, 2>>>>& AllMultiKnotSpanIntegrationPointsExact()
-    {
-        static const std::vector<std::vector<std::vector<std::array<double, 2>>>> integration_points =
-        {
-            IntegrationPoints::Points_S_4_0,
-            IntegrationPoints::Points_S_6_1,
-            IntegrationPoints::Points_S_8_2
-        };
+    //static const std::vector<Ip1DVectorVectorType>& PrecomputedPointsP2();
+    //static void GetBasePoints(int m, int p, IntegrationMethod method);
 
-        return integration_points;
-    }
+    // static const std::vector<Ip1DVectorVectorType>& AllMultiKnotSpanIntegrationPointsReducedOrder1();
 
-    static const std::vector<std::vector<std::vector<std::array<double, 2>>>>& AllMultiKnotSpanIntegrationPointsReducedOrder1()
-    {
-        static const std::vector<std::vector<std::vector<std::array<double, 2>>>> integration_points =
-        {
-            IntegrationPoints::Points_S_3_0,
-            IntegrationPoints::Points_S_5_1,
-            IntegrationPoints::Points_S_7_2
-        };
+    // static const std::vector<Ip1DVectorVectorType>& AllMultiKnotSpanIntegrationPointsReducedOrder2();
 
-        return integration_points;
-    }
+    static const std::pair<SizeType, SizeType> GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethod method );
 
-    static const std::vector<std::vector<std::vector<std::array<double, 2>>>>& AllMultiKnotSpanIntegrationPointsReducedOrder2()
-    {
-        static const std::vector<std::vector<std::vector<std::array<double, 2>>>> integration_points =
-        {
-            IntegrationPoints::Points_S_2_0,
-            IntegrationPoints::Points_S_4_1,
-            IntegrationPoints::Points_S_6_2
-        };
+    static Ip1DVectorPtrType GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod method);
 
-        return integration_points;
-    }
+    // Private Member variables
+    // Precomputed points optimal
+    static const std::vector<std::array<Ip1DVectorVectorPtrType,2>> base_points_optimal;
 
-    static const std::vector<std::array<double, 2>>& GetGaussLegendrePoints( int PolynomialDegree ){
+    static const Ip1DVectorVectorPtrType S_4_0_base_even;
 
-        return IntegrationPoints::GaussLegendrePoints[PolynomialDegree-1];
-    }
+    static const Ip1DVectorVectorPtrType S_4_0_base_odd;
+
+    static const Ip1DVectorVectorPtrType S_6_1_base_even;
+
+    static const Ip1DVectorVectorPtrType S_6_1_base_odd;
+
+    static const std::vector<Ip1DVectorVectorPtrType> precomputed_points_optimal;
+
+    static const Ip1DVectorVectorPtrType S_4_0_precomputed;
+
+    static const Ip1DVectorVectorPtrType S_6_1_precomputed;
 };
 #endif // INTEGRATION_POINTS_FACTORY_H
