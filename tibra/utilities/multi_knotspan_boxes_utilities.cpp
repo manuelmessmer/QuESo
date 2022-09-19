@@ -311,12 +311,12 @@ void MultiKnotspanBoxesUtilities::StoreIntegrationPoints(ElementContainer::Eleme
             const double distance_global = global_upper_point_param[direction] - global_lower_point_param[direction];
             const double length_global = std::abs(global_upper_point_param[direction] - global_lower_point_param[direction]);
 
-            const std::vector<std::array<double, 2>>& integration_point_list =
-                IntegrationPointFactory::GetIntegrationPoints(polynomial_degrees[direction], rNumberKnotspans[direction], rParameters.IntegrationMethod());
+            const auto p_integration_point_list =
+                IntegrationPointFactory::GetGGQ(polynomial_degrees[direction], rNumberKnotspans[direction], rParameters.IntegrationMethod());
 
-            for( int j = 0; j < integration_point_list.size(); ++j){
-                double position = global_lower_point_param[direction] + distance_global* integration_point_list[j][0];
-                double weight = length_global *  integration_point_list[j][1];
+            for( int j = 0; j < p_integration_point_list->size(); ++j){
+                double position = global_lower_point_param[direction] + distance_global* (*p_integration_point_list)[j][0];
+                double weight = length_global *  (*p_integration_point_list)[j][1];
                 std::array<double, 2> tmp_point = {position, weight};
                 // Keep this in mind.
                 if( position > lower_point_param[direction] && position <= upper_point_param[direction]){
