@@ -18,9 +18,6 @@
 
 // Project includes
 #include "gauss_legendre_integration_points.h"
-#include "knot_span_integration_points_p_2.h"
-#include "knot_span_integration_points_p_3.h"
-#include "knot_span_integration_points_p_4.h"
 
 class IntegrationPointFactory {
 public:
@@ -56,6 +53,7 @@ private:
     static Ip1DVectorPtrType GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod method);
 
     // Private Member variables
+    // TODO: Add Gauss Legende points here!!
     // Base points (Optimal)
     static const std::vector<std::array<Ip1DVectorVectorPtrType,2>> base_points_optimal;
     // Base optimal contains:

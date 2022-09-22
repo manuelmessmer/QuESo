@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1...3.15)
 project( TIBRA_Application )
 
 # Set build type to Release
-set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_BUILD_TYPE Release)
 # Include local directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
@@ -47,6 +47,7 @@ include(pybind11Tools)
 file(GLOB TIBRA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/utilities/integration_points/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/modeler/*.cpp
