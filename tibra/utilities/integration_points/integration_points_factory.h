@@ -56,21 +56,66 @@ private:
     static Ip1DVectorPtrType GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod method);
 
     // Private Member variables
-    // Precomputed points optimal
+    // Base points (Optimal)
     static const std::vector<std::array<Ip1DVectorVectorPtrType,2>> base_points_optimal;
-
+    // Base optimal contains:
+    // { { S_4_0_base_even, S_4_0_base_odd},
+    //   { S_6_1_base_even, S_6_1_base_odd},
+    //   { S_8_2_base_even, S_8_2_base_odd} }
     static const Ip1DVectorVectorPtrType S_4_0_base_even;
-
     static const Ip1DVectorVectorPtrType S_4_0_base_odd;
-
     static const Ip1DVectorVectorPtrType S_6_1_base_even;
-
     static const Ip1DVectorVectorPtrType S_6_1_base_odd;
-
+    static const Ip1DVectorVectorPtrType S_8_2_base_even;
+    static const Ip1DVectorVectorPtrType S_8_2_base_odd;
+    // Precomputed points (Optimal)
     static const std::vector<Ip1DVectorVectorPtrType> precomputed_points_optimal;
-
+    // Precomputed optimal contains:
+    // {S_4_0_precomputed, S_6_1_precomputed, S_8_2_precomputed}
     static const Ip1DVectorVectorPtrType S_4_0_precomputed;
-
     static const Ip1DVectorVectorPtrType S_6_1_precomputed;
+    static const Ip1DVectorVectorPtrType S_8_2_precomputed;
+
+    // Base points (Reduced1)
+    static const std::vector<std::array<Ip1DVectorVectorPtrType,2>> base_points_reduced1;
+    // Base optimal reduced1:
+    // { { S_3_0_base_even, S_3_0_base_odd},
+    //   { S_5_1_base_even, S_5_1_base_odd},
+    //   { S_7_2_base_even, S_7_2_base_odd} }
+    static const Ip1DVectorVectorPtrType S_3_0_base_even;
+    static const Ip1DVectorVectorPtrType S_3_0_base_odd;
+    static const Ip1DVectorVectorPtrType S_5_1_base_even;
+    static const Ip1DVectorVectorPtrType S_5_1_base_odd;
+    static const Ip1DVectorVectorPtrType S_7_2_base_even;
+    static const Ip1DVectorVectorPtrType S_7_2_base_odd;
+    // Precomputed points (Reduced1)
+    static const std::vector<Ip1DVectorVectorPtrType> precomputed_points_reduced1;
+    // Precomputed reduced contains:
+    // {S_3_0_precomputed, S_5_1_precomputed, S_7_2_precomputed}
+    static const Ip1DVectorVectorPtrType S_3_0_precomputed;
+    static const Ip1DVectorVectorPtrType S_5_1_precomputed;
+    static const Ip1DVectorVectorPtrType S_7_2_precomputed;
+
+    // Base points (Reduced2)
+    static const std::vector<std::array<Ip1DVectorVectorPtrType,2>> base_points_reduced2;
+    // Base optimal reduced2:
+    // { { S_2_0_base_even, S_2_0_base_odd},
+    //   { S_4_1_base_even, S_4_1_base_odd},
+    //   { S_6_2_base_even, S_6_2_base_odd} }
+    static const Ip1DVectorVectorPtrType S_2_0_base_even;
+    static const Ip1DVectorVectorPtrType S_2_0_base_odd;
+    static const Ip1DVectorVectorPtrType S_4_1_base_even;
+    static const Ip1DVectorVectorPtrType S_4_1_base_even_2; // Required for odd element numbers, but even quadrature rules.
+    static const Ip1DVectorVectorPtrType S_4_1_base_odd;
+    static const Ip1DVectorVectorPtrType S_6_2_base_even;
+    static const Ip1DVectorVectorPtrType S_6_2_base_odd;
+
+    static const std::vector<Ip1DVectorVectorPtrType> precomputed_points_reduced2;
+    // Precomputed reduced contains:
+    // {S_2_0_precomputed, S_4_1_precomputed, S_6_2_precomputed}
+    static const Ip1DVectorVectorPtrType S_2_0_precomputed;
+    static const Ip1DVectorVectorPtrType S_4_1_precomputed;
+    static const Ip1DVectorVectorPtrType S_6_2_precomputed;
+
 };
 #endif // INTEGRATION_POINTS_FACTORY_H

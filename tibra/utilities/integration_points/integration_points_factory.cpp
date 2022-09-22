@@ -34,43 +34,6 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGauss( int PolynomialDegree, Integ
     }
 }
 
-// Private member functions
-// const std::vector<Ip1DVectorVectorType>& IntegrationPointFactory::AllMultiKnotSpanIntegrationPointsExact()
-// {
-//     static const std::vector<Ip1DVectorVectorType> integration_points =
-//     {
-//         IntegrationPoints::Points_S_4_0,
-//         IntegrationPoints::Points_S_6_1,
-//         IntegrationPoints::Points_S_8_2
-//     };
-
-//     return integration_points;
-// }
-
-// const std::vector<Ip1DVectorVectorType>& IntegrationPointFactory::AllMultiKnotSpanIntegrationPointsReducedOrder1()
-// {
-//     static const std::vector<Ip1DVectorVectorType> integration_points =
-//     {
-//         IntegrationPoints::Points_S_3_0,
-//         IntegrationPoints::Points_S_5_1,
-//         IntegrationPoints::Points_S_7_2
-//     };
-
-//     return integration_points;
-// }
-
-// const std::vector<Ip1DVectorVectorType>& IntegrationPointFactory::AllMultiKnotSpanIntegrationPointsReducedOrder2()
-// {
-//     static const std::vector<Ip1DVectorVectorType> integration_points =
-//     {
-//         IntegrationPoints::Points_S_2_0,
-//         IntegrationPoints::Points_S_4_1,
-//         IntegrationPoints::Points_S_6_2
-//     };
-
-//     return integration_points;
-// }
-
 const std::pair<SizeType, SizeType> IntegrationPointFactory::GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethod method ){
 
     switch(method)
@@ -100,14 +63,11 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGGQPoints(SizeType PolynomialDegre
     const SizeType n = (p+1)*2 + (e-1)*(p-r) - p - 1;
     const SizeType m = std::ceil(n/2.0);
 
-    std::cout << "n " << n << std::endl;
-    std::cout << "m " << m << std::endl;
 
     Ip1DVectorType points(m);
 
 
     // Get correct base rule points
-    std::cout << "1111111111111111111111" << std::endl;
     std::vector<std::vector<std::array<double, 2>>> base_points{};
     if( p == 4 && r == 0 ){
         if( e % 2 == 0 ){
@@ -117,31 +77,55 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGGQPoints(SizeType PolynomialDegre
             base_points = *S_4_0_base_odd;
         }
     }
+    else if(p == 6 && r == 2){
+        if( e % 2 == 0 ){
+            base_points = *S_6_2_base_even;
+        }
+        else {
+            base_points = *S_6_2_base_odd;
+        }
+    }
+    else if( p == 4 && r == 1 ){
+        if( e % 2 == 0 ){
+            int odd = m % 2;
+            base_points = *base_points_reduced2[PolynomialDegree-2][odd];
+        }
+        else {
+            int odd = m % 2;
+            if( odd ){
+                base_points = *S_4_1_base_odd;
+            } else {
+                // Requires sepcial rule!!
+                base_points = *S_4_1_base_even_2;
+            }
+        }
+    }
     else {
         int odd = m % 2;
-        std::cout << "odd" << odd << std::endl;
         switch(method)
         {
             case ReducedExact:
                 base_points = *base_points_optimal[PolynomialDegree-2][odd];
                 break;
+            case ReducedOrder1:
+                base_points = *base_points_reduced1[PolynomialDegree-2][odd];
+                break;
+            case ReducedOrder2:
+                base_points = *base_points_reduced2[PolynomialDegree-2][odd];
+                break;
             default:
                 throw std::invalid_argument("IntegrationPointFactory: Method not available1");
                 break;
         }
-
-
     }
-    std::cout << "22222222222222222" << std::endl;
+
     SizeType m1 = base_points[0].size(); // boundary nodes
     SizeType m2 = base_points[1].size(); // internal nodes
     SizeType m3 = base_points[2].size(); // center nodes
-    std::cout << "33333333333333333333333" << std::endl;
+
     if( 2*m == n ){
         // TODO..
-        std::cout << "2*m == n" << std::endl;
         if( m > 2*m1 ){
-            std::cout <<  "m > 2*m1" << std::endl;
             const SizeType z = std::ceil(0.5*m);
             std::copy_n(base_points[0].begin(), m1, points.begin());
             SizeType left = std::ceil(base_points[0][m1-1][0]);
@@ -157,15 +141,14 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGGQPoints(SizeType PolynomialDegre
             std::for_each(points.end()-z, points.end(), [e](auto& rValue) { rValue[0] = e - rValue[0];});
         }
         else {
-            std::cout << "precomp " << std::endl;
             switch(method)
             {
                 case ReducedExact:
                     return std::make_unique<Ip1DVectorType>( (*precomputed_points_optimal[PolynomialDegree-2])[e-1]);
-                // case ReducedOrder1:
-                //     return std::make_unique<Ip1DVectorType>
-                // case ReducedOrder2:
-                //     return std::make_unique<Ip1DVectorType>
+                case ReducedOrder1:
+                    return std::make_unique<Ip1DVectorType>( (*precomputed_points_reduced1[PolynomialDegree-2])[e-1]);
+                case ReducedOrder2:
+                    return std::make_unique<Ip1DVectorType>( (*precomputed_points_reduced2[PolynomialDegree-2])[e-1]);
                 default:
                     throw std::invalid_argument("IntegrationPointFactory: Method not available2");
                     break;
@@ -174,7 +157,6 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGGQPoints(SizeType PolynomialDegre
     }
     else { // For odd number of nodes
         if( m > 2*(m1+m3)-1 ){
-            std::cout <<  "m > 2*(m1+m3)-1" << std::endl;
             const SizeType z = std::ceil(0.5*m);
             std::copy_n(base_points[0].begin(), m1, points.begin());
             SizeType left = std::ceil(base_points[0].back()[0]);
@@ -194,15 +176,14 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGGQPoints(SizeType PolynomialDegre
             std::for_each(points.end()-z, points.end(), [e](auto& rValue) { rValue[0] = e - rValue[0];});
         }
         else {
-            std::cout << "precomp2 " << std::endl;
             switch(method)
             {
                 case ReducedExact:
                     return std::make_unique<Ip1DVectorType>( (*precomputed_points_optimal[PolynomialDegree-2])[e-1]);
-                // case ReducedOrder1:
-                //     return std::make_unique<Ip1DVectorType>
-                // case ReducedOrder2:
-                //     return std::make_unique<Ip1DVectorType>
+                case ReducedOrder1:
+                    return std::make_unique<Ip1DVectorType>( (*precomputed_points_reduced1[PolynomialDegree-2])[e-1]);
+                case ReducedOrder2:
+                    return std::make_unique<Ip1DVectorType>( (*precomputed_points_reduced2[PolynomialDegree-2])[e-1]);
                 default:
                     throw std::invalid_argument("IntegrationPointFactory: Method not available3");
                     break;
@@ -215,10 +196,6 @@ Ip1DVectorPtrType IntegrationPointFactory::GetGGQPoints(SizeType PolynomialDegre
     std::for_each(points.begin(), points.end(), [a, h](auto& rValue) { rValue[0] = a + h*rValue[0];
                                                                         rValue[1] *= h; });
     int count = 1;
-    // for( auto point : points){
-    //     count++;
-    //     std::cout << count << ": " << point[0] << ", " << point[1] << std::endl;
-    // }
 
 
     return std::make_unique<Ip1DVectorType>(points);
