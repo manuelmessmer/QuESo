@@ -159,7 +159,7 @@ void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDispla
   file.close();
 }
 
-void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
+void IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //PolygonMesh
                             const char* Filename,
                             const bool Binary){
 
@@ -281,7 +281,7 @@ void IO::WriteElementsToVTK(ElementContainer& rElementContainer, //PolygonMesh
 }
 
 
-void IO::WritePointsToVTK(ElementContainer& rElementContainer,
+void IO::WritePointsToVTK(const ElementContainer& rElementContainer,
                           const char* type,
                           const char* Filename,
                           const bool Binary){

@@ -5,7 +5,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/polynomial_utilities.h"
 
 namespace Testing{

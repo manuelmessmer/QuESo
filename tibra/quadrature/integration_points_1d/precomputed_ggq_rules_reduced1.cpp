@@ -1,7 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_3_0_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{

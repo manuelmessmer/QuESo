@@ -16,7 +16,7 @@
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;

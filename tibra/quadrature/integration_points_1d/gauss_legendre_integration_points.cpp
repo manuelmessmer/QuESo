@@ -1,6 +1,6 @@
 // Author: Manuel Meßmer
 
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 const IntegrationPointFactory1D::Ip1DVectorVectorType IntegrationPointFactory1D::mGaussLegendrePoints = {
 {   // degree 1

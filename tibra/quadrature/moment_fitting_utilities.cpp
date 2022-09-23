@@ -12,7 +12,7 @@
 #include <cmath>
 
 // Project includes
-#include "utilities/moment_fitting_utilities.h"
+#include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
 #include "geometries/element.h"

@@ -18,6 +18,6 @@
         "init_point_distribution_factor": 1
     },
     "non_trimmed_quadrature_rule_settings" : {
-        "integration_method" : "ReducedOrder2"
+        "integration_method" : "ReducedExact"
     }
 }

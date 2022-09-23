@@ -22,14 +22,14 @@ public:
                                      const char* Filename,
                                      const bool Binary);
 
-  static void WriteElementsToVTK(ElementContainer& rElementContainer,
-                          const char* Filename,
-                          const bool Binary);
+  static void WriteElementsToVTK(const ElementContainer& rElementContainer,
+                                 const char* Filename,
+                                 const bool Binary);
 
-  static void WritePointsToVTK(ElementContainer& rElementContainer,
-                        const char* Type,
-                        const char* Filename,
-                        const bool Binary);
+  static void WritePointsToVTK(const ElementContainer& rElementContainer,
+                               const char* Type,
+                               const char* Filename,
+                               const bool Binary);
 
 private:
 

@@ -3,8 +3,8 @@
 
 // Project includes
 #include "utilities/mapping_utilities.h"
-#include "utilities/multi_knotspan_boxes_utilities.h"
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/multi_knotspan_boxes_utilities.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 

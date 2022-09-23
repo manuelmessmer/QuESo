@@ -9,7 +9,7 @@
 #include <cmath>
 
 // Project includes
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 typedef std::size_t SizeType;
 typedef std::vector<std::array<double,2>> Ip1DVectorType;
@@ -30,11 +30,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
     switch(Method)
     {
         case Gauss:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
+            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree]);
         case ReducedGauss1:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
+            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
         case ReducedGauss2:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-3]);
+            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
         default:
             throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
             break;

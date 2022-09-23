@@ -57,6 +57,18 @@ public:
         return mElements.begin();
     }
 
+    ElementVectorPtrType::const_iterator begin() const {
+        return mElements.begin();
+    }
+
+    ElementVectorPtrType::iterator end(){
+        return mElements.end();
+    }
+
+    ElementVectorPtrType::const_iterator end() const {
+        return mElements.end();
+    }
+
     ElementVectorPtrType& GetElements(){
         return mElements;
     }
@@ -77,7 +89,7 @@ public:
         }
     }
 
-    std::size_t size(){
+    std::size_t size() const {
         return mElements.size();
     }
 
@@ -218,7 +230,7 @@ public:
         }
     }
 
-    IntegrationPointVectorPtrType pGetPoints(const char* type){
+    const IntegrationPointVectorPtrType pGetPoints(const char* type) const {
         IntegrationPointVectorPtrType points = std::make_unique<IntegrationPointVectorType>();
         const auto begin_el_itr_ptr = this->begin();
         for( int i = 0; i < this->size(); ++i){

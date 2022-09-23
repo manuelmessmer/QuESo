@@ -47,7 +47,8 @@ include(pybind11Tools)
 file(GLOB TIBRA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/utilities/integration_points/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/integration_points_1d/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/modeler/*.cpp
