@@ -1,9 +1,9 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_4_0_base_even =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_4_0_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
         { 0.1550510257216821, 0.3764030627004672 },
@@ -41,7 +41,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_4_0_base_odd =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_4_0_base_odd =
     std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
         { 0.1550510257216821, 0.3764030627004672 },
@@ -78,7 +78,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_6_1_base_even =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_6_1_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
         { 0.0926076787364690, 0.2305048699152139 },
@@ -126,7 +126,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_6_1_base_odd =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_6_1_base_odd =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
         { 0.0926076787364690, 0.2305048699152139 },
@@ -171,7 +171,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_8_2_base_even =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_8_2_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
         { 0.0611024308537384, 0.1537934901036661 },
@@ -248,7 +248,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_8_2_base_odd =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_8_2_base_odd =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
         { 0.0611024308537384, 0.1537934901036661 },
@@ -325,7 +325,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const std::vector<std::array<IntegrationPointFactory::Ip1DVectorVectorPtrType,2>> IntegrationPointFactory::base_points_optimal = {
+const std::vector<std::array<IntegrationPointFactory1D::Ip1DVectorVectorPtrType,2>> IntegrationPointFactory1D::mBasePointsOptimal = {
     {
         S_4_0_base_even,
         S_4_0_base_odd
@@ -340,7 +340,7 @@ const std::vector<std::array<IntegrationPointFactory::Ip1DVectorVectorPtrType,2>
     }
 };
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_4_0_precomputed =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_4_0_precomputed =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     { // 1 Knotspans
         { 0.1127016653792583, 0.2777777777777778 },
@@ -1017,7 +1017,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
 });
 
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_6_1_precomputed =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_6_1_precomputed =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     { // 1 Knotspans
         { 0.0694318442029737, 0.1739274225687269 },
@@ -1915,7 +1915,7 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::S_8_2_precomputed =
+const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_8_2_precomputed =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     { // 1 Knotspans
         { 0.0469100770306680, 0.1184634425280945 },
@@ -4796,8 +4796,8 @@ const IntegrationPointFactory::Ip1DVectorVectorPtrType IntegrationPointFactory::
     }
 });
 
-const std::vector<IntegrationPointFactory::Ip1DVectorVectorPtrType> IntegrationPointFactory::precomputed_points_optimal = {
-    IntegrationPointFactory::S_4_0_precomputed,
-    IntegrationPointFactory::S_6_1_precomputed,
-    IntegrationPointFactory::S_8_2_precomputed
+const std::vector<IntegrationPointFactory1D::Ip1DVectorVectorPtrType> IntegrationPointFactory1D::mPrecomputedPointsOptimal = {
+    IntegrationPointFactory1D::S_4_0_precomputed,
+    IntegrationPointFactory1D::S_6_1_precomputed,
+    IntegrationPointFactory1D::S_8_2_precomputed
 };

@@ -1,15 +1,8 @@
 // Author: Manuel Meßmer
-// Email: manuel.messmer@tum.de
 
-#ifndef GAUSS_LEGENDRE_INTEGRATION_POINTS_H
-#define GAUSS_LEGENDRE_INTEGRATION_POINTS_H
+#include "utilities/integration_points/integration_points_factory_1d.h"
 
-#include <vector>
-#include <array>
-
-namespace IntegrationPoints {
-
-const std::vector<std::vector<std::array<double, 2>>> GaussLegendrePoints = {
+const IntegrationPointFactory1D::Ip1DVectorVectorType IntegrationPointFactory1D::mGaussLegendrePoints = {
 {   // degree 1
     { 0.5000000000000000000, 1.0000000000000000000 }
 },
@@ -86,6 +79,3 @@ const std::vector<std::vector<std::array<double, 2>>> GaussLegendrePoints = {
     { 0.9869532642585859000, 0.0333356721543440340 }
 } };
 
-} // End namespace
-
-#endif // GAUSS_LEGENDRE_INTEGRATION_POINTS_H

@@ -16,7 +16,7 @@
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
@@ -130,18 +130,18 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         (m, "VectorOfIntegrationPoints1D")
     ;
 
-    py::enum_<IntegrationPointFactory::IntegrationMethod>(m, "IntegrationMethod")
-        .value("Gauss", IntegrationPointFactory::IntegrationMethod::Gauss)
-        .value("ReducedGauss1", IntegrationPointFactory::IntegrationMethod::ReducedGauss1)
-        .value("ReducedGauss2", IntegrationPointFactory::IntegrationMethod::ReducedGauss2)
-        .value("ReducedExact", IntegrationPointFactory::IntegrationMethod::ReducedExact)
-        .value("ReducedOrder1", IntegrationPointFactory::IntegrationMethod::ReducedOrder1)
-        .value("ReducedOrder2", IntegrationPointFactory::IntegrationMethod::ReducedOrder2)
+    py::enum_<IntegrationPointFactory1D::IntegrationMethod>(m, "IntegrationMethod")
+        .value("Gauss", IntegrationPointFactory1D::IntegrationMethod::Gauss)
+        .value("ReducedGauss1", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1)
+        .value("ReducedGauss2", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2)
+        .value("ReducedExact", IntegrationPointFactory1D::IntegrationMethod::ReducedExact)
+        .value("ReducedOrder1", IntegrationPointFactory1D::IntegrationMethod::ReducedOrder1)
+        .value("ReducedOrder2", IntegrationPointFactory1D::IntegrationMethod::ReducedOrder2)
         .export_values()
     ;
 
-    py::class_<IntegrationPointFactory, std::shared_ptr<IntegrationPointFactory>>(m,"IntegrationPointFactory")
-        .def_static("GetGGQ", &IntegrationPointFactory::GetGGQ, py::return_value_policy::move)
+    py::class_<IntegrationPointFactory1D, std::shared_ptr<IntegrationPointFactory1D>>(m,"IntegrationPointFactory1D")
+        .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
 
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")

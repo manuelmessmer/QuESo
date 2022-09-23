@@ -4,7 +4,7 @@
 // Project includes
 #include "utilities/mapping_utilities.h"
 #include "utilities/multi_knotspan_boxes_utilities.h"
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
@@ -312,7 +312,7 @@ void MultiKnotspanBoxesUtilities::StoreIntegrationPoints(ElementContainer::Eleme
             const double length_global = std::abs(global_upper_point_param[direction] - global_lower_point_param[direction]);
 
             const auto p_integration_point_list =
-                IntegrationPointFactory::GetGGQ(polynomial_degrees[direction], rNumberKnotspans[direction], rParameters.IntegrationMethod());
+                IntegrationPointFactory1D::GetGGQ(polynomial_degrees[direction], rNumberKnotspans[direction], rParameters.IntegrationMethod());
 
             for( int j = 0; j < p_integration_point_list->size(); ++j){
                 double position = global_lower_point_param[direction] + distance_global* (*p_integration_point_list)[j][0];

@@ -16,7 +16,7 @@
 #include "modeler/modeler.h"
 #include "utilities/embedding_utilities.h"
 #include "utilities/integration_point_utilities.h"
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
 
