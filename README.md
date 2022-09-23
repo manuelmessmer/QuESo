@@ -11,10 +11,13 @@ Before using TIBRA, please check if all unit tests pass: `./run_all_test all`
 A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
 
 ## Installation (Linux)
-Required dependencies:
+Required dependencies (C++):
 
  &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev libmpfr-dev`
 
+Required Python modules:
+
+&ensp; `sudo pip3 install numpy scipy`
 
 Execute `sh configure.sh` to install TIBRA.
 
