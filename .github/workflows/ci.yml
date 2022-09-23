@@ -27,7 +27,7 @@ jobs:
         submodules: 'true'
 
     - name: Install Dependencies
-      run: sudo apt-get install -y libboost-test-dev libmpfr-dev
+      run: sudo apt-get install -y libboost-test-dev libmpfr-dev python3-numpy python3-scipy
 
     - name: Build
       shell: bash
