@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto& elements = tibra.GetElements();
+    const auto& elements = tibra.GetElements();
 
     BOOST_CHECK_EQUAL(elements.size(), 1);
 
@@ -90,7 +90,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = tibra.GetElements();
+    const auto& elements = tibra.GetElements();
 
     // Compute total weight
     double weigth_trimmed = 0.0;
@@ -157,7 +157,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto& elements = tibra.GetElements();
+    const auto& elements = tibra.GetElements();
 
     // Compute total weight
     double weigth_trimmed = 0.0;

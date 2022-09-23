@@ -19,7 +19,7 @@
  * @brief  Factory for 1D Integration points for single and multiple knot spans.
  * @details Available Quadrature rules:
  *          {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2}
- * @todo Wrap TIBRA in namespace and put enum outside teh class.
+ * @todo Wrap TIBRA in namespace and put enum outside the class.
 */
 class IntegrationPointFactory1D {
 public:
@@ -55,13 +55,13 @@ public:
     /// @param PolynomialDegree
     /// @param NumberKnotSpans
     /// @param Method options - {ReducedExact, ReducedOrder1, ReducedOrder2}
-    /// @return IntegrationPoint1DVectorPtrTypes
+    /// @return IntegrationPoint1DVectorPtrTypes. Points are defined on the interval (0,1).
     static Ip1DVectorPtrType GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod Method );
 
     /// @brief Get standard 1D Gauss-Legendre quadrature rules.
     /// @param PolynomialDegree
     /// @param Method options - {Gauss, ReducedGauss1, ReducedGauss2
-    /// @return IntegrationPoint1DVectorPtrTypes
+    /// @return IntegrationPoint1DVectorPtrTypes. Points are defined on the interval (0,1).
     static Ip1DVectorPtrType GetGauss( SizeType PolynomialDegree, IntegrationMethod Method );
 
     ///@}

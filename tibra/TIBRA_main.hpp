@@ -30,24 +30,48 @@
 #include <string>
 #include <chrono>
 
-/// Type Definitions
-// Domain
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-//typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
-typedef K::Point_3 Point_3;
-typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
-typedef std::size_t  SizeType;
+///@name TIBRA Classes
+///@{
 
-typedef std::vector<Element> ElementVectorType;
-
+////
+/**
+ * @class  TIBRA
+ * @author Manuel Messmer
+ * @brief  Main class of TIBRA.
+*/
 class TIBRA
 {
 public:
+    ///@name Type Definitions
+    ///@{
 
-    // Constructor
+    typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+    typedef K::Point_3 Point_3;
+    typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
+    typedef std::size_t  SizeType;
+    typedef std::array<double, 3> PointType;
+    typedef std::vector<Element> ElementVectorType;
+
+    ///@}
+    ///@name  Life Cycle
+    ///@{
+
+    /// @brief Constructor. Runs all processes.
+    /// @param filename
+    /// @param PointA
+    /// @param PointB
+    /// @param NumberOfElements
+    /// @param Order
+    /// @param InitialTriangleEdgeLength
+    /// @param MinimumNumberOfTriangles
+    /// @param MomentFittingResidual
+    /// @param PointDistributionFactor
+    /// @param IntegrationMethod
+    /// @param EchoLevel
+    /// @param EmbeddingFlag
     TIBRA(const std::string filename,
-                std::array<double, 3> PointA,
-                std::array<double, 3> PointB,
+                PointType PointA,
+                PointType PointB,
                 std::array<int, 3> NumberOfElements,
                 std::array<int, 3> Order,
                 double InitialTriangleEdgeLength,
@@ -89,9 +113,6 @@ public:
         // Start computation
         Run();
 
-        // Compute number of trimmed elements
-        auto element_it_begin = mpElementContainer->begin();
-
         // Count number of trimmed elements
         SizeType number_of_trimmed_elements = 0;
         std::for_each(mpElementContainer->begin(), mpElementContainer->end(), [&number_of_trimmed_elements] (auto& el_it)
@@ -112,21 +133,39 @@ public:
         }
     }
 
-    ElementContainer::ElementVectorPtrType& GetElements(){
+    /// Copy Constructor
+    TIBRA(const TIBRA &m) = delete;
+    /// Copy Assignement
+    TIBRA & operator= (const TIBRA &) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// @brief Get all active elements.
+    /// @return const Reference to ElementVectorPtrType
+    const ElementContainer::ElementVectorPtrType& GetElements() const {
         return mpElementContainer->GetElements();
     }
 
-    void ReadWritePostMesh(const std::string& Filename){
+    /// @brief Reads Filename and writes mesh to output/results.vtk
+    /// @param Filename
+    void ReadWritePostMesh(const std::string& Filename) {
         CGAL::IO::read_STL(Filename, mPolyhedronPost);
         IO::WriteMeshToVTK(mPolyhedronPost, "output/results.vtk", true);
     }
 
+    /// @brief  Get mesh for prosptrocessing
+    /// @return const Reference to SurfaceMeshType
     const SurfaceMeshType& GetPostMesh() const {
         return mPolyhedronPost;
     }
+    ///@}
 
 private:
-    // Private Members
+
+    ///@name Private Members Variables
+    ///@{
     SurfaceMeshType mPolyhedron;
     SurfaceMeshType mPolyhedronPost;
     std::unique_ptr<IntersectionTest> mpIntersectionTest;
@@ -134,9 +173,16 @@ private:
     const std::string mFilename;
     const Parameters mParameters;
     const bool mEmbeddingFlag;
+    ///@}
 
-    // Private Member Functions
+    ///@name Private Member Operations
+    ///@{
+
+    /// @brief Run TIBRA
     void Run();
+    ///@}
 };
+
+///@}
 
 #endif // TIBRA_HPP

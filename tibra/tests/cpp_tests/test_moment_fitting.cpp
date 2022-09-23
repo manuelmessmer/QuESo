@@ -15,7 +15,7 @@
 #include "utilities/moment_fitting_utilities.h"
 #include "modeler/modeler.h"
 #include "utilities/embedding_utilities.h"
-#include "utilities/integration_point_utilities.h"
+#include "utilities/single_element.h"
 #include "utilities/integration_points/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
@@ -62,16 +62,16 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     element.GetIntegrationPointsTrimmed().clear();
 
-    IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsTrimmed(),
-        point_A, point_B, order[0], order[1], order[2]);
+    SingleElement::Assemble(element.GetIntegrationPointsTrimmed(),
+        point_A, point_B, order, param.IntegrationMethod());
 
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
         point.SetWeight(0.0);
     }
 
-    IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsInside(),
-        point_A, point_B, order[0], order[1], order[2]);
+    SingleElement::Assemble(element.GetIntegrationPointsInside(),
+        point_A, point_B, order, param.IntegrationMethod());
 
     // Run Moment Fitting
     MomentFitting::CreateIntegrationPointsTrimmed(element, param);
@@ -128,16 +128,16 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     element.GetIntegrationPointsTrimmed().clear();
 
-    IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsTrimmed(),
-        point_A, point_B, order[0], order[1], order[2]);
+    SingleElement::Assemble(element.GetIntegrationPointsTrimmed(),
+        point_A, point_B, order, param.IntegrationMethod());
 
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
         point.SetWeight(0.0);
     }
 
-    IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsInside(),
-        point_A, point_B, order[0], order[1], order[2]);
+    SingleElement::Assemble(element.GetIntegrationPointsInside(),
+        point_A, point_B, order, param.IntegrationMethod() );
 
     // Run Moment Fitting
     MomentFitting::CreateIntegrationPointsTrimmed(element, param);
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 //     element.GetIntegrationPointsTrimmedReduced().clear();
 
-//     IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsTrimmedReduced(),
+//     SingleElement::Assemble(element.GetIntegrationPointsTrimmedReduced(),
 //         point_A, point_B, order[0], order[1], order[2]);
 
 //     // Make sure weights are disturbed.
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_SUITE_END()
 //         point.SetWeight(0.0);
 //     }
 
-//     IntegrationPointUtilities::CreateGaussLegendrePoints(element.GetIntegrationPointsInside(),
+//     SingleElement::Assemble(element.GetIntegrationPointsInside(),
 //         point_A, point_B, order[0], order[1], order[2]);
 
 //     // Run Moment Fitting

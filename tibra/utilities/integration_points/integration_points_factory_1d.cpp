@@ -30,11 +30,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
     switch(Method)
     {
         case Gauss:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
+            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree]);
         case ReducedGauss1:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
+            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
         case ReducedGauss2:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-3]);
+            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
         default:
             throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
             break;

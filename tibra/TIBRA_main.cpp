@@ -3,7 +3,7 @@
 
 //// Project includes
 #include "TIBRA_main.hpp"
-#include "utilities/integration_point_utilities.h"
+#include "utilities/single_element.h"
 #include "utilities/moment_fitting_utilities.h"
 #include "utilities/embedding_utilities.h"
 #include "geometries/triangle_3d_3n.h"
@@ -17,16 +17,21 @@
 #include <omp.h>
 
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
-/// Functions
+
 void TIBRA::Run(){
+
+  // Get extreme points of bounding box
+  const auto point_a = mParameters.PointA();
+  const auto point_b = mParameters.PointB();
+
   // Obtain discretization of background mesh.
   const double delta_x = std::abs(mParameters.PointA()[0] - mParameters.PointB()[0])/(mParameters.NumberOfElements()[0]);
   const double delta_y = std::abs(mParameters.PointA()[1] - mParameters.PointB()[1])/(mParameters.NumberOfElements()[1]);
   const double delta_z = std::abs(mParameters.PointA()[2] - mParameters.PointB()[2])/(mParameters.NumberOfElements()[2]);
 
-  const int number_elements_w = mParameters.NumberOfElements()[2];
-  const int number_elements_v = mParameters.NumberOfElements()[1];
   const int number_elements_u = mParameters.NumberOfElements()[0];
+  const int number_elements_v = mParameters.NumberOfElements()[1];
+  const int number_elements_w = mParameters.NumberOfElements()[2];
 
   const int global_number_of_elements = number_elements_u * number_elements_v * number_elements_w;
   mpElementContainer->reserve(global_number_of_elements);
@@ -39,39 +44,33 @@ void TIBRA::Run(){
 
   #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_check_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
   for( int i = 0; i < global_number_of_elements; ++i){
-    // Unroll for loop to enable better parallelization.
+    // Unroll 'for' loop to enable better parallelization.
     // First walk along rows (x), then columns (y) then into depths (z).
     const int index_in_row_column_plane = i % (number_elements_u*number_elements_v);
-    int xx = index_in_row_column_plane % number_elements_u; // row
-    int yy = index_in_row_column_plane / number_elements_u; // column
-    int zz = i / (number_elements_u*number_elements_v);   // depth
+    const int xx = index_in_row_column_plane % number_elements_u; // row
+    const int yy = index_in_row_column_plane / number_elements_u; // column
+    const int zz = i / (number_elements_u*number_elements_v);     // depth
 
     // Construct bounding box for each element
-    std::array<double, 3> cube_point_A = {0.0, 0.0, 0.0};
-    std::array<double, 3> cube_point_B = {0.0, 0.0, 0.0};
-    std::array<double, 3> cube_point_A_param = {0.0, 0.0, 0.0};
-    std::array<double, 3> cube_point_B_param = {0.0, 0.0, 0.0};
+    PointType cube_point_A{point_a[0] + (xx)*delta_x, point_a[1] + (yy)*delta_y, point_a[2] + (zz)*delta_z};
+    PointType cube_point_B{point_a[0] + (xx+1)*delta_x, point_a[1] + (yy+1)*delta_y, point_a[2] + (zz+1)*delta_z };
 
-    cube_point_A[0] = mParameters.PointA()[0] + (xx)*delta_x;
-    cube_point_A[1] = mParameters.PointA()[1] + (yy)*delta_y;
-    cube_point_A[2] = mParameters.PointA()[2] + (zz)*delta_z;;
-    cube_point_B[0] = mParameters.PointA()[0] + (xx+1)*delta_x;
-    cube_point_B[1] = mParameters.PointA()[1] + (yy+1)*delta_y;
-    cube_point_B[2] = mParameters.PointA()[2] + (zz+1)*delta_z;
-
-    cube_point_A_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_A, mParameters.PointA(), mParameters.PointB());
-    cube_point_B_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_B, mParameters.PointA(), mParameters.PointB());
+    // Map points into parametric/local space
+    const auto cube_point_A_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_A, mParameters.PointA(), mParameters.PointB());
+    const auto cube_point_B_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_B, mParameters.PointA(), mParameters.PointB());
 
     // Construct element and check status
-    std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
+    std::shared_ptr<Element> new_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
 
-    IntersectionTest::IntersectionStatus status;
-
-    SurfaceMeshType cube;
+    // Get surface mesh of cube
+    SurfaceMeshType cube{};
     Modeler::make_cube_3(cube, cube_point_A, cube_point_B);
+
+    // Check intersection status
+    IntersectionTest::IntersectionStatus status{};
     if( mEmbeddingFlag ){
       auto t_begin_di = std::chrono::high_resolution_clock().now();
-      status = mpIntersectionTest->CheckIntersection(mPolyhedron, cube, *tmp_element);
+      status = mpIntersectionTest->CheckIntersection(mPolyhedron, cube, *new_element);
       auto t_end_di = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
       et_check_intersect += t_delta_di.count();
@@ -83,62 +82,44 @@ void TIBRA::Run(){
     bool valid_element = false;
     // Distinguish between trimmed and non-trimmed elements.
     if( status == IntersectionTest::Trimmed) {
-      tmp_element->SetIsTrimmed(true);
-
+      new_element->SetIsTrimmed(true);
       auto t_begin_ci = std::chrono::high_resolution_clock().now();
-      valid_element = EmbeddingUtilities::ComputeIntersectionMesh(mPolyhedron, cube, *tmp_element, mParameters);
+      valid_element = EmbeddingUtilities::ComputeIntersectionMesh(mPolyhedron, cube, *new_element, mParameters);
       auto t_end_ci = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_ci = (t_end_ci - t_begin_ci);
       et_compute_intersection += t_delta_ci.count();
 
+      // If valid solve moment fitting equation
       if( valid_element ){
-        // ExportVolumeMesh(tmp_element->GetSurfaceMesh(), tmp_element->GetId() );
-        // Get Gauss-Legendre points in fictitios domain (Only the ones that are outside the material domain)
-        // IntegrationPointUtilities::( (*mpInsideTest), tmp_element->GetIntegrationPointsFictitious(),
-        //  cube_point_A_param, cube_point_B_param, mParameters.Order()[0], mParameters.Order()[1], mParameters.Order()[2]);
-
         auto t_begin_mf = std::chrono::high_resolution_clock().now();
-        MomentFitting::CreateIntegrationPointsTrimmed(*tmp_element, mParameters);
+        MomentFitting::CreateIntegrationPointsTrimmed(*new_element, mParameters);
         auto t_end_mf = std::chrono::high_resolution_clock().now();
         std::chrono::duration<double> t_delta_mf = (t_end_mf - t_begin_mf);
         et_moment_fitting += t_delta_mf.count();
 
-        if( tmp_element->GetIntegrationPointsTrimmed().size() == 0 ){
+        if( new_element->GetIntegrationPointsTrimmed().size() == 0 ){
           valid_element = false;
         }
       }
     }
     else if( status == IntersectionTest::Inside){
       // Get standard gauss legendre points
-      if( mParameters.IntegrationMethod() == IntegrationPointFactory1D::IntegrationMethod::Gauss ){
-        IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
-          cube_point_A_param, cube_point_B_param, mParameters.Order()[0], mParameters.Order()[1], mParameters.Order()[2]);
+      if( mParameters.IntegrationMethod() <= 2 ){
+        SingleElement::Assemble(new_element->GetIntegrationPointsInside(),
+          cube_point_A_param, cube_point_B_param, mParameters.Order(), mParameters.IntegrationMethod());
       }
-      else if( mParameters.IntegrationMethod() == IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1 ){
-         IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
-          cube_point_A_param, cube_point_B_param, mParameters.Order()[0]-1, mParameters.Order()[1]-1, mParameters.Order()[2]-1);
-      }
-      else if( mParameters.IntegrationMethod() == IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2 ){
-         IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
-          cube_point_A_param, cube_point_B_param, mParameters.Order()[0]-2, mParameters.Order()[1]-2, mParameters.Order()[2]-2);
-      }
-      //ExportVolumeMesh(cube, tmp_element->GetId());
+
+      //ExportVolumeMesh(cube, new_element->GetId());
       valid_element = true;
     }
 
     if( valid_element ){
       #pragma omp critical
-      mpElementContainer->AddElement(tmp_element); // After this tmp_element is a null_ptr. Is std::moved to container.
+      mpElementContainer->AddElement(new_element); // After this new_element is a null_ptr. Is std::moved to container.
     }
   }
 
-  if( (mParameters.IntegrationMethod() != IntegrationPointFactory1D::IntegrationMethod::Gauss)
-        && (mParameters.IntegrationMethod() != IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1)
-          && (mParameters.IntegrationMethod() != IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2) ){
-
-    //#pragma omp single
-    //MultiKnotspanUtilities::ComputeIntegrationPoints(*mpElementContainer, mParameters);
-
+  if( mParameters.IntegrationMethod() >= 3 ){
     #pragma omp single
     MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(*mpElementContainer, mParameters);
   }
