@@ -5,8 +5,8 @@
 #include <stdexcept>
 
 // Project includes
-#include "utilities/integration_points/integration_points_factory_1d.h"
-#include "utilities/single_element.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "quadrature/single_element.h"
 
 void SingleElement::Assemble(
     IntegrationPointType& rIntegrationPoints,

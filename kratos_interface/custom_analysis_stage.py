@@ -56,7 +56,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         integration_points = []
         # Loop over all given integration points
-        for point in enumerate(self.integration_points_embedder):
+        for point in self.integration_points_embedder:
             integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
 
         # Create quadrature_point_geometries

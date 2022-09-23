@@ -12,11 +12,11 @@
 #include "math.h"
 
 // Project includes
-#include "utilities/moment_fitting_utilities.h"
+#include "quadrature/moment_fitting_utilities.h"
 #include "modeler/modeler.h"
 #include "utilities/embedding_utilities.h"
-#include "utilities/single_element.h"
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/single_element.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
 

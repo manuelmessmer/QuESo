@@ -10,7 +10,7 @@
 #include <array>
 
 // Project includes
-#include "utilities/integration_points/integration_points_factory_1d.h"
+#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 
 class Parameters
