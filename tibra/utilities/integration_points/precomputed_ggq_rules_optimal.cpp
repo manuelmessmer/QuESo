@@ -35,7 +35,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
     },
     {
         // Center nodes & weights
-        {-0.9059964873437685, 0.4554564596812625 },
+        {-0.9059964873437685, 0.4555564596812625 },
         {-0.3768462251308504, 0.5445435403187374 },
         { 0.0000000000000000, 0.2357022603955158 }
     }
