@@ -91,33 +91,11 @@ public:
 
         // Compute number of trimmed elements
         auto element_it_begin = mpElementContainer->begin();
-        SizeType number_of_trimmed_elements = 0;
-        for( int i = 0; i < mpElementContainer->size(); ++i ){
-            auto element_it = element_it_begin + i;
-            if( (*element_it)->IsTrimmed() ) {
-                number_of_trimmed_elements++;
 
-                const int number_points = (*element_it)->GetIntegrationPointsTrimmed().size();
-                //TODO: Make this generic!
-                // if( number_points < 8 || number_points > 27 ) { //This is valid for p=2.
-                //     std::stringstream error_message;
-                //     error_message << "Inappropriate number of integration points in trimmed element with ID: ";
-                //     error_message << (*element_it)->GetId() << ". Number of Integration Points: " << number_points << ".\n";
-                //     error_message << "Targeted number of integration points: 8 < x < 27. Note: These values are hardcoded for ansatz order p=2." << std::endl;
-                //     throw std::runtime_error(error_message.str());
-                // }
-            }
-            else {
-                const int number_points = (*element_it)->GetIntegrationPointsInside().size();
-                // if( number_points < 8 || number_points > 27){ // This is valid for p=2.
-                //     std::stringstream error_message;
-                //     error_message << "Inappropriate number of integration points in non-trimmed element with ID: ";
-                //     error_message << (*element_it)->GetId() << ". Number of Integration Points: " << number_points << ".\n";
-                //     error_message << "Targeted number of integration points: 8 < x < 27. Note: These values are hardcoded for ansatz order p=2." << std::endl;
-                //     throw std::runtime_error(error_message.str());
-                // }
-            }
-        }
+        // Count number of trimmed elements
+        SizeType number_of_trimmed_elements = 0;
+        std::for_each(mpElementContainer->begin(), mpElementContainer->end(), [&number_of_trimmed_elements] (auto& el_it)
+            { if( el_it->IsTrimmed() ) { number_of_trimmed_elements++; } });
 
         if( mParameters.EchoLevel() > 0) {
             // Write vtk files (binary = true)
@@ -132,11 +110,6 @@ public:
             std::chrono::duration<double> elapsed_time = end_time - start_time;
             std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
         }
-    }
-
-    // Public Member Functions
-    std::unique_ptr<ElementContainer> GetElementContainer(){ // Maybe Rename to get ElementContainer
-        return std::move(mpElementContainer);
     }
 
     ElementContainer::ElementVectorPtrType& GetElements(){

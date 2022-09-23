@@ -35,14 +35,14 @@ BOOST_AUTO_TEST_CASE(Intersection) {
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = tibra.GetElementContainer();
+    auto& elements = tibra.GetElements();
 
-    BOOST_CHECK_EQUAL(elements->size(), 1);
+    BOOST_CHECK_EQUAL(elements.size(), 1);
 
-    const auto& points_reduced = (*elements->begin())->GetIntegrationPointsTrimmed();
+    const auto& points_reduced = (*elements.begin())->GetIntegrationPointsTrimmed();
     BOOST_CHECK_LT(points_reduced.size(), 28);
 
-    auto& triangles = (*elements->begin())->GetTriangles();
+    auto& triangles = (*elements.begin())->GetTriangles();
     BOOST_CHECK_GT(triangles.size(), minimum_number_of_triangles);
 
     int large_radius_count = 0;
@@ -90,16 +90,16 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = tibra.GetElementContainer();
+    auto elements = tibra.GetElements();
 
     // Compute total weight
     double weigth_trimmed = 0.0;
     double weigth_inside = 0.0;
-    const auto el_it_begin = elements->begin();
+    const auto el_it_begin = elements.begin();
     int num_elements_inside = 0;
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
-    for( IndexType i = 0; i < elements->size(); ++i){
+    for( IndexType i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
@@ -157,16 +157,16 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
                          initial_triangle_edge_length, minimum_number_of_triangles,
                          moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto elements = tibra.GetElementContainer();
+    auto& elements = tibra.GetElements();
 
     // Compute total weight
     double weigth_trimmed = 0.0;
     double weigth_inside = 0.0;
-    const auto el_it_begin = elements->begin();
+    const auto el_it_begin = elements.begin();
     int num_elements_inside = 0;
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
-    for( IndexType i = 0; i < elements->size(); ++i){
+    for( IndexType i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();

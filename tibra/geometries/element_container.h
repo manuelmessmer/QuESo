@@ -57,6 +57,10 @@ public:
         return mElements.begin();
     }
 
+    ElementVectorPtrType::iterator end(){
+        return mElements.end();
+    }
+
     ElementVectorPtrType& GetElements(){
         return mElements;
     }
