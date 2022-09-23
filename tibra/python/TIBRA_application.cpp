@@ -50,15 +50,11 @@ template <class T> class ptr_wrapper
         std::size_t size;
 };
 
-
-//ptr_wrapper<double> get_ptr(const TIBRA& v) { return const_cast<double*>(v.GetMeshPoints()); }
-// double array[3] = { 3.14, 2.18, -1 };
-// static ptr_wrapper<double> get_ptr() { return ptr_wrapper<double>(array, 3); }
-
 PYBIND11_MODULE(TIBRA_Application,m) {
 
     m.doc() = "This is a Python binding for TIBRA";
 
+    /// Required for GetPostMeshPointsRaw()
     py::class_<ptr_wrapper<double>>(m,"pdouble")
         .def(py::init<>())
         .def("__len__", [](const ptr_wrapper<double> &v) { return v.get_size(); })
@@ -68,6 +64,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         }, py::keep_alive<0, 1>())
         ;
 
+    /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
+    py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
+        (m, "VectorOfIntegrationPoints1D")
+    ;
+
+    /// Export Integration Points
     py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
         .def("GetX", &IntegrationPoint::X)
@@ -78,10 +80,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 
+    /// Export Integration Points vector
     py::bind_vector<IntegrationPointVectorType,std::shared_ptr<IntegrationPointVectorType>>
         (m, "VectorOfIntegrationPoints")
     ;
 
+    /// Export Triangle3D3N
     py::class_<Triangle3D3N, std::shared_ptr<Triangle3D3N>>(m,"Triangle3D3N")
         .def(py::init<std::array<double, 3>, std::array<double, 3>, std::array<double, 3>,std::array<double, 3>>())
         .def("Center", &Triangle3D3N::Center)
@@ -99,19 +103,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("P3", &Triangle3D3N::P3)
     ;
 
+    /// Export Triangle3D3N vector
     py::bind_vector<TriangleVectorType,std::shared_ptr<TriangleVectorType>>
         (m, "VectorOfTriangles")
     ;
 
-    py::class_<ElementVectorPtrType>(m, "ElementVector")
-        .def(py::init<>())
-        .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
-        .def("__iter__", [](ElementVectorPtrType &v) {
-            return py::make_iterator( v.begin(), v.end() );
-        }, py::keep_alive<0, 1>())
-        ;
-
-
+    /// Export Element
     py::class_<Element, std::shared_ptr<Element>>(m,"Element")
         .def("GetIntegrationPointsTrimmed",  &Element::GetIntegrationPointsTrimmed, py::return_value_policy::reference_internal )
         .def("GetIntegrationPointsInside",  &Element::GetIntegrationPointsInside, py::return_value_policy::reference_internal )
@@ -126,10 +123,16 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
 
-    py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
-        (m, "VectorOfIntegrationPoints1D")
-    ;
+    /// Export Element vector
+    py::class_<ElementVectorPtrType>(m, "ElementVector")
+        .def(py::init<>())
+        .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
+        .def("__iter__", [](ElementVectorPtrType &v) {
+            return py::make_iterator( v.begin(), v.end() );
+        }, py::keep_alive<0, 1>())
+        ;
 
+    /// Export enum IntegrationMethod
     py::enum_<IntegrationPointFactory1D::IntegrationMethod>(m, "IntegrationMethod")
         .value("Gauss", IntegrationPointFactory1D::IntegrationMethod::Gauss)
         .value("ReducedGauss1", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1)
@@ -140,10 +143,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .export_values()
     ;
 
+    /// Export IntegrationPointFactory1D (mainly for Testing in py)
     py::class_<IntegrationPointFactory1D, std::shared_ptr<IntegrationPointFactory1D>>(m,"IntegrationPointFactory1D")
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
 
+    /// Export TIBRA
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
@@ -158,7 +163,8 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         });
     ;
 
-
+    /// Export free floating function
+    /// @todo wrap this in class
     m.def("WriteDisplacementToVTK", &IO::WriteDisplacementToVTK);
 }
 
