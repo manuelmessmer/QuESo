@@ -41,6 +41,8 @@ jobs:
     - name: Test py
       shell: bash
       run: |
+        pip3 install numpy
+        pip3 install scipy
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
         python3 tibra/tests/test_tibra.py

@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 // Project includes
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 #include "utilities/integration_point_utilities.h"
 
 void IntegrationPointUtilities::IntegrationPoints3D(
@@ -27,24 +27,24 @@ void IntegrationPointUtilities::IntegrationPoints3D(
     const double distance_w = W1 - W0;
     const double length_w = std::abs(W1 - W0);
 
-    const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointFactory::GetIntegrationPoints(PointsInU, IntegrationPointFactory::IntegrationMethod::Gauss);
-    const std::vector<std::array<double, 2>>& integration_point_list_v = IntegrationPointFactory::GetIntegrationPoints(PointsInV, IntegrationPointFactory::IntegrationMethod::Gauss);
-    const std::vector<std::array<double, 2>>& integration_point_list_w = IntegrationPointFactory::GetIntegrationPoints(PointsInW, IntegrationPointFactory::IntegrationMethod::Gauss);
+    const auto integration_point_list_u = IntegrationPointFactory1D::GetGauss(PointsInU, IntegrationPointFactory1D::IntegrationMethod::Gauss);
+    const auto integration_point_list_v = IntegrationPointFactory1D::GetGauss(PointsInV, IntegrationPointFactory1D::IntegrationMethod::Gauss);
+    const auto integration_point_list_w = IntegrationPointFactory1D::GetGauss(PointsInW, IntegrationPointFactory1D::IntegrationMethod::Gauss);
 
     for (SizeType u = 0; u < PointsInU; ++u) {
         for (SizeType v = 0; v < PointsInV; ++v) {
             for( SizeType w = 0; w < PointsInW; ++w) {
-                std::array<double,3> tmp_point = {  U0 + distance_u * integration_point_list_u[u][0],
-                                                    V0 + distance_v * integration_point_list_v[v][0],
-                                                    W0 + distance_w * integration_point_list_w[w][0] };
+                std::array<double,3> tmp_point = {  U0 + distance_u * (*integration_point_list_u)[u][0],
+                                                    V0 + distance_v * (*integration_point_list_v)[v][0],
+                                                    W0 + distance_w * (*integration_point_list_w)[w][0] };
 
                 if( !rInsideTest.IsInsideLocalCoordinates(tmp_point) ){
                     rIntegrationPoints.push_back( IntegrationPoint( tmp_point[0],
                                                                     tmp_point[1],
                                                                     tmp_point[2],
-                                                                    integration_point_list_u[u][1] * length_u *
-                                                                    integration_point_list_v[v][1] * length_v *
-                                                                    integration_point_list_w[w][1] * length_w ) );
+                                                                    (*integration_point_list_u)[u][1] * length_u *
+                                                                    (*integration_point_list_v)[v][1] * length_v *
+                                                                    (*integration_point_list_w)[w][1] * length_w ) );
                 }
             }
         }
@@ -69,19 +69,19 @@ void IntegrationPointUtilities::IntegrationPoints3D(
     const double distance_w = W1 - W0;
     const double length_w = std::abs(W1 - W0);
 
-    const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointFactory::GetIntegrationPoints(PointsInU, IntegrationPointFactory::IntegrationMethod::Gauss);
-    const std::vector<std::array<double, 2>>& integration_point_list_v = IntegrationPointFactory::GetIntegrationPoints(PointsInV, IntegrationPointFactory::IntegrationMethod::Gauss);
-    const std::vector<std::array<double, 2>>& integration_point_list_w = IntegrationPointFactory::GetIntegrationPoints(PointsInW, IntegrationPointFactory::IntegrationMethod::Gauss);
+    const auto integration_point_list_u = IntegrationPointFactory1D::GetGauss(PointsInU, IntegrationPointFactory1D::IntegrationMethod::Gauss);
+    const auto integration_point_list_v = IntegrationPointFactory1D::GetGauss(PointsInV, IntegrationPointFactory1D::IntegrationMethod::Gauss);
+    const auto integration_point_list_w = IntegrationPointFactory1D::GetGauss(PointsInW, IntegrationPointFactory1D::IntegrationMethod::Gauss);
 
     for (SizeType u = 0; u < PointsInU; ++u) {
         for (SizeType v = 0; v < PointsInV; ++v) {
             for( SizeType w = 0; w < PointsInW; ++w) {
-                rIntegrationPoints.push_back( IntegrationPoint( U0 + distance_u * integration_point_list_u[u][0],
-                                                                V0 + distance_v * integration_point_list_v[v][0],
-                                                                W0 + distance_w * integration_point_list_w[w][0],
-                                                                integration_point_list_u[u][1] * length_u *
-                                                                integration_point_list_v[v][1] * length_v *
-                                                                integration_point_list_w[w][1] * length_w ) );
+                rIntegrationPoints.push_back( IntegrationPoint( U0 + distance_u * (*integration_point_list_u)[u][0],
+                                                                V0 + distance_v * (*integration_point_list_v)[v][0],
+                                                                W0 + distance_w * (*integration_point_list_w)[w][0],
+                                                                (*integration_point_list_u)[u][1] * length_u *
+                                                                (*integration_point_list_v)[v][1] * length_v *
+                                                                (*integration_point_list_w)[w][1] * length_w ) );
             }
         }
     }

@@ -8,7 +8,7 @@
 #include "utilities/embedding_utilities.h"
 #include "geometries/triangle_3d_3n.h"
 #include "utilities/multi_knotspan_boxes_utilities.h"
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 #include "modeler/modeler.h"
 
 //// External includes
@@ -110,15 +110,15 @@ void TIBRA::Run(){
     }
     else if( status == IntersectionTest::Inside){
       // Get standard gauss legendre points
-      if( mParameters.IntegrationMethod() == IntegrationPointFactory::IntegrationMethod::Gauss ){
+      if( mParameters.IntegrationMethod() == IntegrationPointFactory1D::IntegrationMethod::Gauss ){
         IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
           cube_point_A_param, cube_point_B_param, mParameters.Order()[0], mParameters.Order()[1], mParameters.Order()[2]);
       }
-      else if( mParameters.IntegrationMethod() == IntegrationPointFactory::IntegrationMethod::ReducedGauss1 ){
+      else if( mParameters.IntegrationMethod() == IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1 ){
          IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
           cube_point_A_param, cube_point_B_param, mParameters.Order()[0]-1, mParameters.Order()[1]-1, mParameters.Order()[2]-1);
       }
-      else if( mParameters.IntegrationMethod() == IntegrationPointFactory::IntegrationMethod::ReducedGauss2 ){
+      else if( mParameters.IntegrationMethod() == IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2 ){
          IntegrationPointUtilities::CreateGaussLegendrePoints(tmp_element->GetIntegrationPointsInside(),
           cube_point_A_param, cube_point_B_param, mParameters.Order()[0]-2, mParameters.Order()[1]-2, mParameters.Order()[2]-2);
       }
@@ -132,9 +132,9 @@ void TIBRA::Run(){
     }
   }
 
-  if( (mParameters.IntegrationMethod() != IntegrationPointFactory::IntegrationMethod::Gauss)
-        && (mParameters.IntegrationMethod() != IntegrationPointFactory::IntegrationMethod::ReducedGauss1)
-          && (mParameters.IntegrationMethod() != IntegrationPointFactory::IntegrationMethod::ReducedGauss2) ){
+  if( (mParameters.IntegrationMethod() != IntegrationPointFactory1D::IntegrationMethod::Gauss)
+        && (mParameters.IntegrationMethod() != IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1)
+          && (mParameters.IntegrationMethod() != IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2) ){
 
     //#pragma omp single
     //MultiKnotspanUtilities::ComputeIntegrationPoints(*mpElementContainer, mParameters);

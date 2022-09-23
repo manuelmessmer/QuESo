@@ -5,7 +5,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 #include "utilities/polynomial_utilities.h"
 
 namespace Testing{
@@ -17,11 +17,11 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
     for(int order = 1; order <= 9; ++order){
         for( int order2 = 1; order2 <= 9; ++order2){
             if( order != order2){
-                auto ips_1 = IntegrationPointFactory::GetIntegrationPoints(order, IntegrationPointFactory::IntegrationMethod::Gauss);
-                auto ips_2 = IntegrationPointFactory::GetIntegrationPoints(order2, IntegrationPointFactory::IntegrationMethod::Gauss);
+                const auto ips_1 = IntegrationPointFactory1D::GetGauss(order, IntegrationPointFactory1D::IntegrationMethod::Gauss);
+                const auto ips_2 = IntegrationPointFactory1D::GetGauss(order2, IntegrationPointFactory1D::IntegrationMethod::Gauss);
                 double numerical_integral = 0.0;
-                for( auto& point1 : ips_1){
-                    for( auto& point2 : ips_2){
+                for( auto& point1 : *ips_1){
+                    for( auto& point2 : *ips_2){
                         double position1 = point1[0]* 0.2 + 0.1;
                         double position2 = point2[0]* 0.2 + 0.1;
                         numerical_integral += Polynomial::f_x(position1, order-1, 0.1, 0.3)*point1[1]
@@ -38,9 +38,9 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
     std::cout << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
     for(int order = 1; order <= 9; ++order){
 
-        auto ips = IntegrationPointFactory::GetIntegrationPoints(order, IntegrationPointFactory::IntegrationMethod::Gauss);
+        const auto ips = IntegrationPointFactory1D::GetGauss(order, IntegrationPointFactory1D::IntegrationMethod::Gauss);
         double numerical_integral = 0.0;
-        for( auto& point : ips){
+        for( auto& point : *ips){
             double position = point[0]* 0.2 + 0.1;
             numerical_integral += Polynomial::f_x(position, order-1, 0.1, 0.3)*point[1]*0.2;
         }

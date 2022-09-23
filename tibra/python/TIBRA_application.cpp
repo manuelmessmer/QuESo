@@ -16,20 +16,22 @@
 #include "geometries/element_container.h"
 #include "geometries/triangle_3d_3n.h"
 #include "geometries/integration_point.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
-typedef std::vector<IntegrationPoint> IntegrationPointType;
+typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
+typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
 typedef std::vector<Triangle3D3N> TriangleVectorType;
 
-PYBIND11_MAKE_OPAQUE(IntegrationPointType);
+PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
+PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(TriangleVectorType);
 
 namespace Python {
 
 namespace py = pybind11;
-
 
 template <class T> class ptr_wrapper
 {
@@ -66,20 +68,6 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         }, py::keep_alive<0, 1>())
         ;
 
-// void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
-//                                 const char* Filename,
-//                                 const bool Binary){
-    // py::class_<ElementVectorPtrType>(m, "ElementVector")
-    //     .def(py::init<>())
-    //     .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
-    //     .def("__iter__", [](ElementVectorPtrType &v) {
-    //         return py::make_iterator( v.begin(), v.end() );
-    //     }, py::keep_alive<0, 1>())
-    //     ;
-
-    //m.def("get_ptr", &get_ptr);
-    //py::class_<ptr_wrapper<double>>(m,"pdouble");
-
     py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
         .def("GetX", &IntegrationPoint::X)
@@ -90,7 +78,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 
-    py::bind_vector<IntegrationPointType,std::shared_ptr<IntegrationPointType>>
+    py::bind_vector<IntegrationPointVectorType,std::shared_ptr<IntegrationPointVectorType>>
         (m, "VectorOfIntegrationPoints")
     ;
 
@@ -138,6 +126,23 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
 
+    py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
+        (m, "VectorOfIntegrationPoints1D")
+    ;
+
+    py::enum_<IntegrationPointFactory1D::IntegrationMethod>(m, "IntegrationMethod")
+        .value("Gauss", IntegrationPointFactory1D::IntegrationMethod::Gauss)
+        .value("ReducedGauss1", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1)
+        .value("ReducedGauss2", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2)
+        .value("ReducedExact", IntegrationPointFactory1D::IntegrationMethod::ReducedExact)
+        .value("ReducedOrder1", IntegrationPointFactory1D::IntegrationMethod::ReducedOrder1)
+        .value("ReducedOrder2", IntegrationPointFactory1D::IntegrationMethod::ReducedOrder2)
+        .export_values()
+    ;
+
+    py::class_<IntegrationPointFactory1D, std::shared_ptr<IntegrationPointFactory1D>>(m,"IntegrationPointFactory1D")
+        .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
+    ;
 
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
@@ -145,6 +150,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPointsRaw", [](const TIBRA& v){
+
             auto& mesh = v.GetPostMesh();
             const std::size_t num_p = mesh.num_vertices();
             const auto raw_ptr = mesh.points().data()->cartesian_begin();

@@ -10,7 +10,7 @@
 #include <array>
 
 // Project includes
-#include "utilities/integration_points/integration_points_factory.h"
+#include "utilities/integration_points/integration_points_factory_1d.h"
 
 
 class Parameters
@@ -60,19 +60,19 @@ public:
     double MomentFittingResidual() const {
         return mMomentFittingResidual;
     }
-    IntegrationPointFactory::IntegrationMethod IntegrationMethod() const {
+    IntegrationPointFactory1D::IntegrationMethod IntegrationMethod() const {
         if( mIntegrationMethod == "Gauss" )
-            return IntegrationPointFactory::IntegrationMethod::Gauss;
+            return IntegrationPointFactory1D::IntegrationMethod::Gauss;
         else if( mIntegrationMethod == "ReducedGauss1" )
-            return IntegrationPointFactory::IntegrationMethod::ReducedGauss1;
+            return IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1;
         else if( mIntegrationMethod == "ReducedGauss2" )
-            return IntegrationPointFactory::IntegrationMethod::ReducedGauss2;
+            return IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2;
         else if( mIntegrationMethod == "ReducedExact")
-            return IntegrationPointFactory::IntegrationMethod::ReducedExact;
+            return IntegrationPointFactory1D::IntegrationMethod::ReducedExact;
         else if( mIntegrationMethod == "ReducedOrder1")
-            return IntegrationPointFactory::IntegrationMethod::ReducedOrder1;
+            return IntegrationPointFactory1D::IntegrationMethod::ReducedOrder1;
         else if( mIntegrationMethod == "ReducedOrder2")
-            return IntegrationPointFactory::IntegrationMethod::ReducedOrder2;
+            return IntegrationPointFactory1D::IntegrationMethod::ReducedOrder2;
         else
             throw  std::invalid_argument("Parameters: Integration Method: " + mIntegrationMethod + " not available! \n");
     }

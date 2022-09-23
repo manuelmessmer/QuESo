@@ -1,4 +1,5 @@
 from tibra.tests.ggq_tube.test_ggq_tube import TestGGQTube
+from tibra.tests.ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
 try:
     import KratosMultiphysics as KM
     kratos_available = True
@@ -21,6 +22,7 @@ def PyTIBRATestSuite():
         print("Warning :: Tests with KratosMultiphysics dependencies are skipped.")
 
     test_suite.addTest(unittest.makeSuite(TestGGQTube))
+    test_suite.addTest(unittest.makeSuite(TestGGQ1d))
 
     return test_suite
 
