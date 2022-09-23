@@ -2,7 +2,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):
     def __init__(self, model, general_settings, kratos_settings_filename, integration_points_embedder, boundary_conditions):
@@ -57,7 +56,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         integration_points = []
         # Loop over all given integration points
-        for index, point in enumerate(self.integration_points_embedder):
+        for point in enumerate(self.integration_points_embedder):
             integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
 
         # Create quadrature_point_geometries
@@ -77,8 +76,6 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
-
-
 
     def InitializeSolutionStep(self):
         if not self.Initialized:
