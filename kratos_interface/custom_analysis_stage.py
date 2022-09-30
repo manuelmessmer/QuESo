@@ -4,15 +4,20 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):
+    """Customized Kratos Analysis Stage.
+
+    Overrides the StructuralMechanicsAnalysis Stage from Kratos.
+    """
     def __init__(self, model, general_settings, kratos_settings_filename, integration_points_embedder, boundary_conditions):
-
-
+        """The constructor."""
+        # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
             analysis_parameters = KM.Parameters(parameter_file.read())
 
         self.boundary_conditions = boundary_conditions
         self.integration_points_embedder = integration_points_embedder
-        #TODO: Add checks here
+
+        #Override the NurbsGeometryModeler input parameters
         for modeler in analysis_parameters["modelers"]:
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
@@ -30,6 +35,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
 
     def _ModelersSetupModelPart(self):
+        """Override BaseClass to run NURBS modelers."""
         model_part = self.model.GetModelPart('NurbsMesh')
         model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KM.REACTION)
@@ -50,6 +56,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
 
     def ModifyInitialGeometry(self):
+        """Override BaseClass to pass integration points to Kratos."""
         model_part = self.model.GetModelPart('NurbsMesh')
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
         volume_properties = model_part.GetProperties()[1]

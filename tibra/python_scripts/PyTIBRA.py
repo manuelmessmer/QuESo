@@ -148,9 +148,9 @@ class PyTIBRA:
                 # Evaluate deformed nurbs_volume
                 deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
                 deformed_pos = [0, 0, 0]
-                deformed_pos[0] = global_point[0] - deformed_pos_kratos[0]
-                deformed_pos[1] = global_point[1] - deformed_pos_kratos[1]
-                deformed_pos[2] = global_point[2] - deformed_pos_kratos[2]
+                deformed_pos[0] = deformed_pos_kratos[0] - global_point[0]
+                deformed_pos[1] = deformed_pos_kratos[1] - global_point[1]
+                deformed_pos[2] = deformed_pos_kratos[2] - global_point[2]
                 displacements.append( deformed_pos )
 
             TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)

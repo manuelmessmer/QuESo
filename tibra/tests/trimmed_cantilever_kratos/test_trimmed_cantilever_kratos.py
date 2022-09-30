@@ -117,7 +117,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
             self.pytibra.Run()
 
             # Direct Analysis with kratos
-            surface_force = [0, -0.1, 0]
+            surface_force = [0, 0.1, 0]
             neumann_boundaries = [[neumann_condition, surface_force]]
             penalty_factor = 1e10
             dirichlet_boundaries = [[dirichlet_condition, penalty_factor]]
@@ -141,15 +141,15 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         x_test_array = np.arange(0.0,10.001,0.1)
         relative_errors = []
         xx = L
-        u_ref_inf = -p*xx*xx*(3*L-xx)/(6*E*I) + p*xx / (G*math.pi*kappa_circle)
+        u_ref_inf = -(p*xx*xx*(3*L-xx)/(6*E*I) + p*xx / (G*math.pi*kappa_circle))
         for xx in x_test_array:
             param = KM.Vector(3)
             param[0] = (0 - lower_point[0])/ abs(lower_point[0] - upper_point[0])
             param[1] = (0 - lower_point[1])/ abs(lower_point[1] - upper_point[1])
             param[2] = (xx- lower_point[2])/ abs(lower_point[2]-upper_point[2])
             u_y = nurbs_volume.GlobalCoordinates(param)[1]
-            u_ref =  p*xx*xx*(3*L-xx)/(6*E*I) + p*xx / (G*math.pi*kappa_circle)
-            relative_errors.append( abs(u_y+u_ref)/ abs(u_ref_inf))
+            u_ref =  -(p*xx*xx*(3*L-xx)/(6*E*I) + p*xx / (G*math.pi*kappa_circle))
+            relative_errors.append( abs(u_y-u_ref)/ abs(u_ref_inf))
 
         inf_norm = max(relative_errors)
         self.assertLess(inf_norm, tolerance)

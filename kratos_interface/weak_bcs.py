@@ -4,7 +4,12 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from tibra.python_scripts.helper import *
 
 class WeakBcsBase():
+    """Base Class to provide interface for the application of boundary conditions.
+
+    Derived class must override 'apply()'.
+    """
     def __init__(self, bcs_triangles, lower_point, upper_point):
+        """The constructor."""
         self.bcs_triangles = bcs_triangles
         self.lower_point = lower_point
         self.upper_point = upper_point
@@ -13,11 +18,17 @@ class WeakBcsBase():
         raise Exception("WeakBcsBase :: Function of base class is called!")
 
 class PenaltySupport(WeakBcsBase):
+    """PenaltySupport.
+
+    Derived from WeakBcsBase.
+    """
     def __init__(self, bcs_triangles, lower_point, upper_point, penalty):
+        """The constructor."""
         super(PenaltySupport, self).__init__(bcs_triangles, lower_point, upper_point)
         self.penalty = penalty
 
     def apply(self, model_part):
+        """Overrides base class."""
         id_counter = model_part.NumberOfConditions() + 1
         properties = model_part.GetProperties()[0]
         properties.SetValue(IgaApplication.PENALTY_FACTOR,self.penalty)
@@ -25,6 +36,7 @@ class PenaltySupport(WeakBcsBase):
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
         for triangle in self.bcs_triangles:
+            # Create kratos nodes on each vertex
             param1 = KM.Vector(3)
             param1 = FromGlobalToParamSpace( triangle.P1(), self.lower_point, self.upper_point)
             node1 = KM.Node(1, param1[0], param1[1], param1[2])
@@ -41,6 +53,7 @@ class PenaltySupport(WeakBcsBase):
             geom = KM.Triangle3D3(node1, node2, node3)
             quadrature_point_geometries = KM.GeometriesVector()
 
+            # Create conditions
             surface_in_nurbs_volume = KM.SurfaceInNurbsVolumeGeometry(nurbs_volume, geom)
             surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
@@ -49,43 +62,50 @@ class PenaltySupport(WeakBcsBase):
             cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT,displacement,process_info)
             id_counter += 1
 
-    def change(self, model_part, time ):
-        return 0
-
 class SurfaceLoad(WeakBcsBase):
+    """SurfaceLoad.
+
+    Derived from WeakBcsBase.
+    """
     def __init__(self, bcs_triangles, lower_point, upper_point, force, normal_flag):
+        """The constructor."""
         super(SurfaceLoad, self).__init__(bcs_triangles, lower_point, upper_point)
         self.force = force
         self.normal_flag = normal_flag
         self.conditions = []
 
     def apply(self, model_part ):
+        """Overrides base class."""
         id_counter = model_part.NumberOfConditions() + 1
         properties = model_part.GetProperties()[0]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
         for triangle in self.bcs_triangles:
+            #Get points in physical space.
             points = triangle.GetIntegrationPointsGlobal(1)
+
+            #Create kratos condition on each point.
             for point in points:
                 integration_points = []
                 tmp_global = [point.GetX(), point.GetY(), point.GetZ()]
-                center = FromGlobalToParamSpace(tmp_global, self.lower_point, self.upper_point)
-                weight = triangle.Area()*point.GetWeight()*2
-                normal = triangle.Normal()
+                #Map points to local space of B-Spline box
+                local_point = FromGlobalToParamSpace(tmp_global, self.lower_point, self.upper_point)
 
-                integration_points.append([center[0], center[1], center[2], point.GetWeight()])
+                integration_points.append([local_point[0], local_point[1], local_point[2], point.GetWeight()])
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
                 condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
+                weight = triangle.Area()*point.GetWeight()*2
                 if self.normal_flag:
-                    force_x = -normal[0] * weight * self.force
-                    force_y = -normal[1] * weight * self.force
-                    force_z = -normal[2] * weight * self.force
+                    normal = triangle.Normal()
+                    force_x = normal[0] * weight * self.force
+                    force_y = normal[1] * weight * self.force
+                    force_z = normal[2] * weight * self.force
                 else:
-                    force_x = -weight * self.force[0]
-                    force_y = -weight * self.force[1]
-                    force_z = -weight * self.force[2]
+                    force_x = weight * self.force[0]
+                    force_y = weight * self.force[1]
+                    force_z = weight * self.force[2]
 
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force_x)
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force_y)
