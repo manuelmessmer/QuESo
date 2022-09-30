@@ -64,7 +64,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
         p = 100
         boundary_condition = []
         boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
-        boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], p) )
+        boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], [0, p, 0]) )
 
         with open("tibra/tests/ggq_cantilever_kratos/TIBRAParameters.json", 'r') as file:
             settings = json.load(file)

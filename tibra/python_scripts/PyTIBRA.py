@@ -20,14 +20,18 @@ if kratos_available:
     from kratos_interface.bounding_box_bcs import NeumannCondition
 
 class PyTIBRA:
-    def __init__(self, json_filename):
+    """Main TIBRA python class.
 
+    Provides interface to run TIBRA.
+    """
+    def __init__(self, json_filename):
+        """The constructor"""
         with open(json_filename, 'r') as file:
             self.settings = json.load(file)
 
         general_settings = self.settings["general_settings"]
-        echo_level = general_settings["echo_level"]
-        if echo_level > 0:
+        self.echo_level = general_settings["echo_level"]
+        if self.echo_level > 0:
             folder_path = "./output/"
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
@@ -39,7 +43,6 @@ class PyTIBRA:
         general_settings = self.settings["general_settings"]
         input_filename = general_settings["input_filename"]
         self.post_filename = general_settings["postprocess_filename"]
-        echo_level = general_settings["echo_level"]
         embedding_flag = general_settings["embedding_flag"]
 
         self.mesh_settings = self.settings["mesh_settings"]
@@ -64,7 +67,7 @@ class PyTIBRA:
                                              moment_fitting_residual,
                                              init_point_distribution_factor,
                                              integration_method,
-                                             echo_level,
+                                             self.echo_level,
                                              embedding_flag)
         self.elements = self.tibra.GetElements()
 
@@ -148,9 +151,9 @@ class PyTIBRA:
                 # Evaluate deformed nurbs_volume
                 deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
                 deformed_pos = [0, 0, 0]
-                deformed_pos[0] = global_point[0] - deformed_pos_kratos[0]
-                deformed_pos[1] = global_point[1] - deformed_pos_kratos[1]
-                deformed_pos[2] = global_point[2] - deformed_pos_kratos[2]
+                deformed_pos[0] = deformed_pos_kratos[0] - global_point[0]
+                deformed_pos[1] = deformed_pos_kratos[1] - global_point[1]
+                deformed_pos[2] = deformed_pos_kratos[2] - global_point[2]
                 displacements.append( deformed_pos )
 
             TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
