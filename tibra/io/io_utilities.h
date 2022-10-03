@@ -9,6 +9,7 @@
 
 // Project includes
 #include "geometries/element_container.h"
+#include "geometries/triangle_mesh.h"
 
 class IO{
 
@@ -17,6 +18,10 @@ public:
   static void WriteMeshToVTK(const SM& rSurfaceMesh,
                              const char* Filename,
                              const bool Binary);
+
+  static void ReadMeshFromSTL(const TriangleMesh& rTriangleMesh,
+                              const char* Filename,
+                              const bool Binary);
 
   static void WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
                                      const char* Filename,

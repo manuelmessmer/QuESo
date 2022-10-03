@@ -8,9 +8,6 @@
 // Boost
 #include <CGAL/boost/graph/properties.h>
 
-// External includes
-//#include <fstream>      // std::ofstream
-
 // Project includes
 #include "io/io_utilities.h"
 #include "modeler/modeler.h"
@@ -18,6 +15,128 @@
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Surface_mesh<K::Point_3> SurfaceMesh;
 typedef std::size_t SizeType;
+
+template <typename number_t, typename index_t>
+struct CoordWithIndex {
+  number_t data[3];
+  index_t index;
+
+  bool operator == (const CoordWithIndex& c) const
+  {
+    return (c[0] == data[0]) && (c[1] == data[1]) && (c[2] == data[2]);
+  }
+
+  bool operator != (const CoordWithIndex& c) const
+  {
+    return (c[0] != data[0]) || (c[1] != data[1]) || (c[2] != data[2]);
+  }
+
+  bool operator < (const CoordWithIndex& c) const
+  {
+    return (data[0] < c[0])
+        || (data[0] == c[0] && data[1] < c[1])
+        || (data[0] == c[0] && data[1] == c[1] && data[2] < c[2]);
+  }
+
+  inline number_t& operator [] (const size_t i)   {return data[i];}
+  inline number_t operator [] (const size_t i) const  {return data[i];}
+};
+
+
+void IO::ReadMeshFromSTL(const TriangleMesh& rTriangleMesh,
+                     const char* Filename,
+                     const bool Binary){
+
+  // TODO: Triangle Mesh Reference
+  std::vector<TriangleMesh::Vector3d> points{};
+  std::vector<TriangleMesh::Vector3d> normals{};
+  std::vector<TriangleMesh::Vector3i> triangles{};
+
+
+  std::ifstream in(Filename, std::ios::binary);
+  if( !in.good() ) {
+    throw std::runtime_error("Couldnt open file.");
+  }
+
+  // Discard the first 80 chars (unused header)
+  int pos = 0;
+  char c;
+
+  while(pos < 80)
+  {
+    in.read(reinterpret_cast<char*>(&c), sizeof(c));
+    if(!in.good())
+      break;
+
+    ++pos;
+  }
+
+  if(pos != 80)
+    return throw std::runtime_error("File is empty.");
+
+  int index = 0;
+  std::map<TriangleMesh::Vector3d, IndexType> index_map;
+
+  unsigned int num_triangles;
+  if(!(in.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles))))
+  {
+    throw std::runtime_error("Couldnt read number of triangles.");
+  }
+
+  triangles.reserve(num_triangles);
+  normals.reserve(num_triangles);
+  points.reserve(num_triangles);
+
+  for(unsigned int i=0; i<num_triangles; ++i)
+  {
+    TriangleMesh::Vector3d normal{};
+    if(!(in.read(reinterpret_cast<char*>(&normal[0]), sizeof(normal[0]))) ||
+       !(in.read(reinterpret_cast<char*>(&normal[1]), sizeof(normal[1]))) ||
+       !(in.read(reinterpret_cast<char*>(&normal[2]), sizeof(normal[2]))))
+    {
+      throw std::runtime_error("Couldnt read normals.");
+    }
+
+    normals.push_back(normal);
+
+    // Read triangles and vertices
+    TriangleMesh::Vector3i ijk{};
+    for(int j=0; j<3; ++j)
+    {
+      float x,y,z;
+      if(!(in.read(reinterpret_cast<char*>(&x), sizeof(x))) ||
+         !(in.read(reinterpret_cast<char*>(&y), sizeof(y))) ||
+         !(in.read(reinterpret_cast<char*>(&z), sizeof(z))))
+      {
+        throw std::runtime_error("Couldnt read coordinates.");
+      }
+
+      TriangleMesh::Vector3d p = {x,y,z};
+
+      auto iti = index_map.insert(std::make_pair(p, -1)).first;
+
+      if(iti->second == -1)
+      {
+        ijk[j] = index;
+        iti->second = index++;
+        points.push_back(p);
+      }
+      else
+      {
+        ijk[j] = iti->second;
+      }
+    }
+    triangles.push_back(ijk);
+
+    // Read so-called attribute byte count and ignore it
+    char c;
+    if(!(in.read(reinterpret_cast<char*>(&c), sizeof(c))) ||
+       !(in.read(reinterpret_cast<char*>(&c), sizeof(c))))
+    {
+      throw std::runtime_error("Couldnt read attribute byte count.");
+    }
+  }
+}
 
 template<typename SM>
 void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
