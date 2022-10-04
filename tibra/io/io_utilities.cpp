@@ -26,7 +26,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
     file.open(Filename);
 
   if(!file.good()){
-    std::cerr << "IO::WriteMeshToSTL :: Could not open file: " << Filename << ".\n";
+    std::cerr << "Warning :: IO::WriteMeshToSTL :: Could not open file: " << Filename << ".\n";
     return false;
   }
 
@@ -85,7 +85,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   std::ifstream file(Filename, std::ios::binary);
 
   if( !file.good() ) {
-    std::cerr << "IO::ReadMeshFromSTL :: Couldnt handle file: " << Filename << ". Please provide .stl as binary.\n";
+    std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt handle file: " << Filename << ". Please provide .stl as binary.\n";
     return false;
   }
 
@@ -106,12 +106,12 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   }
 
   if( test_binary_ascii == "solid" ) { // If the first 5 characters are "solid"
-    std::cerr << "IO::ReadMeshFromSTL :: Read STL from ASCII is not implemented yet. Please use binary format.\n";
+    std::cerr << "Warning :: IO::ReadMeshFromSTL :: Read STL from ASCII is not implemented yet. Please use binary format.\n";
     return false;
   }
 
   if(position != 80) {
-    std::cerr << "IO::ReadMeshFromSTL :: File " << Filename << " is empty.\n";
+    std::cerr << "Warning :: IO::ReadMeshFromSTL :: File " << Filename << " is empty.\n";
     return false;
   }
 
@@ -121,7 +121,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   // Read number of triangles
   unsigned int num_triangles;
   if(!(file.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles)))) {
-    std::cerr << "IO::ReadMeshFromSTL :: Couldnt read number of triangles. \n";
+    std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read number of triangles. \n";
     return false;
   }
   rTriangleMesh.Clear();
@@ -134,7 +134,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
     if(!(file.read(reinterpret_cast<char*>(&normal[0]), sizeof(normal[0]))) ||
         !(file.read(reinterpret_cast<char*>(&normal[1]), sizeof(normal[1]))) ||
         !(file.read(reinterpret_cast<char*>(&normal[2]), sizeof(normal[2])))) {
-      std::cerr << "IO::ReadMeshFromSTL :: Couldnt read normals. \n";
+      std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read normals. \n";
       return false;
     }
     rTriangleMesh.AddNormal( {normal[0], normal[1], normal[2]} );
@@ -146,7 +146,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
       if(!(file.read(reinterpret_cast<char*>(&x), sizeof(x))) ||
           !(file.read(reinterpret_cast<char*>(&y), sizeof(y))) ||
           !(file.read(reinterpret_cast<char*>(&z), sizeof(z)))) {
-        std::cerr << "IO::ReadMeshFromSTL :: Couldnt read coordinates. \n";
+        std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read coordinates. \n";
         return false;
       }
 
@@ -155,7 +155,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
       // Map is used to ensure unique vertices. Note that STL does not reuse vertices.
       auto index_map_iterator = index_map.insert(std::make_pair(vertex, -1)).first;
       if(index_map_iterator->second == -1) {
-        triangle[j] = index;
+        triangle[j] = index+1;
         index_map_iterator->second = index++;
         rTriangleMesh.AddVertex(vertex);
       }
@@ -169,11 +169,11 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
     char c;
     if(!(file.read(reinterpret_cast<char*>(&c), sizeof(c))) ||
         !(file.read(reinterpret_cast<char*>(&c), sizeof(c)))) {
-      std::cerr << "IO::ReadMeshFromSTL :: Couldnt read attribute byte count.\n";
+      std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read attribute byte count.\n";
       return false;
     }
   }
-  return true;
+  return rTriangleMesh.Check();
 }
 
 template<typename SM>
@@ -306,7 +306,7 @@ bool IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDispla
         WriteBinary(file, rw3);
       }
       else {
-        std::cerr << "IO::DisplacementToVTK :: Ascii export not implemented yet. \n";
+        std::cerr << "Warning :: IO::DisplacementToVTK :: Ascii export not implemented yet. \n";
         return false;
       }
   }
