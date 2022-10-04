@@ -123,6 +123,38 @@ public:
         return mVertices[mTriangles[TriangleId][2]];
     }
 
+    void Clear(){
+        mVertices.clear();
+        mNormals.clear();
+        mTriangles.clear();
+    }
+
+    void Reserve(IndexType value){
+        mVertices.reserve(value);
+        mNormals.reserve(value);
+        mTriangles.reserve(value);
+    }
+
+    void AddVertex(Vector3d NewVertex) {
+        return mVertices.push_back(NewVertex);
+    }
+
+    void AddTriangle(Vector3i NewTriangle) {
+        return mTriangles.push_back(NewTriangle);
+    }
+
+    void AddNormal(Vector3d NewNormal) {
+        return mNormals.push_back(NewNormal);
+    }
+
+    IndexType NumOfTriangles() const{
+        return mTriangles.size();
+    }
+
+    IndexType NumOfVertices() const{
+        return mVertices.size();
+    }
+
     ///@}
 private:
 
