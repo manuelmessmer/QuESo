@@ -16,130 +16,167 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Surface_mesh<K::Point_3> SurfaceMesh;
 typedef std::size_t SizeType;
 
-template <typename number_t, typename index_t>
-struct CoordWithIndex {
-  number_t data[3];
-  index_t index;
+bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
+                        const char* Filename,
+                        const bool Binary){
+  std::ofstream file;
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
+  else
+    file.open(Filename);
 
-  bool operator == (const CoordWithIndex& c) const
-  {
-    return (c[0] == data[0]) && (c[1] == data[1]) && (c[2] == data[2]);
+  if(!file.good()){
+    std::cerr << "IO::WriteMeshToSTL :: Could not open file: " << Filename << ".\n";
+    return false;
   }
 
-  bool operator != (const CoordWithIndex& c) const
+  const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+  if(Binary)
   {
-    return (c[0] != data[0]) || (c[1] != data[1]) || (c[2] != data[2]);
+    file << "FileType: Binary                                                                ";
+    const boost::uint32_t N32 = static_cast<boost::uint32_t>(num_triangles);
+    file.write(reinterpret_cast<const char *>(&N32), sizeof(N32));
+
+    for(int triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
+    {
+      const auto& p1 = rTriangleMesh.P1(triangle_id);
+      const auto& p2 = rTriangleMesh.P2(triangle_id);
+      const auto& p3 = rTriangleMesh.P3(triangle_id);
+
+      const auto& normal = rTriangleMesh.Normal(triangle_id);
+
+      const float coords[12] = { static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]),
+                                 static_cast<float>(p1[0]), static_cast<float>(p1[1]), static_cast<float>(p1[2]),
+                                 static_cast<float>(p2[0]), static_cast<float>(p2[1]), static_cast<float>(p2[2]),
+                                 static_cast<float>(p3[0]), static_cast<float>(p3[1]), static_cast<float>(p3[2]) };
+
+      for(int i=0; i<12; ++i)
+        file.write(reinterpret_cast<const char *>(&coords[i]), sizeof(coords[i]));
+      file << "  ";
+    }
+  }
+  else
+  {
+    file << "solid\n";
+    for(int triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
+    {
+      const auto& p1 = rTriangleMesh.P1(triangle_id);
+      const auto& p2 = rTriangleMesh.P2(triangle_id);
+      const auto& p3 = rTriangleMesh.P3(triangle_id);
+
+      const auto& normal = rTriangleMesh.Normal(triangle_id);
+
+      file << "facet normal " << normal[0] << ' ' << normal[1] << ' ' << normal[2] << "\nouter loop\n";
+      file << "vertex " << p1[0] << ' ' << p1[1] << ' ' << p1[2] << ' ' << "\n";
+      file << "vertex " << p2[0] << ' ' << p2[1] << ' ' << p2[2] << ' ' << "\n";
+      file << "vertex " << p3[0] << ' ' << p3[1] << ' ' << p3[2] << ' ' << "\n";
+      file << "endloop\nendfacet\n";
+    }
+    file << "endsolid"<<std::endl;
   }
 
-  bool operator < (const CoordWithIndex& c) const
-  {
-    return (data[0] < c[0])
-        || (data[0] == c[0] && data[1] < c[1])
-        || (data[0] == c[0] && data[1] == c[1] && data[2] < c[2]);
+  return true;
+}
+
+bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
+                         const char* Filename){
+
+  // Open file
+  std::ifstream file(Filename, std::ios::binary);
+
+  if( !file.good() ) {
+    std::cerr << "IO::ReadMeshFromSTL :: Couldnt handle file: " << Filename << ". Please provide .stl as binary.\n";
+    return false;
   }
 
-  inline number_t& operator [] (const size_t i)   {return data[i];}
-  inline number_t operator [] (const size_t i) const  {return data[i];}
-};
+  // Ignore the first 80 chars of the header
+  int position = 0;
+  char message;
+  std::string test_binary_ascii{};
+  while(position < 80) {
+    file.read(reinterpret_cast<char*>(&message), sizeof(message));
+    if( position < 5 ){
+      test_binary_ascii.push_back(message);
+    }
 
-
-void IO::ReadMeshFromSTL(const TriangleMesh& rTriangleMesh,
-                     const char* Filename,
-                     const bool Binary){
-
-  // TODO: Triangle Mesh Reference
-  std::vector<TriangleMesh::Vector3d> points{};
-  std::vector<TriangleMesh::Vector3d> normals{};
-  std::vector<TriangleMesh::Vector3i> triangles{};
-
-
-  std::ifstream in(Filename, std::ios::binary);
-  if( !in.good() ) {
-    throw std::runtime_error("Couldnt open file.");
-  }
-
-  // Discard the first 80 chars (unused header)
-  int pos = 0;
-  char c;
-
-  while(pos < 80)
-  {
-    in.read(reinterpret_cast<char*>(&c), sizeof(c));
-    if(!in.good())
+    if(!file.good())
       break;
 
-    ++pos;
+    ++position;
   }
 
-  if(pos != 80)
-    return throw std::runtime_error("File is empty.");
+  if( test_binary_ascii == "solid" ) { // If the first 5 characters are "solid"
+    std::cerr << "IO::ReadMeshFromSTL :: Read STL from ASCII is not implemented yet. Please use binary format.\n";
+    return false;
+  }
+
+  if(position != 80) {
+    std::cerr << "IO::ReadMeshFromSTL :: File " << Filename << " is empty.\n";
+    return false;
+  }
 
   int index = 0;
   std::map<TriangleMesh::Vector3d, IndexType> index_map;
 
+  // Read number of triangles
   unsigned int num_triangles;
-  if(!(in.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles))))
-  {
-    throw std::runtime_error("Couldnt read number of triangles.");
+  if(!(file.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles)))) {
+    std::cerr << "IO::ReadMeshFromSTL :: Couldnt read number of triangles. \n";
+    return false;
   }
+  rTriangleMesh.Reserve(num_triangles);
 
-  triangles.reserve(num_triangles);
-  normals.reserve(num_triangles);
-  points.reserve(num_triangles);
-
-  for(unsigned int i=0; i<num_triangles; ++i)
-  {
-    TriangleMesh::Vector3d normal{};
-    if(!(in.read(reinterpret_cast<char*>(&normal[0]), sizeof(normal[0]))) ||
-       !(in.read(reinterpret_cast<char*>(&normal[1]), sizeof(normal[1]))) ||
-       !(in.read(reinterpret_cast<char*>(&normal[2]), sizeof(normal[2]))))
-    {
-      throw std::runtime_error("Couldnt read normals.");
+  // Loop over all triangles
+  for(unsigned int i=0; i<num_triangles; ++i) {
+    // Read normals
+    float normal[3];
+    if(!(file.read(reinterpret_cast<char*>(&normal[0]), sizeof(normal[0]))) ||
+        !(file.read(reinterpret_cast<char*>(&normal[1]), sizeof(normal[1]))) ||
+        !(file.read(reinterpret_cast<char*>(&normal[2]), sizeof(normal[2])))) {
+      std::cerr << "IO::ReadMeshFromSTL :: Couldnt read normals. \n";
+      return false;
     }
+    rTriangleMesh.AddNormal( {normal[0], normal[1], normal[2]} );
 
-    normals.push_back(normal);
-
-    // Read triangles and vertices
-    TriangleMesh::Vector3i ijk{};
-    for(int j=0; j<3; ++j)
-    {
+    // Read triangles and vertices. Each vertex is read seperately.
+    TriangleMesh::Vector3i triangle{};
+    for(int j=0; j<3; ++j) {
       float x,y,z;
-      if(!(in.read(reinterpret_cast<char*>(&x), sizeof(x))) ||
-         !(in.read(reinterpret_cast<char*>(&y), sizeof(y))) ||
-         !(in.read(reinterpret_cast<char*>(&z), sizeof(z))))
-      {
-        throw std::runtime_error("Couldnt read coordinates.");
+      if(!(file.read(reinterpret_cast<char*>(&x), sizeof(x))) ||
+          !(file.read(reinterpret_cast<char*>(&y), sizeof(y))) ||
+          !(file.read(reinterpret_cast<char*>(&z), sizeof(z)))) {
+        std::cerr << "IO::ReadMeshFromSTL :: Couldnt read coordinates. \n";
+        return false;
       }
 
-      TriangleMesh::Vector3d p = {x,y,z};
+      TriangleMesh::Vector3d vertex = {x,y,z};
 
-      auto iti = index_map.insert(std::make_pair(p, -1)).first;
-
-      if(iti->second == -1)
-      {
-        ijk[j] = index;
-        iti->second = index++;
-        points.push_back(p);
+      // Map is used to ensure unique vertices. Note that STL does not reuse vertices.
+      auto index_map_iterator = index_map.insert(std::make_pair(vertex, -1)).first;
+      if(index_map_iterator->second == -1) {
+        triangle[j] = index;
+        index_map_iterator->second = index++;
+        rTriangleMesh.AddVertex(vertex);
       }
-      else
-      {
-        ijk[j] = iti->second;
+      else {
+        triangle[j] = index_map_iterator->second;
       }
     }
-    triangles.push_back(ijk);
+    rTriangleMesh.AddTriangle(triangle);
 
     // Read so-called attribute byte count and ignore it
     char c;
-    if(!(in.read(reinterpret_cast<char*>(&c), sizeof(c))) ||
-       !(in.read(reinterpret_cast<char*>(&c), sizeof(c))))
-    {
-      throw std::runtime_error("Couldnt read attribute byte count.");
+    if(!(file.read(reinterpret_cast<char*>(&c), sizeof(c))) ||
+        !(file.read(reinterpret_cast<char*>(&c), sizeof(c)))) {
+      std::cerr << "IO::ReadMeshFromSTL :: Couldnt read attribute byte count.\n";
+      return false;
     }
   }
+  return true;
 }
 
 template<typename SM>
-void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
+bool IO::WriteMeshToVTK(const SM& rSurfaceMesh,
                         const char* Filename,
                         const bool Binary)
 {
@@ -154,6 +191,8 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
 
   const SizeType num_elements = rSurfaceMesh.number_of_faces();
   const SizeType num_points = rSurfaceMesh.number_of_vertices();
+
+
 
   std::ofstream file;
   if(Binary)
@@ -176,7 +215,6 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
   auto raw_points = rSurfaceMesh.points().data()->cartesian_begin();
   for(vertex_descriptor v : vertices(rSurfaceMesh))
   {
-
     const Point_3& p = get(vpmap, v);
     if( Binary ){
       double rx = CGAL::to_double(p.x());
@@ -189,7 +227,6 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
     }
     else {
       file << CGAL::to_double(p.x()) << ' ' << CGAL::to_double(p.y()) << ' ' << CGAL::to_double(p.z()) << std::endl;
-
     }
     vids[v] = inum++;
   }
@@ -233,23 +270,21 @@ void IO::WriteMeshToVTK(const SM& rSurfaceMesh,
     }
   }
   file << std::endl;
-
-
   file.close();
+
+  return true;
 }
 
 // Instantiation
-template void IO::WriteMeshToVTK<SurfaceMesh>(const SurfaceMesh& rSurfaceMesh,//PolygonMesh
+template bool IO::WriteMeshToVTK<SurfaceMesh>(const SurfaceMesh& rSurfaceMesh,//PolygonMesh
                                               const char* Filename,
                                               const bool Binary);
 
 
-void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+bool IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
                                 const char* Filename,
                                 const bool Binary){
 
-  // const SizeType num_elements = rSurfaceMesh.number_of_faces();
-  // const SizeType num_points = rSurfaceMesh.number_of_vertices();
   const SizeType num_points = rDisplacement.size();
 
   std::ofstream file;
@@ -270,15 +305,17 @@ void IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDispla
         WriteBinary(file, rw3);
       }
       else {
-        //file << points_it->GetWeight() << std::endl;
+        std::cerr << "IO::DisplacementToVTK :: Ascii export not implemented yet. \n";
+        return false;
       }
   }
   file << std::endl;
-
   file.close();
+
+  return true;
 }
 
-void IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //PolygonMesh
+bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //PolygonMesh
                             const char* Filename,
                             const bool Binary){
 
@@ -395,12 +432,13 @@ void IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
     }
   }
   file << std::endl;
-
   file.close();
+
+  return true;
 }
 
 
-void IO::WritePointsToVTK(const ElementContainer& rElementContainer,
+bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
                           const char* type,
                           const char* Filename,
                           const bool Binary){
@@ -485,8 +523,9 @@ void IO::WritePointsToVTK(const ElementContainer& rElementContainer,
       }
   }
   file << std::endl;
-
   file.close();
+
+  return true;
 }
 
 
