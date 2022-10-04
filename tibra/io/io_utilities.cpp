@@ -124,6 +124,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
     std::cerr << "IO::ReadMeshFromSTL :: Couldnt read number of triangles. \n";
     return false;
   }
+  rTriangleMesh.Clear();
   rTriangleMesh.Reserve(num_triangles);
 
   // Loop over all triangles
