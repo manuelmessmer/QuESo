@@ -155,7 +155,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
       // Map is used to ensure unique vertices. Note that STL does not reuse vertices.
       auto index_map_iterator = index_map.insert(std::make_pair(vertex, -1)).first;
       if(index_map_iterator->second == -1) {
-        triangle[j] = index+1;
+        triangle[j] = index;
         index_map_iterator->second = index++;
         rTriangleMesh.AddVertex(vertex);
       }
