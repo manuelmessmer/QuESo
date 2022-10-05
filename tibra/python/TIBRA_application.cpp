@@ -89,7 +89,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     py::class_<Triangle3D3N, std::shared_ptr<Triangle3D3N>>(m,"Triangle3D3N")
         .def(py::init<std::array<double, 3>, std::array<double, 3>, std::array<double, 3>,std::array<double, 3>>())
         .def("Center", &Triangle3D3N::Center)
-        .def("Jacobian", &Triangle3D3N::Jacobian)
+        //.def("Jacobian", &Triangle3D3N::Jacobian)
         .def("Normal", &Triangle3D3N::Normal)
         .def("Area", &Triangle3D3N::Area)
         .def("GetIntegrationPointsGlobal", [](Triangle3D3N& self, IndexType Method){

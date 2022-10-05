@@ -9,24 +9,32 @@
 
 // Project includes
 #include "geometries/element_container.h"
+#include "geometries/triangle_mesh.h"
 
 class IO{
 
 public:
   template<typename SM>
-  static void WriteMeshToVTK(const SM& rSurfaceMesh,
+  static bool WriteMeshToVTK(const SM& rSurfaceMesh,
                              const char* Filename,
                              const bool Binary);
 
-  static void WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+  static bool WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
+                             const char* Filename,
+                             const bool Binary);
+
+  static bool ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
+                              const char* Filename);
+
+  static bool WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
                                      const char* Filename,
                                      const bool Binary);
 
-  static void WriteElementsToVTK(const ElementContainer& rElementContainer,
+  static bool WriteElementsToVTK(const ElementContainer& rElementContainer,
                                  const char* Filename,
                                  const bool Binary);
 
-  static void WritePointsToVTK(const ElementContainer& rElementContainer,
+  static bool WritePointsToVTK(const ElementContainer& rElementContainer,
                                const char* Type,
                                const char* Filename,
                                const bool Binary);
