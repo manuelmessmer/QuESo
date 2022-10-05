@@ -39,6 +39,7 @@ public:
     /// @brief Area of triangle.
     /// @param TriangleId
     /// @return double.
+    /// @todo Consider using more efficient std::pow alternative.
     double Area(IndexType TriangleId) const {
         const auto P1 = this->P1(TriangleId);
         const auto P2 = this->P2(TriangleId);
@@ -175,7 +176,7 @@ public:
         return mVertices.size();
     }
 
-    ///
+    ///@brief Basic check of this TriangleMesh instance.
     bool Check(){
         // Check if mTriangles and mNormals are of the same size.
         if( mTriangles.size() != mNormals.size() ){
@@ -198,6 +199,11 @@ private:
 
     ///@name Private Member Variables
     ///@{
+
+    ///@brief Returns ShapeFunctionValue
+    ///@param ShapeFunctionIndex
+    ///@param rPoint
+    ///@return double
     double ShapeFunctionValue( IndexType ShapeFunctionIndex, const Vector3d& rPoint ) const {
         switch( ShapeFunctionIndex )
         {
@@ -215,6 +221,7 @@ private:
         return 0;
     }
 
+    ///@brief Factory function for triangle Gauss Legendre points.
     static const std::vector<IntegrationPointVectorType>& AllIntegrationPoints()
     {
         static const std::vector<IntegrationPointVectorType> integration_points =
@@ -228,9 +235,11 @@ private:
         return integration_points;
     }
 
-    // Todo: Add checl is method is larger than 3
+    ///@brief Get triangle Gauss Legendre points by Method - options (0,1,2,3)
     static const IntegrationPointVectorType& GetIntegrationPoints( IndexType Method ){
-
+        if( Method > 3){
+            throw std::runtime_error("TriangleMesh::GetIntegrationPoints IntegrationPoint Index exceeds default.");
+        }
         return AllIntegrationPoints()[Method];
     }
 
@@ -242,7 +251,8 @@ private:
     std::vector<Vector3d> mNormals;
 
     ///@}
-};
+
+}; // End of class TriangleMesh
 
 ///@}
 
