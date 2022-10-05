@@ -8,6 +8,8 @@
 #include <vector>
 #include <array>
 #include <cmath>
+#include <memory>
+#include <iostream>
 
 /// Project includes
 #include "geometries/triangle_gauss_legendre_integration_points.h"
