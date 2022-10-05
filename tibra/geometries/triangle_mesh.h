@@ -111,50 +111,88 @@ public:
         return std::move(p_global_integration_points);
     }
 
+    ///@brief Get triangle vertex 1
+    ///@param TriangleId
+    ///@return const Vector3d&
     const Vector3d& P1(IndexType TriangleId) const {
         return mVertices[mTriangles[TriangleId][0]];
     }
 
+    ///@brief Get triangle vertex 2
+    ///@param TriangleId
+    ///@return const Vector3d&
     const Vector3d& P2(IndexType TriangleId) const {
         return mVertices[mTriangles[TriangleId][1]];
     }
 
+    ///@brief Get triangle vertex 3
+    ///@param TriangleId
+    ///@return const Vector3d&
     const Vector3d& P3(IndexType TriangleId) const {
         return mVertices[mTriangles[TriangleId][2]];
     }
 
+    ///@brief Clear all containers.
     void Clear(){
         mVertices.clear();
         mNormals.clear();
         mTriangles.clear();
     }
 
-    void Reserve(IndexType value){
-        mVertices.reserve(value);
-        mNormals.reserve(value);
-        mTriangles.reserve(value);
+    ///@brief Reserve all containers.
+    ///@param Size
+    void Reserve(IndexType Size){
+        mVertices.reserve(Size);
+        mNormals.reserve(Size);
+        mTriangles.reserve(Size);
     }
 
+    ///@brief Add vertex to mesh.
+    ///@param NewVertex
     void AddVertex(Vector3d NewVertex) {
         return mVertices.push_back(NewVertex);
     }
 
+    ///@brief Add triangle to mesh.
+    ///@param NewTriangle
     void AddTriangle(Vector3i NewTriangle) {
         return mTriangles.push_back(NewTriangle);
     }
 
+    ///@brief Add normal to mesh.
+    ///@param NewNormal
     void AddNormal(Vector3d NewNormal) {
         return mNormals.push_back(NewNormal);
     }
 
+    ///@brief Get number of triangles in mesh.
     IndexType NumOfTriangles() const{
         return mTriangles.size();
     }
 
+    ///@brief Get number of vertices in mesh.
     IndexType NumOfVertices() const{
         return mVertices.size();
     }
 
+    ///
+    bool Check(){
+        // Check if mTriangles and mNormals are of the same size.
+        if( mTriangles.size() != mNormals.size() ){
+            std::cerr << "TriangleMesh :: Number of Triangles and Normals in mesh do not match.\n";
+            return false;
+        }
+        // Check if all vertex ids exist.
+        for( int i = 0; i < mTriangles.size(); ++i ){
+            for(int j = 0; j < 3; ++j){
+                if( mTriangles[i][j] >= mVertices.size() ){
+                    std::cerr << "TriangleMesh :: Triangle/Vertex mismatch.\n";
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     ///@}
 private:
 
