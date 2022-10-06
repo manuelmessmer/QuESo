@@ -5,6 +5,7 @@
 #define ELEMENT_CLASSIFICATION_INCLUDE_H
 
 /// External includes
+#include <memory>
 
 /// Project includes
 #include "geometries/triangle_mesh.h"
@@ -28,7 +29,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    static bool PointIsInside(const TriangleMesh& rTriangleMesh, const PointType& rPoint);
+    static std::unique_ptr<std::vector<bool>> PointsAreInside(const TriangleMesh& rTriangleMesh, const std::vector<PointType>& rPoints);
+    ///@}
+
+private:
+    ///@name Private Operations
+    ///@{
+    static bool Anorm2(std::vector<double>& rResult, const std::vector<PointType>& rX);
     ///@}
 };
 
