@@ -1,6 +1,8 @@
 /*
   * This is a port https://github.com/lohedges/aabbcc. The namespace has been changed from
-  * 'aabb' to 'aabb_base'. The class name has been changed from 'AABB' to 'AABB_base'
+  * 'aabb' to 'aabb_base'. The class name has been changed from 'AABB' to 'AABB_base'. Alslo
+  * class 'Tree' has been renamed to 'Tree_base'. Changed std::vector<double> to std::array<double,3> for
+  * better performance.
   * The original code included the following copyright notice:
 
   Copyright (c) 2009 Erin Catto http://www.box2d.org
@@ -74,7 +76,7 @@ namespace aabb_base
             \param upperBound_
                 The upper bound in each dimension.
          */
-        AABB_base(const std::vector<double>&, const std::vector<double>&);
+        AABB_base(const std::array<double,3>&, const std::array<double,3>&);
 
         /// Compute the surface area of the box.
         double computeSurfaceArea() const;
@@ -116,7 +118,7 @@ namespace aabb_base
         /*! \returns
                 The position vector of the AABB_base centre.
          */
-        std::vector<double> computeCentre();
+        std::array<double,3> computeCentre();
 
         //! Set the dimensionality of the AABB_base.
         /*! \param dimension
@@ -125,13 +127,13 @@ namespace aabb_base
         void setDimension(unsigned int);
 
         /// Lower bound of AABB_base in each dimension.
-        std::vector<double> lowerBound;
+        std::array<double,3> lowerBound;
 
         /// Upper bound of AABB_base in each dimension.
-        std::vector<double> upperBound;
+        std::array<double,3> upperBound;
 
         /// The position of the AABB_base centre.
-        std::vector<double> centre;
+        std::array<double,3> centre;
 
         /// The AABB_base's surface area.
         double surfaceArea;
@@ -190,7 +192,7 @@ namespace aabb_base
         periodic and non-periodic boxes, as well as boxes with partial
         periodicity, e.g. periodic along specific axes.
      */
-    class Tree
+    class Tree_base
     {
     public:
         //! Constructor (non-periodic).
@@ -207,7 +209,7 @@ namespace aabb_base
             \param touchIsOverlap
                 Does touching count as overlapping in query operations?
          */
-        Tree(unsigned int dimension_= 3, double skinThickness_ = 0.05,
+        Tree_base(unsigned int dimension_= 3, double skinThickness_ = 0.05,
             unsigned int nParticles = 16, bool touchIsOverlap=true);
 
         //! Constructor (custom periodicity).
@@ -230,7 +232,7 @@ namespace aabb_base
             \param touchIsOverlap
                 Does touching count as overlapping in query operations?
          */
-        Tree(unsigned int, double, const std::vector<bool>&, const std::vector<double>&,
+        Tree_base(unsigned int, double, const std::vector<bool>&, const std::array<double,3>&,
             unsigned int nParticles = 16, bool touchIsOverlap=true);
 
         //! Set the periodicity of the simulation box.
@@ -243,7 +245,7 @@ namespace aabb_base
         /*! \param boxSize_
                 The size of the simulation box in each dimension.
          */
-        void setBoxSize(const std::vector<double>&);
+        void setBoxSize(const std::array<double,3>&);
 
         //! Insert a particle into the tree (point particle).
         /*! \param index
@@ -255,7 +257,7 @@ namespace aabb_base
             \param radius
                 The radius of the particle.
          */
-        void insertParticle(unsigned int, std::vector<double>&, double);
+        void insertParticle(unsigned int, std::array<double,3>&, double);
 
         //! Insert a particle into the tree (arbitrary shape with bounding box).
         /*! \param index
@@ -267,7 +269,7 @@ namespace aabb_base
             \param upperBound
                 The upper bound in each dimension.
          */
-        void insertParticle(unsigned int, std::vector<double>&, std::vector<double>&);
+        void insertParticle(unsigned int, std::array<double,3>&, std::array<double,3>&);
 
         /// Return the number of particles in the tree.
         unsigned int nParticles();
@@ -297,7 +299,7 @@ namespace aabb_base
             \return
                 Whether the particle was reinserted.
          */
-        bool updateParticle(unsigned int, std::vector<double>&, double, bool alwaysReinsert=false);
+        bool updateParticle(unsigned int, std::array<double,3>&, double, bool alwaysReinsert=false);
 
         //! Update the tree if a particle moves outside its fattened AABB_base.
         /*! \param particle
@@ -312,7 +314,7 @@ namespace aabb_base
             \param alwaysReinsert
                 Always reinsert the particle, even if it's within its old AABB_base (default: false)
          */
-        bool updateParticle(unsigned int, std::vector<double>&, std::vector<double>&, bool alwaysReinsert=false);
+        bool updateParticle(unsigned int, std::array<double,3>&, std::array<double,3>&, bool alwaysReinsert=false);
 
         //! Query the tree to find candidate interactions for a particle.
         /*! \param particle
@@ -382,6 +384,18 @@ namespace aabb_base
         /// Rebuild an optimal tree.
         void rebuild();
 
+        /// Modifications begin
+        // The following lines are modifications to the original source code.
+        unsigned int Root(){
+            return root;
+        }
+
+        std::vector<Node>& Nodes(){
+            return nodes;
+        }
+
+        /// Modifications end
+
     private:
         /// The index of the root node.
         unsigned int root;
@@ -411,13 +425,13 @@ namespace aabb_base
         std::vector<bool> periodicity;
 
         /// The size of the system in each dimension.
-        std::vector<double> boxSize;
+        std::array<double,3> boxSize;
 
         /// The position of the negative minimum image.
-        std::vector<double> negMinImage;
+        std::array<double,3> negMinImage;
 
         /// The position of the positive minimum image.
-        std::vector<double> posMinImage;
+        std::array<double,3> posMinImage;
 
         /// A map between particle and node indices.
         std::unordered_map<unsigned int, unsigned int> particleMap;
@@ -486,7 +500,7 @@ namespace aabb_base
         /* \param position
                 The position vector.
          */
-        void periodicBoundaries(std::vector<double>&);
+        void periodicBoundaries(std::array<double,3>&);
 
         //! Compute minimum image separation.
         /*! \param separation
@@ -498,7 +512,7 @@ namespace aabb_base
             \return
                 Whether a periodic shift has been applied.
          */
-        bool minimumImage(std::vector<double>&, std::vector<double>&);
+        bool minimumImage(std::array<double,3>&, std::array<double,3>&);
     };
 }
 

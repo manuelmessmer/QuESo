@@ -1,6 +1,7 @@
 /*
   * This is a port https://github.com/lohedges/aabbcc. The namespace has been changed from
-  * 'aabb' to 'aabb_base'. The class name has been changed from 'AABB' to 'AABB_base'
+  * 'aabb' to 'aabb_base'. The class name has been changed from 'AABB' to 'AABB_base'. Alslo
+  * class 'Tree' has been renamed to 'Tree_base'.
   * The original code included the following copyright notice:
 
   Copyright (c) 2009 Erin Catto http://www.box2d.org
@@ -40,11 +41,11 @@ namespace aabb_base
     {
         assert(dimension >= 2);
 
-        lowerBound.resize(dimension);
-        upperBound.resize(dimension);
+        // lowerBound.resize(dimension);
+        // upperBound.resize(dimension);
     }
 
-    AABB_base::AABB_base(const std::vector<double>& lowerBound_, const std::vector<double>& upperBound_) :
+    AABB_base::AABB_base(const std::array<double,3>& lowerBound_, const std::array<double,3>& upperBound_) :
         lowerBound(lowerBound_), upperBound(upperBound_)
     {
         // Validate the dimensionality of the bounds vectors.
@@ -102,11 +103,11 @@ namespace aabb_base
 
     void AABB_base::merge(const AABB_base& aabb1, const AABB_base& aabb2)
     {
-        assert(aabb1.lowerBound.size() == aabb2.lowerBound.size());
-        assert(aabb1.upperBound.size() == aabb2.upperBound.size());
+        // assert(aabb1.lowerBound.size() == aabb2.lowerBound.size());
+        // assert(aabb1.upperBound.size() == aabb2.upperBound.size());
 
-        lowerBound.resize(aabb1.lowerBound.size());
-        upperBound.resize(aabb1.lowerBound.size());
+        // lowerBound.resize(aabb1.lowerBound.size());
+        // upperBound.resize(aabb1.lowerBound.size());
 
         for (unsigned int i=0;i<lowerBound.size();i++)
         {
@@ -163,9 +164,9 @@ namespace aabb_base
         return rv;
     }
 
-    std::vector<double> AABB_base::computeCentre()
+    std::array<double,3> AABB_base::computeCentre()
     {
-        std::vector<double> position(lowerBound.size());
+        std::array<double,3> position{};
 
         for (unsigned int i=0;i<position.size();i++)
             position[i] = 0.5 * (lowerBound[i] + upperBound[i]);
@@ -177,8 +178,8 @@ namespace aabb_base
     {
         assert(dimension >= 2);
 
-        lowerBound.resize(dimension);
-        upperBound.resize(dimension);
+        // lowerBound.resize(dimension);
+        // upperBound.resize(dimension);
     }
 
     Node::Node()
@@ -190,7 +191,7 @@ namespace aabb_base
         return (left == NULL_NODE);
     }
 
-    Tree::Tree(unsigned int dimension_,
+    Tree_base::Tree_base(unsigned int dimension_,
                double skinThickness_,
                unsigned int nParticles,
                bool touchIsOverlap_) :
@@ -213,6 +214,7 @@ namespace aabb_base
         nodeCapacity = nParticles;
         nodes.resize(nodeCapacity);
 
+        std::cout << "node C: " << nodeCapacity << std::endl;
         // Build a linked list for the list of free nodes.
         for (unsigned int i=0;i<nodeCapacity-1;i++)
         {
@@ -226,10 +228,10 @@ namespace aabb_base
         freeList = 0;
     }
 
-    Tree::Tree(unsigned int dimension_,
+    Tree_base::Tree_base(unsigned int dimension_,
                double skinThickness_,
                const std::vector<bool>& periodicity_,
-               const std::vector<double>& boxSize_,
+               const std::array<double,3>& boxSize_,
                unsigned int nParticles,
                bool touchIsOverlap_) :
         dimension(dimension_), skinThickness(skinThickness_),
@@ -268,8 +270,8 @@ namespace aabb_base
 
         // Check periodicity.
         isPeriodic = false;
-        posMinImage.resize(dimension);
-        negMinImage.resize(dimension);
+        // posMinImage.resize(dimension);
+        // negMinImage.resize(dimension);
         for (unsigned int i=0;i<dimension;i++)
         {
             posMinImage[i] =  0.5*boxSize[i];
@@ -280,17 +282,17 @@ namespace aabb_base
         }
     }
 
-    void Tree::setPeriodicity(const std::vector<bool>& periodicity_)
+    void Tree_base::setPeriodicity(const std::vector<bool>& periodicity_)
     {
         periodicity = periodicity_;
     }
 
-    void Tree::setBoxSize(const std::vector<double>& boxSize_)
+    void Tree_base::setBoxSize(const std::array<double,3>& boxSize_)
     {
         boxSize = boxSize_;
     }
 
-    unsigned int Tree::allocateNode()
+    unsigned int Tree_base::allocateNode()
     {
         // Exand the node pool as needed.
         if (freeList == NULL_NODE)
@@ -327,7 +329,7 @@ namespace aabb_base
         return node;
     }
 
-    void Tree::freeNode(unsigned int node)
+    void Tree_base::freeNode(unsigned int node)
     {
         assert(node < nodeCapacity);
         assert(0 < nodeCount);
@@ -338,7 +340,7 @@ namespace aabb_base
         nodeCount--;
     }
 
-    void Tree::insertParticle(unsigned int particle, std::vector<double>& position, double radius)
+    void Tree_base::insertParticle(unsigned int particle, std::array<double,3>& position, double radius)
     {
         // Make sure the particle doesn't already exist.
         if (particleMap.count(particle) != 0)
@@ -356,7 +358,7 @@ namespace aabb_base
         unsigned int node = allocateNode();
 
         // AABB_base size in each dimension.
-        std::vector<double> size(dimension);
+        std::array<double,3> size{};
 
         // Compute the AABB_base limits.
         for (unsigned int i=0;i<dimension;i++)
@@ -388,7 +390,7 @@ namespace aabb_base
         nodes[node].particle = particle;
     }
 
-    void Tree::insertParticle(unsigned int particle, std::vector<double>& lowerBound, std::vector<double>& upperBound)
+    void Tree_base::insertParticle(unsigned int particle, std::array<double,3>& lowerBound, std::array<double,3>& upperBound)
     {
         // Make sure the particle doesn't already exist.
         if (particleMap.count(particle) != 0)
@@ -406,7 +408,7 @@ namespace aabb_base
         unsigned int node = allocateNode();
 
         // AABB_base size in each dimension.
-        std::vector<double> size(dimension);
+        std::array<double,3> size{};
 
         // Compute the AABB_base limits.
         for (unsigned int i=0;i<dimension;i++)
@@ -444,12 +446,12 @@ namespace aabb_base
         nodes[node].particle = particle;
     }
 
-    unsigned int Tree::nParticles()
+    unsigned int Tree_base::nParticles()
     {
         return particleMap.size();
     }
 
-    void Tree::removeParticle(unsigned int particle)
+    void Tree_base::removeParticle(unsigned int particle)
     {
         // Map iterator.
         std::unordered_map<unsigned int, unsigned int>::iterator it;
@@ -476,7 +478,7 @@ namespace aabb_base
         freeNode(node);
     }
 
-    void Tree::removeAll()
+    void Tree_base::removeAll()
     {
         // Iterator pointing to the start of the particle map.
         std::unordered_map<unsigned int, unsigned int>::iterator it = particleMap.begin();
@@ -500,7 +502,7 @@ namespace aabb_base
         particleMap.clear();
     }
 
-    bool Tree::updateParticle(unsigned int particle, std::vector<double>& position, double radius,
+    bool Tree_base::updateParticle(unsigned int particle, std::array<double,3>& position, double radius,
                               bool alwaysReinsert)
     {
         // Validate the dimensionality of the position vector.
@@ -510,8 +512,8 @@ namespace aabb_base
         }
 
         // AABB_base bounds vectors.
-        std::vector<double> lowerBound(dimension);
-        std::vector<double> upperBound(dimension);
+        std::array<double,3> lowerBound{};
+        std::array<double,3> upperBound{};
 
         // Compute the AABB_base limits.
         for (unsigned int i=0;i<dimension;i++)
@@ -524,8 +526,8 @@ namespace aabb_base
         return updateParticle(particle, lowerBound, upperBound, alwaysReinsert);
     }
 
-    bool Tree::updateParticle(unsigned int particle, std::vector<double>& lowerBound,
-                              std::vector<double>& upperBound, bool alwaysReinsert)
+    bool Tree_base::updateParticle(unsigned int particle, std::array<double,3>& lowerBound,
+                              std::array<double,3>& upperBound, bool alwaysReinsert)
     {
         // Validate the dimensionality of the bounds vectors.
         if ((lowerBound.size() != dimension) && (upperBound.size() != dimension))
@@ -552,7 +554,7 @@ namespace aabb_base
         assert(nodes[node].isLeaf());
 
         // AABB_base size in each dimension.
-        std::vector<double> size(dimension);
+        std::array<double,3> size{};
 
         // Compute the AABB_base limits.
         for (unsigned int i=0;i<dimension;i++)
@@ -595,7 +597,7 @@ namespace aabb_base
         return true;
     }
 
-    std::vector<unsigned int> Tree::query(unsigned int particle)
+    std::vector<unsigned int> Tree_base::query(unsigned int particle)
     {
         // Make sure that this is a valid particle.
         if (particleMap.count(particle) == 0)
@@ -607,7 +609,7 @@ namespace aabb_base
         return query(particle, nodes[particleMap.find(particle)->second].aabb_base);
     }
 
-    std::vector<unsigned int> Tree::query(unsigned int particle, const AABB_base& aabb_base)
+    std::vector<unsigned int> Tree_base::query(unsigned int particle, const AABB_base& aabb_base)
     {
         std::vector<unsigned int> stack;
         stack.reserve(256);
@@ -627,8 +629,8 @@ namespace aabb_base
 
             if (isPeriodic)
             {
-                std::vector<double> separation(dimension);
-                std::vector<double> shift(dimension);
+                std::array<double,3> separation{};
+                std::array<double,3> shift{};
                 for (unsigned int i=0;i<dimension;i++)
                     separation[i] = nodeAABB.centre[i] - aabb_base.centre[i];
 
@@ -668,7 +670,7 @@ namespace aabb_base
         return particles;
     }
 
-    std::vector<unsigned int> Tree::query(const AABB_base& aabb_base)
+    std::vector<unsigned int> Tree_base::query(const AABB_base& aabb_base)
     {
         // Make sure the tree isn't empty.
         if (particleMap.size() == 0)
@@ -680,12 +682,12 @@ namespace aabb_base
         return query(std::numeric_limits<unsigned int>::max(), aabb_base);
     }
 
-    const AABB_base& Tree::getAABB(unsigned int particle)
+    const AABB_base& Tree_base::getAABB(unsigned int particle)
     {
         return nodes[particleMap[particle]].aabb_base;
     }
 
-    void Tree::insertLeaf(unsigned int leaf)
+    void Tree_base::insertLeaf(unsigned int leaf)
     {
         if (root == NULL_NODE)
         {
@@ -808,7 +810,7 @@ namespace aabb_base
         }
     }
 
-    void Tree::removeLeaf(unsigned int leaf)
+    void Tree_base::removeLeaf(unsigned int leaf)
     {
         if (leaf == root)
         {
@@ -855,7 +857,7 @@ namespace aabb_base
         }
     }
 
-    unsigned int Tree::balance(unsigned int node)
+    unsigned int Tree_base::balance(unsigned int node)
     {
         assert(node != NULL_NODE);
 
@@ -979,12 +981,12 @@ namespace aabb_base
         return node;
     }
 
-    unsigned int Tree::computeHeight() const
+    unsigned int Tree_base::computeHeight() const
     {
         return computeHeight(root);
     }
 
-    unsigned int Tree::computeHeight(unsigned int node) const
+    unsigned int Tree_base::computeHeight(unsigned int node) const
     {
         assert(node < nodeCapacity);
 
@@ -996,18 +998,18 @@ namespace aabb_base
         return 1 + std::max(height1, height2);
     }
 
-    unsigned int Tree::getHeight() const
+    unsigned int Tree_base::getHeight() const
     {
         if (root == NULL_NODE) return 0;
         return nodes[root].height;
     }
 
-    unsigned int Tree::getNodeCount() const
+    unsigned int Tree_base::getNodeCount() const
     {
         return nodeCount;
     }
 
-    unsigned int Tree::computeMaximumBalance() const
+    unsigned int Tree_base::computeMaximumBalance() const
     {
         unsigned int maxBalance = 0;
         for (unsigned int i=0; i<nodeCapacity; i++)
@@ -1024,7 +1026,7 @@ namespace aabb_base
         return maxBalance;
     }
 
-    double Tree::computeSurfaceAreaRatio() const
+    double Tree_base::computeSurfaceAreaRatio() const
     {
         if (root == NULL_NODE) return 0.0;
 
@@ -1041,7 +1043,7 @@ namespace aabb_base
         return totalArea / rootArea;
     }
 
-    void Tree::validate() const
+    void Tree_base::validate() const
     {
 #ifndef NDEBUG
         validateStructure(root);
@@ -1062,7 +1064,7 @@ namespace aabb_base
 #endif
     }
 
-    void Tree::rebuild()
+    void Tree_base::rebuild()
     {
         std::vector<unsigned int> nodeIndices(nodeCount);
         unsigned int count = 0;
@@ -1129,7 +1131,7 @@ namespace aabb_base
         validate();
     }
 
-    void Tree::validateStructure(unsigned int node) const
+    void Tree_base::validateStructure(unsigned int node) const
     {
         if (node == NULL_NODE) return;
 
@@ -1156,7 +1158,7 @@ namespace aabb_base
         validateStructure(right);
     }
 
-    void Tree::validateMetrics(unsigned int node) const
+    void Tree_base::validateMetrics(unsigned int node) const
     {
         if (node == NULL_NODE) return;
 
@@ -1193,7 +1195,7 @@ namespace aabb_base
         validateMetrics(right);
     }
 
-    void Tree::periodicBoundaries(std::vector<double>& position)
+    void Tree_base::periodicBoundaries(std::array<double,3>& position)
     {
         for (unsigned int i=0;i<dimension;i++)
         {
@@ -1211,7 +1213,7 @@ namespace aabb_base
         }
     }
 
-    bool Tree::minimumImage(std::vector<double>& separation, std::vector<double>& shift)
+    bool Tree_base::minimumImage(std::array<double,3>& separation, std::array<double,3>& shift)
     {
         bool isShifted = false;
 
