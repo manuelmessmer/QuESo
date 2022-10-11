@@ -178,6 +178,27 @@ public:
         return mVertices.size();
     }
 
+    Vector3d GetPointGlobalSpace(IndexType TriangleId, const Vector3d& rPoint){
+        const auto P1 = this->P1(TriangleId);
+        const auto P2 = this->P2(TriangleId);
+        const auto P3 = this->P3(TriangleId);
+
+
+        const double xx = this->ShapeFunctionValue( 0, rPoint ) * P1[0] +
+                          this->ShapeFunctionValue( 1, rPoint ) * P2[0] +
+                          this->ShapeFunctionValue( 2, rPoint ) * P3[0] ;
+
+        const double yy = this->ShapeFunctionValue( 0, rPoint ) * P1[1] +
+                          this->ShapeFunctionValue( 1, rPoint ) * P2[1] +
+                          this->ShapeFunctionValue( 2, rPoint ) * P3[1] ;
+
+        const double zz = this->ShapeFunctionValue( 0, rPoint ) * P1[2] +
+                          this->ShapeFunctionValue( 1, rPoint ) * P2[2] +
+                          this->ShapeFunctionValue( 2, rPoint ) * P3[2] ;
+
+        return Vector3d{xx, yy, zz};
+    }
+
     ///@brief Basic check of this TriangleMesh instance.
     bool Check(){
         // Check if mTriangles and mNormals are of the same size.
@@ -199,9 +220,6 @@ public:
     ///@}
 private:
 
-    ///@name Private Member Variables
-    ///@{
-
     ///@brief Returns ShapeFunctionValue
     ///@param ShapeFunctionIndex
     ///@param rPoint
@@ -222,6 +240,9 @@ private:
 
         return 0;
     }
+    ///@name Private Member Variables
+    ///@{
+
 
     ///@brief Factory function for triangle Gauss Legendre points.
     static const std::vector<IntegrationPointVectorType>& AllIntegrationPoints()
