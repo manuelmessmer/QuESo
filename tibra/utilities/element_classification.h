@@ -9,6 +9,7 @@
 
 /// Project includes
 #include "geometries/triangle_mesh.h"
+#include "utilities/aabb_tree.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -27,15 +28,27 @@ public:
     typedef TriangleMesh::Vector3d PointType;
 
     ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+    ElementClassification(const TriangleMesh& rTriangleMesh) : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
+    {
+    }
+
+    ///@}
     ///@name Operations
     ///@{
-    static std::unique_ptr<std::vector<bool>> PointsAreInside(const TriangleMesh& rTriangleMesh, const std::vector<PointType>& rPoints);
+    bool IsInside(const PointType& rPoints);
     ///@}
 
 private:
     ///@name Private Operations
     ///@{
     static bool Anorm2(std::vector<double>& rResult, const std::vector<PointType>& rX);
+
+    AABB_tree mTree;
+    const TriangleMesh& mTriangleMesh;
     ///@}
 };
 
