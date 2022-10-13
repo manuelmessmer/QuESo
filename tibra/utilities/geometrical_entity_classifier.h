@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef ELEMENT_CLASSIFICATION_INCLUDE_H
-#define ELEMENT_CLASSIFICATION_INCLUDE_H
+#ifndef GEOMETRICAL_ENTITY_CLASSIFICATION_INCLUDE_H
+#define GEOMETRICAL_ENTITY_CLASSIFICATION_INCLUDE_H
 
 /// External includes
 #include <memory>
@@ -16,11 +16,12 @@
 
 ///
 /**
- * @class  ElementClassification
+ * @class  GeometricalEntityClassifier
  * @author Manuel Messmer
- * @brief  Provides functions to classify elements as inside, outisde or trimmed.
+ * @brief  Provides functions to classify geometrical entities such as element boxes and points as intersected/inside/outside.
+ * @details Uses AABB Tree for fast entity classification.
 */
-class ElementClassification {
+class GeometricalEntityClassifier {
 
 public:
     ///@name Type Definitions
@@ -32,7 +33,8 @@ public:
     ///@{
 
     /// Constructor
-    ElementClassification(const TriangleMesh& rTriangleMesh) : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
+    ///@brief Builds AABB tree for given mesh.
+    GeometricalEntityClassifier(const TriangleMesh& rTriangleMesh) : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
     {
     }
 
@@ -45,7 +47,6 @@ public:
 private:
     ///@name Private Operations
     ///@{
-    static bool Anorm2(std::vector<double>& rResult, const std::vector<PointType>& rX);
 
     AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
@@ -54,4 +55,4 @@ private:
 
 ///@}
 
-#endif //ELEMENT_CLASSIFICATION_INCLUDE_H
+#endif //GEOMETRICAL_ENTITY_CLASSIFICATION_INCLUDE_H
