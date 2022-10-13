@@ -15,13 +15,14 @@ namespace Testing{
 BOOST_AUTO_TEST_SUITE( AABB_treeTestSuite )
 
 BOOST_AUTO_TEST_CASE(RayIntersectionTest) {
+    std::cout << "Testing :: Test AABB Tree :: Ray Intersection" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     AABB_tree aabb_tree(triangle_mesh);
-    Ray ray({0.0, 0.0, 1.0}, {1.0, 1.0, 0.0});
-    auto result = aabb_tree.query(ray);
+    Ray_AABB_primitive ray({0.0, 0.0, 1.0}, {1.0, 1.0, 0.0});
+    auto result = aabb_tree.Query(ray);
 
     std::cout << "Size: " << result.size() << std::endl;
     for( auto r : result ){
@@ -30,7 +31,7 @@ BOOST_AUTO_TEST_CASE(RayIntersectionTest) {
         const auto& p3 = triangle_mesh.P3(r);
 
         double t, u, v;
-        if( ray.rayTriangleIntersect(p1, p2, p3, t, u, v) ) {
+        if( ray.intersect(p1, p2, p3, t, u, v) ) {
             std::cout << "id: " << r << std::endl;
             std::array<double,3> pp = {u, v, 0.0};
             auto point_global = triangle_mesh.GetPointGlobalSpace(r, pp);
