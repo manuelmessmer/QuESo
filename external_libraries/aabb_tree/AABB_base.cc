@@ -214,7 +214,6 @@ namespace aabb_base
         nodeCapacity = nParticles;
         nodes.resize(nodeCapacity);
 
-        std::cout << "node C: " << nodeCapacity << std::endl;
         // Build a linked list for the list of free nodes.
         for (unsigned int i=0;i<nodeCapacity-1;i++)
         {
