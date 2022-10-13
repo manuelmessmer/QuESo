@@ -31,7 +31,7 @@ bool GeometricalEntityClassifier::IsInside(const PointType& rPoint){
             std::for_each(direction.begin(), direction.end(), [sum_direction](auto& rValue) { rValue /= sum_direction;} );
 
             // Construct ray
-            Ray ray(rPoint, direction);
+            Ray_AABB_primitive ray(rPoint, direction);
             // Get potential ray intersections from AABB tree.
             auto potential_intersections = mTree.Query(ray);
 
