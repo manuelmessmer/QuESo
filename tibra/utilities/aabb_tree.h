@@ -11,205 +11,12 @@
 #include "aabb_tree/AABB_base.h"
 
 /// Project includes
+#include "utilities/aabb_primitives.h"
 #include "geometries/triangle_mesh.h"
 
 
-// Create alias for AABB
-typedef aabb_base::AABB_base AABB;
-
-constexpr double kEpsilon = 1e-14;
-
 ///@name TIBRA Classes
 ///@{
-
-
-/**
- * @class  Ray
- * @author Manuel Messmer
- * @brief  Ray to be used in AABB_tree. Direction of ray must be positive oriented.
- *         Check is omitted for better performance.
-*/
-class Ray {
-public:
-    ///@name Type Definitions
-    ///@{
-    typedef std::size_t IndexType;
-    typedef TriangleMesh::Vector3d Vector3d;
-    typedef TriangleMesh::Vector3i Vector3i;
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    /// Constructor.
-    Ray(const Vector3d& Origin, const Vector3d& Direction) :
-        mOrigin(Origin), mDirection(Direction)
-    {
-        mInvDirection[0] = 1.0 / Direction[0];
-        mInvDirection[1] = 1.0 / Direction[1];
-        mInvDirection[2] = 1.0 / Direction[2];
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@brief Returns true if origin of ray is inside aabb.
-    ///@param aabb
-    ///@return bool
-    bool inside(AABB &aabb)
-    {
-        if(    mOrigin[0] < aabb.lowerBound[0]
-            || mOrigin[1] < aabb.lowerBound[1]
-            || mOrigin[2] < aabb.lowerBound[2]
-            || mOrigin[0] > aabb.upperBound[0]
-            || mOrigin[1] > aabb.upperBound[1]
-            || mOrigin[2] > aabb.upperBound[2] ) {
-                return false;
-            }
-
-        return true;
-    }
-
-    ///@brief Returns true if ray intersects aabb.
-    ///@param aabb
-    ///@param t distance to intersection.
-    ///@return bool
-    bool intersect(AABB &aabb, double &t)
-    {
-        double tmin, tmax, tymin, tymax, tzmin, tzmax;
-
-        double lower_0 = aabb.lowerBound[0];
-        double lower_1 = aabb.lowerBound[1];
-
-        double upper_0 = aabb.upperBound[0];
-        double upper_1 = aabb.upperBound[1];
-
-        double origin_0 = mOrigin[0];
-        double origin_1 = mOrigin[1];
-
-        double inv_direction_0 = mInvDirection[0];
-        double inv_direction_1 = mInvDirection[1];
-
-
-        tmin = (lower_0 - origin_0) * inv_direction_0;
-        tymax = (upper_1 - origin_1) * inv_direction_1;
-        if(tmin > tymax) {
-            return false;
-        }
-
-        tmax = (upper_0 - origin_0) * inv_direction_0;
-        tymin = (lower_1 - origin_1) * inv_direction_1;
-
-
-        if( tymin > tmax )
-            return false;
-
-        if (tymin > tmin)
-            tmin = tymin;
-
-        if (tymax < tmax)
-            tmax = tymax;
-
-        double lower_2 = aabb.lowerBound[2];
-        double upper_2 = aabb.upperBound[2];
-        double origin_2 = mOrigin[2];
-        double inv_direction_2 = mInvDirection[2];
-
-
-        tzmin = (lower_2 - origin_2) * inv_direction_2;
-        if((tzmin > tmax))
-            return false;
-
-        tzmax = (upper_2 - origin_2) * inv_direction_2;
-        if( tmin > tzmax )
-            return false;
-
-        if (tzmin > tmin)
-            tmin = tzmin;
-
-        t = tmin;
-        if (t < 0) {
-            if (tzmax < tmax)
-                tmax = tzmax;
-            t = tmax;
-            return false;
-        }
-
-        return true;
-    }
-
-    ///@brief Returns true if ray intersects triangle (only checks intersections in positive direction).
-    ///@param v0 Triangle Vertex 1
-    ///@param v1 Triangle Vertex 2
-    ///@param v2 Triangle Vertex 3
-    ///@param t Distance to intersection.
-    ///@param u Parametric coordinate 1.
-    ///@param v Parametric coordinate 2.
-    ///@return bool
-    bool intersect(
-        const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-        double &t, double &u, double &v)
-    {
-        // Substraction: v1-v0 and v2-v0
-        Vector3d v0v1 = {v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]};
-        Vector3d v0v2 = {v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]};
-
-        // Cross product: mDirection x v0v2
-        Vector3d pvec = {mDirection[1]*v0v2[2] - mDirection[2]*v0v2[1],
-                        mDirection[2]*v0v2[0] - mDirection[0]*v0v2[2],
-                        mDirection[0]*v0v2[1] - mDirection[1]*v0v2[0]};
-
-        // Dot product: v0v1 * pvec
-        double det = v0v1[0]*pvec[0] + v0v1[1]*pvec[1] + v0v1[2]*pvec[2];
-
-        if (fabs(det) < kEpsilon)
-            return false;
-
-        double invDet = 1 / det;
-
-        // Substraction: mOrigin - v0
-        Vector3d tvec = {mOrigin[0] - v0[0], mOrigin[1] - v0[1], mOrigin[2] - v0[2]};
-
-        // Dot product x invDet: (tvec * pvec) * invDet
-        u = (tvec[0]*pvec[0] + tvec[1]*pvec[1] + tvec[2]*pvec[2]) * invDet;
-
-        if (u < 0 || u > 1)
-            return false;
-
-        // Cross product: tvec x v0v1
-        Vector3d qvec = {tvec[1]*v0v1[2] - tvec[2]*v0v1[1],
-                        tvec[2]*v0v1[0] - tvec[0]*v0v1[2],
-                        tvec[0]*v0v1[1] - tvec[1]*v0v1[0]};
-
-        // Dot product x invDet: (mDirection * qvec) * invDet
-        v = (mDirection[0]*qvec[0] + mDirection[1]*qvec[1] + mDirection[2]*qvec[2]) * invDet;
-
-        if (v < 0 || u + v > 1)
-            return false;
-
-        // Dot product: v0v2 * qvec
-        t = (v0v2[0]*qvec[0] + v0v2[1]*qvec[1] + v0v2[2]*qvec[2]) * invDet;
-
-        // Return true if ray intersects in negative direction.
-        if( t < 0 )
-            return false;
-
-        return true;
-    }
-
-    ///@}
-private:
-
-    ///@name Private Members
-    ///@{
-    Vector3d mOrigin;
-    Vector3d mDirection;
-    Vector3d mInvDirection;
-    Vector3i mSign;
-    ///@}
-};
-///@} // End class Ray
 
 ///
 /**
@@ -294,7 +101,7 @@ public:
     ///@brief Get all interesections of Ray
     ///@param rRay
     ///@return std::vector<unsigned int> Holds Id's of triangles.
-    std::vector<unsigned int> Query(Ray& rRay)
+    std::vector<unsigned int> Query(AABB_primitive_base& rAABB_primitive)
     {
         std::vector<unsigned int> stack;
         stack.reserve(256);
@@ -308,25 +115,12 @@ public:
             stack.pop_back();
 
             // Copy the AABB_base.
-            AABB nodeAABB = BaseTreeType::Nodes()[node].aabb_base;
+            auto& aabb = static_cast<AABB_primitive_base&>(BaseTreeType::Nodes()[node].aabb_base);
 
             if (node == NULL_NODE) continue;
 
             // Test for overlap between the AABBs.
-            double t;
-            if( rRay.inside(nodeAABB) ){
-                // Check that we're at a leaf node.
-                if (BaseTreeType::Nodes()[node].isLeaf() )
-                {
-                    particles.push_back(BaseTreeType::Nodes()[node].particle);
-                }
-                else
-                {
-                    stack.push_back(BaseTreeType::Nodes()[node].left);
-                    stack.push_back(BaseTreeType::Nodes()[node].right);
-                }
-            }
-            else if (rRay.intersect(nodeAABB, t) )
+            if (rAABB_primitive.intersect(aabb) )
             {
                 // Check that we're at a leaf node.
                 if (BaseTreeType::Nodes()[node].isLeaf())
