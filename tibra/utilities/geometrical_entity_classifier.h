@@ -9,6 +9,7 @@
 
 /// Project includes
 #include "geometries/triangle_mesh.h"
+#include "geometries/element.h"
 #include "utilities/aabb_tree.h"
 
 ///@name TIBRA Classes
@@ -20,6 +21,7 @@
  * @author Manuel Messmer
  * @brief  Provides functions to classify geometrical entities such as element boxes and points as intersected/inside/outside.
  * @details Uses AABB Tree for fast entity classification.
+ * @todo Add const.
 */
 class GeometricalEntityClassifier {
 
@@ -42,6 +44,10 @@ public:
     ///@name Operations
     ///@{
     bool IsInside(const PointType& rPoints);
+
+    bool GetIntersectionState(const Element& rElement);
+
+    bool GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound);
     ///@}
 
 private:

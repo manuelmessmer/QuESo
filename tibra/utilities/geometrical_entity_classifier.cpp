@@ -17,7 +17,7 @@ std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> drandon(0, 1);
 
-bool GeometricalEntityClassifier::IsInside(const PointType& rPoint){
+bool GeometricalEntityClassifier::IsInside(const PointType& rPoint) {
 
     if( mTree.IsWithinBoundingBox(rPoint)) {
         bool is_on_boundary = true;
@@ -63,6 +63,34 @@ bool GeometricalEntityClassifier::IsInside(const PointType& rPoint){
 
 }
 
+bool GeometricalEntityClassifier::GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound){
+    AABB_primitive aabb(rLowerBound, rUpperBound);
+    auto result = mTree.Query(aabb);
+
+    TriangleMesh mesh{};
+
+    for( auto r : result){
+        const auto& p1 = mTriangleMesh.P1(r);
+        const auto& p2 = mTriangleMesh.P2(r);
+        const auto& p3 = mTriangleMesh.P3(r);
+        double t, u, v;
+
+        if( aabb.intersect(p1, p2, p3, t, u, v) ){
+            std::cout << "true" << std::endl;
+        }
+    }
+
+    return true;
+}
+
+bool GeometricalEntityClassifier::GetIntersectionState(const Element& rElement) {
+
+    const auto& lower_bound = rElement.GetGlobalLowerPoint();
+    const auto& upper_bound = rElement.GetGlobalLowerPoint();
+
+    return GetIntersectionState(lower_bound, upper_bound);
+
+}
 // Winding numbers algorithm: It actually works!!!
 
 // std::cout << "Done" << std::endl;
