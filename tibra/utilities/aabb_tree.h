@@ -115,7 +115,7 @@ public:
             stack.pop_back();
 
             // Copy the AABB_base.
-            auto& aabb = static_cast<AABB_primitive_base&>(BaseTreeType::Nodes()[node].aabb_base);
+            auto& aabb = static_cast<AABB_primitive&>(BaseTreeType::Nodes()[node].aabb_base);
 
             if (node == NULL_NODE) continue;
 

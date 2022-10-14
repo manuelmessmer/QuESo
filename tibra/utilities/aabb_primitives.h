@@ -17,36 +17,39 @@ constexpr double kEpsilon = 1e-14;
 ///@name TIBRA Classes
 ///@{
 
+/// Forward declaration
+class AABB_primitive;
+
 /**
  * @class  AABB_primitive
  * @author Manuel Messmer
  * @brief  Base class for aabb primitives.
 */
-class AABB_primitive_base : public AABB_lohedges
+class AABB_primitive_base
 {
 public:
     ///@name Type Definitions
     ///@{
     typedef TriangleMesh::Vector3d Vector3d;
-    ///@}
 
+    ///@}
     ///@name Operations
     ///@{
-    virtual bool intersect(const AABB_primitive_base &aabb) const = 0;
+    virtual bool intersect(const AABB_primitive &aabb) const = 0;
 
     virtual bool intersect(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
                            double &t, double &u, double &v) const = 0;
 
     ///@}
 };
-
+///@} // end classes
 
 /**
  * @class  AABB primitive
  * @author Manuel Messmer
  * @brief  AABB primitive to be used in AABB_tree.
 */
-class AABB_primitive : public AABB_primitive_base
+class AABB_primitive : public AABB_primitive_base, public AABB_lohedges
 {
 public:
     ///@name Type Definitions
@@ -55,7 +58,16 @@ public:
     typedef TriangleMesh::Vector3d Vector3d;
     typedef TriangleMesh::Vector3i Vector3i;
 
-    bool intersect(const AABB_primitive_base &aabb) const override {
+    ///@}
+    ///@name Life cycle
+    ///@{
+    AABB_primitive(const Vector3d& rLowerBound, const Vector3d& rUpperBound) :
+        AABB_lohedges(rLowerBound, rUpperBound)
+    {
+    }
+
+
+    bool intersect(const AABB_primitive &aabb) const override {
         for (unsigned int i = 0; i < 3; ++i) {
             if (aabb.upperBound[i] <= lowerBound[i] || aabb.lowerBound[i] >= upperBound[i]) {
                 return false;
@@ -268,7 +280,7 @@ public:
     ///@brief Returns true if origin of ray is inside aabb.
     ///@param aabb
     ///@return bool
-    bool inside(const AABB_primitive_base &aabb) const
+    bool inside(const AABB_primitive &aabb) const
     {
         if(    mOrigin[0] < aabb.lowerBound[0]
             || mOrigin[1] < aabb.lowerBound[1]
@@ -285,7 +297,7 @@ public:
     ///@brief Returns true if ray intersects aabb.
     ///@param aabb
     ///@return bool
-    bool intersect(const AABB_primitive_base &aabb) const override
+    bool intersect(const AABB_primitive &aabb) const override
     {
         // Return true if origin of Ray is inside the aabb
         if( inside(aabb) )
