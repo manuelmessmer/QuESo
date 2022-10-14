@@ -10,6 +10,7 @@
 #include <cmath>
 #include <memory>
 #include <iostream>
+#include <map>
 
 /// Project includes
 #include "geometries/triangle_gauss_legendre_integration_points.h"
@@ -135,6 +136,13 @@ public:
         return mVertices[mTriangles[TriangleId][2]];
     }
 
+    ///@brief Get triangle vertex 3
+    ///@param TriangleId
+    ///@return const Vector3d&
+    const Vector3i& VertexIds(IndexType TriangleId) const {
+        return mTriangles[TriangleId];
+    }
+
     ///@brief Clear all containers.
     void Clear(){
         mVertices.clear();
@@ -152,19 +160,19 @@ public:
 
     ///@brief Add vertex to mesh.
     ///@param NewVertex
-    void AddVertex(Vector3d NewVertex) {
+    void AddVertex(const Vector3d& NewVertex) {
         return mVertices.push_back(NewVertex);
     }
 
     ///@brief Add triangle to mesh.
     ///@param NewTriangle
-    void AddTriangle(Vector3i NewTriangle) {
+    void AddTriangle(const Vector3i& NewTriangle) {
         return mTriangles.push_back(NewTriangle);
     }
 
     ///@brief Add normal to mesh.
     ///@param NewNormal
-    void AddNormal(Vector3d NewNormal) {
+    void AddNormal(const Vector3d& NewNormal) {
         return mNormals.push_back(NewNormal);
     }
 
@@ -178,29 +186,53 @@ public:
         return mVertices.size();
     }
 
-    Vector3d GetPointGlobalSpace(IndexType TriangleId, const Vector3d& rPoint){
-        const auto P1 = this->P1(TriangleId);
-        const auto P2 = this->P2(TriangleId);
-        const auto P3 = this->P3(TriangleId);
-
-
-        const double xx = this->ShapeFunctionValue( 0, rPoint ) * P1[0] +
-                          this->ShapeFunctionValue( 1, rPoint ) * P2[0] +
-                          this->ShapeFunctionValue( 2, rPoint ) * P3[0] ;
-
-        const double yy = this->ShapeFunctionValue( 0, rPoint ) * P1[1] +
-                          this->ShapeFunctionValue( 1, rPoint ) * P2[1] +
-                          this->ShapeFunctionValue( 2, rPoint ) * P3[1] ;
-
-        const double zz = this->ShapeFunctionValue( 0, rPoint ) * P1[2] +
-                          this->ShapeFunctionValue( 1, rPoint ) * P2[2] +
-                          this->ShapeFunctionValue( 2, rPoint ) * P3[2] ;
-
-        return Vector3d{xx, yy, zz};
+    ///@brief Get vertices from mesh.
+    const std::vector<Vector3d>& GetVertices() const {
+        return mVertices;
     }
 
+    ///@brief Partial copy from other mesh.
+    ///@param rTriangleIndices Indices of triangles to be copied.
+    ///@param rTriangleMesh Triangle mesh to copy from.
+    void Copy( const std::vector<IndexType>& rTriangleIndices, const TriangleMesh& rTriangleMesh ){
+
+        IndexType vertex_count = 0;
+        std::map<IndexType, IndexType> index_map{};
+
+        for( auto triangle : rTriangleIndices){
+            const auto& tmp_indices = rTriangleMesh.VertexIds(triangle);
+            std::array<IndexType,3> new_triangle{};
+            IndexType ii = 0;
+            for( auto index : tmp_indices ){
+                // Insert index into index_map if map does not contain index.
+                auto ret = index_map.insert( std::pair<IndexType,IndexType>(index, vertex_count) );
+                if (ret.second==true) {
+                    new_triangle[ii] = vertex_count;
+                    vertex_count++;
+                } else {
+                    new_triangle[ii] = index_map[index];
+                }
+                ii++;
+            }
+            // Copy triangles and normals.
+            AddTriangle(new_triangle);
+            AddNormal( rTriangleMesh.Normal(triangle) );
+        }
+
+        mVertices.resize(vertex_count);
+        const auto& new_vertices = rTriangleMesh.GetVertices();
+
+        // Copy vertices.
+        for( auto index : index_map ){
+            mVertices[ index.second ] = new_vertices[ index.first ];
+        }
+
+        Check();
+    }
+
+
     ///@brief Basic check of this TriangleMesh instance.
-    bool Check(){
+    bool Check() const{
         // Check if mTriangles and mNormals are of the same size.
         if( mTriangles.size() != mNormals.size() ){
             std::cerr << "TriangleMesh :: Number of Triangles and Normals in mesh do not match.\n";
