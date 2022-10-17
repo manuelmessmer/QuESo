@@ -44,7 +44,7 @@ public:
     ///                      of the AABB_base base length.
     /// @param TouchIsOverlap Does touching count as overlapping in query operations?
     AABB_tree(const TriangleMesh& TriangleMesh ) :
-            aabb_base::Tree_base(3, 0.000001, 16,  false)
+            aabb_base::Tree_base(3, 0.0, 16,  false)
     {
         const double max_limit = std::numeric_limits<double>::max();
         mLowerBound = {max_limit, max_limit, max_limit};
