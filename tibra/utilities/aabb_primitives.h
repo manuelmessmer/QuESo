@@ -123,7 +123,7 @@ public:
 
 
         // Vector3d e = aabb.Extents;
-        Vector3d extent = {upperBound[0] - lowerBound[0], upperBound[1] - lowerBound[1], upperBound[2] - lowerBound[2]};
+        Vector3d extent = { (upperBound[0] - lowerBound[0])/2.0, (upperBound[1] - lowerBound[1])/2.0, (upperBound[2] - lowerBound[2])/2.0};
         // // Translate the triangle as conceptually moving the AABB to origin
         // // This is the same as we did with the point in triangle test
 
