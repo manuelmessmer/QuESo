@@ -14,6 +14,39 @@ namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( AABB_treeTestSuite )
 
+// TODO: test that touching triangle are not intersected.
+// BOOST_AUTO_TEST_CASE(CubeFindIntersectedTrianglesTest) {
+//     std::cout << "Testing :: Find Intersected Triangles :: Cube" << std::endl;
+
+//     // Read mesh from STL file
+//     TriangleMesh triangle_mesh{};
+//     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+
+//     // Build aabb tree
+//     AABB_tree tree(triangle_mesh);
+
+//     TriangleMesh::Vector3d lower_bound = {-2.0, -2, -2};
+//     TriangleMesh::Vector3d upper_bound = {-1.5, 2, 2};
+
+//     AABB_primitive aabb(lower_bound, upper_bound);
+//     auto results = tree.Query(aabb);
+
+//     std::vector<IndexType> intersected_triangles{};
+//     int count = 0;
+
+//     for( auto r : results){
+//         const auto& p1 = triangle_mesh.P1(r);
+//         const auto& p2 = triangle_mesh.P2(r);
+//         const auto& p3 = triangle_mesh.P3(r);
+//         double t, u, v;
+
+//         if( aabb.intersect(p1, p2, p3, t, u, v) ){
+//             intersected_triangles.push_back(r);
+//         }
+//     }
+//     BOOST_CHECK_EQUAL(intersected_triangles.size(), 0);
+
+// } // End CylinderFindIntersectedTrianglesTest
 
 BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
     std::cout << "Testing :: Find Intersected Triangles :: Cylinder" << std::endl;
