@@ -98,7 +98,7 @@ public:
         return true;
     }
 
-    ///@brief Get all interesections of Ray
+    ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
     ///@param rRay
     ///@return std::vector<unsigned int> Holds Id's of triangles.
     std::vector<unsigned int> Query(AABB_primitive_base& rAABB_primitive)
