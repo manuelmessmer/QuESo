@@ -23,8 +23,7 @@ bool GeometricalEntityClassifier::IsInside(const PointType& rPoint) {
         bool is_on_boundary = true;
         int intersection_count = 0;
         while( is_on_boundary ){
-
-            // Get random direction
+            // Get random direction. Must be postive! -> x>0, y>0, z>0
             TriangleMesh::Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
             // Normalize
             double sum_direction = std::sqrt(direction[0]*direction[0]+direction[1]*direction[1]+direction[2]*direction[2]);
@@ -47,6 +46,9 @@ bool GeometricalEntityClassifier::IsInside(const PointType& rPoint) {
                 if( ray.intersect(p1, p2, p3, t, u, v) ) {
                     intersection_count++;
                     double sum_u_v = u+v;
+                    if( t < 1e-10 ){ // origin lies on boundary
+                        return false;
+                    }
                     if( u < 0.0+1e-14 || v < 0.0+1e-14 || sum_u_v > 1.0-1e-14 ){
                         is_on_boundary = true;
                         break;
@@ -76,7 +78,7 @@ bool GeometricalEntityClassifier::GetIntersectionState(const PointType& rLowerBo
         double t, u, v;
 
         if( aabb.intersect(p1, p2, p3, t, u, v) ){
-            std::cout << "true" << std::endl;
+            //std::cout << "true" << std::endl;
         }
     }
 
