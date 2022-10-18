@@ -191,6 +191,26 @@ public:
         return mVertices;
     }
 
+    Vector3d GetPointGlobalSpace(IndexType TriangleId, const Vector3d& rPoint){
+        const auto P1 = this->P1(TriangleId);
+        const auto P2 = this->P2(TriangleId);
+        const auto P3 = this->P3(TriangleId);
+
+        const double xx = this->ShapeFunctionValue( 0, rPoint ) * P1[0] +
+                          this->ShapeFunctionValue( 1, rPoint ) * P2[0] +
+                          this->ShapeFunctionValue( 2, rPoint ) * P3[0] ;
+
+        const double yy = this->ShapeFunctionValue( 0, rPoint ) * P1[1] +
+                          this->ShapeFunctionValue( 1, rPoint ) * P2[1] +
+                          this->ShapeFunctionValue( 2, rPoint ) * P3[1] ;
+
+        const double zz = this->ShapeFunctionValue( 0, rPoint ) * P1[2] +
+                          this->ShapeFunctionValue( 1, rPoint ) * P2[2] +
+                          this->ShapeFunctionValue( 2, rPoint ) * P3[2] ;
+
+        return Vector3d{xx, yy, zz};
+    }
+
     ///@brief Partial copy from other mesh.
     ///@param rTriangleIndices Indices of triangles to be copied.
     ///@param rTriangleMesh Triangle mesh to copy from.

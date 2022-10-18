@@ -9,8 +9,8 @@
 #include <chrono>
 
 // Project includes
-#include "utilities/geometrical_entity_classifier.h"
-#include <boost/multiprecision/cpp_dec_float.hpp>
+#include "embedding/geometrical_entity_classifier.h"
+#include "embedding/ray_aabb_primitive.h"
 #include <random>
 
 std::random_device rd;
@@ -77,9 +77,9 @@ bool GeometricalEntityClassifier::GetIntersectionState(const PointType& rLowerBo
         const auto& p3 = mTriangleMesh.P3(r);
         double t, u, v;
 
-        if( aabb.intersect(p1, p2, p3, t, u, v) ){
-            //std::cout << "true" << std::endl;
-        }
+        // if( aabb.intersect(p1, p2, p3, t, u, v) ){
+        //     //std::cout << "true" << std::endl;
+        // }
     }
 
     return true;

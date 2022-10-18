@@ -4,21 +4,17 @@
 #ifndef AABB_tree_INCLUDE_H
 #define AABB_tree_INCLUDE_H
 
-/// External includes
-#include <memory>
-
 /// External libraries
 #include "aabb_tree/AABB_base.h"
 
 /// Project includes
-#include "utilities/aabb_primitives.h"
+#include "embedding/aabb_primitive.h"
 #include "geometries/triangle_mesh.h"
 
 
 ///@name TIBRA Classes
 ///@{
 
-///
 /**
  * @class  AABB_tree
  * @author Manuel Messmer
@@ -84,58 +80,14 @@ public:
     ///@brief Return true if point lies inside outer bounding box.
     ///@param rPoint
     ///@return bool
-    bool IsWithinBoundingBox(const std::array<double, 3>& rPoint){
-        if(   rPoint[0] < mLowerBound[0]
-           || rPoint[0] > mUpperBound[0]
-           || rPoint[1] < mLowerBound[1]
-           || rPoint[1] > mUpperBound[1]
-           || rPoint[2] < mLowerBound[2]
-           || rPoint[2] > mUpperBound[2])
-        {
-            return false;
-        }
-
-        return true;
-    }
+    bool IsWithinBoundingBox(const std::array<double, 3>& rPoint);
 
     ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
     ///@param rRay
     ///@return std::vector<unsigned int> Holds Id's of triangles.
-    std::vector<unsigned int> Query(AABB_primitive_base& rAABB_primitive)
-    {
-        std::vector<unsigned int> stack;
-        stack.reserve(256);
-        stack.push_back(BaseTreeType::Root());
+    ///@todo Should return ptr to std::vector<unsigned int>;
+    std::vector<IndexType> Query(AABB_primitive_base& rAABB_primitive);
 
-        std::vector<unsigned int> particles;
-
-        while (stack.size() > 0)
-        {
-            unsigned int node = stack.back();
-            stack.pop_back();
-
-            // Copy the AABB_base.
-            auto& aabb = static_cast<AABB_primitive&>(BaseTreeType::Nodes()[node].aabb_base);
-
-            if (node == NULL_NODE) continue;
-
-            // Test for overlap between the AABBs.
-            if (rAABB_primitive.intersect(aabb) )
-            {
-                // Check that we're at a leaf node.
-                if (BaseTreeType::Nodes()[node].isLeaf())
-                {
-                    particles.push_back(BaseTreeType::Nodes()[node].particle);
-                }
-                else
-                {
-                    stack.push_back(BaseTreeType::Nodes()[node].left);
-                    stack.push_back(BaseTreeType::Nodes()[node].right);
-                }
-            }
-        }
-        return particles;
-    }
     ///@}
 
 private:

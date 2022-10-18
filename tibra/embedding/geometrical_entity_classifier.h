@@ -10,7 +10,7 @@
 /// Project includes
 #include "geometries/triangle_mesh.h"
 #include "geometries/element.h"
-#include "utilities/aabb_tree.h"
+#include "embedding/aabb_tree.h"
 
 ///@name TIBRA Classes
 ///@{

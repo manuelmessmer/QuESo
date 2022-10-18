@@ -8,7 +8,7 @@
 
 #include "geometries/triangle_mesh.h"
 #include "io/io_utilities.h"
-#include "utilities/geometrical_entity_classifier.h"
+#include "embedding/geometrical_entity_classifier.h"
 
 namespace Testing{
 
