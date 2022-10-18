@@ -58,6 +58,66 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
+    std::cout << "Testing :: Test Geometrical Entity Classifier :: Cube Point Classifier" << std::endl;
+
+    TriangleMesh triangle_mesh{};
+    // Read mesh from STL file
+    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+
+    std::vector<PointType> rPoints{};
+    // rPoints.reserve(117900);
+    for(double x = -1.5; x <= 1.5+1e-15; x += 0.15){
+        for(double y = -1.5; y <= 1.5+1e-15; y += 0.15){
+            for(double z = -1.5; z <= 1.5+1e-15; z += 0.15){
+                rPoints.push_back( {x, y, z} );
+            }
+        }
+    }
+
+    GeometricalEntityClassifier classifier(triangle_mesh);
+    //auto start_time = std::chrono::high_resolution_clock::now();
+
+    std::vector<bool> result(rPoints.size(), false);
+    int count = 0;
+    for( auto& point : rPoints){
+        if( classifier.IsInside(point) ){
+            result[count] = true;
+        }
+        count++;
+    }
+    //auto end_time = std::chrono::high_resolution_clock::now();
+    //std::chrono::duration<double> elapsed_time = end_time - start_time;
+    //std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
+
+    for( int i = 0; i < result.size(); ++i){
+        double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] + rPoints[i][2]*rPoints[i][2] );
+        if( radius <= 1.0 ){
+            BOOST_CHECK(!(result)[i]);
+            if(result[i]){
+                std::cout << std::setprecision(16);
+                std::cout << rPoints[i][0] << ", " << rPoints[i][1] << ", " << rPoints[i][2] << std::endl;
+                std::cout << radius << std::endl;
+            }
+        }
+        else {
+            if(    rPoints[i][0] <= -1.5+1e-14 || rPoints[i][0] >= 1.5-1e-14
+                || rPoints[i][1] <= -1.5+1e-14 || rPoints[i][1] >= 1.5-1e-14
+                || rPoints[i][2] <= -1.5+1e-14 || rPoints[i][2] >= 1.5-1e-14 ){
+
+                BOOST_CHECK(!(result)[i]);
+            }
+            else {
+                BOOST_CHECK((result)[i]);
+            }
+        }
+    }
+
+    // Check if point on boundary is not inside.
+    // Note the stl has a mesh at (1.0, 0.0, 0.0)
+    BOOST_CHECK( !classifier.IsInside({1.0d, 0.0d, 0.0d}) );
+}
+
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     std::cout << "Testing :: Test Geometrical Entity Classifier :: Elphant Point Classifier" << std::endl;
 
