@@ -54,22 +54,22 @@ public:
             const PointType y_values = {p1[1], p2[1], p3[1]};
             const PointType z_values = {p1[2], p2[2], p3[2]};
 
-            auto [x_min, x_max] = std::minmax_element(x_values.begin(), x_values.end());
-            auto [y_min, y_max] = std::minmax_element(y_values.begin(), y_values.end());
-            auto [z_min, z_max] = std::minmax_element(z_values.begin(), z_values.end());
+            auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
+            auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
+            auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
 
-            std::array<double,3> lower_bound = {*x_min, *y_min, *z_min};
-            std::array<double,3> upper_bound = {*x_max, *y_max, *z_max};
+            std::array<double,3> lower_bound = {*x_min_max.first, *y_min_max.first, *z_min_max.first};
+            std::array<double,3> upper_bound = {*x_min_max.second, *y_min_max.second, *z_min_max.second};
             this->insertParticle(i, lower_bound, upper_bound);
 
-            mLowerBound[0] = std::min<double>(*x_min, mLowerBound[0]);
-            mUpperBound[0] = std::max<double>(*x_max, mUpperBound[0]);
+            mLowerBound[0] = std::min<double>(*x_min_max.first, mLowerBound[0]);
+            mUpperBound[0] = std::max<double>(*x_min_max.second, mUpperBound[0]);
 
-            mLowerBound[1] = std::min<double>(*y_min, mLowerBound[1]);
-            mUpperBound[1] = std::max<double>(*y_max, mUpperBound[1]);
+            mLowerBound[1] = std::min<double>(*y_min_max.first, mLowerBound[1]);
+            mUpperBound[1] = std::max<double>(*y_min_max.second, mUpperBound[1]);
 
-            mLowerBound[2] = std::min<double>(*z_min, mLowerBound[2]);
-            mUpperBound[2] = std::max<double>(*z_max, mUpperBound[2]);
+            mLowerBound[2] = std::min<double>(*z_min_max.first, mLowerBound[2]);
+            mUpperBound[2] = std::max<double>(*z_min_max.second, mUpperBound[2]);
         }
     }
 
