@@ -15,7 +15,6 @@
 ///@name TIBRA Classes
 ///@{
 
-///
 /**
  * @class  GeometricalEntityClassifier
  * @author Manuel Messmer
@@ -30,6 +29,7 @@ public:
     ///@{
     typedef TriangleMesh::Vector3d PointType;
 
+    enum IntersectionStatus {Inside, Outside, Trimmed};
     ///@}
     ///@name Life Cycle
     ///@{
@@ -43,11 +43,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    bool IsInside(const PointType& rPoints);
+    bool IsInside(const PointType& rPoints) const;
 
-    bool GetIntersectionState(const Element& rElement);
+    IntersectionStatus GetIntersectionState(const Element& rElement) const;
 
-    bool GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound);
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const;
     ///@}
 
 private:

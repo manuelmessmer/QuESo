@@ -80,13 +80,13 @@ public:
     ///@brief Return true if point lies inside outer bounding box.
     ///@param rPoint
     ///@return bool
-    bool IsWithinBoundingBox(const std::array<double, 3>& rPoint);
+    bool IsWithinBoundingBox(const std::array<double, 3>& rPoint) const;
 
     ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
     ///@param rRay
     ///@return std::vector<unsigned int> Holds Id's of triangles.
     ///@todo Should return ptr to std::vector<unsigned int>;
-    std::vector<IndexType> Query(AABB_primitive_base& rAABB_primitive);
+    std::vector<IndexType> Query(const AABB_primitive_base& rAABB_primitive) const;
 
     ///@}
 

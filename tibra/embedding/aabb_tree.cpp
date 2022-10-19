@@ -4,7 +4,7 @@
 // Project includes
 #include "embedding/aabb_tree.h"
 
-bool AABB_tree::IsWithinBoundingBox(const std::array<double, 3>& rPoint){
+bool AABB_tree::IsWithinBoundingBox(const std::array<double, 3>& rPoint) const {
     if(   rPoint[0] < mLowerBound[0]
         || rPoint[0] > mUpperBound[0]
         || rPoint[1] < mLowerBound[1]
@@ -19,7 +19,7 @@ bool AABB_tree::IsWithinBoundingBox(const std::array<double, 3>& rPoint){
 }
 
 
-std::vector<AABB_tree::IndexType> AABB_tree::Query(AABB_primitive_base& rAABB_primitive)
+std::vector<AABB_tree::IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primitive) const
 {
     std::vector<IndexType> stack;
     stack.reserve(256);
@@ -32,8 +32,8 @@ std::vector<AABB_tree::IndexType> AABB_tree::Query(AABB_primitive_base& rAABB_pr
         IndexType node = stack.back();
         stack.pop_back();
 
-        // Copy the AABB_base.
-        auto& aabb = static_cast<AABB_primitive&>(BaseTreeType::Nodes()[node].aabb_base);
+        // Copy the AABB_base and cast it to AABB_primitive.
+        const auto& aabb = static_cast<const AABB_primitive&>(BaseTreeType::Nodes()[node].aabb_base);
 
         if (node == NULL_NODE) continue;
 
