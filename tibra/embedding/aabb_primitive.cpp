@@ -6,7 +6,7 @@
 
 bool AABB_primitive::intersect(const AABB_primitive &aabb) const  {
     for (unsigned int i = 0; i < 3; ++i) {
-        if (aabb.upperBound[i] <= lowerBound[i] || aabb.lowerBound[i] >= upperBound[i] ) {
+        if (aabb.upperBound[i] < lowerBound[i] || aabb.lowerBound[i] > upperBound[i] ) {
             return false;
         }
     }

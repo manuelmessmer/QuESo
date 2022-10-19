@@ -14,6 +14,30 @@ namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( ElementClassifierTestSuite )
 
+BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
+    std::cout << "Testing :: Test Classify Elements :: Touch Cube" << std::endl;
+
+    // Read mesh from STL file
+    TriangleMesh triangle_mesh{};
+    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+
+    // Instatiate classifier
+    GeometricalEntityClassifier classifier(triangle_mesh);
+
+    TriangleMesh::Vector3d lower_bound = {-2, -2, -2};
+    TriangleMesh::Vector3d upper_bound = {-1.5, 2, 2};
+    // Touch from outside with tolerance=0.0 is trimmed.
+    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 0.0), GeometricalEntityClassifier::Trimmed );
+    // Touch from outside with tolerance>0.0 is outside.
+    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 1e-8), GeometricalEntityClassifier::Outside );
+
+    lower_bound = {-1.5, -1.5, -1.5};
+    upper_bound = {-1.4, -1.4, -1.4};
+    // Touch from inside with tolerance=0.0 is trimmed.
+    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 0.0), GeometricalEntityClassifier::Trimmed );
+    // Touch from inside with tolerance>0.0 is inside.
+    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 1e-8), GeometricalEntityClassifier::Inside );
+}
 
 BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     std::cout << "Testing :: Test Classify Elements :: Cylinder" << std::endl;
