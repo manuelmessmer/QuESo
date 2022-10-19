@@ -52,7 +52,7 @@ public:
     ///@param v0 Vertex 1 of triangle.
     ///@param v1 Vertex 2 of triangle.
     ///@param v2 Vertex 3 of triangle.
-    ///@param tolerance. Reduces extent of aabb. If tolerance > 0 -> touching triangles are not intersected.
+    ///@param tolerance. Reduces extent of aabb. If tolerance > 0 -> touching triangles are not detected as intersected.
     bool intersect(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
                    double tolerance) const;
 
@@ -62,7 +62,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    ///@brief Returns true if axis intersect.
+    ///@brief Returns true if axes intersect.
     ///@details This function uses the seperating axis theorem.
     ///@param u0 Normal vector of aabb (1,0,0).
     ///@param u1 Normal vector of aabb (0,1,0).

@@ -17,7 +17,9 @@ bool AABB_primitive::intersect(const Vector3d &v0, const Vector3d &v1, const Vec
                                double tolerance) const {
 
     /// Get extent of aabb.
-    Vector3d extent = { (upperBound[0] - lowerBound[0] )/2.0 - tolerance, (upperBound[1] - lowerBound[1] )/2.0 - tolerance, (upperBound[2] - lowerBound[2] )/2.0 - tolerance};
+    Vector3d extent = { (upperBound[0] - lowerBound[0] )/2.0 - tolerance,
+                        (upperBound[1] - lowerBound[1] )/2.0 - tolerance,
+                        (upperBound[2] - lowerBound[2] )/2.0 - tolerance};
 
     /// Translate triangle to origin.
     Vector3d v0_orig = {v0[0] - centre[0], v0[1] - centre[1], v0[2] - centre[2]};
