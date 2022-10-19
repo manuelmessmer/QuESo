@@ -5,13 +5,13 @@
 #include "embedding/ray_aabb_primitive.h"
 
 bool Ray_AABB_primitive::inside(const AABB_primitive &aabb) const {
-    if(    mOrigin[0] < aabb.lowerBound[0]
-        || mOrigin[1] < aabb.lowerBound[1]
-        || mOrigin[2] < aabb.lowerBound[2]
-        || mOrigin[0] > aabb.upperBound[0]
-        || mOrigin[1] > aabb.upperBound[1]
-        || mOrigin[2] > aabb.upperBound[2] ) {
-            return false;
+    if(    mOrigin[0] >= aabb.lowerBound[0]
+        || mOrigin[1] >= aabb.lowerBound[1]
+        || mOrigin[2] >= aabb.lowerBound[2]
+        || mOrigin[0] <= aabb.upperBound[0]
+        || mOrigin[1] <= aabb.upperBound[1]
+        || mOrigin[2] <= aabb.upperBound[2] ) {
+            return true;
         }
 
     return true;
@@ -19,10 +19,6 @@ bool Ray_AABB_primitive::inside(const AABB_primitive &aabb) const {
 
 bool Ray_AABB_primitive::intersect(const AABB_primitive &aabb) const
 {
-    // Return true if origin of Ray is inside the aabb
-    if( inside(aabb) )
-        return true;
-
     double tmin, tmax, tymin, tymax, tzmin, tzmax;
 
     double lower_0 = aabb.lowerBound[0];
@@ -37,6 +33,18 @@ bool Ray_AABB_primitive::intersect(const AABB_primitive &aabb) const
     double inv_direction_0 = mInvDirection[0];
     double inv_direction_1 = mInvDirection[1];
 
+    double lower_2 = aabb.lowerBound[2];
+    double upper_2 = aabb.upperBound[2];
+    double origin_2 = mOrigin[2];
+
+    if(    origin_0 >= lower_0
+        && origin_1 >= lower_1
+        && origin_2 >= lower_2
+        && origin_0 <= upper_0
+        && origin_1 <= upper_1
+        && origin_2 <= upper_2 ) {
+            return true;
+        }
 
     tmin = (lower_0 - origin_0) * inv_direction_0;
     tymax = (upper_1 - origin_1) * inv_direction_1;
@@ -51,18 +59,10 @@ bool Ray_AABB_primitive::intersect(const AABB_primitive &aabb) const
     if( tymin > tmax )
         return false;
 
-    if (tymin > tmin)
-        tmin = tymin;
+    tmin = std::max(tmin, tymin);
+    tmax = std::min(tmax, tymax);
 
-    if (tymax < tmax)
-        tmax = tymax;
-
-    double lower_2 = aabb.lowerBound[2];
-    double upper_2 = aabb.upperBound[2];
-    double origin_2 = mOrigin[2];
     double inv_direction_2 = mInvDirection[2];
-
-
     tzmin = (lower_2 - origin_2) * inv_direction_2;
     if((tzmin > tmax))
         return false;

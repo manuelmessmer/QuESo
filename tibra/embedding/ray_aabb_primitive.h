@@ -16,8 +16,8 @@
 /**
  * @class  Ray
  * @author Manuel Messmer
- * @brief  Ray to be used in AABB_tree. Direction of ray must be positive oriented.
- *         Check is omitted for better performance.
+ * @brief  Ray to be used in AABB_tree. Direction of ray must be positive oriented (x>0, y>0, z>0).
+ *         Check if orientation is actually positive is omitted for better performance.
 */
 class Ray_AABB_primitive : public AABB_primitive_base {
 
