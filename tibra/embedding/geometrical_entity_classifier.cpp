@@ -94,7 +94,7 @@ GeometricalEntityClassifier::IntersectionStatus GeometricalEntityClassifier::Get
     const auto& lower_bound = rElement.GetGlobalLowerPoint();
     const auto& upper_bound = rElement.GetGlobalLowerPoint();
 
-    return GetIntersectionState(lower_bound, upper_bound, 0.0);
+    return GetIntersectionState(lower_bound, upper_bound, 1e-8);
 
 }
 

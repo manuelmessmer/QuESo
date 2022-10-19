@@ -19,7 +19,8 @@ typedef aabb_base::AABB_base AABB_lohedges;
 /**
  * @class  AABB primitive
  * @author Manuel Messmer
- * @brief  AABB primitive to be used in AABB_tree.
+ * @brief  AABB primitive to be used in AABB_tree. Provides functions to check for aabb-triangle
+ *         and aabb-aabb intersections.
 */
 class AABB_primitive : public AABB_primitive_base, public AABB_lohedges
 {

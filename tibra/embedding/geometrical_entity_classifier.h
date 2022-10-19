@@ -20,7 +20,6 @@
  * @author Manuel Messmer
  * @brief  Provides functions to classify geometrical entities such as element boxes and points as intersected/inside/outside.
  * @details Uses AABB Tree for fast entity classification.
- * @todo Add const.
 */
 class GeometricalEntityClassifier {
 
@@ -36,6 +35,7 @@ public:
 
     /// Constructor
     ///@brief Builds AABB tree for given mesh.
+    ///@param rTriangleMesh
     GeometricalEntityClassifier(const TriangleMesh& rTriangleMesh) : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
     {
     }
@@ -43,10 +43,23 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    bool IsInside(const PointType& rPoints) const;
 
+    ///@brief Returns true if point is inside TriangleMesh.
+    ///@param rPoint
+    ///@return bool
+    bool IsInside(const PointType& rPoint) const;
+
+    ///@brief Returns intersections state of element.
+    ///@param rElement
+    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     IntersectionStatus GetIntersectionState(const Element& rElement) const;
 
+    ///@brief Returns intersections state of element.
+    ///@param rLowerBound
+    ///@param rUpperBound
+    ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
+    ///                 If Tolerance>0, touch is not detected as intersection.
+    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const;
     ///@}
 
@@ -61,4 +74,4 @@ private:
 
 ///@}
 
-#endif //GEOMETRICAL_ENTITY_CLASSIFICATION_INCLUDE_H
+#endif // GEOMETRICAL_ENTITY_CLASSIFICATION_INCLUDE_H

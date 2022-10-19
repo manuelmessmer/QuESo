@@ -14,9 +14,11 @@
 ///@{
 
 /**
- * @class  Ray
+ * @class  Ray_AABB_primitive
  * @author Manuel Messmer
- * @brief  Ray to be used in AABB_tree. Direction of ray must be positive oriented (x>0, y>0, z>0).
+ * @brief  Ray to be used in AABB_tree.
+ *         Provides functions to check for ray-triangle and ray-aabb intersections.
+ *         Direction of ray must be positive oriented (x>0, y>0, z>0).
  *         Check if orientation is actually positive is omitted for better performance.
 */
 class Ray_AABB_primitive : public AABB_primitive_base {
@@ -32,7 +34,9 @@ public:
     ///@name Life cycle
     ///@{
 
-    /// Constructor.
+    ///Constructor.
+    ///@param Origin
+    ///@param Direction Must be always positive: (x>0, y>0, z>0).
     Ray_AABB_primitive(const Vector3d& Origin, const Vector3d& Direction) :
         mOrigin(Origin), mDirection(Direction)
     {
@@ -45,10 +49,10 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if origin of ray is inside aabb.
-    ///@param aabb
-    ///@return bool
-    bool inside(const AABB_primitive &aabb) const;
+    // ///@brief Returns true if origin of ray is inside aabb.
+    // ///@param aabb
+    // ///@return bool
+    // bool inside(const AABB_primitive &aabb) const;
 
     ///@brief Returns true if ray intersects aabb.
     ///@param aabb

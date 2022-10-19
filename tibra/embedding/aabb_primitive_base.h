@@ -10,7 +10,6 @@
 
 // Global variables
 constexpr double kEpsilon = 1e-14;
-constexpr double EpsilonBound = 1e-8;
 
 ///@name TIBRA Classes
 ///@{
@@ -21,7 +20,7 @@ class AABB_primitive;
 /**
  * @class  AABB_primitive
  * @author Manuel Messmer
- * @brief  Base class for aabb primitives.
+ * @brief  Base class for aabb primitives. Derived classes must override intersect().
 */
 class AABB_primitive_base
 {
