@@ -66,12 +66,13 @@ public:
 
     IntersectionStatus CheckIntersection(const SurfaceMeshType& rSurfaceMesh, const SurfaceMeshType& rCubeMesh, const Element& rElement) const;
 
+    IntersectionStatus CheckIntersection(const SurfaceMeshType& rSurfaceMesh, const SurfaceMeshType& rCubeMesh, const PointType& rLowerBound, const PointType& rUpperBound) const;
     // bool GetIntersectionMesh(const SurfaceMeshType& rSurfaceMesh, SurfaceMeshType& rCubeMesh, Element& rElemen, const Parameters& rParam);
 
     // bool Remesh( SurfaceMeshType& rSurfaceMesh, const Parameters& rParam);
 
 private:
-    IntersectionStatus CheckInertsectionViaElementVertices( const Element& element) const;
+    IntersectionStatus CheckInertsectionViaElementVertices( const PointType& rLowerBound, const PointType& rUpperBound) const;
 
     // SurfaceMeshPtrType GetAllTrianglesThatIntersect(const SurfaceMeshType& rSurfaceMesh, const SurfaceMeshType& rCubeMesh, const Element& rElement) const;
 

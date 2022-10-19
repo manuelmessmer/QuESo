@@ -47,16 +47,14 @@ bool IntersectionTest::IsInside(const Point_3& point) const{
     return false;
 }
 
-IntersectionTest::IntersectionStatus IntersectionTest::CheckIntersection(const SurfaceMeshType& rSurfaceMesh, const SurfaceMeshType& rCubeMesh, const Element& rElement ) const{
+IntersectionTest::IntersectionStatus IntersectionTest::CheckIntersection(const SurfaceMeshType& rSurfaceMesh, const SurfaceMeshType& rCubeMesh, const PointType& rLowerBound, const PointType& rUpperBound) const{
     // Categorize knot spans based on the 8 element vertices
-    auto status = CheckInertsectionViaElementVertices( rElement );
+    auto status = CheckInertsectionViaElementVertices( rLowerBound, rUpperBound );
 
     // CheckInertsectionViaElementVertices does not neccessarily find all intersections
     if( status != IntersectionStatus::Trimmed ){
-        const auto lower_point = rElement.GetGlobalLowerPoint();
-        const auto upper_point = rElement.GetGlobalUpperPoint();
-        const Point_3 point1(lower_point[0], lower_point[1], lower_point[2]);
-        const Point_3 point2(upper_point[0], upper_point[1], upper_point[2]);
+        const Point_3 point1(rLowerBound[0], rLowerBound[1], rLowerBound[2]);
+        const Point_3 point2(rUpperBound[0], rUpperBound[1], rUpperBound[2]);
         const CGAL::Iso_cuboid_3<K> tmp_cuboid( point1, point2, 0);
         if( mAABBTree.do_intersect(tmp_cuboid) ){ // Perform inexact (conservative), but fast test based on AABBTree
             if( CGAL::Polygon_mesh_processing::do_intersect(rSurfaceMesh, rCubeMesh) ){ // Perform exact check
@@ -68,12 +66,20 @@ IntersectionTest::IntersectionStatus IntersectionTest::CheckIntersection(const S
     return status;
 }
 
+IntersectionTest::IntersectionStatus IntersectionTest::CheckIntersection(const SurfaceMeshType& rSurfaceMesh, const SurfaceMeshType& rCubeMesh, const Element& rElement ) const{
+    // Categorize knot spans based on the 8 element vertices
+    const auto lower_point = rElement.GetGlobalLowerPoint();
+    const auto upper_point = rElement.GetGlobalUpperPoint();
+
+    return CheckIntersection(rSurfaceMesh, rCubeMesh, lower_point, upper_point);
+}
 
 
-IntersectionTest::IntersectionStatus IntersectionTest::CheckInertsectionViaElementVertices(const Element& rElement ) const {
 
-    const PointType lower_point = rElement.GetGlobalLowerPoint();
-    const PointType upper_point = rElement.GetGlobalUpperPoint();
+IntersectionTest::IntersectionStatus IntersectionTest::CheckInertsectionViaElementVertices(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+
+    const PointType lower_point = rLowerBound;
+    const PointType upper_point = rUpperBound;
 
     const PointType point_1 = {upper_point[0], lower_point[1], lower_point[2]};
     const PointType point_2 = {lower_point[0], lower_point[1], upper_point[2]};
