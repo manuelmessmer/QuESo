@@ -48,10 +48,13 @@ file(GLOB TIBRA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/embedding/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/integration_points_1d/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/modeler/*.cpp
+  # Add external libraries
+  ${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries/aabb_tree/*.cc
 )
 ## CGAL python interface sources
 file(GLOB_RECURSE TIBRA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
