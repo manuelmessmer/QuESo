@@ -386,14 +386,13 @@ namespace aabb_base
 
         /// Modifications begin
         // The following lines are modifications to the original source code.
-        unsigned int Root(){
+        unsigned int Root() const{
             return root;
         }
 
-        std::vector<Node>& Nodes(){
+        const std::vector<Node>& Nodes() const{
             return nodes;
         }
-
         /// Modifications end
 
     private:
