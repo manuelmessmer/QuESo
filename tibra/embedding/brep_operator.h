@@ -61,41 +61,41 @@ public:
     ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const;
-    ///@}
 
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const;
+
+
+
+    ///@todo Just return ids. Much more efficient
     std::unique_ptr<TriangleMesh> GetIntersectedTriangles( const TriangleMesh& rTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound ) const{
+
+        // Perform fast search based on aabb tree. Conservative search.
         AABB_primitive aabb(rLowerBound, rUpperBound);
-        auto results = mTree.Query(aabb);
+        auto potential_intersections = mTree.Query(aabb);
 
         std::vector<IndexType> intersected_triangle_ids{};
         int count = 0;
 
-        for( auto r : results){
-            const auto& p1 = rTriangleMesh.P1(r);
-            const auto& p2 = rTriangleMesh.P2(r);
-            const auto& p3 = rTriangleMesh.P3(r);
-            const auto& normal = rTriangleMesh.Normal(r);
+        for( auto triangle_id : potential_intersections){
+            const auto& p1 = rTriangleMesh.P1(triangle_id);
+            const auto& p2 = rTriangleMesh.P2(triangle_id);
+            const auto& p3 = rTriangleMesh.P3(triangle_id);
             // If tolerance>=0 intersection is not detected.
             const double tolerance_1 = 1e-8;
+            // Perform actual intersection test.
             if( aabb.intersect(p1, p2, p3, tolerance_1) ){
-                intersected_triangle_ids.push_back(r);
+                intersected_triangle_ids.push_back(triangle_id);
             }
         }
 
+        // Copy intersected triangles to new mesh.
         TriangleMesh new_mesh{};
         new_mesh.Copy(intersected_triangle_ids, rTriangleMesh);
 
         return std::make_unique<TriangleMesh>(new_mesh);
     }
 
-    ///@brief Clips triangle mesh by AABB.
-    ///@param rV1 Vertex 1 of Triangle
-    ///@param rV2 Vertex 2 of Triangle
-    ///@param rV3 Vertex 3 of Triangle
-    ///@param rLowerBound Lower bound of AABB.
-    ///@param rUpperBound Upper bound of AABB.
-    ///@return std::unique_ptr<Polygon> (Will contain maximal 6 vertices).
+
     std::unique_ptr<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound){
 
         auto p_intersected_triangles = GetIntersectedTriangles(mTriangleMesh, rLowerBound, rUpperBound);
@@ -141,7 +141,7 @@ public:
         return std::make_unique<TriangleMesh>(new_mesh);
     }
 
-
+    ///@}
 
 
 private:
