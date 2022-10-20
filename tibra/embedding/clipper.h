@@ -47,7 +47,7 @@ public:
     std::vector<std::array<PointType, 3>> GetTriangles() const{
         std::vector<std::array<PointType, 3>> new_triangles;
         new_triangles.reserve(mNumVertices);
-        std::cout << "mNumVertices: " << mNumVertices << std::endl;
+
         if(mNumVertices < 3){
             throw std::runtime_error("Obacht");
         }
@@ -105,71 +105,6 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Clips triangle mesh by AABB.
-    ///@param rV1 Vertex 1 of Triangle
-    ///@param rV2 Vertex 2 of Triangle
-    ///@param rV3 Vertex 3 of Triangle
-    ///@param rLowerBound Lower bound of AABB.
-    ///@param rUpperBound Upper bound of AABB.
-    ///@return std::unique_ptr<Polygon> (Will contain maximal 6 vertices).
-    static std::unique_ptr<TriangleMesh> ClipTriangleMesh(const TriangleMesh& rTriangleMesh,
-                 const PointType& rLowerBound, const PointType& rUpperBound){
-
-        TriangleMesh new_mesh{};
-        std::map<IndexType, IndexType> index_map{};
-        IndexType vertex_count = 0;
-        for( IndexType triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id ){
-            const auto& P1 = rTriangleMesh.P1(triangle_id);
-            const auto& P2 = rTriangleMesh.P2(triangle_id);
-            const auto& P3 = rTriangleMesh.P3(triangle_id);
-
-            if(    IsContained(P1, rLowerBound, rUpperBound )
-                && IsContained(P2, rLowerBound, rUpperBound )
-                && IsContained(P3, rLowerBound, rUpperBound ) ){ // Triangle is fully contained, does not need to be clipped.
-
-                new_mesh.AddVertex(P1);
-                new_mesh.AddVertex(P2);
-                new_mesh.AddVertex(P3);
-
-                // Copy triangles and normals.
-                new_mesh.AddTriangle({vertex_count, vertex_count+1, vertex_count+2 });
-                vertex_count += 3;
-                new_mesh.AddNormal( rTriangleMesh.Normal(triangle_id) );
-            }
-            else { // Triangle needs to be clipped.
-                //throw std::runtime_error("Wht the fuck!!");
-                auto polygon = ClipTriangle(P1, P2, P3, rLowerBound, rUpperBound);
-                for( auto triangle : polygon->GetTriangles() ){
-                    new_mesh.AddVertex(triangle[0]);
-                    new_mesh.AddVertex(triangle[1]);
-                    new_mesh.AddVertex(triangle[2]);
-
-                    // Copy triangles and normals.
-                    new_mesh.AddTriangle({vertex_count, vertex_count+1, vertex_count+2 });
-                    vertex_count += 3;
-                    new_mesh.AddNormal( rTriangleMesh.Normal(triangle_id) );
-                }
-            }
-
-        }
-        std::cout << "vertices: " << new_mesh.NumOfVertices() << std::endl;
-        return std::make_unique<TriangleMesh>(new_mesh);
-    }
-
-    static bool IsContained(const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound){
-        if(    rPoint[0] < rLowerBound[0]
-            || rPoint[0] > rUpperBound[0]
-            || rPoint[1] < rLowerBound[1]
-            || rPoint[1] > rUpperBound[1]
-            || rPoint[2] < rLowerBound[2]
-            || rPoint[2] > rUpperBound[2] )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     ///@brief Clips triangle by AABB. Expects that input triangle does intersect one of the faces of the bounding box.
     ///       Meaning, triangle is not fully outside, neither fully contained inside the AABB.
     ///@param rV1 Vertex 1 of Triangle
@@ -180,7 +115,6 @@ public:
     ///@return std::unique_ptr<Polygon> (Will contain maximal 6 vertices).
     static std::unique_ptr<Polygon<6>> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
                  const PointType& rLowerBound, const PointType& rUpperBound){
-
 
         PolygonType poly[2] = {PolygonType{}, PolygonType{}};
         PolygonType* currentPoly = &poly[0];
@@ -201,11 +135,6 @@ public:
         currentPoly->AddVertex(rV2);
         currentPoly->AddVertex(rV3);
 
-        std::cout << "current POly: " << currentPoly->NumVertices() << std::endl;
-        std::cout << "orev POly: " << prevPoly->NumVertices() << std::endl;
-        //swap(prevPoly, currentPoly);
-        std::cout << "current POly: " << currentPoly->NumVertices() << std::endl;
-        std::cout << "orev POly: " << prevPoly->NumVertices() << std::endl;
         //Loop through the planes of the bbox and clip the vertices
         for(IndexType dim = 0; dim < 3; ++dim)
         {
@@ -223,7 +152,6 @@ public:
                 ClipAxisByPlane(prevPoly, currentPoly, 2 * dim + 1, rUpperBound[dim]);
             }
         }
-        std::cout << "in the end: " << currentPoly->NumVertices() << std::endl;
         return std::make_unique<Polygon<6>>(*currentPoly);
     }
 
@@ -248,7 +176,7 @@ private:
 
         rCurrentPoly->Clear();
         int numVerts = rPrevPoly->NumVertices();
-        std::cout << "in here: " << numVerts << std::endl;
+
         if(numVerts == 0)
         {
             return;
@@ -263,8 +191,6 @@ private:
             const PointType* b = &(*rPrevPoly)[i];
             int bSide = ClassifyPointAxisPlane(*b, Index, Val);
 
-            std::cout << "aSide: " << aSide << std::endl;
-            std::cout << "bSide: " << bSide << std::endl;
             switch(bSide)
             {
             case ON_POSITIVE_SIDE:
@@ -301,7 +227,6 @@ private:
             a = b;
             aSide = bSide;
         }
-        std::cout << "hhhhhhh: " << rCurrentPoly->NumVertices() << std::endl;
     }
 
     static int ClassifyPointAxisPlane(const PointType& rPoint,
