@@ -8,7 +8,7 @@
 
 #include "geometries/triangle_mesh.h"
 #include "io/io_utilities.h"
-#include "embedding/geometrical_entity_classifier.h"
+#include "embedding/brep_operator.h"
 
 namespace Testing{
 
@@ -21,22 +21,22 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    // Instatiate classifier
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    // Instatiate brep_operator
+    BRepOperator brep_operator(triangle_mesh);
 
     TriangleMesh::Vector3d lower_bound = {-2, -2, -2};
     TriangleMesh::Vector3d upper_bound = {-1.5, 2, 2};
     // Touch from outside with tolerance=0.0 is trimmed.
-    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 0.0), GeometricalEntityClassifier::Trimmed );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), BRepOperator::Trimmed );
     // Touch from outside with tolerance>0.0 is outside.
-    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 1e-8), GeometricalEntityClassifier::Outside );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), BRepOperator::Outside );
 
     lower_bound = {-1.5, -1.5, -1.5};
     upper_bound = {-1.4, -1.4, -1.4};
     // Touch from inside with tolerance=0.0 is trimmed.
-    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 0.0), GeometricalEntityClassifier::Trimmed );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), BRepOperator::Trimmed );
     // Touch from inside with tolerance>0.0 is inside.
-    BOOST_CHECK_EQUAL( classifier.GetIntersectionState(lower_bound, upper_bound, 1e-8), GeometricalEntityClassifier::Inside );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), BRepOperator::Inside );
 }
 
 BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 
                 TriangleMesh::Vector3d lower_bound = {x, y, z};
                 TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( classifier.GetIntersectionState(lower_bound, upper_bound, tolerance) );
+                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
     }
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     // Instatiate classifier
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.15;
     const double delta_y = 0.15;
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 
                 TriangleMesh::Vector3d lower_bound = {x, y, z};
                 TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( classifier.GetIntersectionState(lower_bound, upper_bound, tolerance) );
+                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
     }
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.05;
     const double delta_y = 0.05;
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 
                 TriangleMesh::Vector3d lower_bound = {x, y, z};
                 TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( classifier.GetIntersectionState(lower_bound, upper_bound, tolerance) );
+                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
     }
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 3;
     const double delta_y = 3;
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
 
                 TriangleMesh::Vector3d lower_bound = {x, y, z};
                 TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( classifier.GetIntersectionState(lower_bound, upper_bound, tolerance) );
+                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
     }
