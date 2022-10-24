@@ -8,7 +8,7 @@
 
 #include "geometries/triangle_mesh.h"
 #include "io/io_utilities.h"
-#include "embedding/geometrical_entity_classifier.h"
+#include "embedding/brep_operator.h"
 #include "geometries/element_container.h"
 
 namespace Testing{
@@ -16,7 +16,7 @@ namespace Testing{
 BOOST_AUTO_TEST_SUITE( PointClassifierTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
-    std::cout << "Testing :: Test Geometrical Entity Classifier :: Cylinder Point Classifier" << std::endl;
+    std::cout << "Testing :: Test Point Classifier :: Cylinder Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
         }
     }
 
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator classifier(triangle_mesh);
     //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<bool> result(rPoints.size(), false);
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
-    std::cout << "Testing :: Test Geometrical Entity Classifier :: Cube Point Classifier" << std::endl;
+    std::cout << "Testing :: Test Point Classifier Classifier :: Cube Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
         }
     }
 
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator classifier(triangle_mesh);
     //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<bool> result(rPoints.size(), false);
@@ -119,13 +119,13 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
-    std::cout << "Testing :: Test Geometrical Entity Classifier :: Elphant Point Classifier" << std::endl;
+    std::cout << "Testing :: Test Point Classifier :: Elphant Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator classifier(triangle_mesh);
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(84000);
@@ -173,12 +173,12 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
 
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
-    std::cout << "Testing :: Test Geometrical Entity Classifier :: Bunny Point Classifier" << std::endl;
+    std::cout << "Testing :: Test Point Classifier :: Bunny Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
-    GeometricalEntityClassifier classifier(triangle_mesh);
+    BRepOperator classifier(triangle_mesh);
 
 
     std::vector<PointType> rPoints{};
