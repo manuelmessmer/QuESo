@@ -9,7 +9,7 @@
 #include <chrono>
 
 // Project includes
-#include "embedding/geometrical_entity_classifier.h"
+#include "embedding/brep_operator.h"
 #include "embedding/ray_aabb_primitive.h"
 #include <random>
 
@@ -17,7 +17,7 @@ std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> drandon(0, 1);
 
-bool GeometricalEntityClassifier::IsInside(const PointType& rPoint) const {
+bool BRepOperator::IsInside(const PointType& rPoint) const {
 
     if( mTree.IsWithinBoundingBox(rPoint)) {
         bool is_on_boundary = true;
@@ -65,7 +65,7 @@ bool GeometricalEntityClassifier::IsInside(const PointType& rPoint) const {
 
 }
 
-GeometricalEntityClassifier::IntersectionStatus GeometricalEntityClassifier::GetIntersectionState(
+BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
     // Test if center is inside or outside.
@@ -88,7 +88,7 @@ GeometricalEntityClassifier::IntersectionStatus GeometricalEntityClassifier::Get
     return status;
 }
 
-GeometricalEntityClassifier::IntersectionStatus GeometricalEntityClassifier::GetIntersectionState(
+BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
         const Element& rElement) const {
 
     const auto& lower_bound = rElement.GetGlobalLowerPoint();
