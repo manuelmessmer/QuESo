@@ -15,7 +15,7 @@ namespace Testing{
 BOOST_AUTO_TEST_SUITE( ClipperTestSuite )
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
-    std::cout << "Testing :: Clipper :: Clip Cylinder Test" << std::endl;
+    std::cout << "Testing :: Clipper :: Clip Cylinder Test 1" << std::endl;
 
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
-    std::cout << "Testing :: Clipper :: Clip Cylinder Test" << std::endl;
+    std::cout << "Testing :: Clipper :: Clip Cylinder Test 2" << std::endl;
 
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
