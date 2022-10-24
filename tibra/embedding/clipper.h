@@ -7,7 +7,9 @@
 /// External libraries
 #include <cstddef>
 #include <array>
+#include <algorithm>
 
+/// Project includes
 #include "geometries/triangle_mesh.h"
 
 ///@name TIBRA Classes
@@ -16,73 +18,56 @@
 template<std::size_t SIZE>
 class Polygon {
 
+/**
+ * @class  Polygon
+ * @author Manuel Messmer
+ * @brief  Provides container for results of Clipper::ClipTriangle function. Static array is used to improve performance.
+*/
 public:
+    ///@name Type Definitions
+    ///@{
     typedef std::size_t IndexType;
     typedef std::array<double,3> PointType;
 
-    void AddVertex(const PointType& rPoint){
-        if( mNumVertices >= SIZE ){
-            throw std::runtime_error("Polygon :: Size of Polygon is exceeded.");
-        }
-        mVertices[mNumVertices] = rPoint;
-        ++mNumVertices;
-    }
+    ///@}
+    ///@name Operations
+    ///@{
 
-    IndexType NumVertices() const{
-        return mNumVertices;
-    }
+    ///@brief Adds Vertex to Polygon
+    ///@param rPoint
+    void AddVertex(const PointType& rPoint);
 
-    const PointType& GetVertex(IndexType i) const{
-        if( i >= mNumVertices ){
-            throw std::runtime_error("Polygon :: Size of Polygon is exceeded.");
-        }
-        return mVertices[i];
-    }
+    ///@brief Return current number of vertices.
+    ///@return IndexType
+    IndexType NumVertices() const;
 
-    const PointType& operator[] (IndexType i) const
-    {
-        return mVertices[i];
-    }
+    ///@brief Get i-th vertex.
+    ///@param i Index.
+    ///@return const PointType&
+    const PointType& GetVertex(IndexType i) const;
 
-    std::vector<std::array<PointType, 3>> GetTriangles() const{
-        std::vector<std::array<PointType, 3>> new_triangles;
-        new_triangles.reserve(mNumVertices);
+    ///@brief Get i-th vertex.
+    ///@param i Index.
+    ///@return const PointType&
+    const PointType& operator[] (IndexType i) const;
 
-        if(mNumVertices < 3){
-            throw std::runtime_error("Obacht");
-        }
+    ///@brief Get last vertex.
+    const PointType& GetLastVertex() const;
 
-        if( mNumVertices == 3 ){
+    ///@brief Triangulates polygon centroid coodinate and returns triangles. Centroid is computed as mean of all vertices.
+    ///@return std::unique_ptr<std::vector<std::array<PointType, 3>>> Contains vertices of triangles.
+    std::unique_ptr<std::vector<std::array<PointType, 3>>> pGetTriangles() const;
 
-            new_triangles.push_back({ mVertices[0], mVertices[1], mVertices[2]} );
-
-            return new_triangles;
-        }
-        // TODO: Improve this
-        PointType centroid = {0.0, 0.0, 0.0};
-        const double inv_num_vertices = 1.0/mNumVertices;
-        for( IndexType i = 0 ; i < mNumVertices; ++i){
-            centroid[0] += inv_num_vertices*mVertices[i][0];
-            centroid[1] += inv_num_vertices*mVertices[i][1];
-            centroid[2] += inv_num_vertices*mVertices[i][2];
-        }
-
-        for( IndexType i = 0 ; i < mNumVertices-1; ++i){
-            new_triangles.push_back( {mVertices[i], mVertices[i+1], centroid} );
-        }
-        new_triangles.push_back( {mVertices[mNumVertices-1], mVertices[0], centroid} );
-
-        return new_triangles;
-    }
-
-    void Clear(){
-        std::fill(mVertices.begin(), mVertices.end(), PointType{});
-        mNumVertices = 0;
-    }
+    ///@brief Clears vertex container of polygon.
+    void Clear();
+    ///@}
 
 private:
+    ///@name Member variables
+    ///@{
     std::array<PointType, SIZE> mVertices{}; // Keep static array to be fast.
     IndexType mNumVertices = 0;
+    ///@}
 };
 
 /**
@@ -97,9 +82,9 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::array<double,3> PointType;
-    typedef Polygon<6> PolygonType; // Intersections contains maximum 6 vertices.
+    typedef Polygon<9> PolygonType; // Intersections contains maximum 9 vertices.
 
-    enum Side{ON_POSITIVE_SIDE, ON_NEGATIVE_SIDE, ON_BOUNDARY};
+    enum Side{IN_FRONT_OF_PLANE, BEHIND_PLANE, ON_PLANE};
 
     ///@}
     ///@name Operations
@@ -112,186 +97,74 @@ public:
     ///@param rV3 Vertex 3 of Triangle
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return std::unique_ptr<Polygon> (Will contain maximal 6 vertices).
-    static std::unique_ptr<Polygon<6>> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-                 const PointType& rLowerBound, const PointType& rUpperBound){
-
-        PolygonType poly[2] = {PolygonType{}, PolygonType{}};
-        PolygonType* currentPoly = &poly[0];
-        PolygonType* prevPoly = &poly[1];
-
-        const PointType x_values = {rV1[0], rV2[0], rV3[0]};
-        const PointType y_values = {rV1[1], rV2[1], rV3[1]};
-        const PointType z_values = {rV1[2], rV2[2], rV3[2]};
-
-        auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
-        auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
-        auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
-
-        PointType min_tri = {*x_min_max.first, *y_min_max.first, *z_min_max.first};
-        PointType max_tri = {*x_min_max.second, *y_min_max.second, *z_min_max.second};
-
-        currentPoly->AddVertex(rV1);
-        currentPoly->AddVertex(rV2);
-        currentPoly->AddVertex(rV3);
-
-        //Loop through the planes of the bbox and clip the vertices
-        for(IndexType dim = 0; dim < 3; ++dim)
-        {
-            // Optimization note: we should be able to save some work based on
-            // the clipping plane and the triangle's bounding box
-            if(max_tri[dim] > rLowerBound[dim])
-            {
-                swap(prevPoly, currentPoly);
-                ClipAxisByPlane(prevPoly, currentPoly, 2 * dim + 0, rLowerBound[dim]);
-            }
-
-            if(min_tri[dim] < rUpperBound[dim])
-            {
-                swap(prevPoly, currentPoly);
-                ClipAxisByPlane(prevPoly, currentPoly, 2 * dim + 1, rUpperBound[dim]);
-            }
-        }
-        return std::make_unique<Polygon<6>>(*currentPoly);
-    }
-
+    ///@return std::unique_ptr<Polygon> (Will contain maximal 9 vertices).
+    static std::unique_ptr<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
+                 const PointType& rLowerBound, const PointType& rUpperBound);
 
     ///@}
 
 private:
 
-    template <typename T>
-    static inline void swap(T& a, T& b)
-    {
-        T tmp = a;
-        a = b;
-        b = tmp;
-    }
+    /**
+     * @class  Plane
+     * @author Manuel Messmer
+     * @brief  Plane used in clipper.
+     **/
+    struct Plane {
 
-    static void ClipAxisByPlane(const PolygonType* rPrevPoly,
+        /// Constructor
+        ///@param Index
+        /// 0 -> -x axis;
+        /// 1 -> +x axis;
+        /// 2 -> -y axis;
+        /// 3 -> +y axis;
+        /// 4 -> -z axis;
+        /// 5 -> +z axis;
+        ///@param Position Offset from origin.
+        Plane(IndexType Index, double Position) : mPlaneIndex(Index), mPosition(Position){}
+
+        ///@brief Returns index of normal direction.
+        IndexType GetIndexOfNormalDirection() const{
+            return mPlaneIndex/2;
+        }
+
+        ///@brief Return trus if normal points in negative direction.
+        bool IsNegativeOriented() const {
+            return (mPlaneIndex % 2) == 0;
+        }
+
+        /// Member variables
+        IndexType mPlaneIndex;
+        double mPosition;
+    };
+
+    ///@brief Clips the polygon by plane. Keeps part that is in front of plane.
+    ///@details This is a specialization of the Sutherland-Hodgeman clipping algorithm
+    ///         for axis-aligned planes. See Section 8.3 of Christer Ericson's "Real-Time Collision Detection".
+    ///@param rPrevPoly Input polygon. Contains vertices to be clipped.
+    ///@param rCurrentPoly Output polygon.
+    ///@param rPlane Plane.
+    static void ClipPolygonByPlane(const PolygonType* rPrevPoly,
                          PolygonType* rCurrentPoly,
-                         IndexType Index,
-                         double Val)
-    {
+                         const Plane& rPlane);
 
-        rCurrentPoly->Clear();
-        int numVerts = rPrevPoly->NumVertices();
+    ///@brief Classifies Point with respect to axis aligned plane.
+    ///@param rPoint Point to be classified.
+    ///@param rPlane Plane.
+    ///@return IndexType (IN_FRON_OF_PLANE, BEHIND_PLANE, ON_PLANE)
+    static IndexType ClassifyPointToPlane(const PointType& rPoint,
+                               const Plane& rPlane,
+                               const double Eps = 1e-10);
 
-        if(numVerts == 0)
-        {
-            return;
-        }
+    ///@brief Returns intersection point between line and axis aligned plane.
+    ///@param rA Point behind the plane.
+    ///@param rB Point in front of the plane.
+    ///@return rPlane Clipping plane.
+    static PointType FindIntersectionPointOnPlane(const PointType& rA,
+                                                  const PointType& rB,
+                                                  const Plane& rPlane);
 
-        // Initialize point a with the last vertex of the polygon
-        const PointType* a = &(*rPrevPoly)[numVerts - 1];
-        int aSide = ClassifyPointAxisPlane(*a, Index, Val);
 
-        for(int i = 0; i < numVerts; ++i)
-        {
-            const PointType* b = &(*rPrevPoly)[i];
-            int bSide = ClassifyPointAxisPlane(*b, Index, Val);
-
-            switch(bSide)
-            {
-            case ON_POSITIVE_SIDE:
-                if(aSide == ON_NEGATIVE_SIDE)
-                {
-                    rCurrentPoly->AddVertex(FindIntersectionPoint(*a, *b, Index, Val));
-                }
-                break;
-            case ON_BOUNDARY:
-                if(aSide == ON_NEGATIVE_SIDE)
-                {
-                    rCurrentPoly->AddVertex(*b);
-                }
-                break;
-            case ON_NEGATIVE_SIDE:
-                switch(aSide)
-                {
-                case ON_POSITIVE_SIDE:
-                    rCurrentPoly->AddVertex(FindIntersectionPoint(*a, *b, Index, Val));
-                    rCurrentPoly->AddVertex(*b);
-                    break;
-                case ON_BOUNDARY:
-                    rCurrentPoly->AddVertex(*a);
-                    rCurrentPoly->AddVertex(*b);
-                    break;
-                case ON_NEGATIVE_SIDE:
-                    rCurrentPoly->AddVertex(*b);
-                    break;
-                }
-                break;
-             }
-
-            // swap a and b
-            a = b;
-            aSide = bSide;
-        }
-    }
-
-    static int ClassifyPointAxisPlane(const PointType& rPoint,
-                               IndexType Index,
-                               double Val,
-                               const double Eps = 1e-10)
-    {
-    // Note: we are exploiting the fact that the planes are axis aligned
-    // So the dot product is +/- the given coordinate.
-    // In general, we would need to call distance(pt, plane) here
-    bool is_even =  (Index & 1) == 0;
-
-    const double dist = is_even ? Val - rPoint[Index / 2] : rPoint[Index / 2] - Val;
-
-    if(dist > Eps)
-    {
-        return ON_POSITIVE_SIDE;
-    }
-    if(dist < -Eps)
-    {
-        return ON_NEGATIVE_SIDE;
-    }
-
-    return ON_BOUNDARY;
-    }
-
-    // /*!
-    // * \brief Finds the clipping intersection point between points a and b.
-    // *
-    // * \param [in] a The point behind the plane
-    // * \param [in] b The point in front of the plane
-    // * \param [in] index The index of the axis aligned plane.
-    // * \param [in] val The plane's coordinate with respect to the given axis
-    // * \return The point between a and b whose corresponding coordinate is val
-    // *
-    // * \see classifyPointAxisPlane for description of how index maps to coordinates.
-    // */
-    static PointType FindIntersectionPoint(const PointType& rA,
-                                    const PointType& rB,
-                                    IndexType Index,
-                                    double Val)
-    {
-
-    // Need to find a parameter t for the point pt, such that,
-    // * 0 <= t <= 1
-    // * pt = a + t * (b-a)
-    // * pt[ index/2]  == val
-
-    double t = (Val - rA[Index / 2]) / (rB[Index / 2] - rA[Index / 2]);
-
-    if( !(0.0 <= t && t <= 1.0) ){
-        throw std::runtime_error("Error");
-    }
-
-    PointType ret = {rA[0] + t*(rB[0] - rA[0]),
-                     rA[1] + t*(rB[1] - rA[1]),
-                     rA[2] + t*(rB[2] - rA[2]) };
-
-    auto status = ClassifyPointAxisPlane(ret, Index, Val);
-    // if( status == ON_BOUNDARY){
-    //     throw std::runtime_error("Point is on boudnary.");
-    // }
-
-    return ret;
-    }
 };
 ///@}
 
