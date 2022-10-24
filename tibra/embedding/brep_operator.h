@@ -12,6 +12,7 @@
 #include "geometries/element.h"
 #include "embedding/aabb_tree.h"
 #include "embedding/clipper.h"
+#include "io/io_utilities.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -122,9 +123,10 @@ public:
                 new_mesh.AddNormal( p_intersected_triangles->Normal(triangle_id) );
             }
             else { // Triangle needs to be clipped.
-                //throw std::runtime_error("Wht the fuck!!");
                 auto polygon = Clipper::ClipTriangle(P1, P2, P3, rLowerBound, rUpperBound);
-                for( auto triangle : polygon->GetTriangles() ){
+
+                auto p_triangles = polygon->pGetTriangles();
+                for( auto triangle : (*p_triangles) ){
                     new_mesh.AddVertex(triangle[0]);
                     new_mesh.AddVertex(triangle[1]);
                     new_mesh.AddVertex(triangle[2]);
