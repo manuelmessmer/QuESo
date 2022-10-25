@@ -17,6 +17,8 @@ std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> drandon(0, 1);
 
+typedef BRepOperator::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
+
 bool BRepOperator::IsInside(const PointType& rPoint) const {
 
     if( mTree.IsWithinBoundingBox(rPoint)) {
@@ -98,6 +100,106 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
 
 }
 
+
+std::unique_ptr<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
+        const PointType& rLowerBound, const PointType& rUpperBound ) const{
+
+    // Perform fast search based on aabb tree. Conservative search.
+    AABB_primitive aabb(rLowerBound, rUpperBound);
+    auto potential_intersections = mTree.Query(aabb);
+
+    auto intersected_triangle_ids = std::make_unique<std::vector<IndexType>>();
+    int count = 0;
+
+    for( auto triangle_id : potential_intersections){
+        const auto& p1 = mTriangleMesh.P1(triangle_id);
+        const auto& p2 = mTriangleMesh.P2(triangle_id);
+        const auto& p3 = mTriangleMesh.P3(triangle_id);
+        // If tolerance>=0 intersection is not detected.
+        const double tolerance_1 = 1e-8;
+        // Perform actual intersection test.
+        if( aabb.intersect(p1, p2, p3, tolerance_1) ){
+            intersected_triangle_ids->push_back(triangle_id);
+        }
+    }
+
+    return intersected_triangle_ids;
+}
+
+std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
+        const PointType& rLowerBound, const PointType& rUpperBound ) const {
+
+    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
+
+    TriangleMesh new_mesh{};
+    std::map<IndexType, IndexType> index_map{};
+    IndexType vertex_count = 0;
+    for( auto triangle_id : (*p_intersected_triangle_ids) ){
+        const auto& P1 = mTriangleMesh.P1(triangle_id);
+        const auto& P2 = mTriangleMesh.P2(triangle_id);
+        const auto& P3 = mTriangleMesh.P3(triangle_id);
+        const auto& normal = mTriangleMesh.Normal(triangle_id);
+
+        if(    IsContained(P1, rLowerBound, rUpperBound )
+            && IsContained(P2, rLowerBound, rUpperBound )
+            && IsContained(P3, rLowerBound, rUpperBound ) ){ // Triangle is fully contained, does not need to be clipped.
+
+            new_mesh.Append( {triangle_id}, mTriangleMesh );
+        }
+        else { // Triangle needs to be clipped.
+            auto polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
+
+            const auto& normal = mTriangleMesh.Normal(triangle_id);
+            // Pass normal, such the polygon does not have to recompute them.
+            auto p_tmp_triangle_mesh = polygon->pGetTriangleMesh();
+            new_mesh.Append(*p_tmp_triangle_mesh);
+        }
+    }
+    new_mesh.Check();
+    return std::make_unique<TriangleMesh>(new_mesh);
+}
+
+BoundaryIPVectorPtrType BRepOperator::GetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const{
+
+    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
+
+    auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
+
+    std::map<IndexType, IndexType> index_map{};
+    IndexType vertex_count = 0;
+    for( auto triangle_id : (*p_intersected_triangle_ids) ){
+        const auto& P1 = mTriangleMesh.P1(triangle_id);
+        const auto& P2 = mTriangleMesh.P2(triangle_id);
+        const auto& P3 = mTriangleMesh.P3(triangle_id);
+        const auto& normal = mTriangleMesh.Normal(triangle_id);
+
+        if(    IsContained(P1, rLowerBound, rUpperBound )
+            && IsContained(P2, rLowerBound, rUpperBound )
+            && IsContained(P3, rLowerBound, rUpperBound ) ){ // Triangle is fully contained, does not need to be clipped.
+
+            auto p_new_points = mTriangleMesh.GetIPsGlobal(triangle_id, 1);
+            p_boundary_ips->insert(p_boundary_ips->begin(), p_new_points->begin(), p_new_points->end());
+        }
+        else { // Triangle needs to be clipped.
+            auto polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
+
+            auto p_triangles = polygon->pGetTriangleMesh();
+
+            // for( auto triangle : (*p_triangles) ){
+            //     // new_mesh.AddVertex(triangle[0]);
+            //     // new_mesh.AddVertex(triangle[1]);
+            //     // new_mesh.AddVertex(triangle[2]);
+
+            //     // // Copy triangles and normals.
+            //     // new_mesh.AddTriangle({vertex_count, vertex_count+1, vertex_count+2 });
+            //     // vertex_count += 3;
+            //     // new_mesh.AddNormal( mTriangleMesh.Normal(triangle_id) );
+            // }
+        }
+    }
+    //new_mesh.Check();
+    return std::move(p_boundary_ips);
+}
 // Winding numbers algorithm: It actually works!!!
 
 // std::cout << "Done" << std::endl;
