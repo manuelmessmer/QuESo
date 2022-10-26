@@ -240,7 +240,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                     //std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << global_residual << std::endl;
                 }
                 // Sort integration points according to weight
-                sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
+                std::sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
                         return point_a.GetWeightConst() > point_b.GetWeightConst();
                     });
                 new_integration_points.erase(new_integration_points.begin()+number_of_functions, new_integration_points.end());
