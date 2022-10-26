@@ -112,7 +112,9 @@ public:
                               this->ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
                               this->ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
 
-            (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, s_integration_points[i].GetWeightConst(), Normal(TriangleId) );
+            // Normalize weights to 1 by multiplying by 2.
+            const double weight = 2.0*s_integration_points[i].GetWeightConst()*Area(TriangleId);
+            (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
         }
 
         return std::move(p_global_integration_points);
