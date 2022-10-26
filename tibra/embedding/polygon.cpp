@@ -99,31 +99,29 @@ void Polygon<DIM, SIZE>::Clear(){
     mNumVertices = 0;
 }
 
-template<std::size_t DIM, IndexType SIZE>
-std::unique_ptr<BoundaryEdges<0,1>> Polygon<DIM, SIZE>::pGetBoundaryEdges(IndexType PlaneIndex, double Position, double PlaneThickness) const {
 
-    auto p_new_edges = std::make_unique<BoundaryEdges<0,1>>();
+
+template<std::size_t DIM, IndexType SIZE>
+std::unique_ptr<typename Polygon<DIM, SIZE>::EdgesType> Polygon<DIM, SIZE>::pGetEdgesOnPlane(IndexType PlaneIndex, double Position, double PlaneThickness) const {
+
+    auto p_new_edges = std::make_unique<EdgesType>();
 
     if(mNumVertices < 3){
         throw std::runtime_error("Obacht");
     }
 
-    if( mNumVertices == 3 ){
-        return nullptr;
-    }
-
     for( IndexType i = 0 ; i < mNumVertices-1; ++i){
-        if( std::abs((mVertices[i][PlaneIndex] - Position))
-                && std::abs((mVertices[i+1][PlaneIndex] - Position)) ){
-            p_new_edges->AddEdge(mVertices[i], mVertices[i+1], mNormal);
+        if( std::abs((mVertices[i][PlaneIndex] - Position)) < PlaneThickness
+                && std::abs((mVertices[i+1][PlaneIndex] - Position)) < PlaneThickness ){
+            p_new_edges->push_back( {mVertices[i], mVertices[i+1]} );
         }
     }
-    if( std::abs((mVertices[mNumVertices-1][PlaneIndex] - Position))
-            && std::abs((mVertices[0][PlaneIndex] - Position)) ){
-        p_new_edges->AddEdge(mVertices[mNumVertices-1], mVertices[0], mNormal );
+    if( std::abs((mVertices[mNumVertices-1][PlaneIndex] - Position)) < PlaneThickness
+            && std::abs((mVertices[0][PlaneIndex] - Position)) < PlaneThickness ){
+        p_new_edges->push_back( {mVertices[mNumVertices-1], mVertices[0]} );
     }
 
-    return std::move(p_new_edges);;
+    return std::move(p_new_edges);
 }
 
 // Explicit instantiation Polygon

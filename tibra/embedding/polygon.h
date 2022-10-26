@@ -10,7 +10,6 @@
 
 ///Project includes
 #include "geometries/triangle_mesh.h"
-#include "embedding/boundary_edges.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -28,6 +27,7 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::array<double, DIM> PointType;
+    typedef std::vector<std::array<PointType, 2>> EdgesType;
 
     Polygon(const PointType& rNormal) : mNormal(rNormal){}
 
@@ -62,7 +62,7 @@ public:
     std::unique_ptr<TriangleMesh> pGetTriangleMesh() const;
 
     ///@brief GetBoundaryEdges
-    std::unique_ptr<BoundaryEdges<0,1>> pGetBoundaryEdges(IndexType PlaneIndex, double Position, double PlaneThickness) const;
+    std::unique_ptr<EdgesType> pGetEdgesOnPlane(IndexType PlaneIndex, double Position, double PlaneThickness) const;
 
     ///@brief Clears vertex container of polygon.
     void Clear();
