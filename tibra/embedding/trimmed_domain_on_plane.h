@@ -20,7 +20,8 @@
 /**
  * @class  TrimmedDomainOnPlane
  * @author Manuel Messmer
- * @brief Protype: Projects the trimmed domain onto a plane of the AABB and provides functions to construct integration points on trimmed domain.
+ * @brief Protype: Projects the trimmed domain onto a plane of the AABB and provides functions to construct
+ *        integration points on trimmed domain. Still requires validation. There are also still some bugs.
 */
 class TrimmedDomainOnPlane {
 
