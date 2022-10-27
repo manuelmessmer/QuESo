@@ -31,7 +31,7 @@ public:
         return *this;
     }
 
-    const std::array<double,3>& Normal(){
+    const std::array<double,3>& Normal() const{
         return mNormal;
     }
 
