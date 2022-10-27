@@ -5,11 +5,12 @@
 #include "TIBRA_main.hpp"
 #include "quadrature/single_element.h"
 #include "quadrature/moment_fitting_utilities.h"
-#include "utilities/embedding_utilities.h"
 #include "geometries/triangle_3d_3n.h"
-#include "quadrature/multi_knotspan_boxes_utilities.h"
+#include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "modeler/modeler.h"
+//cgal wrapper
+#include "cgal_wrapper/cgal_brep_operator.h"
 
 //// External includes
 #include <fstream>
@@ -74,17 +75,28 @@ void TIBRA::Run(){
       auto t_end_di = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
       et_check_intersect += t_delta_di.count();
+
+      // auto t_begin_di_2 = std::chrono::high_resolution_clock().now();
+      // auto status_2 = mClassifier->GetIntersectionState( *new_element );
+      // auto t_end_di_2 = std::chrono::high_resolution_clock().now();
+
+      // // if( status != status_2){
+      // //   std::cout << "status: " << status << ", " << status_2 << std::endl;
+      // //   throw std::runtime_error("ooho");
+      // // }
+      // std::chrono::duration<double> t_delta_di_2 = (t_end_di_2 - t_begin_di_2);
+      // et_check_intersect_2 += t_delta_di_2.count();
+
     }
     else { // If flag is false, consider all knotspans/ elements as inside
       status = IntersectionTest::Inside;
     }
-
     bool valid_element = false;
     // Distinguish between trimmed and non-trimmed elements.
     if( status == IntersectionTest::Trimmed) {
       new_element->SetIsTrimmed(true);
       auto t_begin_ci = std::chrono::high_resolution_clock().now();
-      valid_element = EmbeddingUtilities::ComputeIntersectionMesh(mPolyhedron, cube, *new_element, mParameters);
+      valid_element = cgal::BRepOperator::ComputeIntersectionMesh(mPolyhedron, cube, *new_element, mParameters);
       auto t_end_ci = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_ci = (t_end_ci - t_begin_ci);
       et_compute_intersection += t_delta_ci.count();
@@ -105,8 +117,7 @@ void TIBRA::Run(){
     else if( status == IntersectionTest::Inside){
       // Get standard gauss legendre points
       if( mParameters.IntegrationMethod() <= 2 ){
-        SingleElement::Assemble(new_element->GetIntegrationPointsInside(),
-          cube_point_A_param, cube_point_B_param, mParameters.Order(), mParameters.IntegrationMethod());
+        SingleElement::AssembleIPs(*new_element, mParameters);
       }
 
       //ExportVolumeMesh(cube, new_element->GetId());
@@ -121,7 +132,7 @@ void TIBRA::Run(){
 
   if( mParameters.IntegrationMethod() >= 3 ){
     #pragma omp single
-    MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(*mpElementContainer, mParameters);
+    MultipleElements::AssembleIPs(*mpElementContainer, mParameters);
   }
 
   // Average time spend for each task
@@ -237,7 +248,7 @@ void TIBRA::Run(){
 //     //     cube_point_B[2] += 0.1;
 //     //     SurfaceMeshType cube;
 //     //     CubeModeler::make_cube_3(cube, cube_point_A, cube_point_B);
-//     //     EmbeddingUtilities::SubstractElementsFromSurfaceMesh(mPolyhedronForExport, cube, **element_it, mParameters);
+//     //     cgal::BRepOperator::SubstractElementsFromSurfaceMesh(mPolyhedronForExport, cube, **element_it, mParameters);
 //     //   }
 //     // }
 
