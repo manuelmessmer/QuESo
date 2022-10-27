@@ -13,17 +13,18 @@
 #include <CGAL/IO/output_to_vtu.h>
 //#include <fstream>
 // Project includes
-#include "utilities/embedding_utilities.h"
+#include "cgal_wrapper/cgal_brep_operator.h"
 #include "io/io_utilities.h"
 
 #include <chrono>
 #include <stdexcept>
 
+namespace cgal {
 // Namespaces
 namespace PMP = CGAL::Polygon_mesh_processing;
 using namespace CGAL::parameters;
 
-bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometry, SurfaceMeshType& rCube, Element& rElement, const Parameters& rParam){
+bool BRepOperator::ComputeIntersectionMesh(const SurfaceMeshType& rGeometry, SurfaceMeshType& rCube, Element& rElement, const Parameters& rParam){
 
   // Typedefs
   typedef CGAL::Polyhedral_mesh_domain_with_features_3<K> Mesh_domain;
@@ -126,4 +127,6 @@ bool EmbeddingUtilities::ComputeIntersectionMesh(const SurfaceMeshType& rGeometr
 
   return 1;
 }
+
+} // End namespace cgal
 
