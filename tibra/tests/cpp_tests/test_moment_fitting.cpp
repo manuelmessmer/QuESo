@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     element.GetIntegrationPointsTrimmed().clear();
 
-    SingleElement::Assemble(element.GetIntegrationPointsTrimmed(),
+    SingleElement::AssembleIPs(element.GetIntegrationPointsTrimmed(),
         point_A, point_B, order, param.IntegrationMethod());
 
     // Make sure weights are disturbed.
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
         point.SetWeight(0.0);
     }
 
-    SingleElement::Assemble(element.GetIntegrationPointsInside(),
+    SingleElement::AssembleIPs(element.GetIntegrationPointsInside(),
         point_A, point_B, order, param.IntegrationMethod());
 
     // Run Moment Fitting
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     element.GetIntegrationPointsTrimmed().clear();
 
-    SingleElement::Assemble(element.GetIntegrationPointsTrimmed(),
+    SingleElement::AssembleIPs(element.GetIntegrationPointsTrimmed(),
         point_A, point_B, order, param.IntegrationMethod());
 
     // Make sure weights are disturbed.
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         point.SetWeight(0.0);
     }
 
-    SingleElement::Assemble(element.GetIntegrationPointsInside(),
+    SingleElement::AssembleIPs(element.GetIntegrationPointsInside(),
         point_A, point_B, order, param.IntegrationMethod() );
 
     // Run Moment Fitting
