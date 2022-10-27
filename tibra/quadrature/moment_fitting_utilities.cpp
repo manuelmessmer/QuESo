@@ -1,17 +1,12 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// CGAL includes
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Polygon_mesh_processing/compute_normal.h>
-#include <CGAL/Polygon_mesh_processing/measure.h>
-#include <CGAL/centroid.h>
-
 // External includes
 #include <stdexcept>
 #include <cmath>
 
 // Project includes
+#include "cgal_wrapper/cgal_mf_constant_terms.h"
 #include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
@@ -20,7 +15,6 @@
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
-#include "cgal_wrapper/cgal_mf_constant_terms.h"
 
 
 typedef std::size_t SizeType;
@@ -28,12 +22,6 @@ typedef std::array<double, 3> PointType;
 typedef std::array<int, 3> IntArrayType;
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
-
-typedef Element::K K;
-typedef K::Point_3 Point_3;
-typedef K::Vector_3 Vector;
-typedef Element::vertex_descriptor vertex_descriptor;
-typedef Element::PositionType PositionType;
 
 
 void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam){
@@ -135,12 +123,14 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     bool change = false;
     IntegrationPointVectorType prev_solution{};
     double prev_residual = 0.0;
+
+    /// Enter point elimination algorithm
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
         const std::size_t number_reduced_points = new_integration_points.size();
 
+        /// Assemble moment fitting matrix.
         MatrixType fitting_matrix(number_of_functions, number_reduced_points);
-
         std::size_t row_index = 0;
         for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
             for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
@@ -160,7 +150,9 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                 }
             }
         }
+
         VectorType weights(number_reduced_points);
+
         // Solve non-negative Least-Square-Error problem.
         global_residual = NNLS::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
 
