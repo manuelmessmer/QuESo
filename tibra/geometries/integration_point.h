@@ -39,10 +39,7 @@ public:
         return *this;
     }
 
-    double GetWeight(){
-        return mWeight;
-    }
-    const double GetWeightConst() const {
+    double GetWeight() const{
         return mWeight;
     }
 

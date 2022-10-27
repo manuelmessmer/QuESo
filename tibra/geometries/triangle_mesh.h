@@ -113,7 +113,7 @@ public:
                               this->ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
 
             // Normalize weights to 1 by multiplying by 2.
-            const double weight = 2.0*s_integration_points[i].GetWeightConst()*Area(TriangleId);
+            const double weight = 2.0*s_integration_points[i].GetWeight()*Area(TriangleId);
             (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
         }
 

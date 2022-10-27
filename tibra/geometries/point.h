@@ -6,6 +6,7 @@
 
 #include <array>
 
+///@TODO: Add copy constructor, move etc. and const getter functions.
 class Point : public std::array<double,3>
 {
 public:
@@ -46,7 +47,23 @@ public:
         return this->operator[](2);
     }
 
+    double X() const{
+        return this->operator[](0);
+    }
+
+    double Y() const{
+        return this->operator[](1);
+    }
+
+    double Z() const{
+        return this->operator[](2);
+    }
+
     double& operator [] (std::size_t i){
+        return this->data()[i];
+    }
+
+    double operator [] (std::size_t i) const{
         return this->data()[i];
     }
 };

@@ -20,6 +20,9 @@
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
+#include "cgal_wrapper/cgal_mf_constant_terms.h"
+
+
 typedef std::size_t SizeType;
 typedef std::array<double, 3> PointType;
 typedef std::array<int, 3> IntArrayType;
@@ -65,80 +68,14 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
     }
 }
 
-void MomentFitting::ComputeConstantTerms(const Element& rElement, VectorType& rConstantTerms, const Parameters& rParam){
-
-    const double jacobian_x = std::abs(rParam.PointB()[0] - rParam.PointA()[0]);
-    const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
-    const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
-
-    auto& r_surface_mesh = rElement.GetSurfaceMesh();
-    PointType a = rElement.GetLocalLowerPoint();
-    PointType b = rElement.GetLocalUpperPoint();
-
-    const int ffactor = 1;
-    const int order_u = rParam.Order()[0];
-    const int order_v = rParam.Order()[1];
-    const int order_w = rParam.Order()[2];
-
-    const std::size_t number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
-
-    rConstantTerms.resize(number_of_functions, false);
-    std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
-
-    std::size_t row_index = 0;
-    for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
-        for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-            for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                // Loop over all faces/triangels in r_surface_mesg
-                for(auto fd : faces(r_surface_mesh)) {
-                    // Compute normal for each face/triangle.
-                    Vector normal = CGAL::Polygon_mesh_processing::compute_face_normal(fd, r_surface_mesh);
-                    const double area = CGAL::Polygon_mesh_processing::face_area(fd, r_surface_mesh);
-
-                    std::array<PointType, 3> coordinates;
-                    PositionType positions = r_surface_mesh.points();
-                    int index = 0;
-                    for( auto vh : vertices_around_face(halfedge(fd, r_surface_mesh), r_surface_mesh) ){
-                        coordinates[index] = {positions[vh].x(), positions[vh].y(), positions[vh].z()};
-                        index++;
-                    }
-
-                    // Construct triangle to get integration points
-                    Triangle3D3N triangle(coordinates[0], coordinates[1], coordinates[2]);
-                    auto p_global_integration_points = triangle.GetIntegrationPointsGlobal(1);
-
-                    for( auto global_point : (*p_global_integration_points)){
-                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(global_point, rParam.PointA(), rParam.PointB());
-                        PointType value;
-
-                        const double f_x_x = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
-                        const double f_x_y = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
-                        const double f_x_z = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
-
-                        value[0] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0])*f_x_y*f_x_z;
-                        value[1] = f_x_x*Polynomial::f_x_int(local_point[1], i_y, a[1], b[1])*f_x_z;
-                        value[2] = f_x_x*f_x_y*Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
-
-                        double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
-
-                        // Normalize weights to 1
-                        const double factor = 2.0;
-                        // Add contribution to constant terms
-                        rConstantTerms[row_index] += 1.0/3.0*integrand * area * global_point.GetWeight() * factor;
-                    }
-                }
-                row_index++;
-            }
-        }
-    }
-}
-
 void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam){
 
     double residual = 1e10;
     int point_distribution_factor = rParam.GetPointDistributionFactor();
     VectorType constant_terms{};
-    ComputeConstantTerms(rElement, constant_terms, rParam);
+
+    cgal::ConstantTerms::Compute(rElement, constant_terms, rParam);
+
     const int max_iteration = 3;
     int iteration = 1;
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
@@ -241,7 +178,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                 }
                 // Sort integration points according to weight
                 std::sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
-                        return point_a.GetWeightConst() > point_b.GetWeightConst();
+                        return point_a.GetWeight() > point_b.GetWeight();
                     });
                 new_integration_points.erase(new_integration_points.begin()+number_of_functions, new_integration_points.end());
                 change = true;
@@ -291,13 +228,13 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) {
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeightConst() < 1e-14; }), reduced_points.end());
+            return point.GetWeight() < 1e-14; }), reduced_points.end());
         return prev_residual;
     }
     else{
         reduced_points.insert(reduced_points.begin(), new_integration_points.begin(), new_integration_points.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeightConst() < 1e-14; }), reduced_points.end());
+            return point.GetWeight() < 1e-14; }), reduced_points.end());
         return global_residual;
     }
 

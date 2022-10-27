@@ -118,7 +118,7 @@ public:
                               this->ShapeFunctionValue( 1, s_integration_points[i] ) * mP2[2] +
                               this->ShapeFunctionValue( 2, s_integration_points[i] ) * mP3[2] ;
 
-            (*p_global_integration_points)[i] = IntegrationPoint(xx, yy, zz, s_integration_points[i].GetWeightConst() );
+            (*p_global_integration_points)[i] = IntegrationPoint(xx, yy, zz, s_integration_points[i].GetWeight() );
         }
 
         return std::move(p_global_integration_points);
