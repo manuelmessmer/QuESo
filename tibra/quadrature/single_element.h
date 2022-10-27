@@ -37,17 +37,9 @@ public:
         ///@{
 
         /// @brief Assemble tensor product quadrature rules
-        /// @param rIntegrationPoints
-        /// @param LocalPointA in parametric space
-        /// @param LocalPointB in parametric space
-        /// @param Order
-        /// @param Method
-        static void AssembleIPs(
-                IntegrationPointType& rIntegrationPoints,
-                PointType LocalPointA,
-                PointType LocalPointB,
-                IntArrayType Order,
-                IntegrationPointFactory1D::IntegrationMethod Method);
+        /// @param rElement
+        /// @param rParam
+        static void AssembleIPs(Element& rElement, const Parameters& rParam);
         ///@}
 
 }; // End Class SingleElement
