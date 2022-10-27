@@ -79,12 +79,12 @@ public:
     ///@return std::unique_ptr<TriangleMesh>. Clipped mesh.
     std::unique_ptr<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
 
-    // ///@brief Clips triangle mesh by AABB and computes boundary edges.
-    // ///@param rLowerBound of AABB.
-    // ///@param rUpperBound of AABB.
-    // ///@return std::unique_ptr<TriangleMesh>. Clipped mesh.
-    // std::unique_ptr<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
-
+    ///@brief Prototpye of: Clips triangle mesh by AABB and computes boundary edges.
+    ///@note This is just a protope and not ready to be used!
+    ///@details Projects trimmed domain onto plane at z=lower_bound and z=upper_bound and constructs integration points for trimmed domain.
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
+    ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     BoundaryIPVectorPtrType GetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const;
 
     ///@}
