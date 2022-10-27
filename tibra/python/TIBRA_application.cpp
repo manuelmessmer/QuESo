@@ -72,9 +72,9 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     /// Export Integration Points
     py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
-        .def("GetX", &IntegrationPoint::X)
-        .def("GetY", &IntegrationPoint::Y)
-        .def("GetZ", &IntegrationPoint::Z)
+        .def("GetX", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::X)) // Return const version of X()
+        .def("GetY", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::Y)) // Return const version of Y()
+        .def("GetZ", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::Z)) // Return const version of Z()
         .def("Coordinates", &IntegrationPoint::Coordinates)
         .def("GetWeight", &IntegrationPoint::GetWeight)
         .def("SetWeight", &IntegrationPoint::SetWeight)
