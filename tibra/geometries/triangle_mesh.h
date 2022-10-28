@@ -14,6 +14,7 @@
 
 /// Project includes
 #include "geometries/triangle_gauss_legendre_integration_points.h"
+#include "geometries/boundary_integration_point.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -33,8 +34,11 @@ public:
     typedef std::size_t IndexType;
     typedef std::array<double,3> Vector3d;
     typedef std::array<IndexType,3> Vector3i;
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-    typedef std::unique_ptr<IntegrationPointVectorType> IntegrationPointVectorPtrType;
+    typedef std::vector<IntegrationPoint> IpVectorType;
+    typedef std::unique_ptr<IpVectorType> IpVectorPtrType;
+    typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
+    typedef std::unique_ptr<BoundaryIpVectorType> BoundaryIpVectorPtrType;
+
     ///@}
     ///@name Operations
     ///@{
@@ -80,17 +84,16 @@ public:
         return tmp_point;
     }
 
-    /// @brief Get integration points in global space.
+    /// @brief Get boundary integration points in global space.
     /// @param TriangleId
     /// @param Method integration method.
     /// @return IntegrationPointVectorPtrType.
-    IntegrationPointVectorPtrType GetIntegrationPointsGlobal( IndexType TriangleId, IndexType Method ) {
+    BoundaryIpVectorPtrType GetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
-        IntegrationPointVectorPtrType p_global_integration_points
-            = std::make_unique<IntegrationPointVectorType>(point_numbers);
+        auto p_global_integration_points = std::make_unique<BoundaryIpVectorType>(point_numbers);
 
         const auto P1 = this->P1(TriangleId);
         const auto P2 = this->P2(TriangleId);
@@ -109,7 +112,9 @@ public:
                               this->ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
                               this->ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
 
-            (*p_global_integration_points)[i] = IntegrationPoint(xx, yy, zz, s_integration_points[i].GetWeightConst() );
+            // Normalize weights to 1 by multiplying by 2.
+            const double weight = 2.0*s_integration_points[i].GetWeight()*Area(TriangleId);
+            (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
         }
 
         return std::move(p_global_integration_points);
@@ -211,13 +216,26 @@ public:
     //     return Vector3d{xx, yy, zz};
     // }
 
+    ///@brief Copy from other mesh.
+    ///@param rTriangleMesh Triangle mesh to copy from.
+    void Append( const TriangleMesh& rTriangleMesh ){
+        std::vector<IndexType> indices{};
+        indices.reserve(rTriangleMesh.NumOfTriangles());
+        for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
+            indices.push_back(i);
+        }
+        Append(indices, rTriangleMesh);
+    }
+
     ///@brief Partial copy from other mesh.
     ///@param rTriangleIndices Indices of triangles to be copied.
     ///@param rTriangleMesh Triangle mesh to copy from.
-    void Copy( const std::vector<IndexType>& rTriangleIndices, const TriangleMesh& rTriangleMesh ){
+    void Append( const std::vector<IndexType>& rTriangleIndices, const TriangleMesh& rTriangleMesh ){
 
-        IndexType vertex_count = 0;
+        IndexType vertex_count = NumOfVertices();
         std::map<IndexType, IndexType> index_map{};
+
+        //const IndexType initial_num_vertices = NumOfVertices();
 
         for( auto triangle : rTriangleIndices){
             const auto& tmp_indices = rTriangleMesh.VertexIds(triangle);
@@ -297,9 +315,9 @@ private:
 
 
     ///@brief Factory function for triangle Gauss Legendre points.
-    static const std::vector<IntegrationPointVectorType>& AllIntegrationPoints()
+    static const std::vector<IpVectorType>& AllIntegrationPoints()
     {
-        static const std::vector<IntegrationPointVectorType> integration_points =
+        static const std::vector<IpVectorType> integration_points =
         {
             TriangleGaussLegendrePoints1::IntegrationPoints(),
             TriangleGaussLegendrePoints2::IntegrationPoints(),
@@ -311,7 +329,7 @@ private:
     }
 
     ///@brief Get triangle Gauss Legendre points by Method - options (0,1,2,3)
-    static const IntegrationPointVectorType& GetIntegrationPoints( IndexType Method ){
+    static const IpVectorType& GetIntegrationPoints( IndexType Method ){
         if( Method > 3){
             throw std::runtime_error("TriangleMesh::GetIntegrationPoints IntegrationPoint Index exceeds default.");
         }

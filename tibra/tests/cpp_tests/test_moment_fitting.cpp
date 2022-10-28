@@ -14,11 +14,12 @@
 // Project includes
 #include "quadrature/moment_fitting_utilities.h"
 #include "modeler/modeler.h"
-#include "utilities/embedding_utilities.h"
 #include "quadrature/single_element.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
+
+#include "cgal_wrapper/cgal_brep_operator.h"
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
@@ -58,20 +59,20 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     point_B = {1.0, 1.0, 1.0};
     Element element(1, point_A, point_B, param);
-    auto status = EmbeddingUtilities::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
+    auto status = cgal::BRepOperator::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
 
     element.GetIntegrationPointsTrimmed().clear();
 
-    SingleElement::Assemble(element.GetIntegrationPointsTrimmed(),
-        point_A, point_B, order, param.IntegrationMethod());
+    SingleElement::AssembleIPs(element, param);
 
+    element.GetIntegrationPointsTrimmed() = element.GetIntegrationPointsInside();
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
         point.SetWeight(0.0);
     }
 
-    SingleElement::Assemble(element.GetIntegrationPointsInside(),
-        point_A, point_B, order, param.IntegrationMethod());
+    // SingleElement::AssembleIPs(element.GetIntegrationPointsInside(),
+    //     point_A, point_B, order, param.IntegrationMethod());
 
     // Run Moment Fitting
     MomentFitting::CreateIntegrationPointsTrimmed(element, param);
@@ -124,20 +125,18 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     param.SetUseCustomizedTrimmedPointsPositionFlag(true);
 
     Element element(1, point_A, point_B, param);
-    auto status = EmbeddingUtilities::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
+    auto status = cgal::BRepOperator::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
 
     element.GetIntegrationPointsTrimmed().clear();
 
-    SingleElement::Assemble(element.GetIntegrationPointsTrimmed(),
-        point_A, point_B, order, param.IntegrationMethod());
+    SingleElement::AssembleIPs(element, param);
+
+    element.GetIntegrationPointsTrimmed() = element.GetIntegrationPointsInside();
 
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
         point.SetWeight(0.0);
     }
-
-    SingleElement::Assemble(element.GetIntegrationPointsInside(),
-        point_A, point_B, order, param.IntegrationMethod() );
 
     // Run Moment Fitting
     MomentFitting::CreateIntegrationPointsTrimmed(element, param);
@@ -193,7 +192,7 @@ BOOST_AUTO_TEST_SUITE_END()
 //         minimum_number_of_tets, mMinimumNumberOfTriangles, reduced_points_inside_flag, surface_integral_flag, echo_level);
 
 //     Element element(1, point_A, point_B);
-//     auto status = EmbeddingUtilities::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
+//     auto status = cgal::BRepOperator::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
 
 //     element.GetIntegrationPointsTrimmedReduced().clear();
 

@@ -13,6 +13,7 @@
 #include "embedding/aabb_tree.h"
 #include "embedding/clipper.h"
 #include "io/io_utilities.h"
+#include "geometries/boundary_integration_point.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -29,6 +30,8 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TriangleMesh::Vector3d PointType;
+    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
+    typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};
     ///@}
@@ -62,95 +65,40 @@ public:
     ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-
     IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const;
 
+    ///@brief Return ids of triangles that intersect AABB.
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
+    ///@return std::unique_ptr<std::vector<IndexType>> containing ids.
+    std::unique_ptr<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
+    ///@brief Clips triangle mesh by AABB.
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
+    ///@return std::unique_ptr<TriangleMesh>. Clipped mesh.
+    std::unique_ptr<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
 
-    ///@todo Just return ids. Much more efficient
-    std::unique_ptr<TriangleMesh> GetIntersectedTriangles( const TriangleMesh& rTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound ) const{
-
-        // Perform fast search based on aabb tree. Conservative search.
-        AABB_primitive aabb(rLowerBound, rUpperBound);
-        auto potential_intersections = mTree.Query(aabb);
-
-        std::vector<IndexType> intersected_triangle_ids{};
-        int count = 0;
-
-        for( auto triangle_id : potential_intersections){
-            const auto& p1 = rTriangleMesh.P1(triangle_id);
-            const auto& p2 = rTriangleMesh.P2(triangle_id);
-            const auto& p3 = rTriangleMesh.P3(triangle_id);
-            // If tolerance>=0 intersection is not detected.
-            const double tolerance_1 = 1e-8;
-            // Perform actual intersection test.
-            if( aabb.intersect(p1, p2, p3, tolerance_1) ){
-                intersected_triangle_ids.push_back(triangle_id);
-            }
-        }
-
-        // Copy intersected triangles to new mesh.
-        TriangleMesh new_mesh{};
-        new_mesh.Copy(intersected_triangle_ids, rTriangleMesh);
-
-        return std::make_unique<TriangleMesh>(new_mesh);
-    }
-
-
-    std::unique_ptr<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound){
-
-        auto p_intersected_triangles = GetIntersectedTriangles(mTriangleMesh, rLowerBound, rUpperBound);
-
-        TriangleMesh new_mesh{};
-        std::map<IndexType, IndexType> index_map{};
-        IndexType vertex_count = 0;
-        for( IndexType triangle_id = 0; triangle_id < p_intersected_triangles->NumOfTriangles(); ++triangle_id ){
-            const auto& P1 = p_intersected_triangles->P1(triangle_id);
-            const auto& P2 = p_intersected_triangles->P2(triangle_id);
-            const auto& P3 = p_intersected_triangles->P3(triangle_id);
-
-            if(    IsContained(P1, rLowerBound, rUpperBound )
-                && IsContained(P2, rLowerBound, rUpperBound )
-                && IsContained(P3, rLowerBound, rUpperBound ) ){ // Triangle is fully contained, does not need to be clipped.
-
-                new_mesh.AddVertex(P1);
-                new_mesh.AddVertex(P2);
-                new_mesh.AddVertex(P3);
-
-                // Copy triangles and normals.
-                new_mesh.AddTriangle({vertex_count, vertex_count+1, vertex_count+2 });
-                vertex_count += 3;
-                new_mesh.AddNormal( p_intersected_triangles->Normal(triangle_id) );
-            }
-            else { // Triangle needs to be clipped.
-                auto polygon = Clipper::ClipTriangle(P1, P2, P3, rLowerBound, rUpperBound);
-
-                auto p_triangles = polygon->pGetTriangles();
-                for( auto triangle : (*p_triangles) ){
-                    new_mesh.AddVertex(triangle[0]);
-                    new_mesh.AddVertex(triangle[1]);
-                    new_mesh.AddVertex(triangle[2]);
-
-                    // Copy triangles and normals.
-                    new_mesh.AddTriangle({vertex_count, vertex_count+1, vertex_count+2 });
-                    vertex_count += 3;
-                    new_mesh.AddNormal( p_intersected_triangles->Normal(triangle_id) );
-                }
-            }
-
-        }
-        new_mesh.Check();
-        return std::make_unique<TriangleMesh>(new_mesh);
-    }
+    ///@brief Prototpye of: Clips triangle mesh by AABB and computes boundary edges.
+    ///@note This is just a protope and not ready to be used!
+    ///@details Projects trimmed domain onto plane at z=lower_bound and z=upper_bound and constructs integration points for trimmed domain.
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
+    ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
+    BoundaryIPVectorPtrType GetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const;
 
     ///@}
-
 
 private:
     ///@name Private Operations
     ///@{
 
-    inline bool IsContained(const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound){
+    ///@brief Returns true if point is inside AABB.
+    ///@param rPoint Query point.
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
+    ///@return bool
+    inline bool IsContained(const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound) const{
         if(    rPoint[0] < rLowerBound[0]
             || rPoint[0] > rUpperBound[0]
             || rPoint[1] < rLowerBound[1]

@@ -17,7 +17,7 @@
 
 ////
 /**
- * @class  SingleElement. Provides assembly opeartions for tensor-product quadrature rules.
+ * @class  SingleElement. Provides assembly opeartions for tensor-product quadrature rules of single non-trimmed element.
  * @author Manuel Messmer
  * @brief  Provides assembly for 3D quadrature rules.
  * @details Available Quadrature rules:
@@ -33,21 +33,13 @@ public:
         typedef std::array<double,3> PointType;
         typedef std::array<int,3> IntArrayType;
         ///@}
-
         ///@name Operations
+        ///@{
 
         /// @brief Assemble tensor product quadrature rules
-        /// @param rIntegrationPoints
-        /// @param LocalPointA in parametric space
-        /// @param LocalPointB in parametric space
-        /// @param Order
-        /// @param Method
-        static void Assemble(
-                IntegrationPointType& rIntegrationPoints,
-                PointType LocalPointA,
-                PointType LocalPointB,
-                IntArrayType Order,
-                IntegrationPointFactory1D::IntegrationMethod Method);
+        /// @param rElement
+        /// @param rParam
+        static void AssembleIPs(Element& rElement, const Parameters& rParam);
         ///@}
 
 }; // End Class SingleElement

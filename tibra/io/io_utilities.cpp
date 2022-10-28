@@ -530,4 +530,94 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
 }
 
 
+bool IO::WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& rPoints,
+                          const char* Filename,
+                          const bool Binary){
+
+  const auto begin_points_it_ptr = rPoints.begin();
+  const int num_points = rPoints.size();
+  const int num_elements = rPoints.size();
+
+  std::ofstream file;
+  if(Binary)
+    file.open(Filename, std::ios::out | std::ios::binary);
+  else
+    file.open(Filename);
+
+  file << "# vtk DataFile Version 4.1" << std::endl;
+  file << "vtk output" << std::endl;
+  if(Binary)
+    file << "BINARY"<< std::endl;
+  else
+    file << "ASCII"<< std::endl;
+
+
+  file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+  file << "POINTS " << num_points << " double" << std::endl;
+
+  for(int i = 0; i < num_points; ++i){
+    auto points_it = (begin_points_it_ptr + i);
+
+    if( Binary ){
+      // Make sure to create copy of points. "WriteBinary" will change them.
+      auto p_x = (*points_it)[0];
+      auto p_y = (*points_it)[1];
+      auto p_z = (*points_it)[2];
+      WriteBinary(file, p_x);
+      WriteBinary(file, p_y);
+      WriteBinary(file, p_z);
+    }
+    else {
+      file << (*points_it)[0] << ' ' << (*points_it)[1] << ' ' << (*points_it)[2] << std::endl;
+    }
+  }
+  file << std::endl;
+
+  //Write Cells
+  file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( Binary ){
+      int k = 1;
+      WriteBinary(file, k);
+      k = i;
+      WriteBinary(file, k);
+    }
+    else {
+      file << 1 << ' ' << i << std::endl;
+    }
+  }
+  file << std::endl;
+
+  file << "CELL_TYPES " << num_elements << std::endl;
+  for( int i = 0; i < num_elements; ++i){
+    if( Binary ){
+        int k = 1;
+        WriteBinary(file, k);
+    }
+    else {
+      file << 1 << std::endl;
+    }
+  }
+  file << std::endl;
+
+  file << "POINT_DATA " << num_points << std::endl;
+  file << "SCALARS Weights double 1" << std::endl;
+  file << "LOOKUP_TABLE default" << std::endl;
+  for(int i = 0; i < num_points; ++i){
+      auto points_it = (begin_points_it_ptr + i);
+
+      if( Binary ){
+        double rw = points_it->GetWeight();
+        WriteBinary(file, rw);
+      }
+      else {
+        file << points_it->GetWeight() << std::endl;
+      }
+  }
+  file << std::endl;
+  file.close();
+
+  return true;
+}
+
 

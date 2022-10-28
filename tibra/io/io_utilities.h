@@ -10,6 +10,7 @@
 // Project includes
 #include "geometries/element_container.h"
 #include "geometries/triangle_mesh.h"
+#include "geometries/boundary_integration_point.h"
 
 class IO{
 
@@ -36,6 +37,11 @@ public:
 
   static bool WritePointsToVTK(const ElementContainer& rElementContainer,
                                const char* Type,
+                               const char* Filename,
+                               const bool Binary);
+
+  /// TODO: templetize
+  static bool WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& pPoints,
                                const char* Filename,
                                const bool Binary);
 

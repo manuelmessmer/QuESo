@@ -4,94 +4,16 @@
 #include "embedding/clipper.h"
 #include "utilities/utilities.h"
 
-typedef std::size_t IndexType;
-typedef std::array<double, 3> PointType;
-
-// Function Definitions Polygon
-template<IndexType SIZE>
-void Polygon<SIZE>::AddVertex(const PointType& rPoint) {
-    if( mNumVertices >= SIZE ){
-        throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
-    }
-    mVertices[mNumVertices] = rPoint;
-    ++mNumVertices;
-}
-
-template<IndexType SIZE>
-IndexType Polygon<SIZE>::NumVertices() const {
-    return mNumVertices;
-}
-
-template<IndexType SIZE>
-const PointType& Polygon<SIZE>::GetVertex(IndexType i) const {
-    if( i >= mNumVertices ){
-        throw std::runtime_error("Polygon :: GetVertex :: Size of Polygon is exceeded.");
-    }
-    return mVertices[i];
-}
-
-template<IndexType SIZE>
-const PointType& Polygon<SIZE>::operator[] (IndexType i) const {
-    return mVertices[i];
-}
-
-template<IndexType SIZE>
-std::unique_ptr<std::vector<std::array<PointType, 3>>> Polygon<SIZE>::pGetTriangles() const {
-
-    auto p_new_triangles = std::make_unique<std::vector<std::array<PointType, 3>>>();
-    p_new_triangles->reserve(mNumVertices);
-
-    if(mNumVertices < 3){
-        throw std::runtime_error("Obacht");
-    }
-
-    if( mNumVertices == 3 ){
-
-        p_new_triangles->push_back({ mVertices[0], mVertices[1], mVertices[2]} );
-
-        return std::move(p_new_triangles);
-    }
-
-    // Compute mean of vertices
-    PointType centroid = {0.0, 0.0, 0.0};
-    const double inv_num_vertices = 1.0/mNumVertices;
-
-    for( IndexType i = 0 ; i < mNumVertices; ++i){
-        centroid[0] += inv_num_vertices*mVertices[i][0];
-        centroid[1] += inv_num_vertices*mVertices[i][1];
-        centroid[2] += inv_num_vertices*mVertices[i][2];
-    }
-
-    for( IndexType i = 0 ; i < mNumVertices-1; ++i){
-        p_new_triangles->push_back( {mVertices[i], mVertices[i+1], centroid} );
-    }
-    p_new_triangles->push_back( {mVertices[mNumVertices-1], mVertices[0], centroid} );
-
-    return std::move(p_new_triangles);
-}
-
-template<IndexType SIZE>
-const PointType& Polygon<SIZE>::GetLastVertex() const{
-    return mVertices[mNumVertices-1];
-}
-
-template<IndexType SIZE>
-void Polygon<SIZE>::Clear(){
-    std::fill(mVertices.begin(), mVertices.end(), PointType{});
-    mNumVertices = 0;
-}
-
-// Explicit instantiation Polygon
-template class Polygon<9>;
-
 // Function Definitions Clipper
+typedef Clipper::IndexType IndexType;
+typedef Clipper::PointType PointType;
 typedef Clipper::PolygonType PolygonType;
 
 std::unique_ptr<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-                const PointType& rLowerBound, const PointType& rUpperBound){
+            const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound){
 
-    std::unique_ptr<PolygonType> p_current_poly = std::make_unique<PolygonType>();
-    std::unique_ptr<PolygonType> p_prev_poly = std::make_unique<PolygonType>();
+    std::unique_ptr<PolygonType> p_current_poly = std::make_unique<PolygonType>(rNormal);
+    std::unique_ptr<PolygonType> p_prev_poly = std::make_unique<PolygonType>(rNormal);
 
     const PointType x_values = {rV1[0], rV2[0], rV3[0]};
     const PointType y_values = {rV1[1], rV2[1], rV3[1]};

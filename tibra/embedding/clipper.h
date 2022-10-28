@@ -10,65 +10,11 @@
 #include <algorithm>
 
 /// Project includes
+#include "embedding/polygon.h"
 #include "geometries/triangle_mesh.h"
 
 ///@name TIBRA Classes
 ///@{
-
-template<std::size_t SIZE>
-class Polygon {
-
-/**
- * @class  Polygon
- * @author Manuel Messmer
- * @brief  Provides container for results of Clipper::ClipTriangle function. Static array is used to improve performance.
-*/
-public:
-    ///@name Type Definitions
-    ///@{
-    typedef std::size_t IndexType;
-    typedef std::array<double,3> PointType;
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@brief Adds Vertex to Polygon
-    ///@param rPoint
-    void AddVertex(const PointType& rPoint);
-
-    ///@brief Return current number of vertices.
-    ///@return IndexType
-    IndexType NumVertices() const;
-
-    ///@brief Get i-th vertex.
-    ///@param i Index.
-    ///@return const PointType&
-    const PointType& GetVertex(IndexType i) const;
-
-    ///@brief Get i-th vertex.
-    ///@param i Index.
-    ///@return const PointType&
-    const PointType& operator[] (IndexType i) const;
-
-    ///@brief Get last vertex.
-    const PointType& GetLastVertex() const;
-
-    ///@brief Triangulates polygon centroid coodinate and returns triangles. Centroid is computed as mean of all vertices.
-    ///@return std::unique_ptr<std::vector<std::array<PointType, 3>>> Contains vertices of triangles.
-    std::unique_ptr<std::vector<std::array<PointType, 3>>> pGetTriangles() const;
-
-    ///@brief Clears vertex container of polygon.
-    void Clear();
-    ///@}
-
-private:
-    ///@name Member variables
-    ///@{
-    std::array<PointType, SIZE> mVertices{}; // Keep static array to be fast.
-    IndexType mNumVertices = 0;
-    ///@}
-};
 
 /**
  * @class  Clipper
@@ -82,7 +28,7 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::array<double,3> PointType;
-    typedef Polygon<9> PolygonType; // Intersections contains maximum 9 vertices.
+    typedef Polygon<3, 9> PolygonType; // Intersections contains maximum 9 vertices.
 
     enum Side{IN_FRONT_OF_PLANE, BEHIND_PLANE, ON_PLANE};
 
@@ -95,11 +41,13 @@ public:
     ///@param rV1 Vertex 1 of Triangle
     ///@param rV2 Vertex 2 of Triangle
     ///@param rV3 Vertex 3 of Triangle
+    ///@param rNormal Normal vector of triangle.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@return std::unique_ptr<Polygon> (Will contain maximal 9 vertices).
+    ///@todo Overload where normal is computed from vertices.
     static std::unique_ptr<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-                 const PointType& rLowerBound, const PointType& rUpperBound);
+                 const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
 
     ///@}
 

@@ -3,12 +3,12 @@
 
 // Project includes
 #include "utilities/mapping_utilities.h"
-#include "quadrature/multi_knotspan_boxes_utilities.h"
+#include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
-void MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(ElementContainer& rElements, const Parameters& rParameters){
+void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters& rParameters){
 
     // Loop over all 3 space dimensions
     // i = 0: x
@@ -210,7 +210,7 @@ void MultiKnotspanBoxesUtilities::CreateIntegrationPointsNonTrimmed(ElementConta
     }
 }
 
-bool MultiKnotspanBoxesUtilities::AllElementsVisited(ElementContainer& rElements){
+bool MultipleElements::AllElementsVisited(ElementContainer& rElements){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
     for(int i = 0; i < number_neighbours; ++i){
@@ -223,7 +223,7 @@ bool MultiKnotspanBoxesUtilities::AllElementsVisited(ElementContainer& rElements
     return true;
 }
 
-ElementContainer::ElementPtrType MultiKnotspanBoxesUtilities::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
+ElementContainer::ElementPtrType MultipleElements::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
     bool dummy_local_end;
     std::size_t dummy_next_id;
 
@@ -242,7 +242,7 @@ ElementContainer::ElementPtrType MultiKnotspanBoxesUtilities::NextElement(Elemen
     case 5:
         return rElements.pGetPreviousElementInZ(id, dummy_next_id, found, dummy_local_end);
     default:
-        throw std::runtime_error("MultiKnotspanBoxesUtilities: There are only 6 different directions!" );
+        throw std::runtime_error("MultipleElements: There are only 6 different directions!" );
     }
 }
 
@@ -256,7 +256,7 @@ double linear_function(int x, int number_neighbours){
 
     return value;
 }
-void MultiKnotspanBoxesUtilities::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters){
+void MultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
 
@@ -270,7 +270,7 @@ void MultiKnotspanBoxesUtilities::AssignNumberNeighbours(ElementContainer::Eleme
 
 }
 
-void MultiKnotspanBoxesUtilities::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters){
+void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters){
     const auto element_it_begin = rElements.begin();
     // Find global extrem points (within box)
     PointType global_lower_point_param{1e10, 1e10, 1e10};
@@ -346,7 +346,7 @@ void MultiKnotspanBoxesUtilities::StoreIntegrationPoints(ElementContainer::Eleme
 
 }
 
-// void MultiKnotspanBoxesUtilities::Assemble1DIntegrationPoints(ElementContainer& rElements, const Parameters& rParameter){
+// void MultipleElements::Assemble1DIntegrationPoints(ElementContainer& rElements, const Parameters& rParameter){
 
 //     auto elemet_it_begin = rElements.begin();
 //     for( int i = 0; i < rElements.size(); ++i){
