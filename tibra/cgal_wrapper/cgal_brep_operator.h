@@ -99,17 +99,6 @@ public:
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     bool ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType& rpBoundaryIps, const Parameters& rParam) const override;
 
-    ///@brief Computes intersection mesh between rGeometry and rCube.
-    ///@param rGeometry
-    ///@param rCube
-    ///@param rElement
-    ///@param rParam
-    ///@return bool Success?
-    bool ComputeIntersectionMesh(const CGALMeshType& rGeometry, CGALMeshType& rCube,
-                                 Element& rElement, const Parameters& rParam){
-
-                                 }
-
 private:
 
     CGALMeshType mCGALMesh;
