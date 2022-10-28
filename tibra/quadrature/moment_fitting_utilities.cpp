@@ -87,25 +87,25 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
                     // Compute normal for each face/triangle.
                     auto point_it = (begin_points_it_ptr + i);
 
-                    PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, rParam.PointA(), rParam.PointB());
-                    PointType value;
-
-                    const double f_x_x = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
-                    const double f_x_y = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
-                    //const double f_x_z = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
-
-                    // value[0] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0])*f_x_y*f_x_z;
-                    // value[1] = f_x_x*Polynomial::f_x_int(local_point[1], i_y, a[1], b[1])*f_x_z;
-                    value[2] = f_x_x*f_x_y*Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
-
-                    //double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
                     const auto& normal = point_it->Normal();
+                    if( std::abs(normal[2]) > 1e-10 ){
+                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, rParam.PointA(), rParam.PointB());
+                        PointType value;
 
-                    double integrand = normal[2]*value[2]*jacobian_z;
+                        const double f_x_x = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
+                        const double f_x_y = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
+                        //const double f_x_z = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
 
-                    // Add contribution to constant terms
-                    rConstantTerms[row_index] += integrand * point_it->GetWeight();
+                        //value[0] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0])*f_x_y*f_x_z;
+                        //value[1] = f_x_x*Polynomial::f_x_int(local_point[1], i_y, a[1], b[1])*f_x_z;
+                        value[2] = f_x_x*f_x_y*Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
 
+                        //double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
+                        double integrand = normal[2]*value[2]*jacobian_z;
+
+                        // Add contribution to constant terms
+                        rConstantTerms[row_index] += integrand * point_it->GetWeight();
+                    }
                 }
                 row_index++;
             }
