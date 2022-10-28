@@ -27,7 +27,7 @@
 #include <string>
 #include <map>
 
-// TODO: Make this Mesh Utilities and incoperate embedding utlities
+//@brief This class is deprecated and will be removed soon! All related functions are move to BRepOperator.
 class IntersectionTest {
 
 public:
