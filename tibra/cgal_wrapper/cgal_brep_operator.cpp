@@ -7,14 +7,13 @@
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/detect_features.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
-// IO
-#include <CGAL/IO/output_to_vtu.h>
-//#include <fstream>
+
 // Project includes
 #include "cgal_wrapper/cgal_brep_operator.h"
 #include "cgal_wrapper/cgal_cuboid_modeler.h"
 #include "io/io_utilities.h"
 
+// External includes
 #include <chrono>
 #include <stdexcept>
 
