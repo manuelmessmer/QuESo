@@ -12,8 +12,8 @@
 //#include <fstream>
 // Project includes
 #include "cgal_wrapper/cgal_brep_operator.h"
+#include "cgal_wrapper/cgal_cuboid_modeler.h"
 #include "io/io_utilities.h"
-#include "modeler/modeler.h"
 
 #include <chrono>
 #include <stdexcept>
@@ -71,7 +71,7 @@ bool BRepOperator::ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType
 
   // Make tmp copy, because PMP::corefine_and_compute_intersection does changes on geometry.
   CGALMeshType tmp_polyhedron = mCGALMesh;
-  auto p_tmp_cube = Modeler::make_cube_3(lower_bound, upper_bound);
+  auto p_tmp_cube = CuboidModeler::MakeCuboid(lower_bound, upper_bound);
 
   // Compute intersection surface mesh
   CGALMeshType intersection_mesh{};
