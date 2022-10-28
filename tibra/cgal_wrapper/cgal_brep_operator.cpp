@@ -57,12 +57,11 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
 
 bool BRepOperator::ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType& rpBoundaryIps, const Parameters& rParam) const {
 
-
-  //auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
-
   // Warning: Do not use parallel tag, as global omp parallization is implemented.
   typedef CGAL::Sequential_tag Concurrency_tag;
   typedef boost::property_map<CGALMeshType, CGAL::edge_is_feature_t>::type CGALEIFMap;
+  typedef Element::PositionType CGALPositionType;
+  typedef CGALKernalType::Vector_3 CGALVectorType;
 
   const auto& lower_bound = rElement.GetGlobalLowerPoint();
   const auto& upper_bound = rElement.GetGlobalUpperPoint();
@@ -102,17 +101,17 @@ bool BRepOperator::ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType
   }
 
   // Construct ptr to SurfaceMesh
-  std::unique_ptr<CGALMeshType> refinend_intersection_mesh = std::make_unique<CGALMeshType>();
+  std::unique_ptr<CGALMeshType> p_refinend_intersection_mesh = std::make_unique<CGALMeshType>();
 
   // Remesh intersected domain until minimum number of boundary triangles is reached.
   double edge_length = rParam.InitialTriangleEdgeLength();
   int iteration_count = 0;
-  while (refinend_intersection_mesh->number_of_faces() < rParam.MinimumNumberOfTriangles() && iteration_count < 10){
-    refinend_intersection_mesh->clear();
-    CGAL::copy_face_graph(intersection_mesh,*refinend_intersection_mesh);
+  while (p_refinend_intersection_mesh->number_of_faces() < rParam.MinimumNumberOfTriangles() && iteration_count < 10){
+    p_refinend_intersection_mesh->clear();
+    CGAL::copy_face_graph(intersection_mesh,*p_refinend_intersection_mesh);
 
-    // Element::PositionType positions = refinend_intersection_mesh->points();
-    // for (auto vi = refinend_intersection_mesh->vertices_begin(); vi != refinend_intersection_mesh->vertices_end(); ++vi)
+    // Element::CGALPositionType positions = p_refinend_intersection_mesh->points();
+    // for (auto vi = p_refinend_intersection_mesh->vertices_begin(); vi != p_refinend_intersection_mesh->vertices_end(); ++vi)
     // {
     //     double x = (positions[*vi].x() - rParam.PointA()[0])/std::abs(rParam.PointA()[0] - rParam.PointB()[0]);
     //     double y = (positions[*vi].y() - rParam.PointA()[1])/std::abs(rParam.PointA()[1] - rParam.PointB()[1]);
@@ -121,28 +120,28 @@ bool BRepOperator::ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType
     //     positions[*vi] = p;
     // }
 
-    CGALEIFMap eif = CGAL::get(CGAL::edge_is_feature, *refinend_intersection_mesh);
-    PMP::detect_sharp_edges(*refinend_intersection_mesh, 10, eif);
+    CGALEIFMap eif = CGAL::get(CGAL::edge_is_feature, *p_refinend_intersection_mesh);
+    PMP::detect_sharp_edges(*p_refinend_intersection_mesh, 10, eif);
 
     unsigned int nb_iterations = 3;
     try {
-      PMP::isotropic_remeshing(faces(*refinend_intersection_mesh), edge_length,
-        *refinend_intersection_mesh,  PMP::parameters::number_of_iterations(nb_iterations).use_safety_constraints(false) // authorize all moves
+      PMP::isotropic_remeshing(faces(*p_refinend_intersection_mesh), edge_length,
+        *p_refinend_intersection_mesh,  PMP::parameters::number_of_iterations(nb_iterations).use_safety_constraints(false) // authorize all moves
           .edge_is_constrained_map(eif).number_of_relaxation_steps(1));
     }
     catch(const std::exception& exc) {
-        if( !CGAL::is_closed(*refinend_intersection_mesh) ){
+        if( !CGAL::is_closed(*p_refinend_intersection_mesh) ){
           std::cout << "Remeshing Exception: " << exc.what() << std::endl;
           std::cout << "Mesh is not closed. Knot spans will be neglected" << std::endl;
           return 0;
         }
     }
-    edge_length = edge_length * 0.95*std::sqrt((double)refinend_intersection_mesh->number_of_faces() / (double) rParam.MinimumNumberOfTriangles()); // Todo: Make this better!!!
+    edge_length = edge_length * 0.95*std::sqrt((double)p_refinend_intersection_mesh->number_of_faces() / (double) rParam.MinimumNumberOfTriangles()); // Todo: Make this better!!!
     iteration_count++;
   }
 
-  // Element::PositionType positions = refinend_intersection_mesh->points();
-  // for (auto vi = refinend_intersection_mesh->vertices_begin(); vi != refinend_intersection_mesh->vertices_end(); ++vi)
+  // Element::CGALPositionType positions = p_refinend_intersection_mesh->points();
+  // for (auto vi = p_refinend_intersection_mesh->vertices_begin(); vi != p_refinend_intersection_mesh->vertices_end(); ++vi)
   // {
   //     double x = (positions[*vi].x() * std::abs(rParam.PointA()[0] - rParam.PointB()[0])) + rParam.PointA()[0];
   //     double y = (positions[*vi].y() * std::abs(rParam.PointA()[1] - rParam.PointB()[1])) + rParam.PointA()[1];
@@ -151,12 +150,32 @@ bool BRepOperator::ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType
   //     positions[*vi] = p;
   // }
 
-  if (refinend_intersection_mesh->number_of_faces() < rParam.MinimumNumberOfTriangles() ){
+  if (p_refinend_intersection_mesh->number_of_faces() < rParam.MinimumNumberOfTriangles() ){
     std::cout << "Warning:: Targeted number of triangles is not reached: "
-      << refinend_intersection_mesh->number_of_faces() << " / " <<  rParam.MinimumNumberOfTriangles() << std::endl;
+      << p_refinend_intersection_mesh->number_of_faces() << " / " <<  rParam.MinimumNumberOfTriangles() << std::endl;
   }
 
-  rElement.pSetSurfaceMesh( refinend_intersection_mesh ); // Ptr is lost after this function call.
+  /// Create boundary IPs from inersection mesh.
+  rpBoundaryIps->reserve(3*p_refinend_intersection_mesh->number_of_faces());
+  for(auto fd : faces(*p_refinend_intersection_mesh)) {
+    // Compute normal for each face/triangle.
+    CGALVectorType cgal_normal = CGAL::Polygon_mesh_processing::compute_face_normal(fd, *p_refinend_intersection_mesh);
+
+    std::array<PointType, 3> coordinates;
+    CGALPositionType positions = p_refinend_intersection_mesh->points();
+    int index = 0;
+    for( auto vh : vertices_around_face(halfedge(fd, *p_refinend_intersection_mesh), *p_refinend_intersection_mesh) ){
+        coordinates[index] = {positions[vh].x(), positions[vh].y(), positions[vh].z()};
+        index++;
+    }
+
+    PointType normal = {cgal_normal[0], cgal_normal[1], cgal_normal[2]};
+    auto p_new_boundary_ips = TriangleMesh::GetIPsGlobal(coordinates[0], coordinates[1], coordinates[2], normal, 1);
+    rpBoundaryIps->insert(rpBoundaryIps->end(), p_new_boundary_ips->begin(), p_new_boundary_ips->end());
+  }
+
+
+  rElement.pSetSurfaceMesh( p_refinend_intersection_mesh ); // Ptr is lost after this function call.
 
   return 1;
 }
