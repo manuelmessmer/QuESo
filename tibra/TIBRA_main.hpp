@@ -13,6 +13,8 @@
 /// Mesh Processing
 #include <CGAL/Polygon_mesh_processing/measure.h>
 
+#include "cgal_wrapper/cgal_brep_operator.h"
+
 /// Project includes
 #include "io/io_utilities.h"
 #include "utilities/intersection_test.h"
@@ -94,6 +96,8 @@ public:
         // Allocate element/knotspans container
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
 
+        IO::ReadMeshFromSTL(mTriangleMesh, mFilename.c_str());
+        mpBRepOperator = std::make_unique<cgal::BRepOperator>(mTriangleMesh);
         // Read geometry
         if( mEmbeddingFlag ) {
             CGAL::IO::read_STL(mFilename, mPolyhedron);
@@ -168,7 +172,9 @@ private:
     ///@{
     SurfaceMeshType mPolyhedron;
     SurfaceMeshType mPolyhedronPost;
+    TriangleMesh mTriangleMesh;
     std::unique_ptr<IntersectionTest> mpIntersectionTest;
+    std::unique_ptr<BRepOperatorBase> mpBRepOperator;
     std::unique_ptr<ElementContainer> mpElementContainer;
     const std::string mFilename;
     const Parameters mParameters;

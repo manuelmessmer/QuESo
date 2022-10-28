@@ -9,8 +9,6 @@
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "modeler/modeler.h"
-//cgal wrapper
-#include "cgal_wrapper/cgal_brep_operator.h"
 
 //// External includes
 #include <fstream>
@@ -20,6 +18,8 @@
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
 
 void TIBRA::Run(){
+  typedef BRepOperatorBase::BoundaryIPVectorType BoundaryIPVectorType;
+  typedef BRepOperatorBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
 
   // Get extreme points of bounding box
   const auto point_a = mParameters.PointA();
@@ -71,7 +71,7 @@ void TIBRA::Run(){
     IntersectionTest::IntersectionStatus status{};
     if( mEmbeddingFlag ){
       auto t_begin_di = std::chrono::high_resolution_clock().now();
-      status = mpIntersectionTest->CheckIntersection(mPolyhedron, cube, *new_element);
+      status = static_cast<IntersectionTest::IntersectionStatus>(mpBRepOperator->GetIntersectionState(*new_element));
       auto t_end_di = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
       et_check_intersect += t_delta_di.count();
@@ -96,7 +96,9 @@ void TIBRA::Run(){
     if( status == IntersectionTest::Trimmed) {
       new_element->SetIsTrimmed(true);
       auto t_begin_ci = std::chrono::high_resolution_clock().now();
-      valid_element = cgal::BRepOperator::ComputeIntersectionMesh(mPolyhedron, cube, *new_element, mParameters);
+
+      auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
+      valid_element = mpBRepOperator->ComputeBoundaryIps(*new_element, p_boundary_ips, mParameters);
       auto t_end_ci = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_ci = (t_end_ci - t_begin_ci);
       et_compute_intersection += t_delta_ci.count();
@@ -104,7 +106,7 @@ void TIBRA::Run(){
       // If valid solve moment fitting equation
       if( valid_element ){
         auto t_begin_mf = std::chrono::high_resolution_clock().now();
-        MomentFitting::CreateIntegrationPointsTrimmed(*new_element, mParameters);
+        MomentFitting::CreateIntegrationPointsTrimmed(*new_element, p_boundary_ips, mParameters);
         auto t_end_mf = std::chrono::high_resolution_clock().now();
         std::chrono::duration<double> t_delta_mf = (t_end_mf - t_begin_mf);
         et_moment_fitting += t_delta_mf.count();
