@@ -6,7 +6,6 @@
 #include <cmath>
 
 // Project includes
-#include "cgal_wrapper/cgal_mf_constant_terms.h"
 #include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
