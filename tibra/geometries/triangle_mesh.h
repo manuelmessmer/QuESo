@@ -52,13 +52,7 @@ public:
         const auto P2 = this->P2(TriangleId);
         const auto P3 = this->P3(TriangleId);
 
-        const double a = std::sqrt( std::pow(P1[0] - P2[0], 2) + std::pow(P1[1] - P2[1], 2) + std::pow(P1[2] - P2[2], 2));
-        const double b = std::sqrt( std::pow(P2[0] - P3[0], 2) + std::pow(P2[1] - P3[1], 2) + std::pow(P2[2] - P3[2], 2));
-        const double c = std::sqrt( std::pow(P3[0] - P1[0], 2) + std::pow(P3[1] - P1[1], 2) + std::pow(P3[2] - P1[2], 2));
-
-        const double s = (a+b+c) / 2.0;
-
-        return std::sqrt(s*(s-a)*(s-b)*(s-c));
+        return Area(P1, P2, P3);
     }
 
     /// @brief Outward point normal.
@@ -100,21 +94,53 @@ public:
         const auto P3 = this->P3(TriangleId);
 
         for( int i = 0; i < point_numbers; ++i){
-            const double xx  = this->ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
-                               this->ShapeFunctionValue( 1, s_integration_points[i] ) * P2[0] +
-                               this->ShapeFunctionValue( 2, s_integration_points[i] ) * P3[0] ;
+            const double xx  = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
+                               ShapeFunctionValue( 1, s_integration_points[i] ) * P2[0] +
+                               ShapeFunctionValue( 2, s_integration_points[i] ) * P3[0] ;
 
-            const double yy = this->ShapeFunctionValue( 0, s_integration_points[i] ) * P1[1] +
-                              this->ShapeFunctionValue( 1, s_integration_points[i] ) * P2[1] +
-                              this->ShapeFunctionValue( 2, s_integration_points[i] ) * P3[1] ;
+            const double yy = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[1] +
+                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[1] +
+                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[1] ;
 
-            const double zz = this->ShapeFunctionValue( 0, s_integration_points[i] ) * P1[2] +
-                              this->ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
-                              this->ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
+            const double zz = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[2] +
+                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
+                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
 
             // Normalize weights to 1 by multiplying by 2.
             const double weight = 2.0*s_integration_points[i].GetWeight()*Area(TriangleId);
             (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
+        }
+
+        return std::move(p_global_integration_points);
+    }
+
+    /// @brief Get boundary integration points in global space.
+    /// @param TriangleId
+    /// @param Method integration method.
+    /// @return IntegrationPointVectorPtrType.
+    static BoundaryIpVectorPtrType GetIPsGlobal( const Vector3d& P1, const Vector3d& P2, const Vector3d& P3, const Vector3d& rNormal, IndexType Method ) {
+
+        const auto& s_integration_points = GetIntegrationPoints(Method);
+        const SizeType point_numbers = s_integration_points.size();
+
+        auto p_global_integration_points = std::make_unique<BoundaryIpVectorType>(point_numbers);
+
+        for( int i = 0; i < point_numbers; ++i){
+            const double xx  = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
+                               ShapeFunctionValue( 1, s_integration_points[i] ) * P2[0] +
+                               ShapeFunctionValue( 2, s_integration_points[i] ) * P3[0] ;
+
+            const double yy = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[1] +
+                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[1] +
+                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[1] ;
+
+            const double zz = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[2] +
+                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
+                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
+
+            // Normalize weights to 1 by multiplying by 2.
+            const double weight = 2.0*s_integration_points[i].GetWeight()*Area(P1,P2,P3);
+            (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, rNormal);
         }
 
         return std::move(p_global_integration_points);
@@ -294,7 +320,7 @@ private:
     ///@param ShapeFunctionIndex
     ///@param rPoint
     ///@return double
-    double ShapeFunctionValue( IndexType ShapeFunctionIndex, const Vector3d& rPoint ) const {
+    static double ShapeFunctionValue( IndexType ShapeFunctionIndex, const Vector3d& rPoint ) {
         switch( ShapeFunctionIndex )
         {
         case 0:
@@ -313,6 +339,21 @@ private:
     ///@name Private Member Variables
     ///@{
 
+    ///@brief Return Area of Triangle
+    ///@param P1 Vertex 1
+    ///@param P2 Vertex 2
+    ///@param P3 Vertex 3
+    ///@return double
+    static double Area(const Vector3d& P1, const Vector3d& P2, const Vector3d& P3 ) {
+
+        const double a = std::sqrt( std::pow(P1[0] - P2[0], 2) + std::pow(P1[1] - P2[1], 2) + std::pow(P1[2] - P2[2], 2));
+        const double b = std::sqrt( std::pow(P2[0] - P3[0], 2) + std::pow(P2[1] - P3[1], 2) + std::pow(P2[2] - P3[2], 2));
+        const double c = std::sqrt( std::pow(P3[0] - P1[0], 2) + std::pow(P3[1] - P1[1], 2) + std::pow(P3[2] - P1[2], 2));
+
+        const double s = (a+b+c) / 2.0;
+
+        return std::sqrt(s*(s-a)*(s-b)*(s-c));
+    }
 
     ///@brief Factory function for triangle Gauss Legendre points.
     static const std::vector<IpVectorType>& AllIntegrationPoints()
