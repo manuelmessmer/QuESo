@@ -1,19 +1,9 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// CGAL includes
-// Domain
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Surface_mesh.h>
-// Boost
-#include <CGAL/boost/graph/properties.h>
 
 // Project includes
 #include "io/io_utilities.h"
-
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Surface_mesh<K::Point_3> SurfaceMesh;
-typedef std::size_t SizeType;
 
 bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
                         const char* Filename,
@@ -175,24 +165,13 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   return rTriangleMesh.Check();
 }
 
-template<typename SM>
-bool IO::WriteMeshToVTK(const SM& rSurfaceMesh,
+bool IO::WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
                         const char* Filename,
                         const bool Binary)
 {
-  typedef typename boost::graph_traits<SM>::vertex_descriptor   vertex_descriptor;
-  typedef typename boost::graph_traits<SM>::face_descriptor     face_descriptor;
-  typedef typename boost::graph_traits<SM>::halfedge_descriptor halfedge_descriptor;
 
-  typedef typename boost::property_map<SM, CGAL::vertex_point_t>::const_type VPMap;
-  typedef typename boost::property_map_value<SM, CGAL::vertex_point_t>::type Point_3;
-
-  VPMap vpmap = CGAL::get(CGAL::vertex_point, rSurfaceMesh);
-
-  const SizeType num_elements = rSurfaceMesh.number_of_faces();
-  const SizeType num_points = rSurfaceMesh.number_of_vertices();
-
-
+  const SizeType num_elements = rTriangleMesh.NumOfTriangles();
+  const SizeType num_points = rTriangleMesh.NumOfVertices();
 
   std::ofstream file;
   if(Binary)
@@ -210,49 +189,46 @@ bool IO::WriteMeshToVTK(const SM& rSurfaceMesh,
   file << "DATASET UNSTRUCTURED_GRID" << std::endl;
   file << "POINTS " << num_points << " double" << std::endl;
 
-  std::map<vertex_descriptor, IndexType> vids;
+
   IndexType inum = 0;
-  auto raw_points = rSurfaceMesh.points().data()->cartesian_begin();
-  for(vertex_descriptor v : vertices(rSurfaceMesh))
+  const auto& r_vertices = rTriangleMesh.GetVertices();
+  const auto v_it_begin = r_vertices.begin();
+  for(IndexType i = 0; i < num_points; ++i)
   {
-    const Point_3& p = get(vpmap, v);
+    const auto v_it = v_it_begin+i;
     if( Binary ){
-      double rx = CGAL::to_double(p.x());
-      double ry = CGAL::to_double(p.y());
-      double rz = CGAL::to_double(p.z());
+      double rx = (*v_it)[0];
+      double ry = (*v_it)[1];
+      double rz = (*v_it)[2];
 
       WriteBinary(file, rx);
       WriteBinary(file, ry);
       WriteBinary(file, rz);
     }
     else {
-      file << CGAL::to_double(p.x()) << ' ' << CGAL::to_double(p.y()) << ' ' << CGAL::to_double(p.z()) << std::endl;
+      file << (*v_it)[0] << ' ' << (*v_it)[1] << ' ' << (*v_it)[2] << std::endl;
     }
-    vids[v] = inum++;
   }
   file << std::endl;
 
   // Write Cells
   file << "Cells " << num_elements << " " << num_elements*4 << std::endl;
 
-  for(face_descriptor f : faces(rSurfaceMesh))
+  for(IndexType i = 0; i < num_elements; ++i)
   {
     if( Binary ){
       int k = 3;
       WriteBinary(file, k);
-      for(halfedge_descriptor h :
-                    halfedges_around_face(halfedge(f, rSurfaceMesh), rSurfaceMesh))
-      {
-        k = vids[target(h, rSurfaceMesh)];
+
+      for( auto id : rTriangleMesh.VertexIds(i) ){
+        k = id;
         WriteBinary(file, k);
       }
     }
     else {
       file << 3;
-      for(halfedge_descriptor h :
-                    halfedges_around_face(halfedge(f, rSurfaceMesh), rSurfaceMesh))
-      {
-          file << ' ' << vids[target(h, rSurfaceMesh)];
+      for( auto id : rTriangleMesh.VertexIds(i) ){
+          file << ' ' << id;
       }
       file << std::endl;
     }
@@ -274,12 +250,6 @@ bool IO::WriteMeshToVTK(const SM& rSurfaceMesh,
 
   return true;
 }
-
-// Instantiation
-template bool IO::WriteMeshToVTK<SurfaceMesh>(const SurfaceMesh& rSurfaceMesh,//PolygonMesh
-                                              const char* Filename,
-                                              const bool Binary);
-
 
 bool IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
                                 const char* Filename,

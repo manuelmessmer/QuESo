@@ -15,8 +15,8 @@
 class IO{
 
 public:
-  template<typename SM>
-  static bool WriteMeshToVTK(const SM& rSurfaceMesh,
+
+  static bool WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
                              const char* Filename,
                              const bool Binary);
 
