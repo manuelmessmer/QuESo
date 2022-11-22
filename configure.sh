@@ -22,6 +22,7 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
+    -DUSE_CGAL=ON \
     -DCGAL_DIR="../external_libraries/cgal" \
 
 # Buid
