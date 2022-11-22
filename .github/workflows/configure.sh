@@ -19,6 +19,7 @@ rm -rf "${APP_BUILD}/${CMAKE_BUILD_TYPE}/CMakeFiles"
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
+    -DUSE_CGAL=ON \
     -DCGAL_DIR="../external_libraries/cgal" \
 
 # Buid
