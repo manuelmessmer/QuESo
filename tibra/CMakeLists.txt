@@ -10,12 +10,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
 
 # Import CGAL and its components
-find_package( CGAL QUIET COMPONENTS  )
+if( USE_CGAL MATCHES ON )
+  find_package( CGAL QUIET COMPONENTS  )
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-if ( NOT CGAL_FOUND )
-  message(STATUS "This project requires the CGAL library, and will not be compiled.")
-  return()
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+  if ( NOT CGAL_FOUND )
+    message(STATUS "This project requires the CGAL library, and will not be compiled.")
+    return()
+  endif()
+  add_definitions( -DUSE_CGAL )
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -funroll-loops -std=c++17 ")
