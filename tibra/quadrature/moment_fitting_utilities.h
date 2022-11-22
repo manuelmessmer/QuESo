@@ -12,6 +12,7 @@
 
 // Project includes
 #include "geometries/element.h"
+#include "geometries/boundary_integration_point.h"
 #include "utilities/parameters.h"
 
 ///@name TIBRA Classes
@@ -28,6 +29,8 @@ public:
     ///@name Type Definition
     ///@{
     typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
+    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPsVectorType;
+    typedef std::unique_ptr<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     ///@}
@@ -42,7 +45,7 @@ public:
     ///      Comput. Methods Appl. Mech. Engrg. 400 (2022) 115584, https://doi.org/10.1016/j.cma.2022.115584.
     ///@param rElement
     ///@param rParam
-    static void CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam);
+    static void CreateIntegrationPointsTrimmed(Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, const Parameters& rParam);
 
     ///@}
 private:
@@ -50,7 +53,9 @@ private:
     ///@{
 
     ///@todo Clean this up.
-    static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
+    static double CreateIntegrationPointsTrimmed(Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
+
+    static void ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, VectorType& rConstantTerms, const Parameters& rParam);
 
     static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
 

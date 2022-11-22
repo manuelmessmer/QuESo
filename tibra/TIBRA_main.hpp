@@ -4,23 +4,6 @@
 #ifndef TIBRA_HPP
 #define TIBRA_HPP
 
-/// CGAL includes
-// Domain
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Mesh_polyhedron_3.h>
-#include <CGAL/Surface_mesh.h>
-#include <CGAL/boost/graph/IO/STL.h>
-/// Mesh Processing
-#include <CGAL/Polygon_mesh_processing/measure.h>
-
-/// Project includes
-#include "io/io_utilities.h"
-#include "utilities/intersection_test.h"
-#include "geometries/element.h"
-#include "utilities/mapping_utilities.h"
-#include "utilities/parameters.h"
-#include "geometries/element_container.h"
-
 /// External includes
 #include <iostream>
 #include <sstream>
@@ -29,6 +12,16 @@
 #include <array>
 #include <string>
 #include <chrono>
+
+/// Project includes
+#include "io/io_utilities.h"
+#include "utilities/intersection_test.h"
+#include "geometries/element.h"
+#include "utilities/mapping_utilities.h"
+#include "utilities/parameters.h"
+#include "geometries/element_container.h"
+#include "embedding/brep_operator_factory.h"
+
 
 ///@name TIBRA Classes
 ///@{
@@ -45,9 +38,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-    typedef K::Point_3 Point_3;
-    typedef CGAL::Surface_mesh<Point_3> SurfaceMeshType;
     typedef std::size_t  SizeType;
     typedef std::array<double, 3> PointType;
     typedef std::vector<Element> ElementVectorType;
@@ -96,18 +86,20 @@ public:
 
         // Read geometry
         if( mEmbeddingFlag ) {
-            CGAL::IO::read_STL(mFilename, mPolyhedron);
-
+            // Read mesh
+            IO::ReadMeshFromSTL(mTriangleMesh, mFilename.c_str());
             // Write Surface Mesh to vtk file if eco_level > 0
             if( mParameters.EchoLevel() > 0){
-                IO::WriteMeshToVTK(mPolyhedron, "output/geometry.vtk", true);
+                IO::WriteMeshToVTK(mTriangleMesh, "output/geometry.vtk", true);
             }
-            mpIntersectionTest = std::make_unique<IntersectionTest>(mPolyhedron, mParameters.PointA(), mParameters.PointB());
+            // Construct BRepOperator
+            mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh);
+
             // Compute volume
-            const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);
-            if( mParameters.EchoLevel() > 0)
-                // std::cout.precision(17);
-                std::cout << "Volume of Global Surface Mesh (File: '" << mFilename << "' ): " << volume_global_surface_mesh << std::endl;
+            //const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);
+            // if( mParameters.EchoLevel() > 0)
+            //     // std::cout.precision(17);
+            //     std::cout << "Volume of Global Surface Mesh (File: '" << mFilename << "' ): " << volume_global_surface_mesh << std::endl;
         }
 
         // Start computation
@@ -150,15 +142,15 @@ public:
 
     /// @brief Reads Filename and writes mesh to output/results.vtk
     /// @param Filename
-    void ReadWritePostMesh(const std::string& Filename) {
-        CGAL::IO::read_STL(Filename, mPolyhedronPost);
-        IO::WriteMeshToVTK(mPolyhedronPost, "output/results.vtk", true);
+    void ReadWritePostMesh(const std::string& rFilename) {
+        IO::ReadMeshFromSTL(mTriangleMeshPost, rFilename.c_str());
+        IO::WriteMeshToVTK(mTriangleMeshPost, "output/results.vtk", true);
     }
 
     /// @brief  Get mesh for prosptrocessing
-    /// @return const Reference to SurfaceMeshType
-    const SurfaceMeshType& GetPostMesh() const {
-        return mPolyhedronPost;
+    /// @return const Reference to TriangleMesh
+    const TriangleMesh& GetPostMesh() const {
+        return mTriangleMeshPost;
     }
     ///@}
 
@@ -166,9 +158,9 @@ private:
 
     ///@name Private Members Variables
     ///@{
-    SurfaceMeshType mPolyhedron;
-    SurfaceMeshType mPolyhedronPost;
-    std::unique_ptr<IntersectionTest> mpIntersectionTest;
+    TriangleMesh mTriangleMesh;
+    TriangleMesh mTriangleMeshPost;
+    std::unique_ptr<BRepOperatorBase> mpBRepOperator;
     std::unique_ptr<ElementContainer> mpElementContainer;
     const std::string mFilename;
     const Parameters mParameters;

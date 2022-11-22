@@ -9,12 +9,10 @@
 #include "geometries/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
-#include "quadrature/mf_constant_terms.h"
 
-#include "cgal_wrapper/cgal_mf_constant_terms.h"
 #include "cgal_wrapper/cgal_brep_operator.h"
+#include "quadrature/moment_fitting_utilities.h"
 
-#include "modeler/modeler.h"
 
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -54,34 +52,33 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsTest1) {
     Parameters param(lower_bound, upper_bound, number_of_elements, order, initial_triangle_edge_length,
         minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    auto p_cube = Modeler::make_cube_3(lower_bound, upper_bound);
-
     Element element(1, lower_bound, upper_bound, param);
-    auto status = cgal::BRepOperator::ComputeIntersectionMesh( mPolyhedron, *p_cube, element, param);
 
-    VectorType constant_terms_cgal{};
-    cgal::ConstantTerms::Compute(element, constant_terms_cgal, param);
+    // auto status = cgal::BRepOperator::ComputeIntersectionMesh( mPolyhedron, *p_cube, element, param);
 
-
-    //Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
-
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh);
-    auto p_points = brep_operator.GetBoundaryIps(lower_bound, upper_bound);
-
-    VectorType constant_terms{};
-    ConstantTerms::Compute(p_points, element, constant_terms, param);
+    // VectorType constant_terms_cgal{};
+    // cgal::ConstantTerms::Compute(element, constant_terms_cgal, param);
 
 
-    // Check
-    for( int i = 0; i < constant_terms_cgal.size(); ++i){
-        double ralative_error = (constant_terms[i] - constant_terms_cgal[i])/constant_terms_cgal[i];
-        //std::cout << ralative_error << "\t " << constant_terms[i] << ", " << constant_terms_cgal[i] << std::endl;
-        BOOST_CHECK_SMALL(ralative_error, 0.03);
+    // //Read mesh from STL file
+    // TriangleMesh triangle_mesh{};
+    // IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    }
+    // // Build brep_operator
+    // BRepOperator brep_operator(triangle_mesh);
+    // auto p_points = brep_operator.GetBoundaryIps(lower_bound, upper_bound);
+
+    // VectorType constant_terms{};
+    // ConstantTerms::Compute(p_points, element, constant_terms, param);
+
+
+    // // Check
+    // for( int i = 0; i < constant_terms_cgal.size(); ++i){
+    //     double ralative_error = (constant_terms[i] - constant_terms_cgal[i])/constant_terms_cgal[i];
+    //     //std::cout << ralative_error << "\t " << constant_terms[i] << ", " << constant_terms_cgal[i] << std::endl;
+    //     BOOST_CHECK_SMALL(ralative_error, 0.03);
+
+    // }
 
     // auto cube = Modeler::make_cube_3(lower_bound, upper_bound);
     // // Clip mesh.

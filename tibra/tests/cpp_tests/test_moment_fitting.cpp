@@ -4,25 +4,16 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
-
-/// CGAL includes
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Mesh_polyhedron_3.h>
-
 #include "math.h"
 
 // Project includes
+#include "embedding/brep_operator_factory.h"
 #include "quadrature/moment_fitting_utilities.h"
-#include "modeler/modeler.h"
 #include "quadrature/single_element.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
 
-#include "cgal_wrapper/cgal_brep_operator.h"
-
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Mesh_polyhedron_3<K>::type Mesh;
 
 namespace Testing{
 
@@ -30,16 +21,6 @@ BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
-
-    std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
-    std::array<double,3> point_b_outer = {2.1, 2.1, 3.1};
-
-    auto geometry_outer = Modeler::make_cube_3(point_a_outer, point_b_outer);
-
-    std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
-    std::array<double,3> point_b_inner = {2.0, 2.0, 3.0};
-
-    auto geometry_inner = Modeler::make_cube_3(point_a_inner, point_b_inner);
 
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
     std::array<double, 3> point_B = {2.0, 2.0, 3.0};
@@ -59,23 +40,30 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     point_B = {1.0, 1.0, 1.0};
     Element element(1, point_A, point_B, param);
-    auto status = cgal::BRepOperator::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
+
+    std::array<double,3> point_a_domain = {0.0, -0.1, -0.1};
+    std::array<double,3> point_b_domain = {2.1, 2.1, 3.1};
+    auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPointsTrimmed().clear();
-
     SingleElement::AssembleIPs(element, param);
 
+    // Set positions of trimmed points at Gauss Legendre Points.
     element.GetIntegrationPointsTrimmed() = element.GetIntegrationPointsInside();
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
         point.SetWeight(0.0);
     }
 
-    // SingleElement::AssembleIPs(element.GetIntegrationPointsInside(),
-    //     point_A, point_B, order, param.IntegrationMethod());
+    // Create BRepOperator
+    auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh);
+
+    // Compute Boundary IPs
+    auto p_boundary_ips = std::make_unique<std::vector<BoundaryIntegrationPoint>>();
+    p_brep_operator->ComputeBoundaryIps(element, p_boundary_ips, param);
 
     // Run Moment Fitting
-    MomentFitting::CreateIntegrationPointsTrimmed(element, param);
+    MomentFitting::CreateIntegrationPointsTrimmed(element, p_boundary_ips, param);
 
     auto& points_moment_fitting = element.GetIntegrationPointsTrimmed();
     auto& points_gauss_legendre = element.GetIntegrationPointsInside();
@@ -91,25 +79,16 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     }
     //std::cout << "Error Norm: " << 1.0/27.0*std::sqrt(error_norm) << std::endl;
 
-    BOOST_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 1e-8);
+    BOOST_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 2e-8);
 } // End Testcase
 
 
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
-    std::array<double,3> point_a_outer = {0.0, -0.1, -0.1};
-    std::array<double,3> point_b_outer = {1.1, 1.1, 1.1};
-
-    auto geometry_outer = Modeler::make_cube_3(point_a_outer, point_b_outer);
-
-    std::array<double,3> point_a_inner = {-0.1, 0.0, 0.0};
-    std::array<double,3> point_b_inner = {1.0, 1.0, 1.0};
-
-    auto geometry_inner = Modeler::make_cube_3(point_a_inner, point_b_inner);
-
     std::array<double, 3> point_A = {0.0, 0.0, 0.0};
     std::array<double, 3> point_B = {1.0, 1.0, 1.0};
+
     std::array<int, 3> number_of_elements = {1, 1, 1};
     std::array<int, 3> order = {3, 3, 3};
 
@@ -125,21 +104,30 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     param.SetUseCustomizedTrimmedPointsPositionFlag(true);
 
     Element element(1, point_A, point_B, param);
-    auto status = cgal::BRepOperator::ComputeIntersectionMesh( *geometry_outer, *geometry_inner, element, param);
+
+    std::array<double,3> point_a_domain = {0.0, -0.1, -0.1};
+    std::array<double,3> point_b_domain = {1.1, 1.1, 1.1};
+    auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPointsTrimmed().clear();
-
     SingleElement::AssembleIPs(element, param);
 
+    // Set positions of trimmed points at Gauss Legendre Points.
     element.GetIntegrationPointsTrimmed() = element.GetIntegrationPointsInside();
-
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPointsTrimmed() ){
         point.SetWeight(0.0);
     }
 
+    // Create BRepOperator
+    auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh);
+
+    // Compute Boundary IPs
+    auto p_boundary_ips = std::make_unique<std::vector<BoundaryIntegrationPoint>>();
+    p_brep_operator->ComputeBoundaryIps(element, p_boundary_ips, param);
+
     // Run Moment Fitting
-    MomentFitting::CreateIntegrationPointsTrimmed(element, param);
+    MomentFitting::CreateIntegrationPointsTrimmed(element, p_boundary_ips, param);
 
     auto& points_moment_fitting = element.GetIntegrationPointsTrimmed();
     auto& points_gauss_legendre = element.GetIntegrationPointsInside();

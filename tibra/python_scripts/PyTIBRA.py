@@ -136,12 +136,12 @@ class PyTIBRA:
 
             # Mesh points are stored in one consecutive array
             self.tibra.ReadWritePostMesh(self.post_filename)
-            raw_mesh_points = self.tibra.GetPostMeshPointsRaw()
-            num_points = len(raw_mesh_points)//3
+            mesh_points = self.tibra.GetPostMeshPoints()
+
             #print(num_points)
-            displacements = []
-            for i in range(num_points):
-                global_point = [raw_mesh_points[3*i], raw_mesh_points[3*i+1], raw_mesh_points[3*i+2]]
+            displacements = TIBRA_Application.PointVector()
+            for point in mesh_points:
+                global_point = [point[0], point[1], point[2]]
                 local_point = FromGlobalToParamSpace(global_point, self.lower_point, self.upper_point)
 
                 local_point_kratos = KM.Vector(3)
@@ -155,6 +155,7 @@ class PyTIBRA:
                 deformed_pos[1] = deformed_pos_kratos[1] - global_point[1]
                 deformed_pos[2] = deformed_pos_kratos[2] - global_point[2]
                 displacements.append( deformed_pos )
+
 
             TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
             #print(displacements[0])

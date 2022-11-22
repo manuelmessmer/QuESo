@@ -19,11 +19,14 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
+typedef std::array<double,3> PointType;
+typedef std::vector<PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
 typedef std::vector<Triangle3D3N> TriangleVectorType;
 
+PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
@@ -63,6 +66,11 @@ PYBIND11_MODULE(TIBRA_Application,m) {
             return py::make_iterator(v.get(), v.get() + v.get_size()) ;
         }, py::keep_alive<0, 1>())
         ;
+
+    /// Export PointTyoe
+    py::bind_vector<PointVectorType,std::unique_ptr<PointVectorType>>
+        (m, "PointVector")
+    ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
     py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
@@ -154,12 +162,9 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
-        .def("GetPostMeshPointsRaw", [](const TIBRA& v){
-
+        .def("GetPostMeshPoints", [](const TIBRA& v){
             auto& mesh = v.GetPostMesh();
-            const std::size_t num_p = mesh.num_vertices();
-            const auto raw_ptr = mesh.points().data()->cartesian_begin();
-            return  ptr_wrapper<double>(raw_ptr, num_p*3);
+            return  mesh.GetVertices();
         });
     ;
 

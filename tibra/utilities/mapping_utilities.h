@@ -1,4 +1,3 @@
-
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
@@ -6,18 +5,10 @@
 #define MAPPING_UTILITIES_INCLUDE_H
 
 #include <array>
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 
 namespace MappingUtilities {
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef K::Point_3 Point_3;
-
 std::array<double,3> FromGlobalToLocalSpace(  const std::array<double,3>& rGlobalCoord,
-                                              const std::array<double,3>& rLowerPoint,
-                                              const std::array<double,3>& rUpperPoint);
-
-std::array<double,3> FromGlobalToLocalSpace(  const Point_3& rGlobalCoord,
                                               const std::array<double,3>& rLowerPoint,
                                               const std::array<double,3>& rUpperPoint);
 
@@ -25,6 +16,6 @@ std::array<double,3> FromLocalToGlobalSpace( const std::array<double,3>& rLocalC
                                              const std::array<double,3>& rLowerPoint,
                                              const std::array<double,3>& rUpperPoint);
 
-} // end namespace utilities
+} // End namespace MappingUtilities
 
 #endif
