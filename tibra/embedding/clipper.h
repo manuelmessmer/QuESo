@@ -20,6 +20,7 @@
  * @class  Clipper
  * @author Manuel Messmer
  * @brief  Provides functions to clip triangle by cube.
+ * @todo Rename to Triangle clipper?
 */
 class Clipper  {
 
