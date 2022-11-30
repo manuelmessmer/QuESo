@@ -5,6 +5,8 @@
 #define ELEMENT_CONTAINER_INCLUDE_H
 
 // External includes
+#include <cstring>
+#include <sstream>
 #include <stdexcept>
 
 // Project includes
@@ -236,10 +238,10 @@ public:
         for( int i = 0; i < this->size(); ++i){
             auto el_itr = *(begin_el_itr_ptr + i);
             IntegrationPointVectorType points_tmp;
-            if( strcmp(type,"Trimmed") == 0 || strcmp(type,"All") == 0){
+            if( std::strcmp(type,"Trimmed") == 0 || std::strcmp(type,"All") == 0){
                 points_tmp = el_itr->GetIntegrationPointsTrimmed();
             }
-            else if( strcmp(type,"Inside") == 0 || strcmp(type,"All") == 0){
+            else if( std::strcmp(type,"Inside") == 0 || std::strcmp(type,"All") == 0){
                 points_tmp = el_itr->GetIntegrationPointsInside();
             }
             else {
