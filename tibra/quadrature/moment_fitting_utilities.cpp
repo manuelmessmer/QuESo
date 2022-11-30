@@ -9,7 +9,7 @@
 #include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
-#include "geometries/element.h"
+#include "containers/element.h"
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
@@ -61,8 +61,8 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
     const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
     const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
 
-    PointType a = rElement.GetLocalLowerPoint();
-    PointType b = rElement.GetLocalUpperPoint();
+    const PointType& a = rElement.GetLowerBoundParam();
+    const PointType& b = rElement.GetUpperBoundParam();
 
     const int ffactor = 1;
     const int order_u = rParam.Order()[0];
@@ -125,7 +125,7 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     const int max_iteration = 3;
     int iteration = 1;
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
-        auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
+        auto& reduced_points = rElement.GetIntegrationPoints();
         if( !rParam.UseCustomizedTrimmedPositions() ){
             // This is only used for test_moment_fitting.cpp
             reduced_points.clear();
@@ -141,7 +141,7 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     }
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
-        std::cout << "size: " << rElement.GetIntegrationPointsTrimmed().size() << std::endl;
+        std::cout << "size: " << rElement.GetIntegrationPoints().size() << std::endl;
         std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
         // IO::WriteMeshToVTK(rElement.GetSurfaceMesh(), "fail.vtk", true);
     }
@@ -156,8 +156,8 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         maximum_iteration = 1000;
     }
     else { // This is only used for test_moment_fitting.cpp
-        new_integration_points = rElement.GetIntegrationPointsTrimmed();
-        rElement.GetIntegrationPointsTrimmed().clear();
+        new_integration_points = rElement.GetIntegrationPoints();
+        rElement.GetIntegrationPoints().clear();
         maximum_iteration = 1;
     }
 
@@ -165,8 +165,8 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
     const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
 
-    PointType a = rElement.GetLocalLowerPoint();
-    PointType b = rElement.GetLocalUpperPoint();
+    PointType a = rElement.GetLowerBoundParam();
+    PointType b = rElement.GetUpperBoundParam();
 
     const int ffactor = 1;
     const int order_u = rParam.Order()[0];
@@ -273,7 +273,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         }
         number_iterations++;
     }
-    auto& reduced_points = rElement.GetIntegrationPointsTrimmed();
+    auto& reduced_points = rElement.GetIntegrationPoints();
 
     if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) {
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());

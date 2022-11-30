@@ -9,7 +9,7 @@
 #include <array>
 #include <algorithm>
 
-#include "geometries/boundary_integration_point.h"
+#include "containers/boundary_integration_point.h"
 #include "io/io_utilities.h"
 
 ///Project includes

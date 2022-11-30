@@ -4,7 +4,7 @@
 #ifndef BOUNDARY_INTEGRATION_POINT_INCLUDE_H
 #define BOUNDARY_INTEGRATION_POINT_INCLUDE_H
 
-#include "geometries/integration_point.h"
+#include "containers/integration_point.h"
 
 class BoundaryIntegrationPoint : public IntegrationPoint
 {

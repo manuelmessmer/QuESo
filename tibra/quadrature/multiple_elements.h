@@ -5,7 +5,7 @@
 #define MULTI_KNOTSPAN_BOXES_UTILITIES_H
 
 // Project includes
-#include "geometries/element_container.h"
+#include "containers/element_container.h"
 #include "utilities/parameters.h"
 
 ///@name TIBRA Classes

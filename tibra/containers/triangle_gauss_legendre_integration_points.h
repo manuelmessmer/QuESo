@@ -4,7 +4,7 @@
 #ifndef TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H
 #define TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H
 
-#include "geometries/integration_point.h"
+#include "containers/integration_point.h"
 
 class TriangleGaussLegendrePoints1
 {

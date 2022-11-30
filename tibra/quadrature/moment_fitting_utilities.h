@@ -11,8 +11,8 @@
 #include <variant>
 
 // Project includes
-#include "geometries/element.h"
-#include "geometries/boundary_integration_point.h"
+#include "containers/element.h"
+#include "containers/boundary_integration_point.h"
 #include "utilities/parameters.h"
 
 ///@name TIBRA Classes

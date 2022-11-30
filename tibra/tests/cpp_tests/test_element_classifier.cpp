@@ -6,7 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <chrono>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 

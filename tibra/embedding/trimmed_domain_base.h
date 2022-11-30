@@ -9,8 +9,8 @@
 #include <functional>
 
 /// Project includes
-#include "geometries/boundary_integration_point.h"
-#include "geometries/triangle_mesh.h"
+#include "containers/boundary_integration_point.h"
+#include "containers/triangle_mesh.h"
 #include "utilities/parameters.h"
 
 ///@name TIBRA Classes

@@ -13,8 +13,8 @@
 #include <map>
 
 /// Project includes
-#include "geometries/triangle_gauss_legendre_integration_points.h"
-#include "geometries/boundary_integration_point.h"
+#include "containers/triangle_gauss_legendre_integration_points.h"
+#include "containers/boundary_integration_point.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -392,7 +392,7 @@ private:
         case 2:
             return( rPoint[1] );
         default:
-            throw std::invalid_argument(" Triangle3D3N Wrong Index of Shape Function! ");
+            throw std::invalid_argument(" TriangleMesh :: ShapeFunctionValue :: Wrong Index of Shape Function! ");
             break;
         }
 

@@ -7,8 +7,8 @@
 
 // Project includes
 #include "utilities/parameters.h"
-#include "geometries/element.h"
-#include "geometries/element_container.h"
+#include "containers/element.h"
+#include "containers/element_container.h"
 
 namespace Testing{
 

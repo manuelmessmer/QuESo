@@ -9,7 +9,7 @@
 
 /// Project includes
 #include "embedding/aabb_primitive.h"
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 
 
 ///@name TIBRA Classes

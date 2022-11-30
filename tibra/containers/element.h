@@ -1,26 +1,34 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef ELEMENT_H
-#define ELEMENT_H
+#ifndef ELEMENT_INCLUDE_H
+#define ELEMENT_INCLUDE_H
 
 // External includes
 #include <stdexcept>
-#include "omp.h"
 #include <memory>
 
 // Project includes
-#include "geometries/integration_point.h"
+#include "containers/integration_point.h"
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
 #include "embedding/trimmed_domain_base.h"
 
+///@name TIBRA Classes
+///@{
+
+/**
+ * @class  Element
+ * @author Manuel Messmer
+ * @brief  Element/Knot Spans. Stores quadrature points.
+*/
 class Element
 {
 
 public:
 
-    // Typedefs
+    ///@name Type Defintitions
+    ///@{
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
     typedef std::array<double,3> PointType;
@@ -28,9 +36,17 @@ public:
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
     typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainPtrType;
 
-    // Constructor
-    Element(std::size_t ID, PointType PointLocalA, PointType PointLocalB, const Parameters& rParam) :
-        mElementId(ID), mLocalLowerPoint(PointLocalA), mLocalUpperPoint(PointLocalB), mParameters(rParam)
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+    ///@param ElementId UniqueID
+    ///@param rLowerBoundParam LowerBound of Element in parametric space.
+    ///@param rUpperBoundParam LowerBound of Element in parametric space.
+    ///@param rParam TIBRA Parameters.
+    Element(IndexType ElementId, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam, const Parameters& rParam) :
+        mElementId(ElementId), mLocalLowerPoint(rLowerBoundParam), mLocalUpperPoint(rUpperBoundParam), mParameters(rParam)
     {
         mIsTrimmed = false;
         mTrimmedDomainSetFlag = false;
@@ -39,41 +55,55 @@ public:
     // Delete copy constructor
     Element(Element const& rOther) = delete;
 
-    void SetIsTrimmed(bool value){
-        mIsTrimmed = value;
+    /// @brief Set Element as trimmed.
+    /// @param Value
+    void SetIsTrimmed(bool Value){
+        mIsTrimmed = Value;
     }
 
-    void SetId(std::size_t value){
-        mElementId = value;
+    /// @brief Set Id
+    /// @param Value
+    void SetId(IndexType Value){
+        mElementId = Value;
     }
 
-    const std::size_t GetId() const{
+    /// @brief Return Id of this element.
+    /// @return IndexType
+    const IndexType GetId() const{
         return mElementId;
     }
 
+    /// @brief Returns true if element is trimmed.
+    /// @return bool
     bool IsTrimmed() const{
         return mIsTrimmed;
     }
 
+    /// @brief Returns TIBRA parameters
+    /// @return const Parameters&
     const Parameters& GetParameters() const {
         return mParameters;
     }
 
-    IntegrationPointVectorType& GetIntegrationPointsTrimmed(){
-        return mIntegrationPointsTrimmed;
-    }
-    IntegrationPointVectorType& GetIntegrationPointsInside(){
-        return mIntegrationPointsInside;
-    }
-    IntegrationPointVectorType& GetIntegrationPointsFictitious(){
-        return mIntegrationPointsFictitious;
+    /// @brief Returns Vector of integration points.
+    /// @return IntegrationPointVectorType&
+    IntegrationPointVectorType& GetIntegrationPoints() {
+        return mIntegrationPoints;
     }
 
-    PointType GetLocalUpperPoint() const {
+    /// @brief Returns const& Vector of integration points.
+    /// @return const IntegrationPointVectorType&
+    const IntegrationPointVectorType& GetIntegrationPoints() const{
+        return mIntegrationPoints;
+    }
+
+    /// @brief Get UpperBound of element in parametric coordinates.
+    /// @return
+    const PointType& GetUpperBoundParam() const {
         return mLocalUpperPoint;
     }
 
-    PointType GetLocalLowerPoint() const {
+    const PointType& GetLowerBoundParam() const {
         return mLocalLowerPoint;
     }
 
@@ -137,9 +167,7 @@ public:
     }
 
 private:
-    IntegrationPointVectorType mIntegrationPointsTrimmed;
-    IntegrationPointVectorType mIntegrationPointsInside;
-    IntegrationPointVectorType mIntegrationPointsFictitious;
+    IntegrationPointVectorType mIntegrationPoints;
 
     const Parameters& mParameters;
     PointType mLocalUpperPoint;
@@ -159,4 +187,4 @@ private:
     bool mIsVisited{};
 };
 
-#endif
+#endif // ELEMENT_INCLUDE_H

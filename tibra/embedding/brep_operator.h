@@ -8,12 +8,12 @@
 #include <memory>
 
 /// Project includes
-#include "geometries/triangle_mesh.h"
-#include "geometries/element.h"
+#include "containers/triangle_mesh.h"
+#include "containers/element.h"
 #include "embedding/aabb_tree.h"
 #include "embedding/clipper.h"
 #include "io/io_utilities.h"
-#include "geometries/boundary_integration_point.h"
+#include "containers/boundary_integration_point.h"
 
 ///@name TIBRA Classes
 ///@{

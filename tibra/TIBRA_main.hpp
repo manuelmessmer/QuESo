@@ -15,10 +15,10 @@
 
 /// Project includes
 #include "io/io_utilities.h"
-#include "geometries/element.h"
+#include "containers/element.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/parameters.h"
-#include "geometries/element_container.h"
+#include "containers/element_container.h"
 #include "embedding/brep_operator_factory.h"
 
 

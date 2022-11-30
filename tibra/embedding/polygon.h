@@ -9,7 +9,7 @@
 #include <array>
 
 ///Project includes
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 
 ///@name TIBRA Classes
 ///@{

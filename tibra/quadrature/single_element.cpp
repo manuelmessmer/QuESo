@@ -26,12 +26,12 @@ void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
 
     const SizeType n_point = (n_point_u)*(n_point_v)*(n_point_w);
 
-    auto& integration_points = rElement.GetIntegrationPointsInside();
+    auto& integration_points = rElement.GetIntegrationPoints();
     integration_points.clear();
     integration_points.reserve(n_point);
 
-    PointType local_point_a = rElement.GetLocalLowerPoint();
-    PointType local_point_b = rElement.GetLocalUpperPoint();
+    PointType local_point_a = rElement.GetLowerBoundParam();
+    PointType local_point_b = rElement.GetUpperBoundParam();
 
     const double length_u = std::abs(local_point_b[0] - local_point_a[0]);
     const double length_v = std::abs(local_point_b[1] - local_point_a[1]);

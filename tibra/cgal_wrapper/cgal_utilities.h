@@ -10,7 +10,7 @@
 #include <CGAL/Surface_mesh.h>
 
 // Project includes
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 
 namespace cgal {
 

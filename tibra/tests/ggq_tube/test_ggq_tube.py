@@ -34,7 +34,7 @@ class TestGGQTube(unittest.TestCase):
             if not element.IsTrimmed():
                 num_el_inside += 1
                 tmp_list = []
-                for point in element.GetIntegrationPointsInside():
+                for point in element.GetIntegrationPoints():
                     tmp_list.append( [point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()] )
                 ips[element.ID()] = tmp_list
 

@@ -88,12 +88,12 @@ class PyTIBRA:
         # Gather all poitnts (TODO: make this in C++)
         for element in self.elements:
             if element.IsTrimmed():
-                for point_trimmed_reduced in element.GetIntegrationPointsTrimmed():
+                for point_trimmed_reduced in element.GetIntegrationPoints():
                     weight = point_trimmed_reduced.GetWeight()
                     if( weight > 0):
                         integration_points.append(point_trimmed_reduced)
             else:
-                for point_inside in element.GetIntegrationPointsInside():
+                for point_inside in element.GetIntegrationPoints():
                     integration_points.append(point_inside)
         return integration_points
 

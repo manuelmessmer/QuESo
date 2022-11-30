@@ -8,7 +8,7 @@
 #include <memory>
 
 /// Project includes
-#include "geometries/element.h"
+#include "containers/element.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
 

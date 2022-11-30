@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 // Project includes
-#include "geometries/element.h"
+#include "containers/element.h"
 #include "utilities/parameters.h"
 
 
@@ -239,10 +239,10 @@ public:
             auto el_itr = *(begin_el_itr_ptr + i);
             IntegrationPointVectorType points_tmp;
             if( std::strcmp(type,"Trimmed") == 0 || std::strcmp(type,"All") == 0){
-                points_tmp = el_itr->GetIntegrationPointsTrimmed();
+                points_tmp = el_itr->GetIntegrationPoints();
             }
             else if( std::strcmp(type,"Inside") == 0 || std::strcmp(type,"All") == 0){
-                points_tmp = el_itr->GetIntegrationPointsInside();
+                points_tmp = el_itr->GetIntegrationPoints();
             }
             else {
                 std::stringstream error_message;

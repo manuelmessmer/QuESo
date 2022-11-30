@@ -8,9 +8,9 @@
 #include <fstream>      // std::ofstream
 
 // Project includes
-#include "geometries/element_container.h"
-#include "geometries/triangle_mesh.h"
-#include "geometries/boundary_integration_point.h"
+#include "containers/element_container.h"
+#include "containers/triangle_mesh.h"
+#include "containers/boundary_integration_point.h"
 
 class IO{
 

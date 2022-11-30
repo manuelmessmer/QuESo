@@ -7,7 +7,7 @@
 #include <set>
 #include <chrono>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/aabb_tree.h"
 
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 
 
-// #include "geometries/element.h"
+// #include "containers/element.h"
 // #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 // #include <CGAL/Mesh_polyhedron_3.h>
 // #include <CGAL/Surface_mesh.h>

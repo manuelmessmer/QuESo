@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 
     BOOST_CHECK_EQUAL(elements.size(), 1);
 
-    const auto& points_reduced = (*elements.begin())->GetIntegrationPointsTrimmed();
+    const auto& points_reduced = (*elements.begin())->GetIntegrationPoints();
     BOOST_CHECK_LT(points_reduced.size(), 28);
 
     const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
@@ -102,7 +102,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
     for( std::size_t i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
-            const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
+            const auto& points_trimmed = el_it->GetIntegrationPoints();
             BOOST_CHECK_GT(points_trimmed.size(), 0);
             BOOST_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( auto point : points_trimmed ){
@@ -110,7 +110,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
             }
             num_elements_trimmed++;
         } else {
-            const auto& points_inside = el_it->GetIntegrationPointsInside();
+            const auto& points_inside = el_it->GetIntegrationPoints();
             //BOOST_CHECK_GT(points_inside.size(), 0);
             for( auto point : points_inside ){
                 weigth_inside += point.GetWeight();
@@ -169,7 +169,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
     for( std::size_t i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
-            const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
+            const auto& points_trimmed = el_it->GetIntegrationPoints();
             BOOST_CHECK_GT(points_trimmed.size(), 0);
             BOOST_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( auto point : points_trimmed ){
@@ -177,7 +177,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
             }
             num_elements_trimmed++;
         } else {
-            const auto& points_inside = el_it->GetIntegrationPointsInside();
+            const auto& points_inside = el_it->GetIntegrationPoints();
             //BOOST_CHECK_GT(points_inside.size(), 0);
             for( auto point : points_inside ){
                 weigth_inside += point.GetWeight();

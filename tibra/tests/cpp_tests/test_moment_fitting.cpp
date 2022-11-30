@@ -46,13 +46,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     std::array<double,3> point_b_domain = {2.1, 2.1, 3.1};
     auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
-    element.GetIntegrationPointsTrimmed().clear();
+    element.GetIntegrationPoints().clear();
     SingleElement::AssembleIPs(element, param);
 
     // Set positions of trimmed points at Gauss Legendre Points.
-    element.GetIntegrationPointsTrimmed() = element.GetIntegrationPointsInside();
+    element.GetIntegrationPoints() = element.GetIntegrationPoints();
     // Make sure weights are disturbed.
-    for( auto& point : element.GetIntegrationPointsTrimmed() ){
+    for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
     }
 
@@ -71,8 +71,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     // Run Moment Fitting
     MomentFitting::CreateIntegrationPointsTrimmed(element, param);
 
-    auto& points_moment_fitting = element.GetIntegrationPointsTrimmed();
-    auto& points_gauss_legendre = element.GetIntegrationPointsInside();
+    auto& points_moment_fitting = element.GetIntegrationPoints();
+    auto& points_gauss_legendre = element.GetIntegrationPoints();
 
     double error_norm = 0.0;
     // Check if weights are similar
@@ -115,13 +115,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     std::array<double,3> point_b_domain = {2.1, 2.1, 1.1};
     auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
-    element.GetIntegrationPointsTrimmed().clear();
+    element.GetIntegrationPoints().clear();
     SingleElement::AssembleIPs(element, param);
 
     // Set positions of trimmed points at Gauss Legendre Points.
-    element.GetIntegrationPointsTrimmed() = element.GetIntegrationPointsInside();
+    element.GetIntegrationPoints() = element.GetIntegrationPoints();
     // Make sure weights are disturbed.
-    for( auto& point : element.GetIntegrationPointsTrimmed() ){
+    for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
     }
 
@@ -138,8 +138,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     // Run Moment Fitting
     MomentFitting::CreateIntegrationPointsTrimmed(element, param);
 
-    auto& points_moment_fitting = element.GetIntegrationPointsTrimmed();
-    auto& points_gauss_legendre = element.GetIntegrationPointsInside();
+    auto& points_moment_fitting = element.GetIntegrationPoints();
+    auto& points_gauss_legendre = element.GetIntegrationPoints();
 
     double error_norm = 0.0;
     // Check if weights are similar
