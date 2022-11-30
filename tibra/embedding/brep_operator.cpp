@@ -98,8 +98,8 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
 BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
         const Element& rElement) const {
 
-    const auto& lower_bound = rElement.GetGlobalLowerPoint();
-    const auto& upper_bound = rElement.GetGlobalLowerPoint();
+    const auto& lower_bound = rElement.GetLowerBound();
+    const auto& upper_bound = rElement.GetLowerBound();
     return GetIntersectionState(lower_bound, upper_bound, 1e-8);
 }
 

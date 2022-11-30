@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
-        element.GetGlobalLowerPoint(), element.GetGlobalUpperPoint(), param);
+        element.GetLowerBound(), element.GetUpperBound(), param);
 
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );

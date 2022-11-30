@@ -43,8 +43,8 @@ public:
     ///@param rElement
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     virtual IntersectionStatus GetIntersectionState(const Element& rElement){
-        const auto& lower_bound = rElement.GetGlobalLowerPoint();
-        const auto& upper_bound = rElement.GetGlobalUpperPoint();
+        const auto& lower_bound = rElement.GetLowerBound();
+        const auto& upper_bound = rElement.GetUpperBound();
         return GetIntersectionState(lower_bound, upper_bound);
     }
 

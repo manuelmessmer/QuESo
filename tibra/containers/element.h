@@ -10,9 +10,9 @@
 
 // Project includes
 #include "containers/integration_point.h"
+#include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
-#include "embedding/trimmed_domain_base.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -20,7 +20,7 @@
 /**
  * @class  Element
  * @author Manuel Messmer
- * @brief  Element/Knot Spans. Stores quadrature points.
+ * @brief  Element/Knot Spans. Stores quadrature points and trimmed domain (if element is trimmed).
 */
 class Element
 {
@@ -46,14 +46,17 @@ public:
     ///@param rUpperBoundParam LowerBound of Element in parametric space.
     ///@param rParam TIBRA Parameters.
     Element(IndexType ElementId, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam, const Parameters& rParam) :
-        mElementId(ElementId), mLocalLowerPoint(rLowerBoundParam), mLocalUpperPoint(rUpperBoundParam), mParameters(rParam)
+        mElementId(ElementId), mLowerBoundParam(rLowerBoundParam), mUpperBoundParam(rUpperBoundParam), mParameters(rParam)
     {
         mIsTrimmed = false;
-        mTrimmedDomainSetFlag = false;
     }
 
     // Delete copy constructor
     Element(Element const& rOther) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /// @brief Set Element as trimmed.
     /// @param Value
@@ -98,44 +101,50 @@ public:
     }
 
     /// @brief Get UpperBound of element in parametric coordinates.
-    /// @return
+    /// @return const PointType&
     const PointType& GetUpperBoundParam() const {
-        return mLocalUpperPoint;
+        return mUpperBoundParam;
     }
 
+    /// @brief Get LowerBound of element in parametric coordinates.
+    /// @return const PointType&
     const PointType& GetLowerBoundParam() const {
-        return mLocalLowerPoint;
+        return mLowerBoundParam;
     }
 
-    PointType GetGlobalUpperPoint() const {
-        return MappingUtilities::FromLocalToGlobalSpace(mLocalUpperPoint, mParameters.PointA(), mParameters.PointB());
+    /// @brief Get UpperBound of element in physical/global coordinates.
+    /// @return PointType
+    PointType GetUpperBound() const {
+        return MappingUtilities::FromLocalToGlobalSpace(mUpperBoundParam, mParameters.PointA(), mParameters.PointB());
     }
 
-    PointType GetGlobalLowerPoint() const{
-        return MappingUtilities::FromLocalToGlobalSpace(mLocalLowerPoint, mParameters.PointA(), mParameters.PointB());
+    /// @brief Get LowerBound of element in physical/global coordinates.
+    /// @return PointType
+    PointType GetLowerBound() const{
+        return MappingUtilities::FromLocalToGlobalSpace(mLowerBoundParam, mParameters.PointA(), mParameters.PointB());
     }
 
-    IntegrationPoint1DVectorType& IntegrationPoints1D(int i){
-        if(i ==0)
+    /// @brief Returns 1D integration points. Required for assembly of GGQ rules.
+    /// @param Dir Space Direction: 0-x, 1-y, 2-z.
+    /// @return IntegrationPoint1DVectorType&
+    IntegrationPoint1DVectorType& IntegrationPoints1D(IndexType Dir){
+        if(Dir==0)
             return mIntegrationPointsX;
-        if(i==1)
+        if(Dir==1)
             return mIntegrationPointsY;
 
         return mIntegrationPointsZ;
     }
 
-    IntegrationPoint1DVectorType& IntegrationPointsY(){
-        return mIntegrationPointsY;
-    }
-    IntegrationPoint1DVectorType& IntegrationPointsZ(){
-        return mIntegrationPointsZ;
-    }
-
+    /// @brief Set trimmed domain of element.
+    /// @param pTrimmedDomain Ptr (std::unique_ptr) to new trimmed domain.
     void pSetTrimmedDomain(TrimmedDomainPtrType& pTrimmedDomain ){
         mpTrimmedDomain = std::move(pTrimmedDomain);
     }
 
-    // Return raw Ptr!!
+    /// @brief Get ptr to trimmed domain of element.
+    /// @note Return raw ptr. No transfer of ownership. Element owns trimmed domain.
+    /// @return const TrimmedDomainBase*
     const TrimmedDomainBase* const pGetTrimmedDomain() const {
         if( !IsTrimmed() ){
             throw  std::runtime_error("Element :: pGetTrimmedDomain :: Element is not Trimmed." );
@@ -146,45 +155,60 @@ public:
         return mpTrimmedDomain.get();
     }
 
+    /// @brief Clear trimmed domain of element.
     void ClearTrimmedDomain(){
         mpTrimmedDomain = nullptr;
     }
 
-    void SetNeighbourCoefficient(double value, int direction){
-        mNumberOfNeighbours[direction] = value;
+    /// @brief Set neighbour coefficient. Required for assembly of GGQ rule. See: multiple_elements.h.
+    /// @param Value New Value.
+    /// @param Direction Space Direction: 0-x, 1-y, 2-z.
+    void SetNeighbourCoefficient(double Value, IndexType Direction){
+        mNumberOfNeighbours[Direction] = Value;
     }
 
+    /// @brief Get neighbour coeefficient of this element. Required for assembly of GGQ rule. See: multiple_elements.h.
+    /// @return double
     double NeighbourCoefficient(){
         return mNumberOfNeighbours[0]*mNumberOfNeighbours[1]*mNumberOfNeighbours[2];
     }
 
-    void SetVisited(bool value){
-        mIsVisited = value;
+    /// @brief Set Flag.
+    /// @param Value
+    void SetVisited(bool Value){
+        mIsVisited = Value;
     }
 
+    /// @brief Returns Flag. (see. SetVisited(value)).
+    /// @return bool
     bool IsVisited(){
         return mIsVisited;
     }
 
+    ///@}
 private:
-    IntegrationPointVectorType mIntegrationPoints;
+
+    ///@name Private member variables
+    ///@{
+    IntegrationPointVectorType mIntegrationPoints{};
+
+    IntegrationPoint1DVectorType mIntegrationPointsX{};
+    IntegrationPoint1DVectorType mIntegrationPointsY{};
+    IntegrationPoint1DVectorType mIntegrationPointsZ{};
 
     const Parameters& mParameters;
-    PointType mLocalUpperPoint;
-    PointType mLocalLowerPoint;
-
-    IntegrationPoint1DVectorType mIntegrationPointsX;
-    IntegrationPoint1DVectorType mIntegrationPointsY;
-    IntegrationPoint1DVectorType mIntegrationPointsZ;
+    PointType mUpperBoundParam{};
+    PointType mLowerBoundParam{};
 
     TrimmedDomainPtrType mpTrimmedDomain = nullptr;
-    bool mTrimmedDomainSetFlag = false;
 
-    std::size_t mElementId;
-    bool mIsTrimmed;
-
-    std::array<double, 3> mNumberOfNeighbours{};
+    IndexType mElementId{};
+    bool mIsTrimmed{};
     bool mIsVisited{};
-};
+
+    PointType mNumberOfNeighbours{};
+    ///@}
+}; // End class Element
+///@}
 
 #endif // ELEMENT_INCLUDE_H

@@ -310,8 +310,8 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
   const auto begin_el_itr = rElementContainer.begin();
   for( int i = 0; i < rElementContainer.size(); ++i){
     auto el_itr = *(begin_el_itr + i);
-    auto lower_point = el_itr->GetGlobalLowerPoint();
-    auto upper_point = el_itr->GetGlobalUpperPoint();
+    const auto& lower_point = el_itr->GetLowerBound();
+    const auto& upper_point = el_itr->GetUpperBound();
 
     if( Binary ){
 
