@@ -15,7 +15,6 @@
 
 /// Project includes
 #include "io/io_utilities.h"
-#include "utilities/intersection_test.h"
 #include "geometries/element.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/parameters.h"
