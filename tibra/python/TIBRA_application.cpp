@@ -69,6 +69,9 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     /// Export PointType
     py::class_<PointType, std::shared_ptr<PointType>>(m,"Point")
         .def(py::init<double, double, double>())
+        .def("GetX", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
+        .def("GetY", static_cast< double (PointType::*)() const>(&PointType::Y)) // Return const version of Y()
+        .def("GetZ", static_cast< double (PointType::*)() const>(&PointType::Z)) // Return const version of Z()
         .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
         ;
 
@@ -83,12 +86,8 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     ;
 
     /// Export Integration Points
-    py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
+    py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>, PointType>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
-        .def("GetX", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::X)) // Return const version of X()
-        .def("GetY", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::Y)) // Return const version of Y()
-        .def("GetZ", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::Z)) // Return const version of Z()
-        .def("Coordinates", &IntegrationPoint::Coordinates)
         .def("GetWeight", &IntegrationPoint::GetWeight)
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;

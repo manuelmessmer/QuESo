@@ -27,13 +27,17 @@ public:
     {}
 
     /// 3D Constructor
-    /// @param x
-    /// @param y
-    /// @param z
-    /// @param Weigth
-    /// @param rNormal
     BoundaryIntegrationPoint(double X, double Y, double Z, double Weigth, const Vector3d& rNormal) :
         IntegrationPoint(X,Y,Z, Weigth), mNormal(rNormal)
+    {
+    }
+
+    /// Destructor
+    ~BoundaryIntegrationPoint() = default;
+
+    /// Copy Constructor
+    BoundaryIntegrationPoint(const BoundaryIntegrationPoint& rOther)
+        : IntegrationPoint(rOther), mNormal(rOther.mNormal)
     {
     }
 

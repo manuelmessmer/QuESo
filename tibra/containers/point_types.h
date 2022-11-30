@@ -1,16 +1,41 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef VECTOR_3_INCLUDE_H
-#define VECTOR_3_INCLUDE_H
+#ifndef POINT_TYPES_INCLUDE_H
+#define POINT_TYPES_INCLUDE_H
 
 #include <array>
 
+/// Forward declaration
+template<typename type>
+class Vector3;
+
+/// Global Typedefs to be used in TIBRA
+typedef std::size_t  SizeType;
+typedef std::size_t  IndexType;
+
+typedef Vector3<double> PointType;
+typedef Vector3<double> Vector3d;
+typedef Vector3<IndexType> Vector3i;
+
+///@name TIBRA Classes
+///@{
+
+/**
+ * @class  Vector3
+ * @author Manuel Messmer
+*/
 template<typename type>
 class Vector3 : public std::array<type,3>
 {
 public:
+    ///@name Type defintion
+    ///@{
     typedef std::array<type,3> BaseType;
+
+    ///@}
+    ///@name Life cycle
+    ///@{
 
     /// Default constructor
     Vector3()
@@ -27,27 +52,26 @@ public:
     /// Destructor
     ~Vector3() = default;
 
-    /// Copy Constructor
+    /// Copy Constructor from BaseType
     Vector3(const BaseType& rOther) : BaseType(rOther)
     {
     }
 
-    /// Copy Constructor
+    /// Copy Constructor from Vector3
     Vector3(const Vector3& rOther) : BaseType(rOther)
     {
     }
 
-    /// Copy Assignement
+    /// Copy Assignement from Vector3
     Vector3& operator=(const Vector3& rOther)
     {
         BaseType::operator=(rOther);
         return *this;
     }
 
-
-    BaseType& Coordinates(){
-        return *this;
-    }
+    ///@}
+    ///@name Operations
+    ///@{
 
     type& X(){
         return this->operator[](0);
@@ -80,14 +104,8 @@ public:
     type operator [] (std::size_t i) const{
         return this->data()[i];
     }
+    ///@}
 };
+///@}
 
-typedef std::size_t  SizeType;
-typedef std::size_t  IndexType;
-
-typedef Vector3<double> PointType;
-typedef Vector3<double> Vector3d;
-typedef Vector3<IndexType> Vector3i;
-
-
-#endif // VECTOR_3_INCLUDE_H
+#endif // POINT_TYPES_INCLUDE_H
