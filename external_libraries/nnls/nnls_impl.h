@@ -1,5 +1,5 @@
  /**
-  * This is a port https://github.com/mlapshin/nnls with modifications.
+  * This is a port from https://github.com/mlapshin/nnls with modifications.
   * The original code included the following copyright notice:
   * \verbatim
 
