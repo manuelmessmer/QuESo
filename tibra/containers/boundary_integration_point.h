@@ -6,20 +6,38 @@
 
 #include "containers/integration_point.h"
 
+///@name TIBRA Classes
+///@{
+
+/**
+ * @class  BoundaryIntegrationPoint
+ * @author Manuel Messmer
+ * @brief Derives from IntegrationPoint. Contains also Normal Vector.
+*/
 class BoundaryIntegrationPoint : public IntegrationPoint
 {
 public:
-    // Default constructor
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor
     BoundaryIntegrationPoint() : IntegrationPoint()
     {}
 
-    // 3D Constructor
-    BoundaryIntegrationPoint(double x, double y, double z, double weigth_, const std::array<double,3>& rNormal) :
-        IntegrationPoint(x,y,z, weigth_), mNormal(rNormal)
+    /// 3D Constructor
+    /// @param x
+    /// @param y
+    /// @param z
+    /// @param Weigth
+    /// @param rNormal
+    BoundaryIntegrationPoint(double X, double Y, double Z, double Weigth, const std::array<double,3>& rNormal) :
+        IntegrationPoint(X,Y,Z, Weigth), mNormal(rNormal)
     {
     }
 
-    // Assignement operator
+    /// Assignement operator
     BoundaryIntegrationPoint& operator=(const BoundaryIntegrationPoint& rOther)
     {
         IntegrationPoint::operator=(rOther);
@@ -31,12 +49,24 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// @brief Get Normal vector
+    /// @return
     const std::array<double,3>& Normal() const{
         return mNormal;
     }
 
-private:
-    std::array<double, 3> mNormal;
-};
+    ///@}
 
-#endif
+private:
+    ///@name Private Member Variables
+    ///@{
+    std::array<double, 3> mNormal;
+    ///@}
+}; // End class BoundaryIntegrationPoint
+///@}
+
+#endif // BOUNDARY_INTEGRATION_POINT_INCLUDE_H

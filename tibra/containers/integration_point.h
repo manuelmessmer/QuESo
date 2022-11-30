@@ -9,6 +9,8 @@
 class IntegrationPoint : public Point
 {
 public:
+    typedef Point PointType;
+
     // Default constructor
     IntegrationPoint() : Point()
     {}
