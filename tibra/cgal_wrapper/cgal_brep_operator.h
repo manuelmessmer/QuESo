@@ -4,11 +4,7 @@
 #ifndef CGAL_BREP_OPERATOR_INCLUDE_H
 #define CGAL_BREP_OPERATOR_INCLUDE_H
 
-// External includes
-#include <map>
-
 /// CGAL includes
-// Domain
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/Surface_mesh.h>
@@ -17,11 +13,12 @@
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_traits.h>
 
-// Project includes
+/// Project includes
+#include "cgal_wrapper/cgal_utilities.h"
 #include "geometries/triangle_mesh.h"
-#include "embedding/brep_operator_base.h"
 #include "geometries/element.h"
 #include "geometries/integration_point.h"
+#include "embedding/brep_operator_base.h"
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
 
@@ -33,20 +30,19 @@ namespace cgal {
 /**
  * @class  CGAL brep operator
  * @author Manuel Messmer
- * @brief Provides geometrical operations for Brep models using cgal.
+ * @brief Provides geometrical operations for Brep models using CGAL (optional dependency of TIBRA).
 */
-class BRepOperator : public BRepOperatorBase {
+class CGALBRepOperator : public BRepOperatorBase {
 
 public:
     ///@name Type Definitions
     ///@{
+    typedef std::array<double,3> PointType;
+
     typedef CGAL::Exact_predicates_inexact_constructions_kernel CGALKernalType;
     typedef CGALKernalType::Point_3 CGALPointType;
     typedef CGAL::Surface_mesh<CGALPointType> CGALMeshType;
-    typedef std::unique_ptr<CGALMeshType> CGALMeshPtrType;
     typedef CGAL::Side_of_triangle_mesh<CGALMeshType, CGALKernalType> CGALInsideTestType;
-    typedef std::array<double,3> PointType;
-
     typedef CGAL::AABB_face_graph_triangle_primitive<CGALMeshType> CGALAABBFaceGraphsPrimitivesType;
     typedef CGAL::AABB_traits<CGALKernalType, CGALAABBFaceGraphsPrimitivesType> CGALAABBFaceGraphsTraits;
     typedef CGAL::AABB_tree<CGALAABBFaceGraphsTraits> CGALAABBTreeType;
@@ -56,30 +52,18 @@ public:
     ///@{
 
     /// Constructor
-    ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
-    BRepOperator(const TriangleMesh& rTriangleMesh )
+    CGALBRepOperator(const TriangleMesh& rTriangleMesh )
     {
         // Copy triangle mesh to CGAL mesh.
-        std::map<IndexType, CGALMeshType::Vertex_index> index_map{};
-        const auto& r_vertices = rTriangleMesh.GetVertices();
-        const auto v_it_begin = r_vertices.begin();
-        for( IndexType i = 0; i < rTriangleMesh.NumOfVertices(); ++i){
-            auto v = *(v_it_begin + i);
-            auto index1 = mCGALMesh.add_vertex(CGALPointType(v[0], v[1], v[2]));
-            index_map.insert( std::pair<IndexType, CGALMeshType::Vertex_index>( i, index1) );
-        }
-
-        for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
-            const auto& ids = rTriangleMesh.VertexIds(i);
-            mCGALMesh.add_face( index_map[ids[0]], index_map[ids[1]], index_map[ids[2]]  );
-        }
+        cgal::CGALUtilities::CopyMesh(rTriangleMesh, mCGALMesh);
+        // Initialize inside test and AABB tree.
         mpCGALInsideTest = std::make_unique<CGALInsideTestType>(mCGALMesh);
         CGAL::Polygon_mesh_processing::build_AABB_tree(mCGALMesh, mCGALAABBTree);
     }
 
     ///@}
-    ///@name Operatios
+    ///@name Operations
     ///@{
 
     ///@brief Returns intersections state of AABB.
@@ -94,18 +78,26 @@ public:
     ///@return bool
     bool IsInside(const PointType& rPoint) const override;
 
-    ///@brief Returns boundary integration points of element.
-    ///@param rElement
-    ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    bool ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType& rpBoundaryIps, const Parameters& rParam) const override;
+    /// @brief Returns ptr to trimmed domain.
+    /// @param rLowerBound of AABB.
+    /// @param rUpperBound of AABB.
+    /// @param rParam Parameters
+    /// @return TrimmedDomainBasePtrType (std::unique_ptr)
+    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const override;
 
+    ///@}
 private:
 
+    ///@name Private member variables
+    ///@{
     CGALMeshType mCGALMesh;
+    /// CGALInsideTestType must be ptr, since it does not have default constructor.
     std::unique_ptr<CGALInsideTestType> mpCGALInsideTest;
     CGALAABBTreeType mCGALAABBTree;
+    ///@}
 
-}; // End Class BRepOperator
+}; // End Class CGALBRepOperator
+///@}
 
 } // End namespace cgal
 
