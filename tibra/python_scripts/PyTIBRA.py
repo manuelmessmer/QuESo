@@ -84,7 +84,7 @@ class PyTIBRA:
         return self.upper_point
 
     def GetIntegrationPoints(self):
-        integration_points = TIBRA_Application.VectorOfIntegrationPoints()
+        integration_points = TIBRA_Application.IntegrationPointVector()
         # Gather all poitnts (TODO: make this in C++)
         for element in self.elements:
             if element.IsTrimmed():

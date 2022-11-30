@@ -14,23 +14,24 @@
 #include "TIBRA_main.hpp"
 #include "geometries/element.h"
 #include "geometries/element_container.h"
-#include "geometries/triangle_3d_3n.h"
+#include "geometries/triangle_mesh.h"
 #include "geometries/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
+typedef std::size_t IndexType;
 typedef std::array<double,3> PointType;
 typedef std::vector<PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
-typedef std::vector<Triangle3D3N> TriangleVectorType;
+typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
+PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
-PYBIND11_MAKE_OPAQUE(TriangleVectorType);
 
 namespace Python {
 
@@ -67,14 +68,14 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         }, py::keep_alive<0, 1>())
         ;
 
-    /// Export PointTyoe
+    /// Export PointVector
     py::bind_vector<PointVectorType,std::unique_ptr<PointVectorType>>
         (m, "PointVector")
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
     py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
-        (m, "VectorOfIntegrationPoints1D")
+        (m, "IntegrationPoint1DVector")
     ;
 
     /// Export Integration Points
@@ -88,32 +89,40 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 
-    /// Export Integration Points vector
+    /// Export IntegrationPoint Vector
     py::bind_vector<IntegrationPointVectorType,std::shared_ptr<IntegrationPointVectorType>>
-        (m, "VectorOfIntegrationPoints")
+        (m, "IntegrationPointVector")
     ;
 
-    /// Export Triangle3D3N
-    py::class_<Triangle3D3N, std::shared_ptr<Triangle3D3N>>(m,"Triangle3D3N")
-        .def(py::init<std::array<double, 3>, std::array<double, 3>, std::array<double, 3>,std::array<double, 3>>())
-        .def("Center", &Triangle3D3N::Center)
-        //.def("Jacobian", &Triangle3D3N::Jacobian)
-        .def("Normal", &Triangle3D3N::Normal)
-        .def("Area", &Triangle3D3N::Area)
-        .def("GetIntegrationPointsGlobal", [](Triangle3D3N& self, IndexType Method){
-            IntegrationPointVectorPtrType ptr;
-            ptr = self.GetIntegrationPointsGlobal(Method);
+    /// Export BoundaryIntegrationPoint
+    py::class_<BoundaryIntegrationPoint, std::shared_ptr<BoundaryIntegrationPoint>, IntegrationPoint>(m, "BoundaryIntegrationPoint")
+        .def(py::init<double, double, double, double, const std::array<double,3>& >())
+        .def("Normal", &BoundaryIntegrationPoint::Normal )
+    ;
 
-            return *ptr;
+    /// Export BoundaryIntegrationPoint Vector
+    py::bind_vector<BoundaryIpVectorType,std::unique_ptr<BoundaryIpVectorType>>
+        (m, "BoundaryIPVector")
+    ;
+
+    /// Export TriangleMesh
+    py::class_<TriangleMesh, std::unique_ptr<TriangleMesh>>(m,"TriangleMesh")
+        .def(py::init<>())
+        .def("Center", &TriangleMesh::Center)
+        .def("Normal", &TriangleMesh::Normal)
+        .def("Area", [](TriangleMesh& self, IndexType Id){
+            return self.Area(Id);
         })
-        .def("P1", &Triangle3D3N::P1)
-        .def("P2", &Triangle3D3N::P2)
-        .def("P3", &Triangle3D3N::P3)
-    ;
-
-    /// Export Triangle3D3N vector
-    py::bind_vector<TriangleVectorType,std::shared_ptr<TriangleVectorType>>
-        (m, "VectorOfTriangles")
+        .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
+            return self.GetIPsGlobal(Id, Method);
+        })
+        .def("Append", [](TriangleMesh& self, TriangleMesh& rOthers){
+            return self.Append(rOthers);
+        })
+        .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
+        .def("P1", &TriangleMesh::P1)
+        .def("P2", &TriangleMesh::P2)
+        .def("P3", &TriangleMesh::P3)
     ;
 
     /// Export Element
@@ -121,17 +130,22 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("GetIntegrationPointsTrimmed",  &Element::GetIntegrationPointsTrimmed, py::return_value_policy::reference_internal )
         .def("GetIntegrationPointsInside",  &Element::GetIntegrationPointsInside, py::return_value_policy::reference_internal )
         .def("GetIntegrationPointsFictitious",  &Element::GetIntegrationPointsFictitious, py::return_value_policy::reference_internal )
-        .def("GetTriangles", &Element::GetTriangles, py::return_value_policy::reference_internal)
-        .def("GetNeumannTriangles", &Element::GetNeumannTriangles, py::return_value_policy::reference_internal)
-        .def("GetDirichletTriangles", &Element::GetDirichletTriangles, py::return_value_policy::reference_internal)
+        .def("GetTriangleMesh", [](const Element& rElement){
+            return rElement.pGetTrimmedDomain()->GetTriangleMesh();
+        }, py::return_value_policy::reference_internal)
+        .def("GetBCTriangleMesh", [](const Element& rElement, std::function<bool(double, double,double)> &IsInDomain){
+            return rElement.pGetTrimmedDomain()->pGetTriangleMesh(IsInDomain);
+        })
         .def("GetLocalLowerPoint", &Element::GetLocalLowerPoint)
         .def("GetLocalUpperPoint", &Element::GetLocalUpperPoint)
-        .def("GetNumberBoundaryTriangles", &Element::GetNumberBoundaryTriangles)
+        .def("GetNumberBoundaryTriangles", [](const Element& rElement ){
+            return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
+        })
         .def("ID", &Element::GetId)
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
 
-    /// Export Element vector
+    /// Export Element Vector
     py::class_<ElementVectorPtrType>(m, "ElementVector")
         .def(py::init<>())
         .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
