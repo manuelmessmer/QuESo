@@ -6,25 +6,23 @@
 
 #include "containers/point.h"
 
-class IntegrationPoint : public Point
+class IntegrationPoint : public PointType
 {
 public:
-    typedef Point PointType;
-
     // Default constructor
-    IntegrationPoint() : Point()
+    IntegrationPoint() : PointType()
     {}
 
     // 2D Constructor
     IntegrationPoint(double x, double y, double weigth_) :
-        Point(x,y,0.0), mWeight(weigth_)
+        PointType(x,y,0.0), mWeight(weigth_)
     {
         mActiveFlag = true;
     }
 
     // 3D Constructor
     IntegrationPoint(double x, double y, double z, double weigth_) :
-        Point(x,y,z), mWeight(weigth_)
+        PointType(x,y,z), mWeight(weigth_)
     {
         mActiveFlag = true;
     }
@@ -32,7 +30,7 @@ public:
     // Assignement operator
     IntegrationPoint& operator=(const IntegrationPoint& rOther)
     {
-        Point::operator=(rOther);
+        PointType::operator=(rOther);
         if( this != &rOther) {
             mWeight = rOther.mWeight;
             mActiveFlag = rOther.mActiveFlag;

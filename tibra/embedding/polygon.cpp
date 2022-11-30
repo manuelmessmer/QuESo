@@ -8,8 +8,8 @@
 typedef std::size_t IndexType;
 
 // Function Definitions Polygon
-template<std::size_t DIM, IndexType SIZE>
-void Polygon<DIM, SIZE>::AddVertex(const PointType& rPoint) {
+template<IndexType SIZE>
+void Polygon<SIZE>::AddVertex(const PointType& rPoint) {
     if( mNumVertices >= SIZE ){
         throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
     }
@@ -17,26 +17,26 @@ void Polygon<DIM, SIZE>::AddVertex(const PointType& rPoint) {
     ++mNumVertices;
 }
 
-template<std::size_t DIM, IndexType SIZE>
-IndexType Polygon<DIM, SIZE>::NumVertices() const {
+template<IndexType SIZE>
+IndexType Polygon<SIZE>::NumVertices() const {
     return mNumVertices;
 }
 
-template<std::size_t DIM, IndexType SIZE>
-const typename Polygon<DIM, SIZE>::PointType& Polygon<DIM, SIZE>::GetVertex(IndexType i) const {
+template<IndexType SIZE>
+const PointType& Polygon<SIZE>::GetVertex(IndexType i) const {
     if( i >= mNumVertices ){
         throw std::runtime_error("Polygon :: GetVertex :: Size of Polygon is exceeded.");
     }
     return mVertices[i];
 }
 
-template<std::size_t DIM, IndexType SIZE>
-const typename Polygon<DIM, SIZE>::PointType& Polygon<DIM, SIZE>::operator[] (IndexType i) const {
+template<IndexType SIZE>
+const PointType& Polygon<SIZE>::operator[] (IndexType i) const {
     return mVertices[i];
 }
 
-template<std::size_t DIM, IndexType SIZE>
-std::unique_ptr<TriangleMesh> Polygon<DIM, SIZE>::pGetTriangleMesh() const {
+template<IndexType SIZE>
+std::unique_ptr<TriangleMesh> Polygon<SIZE>::pGetTriangleMesh() const {
 
     auto p_new_mesh = std::make_unique<TriangleMesh>();
     p_new_mesh->Reserve(mNumVertices);
@@ -88,21 +88,21 @@ std::unique_ptr<TriangleMesh> Polygon<DIM, SIZE>::pGetTriangleMesh() const {
     return std::move(p_new_mesh);
 }
 
-template<std::size_t DIM, IndexType SIZE>
-const typename Polygon<DIM, SIZE>::PointType& Polygon<DIM, SIZE>::GetLastVertex() const{
+template<IndexType SIZE>
+const PointType& Polygon<SIZE>::GetLastVertex() const{
     return mVertices[mNumVertices-1];
 }
 
-template<std::size_t DIM, IndexType SIZE>
-void Polygon<DIM, SIZE>::Clear(){
+template<IndexType SIZE>
+void Polygon<SIZE>::Clear(){
     std::fill(mVertices.begin(), mVertices.end(), PointType{});
     mNumVertices = 0;
 }
 
 
 
-template<std::size_t DIM, IndexType SIZE>
-std::unique_ptr<typename Polygon<DIM, SIZE>::EdgesType> Polygon<DIM, SIZE>::pGetEdgesOnPlane(IndexType PlaneIndex, double Position, double PlaneThickness) const {
+template<IndexType SIZE>
+std::unique_ptr<typename Polygon<SIZE>::EdgesType> Polygon<SIZE>::pGetEdgesOnPlane(IndexType PlaneIndex, double Position, double PlaneThickness) const {
 
     auto p_new_edges = std::make_unique<EdgesType>();
 
@@ -125,4 +125,4 @@ std::unique_ptr<typename Polygon<DIM, SIZE>::EdgesType> Polygon<DIM, SIZE>::pGet
 }
 
 // Explicit instantiation Polygon
-template class Polygon<3, 9>;
+template class Polygon<9>;

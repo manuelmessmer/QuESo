@@ -14,13 +14,8 @@
 #include "io/io_utilities.h"
 
 
-
-typedef std::size_t SizeType;
-typedef std::array<double, 3> PointType;
-typedef std::array<int, 3> IntArrayType;
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
-
 
 void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam){
 

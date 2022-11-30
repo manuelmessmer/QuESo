@@ -19,8 +19,6 @@ std::mt19937 gen(rd());
 std::uniform_real_distribution<> drandon(0, 1);
 
 typedef BRepOperator::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
-typedef BRepOperator::IndexType IndexType;
-typedef BRepOperator::SizeType SizeType;
 
 bool BRepOperator::IsInside(const PointType& rPoint) const {
 
@@ -29,7 +27,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
         int intersection_count = 0;
         while( is_on_boundary ){
             // Get random direction. Must be postive! -> x>0, y>0, z>0
-            TriangleMesh::Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
+            Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
             // Normalize
             double sum_direction = std::sqrt(direction[0]*direction[0]+direction[1]*direction[1]+direction[2]*direction[2]);
             std::for_each(direction.begin(), direction.end(), [sum_direction](auto& rValue) { rValue /= sum_direction;} );

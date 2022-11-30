@@ -29,9 +29,7 @@ public:
         ///@name Type Definitions
         ///@{
         typedef std::vector<IntegrationPoint> IntegrationPointType;
-        typedef size_t SizeType;
-        typedef std::array<double,3> PointType;
-        typedef std::array<int,3> IntArrayType;
+
         ///@}
         ///@name Operations
         ///@{

@@ -30,7 +30,7 @@ public:
   static bool ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
                               const char* Filename);
 
-  static bool WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+  static bool WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
                                      const char* Filename,
                                      const bool Binary);
 

@@ -31,7 +31,6 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef std::array<double,3> PointType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
     typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainPtrType;

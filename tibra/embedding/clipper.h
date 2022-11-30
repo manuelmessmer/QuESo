@@ -27,9 +27,8 @@ class Clipper  {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef std::array<double,3> PointType;
-    typedef Polygon<3, 9> PolygonType; // Intersections contains maximum 9 vertices.
+
+    typedef Polygon<9> PolygonType; // Intersections contains maximum 9 vertices.
 
     enum Side{IN_FRONT_OF_PLANE, BEHIND_PLANE, ON_PLANE};
 

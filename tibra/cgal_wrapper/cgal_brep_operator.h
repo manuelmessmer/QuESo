@@ -37,8 +37,6 @@ class CGALBRepOperator : public BRepOperatorBase {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::array<double,3> PointType;
-
     typedef CGAL::Exact_predicates_inexact_constructions_kernel CGALKernalType;
     typedef CGALKernalType::Point_3 CGALPointType;
     typedef CGAL::Surface_mesh<CGALPointType> CGALMeshType;

@@ -23,8 +23,6 @@ public:
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef std::unique_ptr<IntegrationPointVectorType> IntegrationPointVectorPtrType;
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
     typedef std::unordered_map<IndexType, IndexType> ElementHashMap;
 
     // Constructor
@@ -365,7 +363,7 @@ private:
     int mLastElementId;
     ElementVectorPtrType mElements{};
     ElementHashMap mElementHashMap{};
-    std::array<int,3> mNumberOfElements{};
+    Vector3i mNumberOfElements{};
 };
 
 #endif

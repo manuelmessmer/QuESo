@@ -10,6 +10,7 @@
 #include <array>
 
 // Project includes
+#include "containers/point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 
@@ -17,12 +18,9 @@ class Parameters
 {
 
 public:
-    // Typedefs
-    typedef std::array<double, 3> DoublePointType;
-    typedef std::array<int, 3> IntPointType;
 
     // Constructor
-    Parameters(DoublePointType PointA, DoublePointType PointB, IntPointType NumberOfElements, IntPointType Order,
+    Parameters(PointType PointA, PointType PointB, Vector3i NumberOfElements, Vector3i Order,
                double InitialTriangleEdgeLength, int MinimumNumberOfTriangles, double MomentFittingResidual,
                double PointDistributionFactor, std::string IntegrationMethod, int EchoLevel) :
             mPointA(PointA),
@@ -39,16 +37,16 @@ public:
         mUseCustomizedTrimmedPointsPositionFlag = false;
     }
 
-    const DoublePointType& PointA() const {
+    const PointType& PointA() const {
         return mPointA;
     }
-    const DoublePointType& PointB() const {
+    const PointType& PointB() const {
         return mPointB;
     }
-    const IntPointType& NumberOfElements() const {
+    const Vector3i& NumberOfElements() const {
         return mNumberOfElements;
     }
-    const IntPointType& Order() const {
+    const Vector3i& Order() const {
         return mOrder;
     }
     double InitialTriangleEdgeLength() const {
@@ -91,10 +89,10 @@ public:
     }
 
 private:
-    const DoublePointType mPointA;
-    const DoublePointType mPointB;
-    const IntPointType mNumberOfElements;
-    const IntPointType mOrder;
+    const PointType mPointA;
+    const PointType mPointB;
+    const Vector3i mNumberOfElements;
+    const Vector3i mOrder;
     const double mInitialTriangleEdgeLength;
     const int mMinimumNumberOfTriangles;
     const double mMomentFittingResidual;

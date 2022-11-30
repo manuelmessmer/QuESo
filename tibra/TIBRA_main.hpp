@@ -37,8 +37,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::size_t  SizeType;
-    typedef std::array<double, 3> PointType;
     typedef std::vector<Element> ElementVectorType;
 
     ///@}
@@ -61,8 +59,8 @@ public:
     TIBRA(const std::string filename,
                 PointType PointA,
                 PointType PointB,
-                std::array<int, 3> NumberOfElements,
-                std::array<int, 3> Order,
+                Vector3i NumberOfElements,
+                Vector3i Order,
                 double InitialTriangleEdgeLength,
                 double MinimumNumberOfTriangles,
                 double MomentFittingResidual,

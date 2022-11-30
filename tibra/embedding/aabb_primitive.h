@@ -27,9 +27,7 @@ class AABB_primitive : public AABB_primitive_base, public AABB_lohedges
 public:
     ///@name Type Definitions
     ///@{
-    typedef AABB_primitive_base::IndexType IndexType;
-    typedef AABB_primitive_base::Vector3d Vector3d;
-    typedef AABB_primitive_base::Vector3i Vector3i;
+
 
     ///@}
     ///@name Life cycle

@@ -32,7 +32,7 @@ public:
     /// @param z
     /// @param Weigth
     /// @param rNormal
-    BoundaryIntegrationPoint(double X, double Y, double Z, double Weigth, const std::array<double,3>& rNormal) :
+    BoundaryIntegrationPoint(double X, double Y, double Z, double Weigth, const Vector3d& rNormal) :
         IntegrationPoint(X,Y,Z, Weigth), mNormal(rNormal)
     {
     }
@@ -55,7 +55,7 @@ public:
 
     /// @brief Get Normal vector
     /// @return
-    const std::array<double,3>& Normal() const{
+    const Vector3d& Normal() const{
         return mNormal;
     }
 
@@ -64,7 +64,7 @@ public:
 private:
     ///@name Private Member Variables
     ///@{
-    std::array<double, 3> mNormal;
+    Vector3d mNormal;
     ///@}
 }; // End class BoundaryIntegrationPoint
 ///@}

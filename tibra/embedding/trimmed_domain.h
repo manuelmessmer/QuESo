@@ -25,7 +25,6 @@ class TrimmedDomain {
 public:
     ///@name Type Definitions
     ///@{
-    typedef TriangleMesh::Vector3d PointType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};
     ///@}

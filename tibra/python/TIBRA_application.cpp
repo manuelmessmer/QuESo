@@ -19,8 +19,6 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
-typedef std::size_t IndexType;
-typedef std::array<double,3> PointType;
 typedef std::vector<PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
@@ -66,6 +64,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("__iter__", [](ptr_wrapper<double> &v) {
             return py::make_iterator(v.get(), v.get() + v.get_size()) ;
         }, py::keep_alive<0, 1>())
+        ;
+
+    /// Export PointType
+    py::class_<PointType, std::shared_ptr<PointType>>(m,"Point")
+        .def(py::init<double, double, double>())
+        .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
         ;
 
     /// Export PointVector
@@ -172,8 +176,8 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 
     /// Export TIBRA
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
-        .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
-        .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
+        .def(py::init<const std::string, std::array<double,3>, std::array<double,3>, std::array<IndexType,3>, std::array<IndexType,3>, double, int, double, double, std::string, int>())
+        .def(py::init<const std::string, std::array<double,3>, std::array<double,3>, std::array<IndexType,3>, std::array<IndexType,3>, double, int, double, double, std::string, int, bool>())
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const TIBRA& v){

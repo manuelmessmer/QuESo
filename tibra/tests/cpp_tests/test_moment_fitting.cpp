@@ -23,10 +23,10 @@ BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
 
-    std::array<double, 3> point_A = {0.0, 0.0, 0.0};
-    std::array<double, 3> point_B = {2.0, 2.0, 3.0};
-    std::array<int, 3> number_of_elements = {1, 1, 1};
-    std::array<int, 3> order = {2, 2, 2};
+    PointType point_A = {0.0, 0.0, 0.0};
+    PointType point_B = {2.0, 2.0, 3.0};
+    Vector3i number_of_elements = {1, 1, 1};
+    Vector3i order = {2, 2, 2};
 
     int point_distribution_factor = 3;
     double initial_triangle_edge_length = 1;
@@ -42,8 +42,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, param);
 
-    std::array<double,3> point_a_domain = {0.0, -0.1, -0.1};
-    std::array<double,3> point_b_domain = {2.1, 2.1, 3.1};
+    PointType point_a_domain = {0.0, -0.1, -0.1};
+    PointType point_b_domain = {2.1, 2.1, 3.1};
     auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPoints().clear();
@@ -92,11 +92,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
-    std::array<double, 3> point_A = {0.0, 0.0, 0.0};
-    std::array<double, 3> point_B = {2.0, 2.0, 1.0};
+    PointType point_A = {0.0, 0.0, 0.0};
+    PointType point_B = {2.0, 2.0, 1.0};
 
-    std::array<int, 3> number_of_elements = {1, 1, 1};
-    std::array<int, 3> order = {3, 3, 3};
+    Vector3i number_of_elements = {1, 1, 1};
+    Vector3i order = {3, 3, 3};
 
     int point_distribution_factor = 3;
     double initial_triangle_edge_length = 1;
@@ -111,8 +111,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, param);
 
-    std::array<double,3> point_a_domain = {0.0, -0.1, -0.1};
-    std::array<double,3> point_b_domain = {2.1, 2.1, 1.1};
+    PointType point_a_domain = {0.0, -0.1, -0.1};
+    PointType point_b_domain = {2.1, 2.1, 1.1};
     auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPoints().clear();

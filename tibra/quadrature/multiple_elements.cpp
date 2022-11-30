@@ -7,7 +7,6 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
-typedef Element::PointType PointType;
 
 void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters& rParameters){
 

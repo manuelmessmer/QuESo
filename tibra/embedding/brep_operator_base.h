@@ -25,7 +25,6 @@ class BRepOperatorBase {
 public:
     ///@name Type Definitions
     ///@{
-    typedef TriangleMesh::Vector3d PointType;
     typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainBasePtrType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};

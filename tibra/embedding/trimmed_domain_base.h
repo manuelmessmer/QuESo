@@ -29,9 +29,7 @@ class TrimmedDomainBase {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef std::array<double,3> PointType;
+
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
     typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
     typedef std::unique_ptr<TriangleMesh> TriangleMeshPtrType;
