@@ -16,6 +16,8 @@ namespace Testing{
 BOOST_AUTO_TEST_SUITE( PointClassifierTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
+    typedef std::array<double,3> PointType;
+
     std::cout << "Testing :: Test Point Classifier :: Cylinder Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
@@ -59,6 +61,8 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
+    typedef std::array<double,3> PointType;
+
     std::cout << "Testing :: Test Point Classifier Classifier :: Cube Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
@@ -94,11 +98,6 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] + rPoints[i][2]*rPoints[i][2] );
         if( radius <= 1.0 ){
             BOOST_CHECK(!(result)[i]);
-            if(result[i]){
-                std::cout << std::setprecision(16);
-                std::cout << rPoints[i][0] << ", " << rPoints[i][1] << ", " << rPoints[i][2] << std::endl;
-                std::cout << radius << std::endl;
-            }
         }
         else {
             if(    rPoints[i][0] <= -1.5+1e-14 || rPoints[i][0] >= 1.5-1e-14
@@ -119,6 +118,8 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
+    typedef std::array<double,3> PointType;
+
     std::cout << "Testing :: Test Point Classifier :: Elphant Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
@@ -173,6 +174,8 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
 
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
+    typedef std::array<double,3> PointType;
+
     std::cout << "Testing :: Test Point Classifier :: Bunny Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};

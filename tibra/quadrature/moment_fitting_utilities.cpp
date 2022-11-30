@@ -10,7 +10,6 @@
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
 #include "geometries/element.h"
-#include "geometries/triangle_3d_3n.h"
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
@@ -28,20 +27,20 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
     const double factor = PointDistributionFactor;
     rIntegrationPoint.reserve( (int) factor*(rParam.Order()[0]+1)*factor*(rParam.Order()[1]+1)*factor*(rParam.Order()[2]+1) );
 
-    auto bounding_box = rElement.ComputeTrimmedBoundingBox();
+    const auto bounding_box = rElement.pGetTrimmedDomain()->GetBoundingBoxOfTrimmedDomain();
 
-    const double delta_x = std::abs(bounding_box[1][0] - bounding_box[0][0]) / ( (double)factor*(rParam.Order()[0]+1) );
-    const double delta_y = std::abs(bounding_box[1][1] - bounding_box[0][1]) / ( (double)factor*(rParam.Order()[1]+1) );
-    const double delta_z = std::abs(bounding_box[1][2] - bounding_box[0][2]) / ( (double)factor*(rParam.Order()[2]+1) );
+    const double delta_x = std::abs(bounding_box.second[0] - bounding_box.first[0]) / ( (double)factor*(rParam.Order()[0]+1) );
+    const double delta_y = std::abs(bounding_box.second[1] - bounding_box.first[1]) / ( (double)factor*(rParam.Order()[1]+1) );
+    const double delta_z = std::abs(bounding_box.second[2] - bounding_box.first[2]) / ( (double)factor*(rParam.Order()[2]+1) );
 
-    double xx = bounding_box[0][0] + 0.5*delta_x;
-    while( xx < bounding_box[1][0] ){
-        double yy = bounding_box[0][1] + 0.5*delta_y;
-        while( yy < bounding_box[1][1] ){
-            double zz = bounding_box[0][2] + 0.5*delta_z;
-            while( zz < bounding_box[1][2]){
-                PointType tmp_point = {xx,yy,zz};
-                if( rElement.IsPointInTrimmedDomain(tmp_point) ){
+    double xx = bounding_box.first[0] + 0.5*delta_x;
+    while( xx < bounding_box.second[0] ){
+        double yy = bounding_box.first[1] + 0.5*delta_y;
+        while( yy < bounding_box.second[1] ){
+            double zz = bounding_box.first[2] + 0.5*delta_z;
+            while( zz < bounding_box.second[2]){
+                const PointType tmp_point = {xx,yy,zz};
+                if( rElement.pGetTrimmedDomain()->IsInsideTrimmedDomain(tmp_point) ){
                     rIntegrationPoint.push_back(IntegrationPoint((xx - rParam.PointA()[0]) / std::abs(rParam.PointB()[0] - rParam.PointA()[0]),
                                                     (yy - rParam.PointA()[1]) / std::abs(rParam.PointB()[1] - rParam.PointA()[1]),
                                                     (zz - rParam.PointA()[2]) / std::abs(rParam.PointB()[2] - rParam.PointA()[2]),
@@ -62,7 +61,6 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
     const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
     const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
 
-    auto& r_surface_mesh = rElement.GetSurfaceMesh();
     PointType a = rElement.GetLocalLowerPoint();
     PointType b = rElement.GetLocalUpperPoint();
 
@@ -113,13 +111,16 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
 }
 
 
-void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, const Parameters& rParam){
+void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam){
 
     double residual = 1e10;
     int point_distribution_factor = rParam.GetPointDistributionFactor();
     VectorType constant_terms{};
 
-    ComputeConstantTerms(rElement, rBoundaryIps, constant_terms, rParam);
+    const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
+    const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+
+    ComputeConstantTerms(rElement, p_boundary_ips, constant_terms, rParam);
 
     const int max_iteration = 3;
     int iteration = 1;
@@ -129,7 +130,8 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Boun
             // This is only used for test_moment_fitting.cpp
             reduced_points.clear();
         }
-        residual = CreateIntegrationPointsTrimmed(rElement, rBoundaryIps, constant_terms, point_distribution_factor, rParam);
+        residual = CreateIntegrationPointsTrimmed(rElement, constant_terms, point_distribution_factor, rParam);
+
         point_distribution_factor *= 2;
         if( residual > 1e-5 ) {
             //std::cout << "size: " << reduced_points.size() << std::endl;
@@ -145,7 +147,7 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Boun
     }
 }
 
-double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam) {
+double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam) {
 
     IntegrationPointVectorType new_integration_points;
     int maximum_iteration;
@@ -163,7 +165,6 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Bo
     const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
     const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
 
-    auto& r_surface_mesh = rElement.GetSurfaceMesh();
     PointType a = rElement.GetLocalLowerPoint();
     PointType b = rElement.GetLocalUpperPoint();
 

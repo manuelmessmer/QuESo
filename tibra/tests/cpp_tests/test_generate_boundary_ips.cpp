@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsTest1) {
 
     // // Build brep_operator
     // BRepOperator brep_operator(triangle_mesh);
-    // auto p_points = brep_operator.GetBoundaryIps(lower_bound, upper_bound);
+    // auto p_points = brep_operator.pGetBoundaryIps(lower_bound, upper_bound);
 
     // VectorType constant_terms{};
     // ConstantTerms::Compute(p_points, element, constant_terms, param);
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsTest1) {
 
     // auto cube = Modeler::make_cube_3(lower_bound, upper_bound);
     // // Clip mesh.
-    // auto test = brep_operator.GetBoundaryIps(lower_bound, upper_bound);
+    // auto test = brep_operator.pGetBoundaryIps(lower_bound, upper_bound);
     // auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
 
     //IO::WriteMeshToVTK(*cube, "cube.vtk", true);

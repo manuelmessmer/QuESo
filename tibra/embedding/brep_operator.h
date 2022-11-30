@@ -29,6 +29,8 @@ class BRepOperator {
 public:
     ///@name Type Definitions
     ///@{
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
     typedef TriangleMesh::Vector3d PointType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
     typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
@@ -85,7 +87,7 @@ public:
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    BoundaryIPVectorPtrType GetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const;
+    BoundaryIPVectorPtrType pGetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const;
 
     ///@}
 

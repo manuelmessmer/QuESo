@@ -5,7 +5,6 @@
 #include "TIBRA_main.hpp"
 #include "quadrature/single_element.h"
 #include "quadrature/moment_fitting_utilities.h"
-#include "geometries/triangle_3d_3n.h"
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
@@ -15,10 +14,9 @@
 #include <omp.h>
 
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
-
 void TIBRA::Run(){
-  typedef BRepOperatorBase::BoundaryIPVectorType BoundaryIPVectorType;
-  typedef BRepOperatorBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
+
+  typedef BRepOperatorBase::IntersectionStatus IntersectionStatus;
 
   // Get extreme points of bounding box
   const auto point_a = mParameters.PointA();
@@ -52,8 +50,8 @@ void TIBRA::Run(){
     const int zz = i / (number_elements_u*number_elements_v);     // depth
 
     // Construct bounding box for each element
-    PointType cube_point_A{point_a[0] + (xx)*delta_x, point_a[1] + (yy)*delta_y, point_a[2] + (zz)*delta_z};
-    PointType cube_point_B{point_a[0] + (xx+1)*delta_x, point_a[1] + (yy+1)*delta_y, point_a[2] + (zz+1)*delta_z };
+    const PointType cube_point_A{point_a[0] + (xx)*delta_x, point_a[1] + (yy)*delta_y, point_a[2] + (zz)*delta_z};
+    const PointType cube_point_B{point_a[0] + (xx+1)*delta_x, point_a[1] + (yy+1)*delta_y, point_a[2] + (zz+1)*delta_z };
 
     // Map points into parametric/local space
     const auto cube_point_A_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_A, mParameters.PointA(), mParameters.PointB());
@@ -63,10 +61,10 @@ void TIBRA::Run(){
     std::shared_ptr<Element> new_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
 
     // Check intersection status
-    IntersectionTest::IntersectionStatus status{};
+    IntersectionStatus status{};
     if( mEmbeddingFlag ){
       auto t_begin_di = std::chrono::high_resolution_clock().now();
-      status = static_cast<IntersectionTest::IntersectionStatus>(mpBRepOperator->GetIntersectionState(*new_element));
+      status = static_cast<IntersectionStatus>(mpBRepOperator->GetIntersectionState(*new_element));
       auto t_end_di = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
       et_check_intersect += t_delta_di.count();
@@ -84,16 +82,19 @@ void TIBRA::Run(){
 
     }
     else { // If flag is false, consider all knotspans/ elements as inside
-      status = IntersectionTest::Inside;
+      status = IntersectionStatus::Inside;
     }
     bool valid_element = false;
     // Distinguish between trimmed and non-trimmed elements.
-    if( status == IntersectionTest::Trimmed) {
+    if( status == IntersectionStatus::Trimmed) {
       new_element->SetIsTrimmed(true);
       auto t_begin_ci = std::chrono::high_resolution_clock().now();
 
-      auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
-      valid_element = mpBRepOperator->ComputeBoundaryIps(*new_element, p_boundary_ips, mParameters);
+      auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(cube_point_A, cube_point_B, mParameters);
+      if( p_trimmed_domain ){
+        new_element->pSetTrimmedDomain(p_trimmed_domain);
+        valid_element = true;
+      }
       auto t_end_ci = std::chrono::high_resolution_clock().now();
       std::chrono::duration<double> t_delta_ci = (t_end_ci - t_begin_ci);
       et_compute_intersection += t_delta_ci.count();
@@ -101,7 +102,7 @@ void TIBRA::Run(){
       // If valid solve moment fitting equation
       if( valid_element ){
         auto t_begin_mf = std::chrono::high_resolution_clock().now();
-        MomentFitting::CreateIntegrationPointsTrimmed(*new_element, p_boundary_ips, mParameters);
+        MomentFitting::CreateIntegrationPointsTrimmed(*new_element, mParameters);
         auto t_end_mf = std::chrono::high_resolution_clock().now();
         std::chrono::duration<double> t_delta_mf = (t_end_mf - t_begin_mf);
         et_moment_fitting += t_delta_mf.count();
@@ -111,7 +112,7 @@ void TIBRA::Run(){
         }
       }
     }
-    else if( status == IntersectionTest::Inside){
+    else if( status == IntersectionStatus::Inside){
       // Get standard gauss legendre points
       if( mParameters.IntegrationMethod() <= 2 ){
         SingleElement::AssembleIPs(*new_element, mParameters);

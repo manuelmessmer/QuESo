@@ -14,8 +14,8 @@
 /**
  * @class  BRepOperatorFactory
  * @author Manuel Messmer
- * @brief  Provides Functions to Insntiate BRepOperator
- * @details Used to choose between BRepOperator and cgal::BRepOperator.
+ * @brief  Provides Functions to Instantiate BRepOperator
+ * @details Used to choose between BRepOperator and cgal::CGALBRepOperator.
 */
 class BRepOperatorFactory {
 public:
@@ -23,14 +23,14 @@ public:
     ///@{
 
     #if defined USE_CGAL
-    typedef cgal::BRepOperator CurrentBRepOperator;
+    typedef cgal::CGALBRepOperator CurrentBRepOperator;
     #endif
 
     ///@}
-    ///@name Type Definition
+    ///@name Operations
     ///@{
 
-    ///@brief Returns Ptr to new BRepOperator
+    ///@brief Returns Ptr to new BRepOperator (std::unique_ptr)
     static std::unique_ptr<CurrentBRepOperator> New(const TriangleMesh& rTriangleMesh){
         return std::make_unique<CurrentBRepOperator>(rTriangleMesh);
     }

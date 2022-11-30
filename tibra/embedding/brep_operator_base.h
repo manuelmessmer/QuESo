@@ -9,8 +9,7 @@
 
 /// Project includes
 #include "geometries/element.h"
-#include "geometries/triangle_mesh.h"
-#include "geometries/boundary_integration_point.h"
+#include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
 
 ///@name TIBRA Classes
@@ -27,8 +26,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TriangleMesh::Vector3d PointType;
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
-    typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
+    typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainBasePtrType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};
 
@@ -50,18 +48,21 @@ public:
         return GetIntersectionState(lower_bound, upper_bound);
     }
 
-    ///@brief Returns intersections state of element.
+    ///@brief Returns intersections state of AABB.
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     virtual IntersectionStatus GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance=1e-8) const = 0;
 
-    ///@brief Returns boundary integration points of element.
-    ///@param rElement
-    ///@param [out] rpBoundaryIps
-    ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    virtual bool ComputeBoundaryIps(Element& rElement, BoundaryIPVectorPtrType& rpBoundaryIps, const Parameters& rParam) const = 0;
+    /// @brief Returns ptr to trimmed domain.
+    /// @param rLowerBound of AABB.
+    /// @param rUpperBound of AABB.
+    /// @param rParam Parameters
+    /// @return TrimmedDomainBasePtrType (std::unique_ptr)
+    virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const = 0;
 
+    ///@}
 };
+///@}
 
-#endif
+#endif // BREP_OPERATOR_BASE_INCLUDE_H

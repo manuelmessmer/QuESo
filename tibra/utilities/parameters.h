@@ -61,6 +61,7 @@ public:
         return mMomentFittingResidual;
     }
     IntegrationPointFactory1D::IntegrationMethod IntegrationMethod() const {
+        // Todo: Make this at Init
         if( mIntegrationMethod == "Gauss" )
             return IntegrationPointFactory1D::IntegrationMethod::Gauss;
         else if( mIntegrationMethod == "ReducedGauss1" )
@@ -80,7 +81,7 @@ public:
         return mEchoLevel;
     }
     void SetUseCustomizedTrimmedPointsPositionFlag(bool value){
-        mUseCustomizedTrimmedPointsPositionFlag = true;
+        mUseCustomizedTrimmedPointsPositionFlag = value;
     }
     bool UseCustomizedTrimmedPositions() const{
         return mUseCustomizedTrimmedPointsPositionFlag;

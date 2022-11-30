@@ -35,18 +35,19 @@ class PenaltySupport(WeakBcsBase):
         process_info = KM.ProcessInfo()
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        for triangle in self.bcs_triangles:
+        num_triangles = self.bcs_triangles.NumOfTriangles()
+        for id in range(num_triangles):
             # Create kratos nodes on each vertex
             param1 = KM.Vector(3)
-            param1 = FromGlobalToParamSpace( triangle.P1(), self.lower_point, self.upper_point)
+            param1 = FromGlobalToParamSpace( self.bcs_triangles.P1(id), self.lower_point, self.upper_point)
             node1 = KM.Node(1, param1[0], param1[1], param1[2])
 
             param2 = KM.Vector(3)
-            param2 = FromGlobalToParamSpace( triangle.P2(), self.lower_point, self.upper_point)
+            param2 = FromGlobalToParamSpace( self.bcs_triangles.P2(id), self.lower_point, self.upper_point)
             node2 = KM.Node(2, param2[0], param2[1], param2[2])
 
             param3 = KM.Vector(3)
-            param3 = FromGlobalToParamSpace( triangle.P3(), self.lower_point, self.upper_point)
+            param3 = FromGlobalToParamSpace( self.bcs_triangles.P3(id), self.lower_point, self.upper_point)
             node3 = KM.Node(3, param3[0], param3[1], param3[2])
 
             # Create kratos triangles
@@ -80,25 +81,26 @@ class SurfaceLoad(WeakBcsBase):
         properties = model_part.GetProperties()[0]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        for triangle in self.bcs_triangles:
-            #Get points in physical space.
-            points = triangle.GetIntegrationPointsGlobal(1)
+        num_triangles = self.bcs_triangles.NumOfTriangles()
+        for id in range(num_triangles):
 
+            #Get points in physical space.
+            points = self.bcs_triangles.GetIntegrationPointsGlobal(id, 1)
             #Create kratos condition on each point.
             for point in points:
                 integration_points = []
-                tmp_global = [point.GetX(), point.GetY(), point.GetZ()]
+                global_point = [point.GetX(), point.GetY(), point.GetZ()]
                 #Map points to local space of B-Spline box
-                local_point = FromGlobalToParamSpace(tmp_global, self.lower_point, self.upper_point)
+                local_point = FromGlobalToParamSpace(global_point, self.lower_point, self.upper_point)
 
                 integration_points.append([local_point[0], local_point[1], local_point[2], point.GetWeight()])
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
                 condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
-                weight = triangle.Area()*point.GetWeight()*2
+                weight = point.GetWeight() # Weight contains all mapping terms.
                 if self.normal_flag:
-                    normal = triangle.Normal()
+                    normal = point.Normal()
                     force_x = normal[0] * weight * self.force
                     force_y = normal[1] * weight * self.force
                     force_z = normal[2] * weight * self.force

@@ -18,8 +18,6 @@
  * @author Manuel Messmer
  * @brief  Ray to be used in AABB_tree.
  *         Provides functions to check for ray-triangle and ray-aabb intersections.
- *         Direction of ray must be positive oriented (x>0, y>0, z>0).
- *         Check if orientation is actually positive is omitted for better performance.
 */
 class Ray_AABB_primitive : public AABB_primitive_base {
 
@@ -40,21 +38,22 @@ public:
     Ray_AABB_primitive(const Vector3d& Origin, const Vector3d& Direction) :
         mOrigin(Origin), mDirection(Direction)
     {
-        mInvDirection[0] = 1.0 / Direction[0];
-        mInvDirection[1] = 1.0 / Direction[1];
-        mInvDirection[2] = 1.0 / Direction[2];
+        mInvDirection[0] = 1.0 / mDirection[0];
+        mInvDirection[1] = 1.0 / mDirection[1];
+        mInvDirection[2] = 1.0 / mDirection[2];
+
+        mPositiveDir = true;
+        if( Direction[0] <= 0 || Direction[1] <= 0 || Direction[2] <= 0 ){
+            mPositiveDir = false;
+        }
     }
 
     ///@}
     ///@name Operations
     ///@{
 
-    // ///@brief Returns true if origin of ray is inside aabb.
-    // ///@param aabb
-    // ///@return bool
-    // bool inside(const AABB_primitive &aabb) const;
-
-    ///@brief Returns true if ray intersects aabb.
+    ///@brief Returns true if ray intersects aabb. Direction of ray must be positive oriented (x>0, y>0, z>0).
+    ///       This is done for better performance.
     ///@param aabb
     ///@return bool
     bool intersect(const AABB_primitive &aabb) const override;
@@ -66,9 +65,10 @@ public:
     ///@param t Distance to intersection.
     ///@param u Parametric coordinate 1.
     ///@param v Parametric coordinate 2.
+    ///@param BackFacing True is triangle is back facing.
     ///@return bool
     bool intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-                    double &t, double &u, double &v) const;
+                    double &t, double &u, double &v, bool& BackFacing) const;
 
     ///@}
 private:
@@ -78,7 +78,8 @@ private:
     Vector3d mOrigin;
     Vector3d mDirection;
     Vector3d mInvDirection;
-    Vector3i mSign;
+
+    bool mPositiveDir;
     ///@}
 };
 ///@} // End class Ray

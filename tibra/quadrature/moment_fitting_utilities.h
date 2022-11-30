@@ -45,7 +45,7 @@ public:
     ///      Comput. Methods Appl. Mech. Engrg. 400 (2022) 115584, https://doi.org/10.1016/j.cma.2022.115584.
     ///@param rElement
     ///@param rParam
-    static void CreateIntegrationPointsTrimmed(Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, const Parameters& rParam);
+    static void CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam);
 
     ///@}
 private:
@@ -53,7 +53,7 @@ private:
     ///@{
 
     ///@todo Clean this up.
-    static double CreateIntegrationPointsTrimmed(Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
+    static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
 
     static void ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, VectorType& rConstantTerms, const Parameters& rParam);
 
