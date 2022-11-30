@@ -29,6 +29,8 @@ class BRepOperator {
 public:
     ///@name Type Definitions
     ///@{
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
     typedef TriangleMesh::Vector3d PointType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
     typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;

@@ -19,6 +19,8 @@ std::mt19937 gen(rd());
 std::uniform_real_distribution<> drandon(0, 1);
 
 typedef BRepOperator::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
+typedef BRepOperator::IndexType IndexType;
+typedef BRepOperator::SizeType SizeType;
 
 bool BRepOperator::IsInside(const PointType& rPoint) const {
 

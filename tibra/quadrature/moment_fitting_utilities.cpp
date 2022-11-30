@@ -10,7 +10,6 @@
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
 #include "geometries/element.h"
-#include "geometries/triangle_3d_3n.h"
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
