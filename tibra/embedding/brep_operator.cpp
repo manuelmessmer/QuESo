@@ -160,7 +160,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
     return std::make_unique<TriangleMesh>(new_mesh);
 }
 
-BoundaryIPVectorPtrType BRepOperator::GetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const{
+BoundaryIPVectorPtrType BRepOperator::pGetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const{
 
     // Pointer to boundary integration points
     auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();

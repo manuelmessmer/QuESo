@@ -119,7 +119,7 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     VectorType constant_terms{};
 
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
-    const auto p_boundary_ips = p_trimmed_domain->GetBoundaryIps();
+    const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
     ComputeConstantTerms(rElement, p_boundary_ips, constant_terms, rParam);
 

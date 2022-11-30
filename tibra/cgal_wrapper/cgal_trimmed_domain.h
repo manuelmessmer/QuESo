@@ -67,7 +67,7 @@ public:
 
     ///@brief Returns boundary integration points of TrimmedDomain.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    BoundaryIPVectorPtrType GetBoundaryIps() const override;
+    BoundaryIPVectorPtrType pGetBoundaryIps() const override;
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)

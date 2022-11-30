@@ -45,7 +45,7 @@ const BoundingBox CGALTrimmedDomain::GetBoundingBoxOfTrimmedDomain() const{
     return bounding_box;
 }
 
-BoundaryIPVectorPtrType CGALTrimmedDomain::GetBoundaryIps() const {
+BoundaryIPVectorPtrType CGALTrimmedDomain::pGetBoundaryIps() const {
 
     /// Create boundary IPs from intersection mesh.
     auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
