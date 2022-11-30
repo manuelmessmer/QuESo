@@ -6,3 +6,4 @@ libs/
 TestExecutables/
 TIBRA_PythonApplication/
 *.pyc
+.vscode/

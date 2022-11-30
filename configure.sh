@@ -26,4 +26,4 @@ cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
     -DCGAL_DIR="../external_libraries/cgal" \
 
 # Buid
-cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j8
+cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j$(nproc)
