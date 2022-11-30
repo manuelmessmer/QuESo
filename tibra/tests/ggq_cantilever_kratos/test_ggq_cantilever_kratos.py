@@ -49,7 +49,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
                                         embedding_flag)
 
 
-        points_all = TIBRA_APP.VectorOfIntegrationPoints()
+        points_all = TIBRA_APP.IntegrationPointVector()
         elements = embedder.GetElements()
 
         for element in elements:
