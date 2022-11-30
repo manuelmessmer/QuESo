@@ -23,7 +23,7 @@ public:
     ///@{
 
     #if defined USE_CGAL
-    typedef cgal::BRepOperator CurrentBRepOperator;
+    typedef cgal::CGALBRepOperator CurrentBRepOperator;
     #endif
 
     ///@}
