@@ -6,13 +6,13 @@
 #include <algorithm>
 #include <iomanip>      // std::setprecision
 #include <limits>
+#include <random>
 #include <chrono>
 
 // Project includes
 #include "embedding/brep_operator.h"
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
-#include <random>
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -39,6 +39,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
 
             // Test if potential intersections actually intersect.
             // If intersection lies on boundary cast a new ray.
+            // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639
             intersection_count = 0;
             is_on_boundary = false;
             for( auto r : potential_intersections){
@@ -46,7 +47,8 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
                 const auto& p2 = mTriangleMesh.P2(r);
                 const auto& p3 = mTriangleMesh.P3(r);
                 double t, u, v;
-                if( ray.intersect(p1, p2, p3, t, u, v) ) {
+                bool back_facing;
+                if( ray.intersect(p1, p2, p3, t, u, v, back_facing) ) {
                     intersection_count++;
                     double sum_u_v = u+v;
                     if( t < 1e-10 ){ // origin lies on boundary
