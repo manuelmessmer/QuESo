@@ -97,34 +97,26 @@ class PyTIBRA:
                     integration_points.append(point_inside)
         return integration_points
 
-    def GetTrianglesOnDirichletBoundary(self, dirichlet_condition):
-        dirichlet_triangles = TIBRA_Application.VectorOfTriangles()
-        #Loop over all elements
-        for element in self.elements:
-            if element.IsTrimmed():
-                for triangle in element.GetDirichletTriangles(dirichlet_condition):
-                    dirichlet_triangles.append(triangle)
-        return dirichlet_triangles
 
-    def GetTrianglesOnNeumannBoundary(self, neumann_condition):
-        neumann_triangles = TIBRA_Application.VectorOfTriangles()
+    def GetTrianglesOnBoundary(self, condition):
+        triangle_mesh = TIBRA_Application.TriangleMesh()
         #Loop over all elements
         for element in self.elements:
             if element.IsTrimmed():
-                print(neumann_condition)
-                for triangle in element.GetNeumannTriangles(neumann_condition):
-                    neumann_triangles.append(triangle)
-        return neumann_triangles
+                new_mesh = element.GetBCTriangleMesh(condition)
+                triangle_mesh.Append(new_mesh)
+
+        return triangle_mesh
 
     def RunKratosAnalysis(self, dirichlet_settings, neumann_settings, kratos_settings="KratosParameters.json"):
         if kratos_available:
             integration_points = self.GetIntegrationPoints()
             boundary_conditions = []
             for bc in dirichlet_settings:
-                dirichlet_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
+                dirichlet_triangles = self.GetTrianglesOnBoundary(bc[0])
                 boundary_conditions.append( PenaltySupport(dirichlet_triangles, self.lower_point, self.upper_point, bc[1]) )
             for bc in neumann_settings:
-                neumann_triangles = self.GetTrianglesOnDirichletBoundary(bc[0])
+                neumann_triangles = self.GetTrianglesOnBoundary(bc[0])
                 boundary_conditions.append( SurfaceLoad(neumann_triangles, self.lower_point, self.upper_point,bc[1], False) )
 
             self.analysis = Analysis( self.mesh_settings, kratos_settings, integration_points, boundary_conditions)
