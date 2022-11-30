@@ -8,9 +8,9 @@
 #include <array>
 
 // Project includes
+#include "geometries/element.h"
 #include "geometries/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "utilities/intersection_test.h"
 
 ///@name TIBRA Classes
 ///@{
