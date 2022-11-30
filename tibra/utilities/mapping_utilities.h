@@ -4,7 +4,7 @@
 #ifndef MAPPING_UTILITIES_INCLUDE_H
 #define MAPPING_UTILITIES_INCLUDE_H
 
-#include "containers/point.h"
+#include "containers/point_types.h"
 
 namespace MappingUtilities {
 

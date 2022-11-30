@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <array>
 
-#include "containers/point.h"
+#include "containers/point_types.h"
 
 // Global variables
 constexpr double kEpsilon = 1e-14;

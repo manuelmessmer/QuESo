@@ -12,7 +12,7 @@
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 
 // Project includes
-#include "containers/point.h"
+#include "containers/point_types.h"
 
 namespace cgal {
 

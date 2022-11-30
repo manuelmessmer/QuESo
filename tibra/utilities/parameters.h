@@ -10,7 +10,7 @@
 #include <array>
 
 // Project includes
-#include "containers/point.h"
+#include "containers/point_types.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 

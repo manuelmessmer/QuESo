@@ -4,7 +4,7 @@
 #ifndef INTEGRATION_POINT_INCLUDE_H
 #define INTEGRATION_POINT_INCLUDE_H
 
-#include "containers/point.h"
+#include "containers/point_types.h"
 
 class IntegrationPoint : public PointType
 {
