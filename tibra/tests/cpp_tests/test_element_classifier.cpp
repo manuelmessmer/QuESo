@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     const double delta_y = 0.1;
     const double delta_z = 0.1;
 
-    std::vector<IndexType> result{};
+    std::vector<TriangleMesh::IndexType> result{};
     double tolerance = 0.0;
     result.reserve(117900);
     for(double x = -1.5; x <= 1.5; x += delta_x){
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     const double delta_y = 0.15;
     const double delta_z = 0.15;
 
-    std::vector<IndexType> result{};
+    std::vector<TriangleMesh::IndexType> result{};
     double tolerance = 0.0;
     result.reserve(9261);
     for(double x = -1.5001; x <= 1.5; x += delta_x){
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     const double delta_z = 0.05;
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    std::vector<IndexType> result{};
+    std::vector<TriangleMesh::IndexType> result{};
     double tolerance = 0.0;
     result.reserve(6375);
     for(double x = -0.4; x <= 0.4; x += delta_x){
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     const double delta_z = 3;
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    std::vector<IndexType> result{};
+    std::vector<TriangleMesh::IndexType> result{};
     double tolerance = 0.0;
     result.reserve(41070);
     for(double x = -24; x <= 85; x += delta_x){

@@ -4,6 +4,7 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
+#include <set>
 #include <chrono>
 
 #include "geometries/triangle_mesh.h"
@@ -30,7 +31,7 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     AABB_primitive aabb(lower_bound, upper_bound);
     auto results = tree.Query(aabb);
 
-    std::vector<IndexType> intersected_triangles{};
+    std::vector<TriangleMesh::IndexType> intersected_triangles{};
     int count = 0;
 
     for( auto r : results){
@@ -65,7 +66,7 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     AABB_primitive aabb(lower_bound, upper_bound);
     auto results = tree.Query(aabb);
 
-    std::vector<IndexType> intersected_triangles{};
+    std::vector<TriangleMesh::IndexType> intersected_triangles{};
     int count = 0;
 
     for( auto r : results){
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     // This test is conservative and must detect triangle.
     auto results = tree.Query(aabb);
 
-    std::vector<IndexType> intersected_triangles{};
+    std::vector<TriangleMesh::IndexType> intersected_triangles{};
     int count = 0;
 
     for( auto r : results){
@@ -138,7 +139,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
     // Open results file. Results are checked with CGAL
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_cylinder.txt");
 
-    IndexType number_trimmed_elements = 0;
+    TriangleMesh::IndexType number_trimmed_elements = 0;
     for(double xx = -1.5; xx <= 1.5; xx += 0.1){
         for(double yy = -1.5; yy <= 1.5; yy += 0.1){
             for(double zz = -1; zz <= 11; zz += 0.1){
@@ -154,7 +155,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
                 std::set<int> indices{};
                 std::map<int,int> index_map{};
 
-                std::vector<IndexType> intersected_triangles{};
+                std::vector<TriangleMesh::IndexType> intersected_triangles{};
                 int count = 0;
 
                 for( auto r : results){
@@ -199,7 +200,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
     // Open results file. Results are verified with CGAL. Touching triangles are not considered as intersected.
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_elephant.txt");
 
-    IndexType number_trimmed_elements = 0;
+    TriangleMesh::IndexType number_trimmed_elements = 0;
     for(double xx = -0.4; xx <= 0.4; xx += 0.02){
         for(double yy = -0.6; yy <= 0.6; yy += 0.02){
             for(double zz = -0.35; zz <= 0.35; zz += 0.02){
@@ -209,7 +210,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
                 AABB_primitive aabb(lower_bound, upper_bound);
                 auto results = tree.Query(aabb);
 
-                std::vector<IndexType> intersected_triangles{};
+                std::vector<TriangleMesh::IndexType> intersected_triangles{};
                 int count = 0;
                 for( auto r : results){
                     const auto& p1 = triangle_mesh.P1(r);
@@ -255,7 +256,7 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
     // Read results file. Results are verified with CGAL:
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_bunny.txt");
 
-    IndexType number_trimmed_elements = 0;
+    TriangleMesh::IndexType number_trimmed_elements = 0;
     for(double xx = -24; xx <= 85; xx += 2){
         for(double yy = -43; yy <= 46; yy += 2){
             for(double zz = 5; zz <= 115; zz += 2){
@@ -266,7 +267,7 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
                 auto results = tree.Query(aabb);
 
 
-                std::vector<IndexType> intersected_triangles{};
+                std::vector<TriangleMesh::IndexType> intersected_triangles{};
                 for( auto r : results){
                     const auto& p1 = triangle_mesh.P1(r);
                     const auto& p2 = triangle_mesh.P2(r);

@@ -42,16 +42,16 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     const auto& points_reduced = (*elements.begin())->GetIntegrationPointsTrimmed();
     BOOST_CHECK_LT(points_reduced.size(), 28);
 
-    auto& triangles = (*elements.begin())->GetTriangles();
-    BOOST_CHECK_GT(triangles.size(), minimum_number_of_triangles);
+    const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
+    const std::size_t num_triangles = r_triangle_mesh.NumOfTriangles();
+
+    BOOST_CHECK_GT(num_triangles, minimum_number_of_triangles);
 
     int large_radius_count = 0;
     double area = 0.0;
-    auto triangles_it_begin = triangles.begin();
-    for( std::size_t i = 0; i < triangles.size(); ++i){
-        auto triangle_it = triangles_it_begin + i;
 
-        PointType coordinates = triangle_it->Center();
+    for( std::size_t triangle_id = 0; triangle_id < num_triangles; ++triangle_id){
+        const PointType coordinates = r_triangle_mesh.Center(triangle_id);
 
         BOOST_CHECK_GT(coordinates[2], -1e-6);
         BOOST_CHECK_LT(coordinates[2], 1.0+1e-6);
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
             double radius = std::sqrt( std::pow(coordinates[0],2) + std::pow(coordinates[1], 2) );
             BOOST_CHECK_GT(radius, 0.998);
         }
-        area += triangle_it->Area();
+        area += r_triangle_mesh.Area(triangle_id);
     }
     BOOST_CHECK_LT(area, 5.141592654);
     BOOST_CHECK_GT(area, 5.135);
@@ -99,7 +99,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
     int num_elements_inside = 0;
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
-    for( IndexType i = 0; i < elements.size(); ++i){
+    for( std::size_t i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
@@ -166,7 +166,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
     int num_elements_inside = 0;
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
-    for( IndexType i = 0; i < elements.size(); ++i){
+    for( std::size_t i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
