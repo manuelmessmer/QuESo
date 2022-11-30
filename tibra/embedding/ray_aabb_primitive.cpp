@@ -19,6 +19,10 @@
 
 bool Ray_AABB_primitive::intersect(const AABB_primitive &aabb) const
 {
+    if( !mPositiveDir ){
+        throw std::runtime_error( "Ray_AABB_primitive :: intersect :: Direction of Ray must be positive.");
+    }
+
     double tmin, tmax, tymin, tymax, tzmin, tzmax;
 
     double lower_0 = aabb.lowerBound[0];
@@ -83,7 +87,7 @@ bool Ray_AABB_primitive::intersect(const AABB_primitive &aabb) const
 }
 
 bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-                double &t, double &u, double &v) const {
+                double &t, double &u, double &v, bool& BackFacing) const {
 
     // Substraction: v1-v0 and v2-v0
     Vector3d v0v1 = {v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]};
@@ -96,6 +100,11 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
 
     // Dot product: v0v1 * pvec
     double det = v0v1[0]*pvec[0] + v0v1[1]*pvec[1] + v0v1[2]*pvec[2];
+
+    BackFacing = false;
+    // If det is smaller than zero triangle is back facing.
+    if( det < kEpsilon )
+        BackFacing = true;
 
     if (std::abs(det) < kEpsilon)
         return false;
