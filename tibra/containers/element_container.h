@@ -13,40 +13,56 @@
 #include "containers/element.h"
 #include "utilities/parameters.h"
 
+///@name TIBRA Classes
+///@{
 
+/**
+ * @class  ElementContainer
+ * @author Manuel Messmer
+ * @brief  Stores elements in vector and provides fast access via Id map.
+ * @note Only active elements/knot spans are stored.
+*/
 class ElementContainer {
 
 public:
-
-    // Typedefs
+    ///@name Type Defintitions
+    ///@{
     typedef std::shared_ptr<Element> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef std::unique_ptr<IntegrationPointVectorType> IntegrationPointVectorPtrType;
-    typedef std::unordered_map<IndexType, IndexType> ElementHashMap;
+    typedef std::unordered_map<IndexType, IndexType> ElementIdMapType;
 
-    // Constructor
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
     ElementContainer(const Parameters& rParameters){
         mNumberOfElements = rParameters.NumberOfElements();
         mLastElementId = 0;
     }
 
-    Element& GetElement(std::size_t id){
+    ///@}
+    ///@name Operations
+    ///@{
+
+    const Element& GetElement(std::size_t id) const{
         return *pGetElement(id);
     }
 
-    ElementPtrType pGetElement(std::size_t id) {
-        auto found_key = mElementHashMap.find(id);
-        if( found_key == mElementHashMap.end() )
+    const ElementPtrType pGetElement(std::size_t id) const {
+        auto found_key = mElementIdMap.find(id);
+        if( found_key == mElementIdMap.end() )
             throw std::runtime_error("ID does not exist");
 
         return mElements[found_key->second];
     }
 
-    ElementPtrType pGetElement(std::size_t id, bool& found){
-        auto found_key = mElementHashMap.find(id);
+    const ElementPtrType pGetElement(std::size_t id, bool& found) const{
+        auto found_key = mElementIdMap.find(id);
         found = false;
-        if( found_key != mElementHashMap.end() ){
+        if( found_key != mElementIdMap.end() ){
             found = true;
             return mElements[found_key->second];
         }
@@ -69,19 +85,19 @@ public:
         return mElements.end();
     }
 
-    ElementVectorPtrType& GetElements(){
+    const ElementVectorPtrType& GetElements() const{
         return mElements;
     }
 
-    void AddElement(ElementPtrType& rElement){
+    void AddElement(const ElementPtrType& rElement){
         const int current_id = rElement->GetId();
-        auto found_key = mElementHashMap.find(current_id);
-        if( found_key == mElementHashMap.end() ){
+        auto found_key = mElementIdMap.find(current_id);
+        if( found_key == mElementIdMap.end() ){
             // critical section
             if( rElement->GetId() > mLastElementId){
                 mLastElementId = rElement->GetId();
             }
-            mElementHashMap.insert(std::pair<IndexType, IndexType>(rElement->GetId(), mElements.size()));
+            mElementIdMap.insert(std::pair<IndexType, IndexType>(rElement->GetId(), mElements.size()));
             mElements.push_back(std::move(rElement));
         }
         else {
@@ -95,10 +111,10 @@ public:
 
     void reserve(std::size_t new_capacity){
         mElements.reserve(new_capacity);
-        mElementHashMap.reserve(new_capacity);
+        mElementIdMap.reserve(new_capacity);
     }
 
-    ElementPtrType pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    ElementPtrType pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
         next_id = id + 1;
         int next_index = id + 1;
@@ -106,7 +122,6 @@ public:
         if( indices[0] == mNumberOfElements[0]-1) {
             local_end = true;
         }
-
         auto found_element = pGetElement(next_index, found);
         if( found == false){  // Element is not found
             local_end = true;
@@ -114,7 +129,7 @@ public:
         return found_element;
     }
 
-    ElementPtrType pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    ElementPtrType pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
@@ -360,10 +375,16 @@ private:
         return DepthIndex * (mNumberOfElements[1]*mNumberOfElements[0]) + ColumnIndex * mNumberOfElements[0] + RowIndex;
     }
 
+    ///@}
+    ///@name Private member variables
+    ///@{
+
     int mLastElementId;
     ElementVectorPtrType mElements{};
-    ElementHashMap mElementHashMap{};
+    ElementIdMapType mElementIdMap{};
     Vector3i mNumberOfElements{};
-};
+    ///@}
+}; // End class Element container
+///@}
 
-#endif
+#endif // ELEMENT_CONTAINER_INCLUDE_H
