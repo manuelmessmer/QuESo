@@ -6,6 +6,7 @@
 
 /// External includes
 #include <memory>
+#include <functional>
 
 /// Project includes
 #include "geometries/boundary_integration_point.h"
