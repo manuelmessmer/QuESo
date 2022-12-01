@@ -107,6 +107,14 @@ public:
     type operator [] (std::size_t i) const{
         return this->data()[i];
     }
+
+    Vector3 operator+ (const Vector3& rOther) const {
+        Vector3(this->data()[0] + rOther[0], this->data()[1] + rOther[1], this->data()[2] + rOther[2]);
+    }
+
+    Vector3 operator- (const Vector3& rOther) const {
+        Vector3(this->data()[0] - rOther[0], this->data()[1] - rOther[1], this->data()[2] - rOther[2]);
+    }
     ///@}
 }; // End Vector3 class
 ///@} // End TIBRA classes
