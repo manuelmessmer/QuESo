@@ -46,6 +46,12 @@ public:
     {
     }
 
+    /// Constructor
+    TrimmedDomainBase(TriangleMeshPtrType& pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound)
+        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound)
+    {
+    }
+
     ///@}
     ///@name Operations
     ///@{
