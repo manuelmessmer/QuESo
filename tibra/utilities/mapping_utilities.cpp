@@ -1,11 +1,13 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+// STL includes
 #include <cstdlib>
 
 // Project includes
 #include "utilities/mapping_utilities.h"
+
+namespace tibra {
 
 PointType MappingUtilities::FromGlobalToLocalSpace( const PointType& rGlobalCoord,
                                               const PointType& rLowerPoint,
@@ -28,3 +30,5 @@ PointType MappingUtilities::FromLocalToGlobalSpace( const PointType& rLocalCoord
 
     return global_cood;
 }
+
+} // End namespace tibra

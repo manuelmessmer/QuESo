@@ -4,15 +4,17 @@
 #ifndef EDGE_2D_INCLUDE_H
 #define EDGE_2D_INCLUDE_H
 
-/// External libraries
+//// STL includes
 #include <cstddef>
 #include <array>
 #include <algorithm>
-
+//// Project includes
 #include "containers/boundary_integration_point.h"
 #include "io/io_utilities.h"
 
 ///Project includes
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -615,7 +617,9 @@ private:
 
     bool mUpperBoundary; //Is current plane upper bound?
     ///@}
-};
+}; // End TrimmedDomainOnPlane
 
 ///@} // End Tibra Classes
+
+} // End namespace tibra
 #endif

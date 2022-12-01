@@ -1,18 +1,19 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+//// STL includes
 #include <cmath>
 #include <algorithm>
-#include <iomanip>      // std::setprecision
+#include <iomanip>
 #include <limits>
 #include <random>
 #include <chrono>
-
-// Project includes
+//// Project includes
 #include "embedding/brep_operator.h"
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
+
+namespace tibra {
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -238,6 +239,9 @@ BoundaryIPVectorPtrType BRepOperator::pGetBoundaryIps(const PointType& rLowerBou
 
     return std::move(p_boundary_ips);
 }
+
+} // End namespace tibra
+
 // Winding numbers algorithm: It actually works!!!
 
 // std::cout << "Done" << std::endl;

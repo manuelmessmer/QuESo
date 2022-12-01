@@ -4,14 +4,15 @@
 #ifndef CLIPPER_INCLUDE_H
 #define CLIPPER_INCLUDE_H
 
-/// External libraries
+//// STL includes
 #include <cstddef>
 #include <array>
 #include <algorithm>
-
-/// Project includes
+//// Project includes
 #include "embedding/polygon.h"
 #include "containers/triangle_mesh.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -113,7 +114,9 @@ private:
                                                   const Plane& rPlane);
 
 
-};
-///@}
+}; // End Clipper class
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif

@@ -1,24 +1,22 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-/// CGAL includes
-// Meshing/ Triangulation
+//// CGAL includes
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/detect_features.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
-
-// Project includes
+//// STL includes
+#include <chrono>
+#include <stdexcept>
+//// Project includes
 #include "cgal_wrapper/cgal_brep_operator.h"
 #include "cgal_wrapper/cgal_cuboid_modeler.h"
 #include "cgal_wrapper/cgal_trimmed_domain.h"
 #include "cgal_wrapper/cgal_utilities.h"
 #include "io/io_utilities.h"
 
-// External includes
-#include <chrono>
-#include <stdexcept>
-
+namespace tibra {
 namespace cgal {
 
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -153,4 +151,5 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
 }
 
 } // End namespace cgal
+} // End namespace tibra
 

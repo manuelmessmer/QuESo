@@ -4,14 +4,15 @@
 #ifndef TRIMMED_DOMAIN_BASE_INCLUDE_H
 #define TRIMMED_DOMAIN_BASE_INCLUDE_H
 
-/// External includes
+//// STL includes
 #include <memory>
 #include <functional>
-
-/// Project includes
+//// Project includes
 #include "containers/boundary_integration_point.h"
 #include "containers/triangle_mesh.h"
 #include "utilities/parameters.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -108,7 +109,9 @@ protected:
     PointType mUpperBound;
     TriangleMeshPtrType mpTriangleMesh;
     ///@}
-};
+}; // End TrimmedDomainBase
 ///@}
+
+} // End namespace tibra
 
 #endif // TRIMMED_DOMAIN_BASE_INCLUDE_H

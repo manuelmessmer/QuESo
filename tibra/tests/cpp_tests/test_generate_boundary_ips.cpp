@@ -21,7 +21,8 @@
 #include <CGAL/boost/graph/IO/STL.h>
 #include <boost/numeric/ublas/matrix.hpp>
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( GenerateBoundaryIPsTestSuite )
 
@@ -92,4 +93,5 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsTest1) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // End GenerateBoundaryIPsTestSuite
+} // End namespace Testing
+} // End namespace tibra

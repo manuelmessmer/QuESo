@@ -4,6 +4,8 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+namespace tibra {
+
 namespace utilities {
 
     template <typename T>
@@ -21,5 +23,7 @@ namespace utilities {
     }
 
 } // End namespace utiliites
+
+} // End namespace tibra
 
 #endif

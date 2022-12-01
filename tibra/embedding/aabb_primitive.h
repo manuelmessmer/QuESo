@@ -4,11 +4,12 @@
 #ifndef AABB_PRIMITIVE_INCLUDE_H
 #define AABB_PRIMITIVE_INCLUDE_H
 
-/// External libraries
+//// External includes
 #include "aabb_tree/AABB_base.h"
-
-/// Project includes
+//// Project includes
 #include "embedding/aabb_primitive_base.h"
+
+namespace tibra {
 
 // Alias to external base class.
 typedef aabb_base::AABB_base AABB_lohedges;
@@ -77,8 +78,9 @@ private:
                      const Vector3d &extent, const Vector3d& test_axis ) const;
 
     ///@}
-};
+}; // End AABB_primitive class
+///@} // End TIBRA classes
 
-///@} // End class
+} // End namespace tibra
 
 #endif // AABB_PRIMITIVE_INCLUDE_H

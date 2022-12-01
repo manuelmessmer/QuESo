@@ -3,9 +3,10 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
+//// STL includes
 #include "math.h"
-
 // Project includes
 #include "embedding/brep_operator_factory.h"
 #include "quadrature/moment_fitting_utilities.h"
@@ -15,8 +16,8 @@
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
 
-
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 
@@ -158,3 +159,4 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
+} // End namespace tibra

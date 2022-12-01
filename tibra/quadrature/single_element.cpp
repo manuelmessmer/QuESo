@@ -1,12 +1,13 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+// STL includes
 #include <stdexcept>
-
 // Project includes
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "quadrature/single_element.h"
+
+namespace tibra {
 
 void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
 {
@@ -50,6 +51,8 @@ void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
         }
     }
 }
+
+} // End namespace tibra
 
 // void SingleElement::Assemble(
 //     IntersectionTest& rInsideTest,

@@ -4,11 +4,13 @@
 #ifndef AABB_PRIMITIVE_BASE_INCLUDE_H
 #define AABB_PRIMITIVE_BASE_INCLUDE_H
 
-// External includes
+//// STL includes
 #include <cstddef>
 #include <array>
-
+//// Project includes
 #include "containers/point_types.h"
+
+namespace tibra {
 
 // Global variables
 constexpr double kEpsilon = 1e-14;
@@ -34,7 +36,9 @@ public:
     virtual bool intersect(const AABB_primitive &aabb) const = 0;
 
     ///@}
-};
-///@} // end classes
+}; // End AABB_primitive_base class
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // AABB_PRIMITIVE_BASE_INCLUDE_H

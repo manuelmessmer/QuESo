@@ -4,7 +4,10 @@
 #ifndef POINT_TYPES_INCLUDE_H
 #define POINT_TYPES_INCLUDE_H
 
+//// STL includes
 #include <array>
+
+namespace tibra {
 
 /// Forward declaration
 template<typename type>
@@ -105,7 +108,9 @@ public:
         return this->data()[i];
     }
     ///@}
-};
-///@}
+}; // End Vector3 class
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // POINT_TYPES_INCLUDE_H

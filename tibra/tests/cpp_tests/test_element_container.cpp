@@ -3,14 +3,15 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
-
 // Project includes
 #include "utilities/parameters.h"
 #include "containers/element.h"
 #include "containers/element_container.h"
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
@@ -189,4 +190,5 @@ BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // Namespace Testing
+} // End namespace Testing
+} // End namespace tibra

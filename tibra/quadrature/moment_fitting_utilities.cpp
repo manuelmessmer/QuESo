@@ -1,11 +1,10 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+//// STL includes
 #include <stdexcept>
 #include <cmath>
-
-// Project includes
+//// Project includes
 #include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
@@ -13,6 +12,7 @@
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
+namespace tibra {
 
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
@@ -207,7 +207,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         VectorType weights(number_reduced_points);
 
         // Solve non-negative Least-Square-Error problem.
-        global_residual = NNLS::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
+        global_residual = nnls::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
 
         //Write computed weights onto reduced integration points
         for( int i = 0; i < number_reduced_points; ++i){
@@ -285,6 +285,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
 
 }
 
+} // End namespace tibra
 
 // double MomentFitting::f_x(double x, int order, double a, double b){
 //     double tmp_x = (2*x - a - b)/(b-a);

@@ -1,6 +1,11 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
+//// STL includes
+#include <fstream>
+#include <thread>
+#include <omp.h>
+
 //// Project includes
 #include "TIBRA_main.hpp"
 #include "quadrature/single_element.h"
@@ -8,10 +13,7 @@
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
-//// External includes
-#include <fstream>
-#include <thread>
-#include <omp.h>
+namespace tibra {
 
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
 void TIBRA::Run(){
@@ -145,3 +147,5 @@ void TIBRA::Run(){
   }
 
 }
+
+} // End namespace tibra

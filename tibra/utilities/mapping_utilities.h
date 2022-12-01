@@ -4,7 +4,10 @@
 #ifndef MAPPING_UTILITIES_INCLUDE_H
 #define MAPPING_UTILITIES_INCLUDE_H
 
+//// Project includes
 #include "containers/point_types.h"
+
+namespace tibra {
 
 namespace MappingUtilities {
 
@@ -17,5 +20,7 @@ PointType FromLocalToGlobalSpace( const PointType& rLocalCoord,
                                   const PointType& rUpperPoint);
 
 } // End namespace MappingUtilities
+
+} // End namespace tibra
 
 #endif

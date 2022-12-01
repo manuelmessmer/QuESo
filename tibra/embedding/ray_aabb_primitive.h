@@ -5,10 +5,10 @@
 #ifndef RAY_AABB_PRIMITIVE_INCLUDE_H
 #define RAY_AABB_PRIMITIVE_INCLUDE_H
 
-/// External includes
-
-/// Project includes
+//// Project includes
 #include "embedding/aabb_primitive.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -78,7 +78,9 @@ private:
 
     bool mPositiveDir;
     ///@}
-};
-///@} // End class Ray
+}; // End Ray_AABB_primitive
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif

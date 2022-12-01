@@ -4,12 +4,13 @@
 #ifndef TRIMMED_DOMAIN_INCLUDE_H
 #define TRIMMED_DOMAIN_INCLUDE_H
 
-/// External includes
+/// STL includes
 #include <memory>
-
 /// Project includes
 #include "containers/triangle_mesh.h"
 #include "embedding/aabb_tree.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -84,5 +85,7 @@ private:
 };
 
 ///@}
+
+} // End namespace tibra
 
 #endif // TRIMMED_DOMAIN_INCLUDE_H

@@ -4,14 +4,13 @@
 #ifndef CGAL_UTILTIES_H
 #define CGAL_UTILTIES_H
 
-// CGAL includes
-// Domain
+//// CGAL includes
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Surface_mesh.h>
-
-// Project includes
+//// Project includes
 #include "containers/triangle_mesh.h"
 
+namespace tibra {
 namespace cgal {
 
 class CGALUtilities
@@ -30,6 +29,7 @@ public:
                          CGALMeshType& rOutputMesh );
 };
 
-}
+} // End namespace cgal
+} // End namespace tibra
 
 #endif // End CGAL_UTILTIES_H

@@ -1,8 +1,10 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// Project includes
+//// Project includes
 #include "embedding/aabb_tree.h"
+
+namespace tibra {
 
 bool AABB_tree::IsWithinBoundingBox(const PointType& rPoint) const {
     if(   rPoint[0] < mLowerBound[0]
@@ -54,3 +56,5 @@ std::vector<IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primiti
     }
     return particles;
 }
+
+} // End namespace tibra

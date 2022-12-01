@@ -8,6 +8,8 @@
 #include "cgal_wrapper/cgal_brep_operator.h"
 #endif
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -36,7 +38,9 @@ public:
     }
 
     ///@}
-};
-///@}
+}; // End BRepOperatorFactory class
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif

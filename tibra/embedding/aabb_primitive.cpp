@@ -1,8 +1,10 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// Project includes
+//// Project includes
 #include "embedding/aabb_primitive.h"
+
+namespace tibra {
 
 bool AABB_primitive::intersect(const AABB_primitive &aabb) const  {
     for (unsigned int i = 0; i < 3; ++i) {
@@ -144,3 +146,5 @@ bool AABB_primitive::check_axis( const Vector3d &u0, const Vector3d &u1, const V
 
     return true;
 }
+
+} // End namespace tibra

@@ -4,10 +4,12 @@
 #ifndef INTEGRATION_POINTS_FACTORY_1D_H
 #define INTEGRATION_POINTS_FACTORY_1D_H
 
-// External includes
+// STL includes
 #include <vector>
 #include <array>
 #include <memory>
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -36,16 +38,6 @@ public:
     ///@name  Enum's
     ///@{
     enum IntegrationMethod {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2};
-
-    ///@}
-    ///@name  Life Cycle
-    ///@{
-    /// Constructor
-    IntegrationPointFactory1D() = default;
-    /// Copy Constructor
-    IntegrationPointFactory1D(const IntegrationPointFactory1D &m) = delete;
-    /// Copy Assignement
-    IntegrationPointFactory1D & operator= (const IntegrationPointFactory1D &) = delete;
 
     ///@}
     ///@name Operations
@@ -158,7 +150,8 @@ private:
 
     ///@}
 
-};
-#endif // INTEGRATION_POINTS_FACTORY_1D_H
+}; // End IntegrationPointFactory1D class
+///@} // End classes
+} // End namespace tibra
 
-///@} //End classes
+#endif // INTEGRATION_POINTS_FACTORY_1D_H

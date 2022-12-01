@@ -3,15 +3,18 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
+//// STL includes
 #include <set>
 #include <chrono>
-
+//// Project includes
 #include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/aabb_tree.h"
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( AABB_treeTestSuite )
 
@@ -301,7 +304,7 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-
+} // End namespace tibra
 
 
 // #include "containers/element.h"

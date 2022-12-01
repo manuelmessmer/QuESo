@@ -4,16 +4,17 @@
 #ifndef BREP_OPERATOR_INCLUDE_H
 #define BREP_OPERATOR_INCLUDE_H
 
-/// External includes
+//// STL includes
 #include <memory>
-
-/// Project includes
+//// Project includes
 #include "containers/triangle_mesh.h"
 #include "containers/element.h"
 #include "embedding/aabb_tree.h"
 #include "embedding/clipper.h"
 #include "io/io_utilities.h"
 #include "containers/boundary_integration_point.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -119,8 +120,10 @@ private:
     AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
     ///@}
-};
+}; // End BRepOperator class
 
-///@}
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // BREP_OPERATOR_INCLUDE_H

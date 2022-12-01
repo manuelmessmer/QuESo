@@ -1,10 +1,12 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// Project includes
+//// Project includes
 #include "utilities/mapping_utilities.h"
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+
+namespace tibra {
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
@@ -346,33 +348,4 @@ void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtr
 
 }
 
-// void MultipleElements::Assemble1DIntegrationPoints(ElementContainer& rElements, const Parameters& rParameter){
-
-//     auto elemet_it_begin = rElements.begin();
-//     for( int i = 0; i < rElements.size(); ++i){
-//         auto element_it = elemet_it_begin + i;
-//         if( !(*element_it)->IsTrimmed() ){
-
-//             auto integration_points_x = (*element_it)->IntegrationPoints1D(0);
-//             auto integration_points_y = (*element_it)->IntegrationPoints1D(1);
-//             auto integration_points_z = (*element_it)->IntegrationPoints1D(2);
-
-//             const int PointsInU = integration_points_x.size();
-//             const int PointsInV = integration_points_y.size();
-//             const int PointsInW = integration_points_z.size();
-
-//             for (SizeType u = 0; u < PointsInU; ++u) {
-//                 for (SizeType v = 0; v < PointsInV; ++v) {
-//                     for( SizeType w = 0; w < PointsInW; ++w) {
-//                         const double weight = integration_points_x[u][1]*integration_points_y[v][1]*integration_points_z[w][1];
-//                         total_weight_inside += weight;
-//                         (*element_it)->GetIntegrationPoints().push_back(
-//                                                         IntegrationPoint( integration_points_x[u][0],
-//                                                                           integration_points_y[v][0],
-//                                                                           integration_points_z[w][0],
-//                                                                           weight ) );
-//                     }
-//                 }
-//             }
-//         }
-//     }
+} // namespace tibra

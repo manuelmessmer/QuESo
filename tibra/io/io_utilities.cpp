@@ -2,8 +2,10 @@
 // Email: manuel.messmer@tum.de
 
 
-// Project includes
+//// Project includes
 #include "io/io_utilities.h"
+
+namespace tibra {
 
 bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
                         const char* Filename,
@@ -587,5 +589,7 @@ bool IO::WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& rPoints,
 
   return true;
 }
+
+} // End namespace tibra
 
 

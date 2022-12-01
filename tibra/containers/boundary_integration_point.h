@@ -4,7 +4,10 @@
 #ifndef BOUNDARY_INTEGRATION_POINT_INCLUDE_H
 #define BOUNDARY_INTEGRATION_POINT_INCLUDE_H
 
+//// Project includes
 #include "containers/integration_point.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -71,6 +74,8 @@ private:
     Vector3d mNormal;
     ///@}
 }; // End class BoundaryIntegrationPoint
-///@}
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // BOUNDARY_INTEGRATION_POINT_INCLUDE_H

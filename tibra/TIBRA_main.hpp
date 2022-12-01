@@ -4,7 +4,7 @@
 #ifndef TIBRA_HPP
 #define TIBRA_HPP
 
-/// External includes
+/// STL includes
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -21,6 +21,8 @@
 #include "containers/element_container.h"
 #include "embedding/brep_operator_factory.h"
 
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -173,5 +175,7 @@ private:
 };
 
 ///@}
+
+} // End namespace tibra
 
 #endif // TIBRA_HPP

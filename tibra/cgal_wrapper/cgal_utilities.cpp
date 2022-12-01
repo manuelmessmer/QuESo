@@ -1,9 +1,13 @@
+// Author: Manuel Meßmer
+// Email: manuel.messmer@tum.de
 
-
-#include "cgal_wrapper/cgal_utilities.h"
+//// CGAL includes
 #include <CGAL/boost/graph/properties.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
+//// Project includes
+#include "cgal_wrapper/cgal_utilities.h"
 
+namespace tibra {
 namespace cgal {
 
 bool CGALUtilities::CopyMesh(const CGALMeshType& rInputMesh, TriangleMesh& rOutputMesh ){
@@ -68,3 +72,4 @@ bool CGALUtilities::CopyMesh(const TriangleMesh& rInputMesh, CGALMeshType& rOutp
 }
 
 } // End namespace cgal
+} // End namespace tibra

@@ -1,15 +1,16 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+//// STL includes
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
 #include <cmath>
-
-// Project includes
+//// Project includes
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+
+namespace tibra {
 
 typedef std::size_t SizeType;
 typedef std::vector<std::array<double,2>> Ip1DVectorType;
@@ -203,3 +204,4 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
     return std::make_unique<Ip1DVectorType>(points);
 }
 
+} // End namespace tibra

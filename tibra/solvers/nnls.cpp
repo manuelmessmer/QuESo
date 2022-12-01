@@ -1,18 +1,20 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#include <iostream>
-#include <algorithm>
-
+//// External includes
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-
 #include "nnls/nnls_impl.h"
+//// STL includes
+#include <iostream>
+#include <algorithm>
+//// Project includes
 #include "nnls.h"
 
+namespace tibra {
 
-double NNLS::nnls(MatrixType& A, const VectorType& b, VectorType& x){
+double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     typedef boost::numeric::ublas::matrix<double> MatrixType;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -74,4 +76,5 @@ double NNLS::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     return Rnorm;
 }
 
+} // End namespace tibra
 

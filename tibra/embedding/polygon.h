@@ -4,12 +4,13 @@
 #ifndef POLYGON_INCLUDE_H
 #define POLYGON_INCLUDE_H
 
-/// External libraries
+//// STL includes
 #include <cstddef>
 #include <array>
-
-///Project includes
+//// Project includes
 #include "containers/triangle_mesh.h"
+
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -73,8 +74,9 @@ private:
     IndexType mNumVertices = 0;
     PointType mNormal{};
     ///@}
-};
+}; // End Polygon class
 
-///@}
+///@} End TIBRA classes
 
+} // End namespace tibra
 #endif
