@@ -3,9 +3,10 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
+//// STL includes
 #include "math.h"
-
 // Project includes
 #include "embedding/brep_operator_factory.h"
 #include "quadrature/moment_fitting_utilities.h"

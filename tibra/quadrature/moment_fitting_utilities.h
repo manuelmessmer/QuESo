@@ -4,13 +4,12 @@
 #ifndef MOMENT_FITTING_UTILITIES_INCLUDE_H
 #define MOMENT_FITTING_UTILITIES_INCLUDE_H
 
-// External includes
+//// STL includes
 #include <boost/numeric/ublas/matrix.hpp>
 #include <vector>
 #include <array>
 #include <variant>
-
-// Project includes
+//// Project includes
 #include "containers/element.h"
 #include "containers/boundary_integration_point.h"
 #include "utilities/parameters.h"

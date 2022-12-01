@@ -3,8 +3,9 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
-
+//// Project includes
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/polynomial_utilities.h"
 

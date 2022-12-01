@@ -4,13 +4,12 @@
 #ifndef CGAL_TRIMMED_DOMAIN_INCLUDE_H
 #define CGAL_TRIMMED_DOMAIN_INCLUDE_H
 
-/// CGAL includes
-// Domain
+//// CGAL includes
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/Surface_mesh.h>
 
-// Project includes
+//// Project includes
 #include "cgal_wrapper/cgal_utilities.h"
 #include "embedding/trimmed_domain_base.h"
 #include "containers/triangle_mesh.h"

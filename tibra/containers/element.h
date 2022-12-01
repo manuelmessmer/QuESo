@@ -4,11 +4,10 @@
 #ifndef ELEMENT_INCLUDE_H
 #define ELEMENT_INCLUDE_H
 
-// External includes
+//// STL includes
 #include <stdexcept>
 #include <memory>
-
-// Project includes
+//// Project includes
 #include "containers/integration_point.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"

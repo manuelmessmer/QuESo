@@ -4,12 +4,11 @@
 #ifndef ELEMENT_CONTAINER_INCLUDE_H
 #define ELEMENT_CONTAINER_INCLUDE_H
 
-// External includes
+//// STL includes
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
-
-// Project includes
+//// Project includes
 #include "containers/element.h"
 #include "utilities/parameters.h"
 

@@ -5,7 +5,7 @@
 #ifndef PARAMETERS_INCLUDE_H
 #define PARAMETERS_INCLUDE_H
 
-// External includes
+// STL includes
 #include <stdexcept>
 #include <array>
 

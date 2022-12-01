@@ -4,11 +4,11 @@
 #ifndef EDGE_2D_INCLUDE_H
 #define EDGE_2D_INCLUDE_H
 
-/// External libraries
+//// STL includes
 #include <cstddef>
 #include <array>
 #include <algorithm>
-
+//// Project includes
 #include "containers/boundary_integration_point.h"
 #include "io/io_utilities.h"
 

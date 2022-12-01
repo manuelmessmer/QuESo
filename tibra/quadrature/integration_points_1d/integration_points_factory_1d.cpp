@@ -1,14 +1,13 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+//// STL includes
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
 #include <cmath>
-
-// Project includes
+//// Project includes
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace tibra {

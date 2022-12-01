@@ -4,12 +4,11 @@
 #ifndef CLIPPER_INCLUDE_H
 #define CLIPPER_INCLUDE_H
 
-/// External libraries
+//// STL includes
 #include <cstddef>
 #include <array>
 #include <algorithm>
-
-/// Project includes
+//// Project includes
 #include "embedding/polygon.h"
 #include "containers/triangle_mesh.h"
 

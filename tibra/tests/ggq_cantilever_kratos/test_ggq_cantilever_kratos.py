@@ -14,7 +14,7 @@ if kratos_available:
     from kratos_interface.bounding_box_bcs import DirichletCondition
     from kratos_interface.bounding_box_bcs import NeumannCondition
 
-# External imports
+# STL imports
 import unittest
 import numpy as np
 

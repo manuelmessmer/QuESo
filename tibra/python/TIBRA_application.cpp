@@ -1,7 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+//// STL includes
 #include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
 #include <pybind11/stl.h>
@@ -9,8 +9,7 @@
 #include <pybind11/functional.h>
 #include <iostream>
 #include <vector>
-
-// Project includes
+//// Project includes
 #include "TIBRA_main.hpp"
 #include "containers/element.h"
 #include "containers/element_container.h"

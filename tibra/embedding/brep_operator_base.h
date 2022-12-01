@@ -4,10 +4,9 @@
 #ifndef BREP_OPERATOR_BASE_INCLUDE_H
 #define BREP_OPERATOR_BASE_INCLUDE_H
 
-/// External includes
+//// STL includes
 #include <memory>
-
-/// Project includes
+//// Project includes
 #include "containers/element.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"

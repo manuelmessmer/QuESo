@@ -3,8 +3,9 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
-
+//// Project includes
 #include "solvers/nnls.h"
 
 namespace tibra {

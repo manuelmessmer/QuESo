@@ -4,10 +4,10 @@
 #ifndef AABB_PRIMITIVE_BASE_INCLUDE_H
 #define AABB_PRIMITIVE_BASE_INCLUDE_H
 
-// External includes
+//// STL includes
 #include <cstddef>
 #include <array>
-
+//// Project includes
 #include "containers/point_types.h"
 
 namespace tibra {

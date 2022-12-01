@@ -1,7 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// Project includes
+//// Project includes
 #include "embedding/polygon.h"
 #include "utilities/utilities.h"
 

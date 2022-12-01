@@ -1,7 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// Project includes
+//// Project includes
 #include "utilities/mapping_utilities.h"
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"

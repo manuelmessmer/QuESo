@@ -4,10 +4,9 @@
 #ifndef AABB_PRIMITIVE_INCLUDE_H
 #define AABB_PRIMITIVE_INCLUDE_H
 
-/// External libraries
+//// External includes
 #include "aabb_tree/AABB_base.h"
-
-/// Project includes
+//// Project includes
 #include "embedding/aabb_primitive_base.h"
 
 namespace tibra {

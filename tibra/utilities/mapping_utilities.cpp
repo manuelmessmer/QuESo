@@ -1,7 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+// STL includes
 #include <cstdlib>
 
 // Project includes

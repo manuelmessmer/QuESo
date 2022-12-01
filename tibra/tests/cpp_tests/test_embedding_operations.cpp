@@ -2,8 +2,10 @@
 // Email: manuel.messmer@tum.de
 
 #define BOOST_TEST_DYN_LINK
-#include <boost/test/unit_test.hpp>
 
+//// External includes
+#include <boost/test/unit_test.hpp>
+//// Project includes
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
 #include "TIBRA_main.hpp"

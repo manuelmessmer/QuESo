@@ -4,7 +4,7 @@
 #ifndef TIBRA_HPP
 #define TIBRA_HPP
 
-/// External includes
+/// STL includes
 #include <iostream>
 #include <sstream>
 #include <fstream>

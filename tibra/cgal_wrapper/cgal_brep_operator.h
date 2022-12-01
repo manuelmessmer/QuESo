@@ -4,7 +4,7 @@
 #ifndef CGAL_BREP_OPERATOR_INCLUDE_H
 #define CGAL_BREP_OPERATOR_INCLUDE_H
 
-/// CGAL includes
+//// CGAL includes
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/Surface_mesh.h>
@@ -13,7 +13,7 @@
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_traits.h>
 
-/// Project includes
+//// Project includes
 #include "cgal_wrapper/cgal_utilities.h"
 #include "containers/triangle_mesh.h"
 #include "containers/element.h"

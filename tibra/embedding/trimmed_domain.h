@@ -4,9 +4,8 @@
 #ifndef TRIMMED_DOMAIN_INCLUDE_H
 #define TRIMMED_DOMAIN_INCLUDE_H
 
-/// External includes
+/// STL includes
 #include <memory>
-
 /// Project includes
 #include "containers/triangle_mesh.h"
 #include "embedding/aabb_tree.h"

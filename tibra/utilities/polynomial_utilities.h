@@ -4,7 +4,7 @@
 #ifndef POLYNOMIAL_UTILITIES_INCLUDE_H
 #define POLYNOMIAL_UTILITIES_INCLUDE_H
 
-// External includes
+// STL includes
 #include <vector>
 #include <variant>
 #include <cmath>

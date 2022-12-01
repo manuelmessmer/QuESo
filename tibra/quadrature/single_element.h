@@ -4,10 +4,10 @@
 #ifndef SINGLE_ELEMENT_H
 #define SINGLE_ELEMENT_H
 
+//// STL includes
 #include <vector>
 #include <array>
-
-// Project includes
+//// Project includes
 #include "containers/element.h"
 #include "containers/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"

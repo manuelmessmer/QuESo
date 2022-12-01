@@ -1,8 +1,11 @@
+// Author: Manuel Meßmer
+// Email: manuel.messmer@tum.de
 
-
-#include "cgal_wrapper/cgal_utilities.h"
+//// CGAL includes
 #include <CGAL/boost/graph/properties.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
+//// Project includes
+#include "cgal_wrapper/cgal_utilities.h"
 
 namespace tibra {
 namespace cgal {

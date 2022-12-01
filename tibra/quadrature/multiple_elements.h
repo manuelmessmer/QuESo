@@ -4,7 +4,7 @@
 #ifndef MULTI_KNOTSPAN_BOXES_UTILITIES_H
 #define MULTI_KNOTSPAN_BOXES_UTILITIES_H
 
-// Project includes
+//// Project includes
 #include "containers/element_container.h"
 #include "utilities/parameters.h"
 

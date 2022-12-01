@@ -4,10 +4,9 @@
 #ifndef AABB_tree_INCLUDE_H
 #define AABB_tree_INCLUDE_H
 
-/// External libraries
+//// External includes
 #include "aabb_tree/AABB_base.h"
-
-/// Project includes
+//// Project includes
 #include "embedding/aabb_primitive.h"
 #include "containers/triangle_mesh.h"
 

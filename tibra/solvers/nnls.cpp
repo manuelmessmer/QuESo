@@ -1,14 +1,15 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#include <iostream>
-#include <algorithm>
-
+//// External includes
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-
 #include "nnls/nnls_impl.h"
+//// STL includes
+#include <iostream>
+#include <algorithm>
+//// Project includes
 #include "nnls.h"
 
 namespace tibra {

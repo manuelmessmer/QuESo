@@ -4,15 +4,14 @@
 #ifndef TRIANGLE_MESH_INCLUDE_H
 #define TRIANGLE_MESH_INCLUDE_H
 
-/// External includes
+//// STL includes
 #include <vector>
 #include <array>
 #include <cmath>
 #include <memory>
 #include <iostream>
 #include <map>
-
-/// Project includes
+//// Project includes
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"
 

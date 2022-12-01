@@ -1,9 +1,9 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
+//// Project includes
 #include "embedding/clipper.h"
 #include "utilities/utilities.h"
-
 
 namespace tibra {
 

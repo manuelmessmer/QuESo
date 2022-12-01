@@ -4,14 +4,13 @@
 #ifndef CUBE_MODELER_INCLUDE_H
 #define CUBE_MODELER_INCLUDE_H
 
-// CGAL includes
+//// CGAL includes
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/Mesh_polyhedron_3.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
-
-// Project includes
+//// Project includes
 #include "containers/point_types.h"
 
 namespace tibra {

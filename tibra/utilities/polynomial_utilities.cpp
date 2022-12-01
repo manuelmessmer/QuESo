@@ -1,6 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
+//// Project includes
 #include "utilities/polynomial_utilities.h"
 
 namespace tibra {

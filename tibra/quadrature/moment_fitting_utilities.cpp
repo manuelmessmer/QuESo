@@ -1,11 +1,10 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// External includes
+//// STL includes
 #include <stdexcept>
 #include <cmath>
-
-// Project includes
+//// Project includes
 #include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"

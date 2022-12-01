@@ -1,7 +1,7 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-// Project includes
+//// Project includes
 #include "cgal_wrapper/cgal_cuboid_modeler.h"
 
 namespace tibra {

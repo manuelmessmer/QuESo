@@ -4,10 +4,9 @@
 #ifndef IO_UTILTIES_H
 #define IO_UTILTIES_H
 
-// External includes
-#include <fstream>      // std::ofstream
-
-// Project includes
+//// STL includes
+#include <fstream>
+//// Project includes
 #include "containers/element_container.h"
 #include "containers/triangle_mesh.h"
 #include "containers/boundary_integration_point.h"

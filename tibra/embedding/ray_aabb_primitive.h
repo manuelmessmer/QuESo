@@ -5,9 +5,7 @@
 #ifndef RAY_AABB_PRIMITIVE_INCLUDE_H
 #define RAY_AABB_PRIMITIVE_INCLUDE_H
 
-/// External includes
-
-/// Project includes
+//// Project includes
 #include "embedding/aabb_primitive.h"
 
 namespace tibra {

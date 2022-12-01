@@ -3,9 +3,11 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
+//// STL includes
 #include <chrono>
-
+//// Project includes
 #include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"

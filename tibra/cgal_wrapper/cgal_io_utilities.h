@@ -4,10 +4,8 @@
 #ifndef CGAL_IO_UTILTIES_H
 #define CGAL_IO_UTILTIES_H
 
-// External includes
-#include <fstream>      // std::ofstream
-
-// Project includes
+//// STL includes
+#include <fstream>
 
 namespace tibra {
 namespace cgal {

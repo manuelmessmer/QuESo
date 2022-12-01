@@ -4,7 +4,7 @@
 #ifndef INTEGRATION_POINTS_FACTORY_1D_H
 #define INTEGRATION_POINTS_FACTORY_1D_H
 
-// External includes
+// STL includes
 #include <vector>
 #include <array>
 #include <memory>

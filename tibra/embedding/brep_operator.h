@@ -4,10 +4,9 @@
 #ifndef BREP_OPERATOR_INCLUDE_H
 #define BREP_OPERATOR_INCLUDE_H
 
-/// External includes
+//// STL includes
 #include <memory>
-
-/// Project includes
+//// Project includes
 #include "containers/triangle_mesh.h"
 #include "containers/element.h"
 #include "embedding/aabb_tree.h"

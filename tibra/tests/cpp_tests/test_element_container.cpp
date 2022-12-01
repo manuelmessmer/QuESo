@@ -3,8 +3,8 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
-
 // Project includes
 #include "utilities/parameters.h"
 #include "containers/element.h"
