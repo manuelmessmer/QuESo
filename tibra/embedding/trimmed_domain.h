@@ -44,7 +44,7 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if point is inside TrimmedDomain.
+    ///@brief Returns true if point is inside TrimmedDomain. Expects point to be inside AABB. Check is omitted.
     ///@param rPoint
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint) const override;

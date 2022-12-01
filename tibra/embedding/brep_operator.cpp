@@ -15,13 +15,12 @@
 
 namespace tibra {
 
-std::random_device rd;
-std::mt19937 gen(rd());
-std::uniform_real_distribution<> drandon(0, 1);
-
 typedef BRepOperator::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
 
 bool BRepOperator::IsInside(const PointType& rPoint) const {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> drandon(0, 1);
 
     if( mTree.IsWithinBoundingBox(rPoint)) {
         bool is_on_boundary = true;
