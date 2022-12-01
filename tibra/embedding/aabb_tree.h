@@ -9,7 +9,7 @@
 
 /// Project includes
 #include "embedding/aabb_primitive.h"
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 
 
 ///@name TIBRA Classes
@@ -25,8 +25,6 @@ class AABB_tree : public aabb_base::Tree_base {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef TriangleMesh::Vector3d PointType;
     typedef aabb_base::Tree_base BaseTreeType;
     typedef aabb_base::AABB_base BaseAABBType;
     ///@}
@@ -58,8 +56,8 @@ public:
             auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
             auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
 
-            std::array<double,3> lower_bound = {*x_min_max.first, *y_min_max.first, *z_min_max.first};
-            std::array<double,3> upper_bound = {*x_min_max.second, *y_min_max.second, *z_min_max.second};
+            PointType lower_bound = {*x_min_max.first, *y_min_max.first, *z_min_max.first};
+            PointType upper_bound = {*x_min_max.second, *y_min_max.second, *z_min_max.second};
             this->insertParticle(i, lower_bound, upper_bound);
 
             mLowerBound[0] = std::min<double>(*x_min_max.first, mLowerBound[0]);
@@ -80,7 +78,7 @@ public:
     ///@brief Return true if point lies inside outer bounding box.
     ///@param rPoint
     ///@return bool
-    bool IsWithinBoundingBox(const std::array<double, 3>& rPoint) const;
+    bool IsWithinBoundingBox(const PointType& rPoint) const;
 
     ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
     ///@param rRay
@@ -93,8 +91,8 @@ public:
 private:
     ///@name Private Member variables
     ///@{
-    std::array<double,3> mLowerBound{};
-    std::array<double,3> mUpperBound{};
+    PointType mLowerBound{};
+    PointType mUpperBound{};
     ///@}
 };
 

@@ -8,9 +8,9 @@
 #include <fstream>      // std::ofstream
 
 // Project includes
-#include "geometries/element_container.h"
-#include "geometries/triangle_mesh.h"
-#include "geometries/boundary_integration_point.h"
+#include "containers/element_container.h"
+#include "containers/triangle_mesh.h"
+#include "containers/boundary_integration_point.h"
 
 class IO{
 
@@ -30,7 +30,7 @@ public:
   static bool ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
                               const char* Filename);
 
-  static bool WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+  static bool WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
                                      const char* Filename,
                                      const bool Binary);
 

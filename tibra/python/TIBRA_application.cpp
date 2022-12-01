@@ -12,15 +12,13 @@
 
 // Project includes
 #include "TIBRA_main.hpp"
-#include "geometries/element.h"
-#include "geometries/element_container.h"
-#include "geometries/triangle_mesh.h"
-#include "geometries/integration_point.h"
+#include "containers/element.h"
+#include "containers/element_container.h"
+#include "containers/triangle_mesh.h"
+#include "containers/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
-typedef std::size_t IndexType;
-typedef std::array<double,3> PointType;
 typedef std::vector<PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
@@ -68,6 +66,15 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         }, py::keep_alive<0, 1>())
         ;
 
+    /// Export PointType
+    py::class_<PointType, std::shared_ptr<PointType>>(m,"Point")
+        .def(py::init<double, double, double>())
+        .def("GetX", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
+        .def("GetY", static_cast< double (PointType::*)() const>(&PointType::Y)) // Return const version of Y()
+        .def("GetZ", static_cast< double (PointType::*)() const>(&PointType::Z)) // Return const version of Z()
+        .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
+        ;
+
     /// Export PointVector
     py::bind_vector<PointVectorType,std::unique_ptr<PointVectorType>>
         (m, "PointVector")
@@ -79,12 +86,8 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     ;
 
     /// Export Integration Points
-    py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>>(m, "IntegrationPoint")
+    py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>, PointType>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
-        .def("GetX", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::X)) // Return const version of X()
-        .def("GetY", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::Y)) // Return const version of Y()
-        .def("GetZ", static_cast< double (IntegrationPoint::*)() const>(&IntegrationPoint::Z)) // Return const version of Z()
-        .def("Coordinates", &IntegrationPoint::Coordinates)
         .def("GetWeight", &IntegrationPoint::GetWeight)
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
@@ -126,18 +129,18 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     ;
 
     /// Export Element
+
     py::class_<Element, std::shared_ptr<Element>>(m,"Element")
-        .def("GetIntegrationPointsTrimmed",  &Element::GetIntegrationPointsTrimmed, py::return_value_policy::reference_internal )
-        .def("GetIntegrationPointsInside",  &Element::GetIntegrationPointsInside, py::return_value_policy::reference_internal )
-        .def("GetIntegrationPointsFictitious",  &Element::GetIntegrationPointsFictitious, py::return_value_policy::reference_internal )
+        .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (Element::*)() const>(&Element::GetIntegrationPoints)
+            ,py::return_value_policy::reference_internal ) // Export const version
         .def("GetTriangleMesh", [](const Element& rElement){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh();
         }, py::return_value_policy::reference_internal)
         .def("GetBCTriangleMesh", [](const Element& rElement, std::function<bool(double, double,double)> &IsInDomain){
             return rElement.pGetTrimmedDomain()->pGetTriangleMesh(IsInDomain);
         })
-        .def("GetLocalLowerPoint", &Element::GetLocalLowerPoint)
-        .def("GetLocalUpperPoint", &Element::GetLocalUpperPoint)
+        .def("GetLowerBoundParam", &Element::GetLowerBoundParam)
+        .def("GetUpperBoundParam", &Element::GetUpperBoundParam)
         .def("GetNumberBoundaryTriangles", [](const Element& rElement ){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
         })
@@ -172,8 +175,8 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 
     /// Export TIBRA
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
-        .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int>())
-        .def(py::init<const std::string, std::array<double, 3>, std::array<double, 3>, std::array<int, 3>, std::array<int, 3>, double, int, double, double, std::string, int, bool>())
+        .def(py::init<const std::string, std::array<double,3>, std::array<double,3>, std::array<IndexType,3>, std::array<IndexType,3>, double, int, double, double, std::string, int>())
+        .def(py::init<const std::string, std::array<double,3>, std::array<double,3>, std::array<IndexType,3>, std::array<IndexType,3>, double, int, double, double, std::string, int, bool>())
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const TIBRA& v){

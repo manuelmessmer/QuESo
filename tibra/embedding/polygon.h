@@ -9,7 +9,7 @@
 #include <array>
 
 ///Project includes
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -19,14 +19,12 @@
  * @author Manuel Messmer
  * @brief Simple polygon class with static containers.
 */
-template<std::size_t DIM, std::size_t SIZE>
+template<std::size_t SIZE>
 class Polygon {
 
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef std::array<double, DIM> PointType;
     typedef std::vector<std::array<PointType, 2>> EdgesType;
 
     Polygon(const PointType& rNormal) : mNormal(rNormal){}

@@ -6,7 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <chrono>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 
@@ -36,11 +36,11 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsTest1) {
     SurfaceMeshType mPolyhedron;
     CGAL::IO::read_STL("tibra/tests/cpp_tests/data/elephant.stl", mPolyhedron);
 
-    TriangleMesh::Vector3d lower_bound = {0.1, 0.1, -0.1};
-    TriangleMesh::Vector3d upper_bound = {0.2, 0.2, 0.1};
+    Vector3d lower_bound = {0.1, 0.1, -0.1};
+    Vector3d upper_bound = {0.2, 0.2, 0.1};
 
-    std::array<int, 3> number_of_elements = {1, 1, 1};
-    std::array<int, 3> order = {2, 2, 2};
+    Vector3i number_of_elements = {1, 1, 1};
+    Vector3i order = {2, 2, 2};
 
     int point_distribution_factor = 3;
     double initial_triangle_edge_length = 1;

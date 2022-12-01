@@ -8,8 +8,8 @@
 #include <array>
 
 // Project includes
-#include "geometries/element.h"
-#include "geometries/integration_point.h"
+#include "containers/element.h"
+#include "containers/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 ///@name TIBRA Classes
@@ -29,9 +29,7 @@ public:
         ///@name Type Definitions
         ///@{
         typedef std::vector<IntegrationPoint> IntegrationPointType;
-        typedef size_t SizeType;
-        typedef std::array<double,3> PointType;
-        typedef std::array<int,3> IntArrayType;
+
         ///@}
         ///@name Operations
         ///@{

@@ -6,17 +6,16 @@
 #include <boost/test/unit_test.hpp>
 #include <chrono>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
-#include "geometries/element_container.h"
+#include "containers/element_container.h"
 
 namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( PointClassifierTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
-    typedef std::array<double,3> PointType;
 
     std::cout << "Testing :: Test Point Classifier :: Cylinder Point Classifier" << std::endl;
 
@@ -61,8 +60,6 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
-    typedef std::array<double,3> PointType;
-
     std::cout << "Testing :: Test Point Classifier Classifier :: Cube Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
@@ -118,8 +115,6 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
-    typedef std::array<double,3> PointType;
-
     std::cout << "Testing :: Test Point Classifier :: Elphant Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
@@ -174,8 +169,6 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
 
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
-    typedef std::array<double,3> PointType;
-
     std::cout << "Testing :: Test Point Classifier :: Bunny Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};

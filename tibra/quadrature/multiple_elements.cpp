@@ -7,7 +7,6 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
-typedef Element::PointType PointType;
 
 void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters& rParameters){
 
@@ -79,13 +78,13 @@ void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters
     // for(int i = 0; i < number_neighbours; ++i){
     //     auto element_it = element_it_begin_nei + i;
     //     if( !(*element_it)->IsTrimmed()){
-    //         auto local_lower_point = (*element_it)->GetLocalLowerPoint();
-    //         auto local_upper_point = (*element_it)->GetLocalUpperPoint();
+    //         auto local_lower_point = (*element_it)->GetLowerBoundParam();
+    //         auto local_upper_point = (*element_it)->GetUpperBoundParam();
     //         double a = 0.5*(local_upper_point[0] + local_lower_point[0]);
     //         double b = 0.5*(local_upper_point[1] + local_lower_point[1]);
     //         double c = 0.5*(local_upper_point[2] + local_lower_point[2]);
 
-    //         auto& points = (*element_it)->GetIntegrationPointsInside();
+    //         auto& points = (*element_it)->GetIntegrationPoints();
     //         points.push_back( IntegrationPoint(a, b, c, (*element_it)->NeighbourCoefficient() ) );
     //     }
 
@@ -194,13 +193,13 @@ void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters
         // for(int i = 0; i < number_neighbours; ++i){
             // auto element_it = element_it_begin_nei + i;
             // if( !(*element_it)->IsTrimmed()){
-                // auto local_lower_point = (*element_it)->GetLocalLowerPoint();
-                // auto local_upper_point = (*element_it)->GetLocalUpperPoint();
+                // auto local_lower_point = (*element_it)->GetLowerBoundParam();
+                // auto local_upper_point = (*element_it)->GetUpperBoundParam();
                 // double a = 0.5*(local_upper_point[0] + local_lower_point[0]);
                 // double b = 0.5*(local_upper_point[1] + local_lower_point[1]);
                 // double c = 0.5*(local_upper_point[2] + local_lower_point[2]);
 
-                // auto& points = (*element_it)->GetIntegrationPointsInside();
+                // auto& points = (*element_it)->GetIntegrationPoints();
                 // points.push_back( IntegrationPoint(a, b, c, color_count ) );
             // }
 
@@ -279,8 +278,8 @@ void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtr
 
     for( int i = 0; i < rElements.size(); ++i){
         auto element_it = *(element_it_begin + i);
-        const auto lower_point = element_it->GetLocalLowerPoint();
-        const auto upper_point = element_it->GetLocalUpperPoint();
+        const auto& lower_point = element_it->GetLowerBoundParam();
+        const auto& upper_point = element_it->GetUpperBoundParam();
         if( lower_point[0] < global_lower_point_param[0] )
             global_lower_point_param[0] = lower_point[0];
         if( lower_point[1] < global_lower_point_param[1] )
@@ -303,8 +302,8 @@ void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtr
         auto element_it = *(element_it_begin + i);
 
         // Local lower and upper points
-        const auto lower_point_param = element_it->GetLocalLowerPoint();
-        const auto upper_point_param = element_it->GetLocalUpperPoint();
+        const auto lower_point_param = element_it->GetLowerBoundParam();
+        const auto upper_point_param = element_it->GetUpperBoundParam();
 
         std::array<Element::IntegrationPoint1DVectorType, 3> tmp_integration_points{};
 
@@ -333,7 +332,7 @@ void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtr
                 for (SizeType v = 0; v < PointsInV; ++v) {
                     for( SizeType w = 0; w < PointsInW; ++w) {
                         const double weight = tmp_integration_points[0][u][1]*tmp_integration_points[1][v][1]*tmp_integration_points[2][w][1];
-                        element_it->GetIntegrationPointsInside().push_back(
+                        element_it->GetIntegrationPoints().push_back(
                                                         IntegrationPoint( tmp_integration_points[0][u][0],
                                                                           tmp_integration_points[1][v][0],
                                                                           tmp_integration_points[2][w][0],
@@ -367,7 +366,7 @@ void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtr
 //                     for( SizeType w = 0; w < PointsInW; ++w) {
 //                         const double weight = integration_points_x[u][1]*integration_points_y[v][1]*integration_points_z[w][1];
 //                         total_weight_inside += weight;
-//                         (*element_it)->GetIntegrationPointsInside().push_back(
+//                         (*element_it)->GetIntegrationPoints().push_back(
 //                                                         IntegrationPoint( integration_points_x[u][0],
 //                                                                           integration_points_y[v][0],
 //                                                                           integration_points_z[w][0],

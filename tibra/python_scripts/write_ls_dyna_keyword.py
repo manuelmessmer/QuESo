@@ -73,7 +73,7 @@ class keyword_writer:
             array = []
             number_elements = 0
             if element.IsTrimmed():
-                for point_trimmed in element.GetIntegrationPointsTrimmed():
+                for point_trimmed in element.GetIntegrationPoints():
                     if( point_trimmed.GetWeight() > 0.0 ):
                         number_elements -= 1
                         total_number_points += 1
@@ -83,9 +83,9 @@ class keyword_writer:
                         ww = point_trimmed.GetWeight()
                         array.append( [xx, yy, zz, ww] )
             else:
-                number_elements = len(element.GetIntegrationPointsInside())
+                number_elements = len(element.GetIntegrationPoints())
                 total_number_points += number_elements
-                for point_inside in element.GetIntegrationPointsInside():
+                for point_inside in element.GetIntegrationPoints():
                     xx = point_inside.GetX()
                     yy = point_inside.GetY()
                     zz = point_inside.GetZ()

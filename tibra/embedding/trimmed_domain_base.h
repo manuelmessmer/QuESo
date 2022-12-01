@@ -9,8 +9,8 @@
 #include <functional>
 
 /// Project includes
-#include "geometries/boundary_integration_point.h"
-#include "geometries/triangle_mesh.h"
+#include "containers/boundary_integration_point.h"
+#include "containers/triangle_mesh.h"
 #include "utilities/parameters.h"
 
 ///@name TIBRA Classes
@@ -29,9 +29,7 @@ class TrimmedDomainBase {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef std::array<double,3> PointType;
+
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
     typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
     typedef std::unique_ptr<TriangleMesh> TriangleMeshPtrType;

@@ -4,7 +4,7 @@
 // Project includes
 #include "embedding/aabb_tree.h"
 
-bool AABB_tree::IsWithinBoundingBox(const std::array<double, 3>& rPoint) const {
+bool AABB_tree::IsWithinBoundingBox(const PointType& rPoint) const {
     if(   rPoint[0] < mLowerBound[0]
         || rPoint[0] > mUpperBound[0]
         || rPoint[1] < mLowerBound[1]
@@ -19,7 +19,7 @@ bool AABB_tree::IsWithinBoundingBox(const std::array<double, 3>& rPoint) const {
 }
 
 
-std::vector<AABB_tree::IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primitive) const
+std::vector<IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primitive) const
 {
     std::vector<IndexType> stack;
     stack.reserve(256);

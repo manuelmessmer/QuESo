@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <array>
 
+#include "containers/point_types.h"
+
 // Global variables
 constexpr double kEpsilon = 1e-14;
 
@@ -25,12 +27,6 @@ class AABB_primitive;
 class AABB_primitive_base
 {
 public:
-
-    ///@name Type Definitions
-    ///@{
-    typedef std::size_t IndexType;
-    typedef std::array<double, 3> Vector3d;
-    typedef std::array<int, 3> Vector3i;
 
     ///@}
     ///@name Operations

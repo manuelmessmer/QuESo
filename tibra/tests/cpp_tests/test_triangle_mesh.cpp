@@ -5,7 +5,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 
 namespace Testing{

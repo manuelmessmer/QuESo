@@ -42,9 +42,9 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         ips_inside = 0
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 27)
+                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
-                ips_inside += len(element.GetIntegrationPointsInside())
+                ips_inside += len(element.GetIntegrationPoints())
 
         self.assertEqual(ips_inside, 2592)
 
@@ -58,9 +58,9 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         ips_inside = 0
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 27)
+                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
-                ips_inside += len(element.GetIntegrationPointsInside())
+                ips_inside += len(element.GetIntegrationPoints())
         self.assertEqual(ips_inside, 1275)
 
     def test_5(self):
@@ -73,9 +73,9 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         ips_inside = 0
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 27)
+                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
-                ips_inside += len(element.GetIntegrationPointsInside())
+                ips_inside += len(element.GetIntegrationPoints())
         self.assertEqual(ips_inside, 572)
 
     def test_6(self):
@@ -88,9 +88,9 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         ips_inside = 0
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 27)
+                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
-                ips_inside += len(element.GetIntegrationPointsInside())
+                ips_inside += len(element.GetIntegrationPoints())
         self.assertEqual(ips_inside, 243)
 
     def test_7(self):
@@ -100,7 +100,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters7.json", 0.0008)
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 4*4*4)
+                self.assertLessEqual(len(element.GetIntegrationPoints()), 4*4*4)
 
     def test_8(self):
         #p=3
@@ -109,7 +109,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters8.json", 0.0008)
         for element in self.pytibra.GetElements():
             if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPointsTrimmed()), 5*5*5)
+                self.assertLessEqual(len(element.GetIntegrationPoints()), 5*5*5)
 
     def RunTest(self,filename, tolerance):
         if kratos_available:

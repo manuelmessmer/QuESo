@@ -8,7 +8,7 @@
 #include <memory>
 
 /// Project includes
-#include "geometries/element.h"
+#include "containers/element.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
 
@@ -25,7 +25,6 @@ class BRepOperatorBase {
 public:
     ///@name Type Definitions
     ///@{
-    typedef TriangleMesh::Vector3d PointType;
     typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainBasePtrType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};
@@ -43,8 +42,8 @@ public:
     ///@param rElement
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     virtual IntersectionStatus GetIntersectionState(const Element& rElement){
-        const auto& lower_bound = rElement.GetGlobalLowerPoint();
-        const auto& upper_bound = rElement.GetGlobalUpperPoint();
+        const auto& lower_bound = rElement.GetLowerBound();
+        const auto& upper_bound = rElement.GetUpperBound();
         return GetIntersectionState(lower_bound, upper_bound);
     }
 

@@ -104,7 +104,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   }
 
   int index = 0;
-  std::map<TriangleMesh::Vector3d, IndexType> index_map;
+  std::map<Vector3d, IndexType> index_map;
 
   // Read number of triangles
   unsigned int num_triangles;
@@ -128,7 +128,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
     rTriangleMesh.AddNormal( {normal[0], normal[1], normal[2]} );
 
     // Read triangles and vertices. Each vertex is read seperately.
-    TriangleMesh::Vector3i triangle{};
+    Vector3i triangle{};
     for(int j=0; j<3; ++j) {
       float x,y,z;
       if(!(file.read(reinterpret_cast<char*>(&x), sizeof(x))) ||
@@ -138,7 +138,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
         return false;
       }
 
-      TriangleMesh::Vector3d vertex = {x,y,z};
+      Vector3d vertex = {x,y,z};
 
       // Map is used to ensure unique vertices. Note that STL does not reuse vertices.
       auto index_map_iterator = index_map.insert(std::make_pair(vertex, -1)).first;
@@ -250,7 +250,7 @@ bool IO::WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
   return true;
 }
 
-bool IO::WriteDisplacementToVTK(const std::vector<std::array<double,3>>& rDisplacement,
+bool IO::WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
                                 const char* Filename,
                                 const bool Binary){
 
@@ -310,8 +310,8 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
   const auto begin_el_itr = rElementContainer.begin();
   for( int i = 0; i < rElementContainer.size(); ++i){
     auto el_itr = *(begin_el_itr + i);
-    auto lower_point = el_itr->GetGlobalLowerPoint();
-    auto upper_point = el_itr->GetGlobalUpperPoint();
+    const auto& lower_point = el_itr->GetLowerBound();
+    const auto& upper_point = el_itr->GetUpperBound();
 
     if( Binary ){
 

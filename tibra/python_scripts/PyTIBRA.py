@@ -88,12 +88,12 @@ class PyTIBRA:
         # Gather all poitnts (TODO: make this in C++)
         for element in self.elements:
             if element.IsTrimmed():
-                for point_trimmed_reduced in element.GetIntegrationPointsTrimmed():
+                for point_trimmed_reduced in element.GetIntegrationPoints():
                     weight = point_trimmed_reduced.GetWeight()
                     if( weight > 0):
                         integration_points.append(point_trimmed_reduced)
             else:
-                for point_inside in element.GetIntegrationPointsInside():
+                for point_inside in element.GetIntegrationPoints():
                     integration_points.append(point_inside)
         return integration_points
 
@@ -142,15 +142,13 @@ class PyTIBRA:
                 local_point_kratos[2] = local_point[2]
                 # Evaluate deformed nurbs_volume
                 deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
-                deformed_pos = [0, 0, 0]
-                deformed_pos[0] = deformed_pos_kratos[0] - global_point[0]
-                deformed_pos[1] = deformed_pos_kratos[1] - global_point[1]
-                deformed_pos[2] = deformed_pos_kratos[2] - global_point[2]
+                deformed_pos = TIBRA_Application.Point(deformed_pos_kratos[0] - global_point[0],
+                    deformed_pos_kratos[1] - global_point[1],
+                    deformed_pos_kratos[2] - global_point[2])
+
                 displacements.append( deformed_pos )
 
-
             TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
-            #print(displacements[0])
 
     def GetAnalysis(self):
         return self.analysis

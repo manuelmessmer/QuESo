@@ -9,7 +9,7 @@
 #include <array>
 #include <algorithm>
 
-#include "geometries/boundary_integration_point.h"
+#include "containers/boundary_integration_point.h"
 #include "io/io_utilities.h"
 
 ///Project includes
@@ -28,9 +28,8 @@ class TrimmedDomainOnPlane {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
     typedef std::array<double, 2> Point2DType;
-    typedef std::array<double, 3> Point3DType;
+    typedef Vector3d Point3DType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
     typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
 

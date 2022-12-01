@@ -8,7 +8,6 @@ namespace cgal {
 
 bool CGALUtilities::CopyMesh(const CGALMeshType& rInputMesh, TriangleMesh& rOutputMesh ){
 
-    typedef TriangleMesh::Vector3d PointType;
     typedef typename boost::graph_traits<CGALMeshType>::vertex_descriptor   vertex_descriptor;
     typedef typename boost::property_map<CGALMeshType, CGAL::vertex_point_t>::const_type VPMap;
 
@@ -33,7 +32,7 @@ bool CGALUtilities::CopyMesh(const CGALMeshType& rInputMesh, TriangleMesh& rOutp
 
     for(auto f : faces(rInputMesh))
     {
-        std::array<IndexType, 3> vertex_ids;
+        Vector3i vertex_ids;
         IndexType count = 0;
         for(auto h : halfedges_around_face(halfedge(f, rInputMesh), rInputMesh))
         {

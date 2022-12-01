@@ -6,7 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <chrono>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 
@@ -24,8 +24,8 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
-    TriangleMesh::Vector3d lower_bound = {-2, -2, -2};
-    TriangleMesh::Vector3d upper_bound = {-1.5, 2, 2};
+    Vector3d lower_bound = {-2, -2, -2};
+    Vector3d upper_bound = {-1.5, 2, 2};
     // Touch from outside with tolerance=0.0 is trimmed.
     BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), BRepOperator::Trimmed );
     // Touch from outside with tolerance>0.0 is outside.
@@ -52,15 +52,15 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     const double delta_y = 0.1;
     const double delta_z = 0.1;
 
-    std::vector<TriangleMesh::IndexType> result{};
+    std::vector<IndexType> result{};
     double tolerance = 0.0;
     result.reserve(117900);
     for(double x = -1.5; x <= 1.5; x += delta_x){
         for(double y = -1.5; y <= 1.5; y += delta_y){
             for(double z = -1; z <= 12; z += delta_z){
 
-                TriangleMesh::Vector3d lower_bound = {x, y, z};
-                TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
+                Vector3d lower_bound = {x, y, z};
+                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
@@ -90,15 +90,15 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     const double delta_y = 0.15;
     const double delta_z = 0.15;
 
-    std::vector<TriangleMesh::IndexType> result{};
+    std::vector<IndexType> result{};
     double tolerance = 0.0;
     result.reserve(9261);
     for(double x = -1.5001; x <= 1.5; x += delta_x){
         for(double y = -1.5001; y <= 1.5; y += delta_y){
             for(double z = -1.5001; z <= 1.5; z += delta_z){
 
-                TriangleMesh::Vector3d lower_bound = {x, y, z};
-                TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
+                Vector3d lower_bound = {x, y, z};
+                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
@@ -129,15 +129,15 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     const double delta_z = 0.05;
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    std::vector<TriangleMesh::IndexType> result{};
+    std::vector<IndexType> result{};
     double tolerance = 0.0;
     result.reserve(6375);
     for(double x = -0.4; x <= 0.4; x += delta_x){
         for(double y = -0.6; y <= 0.6; y += delta_y){
             for(double z = -0.35; z <= 0.35; z += delta_x){
 
-                TriangleMesh::Vector3d lower_bound = {x, y, z};
-                TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
+                Vector3d lower_bound = {x, y, z};
+                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }
@@ -167,15 +167,15 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     const double delta_z = 3;
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    std::vector<TriangleMesh::IndexType> result{};
+    std::vector<IndexType> result{};
     double tolerance = 0.0;
     result.reserve(41070);
     for(double x = -24; x <= 85; x += delta_x){
         for(double y = -43; y <= 46; y += delta_y){
             for(double z = 5; z <= 115; z += delta_z){
 
-                TriangleMesh::Vector3d lower_bound = {x, y, z};
-                TriangleMesh::Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
+                Vector3d lower_bound = {x, y, z};
+                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
             }
         }

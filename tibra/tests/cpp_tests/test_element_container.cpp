@@ -7,18 +7,18 @@
 
 // Project includes
 #include "utilities/parameters.h"
-#include "geometries/element.h"
-#include "geometries/element_container.h"
+#include "containers/element.h"
+#include "containers/element_container.h"
 
 namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
-std::unique_ptr<ElementContainer> CreateTestElementContainer(std::array<int,3> rNumberOfElemnts){
-    std::array<double, 3> point_A = {0.0, 0.0, 0.0};
-    std::array<double, 3> point_B = {1.0, 1.0, 1.0};
+std::unique_ptr<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
+    PointType point_A = {0.0, 0.0, 0.0};
+    PointType point_B = {1.0, 1.0, 1.0};
 
-    std::array<int, 3> order = {2, 2, 2};
+    Vector3i order = {2, 2, 2};
     int point_distribution_factor = 3;
     double initial_triangle_edge_length = 1;
     int minimum_number_of_triangles = 1;
@@ -33,8 +33,8 @@ std::unique_ptr<ElementContainer> CreateTestElementContainer(std::array<int,3> r
 
     std::size_t number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
     for( int i = 1; i <= number_elements; ++i){
-        std::array<double, 3> tmp_point_A = {0.0, 0.0, 0.0};
-        std::array<double, 3> tmp_point_B = {0.1, 0.1, 0.1};
+        PointType tmp_point_A = {0.0, 0.0, 0.0};
+        PointType tmp_point_B = {0.1, 0.1, 0.1};
         std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i, tmp_point_A, tmp_point_B, param);
         if( i != 10)
             container.AddElement(tmp_element);
@@ -46,7 +46,7 @@ std::unique_ptr<ElementContainer> CreateTestElementContainer(std::array<int,3> r
 BOOST_AUTO_TEST_CASE(TestElementContainerX) {
     std::cout << "Testing :: Test Element Container :: Element Container Walking along X Direction" << std::endl;
 
-    std::array<int, 3> number_of_elements = {3, 4, 2};
+    Vector3i number_of_elements = {3, 4, 2};
     auto container = CreateTestElementContainer(number_of_elements);
 
     bool local_end;
@@ -96,7 +96,7 @@ bool contains(std::vector<int>& v, int test_value){
 BOOST_AUTO_TEST_CASE(TestElementContainerY) {
     std::cout << "Testing :: Test Element Container :: Element Container Walking along Y Direction" << std::endl;
 
-    std::array<int, 3> number_of_elements = {3, 4, 2};
+    Vector3i number_of_elements = {3, 4, 2};
     auto container = CreateTestElementContainer(number_of_elements);
 
     bool local_end;
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerY) {
 BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
     std::cout << "Testing :: Test Element Container :: Element Container Walking along Z Direction" << std::endl;
 
-    std::array<int, 3> number_of_elements = {3, 4, 2};
+    Vector3i number_of_elements = {3, 4, 2};
     auto container = CreateTestElementContainer(number_of_elements);
 
     bool local_end;

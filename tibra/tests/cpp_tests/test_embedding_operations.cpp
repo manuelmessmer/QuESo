@@ -8,8 +8,6 @@
 #include "io/io_utilities.h"
 #include "TIBRA_main.hpp"
 
-typedef std::array<double,3> PointType;
-
 namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
@@ -17,10 +15,10 @@ BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
 BOOST_AUTO_TEST_CASE(Intersection) {
     std::cout << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
 
-    std::array<double, 3> point_A = {0.0, 0.0, 0.0};
-    std::array<double, 3> point_B = {2.0, 2.0, 1.0};
-    std::array<int, 3> number_of_elements = {1, 1, 1};
-    std::array<int, 3> order = {2, 2, 2};
+    PointType point_A = {0.0, 0.0, 0.0};
+    PointType point_B = {2.0, 2.0, 1.0};
+    Vector3i number_of_elements = {1, 1, 1};
+    Vector3i order = {2, 2, 2};
 
     int point_distribution_factor = 3;
     double initial_triangle_edge_length = 1;
@@ -39,7 +37,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 
     BOOST_CHECK_EQUAL(elements.size(), 1);
 
-    const auto& points_reduced = (*elements.begin())->GetIntegrationPointsTrimmed();
+    const auto& points_reduced = (*elements.begin())->GetIntegrationPoints();
     BOOST_CHECK_LT(points_reduced.size(), 28);
 
     const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
@@ -70,12 +68,12 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     BOOST_CHECK_GT(area, 5.135);
 }
 
-void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInside, double Tolerance){
+void TestElephantLarge( std::string IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance){
 
-    std::array<double, 3> point_A = {-0.37, -0.55, -0.31};
-    std::array<double, 3> point_B = {0.37, 0.55, 0.31};
-    std::array<int, 3> number_of_elements = {14, 22, 12};
-    std::array<int, 3> order = {p, p, p};
+    PointType point_A = {-0.37, -0.55, -0.31};
+    PointType point_B = {0.37, 0.55, 0.31};
+    Vector3i number_of_elements = {14, 22, 12};
+    Vector3i order = {p, p, p};
 
     int point_distribution_factor = 2;
     double initial_triangle_edge_length = 1;
@@ -102,7 +100,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
     for( std::size_t i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
-            const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
+            const auto& points_trimmed = el_it->GetIntegrationPoints();
             BOOST_CHECK_GT(points_trimmed.size(), 0);
             BOOST_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( auto point : points_trimmed ){
@@ -110,7 +108,7 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
             }
             num_elements_trimmed++;
         } else {
-            const auto& points_inside = el_it->GetIntegrationPointsInside();
+            const auto& points_inside = el_it->GetIntegrationPoints();
             //BOOST_CHECK_GT(points_inside.size(), 0);
             for( auto point : points_inside ){
                 weigth_inside += point.GetWeight();
@@ -137,12 +135,12 @@ void TestElephantLarge( std::string IntegrationMethod, int p, int NumPointsInsid
     BOOST_CHECK_LT(rel_error_tot, Tolerance);
 }
 
-void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInside, double Tolerance){
+void TestElephantSmall( std::string IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance){
 
-    std::array<double, 3> point_A = {-0.37, -0.55, -0.31};
-    std::array<double, 3> point_B = {0.37, 0.55, 0.31};
-    std::array<int, 3> number_of_elements = {7, 11, 6};
-    std::array<int, 3> order = {p, p, p};
+    PointType point_A = {-0.37, -0.55, -0.31};
+    PointType point_B = {0.37, 0.55, 0.31};
+    Vector3i number_of_elements = {7, 11, 6};
+    Vector3i order = {p, p, p};
 
     int point_distribution_factor = 2;
     double initial_triangle_edge_length = 1;
@@ -169,7 +167,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
     for( std::size_t i = 0; i < elements.size(); ++i){
         auto el_it = *(el_it_begin+i);
         if( el_it->IsTrimmed() ){
-            const auto& points_trimmed = el_it->GetIntegrationPointsTrimmed();
+            const auto& points_trimmed = el_it->GetIntegrationPoints();
             BOOST_CHECK_GT(points_trimmed.size(), 0);
             BOOST_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( auto point : points_trimmed ){
@@ -177,7 +175,7 @@ void TestElephantSmall( std::string IntegrationMethod, int p, int NumPointsInsid
             }
             num_elements_trimmed++;
         } else {
-            const auto& points_inside = el_it->GetIntegrationPointsInside();
+            const auto& points_inside = el_it->GetIntegrationPoints();
             //BOOST_CHECK_GT(points_inside.size(), 0);
             for( auto point : points_inside ){
                 weigth_inside += point.GetWeight();

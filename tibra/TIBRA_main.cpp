@@ -107,7 +107,7 @@ void TIBRA::Run(){
         std::chrono::duration<double> t_delta_mf = (t_end_mf - t_begin_mf);
         et_moment_fitting += t_delta_mf.count();
 
-        if( new_element->GetIntegrationPointsTrimmed().size() == 0 ){
+        if( new_element->GetIntegrationPoints().size() == 0 ){
           valid_element = false;
         }
       }

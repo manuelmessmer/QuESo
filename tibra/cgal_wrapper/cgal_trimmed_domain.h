@@ -13,7 +13,7 @@
 // Project includes
 #include "cgal_wrapper/cgal_utilities.h"
 #include "embedding/trimmed_domain_base.h"
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 
 namespace cgal {
 

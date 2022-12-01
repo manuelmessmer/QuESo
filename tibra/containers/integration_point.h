@@ -4,33 +4,52 @@
 #ifndef INTEGRATION_POINT_INCLUDE_H
 #define INTEGRATION_POINT_INCLUDE_H
 
-#include "geometries/point.h"
+#include "containers/point_types.h"
 
-class IntegrationPoint : public Point
+///@name TIBRA Classes
+///@{
+
+/**
+ * @class  IntegrationPoint
+ * @author Manuel Messmer
+*/
+class IntegrationPoint : public PointType
 {
 public:
-    // Default constructor
-    IntegrationPoint() : Point()
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor
+    IntegrationPoint() : PointType()
     {}
 
-    // 2D Constructor
+    /// 2D Constructor
     IntegrationPoint(double x, double y, double weigth_) :
-        Point(x,y,0.0), mWeight(weigth_)
+        PointType(x,y,0.0), mWeight(weigth_)
     {
         mActiveFlag = true;
     }
 
-    // 3D Constructor
+    /// 3D Constructor
     IntegrationPoint(double x, double y, double z, double weigth_) :
-        Point(x,y,z), mWeight(weigth_)
+        PointType(x,y,z), mWeight(weigth_)
     {
         mActiveFlag = true;
     }
 
-    // Assignement operator
+    /// Destructor
+    ~IntegrationPoint() = default;
+
+    /// Copy Constructor
+    IntegrationPoint(const IntegrationPoint& rOther)
+        : PointType(rOther), mWeight(rOther.mWeight), mActiveFlag(rOther.mActiveFlag)
+    {
+    }
+
+    /// Assignement operator
     IntegrationPoint& operator=(const IntegrationPoint& rOther)
     {
-        Point::operator=(rOther);
+        PointType::operator=(rOther);
         if( this != &rOther) {
             mWeight = rOther.mWeight;
             mActiveFlag = rOther.mActiveFlag;
@@ -38,6 +57,10 @@ public:
         }
         return *this;
     }
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     double GetWeight() const{
         return mWeight;
@@ -55,9 +78,14 @@ public:
         return mActiveFlag;
     }
 
+    ///@}
 private:
+    ///@name Private member variables
+    ///@{
     double mWeight;
     bool mActiveFlag;
-};
+    ///@}
+}; // End class IntegrationPoint
+///@}
 
 #endif // INTEGRATION_POINT_INCLUDE_H

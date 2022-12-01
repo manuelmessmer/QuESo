@@ -54,11 +54,11 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
 
         for element in elements:
             if element.IsTrimmed():
-                for point_trimmed_reduced in element.GetIntegrationPointsTrimmed():
+                for point_trimmed_reduced in element.GetIntegrationPoints():
                     if(point_trimmed_reduced.GetWeight() > 0.0):
                         points_all.append(point_trimmed_reduced)
             else:
-                for point_inside in element.GetIntegrationPointsInside():
+                for point_inside in element.GetIntegrationPoints():
                     points_all.append(point_inside)
 
         p = 100

@@ -13,8 +13,8 @@
 #include <map>
 
 /// Project includes
-#include "geometries/triangle_gauss_legendre_integration_points.h"
-#include "geometries/boundary_integration_point.h"
+#include "containers/triangle_gauss_legendre_integration_points.h"
+#include "containers/boundary_integration_point.h"
 
 ///@name TIBRA Classes
 ///@{
@@ -30,10 +30,6 @@ class TriangleMesh
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef std::array<double,3> Vector3d;
-    typedef std::array<IndexType,3> Vector3i;
     typedef std::vector<IntegrationPoint> IpVectorType;
     typedef std::unique_ptr<IpVectorType> IpVectorPtrType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
@@ -265,7 +261,7 @@ public:
 
         for( auto triangle : rTriangleIndices){
             const auto& tmp_indices = rTriangleMesh.VertexIds(triangle);
-            std::array<IndexType,3> new_triangle{};
+            Vector3i new_triangle{};
             IndexType ii = 0;
             for( auto index : tmp_indices ){
                 // Insert index into index_map if map does not contain index.
@@ -392,7 +388,7 @@ private:
         case 2:
             return( rPoint[1] );
         default:
-            throw std::invalid_argument(" Triangle3D3N Wrong Index of Shape Function! ");
+            throw std::invalid_argument(" TriangleMesh :: ShapeFunctionValue :: Wrong Index of Shape Function! ");
             break;
         }
 

@@ -6,7 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <chrono>
 
-#include "geometries/triangle_mesh.h"
+#include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 
@@ -25,8 +25,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
-    TriangleMesh::Vector3d lower_bound = {0.0, 0.0, -0.1};
-    TriangleMesh::Vector3d upper_bound = {2, 2, 1};
+    Vector3d lower_bound = {0.0, 0.0, -0.1};
+    Vector3d upper_bound = {2, 2, 1};
 
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
@@ -52,8 +52,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
-    TriangleMesh::Vector3d lower_bound = {0.0, 0.0, 0.0};
-    TriangleMesh::Vector3d upper_bound = {2, 2, 1};
+    Vector3d lower_bound = {0.0, 0.0, 0.0};
+    Vector3d upper_bound = {2, 2, 1};
 
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
@@ -87,8 +87,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
         for(double yy = -1.5001; yy <= 1.5; yy += delta_y){
             for(double zz = -1.5001; zz <= 1.5; zz += delta_z){
 
-                TriangleMesh::Vector3d lower_bound = {xx,yy,zz};
-                TriangleMesh::Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
+                Vector3d lower_bound = {xx,yy,zz};
+                Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
                 // Clip mesh
                 auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
                 // Compute area of clipped domain.
@@ -133,8 +133,8 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
         for(double yy = -0.6; yy <= 0.6; yy += delta_y){
             for(double zz = -0.35; zz <= 0.35; zz += delta_z){
 
-                TriangleMesh::Vector3d lower_bound = {xx,yy,zz};
-                TriangleMesh::Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
+                Vector3d lower_bound = {xx,yy,zz};
+                Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip  Mesh.
                 auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
@@ -180,8 +180,8 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     for(double xx = -24; xx <= 85; xx += delta_x){
         for(double yy = -43; yy <= 46; yy += delta_y){
             for(double zz = 5; zz <= 115; zz += delta_z){
-                TriangleMesh::Vector3d lower_bound = {xx,yy,zz};
-                TriangleMesh::Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
+                Vector3d lower_bound = {xx,yy,zz};
+                Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip mesh.
                 auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
