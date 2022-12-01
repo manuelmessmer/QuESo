@@ -8,6 +8,7 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/polynomial_utilities.h"
 
+namespace tibra {
 namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( PolynomialTestSuite )
@@ -51,4 +52,5 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
-}// Namespace Testing
+} // End namespace Testing
+} // End namespace tibra

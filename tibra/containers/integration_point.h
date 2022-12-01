@@ -6,6 +6,8 @@
 
 #include "containers/point_types.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -86,6 +88,8 @@ private:
     bool mActiveFlag;
     ///@}
 }; // End class IntegrationPoint
-///@}
+///@} End TIBRA classes
+
+} // End namespace tibra
 
 #endif // INTEGRATION_POINT_INCLUDE_H

@@ -6,6 +6,8 @@
 
 #include "containers/point_types.h"
 
+namespace tibra {
+
 namespace MappingUtilities {
 
 PointType FromGlobalToLocalSpace( const PointType& rGlobalCoord,
@@ -17,5 +19,7 @@ PointType FromLocalToGlobalSpace( const PointType& rLocalCoord,
                                   const PointType& rUpperPoint);
 
 } // End namespace MappingUtilities
+
+} // End namespace tibra
 
 #endif

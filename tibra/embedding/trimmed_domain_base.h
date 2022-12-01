@@ -13,6 +13,8 @@
 #include "containers/triangle_mesh.h"
 #include "utilities/parameters.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -108,7 +110,9 @@ protected:
     PointType mUpperBound;
     TriangleMeshPtrType mpTriangleMesh;
     ///@}
-};
+}; // End TrimmedDomainBase
 ///@}
+
+} // End namespace tibra
 
 #endif // TRIMMED_DOMAIN_BASE_INCLUDE_H

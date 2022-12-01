@@ -11,6 +11,8 @@
 ///Project includes
 #include "containers/triangle_mesh.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -73,8 +75,9 @@ private:
     IndexType mNumVertices = 0;
     PointType mNormal{};
     ///@}
-};
+}; // End Polygon class
 
-///@}
+///@} End TIBRA classes
 
+} // End namespace tibra
 #endif

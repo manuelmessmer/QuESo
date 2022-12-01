@@ -12,6 +12,8 @@
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -61,7 +63,9 @@ public:
     virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const = 0;
 
     ///@}
-};
-///@}
+}; // End BRepOperatorBase class
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // BREP_OPERATOR_BASE_INCLUDE_H

@@ -14,6 +14,8 @@
 
 ///Project includes
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -615,7 +617,9 @@ private:
 
     bool mUpperBoundary; //Is current plane upper bound?
     ///@}
-};
+}; // End TrimmedDomainOnPlane
 
 ///@} // End Tibra Classes
+
+} // End namespace tibra
 #endif

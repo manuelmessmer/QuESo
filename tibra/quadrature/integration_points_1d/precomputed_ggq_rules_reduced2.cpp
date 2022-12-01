@@ -3,10 +3,11 @@
 
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
+namespace tibra {
+
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_2_0_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
-    {   // B0.3333333333333330
-
+    {   // Boundary nodes & weights
         { 0.3333333333333370, 0.7500000000000053 },
         { 1.2222222222222270, 0.9642857142857159 },
         { 2.2121212121212142, 0.9972527472527469 },
@@ -61,7 +62,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
 
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_4_1_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
-    {   // B0.3333333333333330
+    {   // Boundary nodes & weights
         { 0.1692090819876588, 0.4113445407548102 },
         { 0.7141610829854759, 0.6048397443542948 },
         { 1.3402701505133132, 0.6614526649285688 },
@@ -87,7 +88,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
 
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_4_1_base_even_2 =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
-    {   // B0.3333333333333330
+    {   // Boundary nodes & weights
         { 0.1692090819876588, 0.4113445407548102 },
         { 0.7141610829854759, 0.6048397443542948 },
         { 1.3402701505133132, 0.6614526649285688 },
@@ -120,7 +121,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
 
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_4_1_base_odd =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
-    {   // B0.3333333333333330
+    {   // Boundary nodes & weights
         { 0.1692090819876588, 0.4113445407548102 },
         { 0.7141610829854759, 0.6048397443542948 },
         { 1.3402701505133132, 0.6614526649285688 },
@@ -155,7 +156,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
 
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_6_2_base_odd =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
-    {   // B0.3333333333333330
+    {   // Boundary nodes & weights
         { 0.0990753049261918, 0.2466917491984454 },
         { 0.4593981395375434, 0.4384611139643027 },
         { 0.9094007975838164, 0.4489635029922912 },
@@ -184,7 +185,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
         { 0.3765225027802135, 0.5110066658523233 },
         { 0.8836068423782475, 0.4889933341476766 }
     },
-    {
+    {   // Center nodes & weights
         {-12.123477497219784, 0.5110066658523214 },
         {-11.616393157621754, 0.4889933341476743 },
         {-11.123477497219791, 0.5110066658523135 },
@@ -215,7 +216,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
 
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_6_2_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
-    {   // B0.3333333333333330
+    {   // Boundary nodes & weights
         { 0.0990753049261918, 0.2466917491984454 },
         { 0.4593981395375434, 0.4384611139643027 },
         { 0.9094007975838164, 0.4489635029922912 },
@@ -244,7 +245,7 @@ const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory
         { 0.3765225027802135, 0.5110066658523233 },
         { 0.8836068423782475, 0.4889933341476766 }
     },
-    {
+    {   // Center nodes & weights
         {-11.623477497219786, 0.5110066658523196 },
         {-11.116393157621759, 0.4889933341476650 },
         {-10.623477497219818, 0.5110066658522837 },
@@ -3708,3 +3709,5 @@ const std::vector<IntegrationPointFactory1D::Ip1DVectorVectorPtrType> Integratio
     IntegrationPointFactory1D::S_4_1_precomputed,
     IntegrationPointFactory1D::S_6_2_precomputed
 };
+
+} // End namespace tibra

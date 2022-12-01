@@ -12,6 +12,7 @@
 // Project includes
 #include "containers/triangle_mesh.h"
 
+namespace tibra {
 namespace cgal {
 
 class CGALUtilities
@@ -30,6 +31,7 @@ public:
                          CGALMeshType& rOutputMesh );
 };
 
-}
+} // End namespace cgal
+} // End namespace tibra
 
 #endif // End CGAL_UTILTIES_H

@@ -12,6 +12,8 @@
 #include "containers/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -43,5 +45,7 @@ public:
 }; // End Class SingleElement
 
 ///@}
+
+} // End namespace tibra
 
 #endif // SINGLE_ELEMENT_H

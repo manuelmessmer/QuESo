@@ -8,7 +8,8 @@
 #include "io/io_utilities.h"
 #include "TIBRA_main.hpp"
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
 
@@ -238,3 +239,4 @@ BOOST_AUTO_TEST_CASE(VolumeElephant6) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
+} // End namespace tibra

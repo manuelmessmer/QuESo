@@ -10,7 +10,8 @@
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ClipperTestSuite )
 
@@ -211,4 +212,5 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // End TouchingCubeTest1
+} // End namespace Testing
+} // End namespace tibra

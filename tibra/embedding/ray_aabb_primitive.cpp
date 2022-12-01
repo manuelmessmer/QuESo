@@ -4,6 +4,8 @@
 // Project includes
 #include "embedding/ray_aabb_primitive.h"
 
+namespace tibra {
+
 // bool Ray_AABB_primitive::inside(const AABB_primitive &aabb) const {
 //     if(    mOrigin[0] >= aabb.lowerBound[0]
 //         || mOrigin[1] >= aabb.lowerBound[1]
@@ -140,3 +142,5 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
 
     return true;
 }
+
+} // End namespace tibra

@@ -14,6 +14,7 @@
 // Project includes
 #include "containers/point_types.h"
 
+namespace tibra {
 namespace cgal {
 
 ///@name TIBRA Classes
@@ -46,9 +47,9 @@ public:
     ///@}
 
 }; // End class CuboidModeler
+///@} // End CGALCuboidModeler class
 
-///@}
-
-}// End cgal
+} // End namespace cgal
+} // End namespace tibra
 
 #endif // CUBE_MODELER_INCLUDE_H

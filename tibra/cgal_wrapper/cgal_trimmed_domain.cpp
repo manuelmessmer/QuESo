@@ -4,6 +4,7 @@
 // Project includes
 #include "cgal_wrapper/cgal_trimmed_domain.h"
 
+namespace tibra {
 namespace cgal {
 
 typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
@@ -62,3 +63,4 @@ BoundaryIPVectorPtrType CGALTrimmedDomain::pGetBoundaryIps() const {
 }
 
 } // End namespace cgal
+} // End namespace tibra

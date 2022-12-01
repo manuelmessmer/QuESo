@@ -6,6 +6,8 @@
 
 #include <array>
 
+namespace tibra {
+
 /// Forward declaration
 template<typename type>
 class Vector3;
@@ -105,7 +107,9 @@ public:
         return this->data()[i];
     }
     ///@}
-};
-///@}
+}; // End Vector3 class
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // POINT_TYPES_INCLUDE_H

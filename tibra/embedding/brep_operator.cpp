@@ -14,6 +14,8 @@
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
 
+namespace tibra {
+
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> drandon(0, 1);
@@ -238,6 +240,9 @@ BoundaryIPVectorPtrType BRepOperator::pGetBoundaryIps(const PointType& rLowerBou
 
     return std::move(p_boundary_ips);
 }
+
+} // End namespace tibra
+
 // Winding numbers algorithm: It actually works!!!
 
 // std::cout << "Done" << std::endl;

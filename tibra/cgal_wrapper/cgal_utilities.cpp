@@ -4,6 +4,7 @@
 #include <CGAL/boost/graph/properties.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
 
+namespace tibra {
 namespace cgal {
 
 bool CGALUtilities::CopyMesh(const CGALMeshType& rInputMesh, TriangleMesh& rOutputMesh ){
@@ -68,3 +69,4 @@ bool CGALUtilities::CopyMesh(const TriangleMesh& rInputMesh, CGALMeshType& rOutp
 }
 
 } // End namespace cgal
+} // End namespace tibra

@@ -15,6 +15,8 @@
 #include "io/io_utilities.h"
 #include "containers/boundary_integration_point.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -119,8 +121,10 @@ private:
     AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
     ///@}
-};
+}; // End BRepOperator class
 
-///@}
+///@} // End TIBRA classes
+
+} // End namespace tibra
 
 #endif // BREP_OPERATOR_INCLUDE_H

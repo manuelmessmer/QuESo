@@ -11,7 +11,8 @@
 #include "embedding/brep_operator.h"
 #include "containers/element_container.h"
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( PointClassifierTestSuite )
 
@@ -225,3 +226,4 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
+} // End namespace tibra

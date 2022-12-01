@@ -9,6 +9,8 @@
 #include <variant>
 #include <cmath>
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -180,5 +182,7 @@ private:
 }; // End Class
 
 ///@}
+
+} // End namespace tibra
 
 #endif

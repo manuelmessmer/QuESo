@@ -8,7 +8,8 @@
 #include "containers/triangle_mesh.h"
 #include "io/io_utilities.h"
 
-namespace Testing{
+namespace tibra {
+namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( TriangleMeshTestSuite )
 
@@ -34,3 +35,4 @@ BOOST_AUTO_TEST_CASE(TriangleMeshTest1) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
+} // End namespace tibra

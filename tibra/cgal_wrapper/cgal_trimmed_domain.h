@@ -15,6 +15,7 @@
 #include "embedding/trimmed_domain_base.h"
 #include "containers/triangle_mesh.h"
 
+namespace tibra {
 namespace cgal {
 
 ///@name TIBRA Classes
@@ -85,5 +86,6 @@ private:
 }; // End class
 
 } // End namespace cgal
+} // End namespace tibra
 
 #endif // End

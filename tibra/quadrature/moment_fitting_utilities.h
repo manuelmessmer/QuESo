@@ -15,6 +15,8 @@
 #include "containers/boundary_integration_point.h"
 #include "utilities/parameters.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -60,5 +62,7 @@ private:
     static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
 
 }; // End Class
+
+} // End namespace tibra
 
 #endif // MOMENT_FITTING_UTILITIES_INCLUDE_H

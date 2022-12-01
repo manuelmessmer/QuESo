@@ -14,6 +14,8 @@
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -208,6 +210,8 @@ private:
     PointType mNumberOfNeighbours{};
     ///@}
 }; // End class Element
-///@}
+///@} // TIBRA classes
+
+} // End namespace tibra
 
 #endif // ELEMENT_INCLUDE_H

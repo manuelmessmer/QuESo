@@ -12,6 +12,8 @@
 #include "containers/triangle_mesh.h"
 #include "containers/boundary_integration_point.h"
 
+namespace tibra {
+
 class IO{
 
 public:
@@ -65,5 +67,7 @@ private:
   }
 
 };
+
+} // End namespace tibra
 
 #endif // IO_UTILTIES_H

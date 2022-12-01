@@ -5,7 +5,7 @@
 #include "embedding/polygon.h"
 #include "utilities/utilities.h"
 
-typedef std::size_t IndexType;
+namespace tibra {
 
 // Function Definitions Polygon
 template<IndexType SIZE>
@@ -126,3 +126,5 @@ std::unique_ptr<typename Polygon<SIZE>::EdgesType> Polygon<SIZE>::pGetEdgesOnPla
 
 // Explicit instantiation Polygon
 template class Polygon<9>;
+
+} // End namespace tibra

@@ -13,6 +13,7 @@
 #include "containers/point_types.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
+namespace tibra {
 
 class Parameters
 {
@@ -101,6 +102,8 @@ private:
     const double mPointDistributionFactor;
     bool mUseCustomizedTrimmedPointsPositionFlag;
 };
+
+} // End namespace tibra
 
 #endif
 

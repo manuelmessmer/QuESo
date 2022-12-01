@@ -13,6 +13,8 @@
 #include "containers/element.h"
 #include "utilities/parameters.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -385,6 +387,7 @@ private:
     Vector3i mNumberOfElements{};
     ///@}
 }; // End class Element container
-///@}
+///@} // End TIBRA classes
 
+} // End namespace tibra
 #endif // ELEMENT_CONTAINER_INCLUDE_H

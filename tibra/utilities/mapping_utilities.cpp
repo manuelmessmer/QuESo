@@ -7,6 +7,8 @@
 // Project includes
 #include "utilities/mapping_utilities.h"
 
+namespace tibra {
+
 PointType MappingUtilities::FromGlobalToLocalSpace( const PointType& rGlobalCoord,
                                               const PointType& rLowerPoint,
                                               const PointType& rUpperPoint){
@@ -28,3 +30,5 @@ PointType MappingUtilities::FromLocalToGlobalSpace( const PointType& rLocalCoord
 
     return global_cood;
 }
+
+} // End namespace tibra

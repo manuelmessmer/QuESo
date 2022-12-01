@@ -4,7 +4,9 @@
 #include "embedding/clipper.h"
 #include "utilities/utilities.h"
 
-// Function Definitions Clipper
+
+namespace tibra {
+
 typedef Clipper::PolygonType PolygonType;
 
 std::unique_ptr<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
@@ -154,3 +156,5 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
 
     return ret;
 }
+
+} // End namespace tibra

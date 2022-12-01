@@ -8,6 +8,8 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "quadrature/single_element.h"
 
+namespace tibra {
+
 void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
 {
     const int order_u = rParam.Order()[0];
@@ -50,6 +52,8 @@ void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
         }
     }
 }
+
+} // End namespace tibra
 
 // void SingleElement::Assemble(
 //     IntersectionTest& rInsideTest,

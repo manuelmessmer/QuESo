@@ -8,6 +8,8 @@
 #include "containers/element_container.h"
 #include "utilities/parameters.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -48,5 +50,7 @@ private:
 }; // End Class MultipleElements
 
 ///@}
+
+} // End namespace tibra
 
 #endif

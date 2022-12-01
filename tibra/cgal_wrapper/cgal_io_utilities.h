@@ -9,6 +9,7 @@
 
 // Project includes
 
+namespace tibra {
 namespace cgal {
 
 class IO{
@@ -37,6 +38,7 @@ private:
 
 };
 
-}
+} // End namespace cgal
+} // End namespace tibra
 
 #endif // CGAL_IO_UTILTIES_H

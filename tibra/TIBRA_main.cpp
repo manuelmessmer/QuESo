@@ -13,6 +13,8 @@
 #include <thread>
 #include <omp.h>
 
+namespace tibra {
+
 //TODO: Put enums inside outside test and IntegrationMethod into paramters!
 void TIBRA::Run(){
 
@@ -145,3 +147,5 @@ void TIBRA::Run(){
   }
 
 }
+
+} // End namespace tibra

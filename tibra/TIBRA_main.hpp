@@ -22,6 +22,8 @@
 #include "embedding/brep_operator_factory.h"
 
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -173,5 +175,7 @@ private:
 };
 
 ///@}
+
+} // End namespace tibra
 
 #endif // TIBRA_HPP

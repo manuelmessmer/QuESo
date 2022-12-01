@@ -19,6 +19,7 @@
 #include <chrono>
 #include <stdexcept>
 
+namespace tibra {
 namespace cgal {
 
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -153,4 +154,5 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
 }
 
 } // End namespace cgal
+} // End namespace tibra
 

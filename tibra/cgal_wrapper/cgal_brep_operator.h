@@ -22,6 +22,7 @@
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
 
+namespace tibra {
 namespace cgal {
 
 ///@name TIBRA Classes
@@ -95,8 +96,9 @@ private:
     ///@}
 
 }; // End Class CGALBRepOperator
-///@}
+///@} // End TIBRA classes
 
 } // End namespace cgal
+} // End namespace tibra
 
 #endif // CGAL_BREP_OPERATOR_INCLUDE_H

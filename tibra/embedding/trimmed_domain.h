@@ -11,6 +11,8 @@
 #include "containers/triangle_mesh.h"
 #include "embedding/aabb_tree.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -84,5 +86,7 @@ private:
 };
 
 ///@}
+
+} // End namespace tibra
 
 #endif // TRIMMED_DOMAIN_INCLUDE_H

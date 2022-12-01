@@ -5,6 +5,8 @@
 // Project includes
 #include "io/io_utilities.h"
 
+namespace tibra {
+
 bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
                         const char* Filename,
                         const bool Binary){
@@ -587,5 +589,7 @@ bool IO::WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& rPoints,
 
   return true;
 }
+
+} // End namespace tibra
 
 

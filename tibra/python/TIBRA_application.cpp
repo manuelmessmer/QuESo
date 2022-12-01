@@ -19,11 +19,12 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "io/io_utilities.h"
 
-typedef std::vector<PointType> PointVectorType;
+// Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
+typedef std::vector<tibra::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
-typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-typedef std::vector<std::shared_ptr<Element>> ElementVectorPtrType;
-typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
+typedef std::vector<tibra::IntegrationPoint> IntegrationPointVectorType;
+typedef std::vector<std::shared_ptr<tibra::Element>> ElementVectorPtrType;
+typedef std::vector<tibra::BoundaryIntegrationPoint> BoundaryIpVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
@@ -31,8 +32,8 @@ PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 
+namespace tibra {
 namespace Python {
-
 namespace py = pybind11;
 
 template <class T> class ptr_wrapper
@@ -190,4 +191,5 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     m.def("WriteDisplacementToVTK", &IO::WriteDisplacementToVTK);
 }
 
-}// namespace Python
+}// End namespace Python
+}// End namespace tibra

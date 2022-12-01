@@ -11,6 +11,7 @@
 #include "embedding/aabb_primitive.h"
 #include "containers/triangle_mesh.h"
 
+namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
@@ -94,8 +95,9 @@ private:
     PointType mLowerBound{};
     PointType mUpperBound{};
     ///@}
-};
+}; // End AABB_tree class
+///@} // End TIBRA classes
 
-///@}
+} // End namespace tibra
 
 #endif //AABB_tree_INCLUDE_H

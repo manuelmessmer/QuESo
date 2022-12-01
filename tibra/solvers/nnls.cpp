@@ -11,8 +11,9 @@
 #include "nnls/nnls_impl.h"
 #include "nnls.h"
 
+namespace tibra {
 
-double NNLS::nnls(MatrixType& A, const VectorType& b, VectorType& x){
+double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     typedef boost::numeric::ublas::matrix<double> MatrixType;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -74,4 +75,5 @@ double NNLS::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     return Rnorm;
 }
 
+} // End namespace tibra
 

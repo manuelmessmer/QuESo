@@ -3,6 +3,8 @@
 
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
+namespace tibra {
+
 const IntegrationPointFactory1D::Ip1DVectorVectorPtrType IntegrationPointFactory1D::S_3_0_base_even =
         std::make_shared<Ip1DVectorVectorType>( Ip1DVectorVectorType{
     {   // Boundary nodes & weights
@@ -3490,3 +3492,5 @@ const std::vector<IntegrationPointFactory1D::Ip1DVectorVectorPtrType> Integratio
     IntegrationPointFactory1D::S_5_1_precomputed,
     IntegrationPointFactory1D::S_7_2_precomputed
 };
+
+} // End namespace tibra

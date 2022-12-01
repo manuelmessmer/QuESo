@@ -16,6 +16,8 @@
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"
 
+namespace tibra {
+
 ///@name TIBRA Classes
 ///@{
 
@@ -445,7 +447,8 @@ private:
     ///@}
 
 }; // End of class TriangleMesh
+///@} // End TIBRA classes
 
-///@}
+} // End namespace tibra
 
-#endif
+#endif // TRIANGLE_MESH_INCLUDE_H

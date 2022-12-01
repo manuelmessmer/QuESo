@@ -11,6 +11,8 @@
 // Project includes
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
+namespace tibra {
+
 typedef std::size_t SizeType;
 typedef std::vector<std::array<double,2>> Ip1DVectorType;
 typedef std::unique_ptr<Ip1DVectorType> Ip1DVectorPtrType;
@@ -203,3 +205,4 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
     return std::make_unique<Ip1DVectorType>(points);
 }
 
+} // End namespace tibra

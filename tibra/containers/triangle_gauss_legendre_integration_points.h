@@ -6,6 +6,8 @@
 
 #include "containers/integration_point.h"
 
+namespace tibra {
+
 class TriangleGaussLegendrePoints1
 {
 public:
@@ -105,5 +107,7 @@ public:
         return s_integration_points;
     }
 };
+
+} // End namespace tibra
 
 #endif // TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H

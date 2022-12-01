@@ -11,6 +11,7 @@
 // Project includes
 #include "cgal_wrapper/cgal_io_utilities.h"
 
+namespace tibra {
 namespace cgal {
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel CGALKernalType;
@@ -124,3 +125,4 @@ template bool IO::WriteMeshToVTK<CGALMeshType>(const CGALMeshType& rSurfaceMesh,
                                               const bool Binary);
 
 } // End namespace cgal
+} // End namespace tibra
