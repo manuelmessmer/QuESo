@@ -35,8 +35,8 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param pClippedTriangleMesh
     ///@note mpTriangleMesh must be passed to mTree() and not mpTriangleMesh(), since ptr is moved!
-    TrimmedDomain(TriangleMeshPtrType& pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound )
-        : TrimmedDomainBase(mpTriangleMesh, rLowerBound, rUpperBound), mTree(*mpTriangleMesh)
+    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound )
+        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound), mTree(GetTriangleMesh())
     {
     }
 
