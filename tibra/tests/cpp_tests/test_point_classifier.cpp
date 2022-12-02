@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
-    std::cout << "Testing :: Test Point Classifier Classifier :: Cube Point Classifier" << std::endl;
+    std::cout << "Testing :: Test Point Classifier :: Cube Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
