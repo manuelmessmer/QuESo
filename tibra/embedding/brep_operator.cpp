@@ -30,8 +30,8 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
             // Get random direction. Must be postive! -> x>0, y>0, z>0
             Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
             // Normalize
-            double sum_direction = std::sqrt(direction[0]*direction[0]+direction[1]*direction[1]+direction[2]*direction[2]);
-            std::for_each(direction.begin(), direction.end(), [sum_direction](auto& rValue) { rValue /= sum_direction;} );
+            double norm_direction = direction.Norm();
+            direction /= norm_direction;
 
             // Construct ray
             Ray_AABB_primitive ray(rPoint, direction);

@@ -30,8 +30,8 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         Vector3d direction = center_triangle - rPoint;
 
         // Normalize
-        double sum_direction = std::sqrt(direction[0]*direction[0]+direction[1]*direction[1]+direction[2]*direction[2]);
-        direction /= sum_direction;
+        double norm_direction = direction.Norm();
+        direction /= norm_direction;
 
         // Construct ray
         Ray_AABB_primitive ray(rPoint, direction);
