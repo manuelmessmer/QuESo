@@ -16,6 +16,7 @@
 namespace tibra {
 
 typedef BRepOperator::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
+typedef BRepOperator::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
 
 bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::random_device rd;
@@ -93,6 +94,12 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
     return status;
 }
 
+TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+    auto p_new_mesh = ClipTriangleMesh(rLowerBound, rUpperBound);
+    auto p = std::make_unique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound);
+    return std::move(p);
+}
+
 BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
         const Element& rElement) const {
 
@@ -132,7 +139,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
 
     auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
 
-    TriangleMesh new_mesh{};
+    auto p_triangle_mesh = std::make_unique<TriangleMesh>();
     std::map<IndexType, IndexType> index_map{};
     IndexType vertex_count = 0;
     for( auto triangle_id : (*p_intersected_triangle_ids) ){
@@ -145,19 +152,19 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
             && IsContained(P2, rLowerBound, rUpperBound )
             && IsContained(P3, rLowerBound, rUpperBound ) ){ // Triangle is fully contained, does not need to be clipped.
 
-            new_mesh.Append( {triangle_id}, mTriangleMesh );
+            p_triangle_mesh->Append( {triangle_id}, mTriangleMesh );
         }
         else { // Triangle needs to be clipped.
-            auto polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
+            auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
 
             const auto& normal = mTriangleMesh.Normal(triangle_id);
             // Pass normal, such the polygon does not have to recompute them.
-            auto p_tmp_triangle_mesh = polygon->pGetTriangleMesh();
-            new_mesh.Append(*p_tmp_triangle_mesh);
+            auto p_tmp_triangle_mesh = p_polygon->pGetTriangleMesh();
+            p_triangle_mesh->Append(*p_tmp_triangle_mesh);
         }
     }
-    new_mesh.Check();
-    return std::make_unique<TriangleMesh>(new_mesh);
+    p_triangle_mesh->Check();
+    return std::move(p_triangle_mesh);
 }
 
 BoundaryIPVectorPtrType BRepOperator::pGetBoundaryIps(const PointType& rLowerBound, const PointType& rUpperBound) const{
