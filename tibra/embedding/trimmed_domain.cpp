@@ -79,7 +79,6 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     BoundingBox bounding_box = { {max_limit, max_limit, max_limit},
                                  {min_limit, min_limit, min_limit} };
 
-
     // Check vertices of aabb that are inside trimmed domain;
     PointType point_1(mUpperBound[0], mLowerBound[1], mLowerBound[2]);
     PointType point_2(mLowerBound[0], mLowerBound[1], mUpperBound[2]);
@@ -89,9 +88,7 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     PointType point_6(mLowerBound[0], mUpperBound[1], mUpperBound[2]);
     PointType point_7(mUpperBound[0], mUpperBound[1], mLowerBound[2]);
     PointType point_8(mUpperBound[0], mUpperBound[1], mUpperBound[2]);
-
     std::array<PointType,8> points = {point_1, point_2, point_3, point_4, point_5, point_6, point_7, point_8};
-    std::vector<PointType> points_inside{};
 
     for( auto& p : points){
         if( IsInsideTrimmedDomain(p) ){

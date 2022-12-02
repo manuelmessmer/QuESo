@@ -31,7 +31,6 @@ const BoundingBox CGALTrimmedDomain::GetBoundingBoxOfTrimmedDomain() const{
                                  {min_limit, min_limit, min_limit} };
 
     const auto& vertices = mpTriangleMesh->GetVertices();
-
     for( auto& v : vertices ){
         // Loop over all 3 dimensions
         for( IndexType i = 0; i < 3; ++i){
