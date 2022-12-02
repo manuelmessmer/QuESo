@@ -9,7 +9,7 @@
 
 namespace tibra {
 
-
+typedef TrimmedDomainBase::BoundingBox BoundingBox;
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
 
@@ -25,13 +25,13 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         if( current_id >= num_triangles ){
             return false;
         }
+        // Get direction
         const auto center_triangle = mpTriangleMesh->Center(current_id);
         Vector3d direction = center_triangle - rPoint;
 
         // Normalize
         double sum_direction = std::sqrt(direction[0]*direction[0]+direction[1]*direction[1]+direction[2]*direction[2]);
         direction /= sum_direction;
-        //std::for_each(direction.begin(), direction.end(), [sum_direction](auto& rValue) { rValue /= sum_direction;} );
 
         // Construct ray
         Ray_AABB_primitive ray(rPoint, direction);
@@ -67,8 +67,60 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         }
         current_id++;
     }
-
     return is_inside;
+}
+
+const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
+    // Note: std::numeric_limits<double>::min() returns smallest positive number.
+    constexpr double min_limit = std::numeric_limits<double>::lowest();
+    constexpr double max_limit = std::numeric_limits<double>::max();
+
+    // Initialize bounding box
+    BoundingBox bounding_box = { {max_limit, max_limit, max_limit},
+                                 {min_limit, min_limit, min_limit} };
+
+
+    // Check vertices of aabb that are inside trimmed domain;
+    PointType point_1(mUpperBound[0], mLowerBound[1], mLowerBound[2]);
+    PointType point_2(mLowerBound[0], mLowerBound[1], mUpperBound[2]);
+    PointType point_3(mLowerBound[0], mLowerBound[1], mLowerBound[2]);
+    PointType point_4(mLowerBound[0], mUpperBound[1], mLowerBound[2]);
+    PointType point_5(mUpperBound[0], mLowerBound[1], mUpperBound[2]);
+    PointType point_6(mLowerBound[0], mUpperBound[1], mUpperBound[2]);
+    PointType point_7(mUpperBound[0], mUpperBound[1], mLowerBound[2]);
+    PointType point_8(mUpperBound[0], mUpperBound[1], mUpperBound[2]);
+
+    std::array<PointType,8> points = {point_1, point_2, point_3, point_4, point_5, point_6, point_7, point_8};
+    std::vector<PointType> points_inside{};
+
+    for( auto& p : points){
+        if( IsInsideTrimmedDomain(p) ){
+            // Loop over all 3 dimensions
+            for( IndexType i = 0; i < 3; ++i){
+                if( p[i] < bounding_box.first[i] ){ // Find min values
+                    bounding_box.first[i] = p[i];
+                }
+                if( p[i] > bounding_box.second[i] ){ // Find max values
+                    bounding_box.second[i] = p[i];
+                }
+            }
+        }
+    }
+
+    const auto& vertices = mpTriangleMesh->GetVertices();
+    for( auto& v : vertices ){
+        // Loop over all 3 dimensions
+        for( IndexType i = 0; i < 3; ++i){
+            if( v[i] < bounding_box.first[i] ){ // Find min values
+                bounding_box.first[i] = v[i];
+            }
+            if( v[i] > bounding_box.second[i] ){ // Find max values
+                bounding_box.second[i] = v[i];
+            }
+        }
+    }
+
+    return bounding_box;
 }
 
 } // End namespace tibra

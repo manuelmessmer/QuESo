@@ -57,9 +57,7 @@ public:
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
-    virtual const BoundingBox GetBoundingBoxOfTrimmedDomain() const override{
-        return BoundingBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
-    }
+    virtual const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
     ///@}
 private:
