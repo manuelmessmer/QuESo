@@ -109,11 +109,25 @@ public:
     }
 
     Vector3 operator+ (const Vector3& rOther) const {
-        Vector3(this->data()[0] + rOther[0], this->data()[1] + rOther[1], this->data()[2] + rOther[2]);
+        return Vector3(this->data()[0] + rOther[0], this->data()[1] + rOther[1], this->data()[2] + rOther[2]);
     }
 
     Vector3 operator- (const Vector3& rOther) const {
-        Vector3(this->data()[0] - rOther[0], this->data()[1] - rOther[1], this->data()[2] - rOther[2]);
+        return Vector3(this->data()[0] - rOther[0], this->data()[1] - rOther[1], this->data()[2] - rOther[2]);
+    }
+
+    Vector3 operator*= (const type& rValue)  {
+        this->data()[0] *= rValue;
+        this->data()[1] *= rValue;
+        this->data()[2] *= rValue;
+        return *this;
+    }
+
+    Vector3 operator/= (const type& rValue)  {
+        this->data()[0] /= rValue;
+        this->data()[1] /= rValue;
+        this->data()[2] /= rValue;
+        return *this;
     }
     ///@}
 }; // End Vector3 class
