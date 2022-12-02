@@ -45,6 +45,8 @@ public:
     ///@{
 
     ///@brief Returns true if point is inside TrimmedDomain. Expects point to be inside AABB. Check is omitted.
+    ///@brief Performs ray tracing in direction of the first triangle. Search for all intersection of ray. Inside/Outside is detected
+    ///       based on the orientation of the closest intersected triangle (forward or backward facing).
     ///@param rPoint
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint) const override;

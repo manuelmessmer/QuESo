@@ -56,7 +56,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
                     return false;
                 }
                 if( u < 0.0+1e-14 || v < 0.0+1e-14 || sum_u_v > 1.0-1e-14 ){
-                    is_on_boundary = true;
+                    is_on_boundary = true; // Hits boundary
                     break;
                 }
                 if( t < min_distance ){
@@ -79,7 +79,7 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     BoundingBox bounding_box = { {max_limit, max_limit, max_limit},
                                  {min_limit, min_limit, min_limit} };
 
-    // Check vertices of aabb that are inside trimmed domain;
+    // Since TrimmedDomain holds only a clipped TriangleMesh (mesh is not closed), vertices of AABB must also be considered.
     PointType point_1(mUpperBound[0], mLowerBound[1], mLowerBound[2]);
     PointType point_2(mLowerBound[0], mLowerBound[1], mUpperBound[2]);
     PointType point_3(mLowerBound[0], mLowerBound[1], mLowerBound[2]);
