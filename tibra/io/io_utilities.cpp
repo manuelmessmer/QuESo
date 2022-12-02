@@ -25,7 +25,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
   if(Binary)
   {
     file << "FileType: Binary                                                                ";
-    file.write(reinterpret_cast<const char *>(&num_triangles), sizeof(num_triangles));
+    file.write(reinterpret_cast<const char *>(&static_cast<const int&>(num_triangles)), sizeof(static_cast<const int&>(num_triangles)));
 
     for(int triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
     {
