@@ -27,15 +27,14 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     std::vector<PointType> rPoints{};
-    rPoints.reserve(4340000);
-    for(double x = -1.5; x <= 1.5; x += 0.03){
-        for(double y = -1.5; y <= 1.5; y += 0.03){
-            for(double z = -1; z <= 12; z += 0.03){
+    rPoints.reserve(167620);
+    for(double x = -1.5; x <= 1.5; x += 0.09){
+        for(double y = -1.5; y <= 1.5; y += 0.09){
+            for(double z = -1; z <= 12; z += 0.09){
                 rPoints.push_back( {x, y, z} );
             }
         }
     }
-
     BRepOperator classifier(triangle_mesh);
     //auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -63,7 +62,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
-    std::cout << "Testing :: Test Point Classifier Classifier :: Cube Point Classifier" << std::endl;
+    std::cout << "Testing :: Test Point Classifier :: Cube Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file

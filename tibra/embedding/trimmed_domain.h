@@ -7,7 +7,7 @@
 /// STL includes
 #include <memory>
 /// Project includes
-#include "containers/triangle_mesh.h"
+#include "embedding/trimmed_domain_base.h"
 #include "embedding/aabb_tree.h"
 
 namespace tibra {
@@ -21,13 +21,12 @@ namespace tibra {
  * @brief  Provides geometrical operations for clipped Brep models (clipped triangle meshes).
  * @details Uses AABB Tree for fast search.
 */
-class TrimmedDomain {
+class TrimmedDomain : public TrimmedDomainBase {
 
 public:
     ///@name Type Definitions
     ///@{
 
-    enum IntersectionStatus {Inside, Outside, Trimmed};
     ///@}
     ///@name Life Cycle
     ///@{
@@ -35,9 +34,9 @@ public:
     /// Constructor
     ///@brief Builds AABB tree for given mesh.
     ///@param pClippedTriangleMesh
-    ///@note mpClippedTriangleMesh must be passed to mTree() and not pClippedTriangleMesh(), since better is moved before!
-    TrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, std::unique_ptr<TriangleMesh> pClippedTriangleMesh)
-        : mpClippedTriangleMesh(std::move(pClippedTriangleMesh)), mTree(*mpClippedTriangleMesh)
+    ///@note mpTriangleMesh must be passed to mTree() and not mpTriangleMesh(), since ptr is moved!
+    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound )
+        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound), mTree(GetTriangleMesh())
     {
     }
 
@@ -45,13 +44,24 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if point is inside TriangleMesh.
+    ///@brief Returns true if point is inside TrimmedDomain. Expects point to be inside AABB. Check is omitted.
+    ///@brief Performs ray tracing in direction of the first triangle. Search for all intersection of ray. Inside/Outside is detected
+    ///       based on the orientation of the closest intersected triangle (forward or backward facing).
     ///@param rPoint
     ///@return bool
-    bool IsOnBoundedSided(const PointType& rPoint) const;
+    bool IsInsideTrimmedDomain(const PointType& rPoint) const override;
+
+    ///@brief Returns boundary integration points of TrimmedDomain.
+    ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
+    virtual BoundaryIPVectorPtrType pGetBoundaryIps() const override {
+        return nullptr;
+    }
+
+    /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
+    /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
+    virtual const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
     ///@}
-
 private:
     ///@name Private Operations
     ///@{
@@ -80,7 +90,6 @@ private:
     ///@{
 
     AABB_tree mTree;
-    std::unique_ptr<TriangleMesh> mpClippedTriangleMesh;
     ///@}
 };
 
