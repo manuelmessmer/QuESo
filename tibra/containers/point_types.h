@@ -6,6 +6,7 @@
 
 //// STL includes
 #include <array>
+#include <cmath>
 
 namespace tibra {
 
@@ -128,6 +129,12 @@ public:
         this->data()[1] /= rValue;
         this->data()[2] /= rValue;
         return *this;
+    }
+
+    double Norm(){
+        return std::sqrt( this->data()[0]*this->data()[0]
+                         +this->data()[1]*this->data()[1]
+                         +this->data()[2]*this->data()[2] );
     }
     ///@}
 }; // End Vector3 class
