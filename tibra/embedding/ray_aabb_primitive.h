@@ -42,6 +42,9 @@ public:
         mPositiveDir = true;
         if( Direction[0] <= 0 || Direction[1] <= 0 || Direction[2] <= 0 ){
             mPositiveDir = false;
+            mSign[0] = (mInvDirection[0] < 0);
+            mSign[1] = (mInvDirection[1] < 0);
+            mSign[2] = (mInvDirection[2] < 0);
         }
     }
 
@@ -49,11 +52,22 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if ray intersects aabb. Direction of ray must be positive oriented (x>0, y>0, z>0).
-    ///       This is done for better performance.
+    ///@brief Returns true if ray intersects aabb.
     ///@param aabb
+    ///@see intersect_general and intersect_positive_ray.
     ///@return bool
     bool intersect(const AABB_primitive &aabb) const override;
+
+    /// @brief Returns true if ray intersect aabb.
+    /// @param aabb
+    /// @return bool
+    bool intersect_general(const AABB_primitive &aabb) const;
+
+    /// @brief Returns true if ray intersect aabb. Direction of ray must be positive (x>0,y>0,z>0).
+    ///        This implementation is slightly faster than intersect_general.
+    /// @param aabb
+    /// @return bool
+    bool intersect_positive_ray(const AABB_primitive &aabb) const;
 
     ///@brief Returns true if ray intersects triangle (only checks intersections in positive direction).
     ///@param v0 Triangle Vertex 1
@@ -75,6 +89,7 @@ private:
     Vector3d mOrigin;
     Vector3d mDirection;
     Vector3d mInvDirection;
+    Vector3i mSign;
 
     bool mPositiveDir;
     ///@}
