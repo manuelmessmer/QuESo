@@ -14,7 +14,6 @@
 #include "cgal_wrapper/cgal_cuboid_modeler.h"
 #include "cgal_wrapper/cgal_trimmed_domain.h"
 #include "cgal_wrapper/cgal_utilities.h"
-#include "io/io_utilities.h"
 
 namespace tibra {
 namespace cgal {
