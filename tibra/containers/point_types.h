@@ -7,6 +7,7 @@
 //// STL includes
 #include <array>
 #include <cmath>
+#include <iostream>
 
 namespace tibra {
 
@@ -136,9 +137,19 @@ public:
                          +this->data()[1]*this->data()[1]
                          +this->data()[2]*this->data()[2] );
     }
+
+    void PrintInfo(std::ostream& rOStream) const {
+        rOStream << '(' << this->data()[0] << ", " << this->data()[1] << ", " << this->data()[2] << ')';
+    }
     ///@}
 }; // End Vector3 class
 ///@} // End TIBRA classes
+
+template<typename type>
+std::ostream& operator<<(std::ostream& rOStream, const Vector3<type>& rThis)  {
+    rThis.PrintInfo(rOStream);
+    return rOStream;
+}
 
 } // End namespace tibra
 
