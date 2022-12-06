@@ -271,7 +271,7 @@ private:
             if( p_pair_found != mAllAvailableComponents.end() ){
                 const auto p_current_type_info = std::visit(TypeVisit{}, r_components.Get());
                 const auto p_ref_type_info = p_pair_found->second;
-                if( !(*p_ref_type_info ==  *p_ref_type_info) ){ // If is wrong type.
+                if( !(*p_current_type_info ==  *p_ref_type_info) ){ // If type is wrong.
                     std::string error_message = "Parameters :: CheckComponents :: Name: '" + current_name +
                             "' is not provided with correct Type.\n";
                     throw std::runtime_error(error_message);
