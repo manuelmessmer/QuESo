@@ -35,8 +35,8 @@
         "Parameters": {
             "model_part_name" : "NurbsMesh",
             "geometry_name"   : "NurbsVolume",
-            "lower_point": [-2, -2,  0],
-            "upper_point": [2, 2, 5],
+            "lower_bound": [-2, -2,  0],
+            "upper_bound": [2, 2, 5],
             "polynomial_order" : [2, 2, 2],
             "number_of_knot_spans" : [17,17,20]
         }
