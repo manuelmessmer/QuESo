@@ -19,7 +19,6 @@ namespace tibra {
 namespace cgal {
 
 namespace PMP = CGAL::Polygon_mesh_processing;
-using namespace CGAL::parameters;
 
 typedef BRepOperatorBase::IntersectionStatus IntersectionStatus;
 typedef BRepOperatorBase::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
@@ -103,9 +102,9 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
       // Element::CGALPositionType positions = p_refinend_intersection_mesh->points();
       // for (auto vi = p_refinend_intersection_mesh->vertices_begin(); vi != p_refinend_intersection_mesh->vertices_end(); ++vi)
       // {
-      //     double x = (positions[*vi].x() - rParam.PointA()[0])/std::abs(rParam.PointA()[0] - rParam.PointB()[0]);
-      //     double y = (positions[*vi].y() - rParam.PointA()[1])/std::abs(rParam.PointA()[1] - rParam.PointB()[1]);
-      //     double z = (positions[*vi].z() - rParam.PointA()[2])/std::abs(rParam.PointA()[2] - rParam.PointB()[2]);
+      //     double x = (positions[*vi].x() - rParam.LowerBound()[0])/std::abs(rParam.LowerBound()[0] - rParam.UpperBound()[0]);
+      //     double y = (positions[*vi].y() - rParam.LowerBound()[1])/std::abs(rParam.LowerBound()[1] - rParam.UpperBound()[1]);
+      //     double z = (positions[*vi].z() - rParam.LowerBound()[2])/std::abs(rParam.LowerBound()[2] - rParam.UpperBound()[2]);
       //     CGALPointType p(x,y,z);
       //     positions[*vi] = p;
       // }
@@ -133,9 +132,9 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
     // Element::CGALPositionType positions = p_refinend_intersection_mesh->points();
     // for (auto vi = p_refinend_intersection_mesh->vertices_begin(); vi != p_refinend_intersection_mesh->vertices_end(); ++vi)
     // {
-    //     double x = (positions[*vi].x() * std::abs(rParam.PointA()[0] - rParam.PointB()[0])) + rParam.PointA()[0];
-    //     double y = (positions[*vi].y() * std::abs(rParam.PointA()[1] - rParam.PointB()[1])) + rParam.PointA()[1];
-    //     double z = (positions[*vi].z() * std::abs(rParam.PointA()[2] - rParam.PointB()[2])) + rParam.PointA()[2];
+    //     double x = (positions[*vi].x() * std::abs(rParam.LowerBound()[0] - rParam.UpperBound()[0])) + rParam.LowerBound()[0];
+    //     double y = (positions[*vi].y() * std::abs(rParam.LowerBound()[1] - rParam.UpperBound()[1])) + rParam.LowerBound()[1];
+    //     double z = (positions[*vi].z() * std::abs(rParam.LowerBound()[2] - rParam.UpperBound()[2])) + rParam.LowerBound()[2];
     //     CGALPointType p(x,y,z);
     //     positions[*vi] = p;
     // }

@@ -18,7 +18,7 @@ typedef std::unique_ptr<Ip1DVectorType> Ip1DVectorPtrType;
 typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
 
 // Public member functions
-Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod Method ){
+Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method ){
     if( Method == ReducedExact || Method == ReducedOrder1 || Method == ReducedOrder2){
         return GetGGQPoints(PolynomialDegree, NumberKnotSpans, Method);
     } else
@@ -27,7 +27,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, 
     }
 }
 
-Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree, IntegrationMethod Method ){
+Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree, IntegrationMethodType Method ){
     switch(Method)
     {
         case Gauss:
@@ -42,7 +42,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
     }
 }
 
-const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethod Method ){
+const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethodType Method ){
     switch(Method)
     {
         case ReducedExact:
@@ -57,7 +57,7 @@ const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension
     }
 }
 
-Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod Method){
+Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method){
     const double a = 0.0;
     const double b = 1.0;
 

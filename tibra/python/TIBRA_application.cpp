@@ -158,13 +158,13 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         ;
 
     /// Export enum IntegrationMethod
-    py::enum_<IntegrationPointFactory1D::IntegrationMethod>(m, "IntegrationMethod")
-        .value("Gauss", IntegrationPointFactory1D::IntegrationMethod::Gauss)
-        .value("ReducedGauss1", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss1)
-        .value("ReducedGauss2", IntegrationPointFactory1D::IntegrationMethod::ReducedGauss2)
-        .value("ReducedExact", IntegrationPointFactory1D::IntegrationMethod::ReducedExact)
-        .value("ReducedOrder1", IntegrationPointFactory1D::IntegrationMethod::ReducedOrder1)
-        .value("ReducedOrder2", IntegrationPointFactory1D::IntegrationMethod::ReducedOrder2)
+    py::enum_<IntegrationMethod>(m, "IntegrationMethod")
+        .value("Gauss", IntegrationMethod::Gauss)
+        .value("ReducedGauss1", IntegrationMethod::ReducedGauss1)
+        .value("ReducedGauss2", IntegrationMethod::ReducedGauss2)
+        .value("ReducedExact", IntegrationMethod::ReducedExact)
+        .value("ReducedOrder1", IntegrationMethod::ReducedOrder1)
+        .value("ReducedOrder2", IntegrationMethod::ReducedOrder2)
         .export_values()
     ;
 
@@ -175,8 +175,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 
     /// Export TIBRA
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
-        .def(py::init<const std::string, std::array<double,3>, std::array<double,3>, std::array<IndexType,3>, std::array<IndexType,3>, double, int, double, double, std::string, int>())
-        .def(py::init<const std::string, std::array<double,3>, std::array<double,3>, std::array<IndexType,3>, std::array<IndexType,3>, double, int, double, double, std::string, int, bool>())
+        .def(py::init<const Parameters&>())
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const TIBRA& v){
