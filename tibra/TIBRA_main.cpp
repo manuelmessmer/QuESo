@@ -15,27 +15,26 @@
 
 namespace tibra {
 
-//TODO: Put enums inside outside test and IntegrationMethod into paramters!
 void TIBRA::Run(){
 
   typedef BRepOperatorBase::IntersectionStatus IntersectionStatus;
 
   // Get extreme points of bounding box
-  const auto point_a = mParameters.PointA();
-  const auto point_b = mParameters.PointB();
+  const auto lower_bound = mParameters.LowerBound();
+  const auto upper_bound = mParameters.UpperBound();
+
+  const IndexType number_elements_x = mParameters.NumberOfElements()[0];
+  const IndexType number_elements_y = mParameters.NumberOfElements()[1];
+  const IndexType number_elements_z = mParameters.NumberOfElements()[2];
 
   // Obtain discretization of background mesh.
-  const double delta_x = std::abs(mParameters.PointA()[0] - mParameters.PointB()[0])/(mParameters.NumberOfElements()[0]);
-  const double delta_y = std::abs(mParameters.PointA()[1] - mParameters.PointB()[1])/(mParameters.NumberOfElements()[1]);
-  const double delta_z = std::abs(mParameters.PointA()[2] - mParameters.PointB()[2])/(mParameters.NumberOfElements()[2]);
+  const double delta_x = std::abs(lower_bound[0] - upper_bound[0])/(number_elements_x);
+  const double delta_y = std::abs(lower_bound[1] - upper_bound[1])/(number_elements_y);
+  const double delta_z = std::abs(lower_bound[2] - upper_bound[2])/(number_elements_z);
 
-  const int number_elements_u = mParameters.NumberOfElements()[0];
-  const int number_elements_v = mParameters.NumberOfElements()[1];
-  const int number_elements_w = mParameters.NumberOfElements()[2];
-
-  const int global_number_of_elements = number_elements_u * number_elements_v * number_elements_w;
+  const IndexType global_number_of_elements = number_elements_x * number_elements_y * number_elements_z;
   mpElementContainer->reserve(global_number_of_elements);
-  int num = 0;
+  IndexType num = 0;
 
   // Time Variables
   double et_check_intersect = 0.0;
@@ -43,28 +42,28 @@ void TIBRA::Run(){
   double et_moment_fitting = 0.0;
 
   #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_check_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
-  for( int i = 0; i < global_number_of_elements; ++i){
+  for( IndexType i = 0; i < global_number_of_elements; ++i){
     // Unroll 'for' loop to enable better parallelization.
     // First walk along rows (x), then columns (y) then into depths (z).
-    const int index_in_row_column_plane = i % (number_elements_u*number_elements_v);
-    const int xx = index_in_row_column_plane % number_elements_u; // row
-    const int yy = index_in_row_column_plane / number_elements_u; // column
-    const int zz = i / (number_elements_u*number_elements_v);     // depth
+    const IndexType index_in_row_column_plane = i % (number_elements_x*number_elements_y);
+    const IndexType xx = index_in_row_column_plane % number_elements_x; // row
+    const IndexType yy = index_in_row_column_plane / number_elements_x; // column
+    const IndexType zz = i / (number_elements_x*number_elements_y);     // depth
 
     // Construct bounding box for each element
-    const PointType cube_point_A{point_a[0] + (xx)*delta_x, point_a[1] + (yy)*delta_y, point_a[2] + (zz)*delta_z};
-    const PointType cube_point_B{point_a[0] + (xx+1)*delta_x, point_a[1] + (yy+1)*delta_y, point_a[2] + (zz+1)*delta_z };
+    const PointType el_lower_bound{lower_bound[0] + (xx)*delta_x, lower_bound[1] + (yy)*delta_y, lower_bound[2] + (zz)*delta_z};
+    const PointType el_upper_bound{lower_bound[0] + (xx+1)*delta_x, lower_bound[1] + (yy+1)*delta_y, lower_bound[2] + (zz+1)*delta_z };
 
     // Map points into parametric/local space
-    const auto cube_point_A_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_A, mParameters.PointA(), mParameters.PointB());
-    const auto cube_point_B_param = MappingUtilities::FromGlobalToLocalSpace(cube_point_B, mParameters.PointA(), mParameters.PointB());
+    const auto el_lower_bound_param = MappingUtilities::FromGlobalToLocalSpace(el_lower_bound, lower_bound, upper_bound);
+    const auto el_upper_bound_param = MappingUtilities::FromGlobalToLocalSpace(el_upper_bound, lower_bound, upper_bound);
 
     // Construct element and check status
-    std::shared_ptr<Element> new_element = std::make_shared<Element>(i+1, cube_point_A_param, cube_point_B_param, mParameters);
+    std::shared_ptr<Element> new_element = std::make_shared<Element>(i+1, el_lower_bound_param, el_upper_bound_param, mParameters);
 
     // Check intersection status
     IntersectionStatus status{};
-    if( mEmbeddingFlag ){
+    if( mParameters.Get<bool>("embedding_flag") ){
       auto t_begin_di = std::chrono::high_resolution_clock().now();
       status = static_cast<IntersectionStatus>(mpBRepOperator->GetIntersectionState(*new_element));
       auto t_end_di = std::chrono::high_resolution_clock().now();
@@ -92,7 +91,7 @@ void TIBRA::Run(){
       new_element->SetIsTrimmed(true);
       auto t_begin_ci = std::chrono::high_resolution_clock().now();
 
-      auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(cube_point_A, cube_point_B, mParameters);
+      auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(el_lower_bound, el_upper_bound, mParameters);
       if( p_trimmed_domain ){
         new_element->pSetTrimmedDomain(p_trimmed_domain);
         valid_element = true;
@@ -116,7 +115,7 @@ void TIBRA::Run(){
     }
     else if( status == IntersectionStatus::Inside){
       // Get standard gauss legendre points
-      if( mParameters.IntegrationMethod() <= 2 ){
+      if( !mParameters.GGQRuleIsUsed() ){
         SingleElement::AssembleIPs(*new_element, mParameters);
       }
 
@@ -130,14 +129,14 @@ void TIBRA::Run(){
     }
   }
 
-  if( mParameters.IntegrationMethod() >= 3 ){
+  if( mParameters.GGQRuleIsUsed() ){
     #pragma omp single
     MultipleElements::AssembleIPs(*mpElementContainer, mParameters);
   }
 
   // Average time spend for each task
   if( mParameters.EchoLevel() > 1 ){
-    const int num_procs = std::thread::hardware_concurrency();
+    const IndexType num_procs = std::thread::hardware_concurrency();
     std::cout << "#########################################\n";
     std::cout << "Elapsed times of individual tasks: \n";
     std::cout << "Detection of Trimmed Elements: --- " << et_check_intersect / ((double) num_procs) << '\n';

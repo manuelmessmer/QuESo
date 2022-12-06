@@ -21,7 +21,6 @@
 #include "containers/element_container.h"
 #include "embedding/brep_operator_factory.h"
 
-
 namespace tibra {
 
 ///@name TIBRA Classes
@@ -46,35 +45,7 @@ public:
     ///@{
 
     /// @brief Constructor. Runs all processes.
-    /// @param filename
-    /// @param PointA
-    /// @param PointB
-    /// @param NumberOfElements
-    /// @param Order
-    /// @param InitialTriangleEdgeLength
-    /// @param MinimumNumberOfTriangles
-    /// @param MomentFittingResidual
-    /// @param PointDistributionFactor
-    /// @param IntegrationMethod
-    /// @param EchoLevel
-    /// @param EmbeddingFlag
-    TIBRA(const std::string filename,
-                PointType PointA,
-                PointType PointB,
-                Vector3i NumberOfElements,
-                Vector3i Order,
-                double InitialTriangleEdgeLength,
-                double MinimumNumberOfTriangles,
-                double MomentFittingResidual,
-                double PointDistributionFactor,
-                std::string IntegrationMethod,
-                int EchoLevel,
-                bool EmbeddingFlag = true) :
-            mFilename(filename),
-            mEmbeddingFlag(EmbeddingFlag),
-            mParameters(PointA, PointB, NumberOfElements, Order,
-                        InitialTriangleEdgeLength, MinimumNumberOfTriangles, MomentFittingResidual,
-                        PointDistributionFactor, IntegrationMethod, EchoLevel)
+    TIBRA(const Parameters& rParameters ) : mParameters(rParameters)
     {
         auto start_time = std::chrono::high_resolution_clock::now();
         if( mParameters.EchoLevel() > 0)
@@ -84,9 +55,10 @@ public:
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
 
         // Read geometry
-        if( mEmbeddingFlag ) {
+        if( mParameters.Get<bool>("embedding_flag") ) {
             // Read mesh
-            IO::ReadMeshFromSTL(mTriangleMesh, mFilename.c_str());
+            const auto& r_filename = mParameters.Get<std::string>("input_filename");
+            IO::ReadMeshFromSTL(mTriangleMesh, r_filename.c_str());
             // Write Surface Mesh to vtk file if eco_level > 0
             if( mParameters.EchoLevel() > 0){
                 IO::WriteMeshToVTK(mTriangleMesh, "output/geometry.vtk", true);
@@ -141,8 +113,9 @@ public:
 
     /// @brief Reads Filename and writes mesh to output/results.vtk
     /// @param Filename
-    void ReadWritePostMesh(const std::string& rFilename) {
-        IO::ReadMeshFromSTL(mTriangleMeshPost, rFilename.c_str());
+    void ReadWritePostMesh() {
+        const auto& r_filename = mParameters.Get<std::string>("postprocess_filename");
+        IO::ReadMeshFromSTL(mTriangleMeshPost, r_filename.c_str());
         IO::WriteMeshToVTK(mTriangleMeshPost, "output/results.vtk", true);
     }
 
@@ -161,9 +134,7 @@ private:
     TriangleMesh mTriangleMeshPost;
     std::unique_ptr<BRepOperatorBase> mpBRepOperator;
     std::unique_ptr<ElementContainer> mpElementContainer;
-    const std::string mFilename;
     const Parameters mParameters;
-    const bool mEmbeddingFlag;
     ///@}
 
     ///@name Private Member Operations
