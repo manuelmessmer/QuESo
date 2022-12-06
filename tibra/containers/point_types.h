@@ -102,6 +102,10 @@ public:
         return this->operator[](2);
     }
 
+    const BaseType& Coordinates() const {
+        return *this;
+    }
+
     type& operator [] (std::size_t i){
         return this->data()[i];
     }
