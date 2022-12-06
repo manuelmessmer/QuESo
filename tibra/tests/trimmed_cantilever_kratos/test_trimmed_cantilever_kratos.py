@@ -23,19 +23,19 @@ def dirichlet_condition(x, y, z):
 class TestTrimmedCantileverKratos(unittest.TestCase):
     def test_1(self):
         #p=2
-        #"number_of_knot_spans" : [2,2,10]
+        #"number_of_elements" : [2,2,10]
         #el=1000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters1.json", 0.002)
 
     def test_2(self):
         #p=2
-        #"number_of_knot_spans" : [2,2,3]
+        #"number_of_elements" : [2,2,3]
         #el=3000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters2.json", 0.015)
 
     def test_3(self):
         #p=2
-        #"number_of_knot_spans" : [8,8,10]
+        #"number_of_elements" : [8,8,10]
         #"integration_method" : "Gauss"
         #el=1000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters3.json", 0.0005)
@@ -50,8 +50,8 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
     def test_4(self):
         #p=2
-        #"number_of_knot_spans" : [8,8,10]
-        #"integration_method : "ReducedExact"
+        #"number_of_elements" : [8,8,10]
+        #"integration_method : "GGQ_Optimal"
         #el=1000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters4.json", 0.0005)
 
@@ -65,8 +65,8 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
     def test_5(self):
         #p=2
-        #"number_of_knot_spans" : [8,8,10]
-        #"integration_method : "ReducedOrder1"
+        #"number_of_elements" : [8,8,10]
+        #"integration_method : "GGQ_Reduced1"
         #el=1000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters5.json", 0.0005)
 
@@ -80,8 +80,8 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
     def test_6(self):
         #p=2
-        #"number_of_knot_spans" : [8,8,10]
-        #"integration_method : "ReducedOrder2"
+        #"number_of_elements" : [8,8,10]
+        #"integration_method : "GGQ_Reduced2"
         #el=1000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters6.json", 0.0005)
 
@@ -95,7 +95,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
     def test_7(self):
         #p=3
-        #"number_of_knot_spans" : [2,2,2]
+        #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters7.json", 0.0008)
         for element in self.pytibra.GetElements():
@@ -104,7 +104,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
     def test_8(self):
         #p=3
-        #"number_of_knot_spans" : [2,2,2]
+        #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters8.json", 0.0008)
         for element in self.pytibra.GetElements():

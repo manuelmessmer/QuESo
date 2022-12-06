@@ -23,12 +23,12 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
     if kratos_available:
         parameters = ReadParameters("tibra/tests/ggq_cantilever_kratos/TIBRAParameters.json")
 
-        parameters.Set("number_of_knot_spans", [number_cross_elements, number_cross_elements, number_z_elements])
+        parameters.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
         parameters.Set("polynomial_order", polynomial_degree)
         if reduction_flag == False:
             parameters.Set("integration_method", "Gauss")
         else:
-            parameters.Set("integration_method", "ReducedExact")
+            parameters.Set("integration_method", "GGQ_Optimal")
 
         embedder = TIBRA_APP.TIBRA(parameters)
 

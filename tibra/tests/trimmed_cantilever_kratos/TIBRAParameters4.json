@@ -9,7 +9,7 @@
         "lower_bound": [-1.5, -1.5, -1.00],
         "upper_bound": [1.5, 1.5, 11.00],
         "polynomial_order" : [2, 2, 2],
-        "number_of_knot_spans" : [8,8,10]
+        "number_of_elements" : [8,8,10]
     },
     "trimmed_quadrature_rule_settings"     : {
         "initial_triangle_edge_length" : 1.0,
@@ -18,6 +18,6 @@
         "init_point_distribution_factor": 2
     },
     "non_trimmed_quadrature_rule_settings" : {
-        "integration_method" : "ReducedExact"
+        "integration_method" : "GGQ_Optimal"
     }
 }

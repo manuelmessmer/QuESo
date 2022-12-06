@@ -19,7 +19,7 @@ typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
 
 // Public member functions
 Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method ){
-    if( Method == ReducedExact || Method == ReducedOrder1 || Method == ReducedOrder2){
+    if( Method == GGQ_Optimal || Method == GGQ_Reduced1 || Method == GGQ_Reduced2){
         return GetGGQPoints(PolynomialDegree, NumberKnotSpans, Method);
     } else
     {
@@ -32,9 +32,9 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
     {
         case Gauss:
             return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree]);
-        case ReducedGauss1:
+        case Gauss_Reduced1:
             return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
-        case ReducedGauss2:
+        case Gauss_Reduced2:
             return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
         default:
             throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
@@ -45,11 +45,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
 const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethodType Method ){
     switch(Method)
     {
-        case ReducedExact:
+        case GGQ_Optimal:
             return {2*PolynomialDegre, PolynomialDegre-2};
-        case ReducedOrder1:
+        case GGQ_Reduced1:
             return {2*PolynomialDegre-1, PolynomialDegre-2};
-        case ReducedOrder2:
+        case GGQ_Reduced2:
             return {2*PolynomialDegre-2, PolynomialDegre-2};
         default:
             throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
@@ -107,13 +107,13 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
         const SizeType odd = m % 2;
         switch(Method)
         {
-            case ReducedExact:
+            case GGQ_Optimal:
                 p_base_points = mBasePointsOptimal[PolynomialDegree-2][odd];
                 break;
-            case ReducedOrder1:
+            case GGQ_Reduced1:
                 p_base_points = mBasePointsReduced1[PolynomialDegree-2][odd];
                 break;
-            case ReducedOrder2:
+            case GGQ_Reduced2:
                 p_base_points = mBasePointsReduced2[PolynomialDegree-2][odd];
                 break;
             default:
@@ -147,11 +147,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
         else {
             switch(Method)
             {
-                case ReducedExact:
+                case GGQ_Optimal:
                     return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
-                case ReducedOrder1:
+                case GGQ_Reduced1:
                     return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
-                case ReducedOrder2:
+                case GGQ_Reduced2:
                     return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
                     throw std::invalid_argument("IntegrationPointFactory1D: Method not available2");
@@ -183,11 +183,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
         else {
             switch(Method)
             {
-                case ReducedExact:
+                case GGQ_Optimal:
                     return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
-                case ReducedOrder1:
+                case GGQ_Reduced1:
                     return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
-                case ReducedOrder2:
+                case GGQ_Reduced2:
                     return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
                     throw std::invalid_argument("IntegrationPointFactory1D: Method not available3");

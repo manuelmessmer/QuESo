@@ -99,12 +99,12 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
                                Component("lower_bound", PointType(-1.0, 0.0, 1.22)),
                                Component("upper_bound", PointType(1.1, 3.3, 4.4)),
                                Component("polynomial_order", Vector3i(3,2,4)),
-                               Component("number_of_knot_spans", Vector3i(10,12,14)),
+                               Component("number_of_elements", Vector3i(10,12,14)),
                                Component("initial_triangle_edge_length", 5.0),
                                Component("min_num_boundary_triangles", 2000UL),
                                Component("moment_fitting_residual", 0.5e-5),
                                Component("init_point_distribution_factor", 5UL),
-                               Component("integration_method", IntegrationMethod::ReducedExact) });
+                               Component("integration_method", IntegrationMethod::GGQ_Optimal) });
 
     std::string input_filename = parameters.Get<std::string>("input_filename");
     BOOST_CHECK_EQUAL(input_filename, std::string("date/test.stl"));
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     BOOST_CHECK_EQUAL(polynomial_order[1], 2Ul);
     BOOST_CHECK_EQUAL(polynomial_order[2], 4Ul);
 
-    Vector3i number_elements = parameters.Get<Vector3i>("number_of_knot_spans");
+    Vector3i number_elements = parameters.Get<Vector3i>("number_of_elements");
     BOOST_CHECK_EQUAL(number_elements[0], 10Ul);
     BOOST_CHECK_EQUAL(number_elements[1], 12Ul);
     BOOST_CHECK_EQUAL(number_elements[2], 14Ul);
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     BOOST_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::ReducedExact);
+    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
     BOOST_CHECK( !use_customized_trimmed_points );
@@ -168,12 +168,12 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     parameters.Set("lower_bound", PointType(-1.0, 0.0, 1.22));
     parameters.Set("upper_bound", PointType(1.1, 3.3, 4.4));
     parameters.Set("polynomial_order", Vector3i(3,2,4));
-    parameters.Set("number_of_knot_spans", Vector3i(10,12,14));
+    parameters.Set("number_of_elements", Vector3i(10,12,14));
     parameters.Set("initial_triangle_edge_length", 5.0);
     parameters.Set("min_num_boundary_triangles", 2000UL);
     parameters.Set("moment_fitting_residual", 0.5e-5);
     parameters.Set("init_point_distribution_factor", 5UL);
-    parameters.Set("integration_method", IntegrationMethod::ReducedExact);
+    parameters.Set("integration_method", IntegrationMethod::GGQ_Optimal);
     parameters.Set("use_customized_trimmed_points", true);
 
     std::string input_filename = parameters.Get<std::string>("input_filename");
@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     BOOST_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::ReducedExact);
+    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
     BOOST_CHECK( use_customized_trimmed_points );

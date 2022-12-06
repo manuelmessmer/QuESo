@@ -9,7 +9,7 @@
         "lower_bound": [-1.99, -1.99, 0],
         "upper_bound": [1.99, 1.99, 5],
         "polynomial_order" : [2, 2, 2],
-        "number_of_knot_spans" : [12,12,15]
+        "number_of_elements" : [12,12,15]
     },
     "trimmed_quadrature_rule_settings"     : {
         "initial_triangle_edge_length" : 1.0,

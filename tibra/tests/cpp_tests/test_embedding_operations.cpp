@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     Parameters parameters( {Component("input_filename", filename),
                             Component("lower_bound", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound", PointType(2.0, 2.0, 1.0)),
-                            Component("number_of_knot_spans", Vector3i(1, 1, 1)),
+                            Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(2, 2, 2)),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("init_point_distribution_factor", 3UL),
@@ -71,7 +71,7 @@ void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, In
     Parameters parameters( {Component("input_filename", filename),
                             Component("lower_bound", PointType(-0.37, -0.55, -0.31)),
                             Component("upper_bound", PointType(0.37, 0.55, 0.31)),
-                            Component("number_of_knot_spans", Vector3i(14, 22, 12)),
+                            Component("number_of_elements", Vector3i(14, 22, 12)),
                             Component("polynomial_order", Vector3i(p, p, p)),
                             Component("integration_method", IntegrationMethod) });
     TIBRA tibra(parameters);
@@ -129,7 +129,7 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
     Parameters parameters( {Component("input_filename", filename),
                             Component("lower_bound", PointType(-0.37, -0.55, -0.31)),
                             Component("upper_bound", PointType(0.37, 0.55, 0.31)),
-                            Component("number_of_knot_spans", Vector3i(7, 11, 6)),
+                            Component("number_of_elements", Vector3i(7, 11, 6)),
                             Component("polynomial_order", Vector3i(p, p, p)),
                             Component("integration_method", IntegrationMethod) });
 
@@ -191,17 +191,17 @@ BOOST_AUTO_TEST_CASE(VolumeElephant1) {
 
 BOOST_AUTO_TEST_CASE(VolumeElephant2) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
-    TestElephantLarge(IntegrationMethod::ReducedExact, 2, 1786, 0.0002);
+    TestElephantLarge(IntegrationMethod::GGQ_Optimal, 2, 1786, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant3) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant ReducedOrder1 (p=2)" << std::endl;
-    TestElephantLarge(IntegrationMethod::ReducedOrder1, 2, 673, 0.0002);
+    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
+    TestElephantLarge(IntegrationMethod::GGQ_Reduced1, 2, 673, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant4) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant ReducedOrder2 (p=2)" << std::endl;
-    TestElephantLarge(IntegrationMethod::ReducedOrder2, 2, 406, 0.0002);
+    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+    TestElephantLarge(IntegrationMethod::GGQ_Reduced2, 2, 406, 0.0002);
 }
 
 // p=3

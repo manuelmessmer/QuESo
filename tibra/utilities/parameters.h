@@ -20,7 +20,7 @@ namespace tibra {
 ///@name  TIBRA Globals
 ///@{
 
-enum IntegrationMethod {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2};
+enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
 typedef enum IntegrationMethod IntegrationMethodType;
 
 ///@}
@@ -148,7 +148,7 @@ public:
     }
 
     const Vector3i& NumberOfElements() const {
-        return Get<Vector3i>("number_of_knot_spans");;
+        return Get<Vector3i>("number_of_elements");;
     }
 
     double InitialTriangleEdgeLength() const {

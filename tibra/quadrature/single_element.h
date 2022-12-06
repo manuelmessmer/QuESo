@@ -23,7 +23,7 @@ namespace tibra {
  * @author Manuel Messmer
  * @brief  Provides assembly for 3D quadrature rules.
  * @details Available Quadrature rules:
- *          {Gauss, ReducedGauss1, ReducedGauss2}
+ *          {Gauss, Gauss_Reduced1, Gauss_Reduced2}
 */
 class SingleElement {
 

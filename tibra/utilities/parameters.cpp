@@ -21,7 +21,7 @@ const std::vector<std::pair<std::string, const std::type_info*>> Parameters::mAl
     std::make_pair<std::string, const std::type_info*>("lower_bound", &typeid(PointType) ),
     std::make_pair<std::string, const std::type_info*>("upper_bound", &typeid(PointType) ),
     std::make_pair<std::string, const std::type_info*>("polynomial_order", &typeid(Vector3i) ),
-    std::make_pair<std::string, const std::type_info*>("number_of_knot_spans", &typeid(Vector3i) ),
+    std::make_pair<std::string, const std::type_info*>("number_of_elements", &typeid(Vector3i) ),
     std::make_pair<std::string, const std::type_info*>("initial_triangle_edge_length", &typeid(double) ),
     std::make_pair<std::string, const std::type_info*>("min_num_boundary_triangles", &typeid(IndexType) ),
     std::make_pair<std::string, const std::type_info*>("moment_fitting_residual", &typeid(double) ),

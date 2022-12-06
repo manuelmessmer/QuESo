@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
 std::unique_ptr<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
 
-    Parameters param( {Component("number_of_knot_spans", rNumberOfElemnts) } );
+    Parameters param( {Component("number_of_elements", rNumberOfElemnts) } );
     ElementContainer container(param);
 
     std::size_t number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];

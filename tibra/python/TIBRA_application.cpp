@@ -55,16 +55,16 @@ template <class T> class ptr_wrapper
 IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
     if( rValue == "Gauss" )
         return IntegrationMethod::Gauss;
-    else if( rValue == "ReducedGauss1" )
-        return IntegrationMethod::ReducedGauss1;
-    else if( rValue == "ReducedGauss2" )
-        return IntegrationMethod::ReducedGauss2;
-    else if( rValue == "ReducedExact")
-        return IntegrationMethod::ReducedExact;
-    else if( rValue == "ReducedOrder1")
-        return IntegrationMethod::ReducedOrder1;
-    else if( rValue == "ReducedOrder2")
-        return IntegrationMethod::ReducedOrder2;
+    else if( rValue == "Gauss_Reduced1" )
+        return IntegrationMethod::Gauss_Reduced1;
+    else if( rValue == "Gauss_Reduced2" )
+        return IntegrationMethod::Gauss_Reduced2;
+    else if( rValue == "GGQ_Optimal")
+        return IntegrationMethod::GGQ_Optimal;
+    else if( rValue == "GGQ_Reduced1")
+        return IntegrationMethod::GGQ_Reduced1;
+    else if( rValue == "GGQ_Reduced2")
+        return IntegrationMethod::GGQ_Reduced2;
     else
         throw std::invalid_argument("Parameters: Integration Method: " + rValue + " not available! \n");
 }
@@ -187,11 +187,11 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     /// Export enum IntegrationMethod
     py::enum_<IntegrationMethod>(m, "IntegrationMethod")
         .value("Gauss", IntegrationMethod::Gauss)
-        .value("ReducedGauss1", IntegrationMethod::ReducedGauss1)
-        .value("ReducedGauss2", IntegrationMethod::ReducedGauss2)
-        .value("ReducedExact", IntegrationMethod::ReducedExact)
-        .value("ReducedOrder1", IntegrationMethod::ReducedOrder1)
-        .value("ReducedOrder2", IntegrationMethod::ReducedOrder2)
+        .value("Gauss_Reduced1", IntegrationMethod::Gauss_Reduced1)
+        .value("Gauss_Reduced2", IntegrationMethod::Gauss_Reduced2)
+        .value("GGQ_Optimal", IntegrationMethod::GGQ_Optimal)
+        .value("GGQ_Reduced1", IntegrationMethod::GGQ_Reduced1)
+        .value("GGQ_Reduced2", IntegrationMethod::GGQ_Reduced2)
         .export_values()
     ;
 
