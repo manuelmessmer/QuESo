@@ -126,7 +126,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
             model_part = self.pytibra.GetAnalysis().GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-            self.CheckErrorInDisplacement(self.pytibra.GetLowerPoint(), self.pytibra.GetUpperPoint(), nurbs_volume, tolerance)
+            self.CheckErrorInDisplacement(self.pytibra.GetLowerBound(), self.pytibra.GetUpperBound(), nurbs_volume, tolerance)
 
     def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):
         # Compare to analytical solution (Timoshenko Beam)

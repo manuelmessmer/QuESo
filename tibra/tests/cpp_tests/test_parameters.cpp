@@ -15,7 +15,6 @@ BOOST_AUTO_TEST_SUITE( ParamtersTestSuite )
 
 BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     std::cout << "Testing :: Parameter :: Test Defaults" << std::endl;
-    typedef Parameters::IntegrationMethod IntegrationMethod;
 
     Parameters parameters{};
 
@@ -45,13 +44,12 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::Gauss);
 
-    bool use_cusomized_trimmed_points = parameters.Get<bool>("use_cusomized_trimmed_points");
-    BOOST_CHECK( !use_cusomized_trimmed_points );
+    bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
+    BOOST_CHECK( !use_customized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     std::cout << "Testing :: Parameter :: Test Custom Constructor" << std::endl;
-    typedef Parameters::IntegrationMethod IntegrationMethod;
 
     Parameters parameters( {Component("input_filename", std::string("date/test.stl")),
                                Component("postprocess_filename", std::string("date/test2.stl")),
@@ -109,13 +107,12 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::ReducedExact);
 
-    bool use_cusomized_trimmed_points = parameters.Get<bool>("use_cusomized_trimmed_points");
-    BOOST_CHECK( !use_cusomized_trimmed_points );
+    bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
+    BOOST_CHECK( !use_customized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     std::cout << "Testing :: Parameter :: Test Custom Set" << std::endl;
-    typedef Parameters::IntegrationMethod IntegrationMethod;
 
     Parameters parameters{};
     parameters.Set("input_filename", std::string("date/test.stl") );
@@ -175,8 +172,8 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::ReducedExact);
 
-    bool use_cusomized_trimmed_points = parameters.Get<bool>("use_cusomized_trimmed_points");
-    BOOST_CHECK( use_cusomized_trimmed_points );
+    bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
+    BOOST_CHECK( use_customized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -37,23 +37,23 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsTest1) {
     SurfaceMeshType mPolyhedron;
     CGAL::IO::read_STL("tibra/tests/cpp_tests/data/elephant.stl", mPolyhedron);
 
-    Vector3d lower_bound = {0.1, 0.1, -0.1};
-    Vector3d upper_bound = {0.2, 0.2, 0.1};
+    // Vector3d lower_bound = {0.1, 0.1, -0.1};
+    // Vector3d upper_bound = {0.2, 0.2, 0.1};
 
-    Vector3i number_of_elements = {1, 1, 1};
-    Vector3i order = {2, 2, 2};
+    // Vector3i number_of_elements = {1, 1, 1};
+    // Vector3i order = {2, 2, 2};
 
-    int point_distribution_factor = 3;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 10000;
-    double moment_fitting_residual = 1e-8;
-    std::string integration_method = "Gauss";
-    int echo_level = 0;
+    // int point_distribution_factor = 3;
+    // double initial_triangle_edge_length = 1;
+    // int minimum_number_of_triangles = 10000;
+    // double moment_fitting_residual = 1e-8;
+    // std::string integration_method = "Gauss";
+    // int echo_level = 0;
 
-    Parameters param(lower_bound, upper_bound, number_of_elements, order, initial_triangle_edge_length,
-        minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
+    // Parameters param(lower_bound, upper_bound, number_of_elements, order, initial_triangle_edge_length,
+    //     minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
 
-    Element element(1, lower_bound, upper_bound, param);
+    // Element element(1, lower_bound, upper_bound, param);
 
     // auto status = cgal::BRepOperator::ComputeIntersectionMesh( mPolyhedron, *p_cube, element, param);
 

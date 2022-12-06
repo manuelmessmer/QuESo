@@ -18,23 +18,17 @@ BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
 BOOST_AUTO_TEST_CASE(Intersection) {
     std::cout << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
 
-    PointType point_A = {0.0, 0.0, 0.0};
-    PointType point_B = {2.0, 2.0, 1.0};
-    Vector3i number_of_elements = {1, 1, 1};
-    Vector3i order = {2, 2, 2};
-
-    int point_distribution_factor = 3;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 5000;
-    double moment_fitting_residual = 1e-8;
-    std::string integration_method = "Gauss";
-    int echo_level = 0;
-
     std::string filename = "tibra/tests/cpp_tests/data/cylinder.stl";
-
-    TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
-                         initial_triangle_edge_length, minimum_number_of_triangles,
-                         moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
+    Parameters parameters( {Component("input_filename", filename),
+                            Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                            Component("upper_bound", PointType(2.0, 2.0, 1.0)),
+                            Component("number_of_knot_spans", Vector3i(1, 1, 1)),
+                            Component("polynomial_order", Vector3i(2, 2, 2)),
+                            Component("integration_method", IntegrationMethod::Gauss),
+                            Component("init_point_distribution_factor", 3UL),
+                            Component("min_num_boundary_triangles", 5000UL),
+                            Component("moment_fitting_residual", 1e-8) });
+    TIBRA tibra(parameters);
 
     const auto& elements = tibra.GetElements();
 
@@ -46,7 +40,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
     const std::size_t num_triangles = r_triangle_mesh.NumOfTriangles();
 
-    BOOST_CHECK_GT(num_triangles, minimum_number_of_triangles);
+    BOOST_CHECK_GT(num_triangles, parameters.MinimumNumberOfTriangles());
 
     int large_radius_count = 0;
     double area = 0.0;
@@ -71,25 +65,16 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     BOOST_CHECK_GT(area, 5.135);
 }
 
-void TestElephantLarge( std::string IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance){
-
-    PointType point_A = {-0.37, -0.55, -0.31};
-    PointType point_B = {0.37, 0.55, 0.31};
-    Vector3i number_of_elements = {14, 22, 12};
-    Vector3i order = {p, p, p};
-
-    int point_distribution_factor = 2;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 1000;
-    double moment_fitting_residual = 1e-10;
-    std::string integration_method = IntegrationMethod;
-    int echo_level = 0;
+void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance){
 
     std::string filename = "tibra/tests/cpp_tests/data/elephant.stl";
-
-    TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
-                         initial_triangle_edge_length, minimum_number_of_triangles,
-                         moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
+    Parameters parameters( {Component("input_filename", filename),
+                            Component("lower_bound", PointType(-0.37, -0.55, -0.31)),
+                            Component("upper_bound", PointType(0.37, 0.55, 0.31)),
+                            Component("number_of_knot_spans", Vector3i(14, 22, 12)),
+                            Component("polynomial_order", Vector3i(p, p, p)),
+                            Component("integration_method", IntegrationMethod) });
+    TIBRA tibra(parameters);
 
     const auto& elements = tibra.GetElements();
 
@@ -138,25 +123,17 @@ void TestElephantLarge( std::string IntegrationMethod, IndexType p, IndexType Nu
     BOOST_CHECK_LT(rel_error_tot, Tolerance);
 }
 
-void TestElephantSmall( std::string IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance){
-
-    PointType point_A = {-0.37, -0.55, -0.31};
-    PointType point_B = {0.37, 0.55, 0.31};
-    Vector3i number_of_elements = {7, 11, 6};
-    Vector3i order = {p, p, p};
-
-    int point_distribution_factor = 2;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 1000;
-    double moment_fitting_residual = 1e-10;
-    std::string integration_method = IntegrationMethod;
-    int echo_level = 0;
+void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance){
 
     std::string filename = "tibra/tests/cpp_tests/data/elephant.stl";
+    Parameters parameters( {Component("input_filename", filename),
+                            Component("lower_bound", PointType(-0.37, -0.55, -0.31)),
+                            Component("upper_bound", PointType(0.37, 0.55, 0.31)),
+                            Component("number_of_knot_spans", Vector3i(7, 11, 6)),
+                            Component("polynomial_order", Vector3i(p, p, p)),
+                            Component("integration_method", IntegrationMethod) });
 
-    TIBRA tibra(filename, point_A, point_B, number_of_elements, order,
-                         initial_triangle_edge_length, minimum_number_of_triangles,
-                         moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
+    TIBRA tibra(parameters);
 
     const auto& elements = tibra.GetElements();
 
@@ -209,33 +186,33 @@ void TestElephantSmall( std::string IntegrationMethod, IndexType p, IndexType Nu
 // p=2
 BOOST_AUTO_TEST_CASE(VolumeElephant1) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
-    TestElephantLarge("Gauss", 2, 2916, 0.0002);
+    TestElephantLarge(IntegrationMethod::Gauss, 2, 2916, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant2) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
-    TestElephantLarge("ReducedExact", 2, 1786, 0.0002);
+    TestElephantLarge(IntegrationMethod::ReducedExact, 2, 1786, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant3) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant ReducedOrder1 (p=2)" << std::endl;
-    TestElephantLarge("ReducedOrder1", 2, 673, 0.0002);
+    TestElephantLarge(IntegrationMethod::ReducedOrder1, 2, 673, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant4) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant ReducedOrder2 (p=2)" << std::endl;
-    TestElephantLarge("ReducedOrder2", 2, 406, 0.0002);
+    TestElephantLarge(IntegrationMethod::ReducedOrder2, 2, 406, 0.0002);
 }
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant5) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
-    TestElephantSmall("Gauss", 3, 320, 0.0002);
+    TestElephantSmall(IntegrationMethod::Gauss, 3, 320, 0.0002);
 }
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant6) {
     std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
-    TestElephantSmall("Gauss", 4, 625, 0.0002);
+    TestElephantSmall(IntegrationMethod::Gauss, 4, 625, 0.0002);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
