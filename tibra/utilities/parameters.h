@@ -8,50 +8,84 @@
 #include <variant>
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include <exception>
 #include <type_traits>
 #include <vector>
 ////Project includes
 #include "containers/point_types.h"
-//#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
-
 
 namespace tibra {
 
-///@}
-///@name  Tibra Globals
+///@name  TIBRA Globals
 ///@{
 
 enum IntegrationMethod {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2};
 typedef enum IntegrationMethod IntegrationMethodType;
 
+///@}
+///@name  TIBRA Classes
+///@{
 
+/**
+ * @class  Component
+ * @author Manuel Messmer
+ * @brief  Container for all available Types of parameters. Available Types are:
+ *         PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType
+ * @details Stores Name (Key) and Value of Parameter.
+**/
 class Component {
 public:
-    //typedef IntegrationPointFactory1D::IntegrationMethod IntegrationMethod;
+    ///@name Type Definitions
+    ///@{
     typedef std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType> ComponentType;
 
-    // Constructor
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
     Component(std::string Name, ComponentType Component) : mName(Name), mComponents(Component)
     {}
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Returns Value
     const ComponentType& Get() const{
         return mComponents;
     }
 
+    /// Returns Name (Key)
     const std::string& Name() const {
         return mName;
     }
 
+
 private:
+    ///@}
+    ///@name Private Member variables
+    ///@{
+
     std::string mName{};
     ComponentType mComponents{};
-};
+
+    ///@}
+
+}; // End class Component
 
 
+/**
+ * @class  Parameters
+ * @author Manuel Messmer
+ * @brief  Dynamic container for all available parameters.
+**/
 class Parameters {
 public:
-    //typedef IntegrationPointFactory1D::IntegrationMethod IntegrationMethod;
+
+    ///@name std::visit Structs
+    ///@{
     struct TypeVisit {
         const std::type_info* operator()(const PointType& rValue){return &typeid(rValue); };
         const std::type_info* operator()(const Vector3i& rValue){return &typeid(rValue); };
@@ -76,27 +110,37 @@ public:
         std::ostream& mOStream;
     };
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor
     Parameters() {
         AddDefaults();
-        CheckTypes();
+        CheckComponents();
     }
 
+    /// Constructor
     Parameters(std::vector<Component> Component) : mComponents(Component)
     {
         AddDefaults();
-        CheckTypes();
+        CheckComponents();
     }
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     const PointType& LowerBound() const {
         return Get<PointType>("lower_bound");
     }
 
     const PointType& UpperBound() const {
-        return Get<PointType>("lower_bound");
+        return Get<PointType>("upper_bound");
     }
 
-    const PointType& Order() const {
-        return Get<PointType>("polynomial_order");
+    const Vector3i& Order() const {
+        return Get<Vector3i>("polynomial_order");
     }
 
     const IntegrationMethodType& IntegrationMethod() const {
@@ -138,28 +182,41 @@ public:
         return IntegrationMethod() >= 3;
     }
 
+    /// @brief Set values to given component. If parameter is not stored yet, parameter is added.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @param rValue New value of parameter.
     template<typename type>
     void Set(const std::string& rName, const type& rValue){
         auto p_value = pFind<type>(rName);
-        if( p_value ){
+
+        if( p_value ){ // Component already exists -> Override.
             *p_value = rValue;
         }
+        else { // Component does not exist -> Add new one.
+            mComponents.push_back(Component(rName, rValue));
+        }
 
-        mComponents.push_back(Component(rName, rValue));
-        CheckTypes();
+        CheckComponents();
     }
 
+    /// @brief Get parameter value. Throws an error if parameter is not available.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @return const type&
     template<typename type>
-    const type& Get( std::string Name ) const {
-        const auto p_value = pFind<type>(Name);
+    const type& Get( const std::string& rName ) const {
+        const auto p_value = pFind<type>(rName);
         if( p_value ){
             return *p_value;
         }
 
-        std::string error_message = "Parameter :: Get :: Component: '" + Name + "' not found.\n";
+        std::string error_message = "Parameter :: Get :: Component: '" + rName + "' not found.\n";
         throw std::runtime_error(error_message);
     }
 
+    /// @brief Print all paramters (Name, Value).
+    /// @param rOStream
     void PrintInfo(std::ostream& rOStream) const {
         rOStream << "Parameters: \n";
         for( auto& value : mComponents ){
@@ -171,21 +228,28 @@ public:
 
 private:
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
+    /// @brief Adds all defaults values (mDefaultComponents) to current set of parameters.
     void AddDefaults(){
-        for( auto& value : mDefaults){
-            AddValueNoThrow<PointType>(value);
-            AddValueNoThrow<Vector3i>(value);
-            AddValueNoThrow<bool>(value);
-            AddValueNoThrow<double>(value);
-            AddValueNoThrow<IndexType>(value);
-            AddValueNoThrow<std::string>(value);
-            AddValueNoThrow<IntegrationMethodType>(value);
+        for( auto& value : mDefaultComponents){
+            AddValueIfTypesMatch<PointType>(value);
+            AddValueIfTypesMatch<Vector3i>(value);
+            AddValueIfTypesMatch<bool>(value);
+            AddValueIfTypesMatch<double>(value);
+            AddValueIfTypesMatch<IndexType>(value);
+            AddValueIfTypesMatch<std::string>(value);
+            AddValueIfTypesMatch<IntegrationMethodType>(value);
         }
     }
 
+    /// @brief Adds Value to mComponents if Types of 'type' and 'rValues' match.
+    /// @tparam type
+    /// @param rValues New Component.
     template<typename type>
-    void AddValueNoThrow(const Component& rValues){
+    void AddValueIfTypesMatch(const Component& rValues){
         auto p_type_id = std::visit(TypeVisit{}, rValues.Get());
         if( *p_type_id == typeid(type) ){
             auto p_value = pFind<type>(rValues.Name());
@@ -195,34 +259,36 @@ private:
         }
     }
 
-    void CheckTypes() const {
+    /// @brief Checks if all components are part of mAllAvailableComponents. Also checks if all
+    ///        components have the correct Types.
+    void CheckComponents() const {
         for( auto& r_components : mComponents ){
             const auto& current_name = r_components.Name();
-            const auto& current_value = r_components.Get();
-            IndexType count = 0;
-            for( auto& str_type_pair : mTypes){
-                const auto& ref_name = str_type_pair.first;
-                const auto& p_ref_type_info = str_type_pair.second;
-                if( ref_name ==  current_name ){
-                    auto p_curren_type_info = std::visit(TypeVisit{}, r_components.Get());
-                    if( *p_ref_type_info ==  *p_curren_type_info){
-                        break;
-                    } else {
-                        std::string error_message = "Parameters :: CheckTypes :: Name: '" + current_name +
+
+            const auto p_pair_found = std::find_if( mAllAvailableComponents.begin(), mAllAvailableComponents.end(),
+                [&current_name](const auto& rPair) { return rPair.first == current_name; } );
+
+            if( p_pair_found != mAllAvailableComponents.end() ){
+                const auto p_current_type_info = std::visit(TypeVisit{}, r_components.Get());
+                const auto p_ref_type_info = p_pair_found->second;
+                if( !(*p_ref_type_info ==  *p_ref_type_info) ){ // If is wrong type.
+                    std::string error_message = "Parameters :: CheckComponents :: Name: '" + current_name +
                             "' is not provided with correct Type.\n";
-                        throw std::runtime_error(error_message);
-                    }
+                    throw std::runtime_error(error_message);
                 }
-                count++;
             }
-            if( count >= mTypes.size() ){
-                std::string error_message = "Parameters :: CheckTypes :: Name: '" + current_name +
+            else { // If name is part of mAllAvailableComponents.
+                std::string error_message = "Parameters :: CheckComponents :: Name: '" + current_name +
                     "' is not a valid Parameter.\n";
                 throw std::runtime_error(error_message);
             }
         }
     }
 
+    /// @brief Returns Value of parameter if it exists. Returns nullptr otherwise. Const version.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @return const type*
     template<class type>
     const type* pFind( const std::string& rName ) const {
         for( auto& r_component : mComponents){
@@ -236,6 +302,10 @@ private:
         return nullptr;
     }
 
+    /// @brief Returns Value of parameter if it exists. Returns nullptr otherwise. Non-Const version.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @return const type*
     template<class type>
     type* pFind( const std::string& rName ) {
         for( auto& r_component : mComponents){
@@ -249,34 +319,17 @@ private:
         return nullptr;
     }
 
-    std::vector<Component> mComponents{};
-    std::vector<Component> mDefaults = { Component("echo_level", 0UL),
-                                         Component("embedding_flag", true),
-                                         Component("initial_triangle_edge_length", 1.0),
-                                         Component("min_num_boundary_triangles", 1000UL),
-                                         Component("moment_fitting_residual", 1.0e-10),
-                                         Component("init_point_distribution_factor", 2UL),
-                                         Component("polynomial_order", Vector3i(2UL, 2Ul, 2UL) ),
-                                         Component("integration_method", IntegrationMethod::Gauss),
-                                         Component("use_customized_trimmed_points", false) };
+    ///@}
+    ///@name Private Member Variables
+    ///@{
 
-    std::vector<std::pair<std::string, const std::type_info*>> mTypes = {
-       std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
-       std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
-       std::make_pair<std::string, const std::type_info*>("echo_level", &typeid(IndexType) ),
-       std::make_pair<std::string, const std::type_info*>("embedding_flag", &typeid(bool) ),
-       std::make_pair<std::string, const std::type_info*>("lower_bound", &typeid(PointType) ),
-       std::make_pair<std::string, const std::type_info*>("upper_bound", &typeid(PointType) ),
-       std::make_pair<std::string, const std::type_info*>("polynomial_order", &typeid(Vector3i) ),
-       std::make_pair<std::string, const std::type_info*>("number_of_knot_spans", &typeid(Vector3i) ),
-       std::make_pair<std::string, const std::type_info*>("initial_triangle_edge_length", &typeid(double) ),
-       std::make_pair<std::string, const std::type_info*>("min_num_boundary_triangles", &typeid(IndexType) ),
-       std::make_pair<std::string, const std::type_info*>("moment_fitting_residual", &typeid(double) ),
-       std::make_pair<std::string, const std::type_info*>("init_point_distribution_factor", &typeid(IndexType) ),
-       std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
-       std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ) };
+    std::vector<Component> mComponents{};
+    static const std::vector<Component> mDefaultComponents;
+    static const std::vector<std::pair<std::string, const std::type_info*>> mAllAvailableComponents;
+    ///@}
 
 }; // End class Parameters
+///@} End TIBRA classes
 
 std::ostream& operator<< (std::ostream& rOStream, const Parameters& rThis);
 
