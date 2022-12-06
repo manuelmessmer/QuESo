@@ -26,62 +26,30 @@ class PyTIBRA:
     """
     def __init__(self, json_filename):
         """The constructor"""
-        with open(json_filename, 'r') as file:
-            self.settings = json.load(file)
+        self.parameters = ReadParameters(json_filename)
 
-        general_settings = self.settings["general_settings"]
-        self.echo_level = general_settings["echo_level"]
-        if self.echo_level > 0:
+        if self.parameters.EchoLevel() > 0:
             folder_path = "./output/"
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
 
 
-
     def Run(self):
-        general_settings = self.settings["general_settings"]
-        input_filename = general_settings["input_filename"]
-        self.post_filename = general_settings["postprocess_filename"]
-        embedding_flag = general_settings["embedding_flag"]
-
-        self.mesh_settings = self.settings["mesh_settings"]
-        self.lower_point = self.mesh_settings["lower_point"]
-        self.upper_point = self.mesh_settings["upper_point"]
-        polynomial_order = self.mesh_settings["polynomial_order"]
-        self.number_of_knot_spans = self.mesh_settings["number_of_knot_spans"]
-
-        trimmed_quadrature_rule_settings = self.settings["trimmed_quadrature_rule_settings"]
-        initial_triangle_edge_length = trimmed_quadrature_rule_settings["initial_triangle_edge_length"]
-        min_num_boundary_triangles = trimmed_quadrature_rule_settings["min_num_boundary_triangles"]
-        moment_fitting_residual = trimmed_quadrature_rule_settings["moment_fitting_residual"]
-        init_point_distribution_factor = trimmed_quadrature_rule_settings["init_point_distribution_factor"]
-
-        non_trimmed_quadrature_rule_settings = self.settings["non_trimmed_quadrature_rule_settings"]
-        integration_method = non_trimmed_quadrature_rule_settings["integration_method"]
-
-        self.tibra = TIBRA_Application.TIBRA(input_filename,
-                                             self.lower_point, self.upper_point, self.number_of_knot_spans, polynomial_order,
-                                             initial_triangle_edge_length,
-                                             min_num_boundary_triangles,
-                                             moment_fitting_residual,
-                                             init_point_distribution_factor,
-                                             integration_method,
-                                             self.echo_level,
-                                             embedding_flag)
+        self.tibra = TIBRA_Application.TIBRA(self.parameters)
         self.elements = self.tibra.GetElements()
 
     def GetElements(self):
         return self.elements
 
     def GetNumberElements(self):
-        return self.number_of_knot_spans
+        return self.parameters.NumberOfElememnts()
 
-    def GetLowerPoint(self):
-        return self.lower_point
+    def GetLowerBound(self):
+        return self.parameters.LowerBound()
 
-    def GetUpperPoint(self):
-        return self.upper_point
+    def GetUpperBound(self):
+        return self.parameters.UpperBound()
 
     def GetIntegrationPoints(self):
         integration_points = TIBRA_Application.IntegrationPointVector()
@@ -114,12 +82,12 @@ class PyTIBRA:
             boundary_conditions = []
             for bc in dirichlet_settings:
                 dirichlet_triangles = self.GetTrianglesOnBoundary(bc[0])
-                boundary_conditions.append( PenaltySupport(dirichlet_triangles, self.lower_point, self.upper_point, bc[1]) )
+                boundary_conditions.append( PenaltySupport(dirichlet_triangles, self.GetLowerBound(), self.GetUpperBound(), bc[1]) )
             for bc in neumann_settings:
                 neumann_triangles = self.GetTrianglesOnBoundary(bc[0])
-                boundary_conditions.append( SurfaceLoad(neumann_triangles, self.lower_point, self.upper_point,bc[1], False) )
+                boundary_conditions.append( SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc[1], False) )
 
-            self.analysis = Analysis( self.mesh_settings, kratos_settings, integration_points, boundary_conditions)
+            self.analysis = Analysis( self.parameters, kratos_settings, integration_points, boundary_conditions)
 
     def PostProcess(self):
         if kratos_available:
@@ -127,14 +95,14 @@ class PyTIBRA:
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
             # Mesh points are stored in one consecutive array
-            self.tibra.ReadWritePostMesh(self.post_filename)
+            self.tibra.ReadWritePostMesh()
             mesh_points = self.tibra.GetPostMeshPoints()
 
             #print(num_points)
             displacements = TIBRA_Application.PointVector()
             for point in mesh_points:
                 global_point = [point[0], point[1], point[2]]
-                local_point = FromGlobalToParamSpace(global_point, self.lower_point, self.upper_point)
+                local_point = FromGlobalToParamSpace(global_point, self.GetLowerBound(), self.GetUpperBound())
 
                 local_point_kratos = KM.Vector(3)
                 local_point_kratos[0] = local_point[0]
