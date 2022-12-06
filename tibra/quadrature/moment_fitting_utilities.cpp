@@ -36,9 +36,9 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
             while( zz < bounding_box.second[2]){
                 const PointType tmp_point = {xx,yy,zz};
                 if( rElement.pGetTrimmedDomain()->IsInsideTrimmedDomain(tmp_point) ){
-                    rIntegrationPoint.push_back(IntegrationPoint((xx - rParam.PointA()[0]) / std::abs(rParam.PointB()[0] - rParam.PointA()[0]),
-                                                    (yy - rParam.PointA()[1]) / std::abs(rParam.PointB()[1] - rParam.PointA()[1]),
-                                                    (zz - rParam.PointA()[2]) / std::abs(rParam.PointB()[2] - rParam.PointA()[2]),
+                    rIntegrationPoint.push_back(IntegrationPoint((xx - rParam.LowerBound()[0]) / std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]),
+                                                    (yy - rParam.LowerBound()[1]) / std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]),
+                                                    (zz - rParam.LowerBound()[2]) / std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]),
                                                      0.0 ));
                 }
                 zz += delta_z;
@@ -52,9 +52,9 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
 void MomentFitting::ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& pBoundaryIps,
                                          VectorType& rConstantTerms, const Parameters& rParam){
 
-    const double jacobian_x = std::abs(rParam.PointB()[0] - rParam.PointA()[0]);
-    const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
-    const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
+    const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
+    const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
+    const double jacobian_z = std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]);
 
     const PointType& a = rElement.GetLowerBoundParam();
     const PointType& b = rElement.GetUpperBoundParam();
@@ -81,7 +81,7 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
 
                     const auto& normal = point_it->Normal();
                     if( std::abs(normal[2]) > 1e-10 ){
-                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, rParam.PointA(), rParam.PointB());
+                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, rParam.LowerBound(), rParam.UpperBound());
                         PointType value;
 
                         const double f_x_x = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
@@ -156,9 +156,9 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         maximum_iteration = 1;
     }
 
-    const double jacobian_x = std::abs(rParam.PointB()[0] - rParam.PointA()[0]);
-    const double jacobian_y = std::abs(rParam.PointB()[1] - rParam.PointA()[1]);
-    const double jacobian_z = std::abs(rParam.PointB()[2] - rParam.PointA()[2]);
+    const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
+    const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
+    const double jacobian_z = std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]);
 
     PointType a = rElement.GetLowerBoundParam();
     PointType b = rElement.GetUpperBoundParam();

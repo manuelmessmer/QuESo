@@ -16,20 +16,8 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
 std::unique_ptr<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
-    PointType point_A = {0.0, 0.0, 0.0};
-    PointType point_B = {1.0, 1.0, 1.0};
 
-    Vector3i order = {2, 2, 2};
-    int point_distribution_factor = 3;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 1;
-    double moment_fitting_residual = 1e-8;
-    std::string integration_method = "Gauss";
-    int echo_level = 0;
-
-    Parameters param(point_A, point_B, rNumberOfElemnts, order, initial_triangle_edge_length,
-        minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
-
+    Parameters param( {Component("number_of_elements", rNumberOfElemnts) } );
     ElementContainer container(param);
 
     std::size_t number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];

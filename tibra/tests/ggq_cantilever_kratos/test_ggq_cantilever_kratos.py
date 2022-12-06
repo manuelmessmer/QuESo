@@ -1,5 +1,6 @@
 # Project imports
 import TIBRA_PythonApplication as TIBRA_APP
+from tibra.python_scripts.helper import *
 
 try:
     import KratosMultiphysics as KM
@@ -18,36 +19,18 @@ if kratos_available:
 import unittest
 import numpy as np
 
-
 def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
-        filename = "dummy_filename"
+        parameters = ReadParameters("tibra/tests/ggq_cantilever_kratos/TIBRAParameters.json")
 
-        lower_point = [0, 0, 0]
-        upper_point = [2, 2, 10]
-        number_of_elements = [number_cross_elements, number_cross_elements, number_z_elements]
-
-        minimum_number_of_triangles = 5000
-        initial_triangle_edge_length = 1
+        parameters.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
+        parameters.Set("polynomial_order", polynomial_degree)
         if reduction_flag == False:
-            integration_method = "Gauss"
+            parameters.Set("integration_method", "Gauss")
         else:
-            integration_method = "ReducedExact"
+            parameters.Set("integration_method", "GGQ_Optimal")
 
-        moment_fitting_residual = 1e-8
-        point_distribution_factor = 5
-        echo_level = 0
-        embedding_flag = False
-
-        embedder = TIBRA_APP.TIBRA(filename, lower_point, upper_point, number_of_elements, polynomial_degree,
-                                        initial_triangle_edge_length,
-                                        minimum_number_of_triangles,
-                                        moment_fitting_residual,
-                                        point_distribution_factor,
-                                        integration_method,
-                                        echo_level,
-                                        embedding_flag)
-
+        embedder = TIBRA_APP.TIBRA(parameters)
 
         points_all = TIBRA_APP.IntegrationPointVector()
         elements = embedder.GetElements()
@@ -66,18 +49,9 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
         boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
         boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], [0, p, 0]) )
 
-        with open("tibra/tests/ggq_cantilever_kratos/TIBRAParameters.json", 'r') as file:
-            settings = json.load(file)
-
-        mesh_settings = settings["mesh_settings"]
-        mesh_settings["lower_point"] = lower_point
-        mesh_settings["upper_point"] = upper_point
-        mesh_settings["polynomial_order"] = polynomial_degree
-        mesh_settings["number_of_knot_spans"] = number_of_elements
 
         kratos_settings_filename = "tibra/tests/ggq_cantilever_kratos/KratosParameters.json"
-
-        analysis = Analysis(mesh_settings, kratos_settings_filename, points_all, boundary_condition)
+        analysis = Analysis(parameters, kratos_settings_filename, points_all, boundary_condition)
         model_part = analysis.GetModelPart()
         geometry = model_part.GetGeometry("NurbsVolume")
 

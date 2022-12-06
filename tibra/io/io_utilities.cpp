@@ -439,7 +439,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
   const Parameters& param = (*rElementContainer.begin())->GetParameters();
   for(int i = 0; i < num_points; ++i){
     auto points_it = (begin_points_it_ptr + i);
-    auto point_global = MappingUtilities::FromLocalToGlobalSpace(*points_it, param.PointA(), param.PointB() );
+    auto point_global = MappingUtilities::FromLocalToGlobalSpace(*points_it, param.LowerBound(), param.UpperBound() );
 
     if( Binary ){
       WriteBinary(file, point_global[0]);

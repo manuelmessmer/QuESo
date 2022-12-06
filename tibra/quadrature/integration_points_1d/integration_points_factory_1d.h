@@ -9,6 +9,8 @@
 #include <array>
 #include <memory>
 
+#include "utilities/parameters.h"
+
 namespace tibra {
 
 ///@name TIBRA Classes
@@ -20,7 +22,7 @@ namespace tibra {
  * @author Manuel Messmer
  * @brief  Factory for 1D Integration points for single and multiple knot spans.
  * @details Available Quadrature rules:
- *          {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2}
+ *          {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
  * @todo Wrap TIBRA in namespace and put enum outside the class.
 */
 class IntegrationPointFactory1D {
@@ -30,14 +32,8 @@ public:
     typedef std::size_t SizeType;
     typedef std::vector<std::array<double,2>> Ip1DVectorType;
     typedef std::unique_ptr<Ip1DVectorType> Ip1DVectorPtrType;
-
     typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
     typedef std::shared_ptr<Ip1DVectorVectorType> Ip1DVectorVectorPtrType;
-
-    ///@}
-    ///@name  Enum's
-    ///@{
-    enum IntegrationMethod {Gauss, ReducedGauss1, ReducedGauss2, ReducedExact, ReducedOrder1, ReducedOrder2};
 
     ///@}
     ///@name Operations
@@ -46,15 +42,15 @@ public:
     /// @brief Get Generalized Gaussian Quadrature (GGQ) 1D rules.
     /// @param PolynomialDegree
     /// @param NumberKnotSpans
-    /// @param Method options - {ReducedExact, ReducedOrder1, ReducedOrder2}
+    /// @param Method options - {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
     /// @return IntegrationPoint1DVectorPtrTypes. Points are defined on the interval (0,1).
-    static Ip1DVectorPtrType GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod Method );
+    static Ip1DVectorPtrType GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method );
 
     /// @brief Get standard 1D Gauss-Legendre quadrature rules.
     /// @param PolynomialDegree
-    /// @param Method options - {Gauss, ReducedGauss1, ReducedGauss2
+    /// @param Method options - {Gauss, Gauss_Reduced1, Gauss_Reduced2
     /// @return IntegrationPoint1DVectorPtrTypes. Points are defined on the interval (0,1).
-    static Ip1DVectorPtrType GetGauss( SizeType PolynomialDegree, IntegrationMethod Method );
+    static Ip1DVectorPtrType GetGauss( SizeType PolynomialDegree, IntegrationMethodType Method );
 
     ///@}
 private:
@@ -64,9 +60,9 @@ private:
 
     /// @brief Get integration space dimension for GGQ.
     /// @param PolynomialDegre
-    /// @param Method options - {ReducedExact, ReducedOrder1, ReducedOrder2}
+    /// @param Method options - {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
     /// @return std::pair<SizeType, SizeType> {Degree, Continuity}
-    static const std::pair<SizeType, SizeType> GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethod Method );
+    static const std::pair<SizeType, SizeType> GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethodType Method );
 
     /// @brief   Constructs GGQ rules from precomputed rules.
     /// @details Algorithm taken from: R. Hiemstra et al. Optimal and reduced quadrature rules for tensor product and hierarchically
@@ -74,9 +70,9 @@ private:
     ///          http://dx.doi.org/10.1016/j.cma.2016.10.049
     /// @param PolynomialDegree
     /// @param NumberKnotSpans
-    /// @param Method options - {ReducedExact, ReducedOrder1, ReducedOrder2}
+    /// @param Method options - {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
     /// @return InetgrationPoint1DVectorPtrType
-    static Ip1DVectorPtrType GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethod Method);
+    static Ip1DVectorPtrType GetGGQPoints(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method);
     ///@}
 
     /// @name Private operations

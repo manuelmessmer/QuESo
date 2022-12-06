@@ -19,10 +19,10 @@ class Analysis():
 
     Runs simulation.
     """
-    def __init__(self, mesh_settings, kratos_settings_filename, integration_points_embedder, boundary_conditions ):
+    def __init__(self, parameters, kratos_settings_filename, integration_points_embedder, boundary_conditions ):
         """The constructor."""
         self.model = KM.Model()
-        analysis = CustomAnalysisStage(self.model, mesh_settings, kratos_settings_filename, integration_points_embedder, boundary_conditions)
+        analysis = CustomAnalysisStage(self.model, parameters, kratos_settings_filename, integration_points_embedder, boundary_conditions)
         analysis.Run()
 
     def GetModelPart(self):

@@ -45,7 +45,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=2: GGQ Optimal'''
         PolynomialDegree = 2
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedExact)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Optimal)
             p, r = 4, 0
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             if e > 1:
@@ -56,7 +56,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=3: GGQ Optimal'''
         PolynomialDegree = 3
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedExact)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Optimal)
             p, r = 6, 1
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             if e > 1:
@@ -69,7 +69,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=4: GGQ Optimal'''
         PolynomialDegree = 4
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedExact)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Optimal)
             p, r = 8, 2
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             if e > 1:
@@ -83,7 +83,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=2: GGQ Reduced1'''
         PolynomialDegree = 2
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedOrder1)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Reduced1)
             p, r = 3, 0
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             p, r = 4, 0 # Expected to fail.
@@ -93,7 +93,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=3: GGQ Reduced1'''
         PolynomialDegree = 3
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedOrder1)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Reduced1)
             p, r = 5, 1
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             p, r = 6, 1 # Expected to fail.
@@ -106,7 +106,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=4: GGQ Reduced1'''
         PolynomialDegree = 4
         for e in range(2,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedOrder1)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Reduced1)
             p, r = 7, 2
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             p, r = 8, 2 # Expected to fail.
@@ -119,7 +119,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=2: GGQ Reduced2'''
         PolynomialDegree = 2
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedOrder2)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Reduced2)
             p, r = 2, 0
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             if e > 1:
@@ -130,7 +130,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=3: GGQ Reduced2'''
         PolynomialDegree = 3
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedOrder2)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Reduced2)
             p, r = 4, 1
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             if e > 1:
@@ -143,7 +143,7 @@ class TestGGQ1d(unittest.TestCase):
         '''p=4: GGQ Reduced2'''
         PolynomialDegree = 4
         for e in range(1,101):
-            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.ReducedOrder2)
+            points = TIBRA_PythonApplication.IntegrationPointFactory1D.GetGGQ(PolynomialDegree, e, TIBRA_PythonApplication.IntegrationMethod.GGQ_Reduced2)
             p, r = 6, 2
             self.check_ggq_rules(points, p, r, e, 0.0, 1.0, True)
             if e > 1:

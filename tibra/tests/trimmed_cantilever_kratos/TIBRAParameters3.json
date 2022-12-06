@@ -6,13 +6,13 @@
         "embedding_flag"  : true
     },
     "mesh_settings"     : {
-        "lower_point": [-1.5, -1.5, -1.00],
-        "upper_point": [1.5, 1.5, 11.00],
+        "lower_bound": [-1.5, -1.5, -1.00],
+        "upper_bound": [1.5, 1.5, 11.00],
         "polynomial_order" : [2, 2, 2],
-        "number_of_knot_spans" : [8,8,10]
+        "number_of_elements" : [8,8,10]
     },
     "trimmed_quadrature_rule_settings"     : {
-        "initial_triangle_edge_length" : 1,
+        "initial_triangle_edge_length" : 1.0,
         "min_num_boundary_triangles"  : 1000,
         "moment_fitting_residual": 1e-10,
         "init_point_distribution_factor": 2

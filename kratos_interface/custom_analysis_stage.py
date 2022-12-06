@@ -8,7 +8,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
     Overrides the StructuralMechanicsAnalysis Stage from Kratos.
     """
-    def __init__(self, model, general_settings, kratos_settings_filename, integration_points_embedder, boundary_conditions):
+    def __init__(self, model, tibra_parameters, kratos_settings_filename, integration_points_embedder, boundary_conditions):
         """The constructor."""
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
@@ -22,13 +22,13 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
                 parameters.AddEmptyValue("lower_point")
-                parameters["lower_point"].SetVector(general_settings["lower_point"])
+                parameters["lower_point"].SetVector(tibra_parameters.LowerBound())
                 parameters.AddEmptyValue("upper_point")
-                parameters["upper_point"].SetVector(general_settings["upper_point"])
+                parameters["upper_point"].SetVector(tibra_parameters.UpperBound())
                 parameters.AddEmptyValue("polynomial_order")
-                parameters["polynomial_order"].SetVector(general_settings["polynomial_order"])
+                parameters["polynomial_order"].SetVector(tibra_parameters.Order())
                 parameters.AddEmptyValue("number_of_knot_spans")
-                parameters["number_of_knot_spans"].SetVector(general_settings["number_of_knot_spans"])
+                parameters["number_of_knot_spans"].SetVector(tibra_parameters.NumberOfElements())
 
         self.Initialized = False
         super().__init__(model, analysis_parameters)

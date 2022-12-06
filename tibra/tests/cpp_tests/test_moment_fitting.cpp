@@ -24,31 +24,24 @@ BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
 
-    PointType point_A = {0.0, 0.0, 0.0};
-    PointType point_B = {2.0, 2.0, 3.0};
-    Vector3i number_of_elements = {1, 1, 1};
-    Vector3i order = {2, 2, 2};
 
-    int point_distribution_factor = 3;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 20000;
-    double moment_fitting_residual = 1e-8;
-    std::string integration_method = "Gauss";
-    int echo_level = 0;
+    Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                            Component("upper_bound", PointType(2.0, 2.0, 3.0)),
+                            Component("number_of_elements", Vector3i(1, 1, 1)),
+                            Component("polynomial_order", Vector3i(2, 2, 2)),
+                            Component("moment_fitting_residual", 1e-8),
+                            Component("min_num_boundary_triangles", 20000UL),
+                            Component("init_point_distribution_factor", 3UL),
+                            Component("use_customized_trimmed_points", true) });
 
-    Parameters param(point_A, point_B, number_of_elements, order, initial_triangle_edge_length,
-        minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
-    param.SetUseCustomizedTrimmedPointsPositionFlag(true);
-
-
-    Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, param);
+    Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, parameters);
 
     PointType point_a_domain = {0.0, -0.1, -0.1};
     PointType point_b_domain = {2.1, 2.1, 3.1};
     auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPoints().clear();
-    SingleElement::AssembleIPs(element, param);
+    SingleElement::AssembleIPs(element, parameters);
 
     // Set positions of trimmed points at Gauss Legendre Points.
     element.GetIntegrationPoints() = element.GetIntegrationPoints();
@@ -62,7 +55,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
-        element.GetLowerBound(), element.GetUpperBound(), param);
+        element.GetLowerBound(), element.GetUpperBound(), parameters);
 
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );
@@ -70,7 +63,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     element.pSetTrimmedDomain(p_trimmed_domain);
 
     // Run Moment Fitting
-    MomentFitting::CreateIntegrationPointsTrimmed(element, param);
+    MomentFitting::CreateIntegrationPointsTrimmed(element, parameters);
 
     auto& points_moment_fitting = element.GetIntegrationPoints();
     auto& points_gauss_legendre = element.GetIntegrationPoints();
@@ -93,31 +86,23 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
-    PointType point_A = {0.0, 0.0, 0.0};
-    PointType point_B = {2.0, 2.0, 1.0};
+    Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                            Component("upper_bound", PointType(2.0, 2.0, 1.0)),
+                            Component("number_of_elements", Vector3i(1, 1, 1)),
+                            Component("polynomial_order", Vector3i(3, 3, 3)),
+                            Component("moment_fitting_residual", 1e-8),
+                            Component("min_num_boundary_triangles", 10000UL),
+                            Component("init_point_distribution_factor", 3UL),
+                            Component("use_customized_trimmed_points", true) });
 
-    Vector3i number_of_elements = {1, 1, 1};
-    Vector3i order = {3, 3, 3};
-
-    int point_distribution_factor = 3;
-    double initial_triangle_edge_length = 1;
-    int minimum_number_of_triangles = 10000;
-    double moment_fitting_residual = 1e-8;
-    std::string integration_method = "Gauss";
-    int echo_level = 0;
-
-    Parameters param(point_A, point_B, number_of_elements, order, initial_triangle_edge_length,
-        minimum_number_of_triangles, moment_fitting_residual, point_distribution_factor, integration_method, echo_level);
-    param.SetUseCustomizedTrimmedPointsPositionFlag(true);
-
-    Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, param);
+    Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, parameters);
 
     PointType point_a_domain = {0.0, -0.1, -0.1};
     PointType point_b_domain = {2.1, 2.1, 1.1};
     auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPoints().clear();
-    SingleElement::AssembleIPs(element, param);
+    SingleElement::AssembleIPs(element, parameters);
 
     // Set positions of trimmed points at Gauss Legendre Points.
     element.GetIntegrationPoints() = element.GetIntegrationPoints();
@@ -130,14 +115,15 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh);
 
     // Get Trimmed Domain
-    auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(point_A, point_B, param);
+    auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
+        element.GetLowerBound(), element.GetUpperBound(), parameters);
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );
     element.SetIsTrimmed(true);
     element.pSetTrimmedDomain(p_trimmed_domain);
 
     // Run Moment Fitting
-    MomentFitting::CreateIntegrationPointsTrimmed(element, param);
+    MomentFitting::CreateIntegrationPointsTrimmed(element, parameters);
 
     auto& points_moment_fitting = element.GetIntegrationPoints();
     auto& points_gauss_legendre = element.GetIntegrationPoints();
