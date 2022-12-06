@@ -52,6 +52,23 @@ template <class T> class ptr_wrapper
         std::size_t size;
 };
 
+IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
+    if( rValue == "Gauss" )
+        return IntegrationMethod::Gauss;
+    else if( rValue == "ReducedGauss1" )
+        return IntegrationMethod::ReducedGauss1;
+    else if( rValue == "ReducedGauss2" )
+        return IntegrationMethod::ReducedGauss2;
+    else if( rValue == "ReducedExact")
+        return IntegrationMethod::ReducedExact;
+    else if( rValue == "ReducedOrder1")
+        return IntegrationMethod::ReducedOrder1;
+    else if( rValue == "ReducedOrder2")
+        return IntegrationMethod::ReducedOrder2;
+    else
+        throw std::invalid_argument("Parameters: Integration Method: " + rValue + " not available! \n");
+}
+
 PYBIND11_MODULE(TIBRA_Application,m) {
 
     m.doc() = "This is a Python binding for TIBRA";
@@ -68,11 +85,22 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 
     /// Export PointType
     py::class_<PointType, std::shared_ptr<PointType>>(m,"Point")
+        .def(py::init<std::array<double,3>>())
         .def(py::init<double, double, double>())
         .def("GetX", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
         .def("GetY", static_cast< double (PointType::*)() const>(&PointType::Y)) // Return const version of Y()
         .def("GetZ", static_cast< double (PointType::*)() const>(&PointType::Z)) // Return const version of Z()
         .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
+        ;
+
+    /// Export PointType
+    py::class_<Vector3i, std::shared_ptr<Vector3i>>(m,"Vector3i")
+        .def(py::init<std::array<IndexType,3>>())
+        .def(py::init<IndexType, IndexType, IndexType>())
+        .def("GetX", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::X)) // Return const version of X()
+        .def("GetY", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Y)) // Return const version of Y()
+        .def("GetZ", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Z)) // Return const version of Z()
+        .def("__getitem__",  [](const Vector3i &v, IndexType i){return v[i];} )
         ;
 
     /// Export PointVector
@@ -129,7 +157,6 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     ;
 
     /// Export Element
-
     py::class_<Element, std::shared_ptr<Element>>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (Element::*)() const>(&Element::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
@@ -155,7 +182,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("__iter__", [](ElementVectorPtrType &v) {
             return py::make_iterator( v.begin(), v.end() );
         }, py::keep_alive<0, 1>())
-        ;
+    ;
 
     /// Export enum IntegrationMethod
     py::enum_<IntegrationMethod>(m, "IntegrationMethod")
@@ -172,6 +199,39 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     py::class_<IntegrationPointFactory1D, std::shared_ptr<IntegrationPointFactory1D>>(m,"IntegrationPointFactory1D")
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
+
+    /// Export Parameters
+    py::class_<Parameters,std::shared_ptr<Parameters>>(m,"Parameters")
+        .def(py::init<>())
+        .def("Set",[](Parameters& rParams, const std::string& rName, const PointType& rValue){
+            rParams.Set(rName, rValue); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const std::array<double,3>& rValue){
+            rParams.Set(rName, PointType(rValue)); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const Vector3i& rValue){
+            rParams.Set(rName, rValue); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const std::array<IndexType,3>& rValue){
+            rParams.Set(rName, Vector3i(rValue)); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const bool rValue){
+            rParams.Set(rName, rValue); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const IndexType rValue){
+            rParams.Set(rName, rValue); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const double rValue){
+            rParams.Set(rName, rValue); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const IntegrationMethodType& rValue){
+            rParams.Set(rName, rValue); })
+        .def("Set",[](Parameters& rParams, const std::string& rName, const std::string& rValue){
+            // Allow integration method to be string. JSON is parsed as string.
+            if( rName == "integration_method" ){
+                rParams.Set(rName, GetIntegrationMethodFromString(rValue)); }
+            else {
+                rParams.Set(rName, rValue); } })
+        .def("EchoLevel", &Parameters::EchoLevel)
+        // Return std::array<type,3> types. Easier to handle in python.
+        .def("LowerBound", []( const Parameters& rParams ) { return rParams.LowerBound().Coordinates(); })
+        .def("UpperBound", []( const Parameters& rParams ) { return rParams.UpperBound().Coordinates(); })
+        .def("Order", []( const Parameters& rParams ) { return rParams.Order().Coordinates(); })
+        .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements().Coordinates(); })
+        ;
 
     /// Export TIBRA
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
