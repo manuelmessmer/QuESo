@@ -5,6 +5,8 @@ project( TIBRA_Application )
 
 # Set build type to Release
 set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
+
 # Include local directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
