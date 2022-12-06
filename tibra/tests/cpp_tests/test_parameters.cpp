@@ -6,7 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "utilities/values.h"
+#include "utilities/parameters.h"
 
 namespace tibra {
 namespace Testing {
@@ -15,7 +15,9 @@ BOOST_AUTO_TEST_SUITE( ParamtersTestSuite )
 
 BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     std::cout << "Testing :: Parameter :: Test Defaults" << std::endl;
-    TestParameter parameters{};
+    typedef Parameters::IntegrationMethod IntegrationMethod;
+
+    Parameters parameters{};
 
     IndexType eche_level = parameters.Get<IndexType>("echo_level");
     BOOST_CHECK_EQUAL(eche_level, 0UL);
@@ -42,12 +44,16 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::Gauss);
+
+    bool use_cusomized_trimmed_points = parameters.Get<bool>("use_cusomized_trimmed_points");
+    BOOST_CHECK( !use_cusomized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     std::cout << "Testing :: Parameter :: Test Custom Constructor" << std::endl;
+    typedef Parameters::IntegrationMethod IntegrationMethod;
 
-    TestParameter parameters( {Component("input_filename", std::string("date/test.stl")),
+    Parameters parameters( {Component("input_filename", std::string("date/test.stl")),
                                Component("postprocess_filename", std::string("date/test2.stl")),
                                Component("echo_level", 2UL),
                                Component("embedding_flag", false),
@@ -102,12 +108,16 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::ReducedExact);
+
+    bool use_cusomized_trimmed_points = parameters.Get<bool>("use_cusomized_trimmed_points");
+    BOOST_CHECK( !use_cusomized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     std::cout << "Testing :: Parameter :: Test Custom Set" << std::endl;
+    typedef Parameters::IntegrationMethod IntegrationMethod;
 
-    TestParameter parameters{};
+    Parameters parameters{};
     parameters.Set("input_filename", std::string("date/test.stl") );
     parameters.Set("postprocess_filename", std::string("date/test2.stl"));
     parameters.Set("echo_level", 2UL);
@@ -121,6 +131,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     parameters.Set("moment_fitting_residual", 0.5e-5);
     parameters.Set("init_point_distribution_factor", 5UL);
     parameters.Set("integration_method", IntegrationMethod::ReducedExact);
+    parameters.Set("use_customized_trimmed_points", true);
 
     std::string input_filename = parameters.Get<std::string>("input_filename");
     BOOST_CHECK_EQUAL(input_filename, std::string("date/test.stl"));
@@ -163,6 +174,9 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::ReducedExact);
+
+    bool use_cusomized_trimmed_points = parameters.Get<bool>("use_cusomized_trimmed_points");
+    BOOST_CHECK( use_cusomized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
