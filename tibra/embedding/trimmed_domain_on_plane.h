@@ -69,6 +69,10 @@ public:
             return mSplitPoints;
         }
 
+        void ClearSplitPoints() {
+            mSplitPoints.clear();
+        }
+
         void AddSplitPoint(const Point2DType& rPoint){
             mSplitPoints.push_back(rPoint);
         }
@@ -97,8 +101,8 @@ public:
     ///@{
 
     /// Constructor.
-    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType& LowerBound, const Point3DType& UpperBound)
-            : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound)
+    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType& LowerBound, const Point3DType& UpperBound, const TrimmedDomainBase* pTrimmedDomain)
+            : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain)
     {
         if( PlaneIndex == 2 ){
             DIRINDEX1 = 0;
@@ -131,6 +135,37 @@ public:
         mVerticesNegative.reserve(Size);
     }
 
+    void InsertEdge( const std::array<Point3DType, 2> rEdge, const Point3DType& rNormal ){
+        // Get vertices of edge
+        const auto& V1 = rEdge[0];
+        const auto& V2 = rEdge[1];
+
+        Point2DType v1{};
+        Point2DType v2{};
+        // Make sure edge is oriented along DIRINDEX1 such that x2 > x1
+        if( V2[DIRINDEX1] > V1[DIRINDEX1] ){
+            v1 = {V1[DIRINDEX1], V1[DIRINDEX2]};
+            v2 = {V2[DIRINDEX1], V2[DIRINDEX2]};
+        }
+        else {
+            v1 = {V2[DIRINDEX1], V2[DIRINDEX2]};
+            v2 = {V1[DIRINDEX1], V1[DIRINDEX2]};
+        }
+        // Positive oriented
+        if( rNormal[DIRINDEX2] > 1e-10 ){
+            // Get unique vertex index.
+            auto index_1 = InsertUniqueVertex(v1, true);
+            auto index_2 = InsertUniqueVertex(v2, true);
+            mEdgesPositiveOriented.push_back( Egde2D(index_1, index_2) );
+        } // Negative oriented
+        else if ( rNormal[DIRINDEX2] < -1e-10 ) {
+            // Get unique vertex index.
+            auto index_1 = InsertUniqueVertex(v1, false);
+            auto index_2 = InsertUniqueVertex(v2, false);
+            mEdgesNegativeOriented.push_back( Egde2D(index_1, index_2) );
+        }
+    }
+
     ///@brief Insert new edges to trimmed domain on plane. Check for dublicate nodes. Only inserts new node if unique.
     ///       Only inserts edges if std::abs(normal[DIRINDEX2]) > 1e-10. All other edges have no contribution for constant terms
     ///       of moment fitting equation.
@@ -138,34 +173,7 @@ public:
     ///@param rNormal
     void InsertEdges( const std::vector<std::array<Point3DType,2>> rEdges, const Point3DType& rNormal ) {
         for( auto& edge : rEdges ){
-            // Get vertices of edge
-            const auto& V1 = edge[0];
-            const auto& V2 = edge[1];
-
-            Point2DType v1{};
-            Point2DType v2{};
-            // Make sure edge is oriented along DIRINDEX1 such that x2 > x1
-            if( V2[DIRINDEX1] > V1[DIRINDEX1] ){
-                v1 = {V1[DIRINDEX1], V1[DIRINDEX2]};
-                v2 = {V2[DIRINDEX1], V2[DIRINDEX2]};
-            }
-            else {
-                v1 = {V2[DIRINDEX1], V2[DIRINDEX2]};
-                v2 = {V1[DIRINDEX1], V1[DIRINDEX2]};
-            }
-            // Positive oriented
-            if( rNormal[DIRINDEX2] > 1e-10 ){
-                // Get unique vertex index.
-                auto index_1 = InsertUniqueVertex(v1, true);
-                auto index_2 = InsertUniqueVertex(v2, true);
-                mEdgesPositiveOriented.push_back( Egde2D(index_1, index_2) );
-            } // Negative oriented
-            else if ( rNormal[DIRINDEX2] < -1e-10 ) {
-                // Get unique vertex index.
-                auto index_1 = InsertUniqueVertex(v1, false);
-                auto index_2 = InsertUniqueVertex(v2, false);
-                mEdgesNegativeOriented.push_back( Egde2D(index_1, index_2) );
-            }
+            InsertEdge(edge, rNormal);
         }
         // Do not add vertical edges.
     }
@@ -268,10 +276,80 @@ private:
         IndexType num_positive_edges = mEdgesPositiveOriented.size();
         IndexType num_negative_edges = mEdgesNegativeOriented.size();
 
-
-        if( num_positive_edges == 0 ||  num_negative_edges == 0 ){
+        if( num_positive_edges == 0 &&  num_negative_edges == 0 ){
             return;
         }
+
+        ///TODO: Not complete yet. Find all intersection with top edge from a-b.
+        std::vector<double> intersected_vertex_ids{};
+        intersected_vertex_ids.push_back( mLowerBound[DIRINDEX1] );
+        FindAllIntersectionWithUpperEdge(intersected_vertex_ids, true);
+        FindAllIntersectionWithUpperEdge(intersected_vertex_ids, false);
+        intersected_vertex_ids.push_back( mUpperBound[DIRINDEX1] );
+
+        // Sort
+        std::sort( intersected_vertex_ids.begin(), intersected_vertex_ids.end() );
+        // Remove duplicates
+        intersected_vertex_ids.erase(std::unique(intersected_vertex_ids.begin(), intersected_vertex_ids.end(),
+            [](const auto& v1, const auto& v2) { return (v1 > v2 - 1e-8) && (v1 < v2 + 1e-8); }) , intersected_vertex_ids.end());
+
+        double plane_position;
+        if( mUpperBoundary ){
+            plane_position = mUpperBound[DIRINDEX3];
+        } else {
+            plane_position = mLowerBound[DIRINDEX3];
+        }
+
+        for( IndexType i = 0; i < intersected_vertex_ids.size()-1; ++i){
+            double v_left = intersected_vertex_ids[i];
+            double v_right = intersected_vertex_ids[i+1];
+            double center = v_left + 0.5 * (v_right - v_left);
+            Point3DType new_point{};
+            new_point[DIRINDEX1] = center;
+            new_point[DIRINDEX2] = mUpperBound[DIRINDEX2];
+            new_point[DIRINDEX3] = plane_position;
+            if( mpTrimmedDomain->IsInsideTrimmedDomain(new_point) ){
+                auto index_1 = InsertUniqueVertex( {v_left, mUpperBound[DIRINDEX2]}, true);
+                auto index_2 = InsertUniqueVertex( {v_right, mUpperBound[DIRINDEX2]}, true);
+                mEdgesPositiveOriented.push_back( Egde2D(index_1, index_2) );
+            }
+        }
+
+        /// Split long edges.
+        double max_edge_lenght = 0.01;
+        for( IndexType edge_id = 0; edge_id < mEdgesPositiveOriented.size(); ++edge_id){
+            const auto& v1 = V1byEdgeId(edge_id, true);
+            const auto& v2 = V2byEdgeId(edge_id, true);
+            const double length = std::sqrt( (v2[0]-v1[0])*(v2[0]-v1[0]) + (v2[1]-v1[1])*(v2[1]-v1[1]) );
+            if( length > max_edge_lenght ){
+                IndexType num_of_new_vertices = (IndexType) (length/max_edge_lenght);
+                double delta_x = (v2[0]-v1[0]) / double(num_of_new_vertices+1);
+                for(IndexType i = 1; i < num_of_new_vertices+1; ++i){
+                    double pos1 = v1[0] + delta_x*i;
+                    double pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (pos1 - v1[0]);
+                    mEdgesPositiveOriented[edge_id].AddSplitPoint( {pos1, pos2} );
+                }
+            }
+        }
+        SplitEdgesAtSplitPoint(mEdgesPositiveOriented, true);
+
+        /// Split long edges.
+        for( IndexType edge_id = 0; edge_id < mEdgesNegativeOriented.size(); ++edge_id){
+            const auto& v1 = V1byEdgeId(edge_id, false);
+            const auto& v2 = V2byEdgeId(edge_id, false);
+            const double length = std::sqrt( (v2[0]-v1[0])*(v2[0]-v1[0]) + (v2[1]-v1[1])*(v2[1]-v1[1]) );
+            if( length > max_edge_lenght ){
+                IndexType num_of_new_vertices = (IndexType) (length/max_edge_lenght);
+                double delta_x = (v2[0]-v1[0]) / double(num_of_new_vertices+1);
+                for(IndexType i = 1; i < num_of_new_vertices+1; ++i){
+                    double pos1 = v1[0] + delta_x*i;
+                    double pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (pos1 - v1[0]);
+                    mEdgesNegativeOriented[edge_id].AddSplitPoint( {pos1, pos2} );
+                }
+            }
+        }
+        SplitEdgesAtSplitPoint(mEdgesNegativeOriented, false);
+
 
         /// Split negative edges at positions of positive points.
         for( int i = 0; i < mVerticesPositive.size(); ++i){
@@ -288,53 +366,80 @@ private:
         }
         SplitEdgesAtSplitPoint(mEdgesPositiveOriented, true);
 
-        ///TODO: Not complete yet. Find all intersection with top edge from a-b.
-        // Search from left boundary
-        if( state_a ){
-            const double corner_point_x = mLowerBound[DIRINDEX1];
-            double min_distance = 1e10;
-            for(int i = 0; i < mVerticesPositive.size(); ++i ){
-                double distance = std::abs(mVerticesPositive[i][0] - corner_point_x);
-                if( distance < min_distance ){
-                    min_distance = distance;
-                }
-            }
-            if( min_distance > 1e-8 ){
-                double point_y = mUpperBound[DIRINDEX2];
-                const IndexType num_edges = 5;
-                double delta_x = min_distance/num_edges;
-                for(IndexType i = 0; i < 5; ++i ){
-                    double point_x_1 = corner_point_x + i*delta_x;
-                    IndexType index1 = InsertVertex( {point_x_1, point_y}, true );
-                    double point_x_2 = corner_point_x + (i+1)*delta_x;
-                    IndexType index2 = InsertVertex( {point_x_2, point_y}, true );
-                    mEdgesPositiveOriented.push_back( Egde2D( index1, index2) );
-                }
-            }
-        }
 
-        // Search from right boundary
-        if( state_b ){
-            const double corner_point_x = mUpperBound[DIRINDEX1];
-            double min_distance = 1e10;
-            for(int i = 0; i < mVerticesPositive.size(); ++i ){
-                double distance = std::abs(mVerticesPositive[i][0] - corner_point_x);
-                if( distance < min_distance ){
-                    min_distance = distance;
-                }
+
+
+
+        // // Search from left boundary
+        // if( state_a ){
+        //     const double corner_point_x = mLowerBound[DIRINDEX1];
+        //     double min_distance = 1e10;
+        //     for(int i = 0; i < mVerticesPositive.size(); ++i ){
+        //         double distance = std::abs(mVerticesPositive[i][0] - corner_point_x);
+        //         if( distance < min_distance ){
+        //             min_distance = distance;
+        //         }
+        //     }
+        //     if( min_distance > 1e-8 ){
+        //         double point_y = mUpperBound[DIRINDEX2];
+        //         const IndexType num_edges = 5;
+        //         double delta_x = min_distance/num_edges;
+        //         for(IndexType i = 0; i < 5; ++i ){
+        //             double point_x_1 = corner_point_x + i*delta_x;
+        //             IndexType index1 = InsertVertex( {point_x_1, point_y}, true );
+        //             double point_x_2 = corner_point_x + (i+1)*delta_x;
+        //             IndexType index2 = InsertVertex( {point_x_2, point_y}, true );
+        //             mEdgesPositiveOriented.push_back( Egde2D( index1, index2) );
+        //         }
+        //     }
+        // }
+
+        // // Search from right boundary
+        // if( state_b ){
+        //     const double corner_point_x = mUpperBound[DIRINDEX1];
+        //     double min_distance = 1e10;
+        //     for(int i = 0; i < mVerticesPositive.size(); ++i ){
+        //         double distance = std::abs(mVerticesPositive[i][0] - corner_point_x);
+        //         if( distance < min_distance ){
+        //             min_distance = distance;
+        //         }
+        //     }
+        //     if( min_distance > 1e-8 ){
+        //         double point_y = mUpperBound[DIRINDEX2];
+        //         const IndexType num_edges = 5;
+        //         double delta_x = min_distance/num_edges;
+        //         for(IndexType i = 0; i < 5; ++i ){
+        //             double point_x_1 = corner_point_x - i*delta_x;
+        //             IndexType index1 = InsertVertex( {point_x_1, point_y}, true );
+        //             double point_x_2 = corner_point_x - (i+1)*delta_x;
+        //             IndexType index2 = InsertVertex( {point_x_2, point_y}, true );
+        //             mEdgesPositiveOriented.push_back( Egde2D( index1, index2) );
+        //         }
+        //     }
+        // }
+    }
+
+    void FindAllIntersectionWithUpperEdge(std::vector<double>& rVertices, bool Positive, double Tolerance=1e-8){
+        for( IndexType edge_id = 0; edge_id < GetNumberEdges(Positive); ++edge_id ){
+            const auto& v1 = V1byEdgeId(edge_id, Positive);
+            const auto& v2 = V2byEdgeId(edge_id, Positive);
+            bool v1_on_edge = false;
+            if( v1[1] < mUpperBound[DIRINDEX2]+Tolerance && v1[1] > mUpperBound[DIRINDEX2]-Tolerance ){
+                rVertices.push_back( v1[0] );
+                v1_on_edge = true;
             }
-            if( min_distance > 1e-8 ){
-                double point_y = mUpperBound[DIRINDEX2];
-                const IndexType num_edges = 5;
-                double delta_x = min_distance/num_edges;
-                for(IndexType i = 0; i < 5; ++i ){
-                    double point_x_1 = corner_point_x - i*delta_x;
-                    IndexType index1 = InsertVertex( {point_x_1, point_y}, true );
-                    double point_x_2 = corner_point_x - (i+1)*delta_x;
-                    IndexType index2 = InsertVertex( {point_x_2, point_y}, true );
-                    mEdgesPositiveOriented.push_back( Egde2D( index1, index2) );
-                }
+            bool v2_on_edge = false;
+            if( v2[1] < mUpperBound[DIRINDEX2]+Tolerance && v2[1] > mUpperBound[DIRINDEX2]-Tolerance ){
+                v2_on_edge = true;
+                rVertices.push_back( v2[0] );
             }
+
+            // if( (v1_on_edge + v2_on_edge) == 1 ){
+            //     if( v1_on_edge )
+            //         rVertices.push_back( v1[0] );
+            //     if( v2_on_edge )
+            //         rVertices.push_back( v2[0] );
+            // }
         }
     }
 
@@ -356,12 +461,21 @@ private:
     ///@param Positive Orientation of edges to be searched.
     ///@param int
     int FindIntersectingEdge(const Point2DType& rPoint, bool Positive){
+        double min_distance = std::numeric_limits<double>::max();
+        IndexType found_id = -1;
         for( int i = 0; i < GetNumberEdges(Positive); ++i ){
-            if( rPoint[DIRINDEX1] > V1byEdgeId(i,Positive)[DIRINDEX1] && rPoint[DIRINDEX1] < V2byEdgeId(i, Positive)[DIRINDEX1] ){
-                return i;
+            const auto& v1 = V1byEdgeId(i,Positive);
+            const auto& v2 = V2byEdgeId(i, Positive);
+            if( rPoint[DIRINDEX1] > v1[DIRINDEX1] && rPoint[DIRINDEX1] <= v2[DIRINDEX1] ){
+                double distance = rPoint[DIRINDEX2] - 0.5*( v2[DIRINDEX2]+v1[DIRINDEX2] );
+
+                if( distance > 0.0 && distance < min_distance){
+                    found_id = i;
+                    min_distance = distance;
+                }
             }
         }
-        return -1;
+        return found_id;
     }
 
     ///@brief Create integration points by ray shooting.
@@ -379,6 +493,9 @@ private:
         bool orientation_origin = true;
         bool orientation_dest = false;
 
+        if( r_edges_origin.size() > 0){
+            const auto& test = V2byEdgeId(r_edges_origin.size()-1, orientation_origin);
+        }
         // First we shoot rays from upper edges downwards.
         for( int i = 0; i < r_edges_origin.size(); ++i){
 
@@ -391,16 +508,21 @@ private:
                 const auto& v1_up = V1byEdgeId(i, orientation_origin);
                 const auto& v2_up = V2byEdgeId(i, orientation_origin);
 
+
+
                 // Get center
                 Point2DType c_positive = { 0.5*(v1_up[0]+v2_up[0]), 0.5*(v1_up[1]+v2_up[1]) };
+
+
                 int edge_id_dest = FindIntersectingEdge(c_positive, orientation_dest);
+
 
                 double ray_width = std::abs(v2_up[0] - v1_up[0]);
                 double ray_x = c_positive[0];
                 double ray_y_start = std::min(v1_up[1], v2_up[1]);
                 double ray_y_end = mLowerBound[DIRINDEX2];
 
-
+                // If edge is inclined, build upper triangle.
                 if( std::abs(v1_up[1] - v2_up[1]) > 1e-8 ){ // If edge is inclined
                     double weight = 0.5*std::abs( (v2_up[0]-v1_up[0]) * (v2_up[1]-v1_up[1]) );
                     Point3DType tmp_point = {0.0, 0.0, 0.0};
@@ -423,9 +545,11 @@ private:
                     r_edges_dest[edge_id_dest].SetVisited(true);
                     const auto& v1_low = V1byEdgeId(edge_id_dest, false);
                     const auto& v2_low = V2byEdgeId(edge_id_dest, false);
-                    ray_y_end = std::max(v1_low[1], v2_low[1] );
-                    if( std::abs(v1_low[1] - v2_low[1]) > 1e-8 ){ // If edge is inclined
-                        double weight = 0.5*std::abs( (v2_low[0]-v1_low[0]) * (v2_low[1]-v1_low[1]) );
+
+
+                    ray_y_end = std::max(v1_low[DIRINDEX2], v2_low[DIRINDEX2] );
+                    if( std::abs(v1_low[DIRINDEX2] - v2_low[DIRINDEX2]) > 1e-8 ){ // If edge is inclined
+                        double weight = 0.5*std::abs( (v2_low[DIRINDEX1]-v1_low[DIRINDEX1]) * (v2_low[DIRINDEX2]-v1_low[DIRINDEX2]) );
                         Point3DType tmp_point = {0.0, 0.0, 0.0};
                         tmp_point[DIRINDEX3] = PlanePosition;
 
@@ -487,7 +611,7 @@ private:
             if( num_split_points > 0 ){
 
                 std::sort(split_points.begin(), split_points.end(), [](const auto& point_a, const auto& point_b) -> bool {
-                    return point_a[0] > point_b[0];
+                    return point_a[0] < point_b[0];
                 });
 
                 IndexType index1 = InsertVertex( V1byEdgeId(i, Positive), Positive );
@@ -616,6 +740,7 @@ private:
     Point3DType mUpperBound; // Upper bound AABB
 
     bool mUpperBoundary; //Is current plane upper bound?
+    const TrimmedDomainBase* mpTrimmedDomain;
     ///@}
 }; // End TrimmedDomainOnPlane
 

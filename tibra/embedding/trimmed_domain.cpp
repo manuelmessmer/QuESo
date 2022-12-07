@@ -6,9 +6,11 @@
 ///// Project includes
 #include "embedding/trimmed_domain.h"
 #include "embedding/ray_aabb_primitive.h"
+#include "embedding/trimmed_domain_on_plane.h"
 
 namespace tibra {
 
+typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
 typedef TrimmedDomainBase::BoundingBox BoundingBox;
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
@@ -118,6 +120,87 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     }
 
     return bounding_box;
+}
+
+BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
+    // Pointer to boundary integration points
+    auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
+
+    // Construct trimmed domain on plane z-upper bound of AABB.
+    bool upper_bound = true;
+    IndexType plane_index = 2;
+    auto p_trimmed_domain_upper = std::make_unique<TrimmedDomainOnPlane>(plane_index, upper_bound, mLowerBound, mUpperBound, this);
+    // Construct trimmed domain on plane z-lower bound of AABB.
+    upper_bound = false;
+    auto p_trimmed_domain_lower = std::make_unique<TrimmedDomainOnPlane>(plane_index, upper_bound, mLowerBound, mUpperBound, this);
+
+    mpTriangleMesh->Refine(0.005);
+    // Loop over all intersected triangles
+    for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
+        const auto& P1 = mpTriangleMesh->P1(triangle_id);
+        const auto& P2 = mpTriangleMesh->P2(triangle_id);
+        const auto& P3 = mpTriangleMesh->P3(triangle_id);
+        const auto& normal = mpTriangleMesh->Normal(triangle_id);
+
+        // Triangle is fully contained, does not need to be clipped.
+        // @TODO: Add to mesh and enable the option to refine the mesh, if number of triangles are belowe certain treshhold.
+        auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, 1);
+        p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+
+        /// Upper plane
+        if( IsPointOnUpperPlane(P1, plane_index) && IsPointOnUpperPlane(P2, plane_index) ){
+            std::array<PointType,2> new_edge = {P1, P2};
+            p_trimmed_domain_upper->InsertEdge(new_edge, normal);
+        }
+        if( IsPointOnUpperPlane(P2, plane_index) && IsPointOnUpperPlane(P3, plane_index) ){
+            std::array<PointType,2> new_edge = {P2, P3};
+            p_trimmed_domain_upper->InsertEdge(new_edge, normal);
+        }
+        if( IsPointOnUpperPlane(P3, plane_index) && IsPointOnUpperPlane(P1, plane_index) ){
+            std::array<PointType,2> new_edge = {P3, P1};
+            p_trimmed_domain_upper->InsertEdge(new_edge, normal);
+        }
+
+        /// Lower Plane
+        if( IsPointOnLowerPlane(P1, plane_index) && IsPointOnLowerPlane(P2, plane_index) ){
+            std::array<PointType,2> new_edge = {P1, P2};
+            p_trimmed_domain_lower->InsertEdge(new_edge, normal);
+        }
+        if( IsPointOnLowerPlane(P2, plane_index) && IsPointOnLowerPlane(P3, plane_index) ){
+            std::array<PointType,2> new_edge = {P2, P3};
+            p_trimmed_domain_lower->InsertEdge(new_edge, normal);
+        }
+        if( IsPointOnLowerPlane(P3, plane_index) && IsPointOnLowerPlane(P1, plane_index) ){
+            std::array<PointType,2> new_edge = {P3, P1};
+            p_trimmed_domain_lower->InsertEdge(new_edge, normal);
+        }
+    }
+    /// Mapping:
+    //
+    //     a_______b                 y
+    //     /      /|                ´|`
+    //   c/_____d/ |<-- lower plane  |-->x
+    //    |     |  /                /
+    //    |     |</-- upper plane  Z
+    //    |_____|/
+    //
+    // pGetBoundaryIPs needs to know if a,b,c,d are inside or outside domain.
+    PointType point_a = { mLowerBound[0], mUpperBound[1], mLowerBound[2] };
+    bool state_a = IsInsideTrimmedDomain(point_a);
+    PointType point_b = { mUpperBound[0], mUpperBound[1], mLowerBound[2] };
+    bool state_b = IsInsideTrimmedDomain(point_b);
+    PointType point_c = { mLowerBound[0], mUpperBound[1], mUpperBound[2] };
+    bool state_c = IsInsideTrimmedDomain(point_c);
+    PointType point_d = { mUpperBound[0], mUpperBound[1], mUpperBound[2] };
+    bool state_d = IsInsideTrimmedDomain(point_d);
+
+    //@TODO: Implement this as well.
+    double egde_cube_lenght_ratio = 1.0/10.0;
+
+    p_trimmed_domain_lower->pGetBoundaryIPs( p_boundary_ips, state_a, state_b );
+    p_trimmed_domain_upper->pGetBoundaryIPs( p_boundary_ips, state_c, state_d );
+
+    return std::move(p_boundary_ips);
 }
 
 } // End namespace tibra

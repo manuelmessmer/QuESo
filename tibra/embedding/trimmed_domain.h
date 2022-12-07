@@ -51,20 +51,39 @@ public:
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint) const override;
 
-    ///@brief Returns boundary integration points of TrimmedDomain.
+    ///@brief Prototpye of: Clips triangle mesh by AABB and computes boundary edges.
+    ///@note This is just a protope and not ready to be used!
+    ///@details Projects trimmed domain onto plane at z=lower_bound and z=upper_bound and constructs integration points for trimmed domain.
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    virtual BoundaryIPVectorPtrType pGetBoundaryIps() const override {
-        return nullptr;
-    }
+    BoundaryIPVectorPtrType pGetBoundaryIps() const;
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
-    virtual const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
+    const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
+    const TriangleMesh& GetClippedMesh() const {
+        return *mpTriangleMesh.get();
+    }
     ///@}
 private:
     ///@name Private Operations
     ///@{
+
+    inline bool IsPointOnLowerPlane(const PointType& rPoint, IndexType PlaneIndex, double Tolerance=1e-8) const {
+        if( (rPoint[PlaneIndex] < mLowerBound[PlaneIndex] + Tolerance) && (rPoint[PlaneIndex] > mLowerBound[PlaneIndex] - Tolerance ) ){
+            return true;
+        }
+        return false;
+    }
+
+    inline bool IsPointOnUpperPlane(const PointType& rPoint, IndexType PlaneIndex, double Tolerance=1e-8) const {
+        if( (rPoint[PlaneIndex] < mUpperBound[PlaneIndex] + Tolerance) && (rPoint[PlaneIndex] > mUpperBound[PlaneIndex] - Tolerance ) ){
+            return true;
+        }
+        return false;
+    }
 
     ///@brief Returns true if point is inside AABB.
     ///@param rPoint Query point.
