@@ -500,7 +500,8 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
 }
 
 
-bool IO::WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& rPoints,
+template<typename Type>
+bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
                           const char* Filename,
                           const bool Binary){
 
@@ -589,6 +590,15 @@ bool IO::WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& rPoints,
 
   return true;
 }
+
+// Instantiation
+template bool IO::WritePointsToVTK<IntegrationPoint>(const std::vector<IntegrationPoint>& rPoints,
+                                                    const char* Filename,
+                                                    const bool Binary);
+
+template bool IO::WritePointsToVTK<BoundaryIntegrationPoint>(const std::vector<BoundaryIntegrationPoint>& rPoints,
+                                                            const char* Filename,
+                                                            const bool Binary);
 
 } // End namespace tibra
 
