@@ -126,5 +126,6 @@ std::unique_ptr<typename Polygon<SIZE>::EdgesType> Polygon<SIZE>::pGetEdgesOnPla
 
 // Explicit instantiation Polygon
 template class Polygon<9>;
+template class Polygon<4>;
 
 } // End namespace tibra

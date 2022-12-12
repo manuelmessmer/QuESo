@@ -71,19 +71,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    inline bool IsPointOnLowerPlane(const PointType& rPoint, IndexType PlaneIndex, double Tolerance=1e-8) const {
-        if( (rPoint[PlaneIndex] < mLowerBound[PlaneIndex] + Tolerance) && (rPoint[PlaneIndex] > mLowerBound[PlaneIndex] - Tolerance ) ){
-            return true;
-        }
-        return false;
-    }
 
-    inline bool IsPointOnUpperPlane(const PointType& rPoint, IndexType PlaneIndex, double Tolerance=1e-8) const {
-        if( (rPoint[PlaneIndex] < mUpperBound[PlaneIndex] + Tolerance) && (rPoint[PlaneIndex] > mUpperBound[PlaneIndex] - Tolerance ) ){
-            return true;
-        }
-        return false;
-    }
 
     ///@brief Returns true if point is inside AABB.
     ///@param rPoint Query point.
