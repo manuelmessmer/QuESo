@@ -8,8 +8,10 @@
 #include <cstddef>
 #include <array>
 #include <algorithm>
+#include <iomanip>
 //// Project includes
 #include "containers/boundary_integration_point.h"
+#include "embedding/polygon.h"
 #include "io/io_utilities.h"
 
 ///Project includes
@@ -110,8 +112,8 @@ public:
             DIRINDEX3 = 2;
         }
         else if( PlaneIndex == 1 ){
-            DIRINDEX1 = 0;
-            DIRINDEX2 = 2;
+            DIRINDEX1 = 2;
+            DIRINDEX2 = 0;
             DIRINDEX3 = 1;
         }
         else if( PlaneIndex == 0 ){
@@ -191,15 +193,58 @@ public:
     //    |     |</-- plane upper  Z
     //    |_____|/
     //
-    void pGetBoundaryIPs(BoundaryIPVectorPtrType& pIPs, bool state_a_c, bool state_b_d){
-        RefineEdges(state_a_c, state_b_d);
-        ConstructIPS(pIPs);
+    void AddTriangulation(TriangleMesh& rTriangleMesh ){
+        CollectEdgesOnPlane(rTriangleMesh);
+        RefineEdges();
+        ConstructIPS(rTriangleMesh);
     }
     ///@}
 
 private:
     ///@name Public Operations
     ///@{
+    void CollectEdgesOnPlane(const TriangleMesh& rTriangleMesh) {
+        for( IndexType triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id ){
+            const auto& P1 = rTriangleMesh.P1(triangle_id);
+            const auto& P2 = rTriangleMesh.P2(triangle_id);
+            const auto& P3 = rTriangleMesh.P3(triangle_id);
+            const auto& normal = rTriangleMesh.Normal(triangle_id);
+
+            if( IsPointOnPlane(P1) && IsPointOnPlane(P2) ){
+                if( !(std::abs(P1[DIRINDEX2] - mUpperBound[DIRINDEX2]) < 1e-10 && std::abs(P2[DIRINDEX2] - mUpperBound[DIRINDEX2]) < 1e-10 ) ){
+                    std::array<PointType,2> new_edge = {P1, P2};
+                    InsertEdge(new_edge, normal);
+                }
+            }
+            else if( IsPointOnPlane(P2) && IsPointOnPlane(P3) ){
+                if( !(std::abs(P2[DIRINDEX2] - mUpperBound[DIRINDEX2]) < 1e-10 && std::abs(P3[DIRINDEX2] - mUpperBound[DIRINDEX2]) < 1e-10 ) ){
+                    std::array<PointType,2> new_edge = {P2, P3};
+                    InsertEdge(new_edge, normal);
+                }
+            }
+            else if( IsPointOnPlane(P3) && IsPointOnPlane(P1) ){
+                if( !(std::abs(P3[DIRINDEX2] - mUpperBound[DIRINDEX2]) < 1e-10 && std::abs(P1[DIRINDEX2] - mUpperBound[DIRINDEX2]) < 1e-10 ) ){
+                    std::array<PointType,2> new_edge = {P3, P1};
+                    InsertEdge(new_edge, normal);
+                }
+            }
+        }
+    }
+
+    inline bool IsPointOnPlane(const PointType& rPoint, double Tolerance=1e-8) const {
+        if( mUpperBoundary ) {
+            if( (rPoint[DIRINDEX3] < mUpperBound[DIRINDEX3] + Tolerance) && (rPoint[DIRINDEX3] > mUpperBound[DIRINDEX3] - Tolerance ) ){
+                return true;
+            }
+            return false;
+        }
+        else {
+            if( (rPoint[DIRINDEX3] < mLowerBound[DIRINDEX3] + Tolerance) && (rPoint[DIRINDEX3] > mLowerBound[DIRINDEX3] - Tolerance ) ){
+                return true;
+            }
+            return false;
+        }
+    }
 
     ///@brief Inserts point to container if point is not contained in container.
     ///@param rPoint NewPoint
@@ -210,8 +255,8 @@ private:
         auto& r_vertices = GetVertices(Positive);
         // Find new vertex.
         auto res = std::find_if( r_vertices.begin(), r_vertices.end(),
-            [&rPoint](const auto& x) { return  (rPoint[0] > x[0] - 1e-8 && rPoint[0] < x[0] + 1e-8
-                                                && rPoint[1] > x[1] - 1e-8 && rPoint[1] < x[1] + 1e-8) ;});
+            [&rPoint](const auto& x) { return  (rPoint[0] > x[0] - 1e-10 && rPoint[0] < x[0] + 1e-10
+                                                && rPoint[1] > x[1] - 1e-10 && rPoint[1] < x[1] + 1e-10) ;});
 
         if( res != r_vertices.end() ){ // Vertex already exists
             IndexType index = std::distance(r_vertices.begin(), res);
@@ -272,26 +317,29 @@ private:
     ///        LB             UB     LB            UP
     ///
     ///@todo    Not enough, we need to find all intersection on top plane and then shoot only downwards.
-    void RefineEdges(bool state_a, bool state_b){
+    void RefineEdges(){
         IndexType num_positive_edges = mEdgesPositiveOriented.size();
         IndexType num_negative_edges = mEdgesNegativeOriented.size();
 
-        if( num_positive_edges == 0 &&  num_negative_edges == 0 ){
-            return;
-        }
+        // if( !( num_positive_edges == 0 &&  num_negative_edges == 0) ){
+        //     return;
+        // }
 
         ///TODO: Not complete yet. Find all intersection with top edge from a-b.
         std::vector<double> intersected_vertex_ids{};
+
         intersected_vertex_ids.push_back( mLowerBound[DIRINDEX1] );
         FindAllIntersectionWithUpperEdge(intersected_vertex_ids, true);
         FindAllIntersectionWithUpperEdge(intersected_vertex_ids, false);
+        //intersected_vertex_ids.push_back( -1.5 );
         intersected_vertex_ids.push_back( mUpperBound[DIRINDEX1] );
 
         // Sort
         std::sort( intersected_vertex_ids.begin(), intersected_vertex_ids.end() );
+
         // Remove duplicates
         intersected_vertex_ids.erase(std::unique(intersected_vertex_ids.begin(), intersected_vertex_ids.end(),
-            [](const auto& v1, const auto& v2) { return (v1 > v2 - 1e-8) && (v1 < v2 + 1e-8); }) , intersected_vertex_ids.end());
+            [](const auto& v1, const auto& v2) { return std::abs(v1 -  v2) < 1e-10;  }) , intersected_vertex_ids.end());
 
         double plane_position;
         if( mUpperBoundary ){
@@ -304,6 +352,7 @@ private:
             double v_left = intersected_vertex_ids[i];
             double v_right = intersected_vertex_ids[i+1];
             double center = v_left + 0.5 * (v_right - v_left);
+
             Point3DType new_point{};
             new_point[DIRINDEX1] = center;
             new_point[DIRINDEX2] = mUpperBound[DIRINDEX2];
@@ -315,111 +364,22 @@ private:
             }
         }
 
-        /// Split long edges.
-        double max_edge_lenght = 0.01;
-        for( IndexType edge_id = 0; edge_id < mEdgesPositiveOriented.size(); ++edge_id){
-            const auto& v1 = V1byEdgeId(edge_id, true);
-            const auto& v2 = V2byEdgeId(edge_id, true);
-            const double length = std::sqrt( (v2[0]-v1[0])*(v2[0]-v1[0]) + (v2[1]-v1[1])*(v2[1]-v1[1]) );
-            if( length > max_edge_lenght ){
-                IndexType num_of_new_vertices = (IndexType) (length/max_edge_lenght);
-                double delta_x = (v2[0]-v1[0]) / double(num_of_new_vertices+1);
-                for(IndexType i = 1; i < num_of_new_vertices+1; ++i){
-                    double pos1 = v1[0] + delta_x*i;
-                    double pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (pos1 - v1[0]);
-                    mEdgesPositiveOriented[edge_id].AddSplitPoint( {pos1, pos2} );
-                }
-            }
-        }
-        SplitEdgesAtSplitPoint(mEdgesPositiveOriented, true);
-
-        /// Split long edges.
-        for( IndexType edge_id = 0; edge_id < mEdgesNegativeOriented.size(); ++edge_id){
-            const auto& v1 = V1byEdgeId(edge_id, false);
-            const auto& v2 = V2byEdgeId(edge_id, false);
-            const double length = std::sqrt( (v2[0]-v1[0])*(v2[0]-v1[0]) + (v2[1]-v1[1])*(v2[1]-v1[1]) );
-            if( length > max_edge_lenght ){
-                IndexType num_of_new_vertices = (IndexType) (length/max_edge_lenght);
-                double delta_x = (v2[0]-v1[0]) / double(num_of_new_vertices+1);
-                for(IndexType i = 1; i < num_of_new_vertices+1; ++i){
-                    double pos1 = v1[0] + delta_x*i;
-                    double pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (pos1 - v1[0]);
-                    mEdgesNegativeOriented[edge_id].AddSplitPoint( {pos1, pos2} );
-                }
-            }
-        }
-        SplitEdgesAtSplitPoint(mEdgesNegativeOriented, false);
-
-
         /// Split negative edges at positions of positive points.
         for( int i = 0; i < mVerticesPositive.size(); ++i){
             const auto& v = mVerticesPositive[i];
             SetSplitPoint(v, mEdgesNegativeOriented, true);
         }
-        SplitEdgesAtSplitPoint(mEdgesNegativeOriented, false);
-
 
         /// Split positive edges at positions of negative points.
         for( int i = 0; i < mVerticesNegative.size(); ++i){
             const auto& v = mVerticesNegative[i];
             SetSplitPoint(v, mEdgesPositiveOriented, false);
         }
+        SplitEdgesAtSplitPoint(mEdgesNegativeOriented, false);
         SplitEdgesAtSplitPoint(mEdgesPositiveOriented, true);
-
-
-
-
-
-        // // Search from left boundary
-        // if( state_a ){
-        //     const double corner_point_x = mLowerBound[DIRINDEX1];
-        //     double min_distance = 1e10;
-        //     for(int i = 0; i < mVerticesPositive.size(); ++i ){
-        //         double distance = std::abs(mVerticesPositive[i][0] - corner_point_x);
-        //         if( distance < min_distance ){
-        //             min_distance = distance;
-        //         }
-        //     }
-        //     if( min_distance > 1e-8 ){
-        //         double point_y = mUpperBound[DIRINDEX2];
-        //         const IndexType num_edges = 5;
-        //         double delta_x = min_distance/num_edges;
-        //         for(IndexType i = 0; i < 5; ++i ){
-        //             double point_x_1 = corner_point_x + i*delta_x;
-        //             IndexType index1 = InsertVertex( {point_x_1, point_y}, true );
-        //             double point_x_2 = corner_point_x + (i+1)*delta_x;
-        //             IndexType index2 = InsertVertex( {point_x_2, point_y}, true );
-        //             mEdgesPositiveOriented.push_back( Egde2D( index1, index2) );
-        //         }
-        //     }
-        // }
-
-        // // Search from right boundary
-        // if( state_b ){
-        //     const double corner_point_x = mUpperBound[DIRINDEX1];
-        //     double min_distance = 1e10;
-        //     for(int i = 0; i < mVerticesPositive.size(); ++i ){
-        //         double distance = std::abs(mVerticesPositive[i][0] - corner_point_x);
-        //         if( distance < min_distance ){
-        //             min_distance = distance;
-        //         }
-        //     }
-        //     if( min_distance > 1e-8 ){
-        //         double point_y = mUpperBound[DIRINDEX2];
-        //         const IndexType num_edges = 5;
-        //         double delta_x = min_distance/num_edges;
-        //         for(IndexType i = 0; i < 5; ++i ){
-        //             double point_x_1 = corner_point_x - i*delta_x;
-        //             IndexType index1 = InsertVertex( {point_x_1, point_y}, true );
-        //             double point_x_2 = corner_point_x - (i+1)*delta_x;
-        //             IndexType index2 = InsertVertex( {point_x_2, point_y}, true );
-        //             mEdgesPositiveOriented.push_back( Egde2D( index1, index2) );
-        //         }
-        //     }
-        // }
     }
 
-    void FindAllIntersectionWithUpperEdge(std::vector<double>& rVertices, bool Positive, double Tolerance=1e-8){
+    void FindAllIntersectionWithUpperEdge(std::vector<double>& rVertices, bool Positive, double Tolerance=1e-10){
         for( IndexType edge_id = 0; edge_id < GetNumberEdges(Positive); ++edge_id ){
             const auto& v1 = V1byEdgeId(edge_id, Positive);
             const auto& v2 = V2byEdgeId(edge_id, Positive);
@@ -466,8 +426,8 @@ private:
         for( int i = 0; i < GetNumberEdges(Positive); ++i ){
             const auto& v1 = V1byEdgeId(i,Positive);
             const auto& v2 = V2byEdgeId(i, Positive);
-            if( rPoint[DIRINDEX1] > v1[DIRINDEX1] && rPoint[DIRINDEX1] <= v2[DIRINDEX1] ){
-                double distance = rPoint[DIRINDEX2] - 0.5*( v2[DIRINDEX2]+v1[DIRINDEX2] );
+            if( rPoint[0] > v1[0] && rPoint[0] <= v2[0] ){
+                double distance = rPoint[1] - 0.5*( v2[1]+v1[1] );
 
                 if( distance > 0.0 && distance < min_distance){
                     found_id = i;
@@ -484,7 +444,7 @@ private:
     ///@param [out] pIPs (new points are pushed_back(). Old points are preserved.)
     ///@param PlanePosition Distance to origin in DIRINDEX3 direction.
     ///@param rNormal Normal vector of plane
-    void ConstructIPSbyRayShooting( BoundaryIPVectorPtrType& pIPs, double PlanePosition,
+    void ConstructIPSbyRayShooting( TriangleMesh& rTriangleMesh, double PlanePosition,
                 const Point3DType& rNormal ){
 
         auto& r_edges_origin = mEdgesPositiveOriented;
@@ -508,83 +468,254 @@ private:
                 const auto& v1_up = V1byEdgeId(i, orientation_origin);
                 const auto& v2_up = V2byEdgeId(i, orientation_origin);
 
-
-
                 // Get center
                 Point2DType c_positive = { 0.5*(v1_up[0]+v2_up[0]), 0.5*(v1_up[1]+v2_up[1]) };
-
-
                 int edge_id_dest = FindIntersectingEdge(c_positive, orientation_dest);
-
-
-                double ray_width = std::abs(v2_up[0] - v1_up[0]);
-                double ray_x = c_positive[0];
-                double ray_y_start = std::min(v1_up[1], v2_up[1]);
-                double ray_y_end = mLowerBound[DIRINDEX2];
-
-                // If edge is inclined, build upper triangle.
-                if( std::abs(v1_up[1] - v2_up[1]) > 1e-8 ){ // If edge is inclined
-                    double weight = 0.5*std::abs( (v2_up[0]-v1_up[0]) * (v2_up[1]-v1_up[1]) );
-                    Point3DType tmp_point = {0.0, 0.0, 0.0};
-                    tmp_point[DIRINDEX3] = PlanePosition;
-
-                    if( v1_up[1] > v2_up[1] ){
-
-                        tmp_point[DIRINDEX1] = 1.0/3.0 * (2*v1_up[0]+v2_up[0] );
-                        tmp_point[DIRINDEX2] = 1.0/3.0 * (v1_up[1]+2*v2_up[1] );
-                        pIPs->push_back( BoundaryIntegrationPoint(tmp_point[0], tmp_point[1], tmp_point[2], weight, rNormal) );
-                    }
-                    else {
-                        tmp_point[DIRINDEX1] = 1.0/3.0 * (v1_up[0]+2*v2_up[0] );
-                        tmp_point[DIRINDEX2] = 1.0/3.0 * (2*v1_up[1]+v2_up[1] );
-                        pIPs->push_back( BoundaryIntegrationPoint(tmp_point[0], tmp_point[1], tmp_point[2], weight, rNormal) );
-                    }
-                }
-
+                bool skip = false;
                 if( edge_id_dest > -1){ // Lower edge is found.
                     r_edges_dest[edge_id_dest].SetVisited(true);
                     const auto& v1_low = V1byEdgeId(edge_id_dest, false);
                     const auto& v2_low = V2byEdgeId(edge_id_dest, false);
 
-
-                    ray_y_end = std::max(v1_low[DIRINDEX2], v2_low[DIRINDEX2] );
-                    if( std::abs(v1_low[DIRINDEX2] - v2_low[DIRINDEX2]) > 1e-8 ){ // If edge is inclined
-                        double weight = 0.5*std::abs( (v2_low[DIRINDEX1]-v1_low[DIRINDEX1]) * (v2_low[DIRINDEX2]-v1_low[DIRINDEX2]) );
+                    if( std::abs(v1_low[1]-v1_up[1]) < 1e-10 ){
                         Point3DType tmp_point = {0.0, 0.0, 0.0};
                         tmp_point[DIRINDEX3] = PlanePosition;
+                        tmp_point[DIRINDEX1] = v1_low[0];
+                        tmp_point[DIRINDEX2] = v1_low[1];
+                        IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                        tmp_point[DIRINDEX1] = v2_low[0];
+                        tmp_point[DIRINDEX2] = v2_low[1];
+                        IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                        tmp_point[DIRINDEX1] = v2_up[0];
+                        tmp_point[DIRINDEX2] = v2_up[1];
+                        IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                        if( mUpperBoundary )
+                            rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                        else
+                            rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                        rTriangleMesh.AddNormal(rNormal);
 
-                        if( v1_low[1] > v2_low[1] ){
+                        skip = true;
+                    }
+                    else if( std::abs(v2_low[1]-v2_up[1]) < 1e-10 ){
+                        Point3DType tmp_point = {0.0, 0.0, 0.0};
+                        tmp_point[DIRINDEX3] = PlanePosition;
+                        tmp_point[DIRINDEX1] = v1_low[0];
+                        tmp_point[DIRINDEX2] = v1_low[1];
+                        IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                        tmp_point[DIRINDEX1] = v2_low[0];
+                        tmp_point[DIRINDEX2] = v2_low[1];
+                        IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                        tmp_point[DIRINDEX1] = v1_up[0];
+                        tmp_point[DIRINDEX2] = v1_up[1];
+                        IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                        if( mUpperBoundary )
+                            rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                        else
+                            rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                        rTriangleMesh.AddNormal(rNormal);
 
-                            tmp_point[DIRINDEX1] = 1.0/3.0 * (v1_low[0]+2*v2_low[0] );
-                            tmp_point[DIRINDEX2] = 1.0/3.0 * (2*v1_low[1]+v2_low[1] );
-                            pIPs->push_back( BoundaryIntegrationPoint(tmp_point[0], tmp_point[1], tmp_point[2], weight, rNormal) );
-                        }
-                        else {
-                            tmp_point[DIRINDEX1] = 1.0/3.0 * (2*v1_low[0]+v2_low[0] );
-                            tmp_point[DIRINDEX2] = 1.0/3.0 * (v1_low[1]+2*v2_low[1] );
-                            pIPs->push_back( BoundaryIntegrationPoint(tmp_point[0], tmp_point[1], tmp_point[2], weight, rNormal) );
-                        }
+                        skip = true;
                     }
                 }
 
-                double delta_y = std::abs((ray_y_end-ray_y_start))/ (10.0);
-                double weight = delta_y*ray_width;
-                Point3DType tmp_point = {0.0, 0.0, 0.0};
-                tmp_point[DIRINDEX3] = PlanePosition;
-                double ray_y = ray_y_start - 0.5*delta_y;
-                for( int i = 0; i < 10.0; ++i){
-                    tmp_point[DIRINDEX1] = ray_x;
-                    tmp_point[DIRINDEX2] = ray_y;
-                    pIPs->push_back( BoundaryIntegrationPoint(tmp_point[0], tmp_point[1], tmp_point[2], weight, rNormal) );
-                    ray_y -= delta_y;
+                if( !skip ){
+
+                    std::array<Point3DType, 4> corner_points{};
+                    corner_points[0][DIRINDEX1] = v1_up[0];
+                    corner_points[0][DIRINDEX2] = v1_up[1];
+                    corner_points[0][DIRINDEX3] = PlanePosition;
+
+                    corner_points[3][DIRINDEX1] = v2_up[0];
+                    corner_points[3][DIRINDEX2] = v2_up[1];
+                    corner_points[3][DIRINDEX3] = PlanePosition;
+
+                    if( edge_id_dest > -1 ){
+                        const auto& v1_low = V1byEdgeId(edge_id_dest, false);
+                        const auto& v2_low = V2byEdgeId(edge_id_dest, false);
+
+                        corner_points[1][DIRINDEX1] = v1_low[0];
+                        corner_points[1][DIRINDEX2] = v1_low[1];
+                        corner_points[1][DIRINDEX3] = PlanePosition;
+
+                        corner_points[2][DIRINDEX1] = v2_low[0];
+                        corner_points[2][DIRINDEX2] = v2_low[1];
+                        corner_points[2][DIRINDEX3] = PlanePosition;
+                    } else {
+                        corner_points[1][DIRINDEX1] = v1_up[0];
+                        corner_points[1][DIRINDEX2] = mLowerBound[DIRINDEX2];
+                        corner_points[1][DIRINDEX3] = PlanePosition;
+
+                        corner_points[2][DIRINDEX1] = v2_up[0];
+                        corner_points[2][DIRINDEX2] = mLowerBound[DIRINDEX2];
+                        corner_points[2][DIRINDEX3] = PlanePosition;
+                    }
+
+                    Polygon<4> polygon(rNormal);
+                    if( mUpperBoundary ){
+                        polygon.AddVertex(corner_points[0]);
+                        polygon.AddVertex(corner_points[1]);
+                        polygon.AddVertex(corner_points[2]);
+                        polygon.AddVertex(corner_points[3]);
+                    } else {
+                        polygon.AddVertex(corner_points[0]);
+                        polygon.AddVertex(corner_points[3]);
+                        polygon.AddVertex(corner_points[2]);
+                        polygon.AddVertex(corner_points[1]);
+                    }
+                    const auto p_new_triangles = polygon.pGetTriangleMesh();
+                    rTriangleMesh.Append(*p_new_triangles);
                 }
-            } // End if( !r_edges_origin[i].IsVisited() )
+
+                // if( !skip ){
+
+                //     double ray_width = std::abs(v2_up[0] - v1_up[0]);
+                //     double ray_x = c_positive[0];
+                //     double ray_y_start = std::min(v1_up[1], v2_up[1]);
+                //     double ray_y_end = mLowerBound[DIRINDEX2];
+
+                //     // If edge is inclined, build upper triangle.
+                //     if( std::abs(v1_up[1] - v2_up[1]) > 1e-10 ){ // If edge is inclined
+                //         double weight = 0.5*std::abs( (v2_up[0]-v1_up[0]) * (v2_up[1]-v1_up[1]) );
+                //         Point3DType tmp_point = {0.0, 0.0, 0.0};
+                //         tmp_point[DIRINDEX3] = PlanePosition;
+                //         if( v1_up[1] > v2_up[1] ){
+                //             tmp_point[DIRINDEX1] = v1_up[0];
+                //             tmp_point[DIRINDEX2] = v2_up[1];
+                //             IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                //             tmp_point[DIRINDEX1] = v2_up[0];
+                //             tmp_point[DIRINDEX2] = v2_up[1];
+                //             IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                //             tmp_point[DIRINDEX1] = v1_up[0];
+                //             tmp_point[DIRINDEX2] = v1_up[1];
+                //             IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                //             if( mUpperBoundary )
+                //                 rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                //             else
+                //                 rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                //             rTriangleMesh.AddNormal(rNormal);
+
+                //         }
+                //         else {
+                //             tmp_point[DIRINDEX1] = v1_up[0];
+                //             tmp_point[DIRINDEX2] = v1_up[1];
+                //             IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                //             tmp_point[DIRINDEX1] = v2_up[0];
+                //             tmp_point[DIRINDEX2] = v1_up[1];
+                //             IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                //             tmp_point[DIRINDEX1] = v2_up[0];
+                //             tmp_point[DIRINDEX2] = v2_up[1];
+                //             IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                //             if( mUpperBoundary )
+                //                 rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                //             else
+                //                 rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                //             rTriangleMesh.AddNormal(rNormal);
+                //         }
+                //     }
+
+
+
+
+                //     if( edge_id_dest > -1){ // Lower edge is found.
+                //         r_edges_dest[edge_id_dest].SetVisited(true);
+                //         const auto& v1_low = V1byEdgeId(edge_id_dest, false);
+                //         const auto& v2_low = V2byEdgeId(edge_id_dest, false);
+                //         ray_y_end = std::max(v1_low[1], v2_low[1] );
+
+
+                //         if( std::abs(v1_low[1] - v2_low[1]) > 1e-10 ){ // If lower edge is inclined
+                //             double weight = 0.5*std::abs( (v2_low[0]-v1_low[0]) * (v2_low[1]-v1_low[1]) );
+                //             Point3DType tmp_point = {0.0, 0.0, 0.0};
+                //             tmp_point[DIRINDEX3] = PlanePosition;
+
+                //             if( v1_low[1] > v2_low[1] ){
+                //                 tmp_point[DIRINDEX1] = v1_low[0];
+                //                 tmp_point[DIRINDEX2] = v1_low[1];
+                //                 IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                //                 tmp_point[DIRINDEX1] = v2_low[0];
+                //                 tmp_point[DIRINDEX2] = v2_low[1];
+                //                 IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                //                 tmp_point[DIRINDEX1] = v2_low[0];
+                //                 tmp_point[DIRINDEX2] = v1_low[1];
+                //                 IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                //                 if( mUpperBoundary )
+                //                     rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                //                 else
+                //                     rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                //                 rTriangleMesh.AddNormal(rNormal);
+                //             }
+                //             else {
+                //                 tmp_point[DIRINDEX1] = v1_low[0];
+                //                 tmp_point[DIRINDEX2] = v1_low[1];
+                //                 IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                //                 tmp_point[DIRINDEX1] = v2_low[0];
+                //                 tmp_point[DIRINDEX2] = v2_low[1];
+                //                 IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                //                 tmp_point[DIRINDEX1] = v1_low[0];
+                //                 tmp_point[DIRINDEX2] = v2_low[1];
+                //                 IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                //                 if( mUpperBoundary )
+                //                     rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                //                 else
+                //                     rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                //                 rTriangleMesh.AddNormal(rNormal);
+                //             }
+                //         }
+                //     }
+
+                //     // if( std::abs(ray_y_start-ray_y_end) > 1e-10 ){
+                //     //     Point3DType tmp_point = {0.0, 0.0, 0.0};
+                //     //     tmp_point[DIRINDEX3] = PlanePosition;
+                //     //     tmp_point[DIRINDEX1] = v1_up[0];
+                //     //     tmp_point[DIRINDEX2] = ray_y_start;
+                //     //     IndexType v1 = rTriangleMesh.AddVertex( tmp_point );
+                //     //     tmp_point[DIRINDEX1] = v1_up[0];
+                //     //     tmp_point[DIRINDEX2] = ray_y_end;
+                //     //     IndexType v2 = rTriangleMesh.AddVertex( tmp_point );
+                //     //     tmp_point[DIRINDEX1] = v2_up[0];
+                //     //     tmp_point[DIRINDEX2] = ray_y_end;
+                //     //     IndexType v3 = rTriangleMesh.AddVertex( tmp_point );
+                //     //     tmp_point[DIRINDEX1] = v2_up[0];
+                //     //     tmp_point[DIRINDEX2] = ray_y_start;
+                //     //     IndexType v4 = rTriangleMesh.AddVertex( tmp_point );
+                //     //     //std::cout << "is somethign happeing here?: " << std::endl;
+                //     //     if( mUpperBoundary )
+                //     //         rTriangleMesh.AddTriangle(Vector3i(v1, v2, v3));
+                //     //     else
+                //     //         rTriangleMesh.AddTriangle(Vector3i(v2, v1, v3));
+                //     //     rTriangleMesh.AddNormal( rNormal );
+
+                //     //     if( mUpperBoundary )
+                //     //         rTriangleMesh.AddTriangle(Vector3i(v3, v4, v1));
+                //     //     else
+                //     //         rTriangleMesh.AddTriangle(Vector3i(v4, v3, v1));
+                //     //     rTriangleMesh.AddNormal( rNormal );
+                //     // }
+
+                //     // double MaxEdgeLength = 0.0001;
+                //     // IndexType num_edges = std::abs((ray_y_end-ray_y_start)) / MaxEdgeLength;
+                //     // num_edges = std::max<IndexType>(num_edges, 2);
+                //     // double delta_y = std::abs((ray_y_end-ray_y_start))/ double(num_edges+1);
+                //     // double weight = delta_y*ray_width;
+                //     // Point3DType tmp_point = {0.0, 0.0, 0.0};
+                //     // tmp_point[DIRINDEX3] = PlanePosition;
+                //     // double ray_y = ray_y_start - 0.5*delta_y;
+                //     // for( int i = 0; i < num_edges+1; ++i){
+                //     //     double ray_y = ray_y_start - 0.5*delta_y;
+                //     //     tmp_point[DIRINDEX1] = ray_x;
+                //     //     tmp_point[DIRINDEX2] = ray_y;
+                //     //     pIPs->push_back( BoundaryIntegrationPoint(tmp_point[0], tmp_point[1], tmp_point[2], weight, rNormal) );
+                //     //     ray_y -= delta_y;
+                //     // }
+                // } // End if( !r_edges_origin[i].IsVisited() )
+            } // End Skip
         } // for( int i = 0; i < r_edges_origin.size(); ++i){
     }
 
     ///@brief Constructs normal vector and plane position and calls ConstructIPSbyRayShooting().
     ///@param [out] pIPs
-    void ConstructIPS(BoundaryIPVectorPtrType& pIPs){
+    void ConstructIPS(TriangleMesh& rTriangleMesh){
         Point3DType normal = {0.0, 0.0, 0.0};
         double plane_position = 0.0;
         if( mUpperBoundary ){
@@ -595,7 +726,7 @@ private:
             plane_position = mLowerBound[DIRINDEX3];
         }
 
-        ConstructIPSbyRayShooting(pIPs, plane_position, normal);
+        ConstructIPSbyRayShooting(rTriangleMesh, plane_position, normal);
     }
 
     ///@brief Splits all edges at their defined split point.
@@ -647,25 +778,44 @@ private:
         double current_distance = 1e15;
         int edge_id = -1;
         Point2DType intersection_point{};
+
+        auto& wrong_egdes = GetEdges(Positive);
+        for( IndexType i = 0; i < wrong_egdes.size(); ++i){
+            const auto& v1 = V1byEdgeId(i, Positive);
+            const auto& v2 = V2byEdgeId(i, Positive);
+
+            double pos1 = rPoint[0];
+            double pos2 = 0.0;
+
+            if( pos1 > v1[0]-1e-10 &&  pos1 < v2[0]+1e-10 ){
+                    pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (rPoint[0] - v1[0]);
+                    double distance = Positive ? (rPoint[1] - pos2) : (pos2 - rPoint[1]);
+
+                    if( (distance < current_distance ) && distance > 1e-8 ){
+                        current_distance = distance;
+                    }
+            }
+        }
+
         for( IndexType i = 0; i < rEdges.size(); ++i){
             const auto& v1 = V1byEdgeId(i, !Positive);
             const auto& v2 = V2byEdgeId(i, !Positive);
 
             double pos1 = rPoint[0];
             double pos2 = 0.0;
-            if( pos1 > v1[0]+1e-8 &&  pos1 < v2[0]-1e-8 ){
-                // Note: x2 > x1. See AddEdge()
-                // y1 + (y2-y1)/(x2-x1) * (x-x1)
-                pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (rPoint[0] - v1[0]);
-                double distance = Positive ? (rPoint[1] - pos2) : (pos2-rPoint[1]);
 
-                if( (distance < current_distance ) && distance > 0 ){
-                    current_distance = pos2 - rPoint[0];
-                    intersection_point[0] = pos1;
-                    intersection_point[1] = pos2;
-                    edge_id = i;
-                }
+            if( pos1 >= v1[0]+1e-10 &&  pos1 <= v2[0]-1e-10 ){
+                    pos2 = v1[1] + (v2[1] - v1[1]) / (v2[0] - v1[0]) * (rPoint[0] - v1[0]);
+                    double distance = Positive ? (rPoint[1] - pos2) : (pos2 - rPoint[1]);
+
+                    if( (distance < current_distance ) && distance > 1e-10 ){
+                        current_distance = distance;
+                        intersection_point[0] = pos1;
+                        intersection_point[1] = pos2;
+                        edge_id = i;
+                    }
             }
+
         }
         if( edge_id > -1){
             rEdges[edge_id].AddSplitPoint(intersection_point);
