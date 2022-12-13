@@ -41,14 +41,14 @@ public:
     ///@{
 
     /// Constructor
-    TrimmedDomainBase(const PointType& rLowerBound, const PointType& rUpperBound)
-        : mLowerBound(rLowerBound), mUpperBound(rUpperBound)
+    TrimmedDomainBase(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
+        : mLowerBound(rLowerBound), mUpperBound(rUpperBound), mParameters(rParameters)
     {
     }
 
     /// Constructor
-    TrimmedDomainBase(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound)
-        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound)
+    TrimmedDomainBase(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
+        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound), mParameters(rParameters)
     {
     }
 
@@ -114,6 +114,7 @@ protected:
     PointType mLowerBound;
     PointType mUpperBound;
     TriangleMeshPtrType mpTriangleMesh;
+    const Parameters& mParameters;
     ///@}
 }; // End TrimmedDomainBase
 ///@}

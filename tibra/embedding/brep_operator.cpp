@@ -94,7 +94,7 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
 
 TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
     auto p_new_mesh = ClipTriangleMesh(rLowerBound, rUpperBound);
-    auto p = std::make_unique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound);
+    auto p = std::make_unique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound, mParameters);
     return std::move(p);
 }
 

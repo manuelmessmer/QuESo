@@ -52,7 +52,7 @@ public:
 
     /// Constructor
     ///@param rTriangleMesh
-    CGALBRepOperator(const TriangleMesh& rTriangleMesh )
+    CGALBRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters ) : BRepOperatorBase(rParameters)
     {
         // Copy triangle mesh to CGAL mesh.
         cgal::CGALUtilities::CopyMesh(rTriangleMesh, mCGALMesh);

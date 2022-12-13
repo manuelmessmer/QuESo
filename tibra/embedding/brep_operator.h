@@ -44,7 +44,8 @@ public:
     /// Constructor
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
-    BRepOperator(const TriangleMesh& rTriangleMesh) : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
+    BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters)
+        : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh), mParameters(rParameters)
     {
     }
 
@@ -120,6 +121,7 @@ private:
 
     AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
+    const Parameters& mParameters;
     ///@}
 }; // End BRepOperator class
 

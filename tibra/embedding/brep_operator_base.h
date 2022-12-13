@@ -31,6 +31,13 @@ public:
     enum IntersectionStatus {Inside, Outside, Trimmed};
 
     ///@}
+    ///@name Life Cycle
+    ///@{
+    BRepOperatorBase(const Parameters& rParameters) : mParameters(rParameters)
+    {
+    }
+
+    ///@}
     ///@name Operations
     ///@{
 
@@ -57,10 +64,12 @@ public:
     /// @brief Returns ptr to trimmed domain.
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
-    /// @param rParam Parameters
+    /// @param rParam Parameterss
     /// @return TrimmedDomainBasePtrType (std::unique_ptr)
     virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const = 0;
 
+protected:
+    const Parameters& mParameters;
     ///@}
 }; // End BRepOperatorBase class
 ///@} // End TIBRA classes
