@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     }
 
     // Create BRepOperator
-    auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh);
+    auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh, parameters);
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
@@ -111,8 +111,9 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         point.SetWeight(0.0);
     }
 
+
     // Create BRepOperator
-    auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh);
+    auto p_brep_operator = BRepOperatorFactory::New(*p_triangle_mesh, parameters);
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(

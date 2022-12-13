@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
             }
         }
     }
-    BRepOperator classifier(triangle_mesh);
+    Parameters params{};
+    BRepOperator classifier(triangle_mesh, params);
     //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<bool> result(rPoints.size(), false);
@@ -78,7 +79,8 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
         }
     }
 
-    BRepOperator classifier(triangle_mesh);
+    Parameters params{};
+    BRepOperator classifier(triangle_mesh, params);
     //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<bool> result(rPoints.size(), false);
@@ -123,7 +125,8 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    BRepOperator classifier(triangle_mesh);
+    Parameters params{};
+    BRepOperator classifier(triangle_mesh, params);
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(84000);
@@ -176,7 +179,9 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
-    BRepOperator classifier(triangle_mesh);
+
+    Parameters params{};
+    BRepOperator classifier(triangle_mesh, params);
 
 
     std::vector<PointType> rPoints{};
