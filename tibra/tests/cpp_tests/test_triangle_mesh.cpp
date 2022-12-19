@@ -40,7 +40,6 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    IO::WriteMeshToSTL(triangle_mesh, "initial_mesh.stl", true);
     // Make basic check
     BOOST_CHECK(triangle_mesh.Check());
     double initial_area = 0.0;
