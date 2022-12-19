@@ -11,6 +11,7 @@
 //// Project includes
 #include "embedding/polygon.h"
 #include "containers/triangle_mesh.h"
+#include "utilities/tolerances.h"
 
 namespace tibra {
 
@@ -103,7 +104,7 @@ private:
     ///@return IndexType (IN_FRON_OF_PLANE, BEHIND_PLANE, ON_PLANE)
     static IndexType ClassifyPointToPlane(const PointType& rPoint,
                                const Plane& rPlane,
-                               const double Eps = 1e-10);
+                               const double Eps = EPS2);
 
     ///@brief Returns intersection point between line and axis aligned plane.
     ///@param rA Point behind the plane.

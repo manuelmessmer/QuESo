@@ -145,7 +145,7 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
     }
 
     // Return trimmed domain
-    return std::make_unique<CGALTrimmedDomain>(p_refinend_intersection_mesh, rLowerBound, rUpperBound);
+    return std::make_unique<CGALTrimmedDomain>(p_refinend_intersection_mesh, rLowerBound, rUpperBound, mParameters);
 }
 
 } // End namespace cgal

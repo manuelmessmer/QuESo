@@ -6,6 +6,7 @@
 #include <cmath>
 //// Project includes
 #include "quadrature/moment_fitting_utilities.h"
+#include "utilities/tolerances.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
 #include "containers/element.h"
@@ -271,7 +272,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                 for(int i = 0; i < new_integration_points.size(); i++){
                     auto it = begin_it + i;
                     // TODO: Fix this > 2..4
-                    if( it->GetWeight() < 1e-8*max_value && new_integration_points.size() > 4){
+                    if( it->GetWeight() < EPS1*max_value && new_integration_points.size() > 4){
                         new_integration_points.erase(it);
                         change = true;
                         counter++;
@@ -293,13 +294,13 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) {
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < 1e-14; }), reduced_points.end());
+            return point.GetWeight() < EPS4; }), reduced_points.end());
         return prev_residual;
     }
     else{
         reduced_points.insert(reduced_points.begin(), new_integration_points.begin(), new_integration_points.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < 1e-14; }), reduced_points.end());
+            return point.GetWeight() < EPS4; }), reduced_points.end());
         return global_residual;
     }
 
