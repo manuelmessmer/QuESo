@@ -52,9 +52,12 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
 void MomentFitting::ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& pBoundaryIps,
                                          VectorType& rConstantTerms, const Parameters& rParam){
 
-    const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
-    const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
-    const double jacobian_z = std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]);
+    const auto lower_bound = rParam.LowerBound();
+    const auto upper_bound = rParam.UpperBound();
+
+    const double jacobian_x = std::abs(lower_bound[0] - upper_bound[0]);
+    const double jacobian_y = std::abs(lower_bound[1] - upper_bound[1]);
+    const double jacobian_z = std::abs(lower_bound[2] - upper_bound[2]);
 
     const PointType& a = rElement.GetLowerBoundParam();
     const PointType& b = rElement.GetUpperBoundParam();
@@ -64,42 +67,59 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
     const int order_v = rParam.Order()[1];
     const int order_w = rParam.Order()[2];
 
-    const std::size_t number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+    const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
     rConstantTerms.resize(number_of_functions, false);
     std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
 
-    std::size_t row_index = 0;
-    for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
-        for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-            for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                // Loop over all faces/triangels in r_surface_mesg
-                const auto begin_points_it_ptr = pBoundaryIps->begin();
-                for( int i = 0; i < pBoundaryIps->size(); ++i ){
+    IndexType row_index = 0;
+    // Loop over all points.
+    const auto begin_points_it_ptr = pBoundaryIps->begin();
+    for( int i = 0; i < pBoundaryIps->size(); ++i ){
+        // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
+        // for f_x_x and f_x_int at each point.
+        auto point_it = (begin_points_it_ptr + i);
+        const auto& normal = point_it->Normal();
+        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, lower_bound, upper_bound);
+
+        // X-direction
+        std::vector<double> f_x_x(order_u*ffactor+1);
+        std::vector<double> f_x_int_x(order_u*ffactor+1);
+        for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            f_x_x[i_x] = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
+            f_x_int_x[i_x] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0]);
+        }
+        // Y-direction
+        std::vector<double> f_x_y(order_v*ffactor+1);
+        std::vector<double> f_x_int_y(order_v*ffactor+1);
+        for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y){
+            f_x_y[i_y] = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
+            f_x_int_y[i_y] = Polynomial::f_x_int(local_point[1], i_y, a[1], b[1]);
+        }
+        // Z-direction
+        std::vector<double> f_x_z(order_w*ffactor+1);
+        std::vector<double> f_x_int_z(order_w*ffactor+1);
+        for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
+            f_x_z[i_z] = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
+            f_x_int_z[i_z] = Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
+        }
+
+        row_index = 0;
+        // Assembly RHS
+        for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
                     // Compute normal for each face/triangle.
-                    auto point_it = (begin_points_it_ptr + i);
+                    PointType value;
+                    value[0] = f_x_int_x[i_x]*f_x_y[i_y]*f_x_z[i_z];
+                    value[1] = f_x_x[i_x]*f_x_int_y[i_y]*f_x_z[i_z];
+                    value[2] = f_x_x[i_x]*f_x_y[i_y]*f_x_int_z[i_z];
 
-                    const auto& normal = point_it->Normal();
-                    if( std::abs(normal[2]) > 1e-10 ){
-                        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, rParam.LowerBound(), rParam.UpperBound());
-                        PointType value;
-
-                        const double f_x_x = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
-                        const double f_x_y = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
-                        //const double f_x_z = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
-
-                        //value[0] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0])*f_x_y*f_x_z;
-                        //value[1] = f_x_x*Polynomial::f_x_int(local_point[1], i_y, a[1], b[1])*f_x_z;
-                        value[2] = f_x_x*f_x_y*Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
-
-                        //double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
-                        double integrand = normal[2]*value[2]*jacobian_z;
-
-                        // Add contribution to constant terms
-                        rConstantTerms[row_index] += integrand * point_it->GetWeight();
-                    }
+                    double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
+                    rConstantTerms[row_index] += 1.0/3.0*integrand * point_it->GetWeight();
+                    row_index++;
                 }
-                row_index++;
+
             }
         }
     }
@@ -168,7 +188,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     const int order_v = rParam.Order()[1];
     const int order_w = rParam.Order()[2];
 
-    const std::size_t number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+    const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
     double global_residual = 1e-15;
     const double allowed_residual = rParam.MomentFittingResidual();
@@ -180,11 +200,11 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     /// Enter point elimination algorithm
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
-        const std::size_t number_reduced_points = new_integration_points.size();
+        const IndexType number_reduced_points = new_integration_points.size();
 
         /// Assemble moment fitting matrix.
         MatrixType fitting_matrix(number_of_functions, number_reduced_points);
-        std::size_t row_index = 0;
+        IndexType row_index = 0;
         for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
             for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                 for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
