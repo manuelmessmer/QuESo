@@ -14,7 +14,7 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( TriangleMeshTestSuite )
 
-BOOST_AUTO_TEST_CASE(TriangleMeshTest1) {
+BOOST_AUTO_TEST_CASE(TriangleMeshIOTest) {
     std::cout << "Testing :: Test Triangle Mesh :: Test IO" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -55,10 +55,10 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     }
 
 
-    //riangle_mesh.Refine(0.02);
+    triangle_mesh.Refine(20000);
     double new_area = 0.0;
     Vector3d new_weighted_normal(0.0, 0.0, 0.0);
-    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 22829);
+    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 27911);
     for( int triangle_id = 0; triangle_id < triangle_mesh.NumOfTriangles(); ++triangle_id){
         new_area += triangle_mesh.Area(triangle_id);
         auto p_ips = triangle_mesh.GetIPsGlobal(triangle_id, 1);
