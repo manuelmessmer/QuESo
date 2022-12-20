@@ -35,8 +35,8 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param pClippedTriangleMesh
     ///@note mpTriangleMesh must be passed to mTree() and not mpTriangleMesh(), since ptr is moved!
-    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound )
-        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound), mTree(GetTriangleMesh())
+    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
+        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
     }
 
@@ -62,6 +62,13 @@ public:
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
     const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
+
+    double MaxEdgeBoundingBoxOfTrimmedDomain() const{
+
+        auto bounding_box = GetBoundingBoxOfTrimmedDomain();
+        double max_lenght = std::max(std::abs(bounding_box.second[0] - bounding_box.first[0]), std::abs(bounding_box.second[1] - bounding_box.first[1]) );
+        return std::max(max_lenght, std::abs(bounding_box.second[2] - bounding_box.first[2]));
+    }
 
     const TriangleMesh& GetClippedMesh() const {
         return *mpTriangleMesh.get();

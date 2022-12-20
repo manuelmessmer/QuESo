@@ -40,6 +40,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         // Get potential ray intersections from AABB tree.
         auto potential_intersections = mTree.Query(ray);
 
+        if( potential_intersections.size() == 0){
+            throw std::runtime_error("TrimmedDomain :: IsInsideTrimmedDomain :: No potential intersections found.");
+        }
         // Test if potential intersections actually intersect.
         // If intersection lies on boundary cast a new ray.
         // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639
@@ -51,16 +54,22 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
             const auto& p2 = mpTriangleMesh->P2(r);
             const auto& p3 = mpTriangleMesh->P3(r);
             double t, u, v;
-            bool back_facing;
-            if( ray.intersect(p1, p2, p3, t, u, v, back_facing) ) {
-                double sum_u_v = u+v;
-                if( t < 1e-10 ){ // origin lies on boundary
-                    return false;
-                }
-                if( u < 0.0+1e-14 || v < 0.0+1e-14 || sum_u_v > 1.0-1e-14 ){
-                    is_on_boundary = true; // Hits boundary
+            bool back_facing, parallel;
+            if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
+                if( parallel ){
+                    is_on_boundary = true;
                     break;
                 }
+                double sum_u_v = u+v;
+                if( t < EPS2 ){ // origin lies on boundary
+                    return false;
+                }
+                // Ray shoots through boundary.
+                if( u < 0.0+EPS3 || v < 0.0+EPS3 || sum_u_v > 1.0-EPS3 ){
+                    is_on_boundary = true;
+                    break;
+                }
+                // Get orientation of closest triangle. If backfacing=true, triangle is inside.
                 if( t < min_distance ){
                     is_inside = back_facing;
                     min_distance = t;
@@ -122,13 +131,12 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     return bounding_box;
 }
 
-BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps(IndexType PlaneIndex) const{
+BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
     // Pointer to boundary integration points
     auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
 
     // Construct trimmed domain on plane z-upper bound of AABB.
     bool upper_bound = true;
-    IndexType plane_index = PlaneIndex;
     auto p_trimmed_domain_upper_x = std::make_unique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
     auto p_trimmed_domain_upper_y = std::make_unique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
     auto p_trimmed_domain_upper_z = std::make_unique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
@@ -138,32 +146,45 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps(IndexType PlaneIndex) con
     auto p_trimmed_domain_lower_y = std::make_unique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
     auto p_trimmed_domain_lower_z = std::make_unique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
 
-    //@TODO: Implement this as well.
-    p_trimmed_domain_lower_x->AddTriangulation( *(mpTriangleMesh.get()) );
-    p_trimmed_domain_upper_x->AddTriangulation( *(mpTriangleMesh.get()) );
-    p_trimmed_domain_lower_y->AddTriangulation( *(mpTriangleMesh.get()) );
-    p_trimmed_domain_upper_y->AddTriangulation( *(mpTriangleMesh.get()) );
-    p_trimmed_domain_lower_z->AddTriangulation( *(mpTriangleMesh.get()) );
-    p_trimmed_domain_upper_z->AddTriangulation( *(mpTriangleMesh.get()) );
+    if( mpTriangleMesh->NumOfTriangles() > 0 ){
 
-    /// Mapping:
-    //
-    //     a_______b                 y
-    //     /      /|                ´|`
-    //   c/_____d/ |<-- lower plane  |-->x
-    //    |     |  /                /
-    //    |     |</-- upper plane  Z
-    //    |_____|/
-    //
-    //mpTriangleMesh->Refine(0.001);
-    for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
-        // Triangle is fully contained, does not need to be clipped.
-        // @TODO: Add to mesh and enable the option to refine the mesh, if number of triangles are belowe certain treshhold.
-        auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, 1);
-        p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+        auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+
+        const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
+            + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
+
+        mpTriangleMesh->Reserve(num_triangles);
+
+        mpTriangleMesh->Append(*(p_t1.get()));
+        mpTriangleMesh->Append(*(p_t2.get()));
+        mpTriangleMesh->Append(*(p_t3.get()));
+        mpTriangleMesh->Append(*(p_t4.get()));
+        mpTriangleMesh->Append(*(p_t5.get()));
+        mpTriangleMesh->Append(*(p_t6.get()));
+        /// Mapping:
+        //
+        //     a_______b                 y
+        //     /      /|                ´|`
+        //   c/_____d/ |<-- lower plane  |-->x
+        //    |     |  /                /
+        //    |     |</-- upper plane  Z
+        //    |_____|/
+        //
+        mpTriangleMesh->Refine(mParameters.MinimumNumberOfTriangles());
+        for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
+            auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, 3);
+            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+        }
+
+        return std::move(p_boundary_ips);
+    } else {
+        return nullptr;
     }
-
-    return std::move(p_boundary_ips);
 }
 
 } // End namespace tibra

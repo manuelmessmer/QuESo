@@ -46,14 +46,19 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
                 const auto& p2 = mTriangleMesh.P2(r);
                 const auto& p3 = mTriangleMesh.P3(r);
                 double t, u, v;
-                bool back_facing;
-                if( ray.intersect(p1, p2, p3, t, u, v, back_facing) ) {
+                bool back_facing, parallel;
+                if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
                     intersection_count++;
-                    double sum_u_v = u+v;
-                    if( t < 1e-10 ){ // origin lies on boundary
+                    const double sum_u_v = u+v;
+                    if( t < EPS2 ){ // Origin lies on boundary
                         return false;
                     }
-                    if( u < 0.0+1e-14 || v < 0.0+1e-14 || sum_u_v > 1.0-1e-14 ){
+                    // Ray shoots through boundary of triangle.
+                    if( u < 0.0+EPS3 || v < 0.0+EPS3 || sum_u_v > 1.0-EPS3 ){
+                        is_on_boundary = true;
+                        break;
+                    }
+                    if( parallel ){ // Triangle is parallel to ray.
                         is_on_boundary = true;
                         break;
                     }
@@ -94,8 +99,12 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
 
 TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
     auto p_new_mesh = ClipTriangleMesh(rLowerBound, rUpperBound);
-    auto p = std::make_unique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound, mParameters);
-    return std::move(p);
+    if( p_new_mesh->NumOfTriangles() > 0) {
+        auto p = std::make_unique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound, mParameters);
+        return std::move(p);
+    }
+
+    return nullptr;
 }
 
 BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
@@ -103,7 +112,7 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
 
     const auto& lower_bound = rElement.GetLowerBound();
     const auto& upper_bound = rElement.GetLowerBound();
-    return GetIntersectionState(lower_bound, upper_bound, 1e-8);
+    return GetIntersectionState(lower_bound, upper_bound, EPS1);
 }
 
 
@@ -122,7 +131,7 @@ std::unique_ptr<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
         const auto& p2 = mTriangleMesh.P2(triangle_id);
         const auto& p3 = mTriangleMesh.P3(triangle_id);
         // If tolerance>=0 intersection is not detected.
-        const double tolerance_1 = 1e-8;
+        const double tolerance_1 = EPS1;
         // Perform actual intersection test.
         if( aabb.intersect(p1, p2, p3, tolerance_1) ){
             intersected_triangle_ids->push_back(triangle_id);
@@ -140,6 +149,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
     auto p_triangle_mesh = std::make_unique<TriangleMesh>();
     std::map<IndexType, IndexType> index_map{};
     IndexType vertex_count = 0;
+    p_triangle_mesh->Reserve( 3*mTriangleMesh.NumOfTriangles() );
     for( auto triangle_id : (*p_intersected_triangle_ids) ){
         const auto& P1 = mTriangleMesh.P1(triangle_id);
         const auto& P2 = mTriangleMesh.P2(triangle_id);
@@ -213,7 +223,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
 // std::unique_ptr<std::vector<bool>> p_result = std::make_unique<std::vector<bool>>(rPoints.size(), false);
 // auto& r_result = *p_result;
 // for( int i = 0; i < ret.size(); ++i ){
-//     if( ret[i] >= (2.0*My_PI-1e-10) ) // Due to limited precision of double small treshhold (1e-10) is required.
+//     if( ret[i] >= (2.0*My_PI-EPS2) ) // Due to limited precision of double small treshhold (EPS2) is required.
 //         r_result[i] = true;
 // }
 
