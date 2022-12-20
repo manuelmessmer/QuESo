@@ -102,6 +102,7 @@ public:
         }
         // Copy all triangles in (triangle_ids) to new mesh.
         auto p_new_mesh = std::make_unique<TriangleMesh>();
+        p_new_mesh->Reserve(mpTriangleMesh->NumOfTriangles());
         p_new_mesh->Append(triangle_ids, *mpTriangleMesh);
         return std::move(p_new_mesh);
     }

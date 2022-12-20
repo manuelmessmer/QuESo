@@ -68,6 +68,7 @@ class PyTIBRA:
 
     def GetTrianglesOnBoundary(self, condition):
         triangle_mesh = TIBRA_Application.TriangleMesh()
+        #TODO. Add reserve.
         #Loop over all elements
         for element in self.elements:
             if element.IsTrimmed():
