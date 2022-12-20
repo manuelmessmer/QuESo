@@ -161,7 +161,7 @@ bool Ray_AABB_primitive::intersect_general(const AABB_primitive &aabb) const {
 }
 
 bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-                double &t, double &u, double &v, bool& BackFacing) const {
+                double &t, double &u, double &v, bool& BackFacing, bool& Parallel) const {
 
     // Substraction: v1-v0 and v2-v0
     Vector3d v0v1 = {v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]};
@@ -169,20 +169,27 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
 
     // Cross product: mDirection x v0v2
     Vector3d pvec = {mDirection[1]*v0v2[2] - mDirection[2]*v0v2[1],
-                        mDirection[2]*v0v2[0] - mDirection[0]*v0v2[2],
-                        mDirection[0]*v0v2[1] - mDirection[1]*v0v2[0]};
+                     mDirection[2]*v0v2[0] - mDirection[0]*v0v2[2],
+                     mDirection[0]*v0v2[1] - mDirection[1]*v0v2[0]};
 
     // Dot product: v0v1 * pvec
     double det = v0v1[0]*pvec[0] + v0v1[1]*pvec[1] + v0v1[2]*pvec[2];
 
+    // Set default flag values
     BackFacing = false;
+    Parallel = false;
+
+    // If det is zero, triangle is parallel to ray.
+    if (std::abs(det) < EPS3){
+        Parallel = true;
+        return true;
+    }
+
     // If det is smaller than zero triangle is back facing.
-    if( det < kEpsilon )
+    if( det < EPS3 )
         BackFacing = true;
 
-    if (std::abs(det) < kEpsilon)
-        return false;
-
+    // Get inverse of determinant.
     double invDet = 1 / det;
 
     // Substraction: mOrigin - v0
@@ -191,7 +198,7 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     // Dot product x invDet: (tvec * pvec) * invDet
     u = (tvec[0]*pvec[0] + tvec[1]*pvec[1] + tvec[2]*pvec[2]) * invDet;
 
-    if (u < -1e-10 || u > 1+1e-10)
+    if (u < -EPS2 || u > 1+EPS2)
         return false;
 
     // Cross product: tvec x v0v1
@@ -202,14 +209,14 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     // Dot product x invDet: (mDirection * qvec) * invDet
     v = (mDirection[0]*qvec[0] + mDirection[1]*qvec[1] + mDirection[2]*qvec[2]) * invDet;
 
-    if (v < -1e-10 || u + v > 1+1e-10)
+    if (v < -EPS2 || u + v > 1+EPS2)
         return false;
 
     // Dot product: v0v2 * qvec
     t = (v0v2[0]*qvec[0] + v0v2[1]*qvec[1] + v0v2[2]*qvec[2]) * invDet;
 
     // Return false if ray intersects in negative direction.
-    if( t < -1e-10 )
+    if( t < -EPS2 )
         return false;
 
     return true;

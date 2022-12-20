@@ -69,7 +69,7 @@ public:
     /// @return bool
     bool intersect_positive_ray(const AABB_primitive &aabb) const;
 
-    ///@brief Returns true if ray intersects triangle (only checks intersections in positive direction).
+    ///@brief Returns true if ray intersects triangle (only checks intersections in positive direction of ray).
     ///@param v0 Triangle Vertex 1
     ///@param v1 Triangle Vertex 2
     ///@param v2 Triangle Vertex 3
@@ -77,9 +77,11 @@ public:
     ///@param u Parametric coordinate 1.
     ///@param v Parametric coordinate 2.
     ///@param BackFacing True is triangle is back facing.
+    ///@param Parallel True if triangle is parallel.
+    ///@todo Put Backfacing and Parallel into one enum.
     ///@return bool
     bool intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-                    double &t, double &u, double &v, bool& BackFacing) const;
+                    double &t, double &u, double &v, bool& BackFacing, bool& Parallel) const;
 
     ///@}
 private:
