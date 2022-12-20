@@ -78,7 +78,7 @@ public:
     ///@param v Parametric coordinate 2.
     ///@param BackFacing True is triangle is back facing.
     ///@param Parallel True if triangle is parallel.
-    ///@todo Put Backfacing and Parallel into one enum.
+    ///@todo Put Backfacing and Parallel into one enum. Also add OriginIsOnBoundary.
     ///@return bool
     bool intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
                     double &t, double &u, double &v, bool& BackFacing, bool& Parallel) const;
