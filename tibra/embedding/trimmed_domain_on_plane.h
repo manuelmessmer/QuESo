@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef EDGE_2D_INCLUDE_H
-#define EDGE_2D_INCLUDE_H
+#ifndef TRIMMED_DOMAIN_ON_PLANE_INCLUDE_H
+#define TRIMMED_DOMAIN_ON_PLANE_INCLUDE_H
 
 //// STL includes
 #include <cstddef>
@@ -26,8 +26,8 @@ namespace tibra
     /**
      * @class  TrimmedDomainOnPlane
      * @author Manuel Messmer
-     * @brief Protype: Projects the trimmed domain onto a plane of the AABB and provides functions to construct
-     *        integration points on trimmed domain. Still requires validation. There are also still some bugs.
+     * @brief Projects the trimmed domain onto a plane of the AABB and provides functions to construct
+     *        integration points on trimmed domain.
      */
     class TrimmedDomainOnPlane
     {
@@ -47,7 +47,9 @@ namespace tibra
             Negative,
             Vertical
         };
+
         typedef enum Orientation OrientationType;
+
         /**
          * @class  Edge2D
          * @author Manuel Messmer
@@ -125,6 +127,15 @@ namespace tibra
         TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain)
             : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain)
         {
+            // Orientation
+            //
+            //      _______                  DIRINDEX2
+            //     /      /|                ´|`
+            //    /_____ / |<-- lower plane  |-->DIRINDEX1
+            //    |     |  /                /
+            //    |     |</-- upper plane  DIRINDEX3
+            //    |_____|/
+            //
             if (PlaneIndex == 2)
             {
                 DIRINDEX1 = 0;
@@ -163,75 +174,7 @@ namespace tibra
             mVerticesVertical.reserve(Size);
         }
 
-        void InsertEdge(const std::array<Point3DType, 2> rEdge, const Point3DType &rNormal)
-        {
-            // Get vertices of edge
-            const auto &V1 = rEdge[0];
-            const auto &V2 = rEdge[1];
 
-            Point2DType v1{};
-            Point2DType v2{};
-            // Make sure edge is oriented along DIRINDEX1 such that x2 > x1
-            bool vertical_flag = false;
-            if (std::abs(V2[DIRINDEX1] - V1[DIRINDEX1]) < EPS3)
-                vertical_flag = true;
-
-            if (V2[DIRINDEX1] > V1[DIRINDEX1])
-            {
-                v1 = {V1[DIRINDEX1], V1[DIRINDEX2]};
-                v2 = {V2[DIRINDEX1], V2[DIRINDEX2]};
-            }
-            else
-            {
-                v1 = {V2[DIRINDEX1], V2[DIRINDEX2]};
-                v2 = {V1[DIRINDEX1], V1[DIRINDEX2]};
-            }
-            // Positive oriented
-            if ((rNormal[DIRINDEX2] > EPS3) && (!vertical_flag))
-            {
-                // Get unique vertex index.GetVertexID
-                auto indices = GetVertexID(v1, v2, Orientation::Positive);
-                if (indices.first != indices.second)
-                {
-                    InsertVertex(v1, indices.first, Orientation::Positive);
-                    InsertVertex(v2, indices.second, Orientation::Positive);
-                    mEdgesPositiveOriented.push_back(Egde2D(indices.first, indices.second));
-                }
-            } // Negative oriented
-            else if ((rNormal[DIRINDEX2] < -EPS3) && (!vertical_flag))
-            {
-
-                // Get unique vertex index.
-                auto indices = GetVertexID(v1, v2, Orientation::Negative);
-                if (indices.first != indices.second)
-                {
-                    InsertVertex(v1, indices.first, Orientation::Negative);
-                    InsertVertex(v2, indices.second, Orientation::Negative);
-                    mEdgesNegativeOriented.push_back(Egde2D(indices.first, indices.second));
-                }
-            }
-            else
-            {
-
-                auto index_1 = InsertVertex(v1, Orientation::Vertical);
-                auto index_2 = InsertVertex(v2, Orientation::Vertical);
-                mEdgesVertical.push_back(Egde2D(index_1, index_2));
-            }
-        }
-
-        ///@brief Insert new edges to trimmed domain on plane. Check for dublicate nodes. Only inserts new node if unique.
-        ///       Only inserts edges if std::abs(normal[DIRINDEX2]) > EPS2. All other edges have no contribution for constant terms
-        ///       of moment fitting equation.
-        ///@param rEdged
-        ///@param rNormal
-        void InsertEdges(const std::vector<std::array<Point3DType, 2>> rEdges, const Point3DType &rNormal)
-        {
-            for (auto &edge : rEdges)
-            {
-                InsertEdge(edge, rNormal);
-            }
-            // Do not add vertical edges.
-        }
 
         ///@brief Returns boundary points of trimmed domain on plane.
         ///@param [out] pIPs
@@ -248,88 +191,44 @@ namespace tibra
         //
         TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh)
         {
+            Reserve(1000);
             CollectEdgesOnPlane(rTriangleMesh);
-            // std::cout << "waf: " << std::endl;
-            // std::cout << mEdgesNegativeOriented.size() << std::endl;
-            // std::cout << mEdgesPositiveOriented.size() << std::endl;
-            // std::cout << mEdgesVertical.size() << std::endl;
             RefineEdges();
             return Triangulate();
         }
         ///@}
 
     private:
-        ///@name Public Operations
-        ///@{
-        void CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
-        {
-            for (IndexType triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id)
-            {
-                const auto &P1 = rTriangleMesh.P1(triangle_id);
-                const auto &P2 = rTriangleMesh.P2(triangle_id);
-                const auto &P3 = rTriangleMesh.P3(triangle_id);
-                const auto &normal = rTriangleMesh.Normal(triangle_id);
 
-                const double area = rTriangleMesh.Area(triangle_id);
-                if (IsPointOnPlane(P1) && IsPointOnPlane(P2))
-                {
-                    std::array<PointType, 2> new_edge = {P1, P2};
-                    InsertEdge(new_edge, normal);
-                }
-                else if (IsPointOnPlane(P2) && IsPointOnPlane(P3))
-                {
-                    std::array<PointType, 2> new_edge = {P2, P3};
-                    InsertEdge(new_edge, normal);
-                }
-                else if (IsPointOnPlane(P3) && IsPointOnPlane(P1))
-                {
-                    std::array<PointType, 2> new_edge = {P3, P1};
-                    InsertEdge(new_edge, normal);
-                }
-            }
-        }
+        /// @brief Inserts edge into local containers.
+        /// @param rV1 Point1 (3D-Point).
+        /// @param rV2 Point2 (3D-Point).
+        /// @param rNormal Corresponsing normal direction.
+        void InsertEdge(const Point3DType& rV1, const Point3DType& rV2, const Point3DType &rNormal);
 
-        inline bool IsPointOnPlane(const PointType &rPoint, double Tolerance = EPS1) const
-        {
-            if (mUpperBoundary)
-            {
-                if ((rPoint[DIRINDEX3] < mUpperBound[DIRINDEX3] + Tolerance) && (rPoint[DIRINDEX3] > mUpperBound[DIRINDEX3] - Tolerance))
-                {
-                    return true;
-                }
-                return false;
-            }
-            else
-            {
-                if ((rPoint[DIRINDEX3] < mLowerBound[DIRINDEX3] + Tolerance) && (rPoint[DIRINDEX3] > mLowerBound[DIRINDEX3] - Tolerance))
-                {
-                    return true;
-                }
-                return false;
-            }
-        }
+        /// @brief Inserts edge into local containers.
+        /// @param rV1 Point1 (2D-Point).
+        /// @param rV2 Point1 (2D-Point).
+        /// @param rOrientation Current orientation.
+        /// @return True if edge is inserted.
+        bool InsertEdge(const Point2DType& rV1, const Point2DType& rV2, OrientationType rOrientation );
 
-        ///@brief Inserts point to container if point is not contained in container.
-        ///@param rPoint NewPoint
-        ///@param Positive Orientation of corresponding edge. Upper edge: Normal[DIRINDEX2]>0 -> Positive.
-        ///@param Return vertex index in container.
-        // IndexType GetVertexID(const Point2DType& rPoint, Orientation orientation){
+        /// @brief Coolects all edges and stores them in local containers. Sorts edges corresponding to their orientation.
+        ///        Positive oriented, Negative oriented, and vertically oriented.
+        /// @details
+        ///             ^
+        ///        -----|----- Positive oriented.
+        ///
+        ///        -----|----- Negative oriented.
+        ///             V
+        /// @param rTriangleMesh Clipped triangle mesh inside trimmed domain.
+        void CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh);
 
-        //     auto& r_vertices = GetVertices(orientation);
-        //     // Find new vertex.
-        //     auto res = std::find_if( r_vertices.begin(), r_vertices.end(),
-        //         [&rPoint](const auto& x) { return  (rPoint[0] > x[0] - EPS2 && rPoint[0] < x[0] + EPS2
-        //                                             && rPoint[1] > x[1] - EPS2 && rPoint[1] < x[1] + EPS2) ;});
-
-        //     if( res != r_vertices.end() ){ // Vertex already exists
-        //         IndexType index = std::distance(r_vertices.begin(), res);
-        //         return index;
-        //     } else { // Add new vertex
-        //         IndexType index = r_vertices.size();
-        //         //r_vertices.push_back(rPoint);
-        //         return index;
-        //     }
-        // }
+        /// @brief Returns true if point is on given plane.
+        /// @param rPoint Test point (3D Point).
+        /// @param Tolerance
+        /// @return bool
+        inline bool IsPointOnPlane(const Point3DType &rPoint, double Tolerance = EPS1) const;
 
         ///@brief Inserts point to container if point is not contained in container.
         ///@param rPoint NewPoint
@@ -1061,4 +960,4 @@ namespace tibra
     ///@} // End Tibra Classes
 
 } // End namespace tibra
-#endif
+#endif // TRIMMED_DOMAIN_ON_PLANE_INCLUDE_H
