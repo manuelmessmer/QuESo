@@ -79,6 +79,7 @@ public:
     /// @param TriangleId
     /// @param Method integration method.
     /// @return IntegrationPointVectorPtrType.
+    /// @todo Rename to pGetIPsGloba()
     BoundaryIpVectorPtrType GetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
@@ -109,6 +110,18 @@ public:
         }
 
         return std::move(p_global_integration_points);
+    }
+
+    void Refine( IndexType MinNumberOfTriangles );
+
+    void Clean();
+
+    const Vector3d CenterEdge(const Vector3d& P1, const Vector3d& P2){
+        return (P2+P1)*0.5;
+    }
+
+    double LengthEdge(const Vector3d& P1, const Vector3d& P2){
+        return std::sqrt( (P2[0]-P1[0])*(P2[0]-P1[0]) + (P2[1]-P1[1])*(P2[1]-P1[1]) + (P2[2]-P1[2])*(P2[2]-P1[2]) );
     }
 
     /// @brief Get boundary integration points in global space.
@@ -188,20 +201,21 @@ public:
 
     ///@brief Add vertex to mesh.
     ///@param NewVertex
-    void AddVertex(const Vector3d& NewVertex) {
-        return mVertices.push_back(NewVertex);
+    IndexType AddVertex(const Vector3d& NewVertex) {
+        mVertices.push_back(NewVertex);
+        return mVertices.size()-1;
     }
 
     ///@brief Add triangle to mesh.
     ///@param NewTriangle
     void AddTriangle(const Vector3i& NewTriangle) {
-        return mTriangles.push_back(NewTriangle);
+        mTriangles.push_back(NewTriangle);
     }
 
     ///@brief Add normal to mesh.
     ///@param NewNormal
     void AddNormal(const Vector3d& NewNormal) {
-        return mNormals.push_back(NewNormal);
+        mNormals.push_back(NewNormal);
     }
 
     ///@brief Get number of triangles in mesh.
@@ -219,6 +233,9 @@ public:
         return mVertices;
     }
 
+    std::vector<Vector3d>& GetVertices() {
+        return mVertices;
+    }
     // Vector3d GetPointGlobalSpace(IndexType TriangleId, const Vector3d& rPoint){
     //     const auto P1 = this->P1(TriangleId);
     //     const auto P2 = this->P2(TriangleId);
@@ -259,7 +276,8 @@ public:
         std::map<IndexType, IndexType> index_map{};
 
         //const IndexType initial_num_vertices = NumOfVertices();
-
+        // mTriangles.reserve(mTriangles.size() + rTriangleMesh.NumOfTriangles());
+        // mNormals.reserve(mTriangles.size() + rTriangleMesh.NumOfTriangles());
         for( auto triangle : rTriangleIndices){
             const auto& tmp_indices = rTriangleMesh.VertexIds(triangle);
             Vector3i new_triangle{};
@@ -288,7 +306,7 @@ public:
             mVertices[ index.second ] = new_vertices[ index.first ];
         }
 
-        Check();
+        //Check();
     }
 
     ///@brief Return meshed cuboid.
@@ -410,8 +428,11 @@ private:
         const double c = std::sqrt( std::pow(P3[0] - P1[0], 2) + std::pow(P3[1] - P1[1], 2) + std::pow(P3[2] - P1[2], 2));
 
         const double s = (a+b+c) / 2.0;
-
-        return std::sqrt(s*(s-a)*(s-b)*(s-c));
+        const double radicand = s*(s-a)*(s-b)*(s-c);
+        if( radicand < 0.0 ) {
+            return 0.0;
+        }
+        return std::sqrt(radicand);
     }
 
     ///@brief Factory function for triangle Gauss Legendre points.
