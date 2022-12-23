@@ -125,15 +125,14 @@ std::unique_ptr<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
 
     auto intersected_triangle_ids = std::make_unique<std::vector<IndexType>>();
     int count = 0;
-
+    intersected_triangle_ids->reserve(potential_intersections.size());
     for( auto triangle_id : potential_intersections){
         const auto& p1 = mTriangleMesh.P1(triangle_id);
         const auto& p2 = mTriangleMesh.P2(triangle_id);
         const auto& p3 = mTriangleMesh.P3(triangle_id);
-        // If tolerance>=0 intersection is not detected.
-        const double tolerance_1 = EPS1;
+
         // Perform actual intersection test.
-        if( aabb.intersect(p1, p2, p3, tolerance_1) ){
+        if( aabb.intersect(p1, p2, p3, EPS2) ){
             intersected_triangle_ids->push_back(triangle_id);
         }
     }
@@ -145,33 +144,23 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
         const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
-
     auto p_triangle_mesh = std::make_unique<TriangleMesh>();
-    std::map<IndexType, IndexType> index_map{};
-    IndexType vertex_count = 0;
-    p_triangle_mesh->Reserve( 3*mTriangleMesh.NumOfTriangles() );
+    p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
     for( auto triangle_id : (*p_intersected_triangle_ids) ){
         const auto& P1 = mTriangleMesh.P1(triangle_id);
         const auto& P2 = mTriangleMesh.P2(triangle_id);
         const auto& P3 = mTriangleMesh.P3(triangle_id);
         const auto& normal = mTriangleMesh.Normal(triangle_id);
 
-        if(    IsContained(P1, rLowerBound, rUpperBound )
-            && IsContained(P2, rLowerBound, rUpperBound )
-            && IsContained(P3, rLowerBound, rUpperBound ) ){ // Triangle is fully contained, does not need to be clipped.
-
-            p_triangle_mesh->Append( {triangle_id}, mTriangleMesh );
-        }
-        else { // Triangle needs to be clipped.
-            auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
-
-            const auto& normal = mTriangleMesh.Normal(triangle_id);
-            // Pass normal, such the polygon does not have to recompute them.
+        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
+        if( p_polygon ){
             auto p_tmp_triangle_mesh = p_polygon->pGetTriangleMesh();
             p_triangle_mesh->Append(*p_tmp_triangle_mesh);
         }
     }
-    p_triangle_mesh->Check();
+    if( p_triangle_mesh->NumOfTriangles() > 0){
+        p_triangle_mesh->Check();
+    }
     return std::move(p_triangle_mesh);
 }
 

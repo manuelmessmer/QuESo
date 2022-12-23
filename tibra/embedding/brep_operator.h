@@ -93,28 +93,6 @@ public:
     ///@}
 
 private:
-    ///@name Private Operations
-    ///@{
-
-    ///@brief Returns true if point is inside AABB.
-    ///@param rPoint Query point.
-    ///@param rLowerBound of AABB.
-    ///@param rUpperBound of AABB.
-    ///@return bool
-    inline bool IsContained(const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound) const{
-        if(    rPoint[0] < rLowerBound[0]
-            || rPoint[0] > rUpperBound[0]
-            || rPoint[1] < rLowerBound[1]
-            || rPoint[1] > rUpperBound[1]
-            || rPoint[2] < rLowerBound[2]
-            || rPoint[2] > rUpperBound[2] )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     ///@}
     ///@name Private Members
     ///@{

@@ -23,11 +23,11 @@ std::unique_ptr<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const P
         // [-x, x, -y, y, -z, z]
         const double plane_position = (plane_index%2UL) ? rUpperBound[plane_index/2UL] : rLowerBound[plane_index/2UL];
         Plane plane(plane_index, plane_position);
-        auto loc_v1 = ClassifyPointToPlane(rV1, plane, EPS3);
-        auto loc_v2 = ClassifyPointToPlane(rV2, plane, EPS3);
-        auto loc_v3 = ClassifyPointToPlane(rV3, plane, EPS3);
-        IndexType count_behind_plane = (loc_v1 == BEHIND_PLANE) + (loc_v2 == BEHIND_PLANE) + (loc_v3 == BEHIND_PLANE);
-        if( count_behind_plane == 0 ){
+        auto loc_v1 = ClassifyPointToPlane(rV1, plane, EPS1);
+        auto loc_v2 = ClassifyPointToPlane(rV2, plane, EPS1);
+        auto loc_v3 = ClassifyPointToPlane(rV3, plane, EPS1);
+        IndexType count_on_plane = (loc_v1 == ON_PLANE) + (loc_v2 == ON_PLANE) + (loc_v3 == ON_PLANE);
+        if( count_on_plane == 3 ){
             return nullptr;
         }
     }
