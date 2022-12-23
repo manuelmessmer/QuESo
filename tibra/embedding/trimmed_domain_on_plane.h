@@ -50,6 +50,13 @@ namespace tibra
 
         typedef enum Orientation OrientationType;
 
+        struct PointComparison {
+            bool operator(const PointType& rLhs, const PointType& rRhs ) const {
+                return
+            }
+        }
+
+        typedef std::set<PointType, PointComparison>
         /**
          * @class  Edge2D
          * @author Manuel Messmer
@@ -241,8 +248,7 @@ namespace tibra
             auto &r_edges = GetEdges(orientation);
 
             // If vertices are the same.
-            if (rV1[0] > rV2[0] - EPS1 && rV1[0] < rV2[0] + EPS1 && rV1[1] > rV2[1] - EPS1 && rV1[1] < rV2[1] + EPS1)
-            {
+            if (rV1[0] > rV2[0] - EPS1 && rV1[0] < rV2[0] + EPS1 && rV1[1] > rV2[1] - EPS1 && rV1[1] < rV2[1] + EPS1) {
                 return std::make_pair<IndexType, IndexType>(0UL, 0UL);
             }
 
@@ -263,33 +269,21 @@ namespace tibra
                 index_1 = r_vertices.size();
                 v1_is_new = 1UL;
             }
-            auto res_edges = std::find_if(r_edges.begin(), r_edges.end(),
-                                          [index_1](const auto &edge)
-                                          { return (edge.V1() == index_1); });
 
-            if (res_edges == r_edges.end())
-            {
-                auto res2 = std::find_if(r_vertices.begin(), r_vertices.end(),
-                                         [&rV2](const auto &x)
-                                         { return (rV2[0] > x[0] - EPS1 && rV2[0] < x[0] + EPS1 && rV2[1] > x[1] - EPS1 && rV2[1] < x[1] + EPS1); });
-                if (res2 != r_vertices.end())
-                { // Vertex already exists
-                    index_2 = std::distance(r_vertices.begin(), res2);
-                }
-                else
-                { // Add new vertex
-                    index_2 = r_vertices.size() + v1_is_new;
-                }
-                auto res2_edges = std::find_if(r_edges.begin(), r_edges.end(),
-                                               [index_2](const auto &edge)
-                                               { return (edge.V2() == index_2); });
+            auto res2 = std::find_if(r_vertices.begin(), r_vertices.end(),
+                                        [&rV2](const auto &x)
+                                        { return (rV2[0] > x[0] - EPS1 && rV2[0] < x[0] + EPS1 && rV2[1] > x[1] - EPS1 && rV2[1] < x[1] + EPS1); });
 
-                if (res2_edges == r_edges.end())
-                {
-                    return std::make_pair(index_1, index_2);
-                }
+            if (res2 != r_vertices.end())
+            { // Vertex already exists
+                index_2 = std::distance(r_vertices.begin(), res2);
             }
-            return std::make_pair<IndexType, IndexType>(0UL, 0UL);
+            else
+            { // Add new vertex
+                index_2 = r_vertices.size() + v1_is_new;
+            }
+
+            return std::make_pair(index_1, index_2);
         }
 
         ///@brief Fast insertion of point to container. Check if point is already contained is omittede.
@@ -580,10 +574,10 @@ namespace tibra
 
                 // TODO: I think visited is not required.
                 // TODO: Improve this.
-                if (!r_edges_origin[i].IsVisited())
-                {
+                // if (!r_edges_origin[i].IsVisited())
+                // {
 
-                    r_edges_origin[i].SetVisited(true);
+                //     r_edges_origin[i].SetVisited(true);
 
                     const auto &v1_up = V1byEdgeId(i, orientation_origin);
                     const auto &v2_up = V2byEdgeId(i, orientation_origin);
@@ -696,7 +690,7 @@ namespace tibra
                         const auto p_new_triangles = polygon.pGetTriangleMesh();
                         p_new_mesh->Append(*p_new_triangles);
                     }
-                } // End Skip
+                //} // End Skip
             }     // for( int i = 0; i < r_edges_origin.size(); ++i){
 
             return std::move(p_new_mesh);

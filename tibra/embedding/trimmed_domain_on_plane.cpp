@@ -54,25 +54,21 @@ void TrimmedDomainOnPlane::InsertEdge(const Point3DType& rV1, const Point3DType&
 
 void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
 {
-    for (IndexType triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id)
-    {
-        const auto &P1 = rTriangleMesh.P1(triangle_id);
-        const auto &P2 = rTriangleMesh.P2(triangle_id);
-        const auto &P3 = rTriangleMesh.P3(triangle_id);
-        const auto &normal = rTriangleMesh.Normal(triangle_id);
+    const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlane();
+    const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);
 
-        const bool is_p1 = IsPointOnPlane(P1);
-        const bool is_p2 = IsPointOnPlane(P2);
-        const bool is_p3 = IsPointOnPlane(P3);
-        if (is_p1 && is_p2) {
-            InsertEdge(P1, P2, normal);
-        }
-        else if (is_p2 && is_p3) {
-            InsertEdge(P2, P3, normal);
-        }
-        else if (is_p3 && is_p1) {
-            InsertEdge(P3, P1, normal);
-        }
+    const auto& r_vertices = rTriangleMesh.GetVertices();
+    const auto& edges_on_plane = edges_on_planes[plane_index];
+
+    for( const auto& edge : edges_on_plane ){
+        const IndexType vertex_index_1 = std::get<0>(edge);
+        const IndexType vertex_index_2 = std::get<1>(edge);
+        const IndexType normal_index = std::get<2>(edge);
+
+        const auto& P1 = r_vertices[vertex_index_1];
+        const auto& P2 = r_vertices[vertex_index_2];
+        const auto& normal = rTriangleMesh.Normal(normal_index);
+        InsertEdge(P1, P2, normal);
     }
 }
 
