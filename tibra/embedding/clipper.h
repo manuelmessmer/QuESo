@@ -91,6 +91,7 @@ private:
     ///@brief Clips the polygon by plane. Keeps part that is in front of plane.
     ///@details This is a specialization of the Sutherland-Hodgeman clipping algorithm
     ///         for axis-aligned planes. See Section 8.3 of Christer Ericson's "Real-Time Collision Detection".
+    ///         In addition, the information if a vertex is located on a plane is stored on the vertex.
     ///@param rPrevPoly Input polygon. Contains vertices to be clipped.
     ///@param rCurrentPoly Output polygon.
     ///@param rPlane Plane.
@@ -104,7 +105,7 @@ private:
     ///@return IndexType (IN_FRON_OF_PLANE, BEHIND_PLANE, ON_PLANE)
     static IndexType ClassifyPointToPlane(const PointType& rPoint,
                                const Plane& rPlane,
-                               const double Eps = EPS2);
+                               const double Eps = EPS1);
 
     ///@brief Returns intersection point between line and axis aligned plane.
     ///@param rA Point behind the plane.
