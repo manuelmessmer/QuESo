@@ -14,6 +14,7 @@ IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint ) {
         throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
     }
     mVertices[mNumVertices].first = rPoint;
+    mVertices[mNumVertices].second = {false};
     return mNumVertices++;
 }
 
@@ -64,7 +65,7 @@ const typename Polygon<SIZE>::VertexType& Polygon<SIZE>::GetLastVertex() const{
 
 template<IndexType SIZE>
 void Polygon<SIZE>::Clear(){
-    const std::array<bool,6> points_on_plane = {false, false, false, false, false, false};
+    const std::array<bool,6> points_on_plane = {false}; // Inits all to false;
     std::fill(mVertices.begin(), mVertices.end(), std::make_pair(PointType{}, points_on_plane) );
     mNumVertices = 0;
 }

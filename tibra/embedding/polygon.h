@@ -43,7 +43,6 @@ public:
     ///@{
 
     ///@brief Adds Point to Polygon. Note that this function sets std::array<bool,6> = false.
-    ///       Only use this function, if point on plane information is not required.
     ///@param rPoint PointType
     ///@return Index of added vertex.
     IndexType AddVertex(const PointType& rPoint);
