@@ -75,7 +75,7 @@ namespace tibra
             ///@name Type Definitions
             ///@{
 
-            Egde2D(IndexType V1, IndexType V2) : mV1(V1), mV2(V2), mIsVisited(false)
+            Egde2D(IndexType V1, IndexType V2) : mV1(V1), mV2(V2)
             {
             }
 
@@ -91,12 +91,17 @@ namespace tibra
                 return mV2;
             }
 
-            std::vector<Point2DType> &GetSplitPoints()
+            void Set(IndexType V1, IndexType V2){
+                mV1 = V1;
+                mV2 = V2;
+            }
+
+            const std::vector<Point2DType> &GetSplitPoints() const
             {
                 return mSplitPoints;
             }
 
-            const std::vector<Point2DType> &GetSplitPoints() const
+            std::vector<Point2DType>& GetSplitPoints()
             {
                 return mSplitPoints;
             }
@@ -111,15 +116,6 @@ namespace tibra
                 mSplitPoints.push_back(rPoint);
             }
 
-            bool IsVisited()
-            {
-                return mIsVisited;
-            }
-
-            void SetVisited(bool Value)
-            {
-                mIsVisited = Value;
-            }
             ///@}
 
         private:
@@ -128,7 +124,6 @@ namespace tibra
             IndexType mV1;
             IndexType mV2;
             std::vector<Point2DType> mSplitPoints{};
-            bool mIsVisited;
             ///@}
         };
 
@@ -177,23 +172,10 @@ namespace tibra
         ///@name Public Operations
         ///@{
 
-        void Reserve(IndexType Size)
-        {
-            mEdgesPositiveOriented.reserve(Size);
-            mEdgesNegativeOriented.reserve(Size);
-            mEdgesVertical.reserve(Size);
-            mVerticesPositive.reserve(Size);
-            mVerticesNegative.reserve(Size);
-            mVerticesVertical.reserve(Size);
-        }
-
-
-
-        ///@brief Returns boundary points of trimmed domain on plane.
-        ///@param [out] pIPs
-        ///@param state_a_c Must be true if point a is inside.
-        ///@param state_b_d Must be true if point a is inside.
-        ///@note Param mapping:
+        ///@brief Returns a triangulated mesh of trimmed domain.
+        ///@param rTriangleMesh Input mesh. Must hold the edges on planes.
+        ///@return TriangleMeshPtrType.
+        ///@details see CollectEdgesOnPlane(), CloseContourEdges(), Triangulate().
         //
         //     a_______b                 y
         //     /      /|                ´|`
@@ -202,16 +184,110 @@ namespace tibra
         //    |     |</-- plane upper  Z
         //    |_____|/
         //
-        TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh)
-        {
-            Reserve(1000);
+        TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh) {
             CollectEdgesOnPlane(rTriangleMesh);
-            RefineEdges();
-            return Triangulate();
+            CloseContourEdges();
+            return TriangulateDomain();
         }
-        ///@}
+
+        /// @brief Reserve all containers.
+        /// @param NewSize
+        void Reserve(IndexType NewSize) {
+            mEdgesPositiveOriented.reserve(NewSize);
+            mEdgesNegativeOriented.reserve(NewSize);
+            mEdgesVertical.reserve(NewSize);
+            mVerticesPositive.reserve(NewSize);
+            mVerticesNegative.reserve(NewSize);
+            mVerticesVertical.reserve(NewSize);
+        }
 
     private:
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+        /// @brief Coolects all edges and stores them in local containers. Sorts edges corresponding to their orientation.
+        ///        Positive oriented, Negative oriented, and vertically oriented.
+        /// @details
+        ///             ^
+        ///        -----|----- Positive oriented.
+        ///
+        ///        -----|----- Negative oriented.
+        ///             V
+        /// @param rTriangleMesh Clipped triangle mesh inside trimmed domain.
+        void CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh);
+
+        ///@brief Refine edges on trimmed domain on plane. See @details for more information.
+        ///@details 1.) Checks if positive oriented edges span the entire AABB (we consider only the part that is inside the domain) in DIRINDEX1.
+        ///             If not new edges are introduced at top of AABB (UpperBound[DIRINDEX2]) to fill gaps.
+        ///        UB2                  UP2       _____
+        ///         |  out  /     |      |  out  /     |  new edges introduced since Point b is inside domain.
+        ///         |------/      | ---> |------/      |
+        ///         |  inside     |      |  inside     |
+        ///        LB12          UB1    LB12           UP1
+        ///
+        ///         UB2
+        ///         |  in   /     |      |  in   /     |  no new edges introduced since Point b is outside.
+        ///         |------/      | ---> |------/      |       LB1 - lower bound of AABB in DIRINDEX1
+        ///         |  outsid     |      |  outside    |       UP1 - upper bound of AABB in DIRINDEX1
+        ///        LB12          UB1    LB12           UP1
+        ///
+        ///         2.) Maps all negative oriented points onto positive oriented edges if overlap and vice versa.
+        ///             Such that the vertices of postive and negative oriented edges are at same position in: DIRINDEX1.
+        ///                 x--^-----x---^--x   positive oriented edges
+        ///                 |  |     |   |                                     DIRINDEX2
+        ///                 |  |     |   |                                         ^
+        ///            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
+        void CloseContourEdges();
+
+        ///@brief Triangulates the trimmed domain on plane (see @details for more information).
+        ///@details Assumes that the vertices of positive and negative oriented edges coincide along DIRINDEX1. See RefineEdges().
+        ///
+        ///          x___x   Positive Oriented      DIRINDEX2
+        ///         /|   |                              ^
+        ///   x___x/ |   |                              |----> DIRINDEX1
+        ///   |   |  |   |
+        ///   |   |  |   |
+        ///   x___x__x___x    Negative Oriented      x-Vertices
+        ///
+        /// Each vertical stripe is individually triangulated. First we generate a polygon with 4 vertices and the triangulate it.
+        /// If vertices of positve and negative edges coincide, only triangle are created.
+        ///
+        ///          x___x   Positive Oriented
+        ///         /|   |
+        ///       x/_|___|   Negative Oriented       x-Vertices
+        ///       Tri Poly
+        ///
+        ///@return TriangleMeshPtrType.
+        TriangleMeshPtrType TriangulateDomain();
+
+        /// @brief Returns intersections (only values in DIRINDEX1 direction) with upper bound (mUpperBound[DIRINDEX2]).
+        /// @param [out] rVertices
+        /// @param Orientation
+        /// @param Tolerance: Default EPS0.
+        void FindAllIntersectionWithUpperBound(std::vector<double> &rVertices, OrientationType Orientation, double Tolerance = EPS0);
+
+        ///@brief Return EdgeId that overlaps rPoint in DIRINDEX1 direction. If multiple overlap, closest intersection is returned.
+        ///       Return -1 if no edge is found.
+        ///       Found if: rPoint[DIRINDEX1] > EgdeV1[DIRINDEX1] and rPoint[DIRINDEX1] < EgdeV2[DIRINDEX1]
+        ///@param rPoint
+        ///@param Positive Orientation of edges to be searched.
+        ///@param int
+        int FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation);
+
+        ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
+        ///@param rPoint Potential split point.
+        ///@param OrientationDest Oreintation of edges to split.
+        void SetSplitPoint(const Point2DType &rPoint, Orientation OrientationDest);
+
+        ///@brief Splits all edges at their defined split point.
+        ///@param Orientation Orientation of edges.
+        void SplitEdgesAtSplitPoint(OrientationType Orientation);
+
+        ////////////////////////
+        /// Setter Functions ///
+        ////////////////////////
 
         /// @brief Inserts edge into local containers.
         /// @param rV1 Point1 (3D-Point).
@@ -225,23 +301,6 @@ namespace tibra
         /// @param rOrientation Current orientation.
         /// @return True if edge is inserted.
         bool InsertEdge(const Point2DType& rV1, const Point2DType& rV2, OrientationType rOrientation );
-
-        /// @brief Coolects all edges and stores them in local containers. Sorts edges corresponding to their orientation.
-        ///        Positive oriented, Negative oriented, and vertically oriented.
-        /// @details
-        ///             ^
-        ///        -----|----- Positive oriented.
-        ///
-        ///        -----|----- Negative oriented.
-        ///             V
-        /// @param rTriangleMesh Clipped triangle mesh inside trimmed domain.
-        void CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh);
-
-        /// @brief Returns true if point is on given plane.
-        /// @param rPoint Test point (3D Point).
-        /// @param Tolerance
-        /// @return bool
-        inline bool IsPointOnPlane(const Point3DType &rPoint, double Tolerance = EPS1) const;
 
         ///@brief Returns vertex IDs of point container, for two points.
         ///       Returns std::pair(0,0), if rV1==rV2 (according to PointComparison()).
@@ -267,6 +326,10 @@ namespace tibra
         ///@param OrientationType Current orientation.
         void InsertVertex(const Point2DType &rPoint, IndexType NewIndex, OrientationType Orientation);
 
+        ////////////////////////
+        /// Setter Functions ///
+        ////////////////////////
+
         /// @brief Returns vertex V1 of edge.
         /// @param EdgeId
         /// @param Orientation
@@ -279,265 +342,60 @@ namespace tibra
         /// @return const Point2DType&
         const Point2DType& V2byEdgeId(IndexType EdgeId, OrientationType Orientation);
 
-        double GetPlanePosition() const {
-            if (mUpperBoundary) {
-                return mUpperBound[DIRINDEX3];
-            }
-            else {
-                return mLowerBound[DIRINDEX3];
-            }
-        }
-        ///@brief Refine edges on trimmed domain on plane. See @details for more information.
-        ///@details 1.) Checks if positive oriented edges span the entire AABB (we consider only the part that is inside the domain) in DIRINDEX1.
-        ///             If not new edges are introduced at top of AABB (UpperBound[DIRINDEX2]) to fill gaps.
-        ///        UB2                  UP2       _____
-        ///         |  out  /     |      |  out  /     |  new edges introduced since Point b is inside domain.
-        ///         |------/      | ---> |------/      |
-        ///         |  inside     |      |  inside     |
-        ///        LB12          UB1    LB12           UP1
-        ///
-        ///         UB2
-        ///         |  in   /     |      |  in   /     |  no new edges introduced since Point b is outside.
-        ///         |------/      | ---> |------/      |       LB1 - lower bound of AABB in DIRINDEX1
-        ///         |  outsid     |      |  outside    |       UP1 - upper bound of AABB in DIRINDEX1
-        ///        LB12          UB1    LB12           UP1
-        ///
-        ///         2.) Maps all negative oriented points onto positive oriented edges if overlap and vice versa.
-        ///             Such that the vertices of postive and negative oriented edges are at same position in: DIRINDEX1.
-        ///                 x--^-----x---^--x   positive oriented edges
-        ///                 |  |     |   |                                     DIRINDEX2
-        ///                 |  |     |   |                                         ^
-        ///            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
-        void RefineEdges();
-
-        /// @brief Returns intersections (only values in DIRINDEX1 direction) with upper bound (mUpperBound[DIRINDEX2]).
-        /// @param [out] rVertices
-        /// @param Orientation
-        /// @param Tolerance: Default EPS0.
-        void FindAllIntersectionWithUpperBound(std::vector<double> &rVertices, OrientationType Orientation, double Tolerance = EPS0);
-
-        ///@brief Return EdgeId that overlaps rPoint in DIRINDEX1 direction. If multiple overlap, closest intersection is returned.
-        ///       Return -1 if no edge is found.
-        ///       Found if: rPoint[DIRINDEX1] > EgdeV1[DIRINDEX1] and rPoint[DIRINDEX1] < EgdeV2[DIRINDEX1]
-        ///@param rPoint
-        ///@param Positive Orientation of edges to be searched.
-        ///@param int
-        int FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation);
-
-        ///@brief Triangulates the trimmed domain on plane (see @details for more information).
-        ///@details Assumes that the vertices of positive and negative oriented edges coincide along DIRINDEX1. See RefineEdges().
-        ///
-        ///          x___x   Positive Oriented      DIRINDEX2
-        ///         /|   |                              ^
-        ///   x___x/ |   |                              |----> DIRINDEX1
-        ///   |   |  |   |
-        ///   |   |  |   |
-        ///   x___x__x___x    Negative Oriented      x-Vertices
-        ///
-        /// Each vertical stripe is individually triangulated. First we generate a polygon with 4 vertices and the triangulate it.
-        /// If vertices of positve and negative edges coincide, only triangle are created.
-        ///
-        ///          x___x   Positive Oriented
-        ///         /|   |
-        ///       x/_|___|   Negative Oriented       x-Vertices
-        ///       Tri Poly
-        ///
-        ///@return TriangleMeshPtrType.
-        TriangleMeshPtrType Triangulate();
-
-        ///@brief Splits all edges at their defined split point.
-        ///@param rEdges to be split.
-        ///@param Positive Orientation of edges,
-        ///@todo See TODO in definition.
-        void SplitEdgesAtSplitPoint(std::vector<Egde2D> &rEdges, Orientation orientation)
-        {
-            std::vector<Egde2D> new_edges{};
-            for (int i = 0; i < rEdges.size(); ++i)
-            {
-                const auto &edge = rEdges[i];
-                auto split_points = edge.GetSplitPoints();
-                const IndexType num_split_points = split_points.size();
-                if (num_split_points > 0)
-                {
-
-                    std::sort(split_points.begin(), split_points.end(), [](const auto &point_a, const auto &point_b) -> bool
-                              { return point_a[0] < point_b[0]; });
-
-                    IndexType index1 = InsertVertex(V1byEdgeId(i, orientation), orientation);
-                    IndexType index2 = InsertVertex(split_points[0], orientation);
-                    new_edges.push_back(Egde2D(index1, index2));
-
-                    for (int j = 0; j < num_split_points - 1; ++j)
-                    {
-                        index1 = InsertVertex(split_points[j], orientation);
-                        index2 = InsertVertex(split_points[j + 1], orientation);
-                        new_edges.push_back(Egde2D(index1, index2));
-                    }
-
-                    index1 = InsertVertex(split_points[num_split_points - 1], orientation);
-                    index2 = InsertVertex(V2byEdgeId(i, orientation), orientation);
-                    new_edges.push_back(Egde2D(index1, index2));
-                }
-                else
-                {
-                    new_edges.push_back(edge);
-                }
-            }
-
-            // TODO: Make ptr and swap!!!
-            rEdges.clear();
-            rEdges.insert(rEdges.begin(), new_edges.begin(), new_edges.end());
-        }
-
-        ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
-        ///@param rPoint Potential split point.
-        ///@param OrientationDest Oreintation of edges to split.
-        void SetSplitPoint(const Point2DType &rPoint, Orientation OrientationDest);
-
-        bool IsPositive(Orientation Orientation)
-        {
-            switch (Orientation)
-            {
-            case Orientation::Positive:
-                return true;
-            case Orientation::Negative:
-                return false;
-            case Orientation::Vertical:
-                throw std::runtime_error("error");
-            default:
-                throw std::runtime_error("error");
-            }
-        }
-
-        ///@brief Returns Edges container.  (const version)
-        ///@param Positive orientation of edges
+        ///@brief Returns Edges container. (const version)
+        ///@param Orientation orientation of edges
         ///@return const std::vector<Egde2D>&
-        const std::vector<Egde2D> &GetEdges(Orientation Orientation) const
-        {
-            switch (Orientation)
-            {
-            case Orientation::Positive:
-                return mEdgesPositiveOriented;
-            case Orientation::Negative:
-                return mEdgesNegativeOriented;
-            case Orientation::Vertical:
-                return mEdgesVertical;
-            default:
-                throw std::runtime_error("error");
-            }
-        }
+        const std::vector<Egde2D>& GetEdges(OrientationType Orientation) const;
 
         ///@brief Returns Edges container.  (non const version)
-        ///@param Positive orientation of edges
+        ///@param Orientation orientation of edges
         ///@return std::vector<Egde2D>&
-        std::vector<Egde2D> &GetEdges(Orientation Orientation)
-        {
-            switch (Orientation)
-            {
-            case Orientation::Positive:
-                return mEdgesPositiveOriented;
-            case Orientation::Negative:
-                return mEdgesNegativeOriented;
-            case Orientation::Vertical:
-                return mEdgesVertical;
-            default:
-                throw std::runtime_error("error");
-            }
-        }
+        std::vector<Egde2D>& GetEdges(OrientationType Orientation);
 
-        ///@brief Returns vertices container.  (const version)
-        ///@param Positive orientation of vertices
+        ///@brief Returns vertices container. (const version)
+        ///@param Orientation Orientation of vertices
         ///@return const std::vector<Point2DType>&
-        const std::vector<Point2DType> &GetVertices(Orientation Orientation) const
-        {
-            switch (Orientation)
-            {
-            case Orientation::Positive:
-                return mVerticesPositive;
-            case Orientation::Negative:
-                return mVerticesNegative;
-            case Orientation::Vertical:
-                return mVerticesVertical;
-            default:
-                throw std::runtime_error("Error");
-                break;
-            }
-        }
+        const std::vector<Point2DType>& GetVertices(OrientationType Orientation) const;
 
         ///@brief Returns vertices container.  (non-const version)
-        ///@param Positive orientation of vertices
+        ///@param Orientation Orientation of vertices
         ///@return std::vector<Point2DType>&
-        std::vector<Point2DType> &GetVertices(Orientation orientation)
-        {
-            switch (orientation)
-            {
-            case Orientation::Positive:
-                return mVerticesPositive;
-            case Orientation::Negative:
-                return mVerticesNegative;
-            case Orientation::Vertical:
-                return mVerticesVertical;
-            default:
-                throw std::runtime_error("Error");
-                break;
-            }
-        }
+        std::vector<Point2DType>& GetVertices(OrientationType Orientation);
 
-        ///@brief Returns vertices container.  (non-const version)
-        ///@param Positive orientation of vertices
-        ///@return std::vector<Point2DType>&
-        Point2DSetType &GetVerticesSet(Orientation orientation)
-        {
-            switch (orientation)
-            {
-            case Orientation::Positive:
-                return mVerticesSetPositive;
-            case Orientation::Negative:
-                return mVerticesSetNegative;
-            case Orientation::Vertical:
-                return mVerticesSetVertical;
-            default:
-                throw std::runtime_error("Error");
-                break;
-            }
-        }
+        ///@brief Returns vertices set.  (non-const version)
+        ///@param Orientation Orientation of vertices
+        ///@return Point2DSetType&
+        Point2DSetType& GetVerticesSet(OrientationType Orientation);
 
-        ///@brief Returns numver of edges.
+        ///@brief Returns number of edges.
         ///@param Positive Orientation of edges.
         ///@return IndexType
-        IndexType GetNumberEdges(Orientation orientation)
-        {
-            switch (orientation)
-            {
-            case Orientation::Positive:
-                return mEdgesPositiveOriented.size();
-            case Orientation::Negative:
-                return mEdgesNegativeOriented.size();
-            case Orientation::Vertical:
-                return mEdgesVertical.size();
-            default:
-                throw std::runtime_error("Error");
-                break;
-            }
-        }
+        IndexType GetNumberEdges(OrientationType Orientation);
+
+        /// @brief Returns offset of plane to origin.
+        /// @return double
+        double GetPlanePosition() const;
 
         ///@}
         ///@name Private Members
         ///@{
 
+        /// Edges container
         std::vector<Egde2D> mEdgesPositiveOriented{};
         std::vector<Egde2D> mEdgesNegativeOriented{};
         std::vector<Egde2D> mEdgesVertical{};
 
-        Point2DSetType mVerticesSetPositive{};
+        /// Vertices container
         std::vector<Point2DType> mVerticesPositive{};
-
-        Point2DSetType mVerticesSetNegative{};
         std::vector<Point2DType> mVerticesNegative{};
-
-        Point2DSetType mVerticesSetVertical{};
         std::vector<Point2DType> mVerticesVertical{};
 
+        /// Vertices sets. Used for fast search, if new vertex already exists.
+        Point2DSetType mVerticesSetPositive{};
+        Point2DSetType mVerticesSetNegative{};
+        Point2DSetType mVerticesSetVertical{};
+
+        /// Plane direction indices
         IndexType DIRINDEX1; // In plane 1
         IndexType DIRINDEX2; // In plane 2
         IndexType DIRINDEX3; // Out of plane

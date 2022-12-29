@@ -11,8 +11,34 @@ namespace tibra
 
 typedef TrimmedDomainOnPlane::Point2DType Point2DType;
 typedef TrimmedDomainOnPlane::TriangleMeshPtrType TriangleMeshPtrType;
+typedef TrimmedDomainOnPlane::Egde2D Egde2D;
+typedef TrimmedDomainOnPlane::Point2DType Point2DType;
+typedef TrimmedDomainOnPlane::Point2DSetType Point2DSetType;
 
-void TrimmedDomainOnPlane::RefineEdges() {
+
+void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
+{
+    const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlane();
+    const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);
+
+    const auto& r_vertices = rTriangleMesh.GetVertices();
+    const auto& edges_on_plane = edges_on_planes[plane_index];
+    // Should only require 2UL*edges_on_plane.size(), however small buffer is used.
+    // Note, initial capacity must be large enough. New allocation is not allowed and will crash.
+    Reserve( std::max(3UL*edges_on_plane.size(),10UL) );
+    for( const auto& edge : edges_on_plane ){
+        const IndexType vertex_index_1 = std::get<0>(edge);
+        const IndexType vertex_index_2 = std::get<1>(edge);
+        const IndexType normal_index = std::get<2>(edge);
+
+        const auto& P1 = r_vertices[vertex_index_1];
+        const auto& P2 = r_vertices[vertex_index_2];
+        const auto& normal = rTriangleMesh.Normal(normal_index);
+        InsertEdge(P1, P2, normal);
+    }
+}
+
+void TrimmedDomainOnPlane::CloseContourEdges() {
     /// 1.Checks if positive oriented edges span the entire AABB
 
     /// Find all intersections of Edges with upper bound of AABB.
@@ -81,11 +107,11 @@ void TrimmedDomainOnPlane::RefineEdges() {
     }
 
     /// Split edges
-    SplitEdgesAtSplitPoint(mEdgesNegativeOriented, Orientation::Negative);
-    SplitEdgesAtSplitPoint(mEdgesPositiveOriented, Orientation::Positive);
+    SplitEdgesAtSplitPoint(Orientation::Negative);
+    SplitEdgesAtSplitPoint(Orientation::Positive);
 }
 
-TriangleMeshPtrType TrimmedDomainOnPlane::Triangulate()
+TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain()
 {
     Point3DType normal = {0.0, 0.0, 0.0};
     double plane_position = GetPlanePosition();
@@ -223,18 +249,17 @@ TriangleMeshPtrType TrimmedDomainOnPlane::Triangulate()
             p_new_mesh->Append(*p_new_triangles);
         }
     }
-
     return std::move(p_new_mesh);
 }
 
-bool TrimmedDomainOnPlane::InsertEdge(const Point2DType& rV1, const Point2DType& rV2, OrientationType rOrientation ){
+bool TrimmedDomainOnPlane::InsertEdge(const Point2DType& rV1, const Point2DType& rV2, OrientationType Orientation ){
     // Get unique vertex indices.
-    auto indices = GetUniqueVertexIDs(rV1, rV2, rOrientation);
+    auto indices = GetUniqueVertexIDs(rV1, rV2, Orientation);
     // Only insert if indices are not the same.
     if (indices.first != indices.second) {
-        InsertVertex(rV1, indices.first, rOrientation);
-        InsertVertex(rV2, indices.second, rOrientation);
-        auto& r_edges = GetEdges(rOrientation);
+        InsertVertex(rV1, indices.first, Orientation);
+        InsertVertex(rV2, indices.second, Orientation);
+        auto& r_edges = GetEdges(Orientation);
         r_edges.push_back(Egde2D(indices.first, indices.second));
         return true;
     }
@@ -270,9 +295,9 @@ void TrimmedDomainOnPlane::InsertEdge(const Point3DType& rV1, const Point3DType&
 
 std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const Point2DType &rV1, const Point2DType &rV2, OrientationType Orientation)
 {
-    auto &r_vertices = GetVertices(Orientation);
+    auto& r_vertices = GetVertices(Orientation);
     auto& r_vertices_set = GetVerticesSet(Orientation);
-    auto &r_edges = GetEdges(Orientation);
+    auto& r_edges = GetEdges(Orientation);
 
     // Instaniate a tmp_vector, as the following functio call require iterators.
     std::vector<Point2DType> tmp_vector = {rV1, rV2};
@@ -323,55 +348,14 @@ void TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, IndexType New
     auto &r_vertices = GetVertices(Orientation);
     auto& r_vertices_set = GetVerticesSet(Orientation);
     IndexType index = r_vertices.size();
-    if (NewIndex < index) {
-        r_vertices[NewIndex] = rPoint;
-    }
-    else if (NewIndex == index) {
+    if (NewIndex == index) {
         r_vertices.push_back(rPoint);
         auto res = r_vertices_set.insert(--r_vertices.end());
         if( !res.second )
             throw std::runtime_error("TrimmedDomainOnPlane :: InsertVertex :: Vetrex already exists.");
     }
-    else {
+    else if(NewIndex > index) {
         throw std::runtime_error("TrimmedDomainOnPlane :: InsertVertex :: Given index out of range.");
-    }
-}
-
-void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
-{
-    const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlane();
-    const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);
-
-    const auto& r_vertices = rTriangleMesh.GetVertices();
-    const auto& edges_on_plane = edges_on_planes[plane_index];
-
-    for( const auto& edge : edges_on_plane ){
-        const IndexType vertex_index_1 = std::get<0>(edge);
-        const IndexType vertex_index_2 = std::get<1>(edge);
-        const IndexType normal_index = std::get<2>(edge);
-
-        const auto& P1 = r_vertices[vertex_index_1];
-        const auto& P2 = r_vertices[vertex_index_2];
-        const auto& normal = rTriangleMesh.Normal(normal_index);
-        InsertEdge(P1, P2, normal);
-    }
-}
-
-bool TrimmedDomainOnPlane::IsPointOnPlane(const Point3DType &rPoint, double Tolerance) const
-{
-    if (mUpperBoundary) {
-        if ((rPoint[DIRINDEX3] < mUpperBound[DIRINDEX3] + Tolerance)
-            && (rPoint[DIRINDEX3] > mUpperBound[DIRINDEX3] - Tolerance)) {
-            return true;
-        }
-        return false;
-    }
-    else {
-        if ((rPoint[DIRINDEX3] < mLowerBound[DIRINDEX3] + Tolerance)
-            && (rPoint[DIRINDEX3] > mLowerBound[DIRINDEX3] - Tolerance)) {
-            return true;
-        }
-        return false;
     }
 }
 
@@ -399,7 +383,106 @@ const Point2DType& TrimmedDomainOnPlane::V2byEdgeId(IndexType EdgeId, Orientatio
     case Orientation::Vertical:
         return mVerticesVertical[mEdgesVertical[EdgeId].V2()];
     default:
-        throw std::runtime_error("V2byEdgeId");
+        throw std::runtime_error("TrimmedDomainOnPlane :: V2byEdgeId :: Given Orientation not available.");
+    }
+}
+
+const std::vector<Egde2D>& TrimmedDomainOnPlane::GetEdges(OrientationType Orientation) const {
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mEdgesPositiveOriented;
+    case Orientation::Negative:
+        return mEdgesNegativeOriented;
+    case Orientation::Vertical:
+        return mEdgesVertical;
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetEdges :: Orientation not valid.");
+    }
+}
+
+std::vector<Egde2D>& TrimmedDomainOnPlane::GetEdges(OrientationType Orientation) {
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mEdgesPositiveOriented;
+    case Orientation::Negative:
+        return mEdgesNegativeOriented;
+    case Orientation::Vertical:
+        return mEdgesVertical;
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetEdges :: Orientation not valid.");
+    }
+}
+
+const std::vector<Point2DType>& TrimmedDomainOnPlane::GetVertices(OrientationType Orientation) const
+{
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mVerticesPositive;
+    case Orientation::Negative:
+        return mVerticesNegative;
+    case Orientation::Vertical:
+        return mVerticesVertical;
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetVertices :: Orientation not valid.");
+        break;
+    }
+}
+
+std::vector<Point2DType>& TrimmedDomainOnPlane::GetVertices(OrientationType Orientation)
+{
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mVerticesPositive;
+    case Orientation::Negative:
+        return mVerticesNegative;
+    case Orientation::Vertical:
+        return mVerticesVertical;
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetVertices :: Orientation not valid.");
+        break;
+    }
+}
+
+Point2DSetType& TrimmedDomainOnPlane::GetVerticesSet(OrientationType Orientation) {
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mVerticesSetPositive;
+    case Orientation::Negative:
+        return mVerticesSetNegative;
+    case Orientation::Vertical:
+        return mVerticesSetVertical;
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetVerticesSet :: Orientation not valid.");
+        break;
+    }
+}
+
+IndexType TrimmedDomainOnPlane::GetNumberEdges(OrientationType Orientation) {
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mEdgesPositiveOriented.size();
+    case Orientation::Negative:
+        return mEdgesNegativeOriented.size();
+    case Orientation::Vertical:
+        return mEdgesVertical.size();
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetNumberEdges :: Orientation not valid.");
+        break;
+    }
+}
+
+double TrimmedDomainOnPlane::GetPlanePosition() const {
+    if (mUpperBoundary) {
+        return mUpperBound[DIRINDEX3];
+    }
+    else {
+        return mLowerBound[DIRINDEX3];
     }
 }
 
@@ -496,6 +579,51 @@ void TrimmedDomainOnPlane::SetSplitPoint(const Point2DType &rPoint, Orientation 
     if (edge_id > -1)
     {
         r_edges_dest[edge_id].AddSplitPoint(intersection_point);
+    }
+}
+
+void TrimmedDomainOnPlane::SplitEdgesAtSplitPoint(OrientationType Orientation)
+{
+    auto& r_edges = GetEdges(Orientation);
+
+    IndexType pos = 0;
+    IndexType size = r_edges.size();
+    while( pos < size ) {
+        auto& edge = r_edges[pos];
+        auto& split_points = edge.GetSplitPoints();
+
+        const IndexType num_split_points = split_points.size();
+        if (num_split_points > 0) {
+            std::sort(split_points.begin(), split_points.end(), [](auto &point_a, auto &point_b) -> bool
+                { return point_a[0] < point_b[0]; });
+
+            /// Insert egde (vertex V1 + first split point)
+            IndexType index1 = edge.V1();
+            IndexType index2 = InsertVertex(split_points[0], Orientation);
+            r_edges.push_back(Egde2D(index1, index2));
+
+            /// Insert egdes (only split points.)
+            for (int j = 0; j < num_split_points - 1; ++j) {
+                index1 = InsertVertex(split_points[j], Orientation);
+                index2 = InsertVertex(split_points[j + 1], Orientation);
+                r_edges.push_back(Egde2D(index1, index2));
+            }
+
+            /// Insert egde (last split point + vertex V2)
+            index1 = InsertVertex(split_points[num_split_points - 1], Orientation);
+            index2 = edge.V2();
+            r_edges.push_back(Egde2D(index1, index2));
+
+            split_points.clear();
+
+            // Remove original edge
+            r_edges.erase( r_edges.begin() + pos );
+            --size;
+        }
+        else {
+            // Keep original edge as is and increment to next one.
+            ++pos;
+        }
     }
 }
 
