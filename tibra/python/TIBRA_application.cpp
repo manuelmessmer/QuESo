@@ -152,6 +152,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("P1", &TriangleMesh::P1)
         .def("P2", &TriangleMesh::P2)
         .def("P3", &TriangleMesh::P3)
+        .def("Reserve", &TriangleMesh::Reserve)
     ;
 
     /// Export MeshUtilities
