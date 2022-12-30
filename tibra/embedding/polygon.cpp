@@ -71,21 +71,21 @@ void Polygon<SIZE>::Clear(){
 }
 
 template<IndexType SIZE>
-std::unique_ptr<TriangleMesh> Polygon<SIZE>::pGetTriangleMesh() const {
-    auto p_new_mesh = std::make_unique<TriangleMesh>();
-    p_new_mesh->Reserve(mNumVertices);
-
+void Polygon<SIZE>::AddToTriangleMesh(TriangleMesh& rTriangleMesh) const {
     if(mNumVertices < 3){
-        return std::move(p_new_mesh);
+        return;
     }
 
-    if( mNumVertices == 3 ){
-        p_new_mesh->AddVertex( mVertices[0].first );
-        p_new_mesh->AddVertex( mVertices[1].first );
-        p_new_mesh->AddVertex( mVertices[2].first );
+    const IndexType num_v = rTriangleMesh.NumOfVertices();
+    const IndexType num_t = rTriangleMesh.NumOfTriangles();
 
-        p_new_mesh->AddTriangle( {0, 1, 2} );
-        p_new_mesh->AddNormal( mNormal );
+    if( mNumVertices == 3 ){
+        rTriangleMesh.AddVertex( mVertices[0].first );
+        rTriangleMesh.AddVertex( mVertices[1].first );
+        rTriangleMesh.AddVertex( mVertices[2].first );
+
+        rTriangleMesh.AddTriangle( {num_v+0, num_v+1, num_v+2} );
+        rTriangleMesh.AddNormal( mNormal );
 
         // Add edges, that are located on a plane, to the mesh.
         // Planes: (-x, +x, -y, y, -z, z)
@@ -97,17 +97,16 @@ std::unique_ptr<TriangleMesh> Polygon<SIZE>::pGetTriangleMesh() const {
                 throw std::runtime_error("Polygon :: pGetTriangleMesh :: All vertices are set on plane.");
             }
             if( v1_on_plane && v2_on_plane ){
-                p_new_mesh->AddEdgeOnPlane(plane_index, 0, 1, 0);
+                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+0, num_v+1, num_t+0);
             }
             else if( v2_on_plane && v3_on_plane ){
-                p_new_mesh->AddEdgeOnPlane(plane_index, 1, 2, 0);
+                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+1, num_v+2, num_t+0);
             }
             else if( v3_on_plane && v1_on_plane ){
-                p_new_mesh->AddEdgeOnPlane(plane_index, 2, 0, 0);
+                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+2, num_v+0, num_t+0);
             }
         }
-
-        return std::move(p_new_mesh);
+        return;
     }
 
     // Compute mean of vertices
@@ -117,43 +116,43 @@ std::unique_ptr<TriangleMesh> Polygon<SIZE>::pGetTriangleMesh() const {
     }
     centroid /= mNumVertices;
 
-    IndexType vertex_count = 0;
-    IndexType triangle_count = 0;
+    IndexType vertex_count = num_v;
+    IndexType triangle_count = num_t;
     for( IndexType i = 0 ; i < mNumVertices-1; ++i){
-        p_new_mesh->AddVertex( mVertices[i].first );
-        p_new_mesh->AddVertex( mVertices[i+1].first );
-        p_new_mesh->AddVertex( centroid );
+        rTriangleMesh.AddVertex( mVertices[i].first );
+        rTriangleMesh.AddVertex( mVertices[i+1].first );
+        rTriangleMesh.AddVertex( centroid );
 
-        p_new_mesh->AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2} );
-        p_new_mesh->AddNormal( mNormal );
+        rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2} );
+        rTriangleMesh.AddNormal( mNormal );
 
         for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
             const bool v1_on_plane = mVertices[i].second[plane_index];
             const bool v2_on_plane = mVertices[i+1].second[plane_index];
             if( v1_on_plane && v2_on_plane ){
-                p_new_mesh->AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
+                rTriangleMesh.AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
             }
         }
         ++triangle_count;
         vertex_count += 3;
     }
 
-    p_new_mesh->AddVertex( mVertices[mNumVertices-1].first );
-    p_new_mesh->AddVertex( mVertices[0].first );
-    p_new_mesh->AddVertex( centroid );
+    rTriangleMesh.AddVertex( mVertices[mNumVertices-1].first );
+    rTriangleMesh.AddVertex( mVertices[0].first );
+    rTriangleMesh.AddVertex( centroid );
 
-    p_new_mesh->AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2 } );
-    p_new_mesh->AddNormal( mNormal );
+    rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2 } );
+    rTriangleMesh.AddNormal( mNormal );
 
     for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
         const bool v1_on_plane = mVertices[mNumVertices-1].second[plane_index];
         const bool v2_on_plane = mVertices[0].second[plane_index];
         if( v1_on_plane && v2_on_plane ){
-            p_new_mesh->AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
+            rTriangleMesh.AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
         }
     }
 
-    return std::move(p_new_mesh);
+    return;
 }
 
 

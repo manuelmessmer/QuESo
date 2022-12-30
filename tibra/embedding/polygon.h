@@ -85,7 +85,7 @@ public:
 
     ///@brief Triangulates polygon based on centroide and returns triangles. Centroid is computed as mean of all vertices.
     ///@return std::unique_ptr<TriangleMesh> Contains vertices of triangles.
-    std::unique_ptr<TriangleMesh> pGetTriangleMesh() const;
+    void AddToTriangleMesh(TriangleMesh& rTriangleMesh) const;
 
     ///@brief Clears vertex container of polygon.
     void Clear();
