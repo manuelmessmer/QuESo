@@ -40,7 +40,7 @@ std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTri
 
     for( int triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id){
         area += rTriangleMesh.Area(triangle_id);
-        auto p_ips = rTriangleMesh.GetIPsGlobal(triangle_id, 1);
+        auto p_ips = rTriangleMesh.pGetIPsGlobal(triangle_id, 1);
         for( auto& ip : (*p_ips) ){
             weighted_normal += rTriangleMesh.Normal(triangle_id)*ip.GetWeight();
         }

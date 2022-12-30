@@ -146,7 +146,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
             return self.Area(Id);
         })
         .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
-            return self.GetIPsGlobal(Id, Method);
+            return self.pGetIPsGlobal(Id, Method);
         })
         .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
         .def("P1", &TriangleMesh::P1)

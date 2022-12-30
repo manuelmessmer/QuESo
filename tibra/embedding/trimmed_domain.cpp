@@ -172,7 +172,7 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
         p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*6UL);
         for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
             IndexType method = 3; // Creates 6 points per triangle.
-            auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, method);
+            auto p_new_points = mpTriangleMesh->pGetIPsGlobal(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
         }
 

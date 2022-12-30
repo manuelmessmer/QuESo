@@ -10,17 +10,16 @@
 #include <cmath>
 #include <memory>
 #include <iostream>
-#include <map>
+
 //// Project includes
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"
+#include "utilities/utilities.h"
 
 namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
-
-///
 /**
  * @class  TriangleMesh
  * @author Manuel Messmer
@@ -44,15 +43,17 @@ public:
     /// @brief Area of triangle.
     /// @param TriangleId
     /// @return double.
-    /// @todo Consider using more efficient std::pow alternative.
     double Area(IndexType TriangleId) const {
         const auto& P1 = this->P1(TriangleId);
         const auto& P2 = this->P2(TriangleId);
         const auto& P3 = this->P3(TriangleId);
 
-        const double a = std::sqrt( std::pow(P1[0] - P2[0], 2) + std::pow(P1[1] - P2[1], 2) + std::pow(P1[2] - P2[2], 2));
-        const double b = std::sqrt( std::pow(P2[0] - P3[0], 2) + std::pow(P2[1] - P3[1], 2) + std::pow(P2[2] - P3[2], 2));
-        const double c = std::sqrt( std::pow(P3[0] - P1[0], 2) + std::pow(P3[1] - P1[1], 2) + std::pow(P3[2] - P1[2], 2));
+        const double a = std::sqrt( utilities::power(P1[0] - P2[0], 2)
+            + utilities::power(P1[1] - P2[1], 2) + utilities::power(P1[2] - P2[2], 2));
+        const double b = std::sqrt( utilities::power(P2[0] - P3[0], 2)
+            + utilities::power(P2[1] - P3[1], 2) + utilities::power(P2[2] - P3[2], 2));
+        const double c = std::sqrt( utilities::power(P3[0] - P1[0], 2)
+            + utilities::power(P3[1] - P1[1], 2) + utilities::power(P3[2] - P1[2], 2));
 
         const double s = (a+b+c) / 2.0;
         const double radicand = s*(s-a)*(s-b)*(s-c);
@@ -62,7 +63,7 @@ public:
         return std::sqrt(radicand);
     }
 
-    /// @brief Outward point normal.
+    /// @brief Outward pointing normal.
     /// @param TriangleId
     /// @return Vector3d.
     const Vector3d& Normal(IndexType TriangleId) const{
@@ -77,20 +78,14 @@ public:
         const auto P2 = this->P2(TriangleId);
         const auto P3 = this->P3(TriangleId);
 
-        Vector3d tmp_point = {0.0, 0.0, 0.0};
-        tmp_point[0] = 1.0/3.0 * (P1[0] + P2[0] + P3[0]);
-        tmp_point[1] = 1.0/3.0 * (P1[1] + P2[1] + P3[1]);
-        tmp_point[2] = 1.0/3.0 * (P1[2] + P2[2] + P3[2]);
-
-        return tmp_point;
+        return (P1+P2+P3) * (1.0/3.0);
     }
 
     /// @brief Get boundary integration points in global space.
     /// @param TriangleId
     /// @param Method integration method.
-    /// @return IntegrationPointVectorPtrType.
-    /// @todo Rename to pGetIPsGloba()
-    BoundaryIpVectorPtrType GetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
+    /// @return BoundaryIpVectorPtrType.
+    BoundaryIpVectorPtrType pGetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
@@ -155,6 +150,7 @@ public:
         mVertices.clear();
         mNormals.clear();
         mTriangles.clear();
+        mEdgesOnPlanes.clear();
     }
 
     ///@brief Reserve all containers for normal vertices and triangles.
@@ -236,11 +232,14 @@ public:
         return mVertices.size();
     }
 
-    ///@brief Get vertices from mesh.
+    ///@brief Get vertices from mesh. (const version)
+    ///@return const std::vector<Vector3d>&
     const std::vector<Vector3d>& GetVertices() const {
         return mVertices;
     }
 
+    /// @brief Get vertices from mesh. (non-const version)
+    /// @return std::vector<Vector3d>&
     std::vector<Vector3d>& GetVertices() {
         return mVertices;
     }

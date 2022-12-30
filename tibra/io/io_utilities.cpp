@@ -1,7 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-
+//// STL includes
+#include <map>
 //// Project includes
 #include "io/io_utilities.h"
 
