@@ -8,6 +8,7 @@
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
 #include "utilities/mesh_utilities.h"
+#include "io/io_utilities.h"
 
 namespace tibra {
 
@@ -16,7 +17,7 @@ typedef TrimmedDomainBase::BoundingBox BoundingBox;
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
 
-    const IndexType num_triangles = mpTriangleMesh->NumOfTriangles();
+    const IndexType num_triangles = mClippedMesh.NumOfTriangles();
     if( num_triangles == 0){
         return true;
     }
@@ -29,7 +30,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
             return false;
         }
         // Get direction
-        const auto center_triangle = mpTriangleMesh->Center(current_id);
+        const auto center_triangle = mClippedMesh.Center(current_id);
         Vector3d direction = center_triangle - rPoint;
 
         // Normalize
@@ -51,9 +52,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         double min_distance = std::numeric_limits<double>::max();
         is_inside = false;
         for( auto r : potential_intersections){
-            const auto& p1 = mpTriangleMesh->P1(r);
-            const auto& p2 = mpTriangleMesh->P2(r);
-            const auto& p3 = mpTriangleMesh->P3(r);
+            const auto& p1 = mClippedMesh.P1(r);
+            const auto& p2 = mClippedMesh.P2(r);
+            const auto& p3 = mClippedMesh.P3(r);
             double t, u, v;
             bool back_facing, parallel;
             if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
@@ -116,7 +117,7 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
         }
     }
 
-    const auto& vertices = mpTriangleMesh->GetVertices();
+    const auto& vertices = mClippedMesh.GetVertices();
     for( auto& v : vertices ){
         // Loop over all 3 dimensions
         for( IndexType i = 0; i < 3; ++i){

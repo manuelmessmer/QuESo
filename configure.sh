@@ -22,8 +22,8 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
-    -DUSE_CGAL=ON \
-    -DCGAL_DIR="../external_libraries/cgal" \
+    -DUSE_CGAL=OFF \
+    -DCGAL_DIR="..." \
 
 # Buid
 cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j$(nproc)

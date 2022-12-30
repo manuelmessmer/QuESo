@@ -107,14 +107,6 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
     return nullptr;
 }
 
-BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
-        const Element& rElement) const {
-
-    const auto& lower_bound = rElement.GetLowerBound();
-    const auto& upper_bound = rElement.GetLowerBound();
-    return GetIntersectionState(lower_bound, upper_bound, EPS1);
-}
-
 
 std::unique_ptr<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
         const PointType& rLowerBound, const PointType& rUpperBound ) const{

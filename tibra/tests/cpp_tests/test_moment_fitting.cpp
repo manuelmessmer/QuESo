@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, parameters);
 
-    PointType point_a_domain = {0.0, -0.1, -0.1};
+    PointType point_a_domain = {0.1, -0.1, -0.1};
     PointType point_b_domain = {2.1, 2.1, 3.1};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
-        element.GetLowerBound(), element.GetUpperBound(), parameters);
+        element.GetLowerBound(), element.GetUpperBound());
 
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, parameters);
 
-    PointType point_a_domain = {0.0, -0.1, -0.1};
+    PointType point_a_domain = {0.1, -0.1, -0.1};
     PointType point_b_domain = {2.1, 2.1, 1.1};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
-        element.GetLowerBound(), element.GetUpperBound(), parameters);
+        element.GetLowerBound(), element.GetUpperBound());
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );
     element.SetIsTrimmed(true);

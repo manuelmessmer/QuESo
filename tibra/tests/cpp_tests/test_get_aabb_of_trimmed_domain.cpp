@@ -11,7 +11,6 @@
 #include "containers/element_container.h"
 #include "containers/triangle_mesh.h"
 #include "embedding/brep_operator.h"
-#include "cgal_wrapper/cgal_brep_operator.h"
 #include "io/io_utilities.h"
 
 namespace tibra {
@@ -48,7 +47,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 Vector3d lower_bound = {x, y, z};
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == BRepOperator::Trimmed){
+                if( status == BRepOperatorBase::Trimmed){
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(lower_bound, upper_bound);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
@@ -99,7 +98,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == BRepOperator::Trimmed){
+                if( status == BRepOperatorBase::Trimmed){
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(lower_bound, upper_bound);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
@@ -153,7 +152,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == BRepOperator::Trimmed){
+                if( status == BRepOperatorBase::Trimmed){
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(lower_bound, upper_bound);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
@@ -202,7 +201,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == BRepOperator::Trimmed){
+                if( status == BRepOperatorBase::Trimmed){
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(lower_bound, upper_bound);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );

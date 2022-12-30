@@ -9,6 +9,7 @@
 /// Project includes
 #include "embedding/trimmed_domain_base.h"
 #include "embedding/aabb_tree.h"
+#include "utilities/mesh_utilities.h"
 
 namespace tibra {
 
@@ -38,6 +39,10 @@ public:
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
         : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
+        ///TODO: Improve this!
+        const auto& mesh = GetTriangleMesh();
+        mClippedMesh.Reserve(mesh.NumOfTriangles());
+        MeshUtilities::Append(mClippedMesh, mesh);
     }
 
     ///@}
@@ -67,6 +72,7 @@ private:
     ///@{
 
     AABB_tree mTree;
+    TriangleMesh mClippedMesh;
     ///@}
 };
 

@@ -252,10 +252,15 @@ public:
         for( int i = 0; i < this->size(); ++i){
             auto el_itr = *(begin_el_itr_ptr + i);
             IntegrationPointVectorType points_tmp;
-            if( std::strcmp(type,"Trimmed") == 0 || std::strcmp(type,"All") == 0){
-                points_tmp = el_itr->GetIntegrationPoints();
+            if( std::strcmp(type,"Trimmed") == 0 ){
+                if( el_itr->IsTrimmed() )
+                    points_tmp = el_itr->GetIntegrationPoints();
             }
-            else if( std::strcmp(type,"Inside") == 0 || std::strcmp(type,"All") == 0){
+            else if( std::strcmp(type,"Inside") == 0 ){
+                if( !el_itr->IsTrimmed() )
+                    points_tmp = el_itr->GetIntegrationPoints();
+            }
+            else if( std::strcmp(type,"All") == 0 ){
                 points_tmp = el_itr->GetIntegrationPoints();
             }
             else {
