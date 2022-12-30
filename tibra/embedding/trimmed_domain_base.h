@@ -89,6 +89,7 @@ public:
         // Get Ids of all triangles that are inside given domain.
         std::vector<IndexType> triangle_ids;
         const IndexType num_triangles = mpTriangleMesh->NumOfTriangles();
+        triangle_ids.reserve(num_triangles);
         for( IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id ){
             const auto& p1 = mpTriangleMesh->P1(triangle_id);
             const auto& p2 = mpTriangleMesh->P2(triangle_id);
@@ -105,7 +106,6 @@ public:
         auto p_new_mesh = std::make_unique<TriangleMesh>();
         p_new_mesh->Reserve(mpTriangleMesh->NumOfTriangles());
         MeshUtilities::Append(*p_new_mesh, *mpTriangleMesh, triangle_ids);
-
         return std::move(p_new_mesh);
     }
 
