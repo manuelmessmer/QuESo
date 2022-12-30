@@ -10,13 +10,10 @@ Before using TIBRA, please check if all unit tests pass: `./run_all_test all`
 
 A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
 
-### Update:
-TIBRA will soon be available under the MIT license. Currently, TIBRA relies on 'The Computational Geometry Algorithms Library' (CGAL) to perform the required geometric operations. Because of this dependency, TIBRA is licensed under the GPL 3.0. I am currently in the process of removing all CGAL dependencies from TIBRA. Once this process is complete, TIBRA will be distributed under the MIT license. I will keep CGAL support as an optional dependency for benchmarking, etc.
-
 ## Installation (Linux)
 Required dependencies (C++):
 
- &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev libmpfr-dev`
+ &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev`
 
 Required Python modules:
 
