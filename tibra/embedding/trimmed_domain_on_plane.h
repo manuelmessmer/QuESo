@@ -218,7 +218,7 @@ private:
     ///       Tri Poly
     ///
     ///@return TriangleMeshPtrType.
-    TriangleMeshPtrType TriangulateDomain();
+    TriangleMeshPtrType TriangulateDomain() const;
 
     /// @brief Returns intersections (only values in DIRINDEX1 direction) with upper bound (mUpperBound[DIRINDEX2]).
     /// @param [out] rVertices
@@ -232,12 +232,12 @@ private:
     ///@param rPoint
     ///@param Positive Orientation of edges to be searched.
     ///@param int
-    int FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation);
+    int FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation) const;
 
     ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
     ///@param rPoint Potential split point.
     ///@param OrientationDest Oreintation of edges to split.
-    void SetSplitPoint(const Point2DType &rPoint, Orientation OrientationDest);
+    void SetSplitPoint(const Point2DType &rPoint, OrientationType OrientationDest);
 
     ///@brief Splits all edges at their defined split point.
     ///@param Orientation Orientation of edges.
@@ -260,16 +260,6 @@ private:
     /// @return True if edge is inserted.
     bool InsertEdge(const Point2DType& rV1, const Point2DType& rV2, OrientationType rOrientation );
 
-    ///@brief Returns vertex IDs of point container, for two points.
-    ///       Returns std::pair(0,0), if rV1==rV2 (according to PointComparison()).
-    ///       If rV1 or rV2 are new points, a new index is created.
-    ///@details std::vector<Point2DType> are the actual vertex containers. This function returns, the index of those vectors.
-    ///         std::set<std::vector<Point2DType>::iterator> is used to allow a fast search of duplicate vertices.
-    ///@param rV1 Vertex1.
-    ///@param rV2 Vertex2.
-    ///@param Orientation Current orientation.
-    std::pair<IndexType, IndexType> GetUniqueVertexIDs(const Point2DType &rV1, const Point2DType &rV2, OrientationType Orientation);
-
     ///@brief Simple and fast insertion of vertex to container. Check if point is already contained is omitted.
     ///@brief If uniqueness check of point is required, use: GetUniqueVertexIDs() + InsertVertex(Point2DType, IndexType, Orientation).
     ///@param rPoint NewPoint
@@ -288,17 +278,27 @@ private:
     /// Getter Functions ///
     ////////////////////////
 
+    ///@brief Returns vertex IDs of point container, for two points.
+    ///       Returns std::pair(0,0), if rV1==rV2 (according to PointComparison()).
+    ///       If rV1 or rV2 are new points, a new index is created.
+    ///@details std::vector<Point2DType> are the actual vertex containers. This function returns, the index of those vectors.
+    ///         std::set<std::vector<Point2DType>::iterator> is used to allow a fast search of duplicate vertices.
+    ///@param rV1 Vertex1.
+    ///@param rV2 Vertex2.
+    ///@param Orientation Current orientation.
+    std::pair<IndexType, IndexType> GetUniqueVertexIDs(const Point2DType &rV1, const Point2DType &rV2, OrientationType Orientation) const;
+
     /// @brief Returns vertex V1 of edge.
     /// @param EdgeId
     /// @param Orientation
     /// @return const Point2DType&
-    const Point2DType& V1byEdgeId(IndexType EdgeId, OrientationType Orientation);
+    const Point2DType& V1byEdgeId(IndexType EdgeId, OrientationType Orientation) const;
 
     /// @brief Returns vertex V2 of edge.
     /// @param EdgeId
     /// @param Orientation
     /// @return const Point2DType&
-    const Point2DType& V2byEdgeId(IndexType EdgeId, OrientationType Orientation);
+    const Point2DType& V2byEdgeId(IndexType EdgeId, OrientationType Orientation) const;
 
     ///@brief Returns Edges container. (const version)
     ///@param Orientation orientation of edges
@@ -325,10 +325,15 @@ private:
     ///@return Point2DSetType&
     Point2DSetType& GetVerticesSet(OrientationType Orientation);
 
+    ///@brief Returns vertices set.  (const version)
+    ///@param Orientation Orientation of vertices
+    ///@return Point2DSetType&
+    const Point2DSetType& GetVerticesSet(OrientationType Orientation) const;
+
     ///@brief Returns number of edges.
     ///@param Positive Orientation of edges.
     ///@return IndexType
-    IndexType GetNumberEdges(OrientationType Orientation);
+    IndexType GetNumberEdges(OrientationType Orientation) const;
 
     /// @brief Returns offset of plane to origin.
     /// @return double

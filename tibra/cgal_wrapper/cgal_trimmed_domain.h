@@ -73,13 +73,6 @@ public:
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
     const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
-    double MaxEdgeBoundingBoxOfTrimmedDomain() const {
-
-        auto bounding_box = GetBoundingBoxOfTrimmedDomain();
-        double max_lenght = std::max(std::abs(bounding_box.second[0] - bounding_box.first[0]), std::abs(bounding_box.second[1] - bounding_box.first[1]) );
-        return std::max(max_lenght, std::abs(bounding_box.second[2] - bounding_box.first[2]));
-    }
-
     const TriangleMesh& GetTriangleMesh() const {
         return *mpTriangleMesh.get();
     }

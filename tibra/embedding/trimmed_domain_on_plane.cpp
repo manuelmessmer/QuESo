@@ -112,7 +112,7 @@ void TrimmedDomainOnPlane::CloseContourEdges() {
     SplitEdgesAtSplitPoint(Orientation::Positive);
 }
 
-TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain()
+TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
 {
     Point3DType normal = {0.0, 0.0, 0.0};
     double plane_position = GetPlanePosition();
@@ -271,7 +271,7 @@ void TrimmedDomainOnPlane::FindAllIntersectionWithUpperBound(std::vector<double>
     }
 }
 
-int TrimmedDomainOnPlane::FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation) {
+int TrimmedDomainOnPlane::FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation) const {
     double min_distance = std::numeric_limits<double>::max();
     IndexType found_id = -1;
     for (int i = 0; i < GetNumberEdges(Orientation); ++i) {
@@ -289,7 +289,7 @@ int TrimmedDomainOnPlane::FindIntersectingEdge(const Point2DType &rPoint, Orient
     return found_id;
 }
 
-void TrimmedDomainOnPlane::SetSplitPoint(const Point2DType &rPoint, Orientation OrientationDest)
+void TrimmedDomainOnPlane::SetSplitPoint(const Point2DType &rPoint, OrientationType OrientationDest)
 {
     // Take bool from Edge.
     double current_distance = 1e15;
@@ -438,50 +438,6 @@ void TrimmedDomainOnPlane::InsertEdge(const Point3DType& rV1, const Point3DType&
     }
 }
 
-std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const Point2DType &rV1, const Point2DType &rV2, OrientationType Orientation)
-{
-    auto& r_vertices = GetVertices(Orientation);
-    auto& r_vertices_set = GetVerticesSet(Orientation);
-    auto& r_edges = GetEdges(Orientation);
-
-    // Instaniate a tmp_vector, as the following functio call require iterators.
-    std::vector<Point2DType> tmp_vector = {rV1, rV2};
-    // If points are the same.
-    if( !PointComparison()(tmp_vector.begin(), ++tmp_vector.begin())  &&
-            !PointComparison()(++tmp_vector.begin(), tmp_vector.begin()) ){
-        return std::make_pair<IndexType, IndexType>(0UL, 0UL);
-    }
-
-    // r_vertices_set is only used to have a fast search here.
-    auto v1_res = r_vertices_set.find(tmp_vector.begin());
-    auto v2_res = r_vertices_set.find(++tmp_vector.begin());
-
-    // If same points are found and both are not r_vertices_set.end().
-    if( v1_res == v2_res && v1_res != r_vertices_set.end() ){
-        return std::make_pair<IndexType, IndexType>(0UL, 0UL);
-    }
-
-    IndexType index_1 = 0UL;
-    IndexType index_2 = 0UL;
-    IndexType v1_is_new = 0UL;
-    if (v1_res != r_vertices_set.end()) { // Vertex 1 already exists
-        index_1 = std::distance(r_vertices.begin(), (*v1_res));
-    }
-    else { // Add new vertex 1
-        index_1 = r_vertices.size();
-        v1_is_new = 1UL;
-    }
-
-    if (v2_res != r_vertices_set.end()) { // Vertex 2 already exists
-        index_2 = std::distance(r_vertices.begin(), (*v2_res));
-    }
-    else { // Add new vertex 2
-        index_2 = r_vertices.size() + v1_is_new;
-    }
-
-    return std::make_pair(index_1, index_2);
-}
-
 IndexType TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, OrientationType Orientation) {
     auto &r_vertices = GetVertices(Orientation);
     IndexType index = r_vertices.size();
@@ -508,7 +464,51 @@ void TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, IndexType New
 /// Getter Functions ///
 ////////////////////////
 
-const Point2DType& TrimmedDomainOnPlane::V1byEdgeId(IndexType EdgeId, OrientationType Orientation) {
+std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const Point2DType &rV1, const Point2DType &rV2, OrientationType Orientation) const
+{
+    const auto& r_vertices = GetVertices(Orientation);
+    const auto& r_vertices_set = GetVerticesSet(Orientation);
+    const auto& r_edges = GetEdges(Orientation);
+
+    // Instaniate a tmp_vector, as the following functio call require iterators.
+    std::vector<Point2DType> tmp_vector = {rV1, rV2};
+    // If points are the same.
+    if( !PointComparison()(tmp_vector.begin(), ++tmp_vector.begin())  &&
+            !PointComparison()(++tmp_vector.begin(), tmp_vector.begin()) ){
+        return std::make_pair<IndexType, IndexType>(0UL, 0UL);
+    }
+
+    // r_vertices_set is only used to have a fast search here.
+    const auto v1_res = r_vertices_set.find(tmp_vector.begin());
+    const auto v2_res = r_vertices_set.find(++tmp_vector.begin());
+
+    // If same points are found and both are not r_vertices_set.end().
+    if( v1_res == v2_res && v1_res != r_vertices_set.end() ){
+        return std::make_pair<IndexType, IndexType>(0UL, 0UL);
+    }
+
+    IndexType index_1 = 0UL;
+    IndexType index_2 = 0UL;
+    IndexType v1_is_new = 0UL;
+    if (v1_res != r_vertices_set.end()) { // Vertex 1 already exists
+        index_1 = std::distance<std::vector<Point2DType>::const_iterator>(r_vertices.cbegin(), (*v1_res));
+    }
+    else { // Add new vertex 1
+        index_1 = r_vertices.size();
+        v1_is_new = 1UL;
+    }
+
+    if (v2_res != r_vertices_set.end()) { // Vertex 2 already exists
+        index_2 = std::distance<std::vector<Point2DType>::const_iterator>(r_vertices.cbegin(), (*v2_res));
+    }
+    else { // Add new vertex 2
+        index_2 = r_vertices.size() + v1_is_new;
+    }
+
+    return std::make_pair(index_1, index_2);
+}
+
+const Point2DType& TrimmedDomainOnPlane::V1byEdgeId(IndexType EdgeId, OrientationType Orientation) const {
     switch (Orientation)
     {
     case Orientation::Positive:
@@ -522,7 +522,7 @@ const Point2DType& TrimmedDomainOnPlane::V1byEdgeId(IndexType EdgeId, Orientatio
     }
 }
 
-const Point2DType& TrimmedDomainOnPlane::V2byEdgeId(IndexType EdgeId, OrientationType Orientation) {
+const Point2DType& TrimmedDomainOnPlane::V2byEdgeId(IndexType EdgeId, OrientationType Orientation) const {
     switch (Orientation)
     {
     case Orientation::Positive:
@@ -611,7 +611,22 @@ Point2DSetType& TrimmedDomainOnPlane::GetVerticesSet(OrientationType Orientation
     }
 }
 
-IndexType TrimmedDomainOnPlane::GetNumberEdges(OrientationType Orientation) {
+const Point2DSetType& TrimmedDomainOnPlane::GetVerticesSet(OrientationType Orientation) const {
+    switch (Orientation)
+    {
+    case Orientation::Positive:
+        return mVerticesSetPositive;
+    case Orientation::Negative:
+        return mVerticesSetNegative;
+    case Orientation::Vertical:
+        return mVerticesSetVertical;
+    default:
+        throw std::runtime_error("TrimmedDomainOnPlane :: GetVerticesSet :: Orientation not valid.");
+        break;
+    }
+}
+
+IndexType TrimmedDomainOnPlane::GetNumberEdges(OrientationType Orientation) const {
     switch (Orientation)
     {
     case Orientation::Positive:
