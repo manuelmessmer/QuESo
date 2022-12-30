@@ -3,6 +3,7 @@
 
 //// Project includes
 #include "cgal_wrapper/cgal_trimmed_domain.h"
+#include "utilities/mesh_utilities.h"
 
 namespace tibra {
 namespace cgal {
@@ -49,13 +50,13 @@ BoundaryIPVectorPtrType CGALTrimmedDomain::pGetBoundaryIps() const {
 
     /// Create boundary IPs from intersection mesh.
     auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
-    mpTriangleMesh->Refine(mParameters.MinimumNumberOfTriangles());
+    MeshUtilities::Refine( *mpTriangleMesh, mParameters.MinimumNumberOfTriangles());
     const SizeType num_triangles = mpTriangleMesh->NumOfTriangles();
     p_boundary_ips->reserve(3*num_triangles);
 
     for( IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id ) {
             IndexType method = 3; // This will create 3 points per triangle.
-            auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, method);
+            auto p_new_points = mpTriangleMesh->pGetIPsGlobal(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 

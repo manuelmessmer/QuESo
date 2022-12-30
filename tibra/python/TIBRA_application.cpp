@@ -16,6 +16,7 @@
 #include "containers/triangle_mesh.h"
 #include "containers/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
@@ -145,15 +146,19 @@ PYBIND11_MODULE(TIBRA_Application,m) {
             return self.Area(Id);
         })
         .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
-            return self.GetIPsGlobal(Id, Method);
-        })
-        .def("Append", [](TriangleMesh& self, TriangleMesh& rOthers){
-            return self.Append(rOthers);
+            return self.pGetIPsGlobal(Id, Method);
         })
         .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
         .def("P1", &TriangleMesh::P1)
         .def("P2", &TriangleMesh::P2)
         .def("P3", &TriangleMesh::P3)
+    ;
+
+    /// Export MeshUtilities
+    py::class_<MeshUtilities, std::unique_ptr<MeshUtilities>>(m,"MeshUtilities")
+        .def_static("Append", [](TriangleMesh& rMesh, const TriangleMesh& rNewMesh){
+            return MeshUtilities::Append(rMesh, rNewMesh);
+        })
     ;
 
     /// Export Element

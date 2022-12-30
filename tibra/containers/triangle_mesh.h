@@ -10,21 +10,22 @@
 #include <cmath>
 #include <memory>
 #include <iostream>
-#include <map>
+
 //// Project includes
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"
+#include "utilities/utilities.h"
 
 namespace tibra {
 
 ///@name TIBRA Classes
 ///@{
-
-///
 /**
  * @class  TriangleMesh
  * @author Manuel Messmer
  * @brief  Simple implementation of a triangular surface mesh.
+ * @todo Refactor AddTriangle() and RemoveTriangle() such that normals are always passed.
+ *       Put dot product etc. into math function.
 */
 class TriangleMesh
 {
@@ -44,16 +45,27 @@ public:
     /// @brief Area of triangle.
     /// @param TriangleId
     /// @return double.
-    /// @todo Consider using more efficient std::pow alternative.
     double Area(IndexType TriangleId) const {
-        const auto P1 = this->P1(TriangleId);
-        const auto P2 = this->P2(TriangleId);
-        const auto P3 = this->P3(TriangleId);
+        const auto& P1 = this->P1(TriangleId);
+        const auto& P2 = this->P2(TriangleId);
+        const auto& P3 = this->P3(TriangleId);
 
-        return Area(P1, P2, P3);
+        const double a = std::sqrt( utilities::power(P1[0] - P2[0], 2)
+            + utilities::power(P1[1] - P2[1], 2) + utilities::power(P1[2] - P2[2], 2));
+        const double b = std::sqrt( utilities::power(P2[0] - P3[0], 2)
+            + utilities::power(P2[1] - P3[1], 2) + utilities::power(P2[2] - P3[2], 2));
+        const double c = std::sqrt( utilities::power(P3[0] - P1[0], 2)
+            + utilities::power(P3[1] - P1[1], 2) + utilities::power(P3[2] - P1[2], 2));
+
+        const double s = (a+b+c) / 2.0;
+        const double radicand = s*(s-a)*(s-b)*(s-c);
+        if( radicand <= 0.0 ) {
+            return 0.0;
+        }
+        return std::sqrt(radicand);
     }
 
-    /// @brief Outward point normal.
+    /// @brief Outward pointing normal.
     /// @param TriangleId
     /// @return Vector3d.
     const Vector3d& Normal(IndexType TriangleId) const{
@@ -68,29 +80,23 @@ public:
         const auto P2 = this->P2(TriangleId);
         const auto P3 = this->P3(TriangleId);
 
-        Vector3d tmp_point = {0.0, 0.0, 0.0};
-        tmp_point[0] = 1.0/3.0 * (P1[0] + P2[0] + P3[0]);
-        tmp_point[1] = 1.0/3.0 * (P1[1] + P2[1] + P3[1]);
-        tmp_point[2] = 1.0/3.0 * (P1[2] + P2[2] + P3[2]);
-
-        return tmp_point;
+        return (P1+P2+P3) * (1.0/3.0);
     }
 
     /// @brief Get boundary integration points in global space.
     /// @param TriangleId
     /// @param Method integration method.
-    /// @return IntegrationPointVectorPtrType.
-    /// @todo Rename to pGetIPsGloba()
-    BoundaryIpVectorPtrType GetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
+    /// @return BoundaryIpVectorPtrType.
+    BoundaryIpVectorPtrType pGetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
         auto p_global_integration_points = std::make_unique<BoundaryIpVectorType>(point_numbers);
 
-        const auto P1 = this->P1(TriangleId);
-        const auto P2 = this->P2(TriangleId);
-        const auto P3 = this->P3(TriangleId);
+        const auto& P1 = this->P1(TriangleId);
+        const auto& P2 = this->P2(TriangleId);
+        const auto& P3 = this->P3(TriangleId);
 
         for( int i = 0; i < point_numbers; ++i){
             const double xx  = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
@@ -108,50 +114,6 @@ public:
             // Normalize weights to 1 by multiplying by 2.
             const double weight = 2.0*s_integration_points[i].GetWeight()*Area(TriangleId);
             (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
-        }
-
-        return std::move(p_global_integration_points);
-    }
-
-    void Refine( IndexType MinNumberOfTriangles );
-
-    void Clean();
-
-    const Vector3d CenterEdge(const Vector3d& P1, const Vector3d& P2){
-        return (P2+P1)*0.5;
-    }
-
-    double LengthEdge(const Vector3d& P1, const Vector3d& P2){
-        return std::sqrt( (P2[0]-P1[0])*(P2[0]-P1[0]) + (P2[1]-P1[1])*(P2[1]-P1[1]) + (P2[2]-P1[2])*(P2[2]-P1[2]) );
-    }
-
-    /// @brief Get boundary integration points in global space.
-    /// @param TriangleId
-    /// @param Method integration method.
-    /// @return IntegrationPointVectorPtrType.
-    static BoundaryIpVectorPtrType GetIPsGlobal( const Vector3d& P1, const Vector3d& P2, const Vector3d& P3, const Vector3d& rNormal, IndexType Method ) {
-
-        const auto& s_integration_points = GetIntegrationPoints(Method);
-        const SizeType point_numbers = s_integration_points.size();
-
-        auto p_global_integration_points = std::make_unique<BoundaryIpVectorType>(point_numbers);
-
-        for( int i = 0; i < point_numbers; ++i){
-            const double xx  = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
-                               ShapeFunctionValue( 1, s_integration_points[i] ) * P2[0] +
-                               ShapeFunctionValue( 2, s_integration_points[i] ) * P3[0] ;
-
-            const double yy = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[1] +
-                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[1] +
-                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[1] ;
-
-            const double zz = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[2] +
-                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
-                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
-
-            // Normalize weights to 1 by multiplying by 2.
-            const double weight = 2.0*s_integration_points[i].GetWeight()*Area(P1,P2,P3);
-            (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, rNormal);
         }
 
         return std::move(p_global_integration_points);
@@ -190,6 +152,7 @@ public:
         mVertices.clear();
         mNormals.clear();
         mTriangles.clear();
+        mEdgesOnPlanes.clear();
     }
 
     ///@brief Reserve all containers for normal vertices and triangles.
@@ -229,6 +192,18 @@ public:
         mTriangles.push_back(NewTriangle);
     }
 
+    /// @brief Remove triangle by index.
+    /// @param Index
+    void RemoveTriangle(IndexType Index ){
+        mTriangles.erase( mTriangles.begin() + Index );
+    }
+
+    /// @brief Remove normal by index.
+    /// @param Index
+    void RemoveNormal(IndexType Index ){
+        mNormals.erase( mNormals.begin() + Index );
+    }
+
     ///@brief Add normal to mesh.
     ///@param NewNormal
     void AddNormal(const Vector3d& NewNormal) {
@@ -259,136 +234,16 @@ public:
         return mVertices.size();
     }
 
-    ///@brief Get vertices from mesh.
+    ///@brief Get vertices from mesh. (const version)
+    ///@return const std::vector<Vector3d>&
     const std::vector<Vector3d>& GetVertices() const {
         return mVertices;
     }
 
+    /// @brief Get vertices from mesh. (non-const version)
+    /// @return std::vector<Vector3d>&
     std::vector<Vector3d>& GetVertices() {
         return mVertices;
-    }
-
-    ///@brief Copy from other mesh.
-    ///@param rTriangleMesh Triangle mesh to copy from.
-    void Append( const TriangleMesh& rTriangleMesh ){
-        std::vector<IndexType> indices{};
-        indices.reserve(rTriangleMesh.NumOfTriangles());
-        for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
-            indices.push_back(i);
-        }
-        Append(indices, rTriangleMesh);
-    }
-
-    ///@brief Partial copy from other mesh.
-    ///@param rTriangleIndices Indices of triangles to be copied.
-    ///@param rTriangleMesh Triangle mesh to copy from.
-    void Append( const std::vector<IndexType>& rTriangleIndices, const TriangleMesh& rTriangleMesh ){
-        const IndexType initial_number_triangles = NumOfTriangles();
-        const IndexType initial_number_vertices = NumOfVertices();
-        IndexType vertex_count = NumOfVertices();
-        std::map<IndexType, IndexType> index_map_vertices{};
-        std::map<IndexType, IndexType> index_map_triangles{};
-
-        for( auto triangle : rTriangleIndices){
-            const auto& tmp_indices = rTriangleMesh.VertexIds(triangle);
-            Vector3i new_triangle{};
-            IndexType ii = 0;
-            for( auto index : tmp_indices ){
-                // Insert index into index_map_vertices if map does not contain index.
-                auto ret = index_map_vertices.insert( std::pair<IndexType,IndexType>(index, vertex_count) );
-                if (ret.second==true) {
-                    new_triangle[ii] = vertex_count;
-                    vertex_count++;
-                } else {
-                    new_triangle[ii] = index_map_vertices[index];
-                }
-                ii++;
-            }
-            // Copy triangles and normals.
-            AddTriangle(new_triangle);
-            AddNormal( rTriangleMesh.Normal(triangle) );
-        }
-
-        mVertices.resize(vertex_count);
-        const auto& new_vertices = rTriangleMesh.GetVertices();
-
-        const auto& new_edges_on_plane = rTriangleMesh.GetEdgesOnPlanes();
-        // Copy vertices.
-        for( auto index : index_map_vertices ){
-            mVertices[ index.second ] = new_vertices[ index.first ];
-        }
-        // Copy edges.
-        for( IndexType plane_index = 0; plane_index < 6; ++plane_index){
-            const auto& edges = new_edges_on_plane[plane_index];
-            for( auto& edge : edges ){
-                AddEdgeOnPlane(plane_index, std::get<0>(edge)+initial_number_vertices,
-                                            std::get<1>(edge)+initial_number_vertices,
-                                            std::get<2>(edge)+initial_number_triangles );
-            }
-        }
-    }
-
-    ///@brief Return meshed cuboid.
-    ///@param rLowerPoint
-    ///@param rUpperPoint
-    ///@return std::unique_ptr<TriangleMesh>
-    static std::unique_ptr<TriangleMesh> MakeCuboid(const Vector3d& rLowerPoint, const Vector3d& rUpperPoint){
-        //
-        //     2_______3                 y
-        //     /      /|                ´|`
-        //   6/_____7/ |                 |-->x
-        //    | 0   |  /1               /
-        //    |     | /                Z
-        //   4|____5|/
-        //
-        auto p_new_triangle_mesh = std::make_unique<TriangleMesh>();
-
-        p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //0
-        p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //1
-        p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rUpperPoint[1], rLowerPoint[2]} ); //2
-        p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rUpperPoint[1], rLowerPoint[2]} ); //3
-        p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rUpperPoint[2]} ); //4
-        p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rUpperPoint[2]} ); //5
-        p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rUpperPoint[1], rUpperPoint[2]} ); //6
-        p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rUpperPoint[1], rUpperPoint[2]} ); //7
-
-        // negative x
-        p_new_triangle_mesh->AddTriangle({0, 6, 2});
-        p_new_triangle_mesh->AddNormal({-1.0, 0.0, 0.0});
-        p_new_triangle_mesh->AddTriangle({0, 4, 6});
-        p_new_triangle_mesh->AddNormal({-1.0, 0.0, 0.0});
-
-        // postive x
-        p_new_triangle_mesh->AddTriangle({1, 7, 5});
-        p_new_triangle_mesh->AddNormal({1.0, 0.0, 0.0});
-        p_new_triangle_mesh->AddTriangle({1, 3, 7});
-        p_new_triangle_mesh->AddNormal({1.0, 0.0, 0.0});
-
-        // negative y
-        p_new_triangle_mesh->AddTriangle({4, 1, 5});
-        p_new_triangle_mesh->AddNormal({0.0, -1.0, 0.0});
-        p_new_triangle_mesh->AddTriangle({4, 0, 1});
-        p_new_triangle_mesh->AddNormal({0.0, -1.0, 0.0});
-
-        // postive y
-        p_new_triangle_mesh->AddTriangle({6, 7, 3});
-        p_new_triangle_mesh->AddNormal({0.0, 1.0, 0.0});
-        p_new_triangle_mesh->AddTriangle({6, 3, 2});
-        p_new_triangle_mesh->AddNormal({0.0, 1.0, 0.0});
-
-        // negative z
-        p_new_triangle_mesh->AddTriangle({1, 0, 3});
-        p_new_triangle_mesh->AddNormal({0.0, 0.0, -1.0});
-        p_new_triangle_mesh->AddTriangle({0, 2, 3});
-        p_new_triangle_mesh->AddNormal({0.0, 0.0, -1.0});
-
-        // positive z
-        p_new_triangle_mesh->AddTriangle({4, 5, 7});
-        p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
-        p_new_triangle_mesh->AddTriangle({4, 7, 6});
-        p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
-
-        return std::move(p_new_triangle_mesh);
     }
 
     ///@brief Basic check of this TriangleMesh instance.
@@ -412,6 +267,9 @@ public:
     ///@}
 private:
 
+    ///@name Private Member Variables
+    ///@{
+
     ///@brief Returns ShapeFunctionValue
     ///@param ShapeFunctionIndex
     ///@param rPoint
@@ -431,27 +289,6 @@ private:
         }
 
         return 0;
-    }
-    ///@name Private Member Variables
-    ///@{
-
-    ///@brief Return Area of Triangle
-    ///@param P1 Vertex 1
-    ///@param P2 Vertex 2
-    ///@param P3 Vertex 3
-    ///@return double
-    static double Area(const Vector3d& P1, const Vector3d& P2, const Vector3d& P3 ) {
-
-        const double a = std::sqrt( std::pow(P1[0] - P2[0], 2) + std::pow(P1[1] - P2[1], 2) + std::pow(P1[2] - P2[2], 2));
-        const double b = std::sqrt( std::pow(P2[0] - P3[0], 2) + std::pow(P2[1] - P3[1], 2) + std::pow(P2[2] - P3[2], 2));
-        const double c = std::sqrt( std::pow(P3[0] - P1[0], 2) + std::pow(P3[1] - P1[1], 2) + std::pow(P3[2] - P1[2], 2));
-
-        const double s = (a+b+c) / 2.0;
-        const double radicand = s*(s-a)*(s-b)*(s-c);
-        if( radicand < 0.0 ) {
-            return 0.0;
-        }
-        return std::sqrt(radicand);
     }
 
     ///@brief Factory function for triangle Gauss Legendre points.
