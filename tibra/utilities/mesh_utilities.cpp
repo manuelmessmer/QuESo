@@ -2,6 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// STL includes
+#include <map>
 #include <numeric>
 /// Project includes
 #include "utilities/mesh_utilities.h"
