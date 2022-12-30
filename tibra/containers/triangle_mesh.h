@@ -24,6 +24,8 @@ namespace tibra {
  * @class  TriangleMesh
  * @author Manuel Messmer
  * @brief  Simple implementation of a triangular surface mesh.
+ * @todo Refactor AddTriangle() and RemoveTriangle() such that normals are always passed.
+ *       Put dot product etc. into math function.
 */
 class TriangleMesh
 {
