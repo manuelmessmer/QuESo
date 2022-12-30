@@ -38,9 +38,6 @@ class TestGGQTube(unittest.TestCase):
                     tmp_list.append( [point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()] )
                 ips[element.ID()] = tmp_list
 
-        # with open("result_ips_gauss_reduced2.json", "w") as fp:
-        #     json.dump(ips, fp)
-
         ref_file = open(filename_result, "r")
         ref_ips = json.load(ref_file)
         ref_file.close()

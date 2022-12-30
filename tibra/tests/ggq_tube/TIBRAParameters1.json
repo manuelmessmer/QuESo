@@ -6,8 +6,8 @@
         "embedding_flag"  : true
     },
     "mesh_settings"     : {
-        "lower_bound": [-1.99, -1.99, 0],
-        "upper_bound": [1.99, 1.99, 5],
+        "lower_bound": [-1.99, -1.99, -0.1],
+        "upper_bound": [1.99, 1.99, 5.1],
         "polynomial_order" : [2, 2, 2],
         "number_of_elements" : [12,12,15]
     },
