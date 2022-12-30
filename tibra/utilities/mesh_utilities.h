@@ -20,6 +20,11 @@ namespace tibra {
 */
 class MeshUtilities {
 public:
+    ///@name Type Definitions
+    ///@{
+    typedef std::unique_ptr<TriangleMesh> TriangleMeshPtrType;
+
+    ///@}
     ///@name Public Operations
     ///@{
 
@@ -39,6 +44,12 @@ public:
     /// @param rNewMesh New mesh to be inserted in rTriangleMesh.
     /// @param rIndices Indices of triangles to be copied.
     static void Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh, const std::vector<IndexType>& rIndices);
+
+    ///@brief Return meshed cuboid.
+    ///@param rLowerPoint
+    ///@param rUpperPoint
+    ///@return std::unique_ptr<TriangleMesh>
+    static TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
     ///@}
 }; // End class MeshUtilities

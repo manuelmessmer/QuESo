@@ -8,6 +8,8 @@
 
 namespace tibra {
 
+typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
+
 void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTriangles){
     IndexType original_size = rTriangleMesh.NumOfTriangles();
     IndexType size = original_size;
@@ -114,4 +116,64 @@ void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNew
         }
     }
 }
+
+std::unique_ptr<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
+    //
+    //     2_______3                 y
+    //     /      /|                ´|`
+    //   6/_____7/ |                 |-->x
+    //    | 0   |  /1               /
+    //    |     | /                Z
+    //   4|____5|/
+    //
+    auto p_new_triangle_mesh = std::make_unique<TriangleMesh>();
+
+    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //0
+    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //1
+    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rUpperPoint[1], rLowerPoint[2]} ); //2
+    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rUpperPoint[1], rLowerPoint[2]} ); //3
+    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rUpperPoint[2]} ); //4
+    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rUpperPoint[2]} ); //5
+    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rUpperPoint[1], rUpperPoint[2]} ); //6
+    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rUpperPoint[1], rUpperPoint[2]} ); //7
+
+    // negative x
+    p_new_triangle_mesh->AddTriangle({0, 6, 2});
+    p_new_triangle_mesh->AddNormal({-1.0, 0.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({0, 4, 6});
+    p_new_triangle_mesh->AddNormal({-1.0, 0.0, 0.0});
+
+    // postive x
+    p_new_triangle_mesh->AddTriangle({1, 7, 5});
+    p_new_triangle_mesh->AddNormal({1.0, 0.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({1, 3, 7});
+    p_new_triangle_mesh->AddNormal({1.0, 0.0, 0.0});
+
+    // negative y
+    p_new_triangle_mesh->AddTriangle({4, 1, 5});
+    p_new_triangle_mesh->AddNormal({0.0, -1.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({4, 0, 1});
+    p_new_triangle_mesh->AddNormal({0.0, -1.0, 0.0});
+
+    // postive y
+    p_new_triangle_mesh->AddTriangle({6, 7, 3});
+    p_new_triangle_mesh->AddNormal({0.0, 1.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({6, 3, 2});
+    p_new_triangle_mesh->AddNormal({0.0, 1.0, 0.0});
+
+    // negative z
+    p_new_triangle_mesh->AddTriangle({1, 0, 3});
+    p_new_triangle_mesh->AddNormal({0.0, 0.0, -1.0});
+    p_new_triangle_mesh->AddTriangle({0, 2, 3});
+    p_new_triangle_mesh->AddNormal({0.0, 0.0, -1.0});
+
+    // positive z
+    p_new_triangle_mesh->AddTriangle({4, 5, 7});
+    p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
+    p_new_triangle_mesh->AddTriangle({4, 7, 6});
+    p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
+
+    return std::move(p_new_triangle_mesh);
+}
+
 } // End namespace tibra
