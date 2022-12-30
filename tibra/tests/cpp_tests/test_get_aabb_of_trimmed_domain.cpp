@@ -11,7 +11,6 @@
 #include "containers/element_container.h"
 #include "containers/triangle_mesh.h"
 #include "embedding/brep_operator.h"
-#include "cgal_wrapper/cgal_brep_operator.h"
 #include "io/io_utilities.h"
 
 namespace tibra {
