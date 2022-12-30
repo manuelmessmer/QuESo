@@ -19,14 +19,14 @@ typedef TrimmedDomainOnPlane::Point2DSetType Point2DSetType;
 
 void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
 {
-    const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlane();
+    const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlanes();
     const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);
 
     const auto& r_vertices = rTriangleMesh.GetVertices();
     const auto& edges_on_plane = edges_on_planes[plane_index];
     // Should only require 2UL*edges_on_plane.size(), however small buffer is used.
     // Note, initial capacity must be large enough. New allocation is not allowed and will crash.
-    Reserve( std::max(3UL*edges_on_plane.size(),10UL) );
+    Reserve( std::max(3UL*edges_on_plane.size(), 10UL) );
     for( const auto& edge : edges_on_plane ){
         const IndexType vertex_index_1 = std::get<0>(edge);
         const IndexType vertex_index_2 = std::get<1>(edge);
