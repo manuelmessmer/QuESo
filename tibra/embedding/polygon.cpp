@@ -9,12 +9,32 @@ namespace tibra {
 
 // Function Definitions Polygon
 template<IndexType SIZE>
-void Polygon<SIZE>::AddVertex(const PointType& rPoint) {
+IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint ) {
+    if( mNumVertices >= SIZE ){
+        throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
+    }
+    mVertices[mNumVertices].first = rPoint;
+    mVertices[mNumVertices].second = {false};
+    return mNumVertices++;
+}
+
+template<IndexType SIZE>
+IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint, const std::array<bool, 6>& rStatus) {
+    if( mNumVertices >= SIZE ){
+        throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
+    }
+    mVertices[mNumVertices].first = rPoint;
+    mVertices[mNumVertices].second = rStatus;
+    return mNumVertices++;
+}
+
+template<IndexType SIZE>
+IndexType Polygon<SIZE>::AddVertex(const VertexType& rPoint) {
     if( mNumVertices >= SIZE ){
         throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
     }
     mVertices[mNumVertices] = rPoint;
-    ++mNumVertices;
+    return mNumVertices++;
 }
 
 template<IndexType SIZE>
@@ -23,7 +43,7 @@ IndexType Polygon<SIZE>::NumVertices() const {
 }
 
 template<IndexType SIZE>
-const PointType& Polygon<SIZE>::GetVertex(IndexType i) const {
+const typename Polygon<SIZE>::VertexType& Polygon<SIZE>::GetVertex(IndexType i) const {
     if( i >= mNumVertices ){
         throw std::runtime_error("Polygon :: GetVertex :: Size of Polygon is exceeded.");
     }
@@ -31,100 +51,113 @@ const PointType& Polygon<SIZE>::GetVertex(IndexType i) const {
 }
 
 template<IndexType SIZE>
-const PointType& Polygon<SIZE>::operator[] (IndexType i) const {
+const typename Polygon<SIZE>::VertexType& Polygon<SIZE>::operator[] (IndexType i) const {
+    if( i >= mNumVertices ){
+        throw std::runtime_error("Polygon :: GetVertex :: Size of Polygon is exceeded.");
+    }
     return mVertices[i];
 }
 
 template<IndexType SIZE>
-std::unique_ptr<TriangleMesh> Polygon<SIZE>::pGetTriangleMesh() const {
-
-    auto p_new_mesh = std::make_unique<TriangleMesh>();
-    p_new_mesh->Reserve(mNumVertices);
-
-    if(mNumVertices < 3){
-        throw std::runtime_error("Clipper :: pGetTriangleMesh :: mNumVertices < 3.");
-    }
-
-    if( mNumVertices == 3 ){
-
-        p_new_mesh->AddVertex( mVertices[0] );
-        p_new_mesh->AddVertex( mVertices[1] );
-        p_new_mesh->AddVertex( mVertices[2] );
-
-        p_new_mesh->AddTriangle( {0, 1, 2} );
-        p_new_mesh->AddNormal( mNormal );
-
-        return std::move(p_new_mesh);
-    }
-
-    // Compute mean of vertices
-    PointType centroid = {0.0, 0.0, 0.0};
-    const double inv_num_vertices = 1.0/mNumVertices;
-
-    for( IndexType i = 0 ; i < mNumVertices; ++i){
-        centroid[0] += inv_num_vertices*mVertices[i][0];
-        centroid[1] += inv_num_vertices*mVertices[i][1];
-        centroid[2] += inv_num_vertices*mVertices[i][2];
-    }
-
-    IndexType vertex_count = 0;
-    for( IndexType i = 0 ; i < mNumVertices-1; ++i){
-        p_new_mesh->AddVertex( mVertices[i] );
-        p_new_mesh->AddVertex( mVertices[i+1] );
-        p_new_mesh->AddVertex( centroid );
-
-        p_new_mesh->AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2} );
-        p_new_mesh->AddNormal( mNormal );
-        vertex_count += 3;
-    }
-
-    p_new_mesh->AddVertex( mVertices[mNumVertices-1] );
-    p_new_mesh->AddVertex( mVertices[0] );
-    p_new_mesh->AddVertex( centroid );
-
-    p_new_mesh->AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2 } );
-    p_new_mesh->AddNormal( mNormal );
-
-    return std::move(p_new_mesh);
-}
-
-template<IndexType SIZE>
-const PointType& Polygon<SIZE>::GetLastVertex() const{
+const typename Polygon<SIZE>::VertexType& Polygon<SIZE>::GetLastVertex() const{
     return mVertices[mNumVertices-1];
 }
 
 template<IndexType SIZE>
 void Polygon<SIZE>::Clear(){
-    std::fill(mVertices.begin(), mVertices.end(), PointType{});
+    const std::array<bool,6> points_on_plane = {false}; // Inits all to false;
+    std::fill(mVertices.begin(), mVertices.end(), std::make_pair(PointType{}, points_on_plane) );
     mNumVertices = 0;
 }
 
-
-
 template<IndexType SIZE>
-std::unique_ptr<typename Polygon<SIZE>::EdgesType> Polygon<SIZE>::pGetEdgesOnPlane(IndexType PlaneIndex, double Position, double PlaneThickness) const {
-
-    auto p_new_edges = std::make_unique<EdgesType>();
-
+void Polygon<SIZE>::AddToTriangleMesh(TriangleMesh& rTriangleMesh) const {
     if(mNumVertices < 3){
-        throw std::runtime_error("Obacht");
+        return;
     }
 
+    const IndexType num_v = rTriangleMesh.NumOfVertices();
+    const IndexType num_t = rTriangleMesh.NumOfTriangles();
+
+    if( mNumVertices == 3 ){
+        rTriangleMesh.AddVertex( mVertices[0].first );
+        rTriangleMesh.AddVertex( mVertices[1].first );
+        rTriangleMesh.AddVertex( mVertices[2].first );
+
+        rTriangleMesh.AddTriangle( {num_v+0, num_v+1, num_v+2} );
+        rTriangleMesh.AddNormal( mNormal );
+
+        // Add edges, that are located on a plane, to the mesh.
+        // Planes: (-x, +x, -y, y, -z, z)
+        for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
+            const bool v1_on_plane = mVertices[0].second[plane_index];
+            const bool v2_on_plane = mVertices[1].second[plane_index];
+            const bool v3_on_plane = mVertices[2].second[plane_index];
+            if( (v1_on_plane + v2_on_plane + v3_on_plane) == 3 ) {
+                throw std::runtime_error("Polygon :: pGetTriangleMesh :: All vertices are set on plane.");
+            }
+            if( v1_on_plane && v2_on_plane ){
+                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+0, num_v+1, num_t+0);
+            }
+            else if( v2_on_plane && v3_on_plane ){
+                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+1, num_v+2, num_t+0);
+            }
+            else if( v3_on_plane && v1_on_plane ){
+                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+2, num_v+0, num_t+0);
+            }
+        }
+        return;
+    }
+
+    // Compute mean of vertices
+    PointType centroid = {0.0, 0.0, 0.0};
+    for( IndexType i = 0 ; i < mNumVertices; ++i){
+        centroid += mVertices[i].first;
+    }
+    centroid /= mNumVertices;
+
+    IndexType vertex_count = num_v;
+    IndexType triangle_count = num_t;
     for( IndexType i = 0 ; i < mNumVertices-1; ++i){
-        if( std::abs((mVertices[i][PlaneIndex] - Position)) < PlaneThickness
-                && std::abs((mVertices[i+1][PlaneIndex] - Position)) < PlaneThickness ){
-            p_new_edges->push_back( {mVertices[i], mVertices[i+1]} );
+        rTriangleMesh.AddVertex( mVertices[i].first );
+        rTriangleMesh.AddVertex( mVertices[i+1].first );
+        rTriangleMesh.AddVertex( centroid );
+
+        rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2} );
+        rTriangleMesh.AddNormal( mNormal );
+
+        for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
+            const bool v1_on_plane = mVertices[i].second[plane_index];
+            const bool v2_on_plane = mVertices[i+1].second[plane_index];
+            if( v1_on_plane && v2_on_plane ){
+                rTriangleMesh.AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
+            }
+        }
+        ++triangle_count;
+        vertex_count += 3;
+    }
+
+    rTriangleMesh.AddVertex( mVertices[mNumVertices-1].first );
+    rTriangleMesh.AddVertex( mVertices[0].first );
+    rTriangleMesh.AddVertex( centroid );
+
+    rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2 } );
+    rTriangleMesh.AddNormal( mNormal );
+
+    for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
+        const bool v1_on_plane = mVertices[mNumVertices-1].second[plane_index];
+        const bool v2_on_plane = mVertices[0].second[plane_index];
+        if( v1_on_plane && v2_on_plane ){
+            rTriangleMesh.AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
         }
     }
-    if( std::abs((mVertices[mNumVertices-1][PlaneIndex] - Position)) < PlaneThickness
-            && std::abs((mVertices[0][PlaneIndex] - Position)) < PlaneThickness ){
-        p_new_edges->push_back( {mVertices[mNumVertices-1], mVertices[0]} );
-    }
 
-    return std::move(p_new_edges);
+    return;
 }
+
 
 // Explicit instantiation Polygon
 template class Polygon<9>;
+template class Polygon<4>;
 
 } // End namespace tibra

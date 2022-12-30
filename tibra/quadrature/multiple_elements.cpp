@@ -3,6 +3,7 @@
 
 //// Project includes
 #include "utilities/mapping_utilities.h"
+#include "utilities/tolerances.h"
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
@@ -126,7 +127,7 @@ void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters
         double max_neighbour_coefficient = 1.0;
         std::array<int,3> current_dimensions = {1, 1, 1};
         int inner_count = 0; //remove
-        while( max_neighbour_coefficient > 1e-10 && !stop ){
+        while( max_neighbour_coefficient > EPS2 && !stop ){
             std::array<double,6> neighbour_coeff = {0, 0, 0 ,0 ,0 ,0};
             std::array<ElementContainer::ElementVectorPtrType,6> tmp_neighbours{};
 
@@ -155,7 +156,7 @@ void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters
                 }
             }
             bool valid_direction_found = false;
-            while( !valid_direction_found && max_neighbour_coefficient > 1e-10 && !stop){
+            while( !valid_direction_found && max_neighbour_coefficient > EPS2 && !stop){
                 int max_neighbour_coefficient_index = std::max_element(neighbour_coeff.begin(), neighbour_coeff.end()) - neighbour_coeff.begin();
 
                 max_neighbour_coefficient = neighbour_coeff[max_neighbour_coefficient_index];
@@ -253,7 +254,7 @@ double linear_function(int x, int number_neighbours){
     const double delta = std::abs(center - x);
 
     double value = (1.0 - 0.9/center*delta)* (double)number_neighbours;
-    if(value < 1e-10)
+    if(value < EPS2)
         throw std::runtime_error("Value to low!");
 
     return value;

@@ -48,6 +48,7 @@ public:
     ///@param rParam
     static void CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam);
 
+    static void ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, VectorType& rConstantTerms, const Parameters& rParam);
     ///@}
 private:
     ///@name Private Operations
@@ -56,7 +57,6 @@ private:
     ///@todo Clean this up.
     static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
 
-    static void ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, VectorType& rConstantTerms, const Parameters& rParam);
 
     static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
 

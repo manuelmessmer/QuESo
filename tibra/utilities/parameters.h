@@ -45,7 +45,7 @@ public:
     ///@{
 
     /// Constructor
-    Component(std::string Name, ComponentType Component) : mName(Name), mComponents(Component)
+    Component(std::string Name, ComponentType NewComponent) : mName(Name), mComponents(NewComponent)
     {}
 
     ///@}

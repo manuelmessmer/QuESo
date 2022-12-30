@@ -35,8 +35,8 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param pClippedTriangleMesh
     ///@note mpTriangleMesh must be passed to mTree() and not mpTriangleMesh(), since ptr is moved!
-    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound )
-        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound), mTree(GetTriangleMesh())
+    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
+        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
     }
 
@@ -51,39 +51,16 @@ public:
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint) const override;
 
-    ///@brief Returns boundary integration points of TrimmedDomain.
+    ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    virtual BoundaryIPVectorPtrType pGetBoundaryIps() const override {
-        return nullptr;
-    }
+    BoundaryIPVectorPtrType pGetBoundaryIps() const;
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
-    virtual const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
+    const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
     ///@}
 private:
-    ///@name Private Operations
-    ///@{
-
-    ///@brief Returns true if point is inside AABB.
-    ///@param rPoint Query point.
-    ///@param rLowerBound of AABB.
-    ///@param rUpperBound of AABB.
-    ///@return bool
-    inline bool IsContained(const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound) const{
-        if(    rPoint[0] < rLowerBound[0]
-            || rPoint[0] > rUpperBound[0]
-            || rPoint[1] < rLowerBound[1]
-            || rPoint[1] > rUpperBound[1]
-            || rPoint[2] < rLowerBound[2]
-            || rPoint[2] > rUpperBound[2] )
-        {
-            return false;
-        }
-
-        return true;
-    }
 
     ///@}
     ///@name Private Members

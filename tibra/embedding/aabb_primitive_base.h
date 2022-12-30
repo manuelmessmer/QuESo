@@ -9,11 +9,9 @@
 #include <array>
 //// Project includes
 #include "containers/point_types.h"
+#include "utilities/tolerances.h"
 
 namespace tibra {
-
-// Global variables
-constexpr double kEpsilon = 1e-14;
 
 ///@name TIBRA Classes
 ///@{

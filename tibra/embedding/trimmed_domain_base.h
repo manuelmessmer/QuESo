@@ -41,14 +41,14 @@ public:
     ///@{
 
     /// Constructor
-    TrimmedDomainBase(const PointType& rLowerBound, const PointType& rUpperBound)
-        : mLowerBound(rLowerBound), mUpperBound(rUpperBound)
+    TrimmedDomainBase(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
+        : mLowerBound(rLowerBound), mUpperBound(rUpperBound), mParameters(rParameters)
     {
     }
 
     /// Constructor
-    TrimmedDomainBase(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound)
-        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound)
+    TrimmedDomainBase(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
+        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound), mParameters(rParameters)
     {
     }
 
@@ -102,6 +102,7 @@ public:
         }
         // Copy all triangles in (triangle_ids) to new mesh.
         auto p_new_mesh = std::make_unique<TriangleMesh>();
+        p_new_mesh->Reserve(mpTriangleMesh->NumOfTriangles());
         p_new_mesh->Append(triangle_ids, *mpTriangleMesh);
         return std::move(p_new_mesh);
     }
@@ -114,6 +115,7 @@ protected:
     PointType mLowerBound;
     PointType mUpperBound;
     TriangleMeshPtrType mpTriangleMesh;
+    const Parameters& mParameters;
     ///@}
 }; // End TrimmedDomainBase
 ///@}

@@ -64,7 +64,7 @@ public:
                 IO::WriteMeshToVTK(mTriangleMesh, "output/geometry.vtk", true);
             }
             // Construct BRepOperator
-            mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh);
+            mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh, mParameters);
 
             // Compute volume
             //const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);

@@ -32,7 +32,8 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    BRepOperator brep_operator(triangle_mesh);
+    Parameters param{};
+    BRepOperator brep_operator(triangle_mesh, param);
     const double delta_x = 0.50;
     const double delta_y = 0.50;
     const double delta_z = 0.50;
@@ -80,7 +81,8 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    BRepOperator brep_operator(triangle_mesh);
+    Parameters param{};
+    BRepOperator brep_operator(triangle_mesh, param);
 
     const double delta_x = 0.3;
     const double delta_y = 0.3;
@@ -134,7 +136,8 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    BRepOperator brep_operator(triangle_mesh);
+    Parameters param{};
+    BRepOperator brep_operator(triangle_mesh, param);
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;
@@ -182,7 +185,8 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    BRepOperator brep_operator(triangle_mesh);
+    Parameters param{};
+    BRepOperator brep_operator(triangle_mesh, param);
 
     const double delta_x = 10;
     const double delta_y = 10;

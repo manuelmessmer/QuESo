@@ -44,8 +44,8 @@ public:
                                const char* Filename,
                                const bool Binary);
 
-  /// TODO: templetize
-  static bool WritePointsToVTK(const std::vector<BoundaryIntegrationPoint>& pPoints,
+  template<typename Type>
+  static bool WritePointsToVTK(const std::vector<Type>& pPoints,
                                const char* Filename,
                                const bool Binary);
 

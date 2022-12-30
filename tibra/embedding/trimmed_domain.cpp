@@ -6,9 +6,11 @@
 ///// Project includes
 #include "embedding/trimmed_domain.h"
 #include "embedding/ray_aabb_primitive.h"
+#include "embedding/trimmed_domain_on_plane.h"
 
 namespace tibra {
 
+typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
 typedef TrimmedDomainBase::BoundingBox BoundingBox;
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
@@ -38,6 +40,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         // Get potential ray intersections from AABB tree.
         auto potential_intersections = mTree.Query(ray);
 
+        if( potential_intersections.size() == 0){
+            throw std::runtime_error("TrimmedDomain :: IsInsideTrimmedDomain :: No potential intersections found.");
+        }
         // Test if potential intersections actually intersect.
         // If intersection lies on boundary cast a new ray.
         // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639
@@ -49,16 +54,22 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
             const auto& p2 = mpTriangleMesh->P2(r);
             const auto& p3 = mpTriangleMesh->P3(r);
             double t, u, v;
-            bool back_facing;
-            if( ray.intersect(p1, p2, p3, t, u, v, back_facing) ) {
-                double sum_u_v = u+v;
-                if( t < 1e-10 ){ // origin lies on boundary
-                    return false;
-                }
-                if( u < 0.0+1e-14 || v < 0.0+1e-14 || sum_u_v > 1.0-1e-14 ){
-                    is_on_boundary = true; // Hits boundary
+            bool back_facing, parallel;
+            if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
+                if( parallel ){
+                    is_on_boundary = true;
                     break;
                 }
+                double sum_u_v = u+v;
+                if( t < EPS2 ){ // origin lies on boundary
+                    return false;
+                }
+                // Ray shoots through boundary.
+                if( u < 0.0+EPS3 || v < 0.0+EPS3 || sum_u_v > 1.0-EPS3 ){
+                    is_on_boundary = true;
+                    break;
+                }
+                // Get orientation of closest triangle. If backfacing=true, triangle is inside.
                 if( t < min_distance ){
                     is_inside = back_facing;
                     min_distance = t;
@@ -118,6 +129,56 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     }
 
     return bounding_box;
+}
+
+BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
+    // Pointer to boundary integration points
+    auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
+
+    // Construct trimmed domain on plane z-upper bound of AABB.
+    bool upper_bound = true;
+    auto p_trimmed_domain_upper_x = std::make_unique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_upper_y = std::make_unique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_upper_z = std::make_unique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+    // Construct trimmed domain on plane z-lower bound of AABB.
+    upper_bound = false;
+    auto p_trimmed_domain_lower_x = std::make_unique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_lower_y = std::make_unique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_lower_z = std::make_unique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+
+    if( mpTriangleMesh->NumOfTriangles() > 0 ){
+
+        auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+        auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+
+        const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
+            + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
+
+        mpTriangleMesh->Reserve(2UL*num_triangles);
+
+        mpTriangleMesh->Append(*(p_t1.get()));
+        mpTriangleMesh->Append(*(p_t2.get()));
+        mpTriangleMesh->Append(*(p_t3.get()));
+        mpTriangleMesh->Append(*(p_t4.get()));
+        mpTriangleMesh->Append(*(p_t5.get()));
+        mpTriangleMesh->Append(*(p_t6.get()));
+
+        mpTriangleMesh->Refine(mParameters.MinimumNumberOfTriangles());
+        p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*6UL);
+        for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
+            IndexType method = 3; // Creates 6 points per triangle.
+            auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, method);
+            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+        }
+
+        return std::move(p_boundary_ips);
+    } else {
+        return nullptr;
+    }
 }
 
 } // End namespace tibra

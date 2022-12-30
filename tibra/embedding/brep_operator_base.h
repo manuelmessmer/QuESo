@@ -10,6 +10,7 @@
 #include "containers/element.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
+#include "utilities/tolerances.h"
 
 namespace tibra {
 
@@ -29,6 +30,13 @@ public:
     typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainBasePtrType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+    BRepOperatorBase(const Parameters& rParameters) : mParameters(rParameters)
+    {
+    }
 
     ///@}
     ///@name Operations
@@ -52,15 +60,17 @@ public:
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    virtual IntersectionStatus GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance=1e-8) const = 0;
+    virtual IntersectionStatus GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance=EPS1) const = 0;
 
     /// @brief Returns ptr to trimmed domain.
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
-    /// @param rParam Parameters
+    /// @param rParam Parameterss
     /// @return TrimmedDomainBasePtrType (std::unique_ptr)
     virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const = 0;
 
+protected:
+    const Parameters& mParameters;
     ///@}
 }; // End BRepOperatorBase class
 ///@} // End TIBRA classes

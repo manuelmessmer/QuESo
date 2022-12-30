@@ -33,8 +33,8 @@ public:
     ///@{
 
     ///@brief Returns Ptr to new BRepOperator (std::unique_ptr)
-    static std::unique_ptr<CurrentBRepOperator> New(const TriangleMesh& rTriangleMesh){
-        return std::make_unique<CurrentBRepOperator>(rTriangleMesh);
+    static std::unique_ptr<CurrentBRepOperator> New(const TriangleMesh& rTriangleMesh, const Parameters& rParameters){
+        return std::make_unique<CurrentBRepOperator>(rTriangleMesh, rParameters);
     }
 
     ///@}

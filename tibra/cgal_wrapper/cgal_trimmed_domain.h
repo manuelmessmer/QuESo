@@ -48,8 +48,8 @@ public:
     ///@param pCGALMesh ptr to closed surface mesh of trimmed domain.
     ///@param rLowerBound of element (full domain, not only the trimmed part).
     ///@param rUpperBound of element (full domain, not only the trimmed part).
-    CGALTrimmedDomain(CGALMeshPtrType& pCGALMesh, const PointType& rLowerBound, const PointType& rUpperBound )
-        : TrimmedDomainBase(rLowerBound, rUpperBound), mpCGALMesh(std::move(pCGALMesh))
+    CGALTrimmedDomain(CGALMeshPtrType& pCGALMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
+        : TrimmedDomainBase(rLowerBound, rUpperBound, rParameters), mpCGALMesh(std::move(pCGALMesh))
     {
         mpTriangleMesh = std::make_unique<TriangleMesh>();
         cgal::CGALUtilities::CopyMesh(*mpCGALMesh, *mpTriangleMesh);
@@ -73,6 +73,9 @@ public:
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
     const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
+    const TriangleMesh& GetTriangleMesh() const {
+        return *mpTriangleMesh.get();
+    }
     ///@}
 private:
 
