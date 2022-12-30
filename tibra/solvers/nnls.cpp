@@ -51,7 +51,7 @@ double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     nnls_(A_doubles, &mda, &m, &n, B_doubles, X, &Rnorm, W, ZZ, index, &mode);
 
     if( mode == 2 ){
-        std::cerr << "THE DIMENSIONS OF THE PROBLEM ARE BAD. EITHER M .LE. 0 OR N .LE. 0." << std::endl;
+        //std::cerr << "THE DIMENSIONS OF THE PROBLEM ARE BAD. EITHER M .LE. 0 OR N .LE. 0." << std::endl;
         Rnorm = 1e8;
     }
     else if( mode == 3){
