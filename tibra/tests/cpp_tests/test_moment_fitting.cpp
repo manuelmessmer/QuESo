@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
-        element.GetLowerBound(), element.GetUpperBound(), parameters);
+        element.GetLowerBound(), element.GetUpperBound());
 
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Get Trimmed Domain
     auto p_trimmed_domain = p_brep_operator->GetTrimmedDomain(
-        element.GetLowerBound(), element.GetUpperBound(), parameters);
+        element.GetLowerBound(), element.GetUpperBound());
     // Check if ptr is not nullptr
     BOOST_CHECK( p_trimmed_domain );
     element.SetIsTrimmed(true);
