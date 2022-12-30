@@ -9,7 +9,6 @@
 namespace tibra {
 
 void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTriangles){
-
     IndexType original_size = rTriangleMesh.NumOfTriangles();
     IndexType size = original_size;
 
@@ -30,9 +29,9 @@ void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTri
 
         const double area = rTriangleMesh.Area(pos);
         if( area > 0.5*max_area ){
-            IndexType e1 = rTriangleMesh.AddVertex(rTriangleMesh.CenterEdge(p1, p2));
-            IndexType e2 = rTriangleMesh.AddVertex(rTriangleMesh.CenterEdge(p2, p3));
-            IndexType e3 = rTriangleMesh.AddVertex(rTriangleMesh.CenterEdge(p3, p1));
+            IndexType e1 = rTriangleMesh.AddVertex( (p1 + p2)*0.5 );
+            IndexType e2 = rTriangleMesh.AddVertex( (p2 + p3)*0.5 );
+            IndexType e3 = rTriangleMesh.AddVertex( (p3 + p1)*0.5 );
 
             const auto normal = rTriangleMesh.Normal(pos);
             rTriangleMesh.AddTriangle( {vertex_ids[0], e1, e3} );
