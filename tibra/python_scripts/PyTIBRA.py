@@ -73,7 +73,7 @@ class PyTIBRA:
         for element in self.elements:
             if element.IsTrimmed():
                 new_mesh = element.GetBCTriangleMesh(condition)
-                triangle_mesh.Append(new_mesh)
+                TIBRA_Application.MeshUtilities.Append(triangle_mesh, new_mesh)
 
         return triangle_mesh
 
