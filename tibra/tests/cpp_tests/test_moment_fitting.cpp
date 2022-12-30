@@ -14,6 +14,7 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
+#include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"
 
 namespace tibra {
@@ -38,7 +39,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     PointType point_a_domain = {0.0, -0.1, -0.1};
     PointType point_b_domain = {2.1, 2.1, 3.1};
-    auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
+    auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPoints().clear();
     SingleElement::AssembleIPs(element, parameters);
@@ -99,7 +100,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     PointType point_a_domain = {0.0, -0.1, -0.1};
     PointType point_b_domain = {2.1, 2.1, 1.1};
-    auto p_triangle_mesh = TriangleMesh::MakeCuboid(point_a_domain, point_b_domain);
+    auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     element.GetIntegrationPoints().clear();
     SingleElement::AssembleIPs(element, parameters);
