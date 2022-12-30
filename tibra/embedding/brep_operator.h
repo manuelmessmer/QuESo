@@ -13,6 +13,7 @@
 #include "embedding/trimmed_domain.h"
 #include "embedding/aabb_tree.h"
 #include "embedding/clipper.h"
+#include "embedding/brep_operator_base.h"
 #include "io/io_utilities.h"
 
 namespace tibra {
@@ -26,17 +27,15 @@ namespace tibra {
  * @brief  Provides geometrical operations for Brep models.
  * @details Uses AABB Tree for fast search.
 */
-class BRepOperator {
+class BRepOperator : public BRepOperatorBase {
 
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
-    typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
-    typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainBasePtrType;
+    typedef BRepOperatorBase BaseType;
+    typedef BaseType::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
 
-    enum IntersectionStatus {Inside, Outside, Trimmed};
     ///@}
     ///@name Life Cycle
     ///@{
@@ -45,7 +44,7 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
     BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters)
-        : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh), mParameters(rParameters)
+        : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
     {
     }
 
@@ -56,12 +55,7 @@ public:
     ///@brief Returns true if point is inside TriangleMesh.
     ///@param rPoint
     ///@return bool
-    bool IsInside(const PointType& rPoint) const;
-
-    ///@brief Returns intersections state of element.
-    ///@param rElement
-    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const Element& rElement) const;
+    bool IsInside(const PointType& rPoint) const override;
 
     ///@brief Returns intersections state of element.
     ///@param rLowerBound
@@ -69,14 +63,14 @@ public:
     ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS1) const;
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS1) const override;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain holds cipped mesh. (not closed).
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @param rParam Parameters
     /// @return TrimmedDomainBasePtrType (std::unique_ptr)
-    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
 
     ///@brief Return ids of triangles that intersect AABB.
     ///@param rLowerBound of AABB.
@@ -99,7 +93,6 @@ private:
 
     AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
-    const Parameters& mParameters;
     ///@}
 }; // End BRepOperator class
 

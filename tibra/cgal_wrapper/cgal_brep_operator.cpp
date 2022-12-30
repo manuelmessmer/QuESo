@@ -53,7 +53,7 @@ bool CGALBRepOperator::IsInside(const PointType& rPoint) const {
     return false;
 }
 
-TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const {
+TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     typedef boost::property_map<CGALMeshType, CGAL::edge_is_feature_t>::type CGALEIFMap;
     typedef CGALKernalType::Vector_3 CGALVectorType;
@@ -93,18 +93,18 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
     std::unique_ptr<CGALMeshType> p_refinend_intersection_mesh = std::make_unique<CGALMeshType>();
 
     // Remesh intersected domain until minimum number of boundary triangles is reached.
-    double edge_length = rParam.InitialTriangleEdgeLength();
+    double edge_length = mParameters.InitialTriangleEdgeLength();
     int iteration_count = 0;
-    while (p_refinend_intersection_mesh->number_of_faces() < rParam.MinimumNumberOfTriangles() && iteration_count < 10){
+    while (p_refinend_intersection_mesh->number_of_faces() < mParameters.MinimumNumberOfTriangles() && iteration_count < 10){
       p_refinend_intersection_mesh->clear();
       CGAL::copy_face_graph(intersection_mesh,*p_refinend_intersection_mesh);
 
       // Element::CGALPositionType positions = p_refinend_intersection_mesh->points();
       // for (auto vi = p_refinend_intersection_mesh->vertices_begin(); vi != p_refinend_intersection_mesh->vertices_end(); ++vi)
       // {
-      //     double x = (positions[*vi].x() - rParam.LowerBound()[0])/std::abs(rParam.LowerBound()[0] - rParam.UpperBound()[0]);
-      //     double y = (positions[*vi].y() - rParam.LowerBound()[1])/std::abs(rParam.LowerBound()[1] - rParam.UpperBound()[1]);
-      //     double z = (positions[*vi].z() - rParam.LowerBound()[2])/std::abs(rParam.LowerBound()[2] - rParam.UpperBound()[2]);
+      //     double x = (positions[*vi].x() - mParameters.LowerBound()[0])/std::abs(mParameters.LowerBound()[0] - mParameters.UpperBound()[0]);
+      //     double y = (positions[*vi].y() - mParameters.LowerBound()[1])/std::abs(mParameters.LowerBound()[1] - mParameters.UpperBound()[1]);
+      //     double z = (positions[*vi].z() - mParameters.LowerBound()[2])/std::abs(mParameters.LowerBound()[2] - mParameters.UpperBound()[2]);
       //     CGALPointType p(x,y,z);
       //     positions[*vi] = p;
       // }
@@ -125,23 +125,23 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
             return nullptr;
           }
       }
-      edge_length = edge_length * 0.95*std::sqrt((double)p_refinend_intersection_mesh->number_of_faces() / (double) rParam.MinimumNumberOfTriangles()); // Todo: Make this better!!!
+      edge_length = edge_length * 0.95*std::sqrt((double)p_refinend_intersection_mesh->number_of_faces() / (double) mParameters.MinimumNumberOfTriangles()); // Todo: Make this better!!!
       iteration_count++;
     }
 
     // Element::CGALPositionType positions = p_refinend_intersection_mesh->points();
     // for (auto vi = p_refinend_intersection_mesh->vertices_begin(); vi != p_refinend_intersection_mesh->vertices_end(); ++vi)
     // {
-    //     double x = (positions[*vi].x() * std::abs(rParam.LowerBound()[0] - rParam.UpperBound()[0])) + rParam.LowerBound()[0];
-    //     double y = (positions[*vi].y() * std::abs(rParam.LowerBound()[1] - rParam.UpperBound()[1])) + rParam.LowerBound()[1];
-    //     double z = (positions[*vi].z() * std::abs(rParam.LowerBound()[2] - rParam.UpperBound()[2])) + rParam.LowerBound()[2];
+    //     double x = (positions[*vi].x() * std::abs(mParameters.LowerBound()[0] - mParameters.UpperBound()[0])) + mParameters.LowerBound()[0];
+    //     double y = (positions[*vi].y() * std::abs(mParameters.LowerBound()[1] - mParameters.UpperBound()[1])) + mParameters.LowerBound()[1];
+    //     double z = (positions[*vi].z() * std::abs(mParameters.LowerBound()[2] - mParameters.UpperBound()[2])) + mParameters.LowerBound()[2];
     //     CGALPointType p(x,y,z);
     //     positions[*vi] = p;
     // }
 
-    if (p_refinend_intersection_mesh->number_of_faces() < rParam.MinimumNumberOfTriangles() ){
+    if (p_refinend_intersection_mesh->number_of_faces() < mParameters.MinimumNumberOfTriangles() ){
       std::cout << "Warning:: Targeted number of triangles is not reached: "
-        << p_refinend_intersection_mesh->number_of_faces() << " / " <<  rParam.MinimumNumberOfTriangles() << std::endl;
+        << p_refinend_intersection_mesh->number_of_faces() << " / " <<  mParameters.MinimumNumberOfTriangles() << std::endl;
     }
 
     // Return trimmed domain

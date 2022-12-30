@@ -67,7 +67,7 @@ public:
     /// @param rUpperBound of AABB.
     /// @param rParam Parameterss
     /// @return TrimmedDomainBasePtrType (std::unique_ptr)
-    virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const = 0;
+    virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
 protected:
     const Parameters& mParameters;

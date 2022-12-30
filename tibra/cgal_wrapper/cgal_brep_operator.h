@@ -82,7 +82,7 @@ public:
     /// @param rUpperBound of AABB.
     /// @param rParam Parameters
     /// @return TrimmedDomainBasePtrType (std::unique_ptr)
-    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParam) const override;
+    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound) const override;
 
     ///@}
 private:

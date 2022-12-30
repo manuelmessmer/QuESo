@@ -91,7 +91,7 @@ void TIBRA::Run(){
       new_element->SetIsTrimmed(true);
       auto t_begin_ci = std::chrono::high_resolution_clock().now();
 
-      auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(el_lower_bound, el_upper_bound, mParameters);
+      auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(el_lower_bound, el_upper_bound);
       if( p_trimmed_domain ){
         new_element->pSetTrimmedDomain(p_trimmed_domain);
         valid_element = true;
