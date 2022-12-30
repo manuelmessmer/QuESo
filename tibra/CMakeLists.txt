@@ -59,15 +59,28 @@ file(GLOB TIBRA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/modeler/*.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/cgal_wrapper/*.cpp
   # Add external libraries
   ${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries/aabb_tree/*.cc
 )
+
+## If cgal support is enables
+if( USE_CGAL MATCHES ON )
+  file(GLOB TIBRA_CGALWrapperSource
+    ${CMAKE_CURRENT_SOURCE_DIR}/cgal_wrapper/*.cpp
+  )
+endif()
+
 ## CGAL python interface sources
 file(GLOB_RECURSE TIBRA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
-add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource})
-target_link_libraries(TIBRA_ApplicationCore PUBLIC CGAL ${PYTHON_LIBRARIES})
+if( USE_CGAL MATCHES ON )
+  add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource} ${TIBRA_CGALWrapperSource})
+  target_link_libraries(TIBRA_ApplicationCore PUBLIC CGAL ${PYTHON_LIBRARIES})
+else()
+  add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource} )
+  target_link_libraries(TIBRA_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
+endif()
+
 set_target_properties(TIBRA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TIBRA_Application=EXPORT,API")
 
 pybind11_add_module(TIBRA_Application MODULE THIN_LTO ${TIBRA_PYTHON_INTERFACE})

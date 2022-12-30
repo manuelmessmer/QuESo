@@ -6,6 +6,8 @@
 
 #if defined USE_CGAL
 #include "cgal_wrapper/cgal_brep_operator.h"
+#else
+#include "embedding/brep_operator.h"
 #endif
 
 namespace tibra {
@@ -26,6 +28,8 @@ public:
 
     #if defined USE_CGAL
     typedef cgal::CGALBRepOperator CurrentBRepOperator;
+    #else
+    typedef BRepOperator CurrentBRepOperator;
     #endif
 
     ///@}

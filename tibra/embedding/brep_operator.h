@@ -63,7 +63,7 @@ public:
     ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS1) const override;
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS0) const override;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain holds cipped mesh. (not closed).
     /// @param rLowerBound of AABB.
@@ -93,6 +93,7 @@ private:
 
     AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
+
     ///@}
 }; // End BRepOperator class
 
