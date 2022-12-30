@@ -7,6 +7,7 @@
 #include "embedding/trimmed_domain.h"
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
+#include "utilities/mesh_utilities.h"
 
 namespace tibra {
 
@@ -160,14 +161,14 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
 
         mpTriangleMesh->Reserve(2UL*num_triangles);
 
-        mpTriangleMesh->Append(*(p_t1.get()));
-        mpTriangleMesh->Append(*(p_t2.get()));
-        mpTriangleMesh->Append(*(p_t3.get()));
-        mpTriangleMesh->Append(*(p_t4.get()));
-        mpTriangleMesh->Append(*(p_t5.get()));
-        mpTriangleMesh->Append(*(p_t6.get()));
+        MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t1.get()));
+        MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t2.get()));
+        MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t3.get()));
+        MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t4.get()));
+        MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t5.get()));
+        MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t6.get()));
 
-        mpTriangleMesh->Refine(mParameters.MinimumNumberOfTriangles());
+        MeshUtilities::Refine(*(mpTriangleMesh.get()), mParameters.MinimumNumberOfTriangles());
         p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*6UL);
         for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
             IndexType method = 3; // Creates 6 points per triangle.

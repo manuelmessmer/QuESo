@@ -10,6 +10,7 @@
 //// Project includes
 #include "containers/boundary_integration_point.h"
 #include "containers/triangle_mesh.h"
+#include "utilities/mesh_utilities.h"
 #include "utilities/parameters.h"
 
 namespace tibra {
@@ -103,7 +104,8 @@ public:
         // Copy all triangles in (triangle_ids) to new mesh.
         auto p_new_mesh = std::make_unique<TriangleMesh>();
         p_new_mesh->Reserve(mpTriangleMesh->NumOfTriangles());
-        p_new_mesh->Append(triangle_ids, *mpTriangleMesh);
+        MeshUtilities::Append(*p_new_mesh, *mpTriangleMesh, triangle_ids);
+
         return std::move(p_new_mesh);
     }
 
