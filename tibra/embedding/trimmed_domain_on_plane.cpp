@@ -246,8 +246,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain()
                 polygon.AddVertex(corner_points[2]);
                 polygon.AddVertex(corner_points[1]);
             }
-            const auto p_new_triangles = polygon.pGetTriangleMesh();
-            p_new_mesh->Append(*p_new_triangles);
+            polygon.AddToTriangleMesh(*p_new_mesh.get());
         }
     }
     return std::move(p_new_mesh);

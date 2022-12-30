@@ -146,6 +146,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
     auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
     auto p_triangle_mesh = std::make_unique<TriangleMesh>();
     p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
+    p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
     for( auto triangle_id : (*p_intersected_triangle_ids) ){
         const auto& P1 = mTriangleMesh.P1(triangle_id);
         const auto& P2 = mTriangleMesh.P2(triangle_id);
@@ -154,8 +155,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
 
         auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
         if( p_polygon ){
-            auto p_tmp_triangle_mesh = p_polygon->pGetTriangleMesh();
-            p_triangle_mesh->Append(*p_tmp_triangle_mesh);
+            p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
         }
     }
     if( p_triangle_mesh->NumOfTriangles() > 0){

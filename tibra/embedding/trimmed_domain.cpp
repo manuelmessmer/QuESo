@@ -158,7 +158,7 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
         const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
             + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
 
-        mpTriangleMesh->Reserve(num_triangles);
+        mpTriangleMesh->Reserve(2UL*num_triangles);
 
         mpTriangleMesh->Append(*(p_t1.get()));
         mpTriangleMesh->Append(*(p_t2.get()));
@@ -166,15 +166,7 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
         mpTriangleMesh->Append(*(p_t4.get()));
         mpTriangleMesh->Append(*(p_t5.get()));
         mpTriangleMesh->Append(*(p_t6.get()));
-        /// Mapping:
-        //
-        //     a_______b                 y
-        //     /      /|                ´|`
-        //   c/_____d/ |<-- lower plane  |-->x
-        //    |     |  /                /
-        //    |     |</-- upper plane  Z
-        //    |_____|/
-        //
+
         mpTriangleMesh->Refine(mParameters.MinimumNumberOfTriangles());
         for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
             auto p_new_points = mpTriangleMesh->GetIPsGlobal(triangle_id, 3);
