@@ -18,7 +18,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( GenerateBoundaryIPsTestSuite )
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Elephant" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Elephant" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Bunny" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Bunny" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cylinder" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cylinder" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -357,7 +357,7 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube1Test) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cube 1" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cube 1" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "positive_x_e6",
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube1Test) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube2Test) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cube 2" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cube 2" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "positive_y_e6",
@@ -399,7 +399,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube2Test) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube3Test) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cube 3" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cube 3" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "positive_z_e6",
@@ -420,7 +420,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube3Test) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube4Test) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cube 4" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cube 4" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "negative_x_e6",
@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube4Test) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube5Test) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cube 5" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cube 5" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "negative_y_e6",
@@ -462,7 +462,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube5Test) {
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube6Test) {
-    std::cout << "Testing :: Prototype :: Generate Boundary Integration Points :: Cube 6" << std::endl;
+    std::cout << "Testing :: Generate Boundary Integration Points :: Cube 6" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "negative_z_e6",
