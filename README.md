@@ -6,7 +6,7 @@ TIBRA is an IGA preprocessor to generate analysis suitable models from volumetri
 
 This project is still under development.
 
-Before using TIBRA, please check if all unit tests pass: `./run_all_test all`
+Before using TIBRA, please check if all unit tests pass: `./run_test all`
 
 A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
 
