@@ -51,6 +51,15 @@ public:
     ///@return std::unique_ptr<TriangleMesh>
     static TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
+    ///@brief Returns enclosed volume by triangle mesh.
+    ///@param rTriangleMesh
+    ///@return double
+    static double Volume(const TriangleMesh& rTriangleMesh);
+
+    ///@brief Returns enclosed volume by triangle mesh (OMP-version).
+    ///@param rTriangleMesh
+    ///@return double
+    static double VolumeOMP(const TriangleMesh& rTriangleMesh);
     ///@}
 }; // End class MeshUtilities
 ///@} // End TIBRA Classes
