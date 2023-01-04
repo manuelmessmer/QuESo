@@ -91,6 +91,60 @@ BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
     BOOST_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
 }
 
+BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
+    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Bunny" << std::endl;
+    TriangleMesh triangle_mesh{};
+    // Read mesh from STL file
+    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    double volume = MeshUtilities::Volume(triangle_mesh);
+    double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
+
+    const double volume_ref = 279628.2991519215;
+    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
+    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
+}
+
+BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
+    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Cylinder" << std::endl;
+    TriangleMesh triangle_mesh{};
+    // Read mesh from STL file
+    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+
+    double volume = MeshUtilities::Volume(triangle_mesh);
+    double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
+
+    const double volume_ref = 31.41176999044123;
+    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
+    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
+}
+
+BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
+    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant" << std::endl;
+    TriangleMesh triangle_mesh{};
+    // Read mesh from STL file
+    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+
+    double volume = MeshUtilities::Volume(triangle_mesh);
+    double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
+
+    const double volume_ref = 0.04620123478735502;
+    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-8);
+    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-8);
+}
+
+BOOST_AUTO_TEST_CASE(TriangleMeshComputeCubeTest) {
+    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Cube" << std::endl;
+    TriangleMesh triangle_mesh{};
+    // Read mesh from STL file
+    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+
+    double volume = MeshUtilities::Volume(triangle_mesh);
+    double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
+
+    const double volume_ref = 22.81560787501277;
+    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
+    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
+}
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
