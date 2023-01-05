@@ -14,12 +14,13 @@
 #include <chrono>
 
 /// Project includes
-#include "io/io_utilities.h"
-#include "containers/element.h"
-#include "utilities/mapping_utilities.h"
-#include "utilities/parameters.h"
 #include "containers/element_container.h"
 #include "embedding/brep_operator_factory.h"
+#include "containers/element.h"
+#include "io/io_utilities.h"
+#include "utilities/mapping_utilities.h"
+#include "utilities/mesh_utilities.h"
+#include "utilities/parameters.h"
 
 namespace tibra {
 
@@ -67,10 +68,11 @@ public:
             mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh, mParameters);
 
             // Compute volume
-            //const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);
-            // if( mParameters.EchoLevel() > 0)
-            //     // std::cout.precision(17);
-            //     std::cout << "Volume of Global Surface Mesh (File: '" << mFilename << "' ): " << volume_global_surface_mesh << std::endl;
+            const double volume = MeshUtilities::Volume(mTriangleMesh);
+            if( mParameters.EchoLevel() > 0){
+                std::cout << "TIBRA :: Read file: '" << r_filename << "'\n";
+                std::cout << "TIBRA :: Volume of input model: " << volume << '\n';
+            }
         }
 
         // Start computation
