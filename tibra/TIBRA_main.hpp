@@ -14,12 +14,13 @@
 #include <chrono>
 
 /// Project includes
-#include "io/io_utilities.h"
-#include "containers/element.h"
-#include "utilities/mapping_utilities.h"
-#include "utilities/parameters.h"
 #include "containers/element_container.h"
 #include "embedding/brep_operator_factory.h"
+#include "containers/element.h"
+#include "io/io_utilities.h"
+#include "utilities/mapping_utilities.h"
+#include "utilities/mesh_utilities.h"
+#include "utilities/parameters.h"
 
 namespace tibra {
 
@@ -55,6 +56,7 @@ public:
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
 
         // Read geometry
+        double volume_brep = 0.0;
         if( mParameters.Get<bool>("embedding_flag") ) {
             // Read mesh
             const auto& r_filename = mParameters.Get<std::string>("input_filename");
@@ -67,10 +69,11 @@ public:
             mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh, mParameters);
 
             // Compute volume
-            //const double volume_global_surface_mesh = CGAL::Polygon_mesh_processing::volume(mPolyhedron);
-            // if( mParameters.EchoLevel() > 0)
-            //     // std::cout.precision(17);
-            //     std::cout << "Volume of Global Surface Mesh (File: '" << mFilename << "' ): " << volume_global_surface_mesh << std::endl;
+            volume_brep = MeshUtilities::Volume(mTriangleMesh);
+            if( mParameters.EchoLevel() > 0){
+                std::cout << "TIBRA :: Read file: '" << r_filename << "'\n";
+                std::cout << "TIBRA :: Volume of B-Rep model: " << volume_brep << '\n';
+            }
         }
 
         // Start computation
@@ -84,12 +87,16 @@ public:
         if( mParameters.EchoLevel() > 0) {
             // Write vtk files (binary = true)
             IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
-            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk", true);
-            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk", true);
+            IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
 
             std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
 
+            if( mParameters.EchoLevel() > 1 ) {
+                const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
+                std::cout << "TIBRA :: The computed quadrature represents " << volume_ips/volume_brep * 100
+                    << "% of the volume of the BRep model.\n";
+            }
             auto end_time = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> elapsed_time = end_time - start_time;
             std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
