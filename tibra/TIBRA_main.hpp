@@ -86,8 +86,7 @@ public:
         if( mParameters.EchoLevel() > 0) {
             // Write vtk files (binary = true)
             IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
-            IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/points_trimmed.vtk", true);
-            IO::WritePointsToVTK(*mpElementContainer, "Inside", "output/points_inside.vtk", true);
+            IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
 
             std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
