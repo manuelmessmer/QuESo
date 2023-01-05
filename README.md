@@ -11,7 +11,7 @@ Before using TIBRA, please check if all unit tests pass: `./run_tests all`
 Two examples how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples).
 
 ## Installation (Linux)
-Required dependencies (C++):
+Required packages:
 
  &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev`
 
