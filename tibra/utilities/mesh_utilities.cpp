@@ -6,7 +6,7 @@
 #include <numeric>
 /// Project includes
 #include "utilities/mesh_utilities.h"
-#include "utilities/polynomial_utilities.h"
+#include "utilities/utilities.h"
 
 namespace tibra {
 
@@ -180,27 +180,15 @@ std::unique_ptr<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerP
 
 double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     double volume = 0.0;
-    // Loop over all points.
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    // Loop over all triangles
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
         const auto r_points = *p_points;
-        // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
-        for( auto& point : r_points ){
+        // Loop over all points.
+        for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-
-            const double f_x_x = Polynomial::f_x(point[0], 0,-10.0, 10.0);
-            const double f_x_int_x = Polynomial::f_x_int(point[0], 0, -10.0, 10.0);
-            const double f_x_y = Polynomial::f_x(point[1], 0, -10.0, 10.0);
-            const double f_x_int_y = Polynomial::f_x_int(point[1], 0, -10.0, 10.0);
-            const double f_x_z = Polynomial::f_x(point[2], 0, -10.0, 10.0);
-            const double f_x_int_z = Polynomial::f_x_int(point[2], 0, -10.0, 10.0);
-            // Compute normal for each face/triangle.
-            PointType value;
-            value[0] = f_x_int_x*f_x_y*f_x_z;
-            value[1] = f_x_x*f_x_int_y*f_x_z;
-            value[2] = f_x_x*f_x_y*f_x_int_z;
-
-            double integrand = normal[0]*value[0] + normal[1]*value[1] + normal[2]*value[2];
+            double integrand = math::dot(normal, point);
             volume += 1.0/3.0*integrand * point.GetWeight();
         }
     }
@@ -209,28 +197,16 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
 
 double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     double volume = 0.0;
-    // Loop over all points.
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+    for( IndexType i = 0; i < num_triangles; ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
         const auto r_points = *p_points;
-        // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
-        for( auto& point : r_points ){
+        // Loop over all points.
+        for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-
-            const double f_x_x = Polynomial::f_x(point[0], 0,-10.0, 10.0);
-            const double f_x_int_x = Polynomial::f_x_int(point[0], 0, -10.0, 10.0);
-            const double f_x_y = Polynomial::f_x(point[1], 0, -10.0, 10.0);
-            const double f_x_int_y = Polynomial::f_x_int(point[1], 0, -10.0, 10.0);
-            const double f_x_z = Polynomial::f_x(point[2], 0, -10.0, 10.0);
-            const double f_x_int_z = Polynomial::f_x_int(point[2], 0, -10.0, 10.0);
-            // Compute normal for each face/triangle.
-            PointType value;
-            value[0] = f_x_int_x*f_x_y*f_x_z;
-            value[1] = f_x_x*f_x_int_y*f_x_z;
-            value[2] = f_x_x*f_x_y*f_x_int_z;
-
-            double integrand = normal[0]*value[0] + normal[1]*value[1] + normal[2]*value[2];
+            double integrand = math::dot(normal, point);
             volume += 1.0/3.0*integrand * point.GetWeight();
         }
     }
