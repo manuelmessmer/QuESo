@@ -8,7 +8,7 @@ This project is still under development.
 
 Before using TIBRA, please check if all unit tests pass: `./run_tests all`
 
-A simple example how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples/cantilever).
+Two examples how to use TIBRA can be found here: [Example](https://github.com/manuelmessmer/TIBRA/tree/main/examples).
 
 ## Installation (Linux)
 Required dependencies (C++):
