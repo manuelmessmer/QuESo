@@ -56,6 +56,7 @@ public:
         mpElementContainer = std::make_unique<ElementContainer>(mParameters);
 
         // Read geometry
+        double volume_brep = 0.0;
         if( mParameters.Get<bool>("embedding_flag") ) {
             // Read mesh
             const auto& r_filename = mParameters.Get<std::string>("input_filename");
@@ -68,10 +69,10 @@ public:
             mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh, mParameters);
 
             // Compute volume
-            const double volume = MeshUtilities::Volume(mTriangleMesh);
+            volume_brep = MeshUtilities::Volume(mTriangleMesh);
             if( mParameters.EchoLevel() > 0){
                 std::cout << "TIBRA :: Read file: '" << r_filename << "'\n";
-                std::cout << "TIBRA :: Volume of input model: " << volume << '\n';
+                std::cout << "TIBRA :: Volume of B-Rep model: " << volume_brep << '\n';
             }
         }
 
@@ -91,6 +92,11 @@ public:
             std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
             std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
 
+            if( mParameters.EchoLevel() > 1 ) {
+                const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
+                std::cout << "TIBRA :: The computed quadrature represents " << volume_ips/volume_brep * 100
+                    << "% of the volume of the BRep model.\n";
+            }
             auto end_time = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> elapsed_time = end_time - start_time;
             std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;

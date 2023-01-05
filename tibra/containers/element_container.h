@@ -273,6 +273,22 @@ public:
         return std::move(points);
     }
 
+    double GetVolumeOfAllIPs(){
+        const auto p_points = pGetPoints("All");
+        double weight = 0.0;
+        const IndexType num_points = p_points->size();
+        const auto it_begin = p_points->begin();
+        #pragma omp parallel for reduction(+ : weight)
+        for( IndexType i = 0; i < num_points; ++i ){
+            auto it = it_begin + i;
+            weight += it->GetWeight();
+        }
+
+        const auto parameters = (*this->begin())->GetParameters();
+        const auto jacobian = parameters.UpperBound() - parameters.LowerBound();
+        return weight*(jacobian[0]*jacobian[1]*jacobian[2]);
+    }
+
 private:
 
     IndexType GetNextIndexX(IndexType i){
