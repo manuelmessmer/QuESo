@@ -29,12 +29,14 @@ namespace utilities {
         a = std::move(b);
         b = std::move(tmp);
     }
+} // End namespace utiliites
 
+namespace math {
     ///@brief Simple Power functions
     ///@param x Value
     ///@param p Order
     ///@details For gcc (without --ffast-math compiler flag) this is faster than std::pow().
-    static double inline power( double x, std::size_t p){
+    static double inline pow( double x, std::size_t p){
         double result = 1.0;
         while( p > 0UL ) {
             result = result * x;
@@ -43,7 +45,15 @@ namespace utilities {
         return result;
     }
 
-} // End namespace utiliites
+    ///@brief Dot product of two vectors.
+    ///@param PointType LHs
+    ///@param PointType RHs
+    ///@return double.
+    static double inline dot( const PointType& rLhs, const PointType& rRhs) {
+        return (rLhs[0]*rRhs[0] + rLhs[1]*rRhs[1] + rLhs[2]*rRhs[2]);
+    }
+
+} // End namespace math
 
 } // End namespace tibra
 

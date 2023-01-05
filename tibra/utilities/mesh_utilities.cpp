@@ -6,6 +6,7 @@
 #include <numeric>
 /// Project includes
 #include "utilities/mesh_utilities.h"
+#include "utilities/utilities.h"
 
 namespace tibra {
 
@@ -177,4 +178,38 @@ std::unique_ptr<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerP
     return std::move(p_new_triangle_mesh);
 }
 
+double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
+    double volume = 0.0;
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    // Loop over all triangles
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
+        const auto r_points = *p_points;
+        // Loop over all points.
+        for( const auto& point : r_points ){
+            const auto& normal = point.Normal();
+            double integrand = math::dot(normal, point);
+            volume += 1.0/3.0*integrand * point.GetWeight();
+        }
+    }
+    return volume;
+}
+
+double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
+    double volume = 0.0;
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    // Loop over all triangles in omp parallel.
+    #pragma omp parallel for reduction(+ : volume)
+    for( IndexType i = 0; i < num_triangles; ++i ){
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
+        const auto r_points = *p_points;
+        // Loop over all points.
+        for( const auto& point : r_points ){
+            const auto& normal = point.Normal();
+            double integrand = math::dot(normal, point);
+            volume += 1.0/3.0*integrand * point.GetWeight();
+        }
+    }
+    return volume;
+}
 } // End namespace tibra

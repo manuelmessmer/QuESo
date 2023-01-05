@@ -50,12 +50,12 @@ public:
         const auto& P2 = this->P2(TriangleId);
         const auto& P3 = this->P3(TriangleId);
 
-        const double a = std::sqrt( utilities::power(P1[0] - P2[0], 2)
-            + utilities::power(P1[1] - P2[1], 2) + utilities::power(P1[2] - P2[2], 2));
-        const double b = std::sqrt( utilities::power(P2[0] - P3[0], 2)
-            + utilities::power(P2[1] - P3[1], 2) + utilities::power(P2[2] - P3[2], 2));
-        const double c = std::sqrt( utilities::power(P3[0] - P1[0], 2)
-            + utilities::power(P3[1] - P1[1], 2) + utilities::power(P3[2] - P1[2], 2));
+        const double a = std::sqrt( math::pow(P1[0] - P2[0], 2)
+            + math::pow(P1[1] - P2[1], 2) + math::pow(P1[2] - P2[2], 2));
+        const double b = std::sqrt( math::pow(P2[0] - P3[0], 2)
+            + math::pow(P2[1] - P3[1], 2) + math::pow(P2[2] - P3[2], 2));
+        const double c = std::sqrt( math::pow(P3[0] - P1[0], 2)
+            + math::pow(P3[1] - P1[1], 2) + math::pow(P3[2] - P1[2], 2));
 
         const double s = (a+b+c) / 2.0;
         const double radicand = s*(s-a)*(s-b)*(s-c);
