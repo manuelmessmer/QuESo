@@ -51,12 +51,17 @@ auto MakeUnique(Args&&... args) -> decltype(std::make_unique<T>(std::forward<Arg
   return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
-///@}
-///@name TIBRA GLOBAL OPERATIONS
-///@{
-
-namespace op {
-
+namespace Ptr {
+    /// @brief Swap function ptrs.
+    /// @tparam T Type
+    /// @param a Pointer 1.
+    /// @param b Poitner 2.
+    template <typename T>
+    static inline void swap(T& a, T& b) {
+        T tmp = std::move(a);
+        a = std::move(b);
+        b = std::move(tmp);
+    }
 }
 
 ///@}
