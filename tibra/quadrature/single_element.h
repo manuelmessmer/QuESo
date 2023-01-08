@@ -9,7 +9,7 @@
 #include <array>
 //// Project includes
 #include "containers/element.h"
-#include "containers/integration_point.h"
+#include "containers/integration_point.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace tibra {

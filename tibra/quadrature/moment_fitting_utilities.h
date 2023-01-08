@@ -11,7 +11,7 @@
 #include <variant>
 //// Project includes
 #include "containers/element.h"
-#include "containers/boundary_integration_point.h"
+#include "containers/boundary_integration_point.hpp"
 #include "utilities/parameters.h"
 
 namespace tibra {

@@ -15,7 +15,7 @@
 #include "define.hpp"
 #include "utilities/math_utilities.hpp"
 #include "containers/triangle_gauss_legendre_integration_points.hpp"
-#include "containers/boundary_integration_point.h"
+#include "containers/boundary_integration_point.hpp"
 
 namespace tibra {
 

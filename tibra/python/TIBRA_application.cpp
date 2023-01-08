@@ -14,7 +14,7 @@
 #include "containers/element.h"
 #include "containers/element_container.h"
 #include "containers/triangle_mesh.hpp"
-#include "containers/integration_point.h"
+#include "containers/integration_point.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"

@@ -9,7 +9,7 @@
 //// Project includes
 #include "containers/element_container.h"
 #include "containers/triangle_mesh.hpp"
-#include "containers/boundary_integration_point.h"
+#include "containers/boundary_integration_point.hpp"
 
 namespace tibra {
 

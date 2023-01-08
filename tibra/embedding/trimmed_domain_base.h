@@ -8,7 +8,7 @@
 #include <memory>
 #include <functional>
 //// Project includes
-#include "containers/boundary_integration_point.h"
+#include "containers/boundary_integration_point.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "utilities/mesh_utilities.h"
 #include "utilities/parameters.h"

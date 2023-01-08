@@ -9,7 +9,7 @@
 //// Project includes
 #include "containers/triangle_mesh.hpp"
 #include "containers/element.h"
-#include "containers/boundary_integration_point.h"
+#include "containers/boundary_integration_point.hpp"
 #include "embedding/trimmed_domain.h"
 #include "embedding/aabb_tree.h"
 #include "embedding/clipper.h"
