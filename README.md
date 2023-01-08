@@ -12,14 +12,24 @@ Two examples how to use TIBRA can be found here: [Example](https://github.com/ma
 
 ## Installation (Linux)
 Required packages:
-
- &ensp; `sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev`
-
+```console
+sudo apt-get install python3-dev gcc g++ cmake libboost-test-dev
+```
 Required Python modules:
-
-&ensp; `sudo pip3 install numpy scipy`
-
-Execute `sh configure.sh` to install TIBRA.
+```console
+sudo pip3 install numpy scipy
+```
+Installation:
+```console
+sh configure.sh
+```
+To run TIBRA make sure LD_LIBRARY_PATH and PYTHONPATH are pointing to your TIBRA folder:
+```console
+export PYTHONPATH=/path/to/TIBRA/
+```
+```console
+export LD_LIBRARY_PATH=/path/to/TIBRA/libs/
+```
 
 ## How to cite TIBRA?
 Please use the following references when citing TIBRA in your work.
