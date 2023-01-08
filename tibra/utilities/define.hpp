@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef TOLERANCES_INCLUDE_H
-#define TOLERANCES_INCLUDE_H
+#ifndef DEFINE_INCLUDE_HPP
+#define DEFINE_INCLUDE_HPP
 
 ///@name TIBRA GLOBAL VARIABLES
 ///@{
@@ -13,4 +13,4 @@ constexpr double EPS3 = 1e-12;
 constexpr double EPS4 = 1e-14;
 ///@}
 
-#endif // TOLERANCES_INCLUDE_H
+#endif // DEFINE_INCLUDE_HPP

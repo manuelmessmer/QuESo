@@ -9,7 +9,7 @@
 #include <array>
 //// Project includes
 #include "containers/point_types.h"
-#include "utilities/tolerances.h"
+#include "utilities/define.hpp"
 
 namespace tibra {
 

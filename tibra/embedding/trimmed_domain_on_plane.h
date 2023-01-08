@@ -7,7 +7,7 @@
 //// STL includes
 #include <set>
 //// Project includes
-#include "utilities/tolerances.h"
+#include "utilities/define.hpp"
 #include "embedding/trimmed_domain_base.h"
 
 namespace tibra
