@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <array>
 //// Project includes
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 
 namespace tibra {
 

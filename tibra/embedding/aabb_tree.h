@@ -8,7 +8,7 @@
 #include "aabb_tree/AABB_base.h"
 //// Project includes
 #include "embedding/aabb_primitive.h"
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 
 namespace tibra {
 

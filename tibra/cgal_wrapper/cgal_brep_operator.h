@@ -15,7 +15,7 @@
 
 //// Project includes
 #include "cgal_wrapper/cgal_utilities.h"
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 #include "containers/element.h"
 #include "containers/integration_point.h"
 #include "embedding/brep_operator_base.h"

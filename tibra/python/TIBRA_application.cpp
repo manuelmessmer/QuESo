@@ -13,7 +13,7 @@
 #include "TIBRA_main.hpp"
 #include "containers/element.h"
 #include "containers/element_container.h"
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 #include "containers/integration_point.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/mesh_utilities.h"

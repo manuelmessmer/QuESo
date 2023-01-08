@@ -9,7 +9,7 @@
 #include <set>
 #include <chrono>
 //// Project includes
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/aabb_tree.h"
 

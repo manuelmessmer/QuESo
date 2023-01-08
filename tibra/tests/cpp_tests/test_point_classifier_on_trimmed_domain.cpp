@@ -9,7 +9,7 @@
 #include <chrono>
 //// Project includes
 #include "containers/element_container.h"
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
 #include "io/io_utilities.h"
 

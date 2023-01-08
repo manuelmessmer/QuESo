@@ -8,7 +8,7 @@
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Surface_mesh.h>
 //// Project includes
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 
 namespace tibra {
 namespace cgal {
