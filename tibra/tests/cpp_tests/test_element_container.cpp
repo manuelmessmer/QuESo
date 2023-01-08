@@ -8,7 +8,7 @@
 // Project includes
 #include "utilities/parameters.h"
 #include "containers/element.hpp"
-#include "containers/element_container.h"
+#include "containers/element_container.hpp"
 
 namespace tibra {
 namespace Testing {

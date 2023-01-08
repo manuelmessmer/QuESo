@@ -5,7 +5,7 @@
 #define MULTI_KNOTSPAN_BOXES_UTILITIES_H
 
 //// Project includes
-#include "containers/element_container.h"
+#include "containers/element_container.hpp"
 #include "utilities/parameters.h"
 
 namespace tibra {
