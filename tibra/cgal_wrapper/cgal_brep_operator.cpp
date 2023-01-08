@@ -7,7 +7,6 @@
 #include <CGAL/Polygon_mesh_processing/detect_features.h>
 #include <CGAL/Polygon_mesh_processing/remesh.h>
 //// STL includes
-#include <chrono>
 #include <stdexcept>
 //// Project includes
 #include "cgal_wrapper/cgal_brep_operator.h"

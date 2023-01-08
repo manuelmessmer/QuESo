@@ -5,8 +5,6 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
-//// STL includes
-#include <chrono>
 //// Project includes
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
@@ -135,7 +133,6 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     const double delta_y = 0.05;
     const double delta_z = 0.05;
 
-    auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<IndexType> result{};
     double tolerance = 0.0;
     result.reserve(6375);
@@ -174,7 +171,6 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     const double delta_y = 3;
     const double delta_z = 3;
 
-    auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<IndexType> result{};
     double tolerance = 0.0;
     result.reserve(41070);

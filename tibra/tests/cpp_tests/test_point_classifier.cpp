@@ -5,8 +5,6 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
-//// STL includes
-#include <chrono>
 //// Project includes
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
@@ -37,7 +35,6 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
     }
     Parameters params{};
     BRepOperator classifier(triangle_mesh, params);
-    //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
@@ -47,9 +44,6 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
         }
         count++;
     }
-    //auto end_time = std::chrono::high_resolution_clock::now();
-    //std::chrono::duration<double> elapsed_time = end_time - start_time;
-    //std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 
     for( int i = 0; i < result.size(); ++i){
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] );
@@ -81,7 +75,6 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 
     Parameters params{};
     BRepOperator classifier(triangle_mesh, params);
-    //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
@@ -91,9 +84,6 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
         }
         count++;
     }
-    //auto end_time = std::chrono::high_resolution_clock::now();
-    //std::chrono::duration<double> elapsed_time = end_time - start_time;
-    //std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 
     for( int i = 0; i < result.size(); ++i){
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] + rPoints[i][2]*rPoints[i][2] );
@@ -138,7 +128,6 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
         }
     }
 
-    // auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
     for( auto& point : rPoints){
@@ -147,8 +136,6 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
         }
         count++;
     }
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
 
     std::vector<bool> result_ref{};
     // Read reference results from file
@@ -194,7 +181,6 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
         }
     }
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
     for( auto& point : rPoints){
@@ -203,9 +189,6 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
         }
         count++;
     }
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "Time new: " << elapsed_time.count() << std::endl;
 
     std::vector<bool> result_ref{};
     // Read reference results from file

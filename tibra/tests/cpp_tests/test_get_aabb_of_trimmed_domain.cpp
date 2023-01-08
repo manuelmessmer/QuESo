@@ -5,8 +5,6 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
-//// STL includes
-#include <chrono>
 //// Project includes
 #include "containers/element_container.hpp"
 #include "containers/triangle_mesh.hpp"
@@ -37,8 +35,6 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     const double delta_y = 0.50;
     const double delta_z = 0.50;
 
-    auto start_time = std::chrono::high_resolution_clock::now();
-
     std::vector<double> results;
     results.reserve(344);
     for(double x = -1.501; x <= 1.5; x += delta_x){
@@ -66,11 +62,6 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
         BOOST_CHECK_LT( error, 1e-10 );
     }
     myfile.close();
-
-    // std::cout << "Count: " << count << std::endl;
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
@@ -87,7 +78,6 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     const double delta_y = 0.3;
     const double delta_z = 0.3;
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<double> results{};
     results.reserve(826);
     for(double x = -1.501; x <= 1.5; x += delta_x){
@@ -118,9 +108,6 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     }
     myfile.close();
 
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
@@ -140,8 +127,6 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;
-
-    //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<double> results{};
     results.reserve(166);
@@ -172,9 +157,6 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     }
     myfile.close();
 
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
@@ -191,7 +173,6 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     const double delta_y = 10;
     const double delta_z = 10;
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<double> results{};
     results.reserve(381);
     for(double x = -24; x <= 85; x += delta_x){

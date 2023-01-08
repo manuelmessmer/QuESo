@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <limits>
 #include <random>
-#include <chrono>
 //// Project includes
 #include "embedding/brep_operator.h"
 #include "embedding/ray_aabb_primitive.h"

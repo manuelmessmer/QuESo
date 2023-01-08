@@ -5,8 +5,6 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
-//// STL includes
-#include <chrono>
 //// Project includes
 #include "containers/element_container.hpp"
 #include "containers/triangle_mesh.hpp"
@@ -33,7 +31,6 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
     const double delta_y = 0.50;
     const double delta_z = 0.50;
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     IndexType num_of_trimmed_elements = 0;
     for(double x = -1.5; x <= 1.5; x += delta_x){
         for(double y = -1.5; y <= 1.5; y += delta_y){
@@ -62,10 +59,6 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
         }
     }
     BOOST_CHECK_EQUAL(num_of_trimmed_elements, 240);
-    // std::cout << "Count: " << count << std::endl;
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
@@ -82,7 +75,6 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     const double delta_y = 0.15;
     const double delta_z = 0.15;
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     IndexType num_of_trimmed_elements = 0;
     for(double x = -1.5001; x <= 1.5; x += delta_x){
         for(double y = -1.5001; y <= 1.5; y += delta_y){
@@ -111,10 +103,6 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
         }
     }
     BOOST_CHECK_EQUAL(num_of_trimmed_elements, 3226);
-    // std::cout << "Count: " << count << std::endl;
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
@@ -131,7 +119,6 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     const double delta_y = 0.05;
     const double delta_z = 0.05;
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     IndexType num_of_trimmed_elements = 0;
     for(double x = -0.4; x <= 0.4; x += delta_x){
         for(double y = -0.6; y <= 0.6; y += delta_y){
@@ -160,10 +147,6 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
         }
     }
     BOOST_CHECK_EQUAL(num_of_trimmed_elements, 701);
-    // std::cout << "Count: " << count << std::endl;
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
@@ -180,7 +163,6 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     const double delta_y = 10;
     const double delta_z = 10;
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     IndexType num_of_trimmed_elements = 0;
     for(double x = -24; x <= 85; x += delta_x){
         for(double y = -43; y <= 46; y += delta_y){
@@ -209,10 +191,6 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
         }
     }
     BOOST_CHECK_EQUAL(num_of_trimmed_elements, 381);
-    // std::cout << "Count: " << count << std::endl;
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

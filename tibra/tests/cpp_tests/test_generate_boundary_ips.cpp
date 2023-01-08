@@ -4,7 +4,6 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
-#include <chrono>
 
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
@@ -44,7 +43,6 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_elephant.txt");
     std::string line{};
 
-    //auto start_time = std::chrono::high_resolution_clock::now();
     IndexType number_trimmed_elements = 0;
 
     for(double x = lower_bound[0]; x <= upper_bound[0]; x += delta_x){
@@ -96,9 +94,6 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
     file.close();
     BOOST_CHECK_EQUAL(number_trimmed_elements, 166);
 
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
@@ -123,8 +118,6 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
     const double delta_x = 15;
     const double delta_y = 15;
     const double delta_z = 15;
-
-    //auto start_time = std::chrono::high_resolution_clock::now();
 
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_bunny.txt");
     std::string line{};
@@ -176,10 +169,6 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
         }
     }
     file.close();
-    // auto end_time = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed_time = end_time - start_time;
-    // std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
-    // std::cout << "number_trimmed_elements: " << number_trimmed_elements << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {

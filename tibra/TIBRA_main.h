@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef TIBRA_HPP
-#define TIBRA_HPP
+#ifndef TIBRA_INCLUDE_H
+#define TIBRA_INCLUDE_H
 
 /// STL includes
 #include <iostream>
@@ -10,8 +10,6 @@
 #include <fstream>
 #include <vector>
 #include <array>
-//#include <string>
-#include <chrono>
 
 /// Project includes
 #include "containers/element_container.hpp"
@@ -21,6 +19,7 @@
 #include "utilities/mapping_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "utilities/parameters.h"
+#include "utilities/timer.hpp"
 
 namespace tibra {
 
@@ -48,7 +47,7 @@ public:
     /// @brief Constructor. Runs all processes.
     TIBRA(const Parameters& rParameters ) : mParameters(rParameters)
     {
-        auto start_time = std::chrono::high_resolution_clock::now();
+        Timer timer{};
         if( mParameters.EchoLevel() > 0)
             std::cout << "TIBRA :: START " << std::endl;
 
@@ -97,9 +96,8 @@ public:
                 std::cout << "TIBRA :: The computed quadrature represents " << volume_ips/volume_brep * 100
                     << "% of the volume of the BRep model.\n";
             }
-            auto end_time = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_time = end_time - start_time;
-            std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
+
+            std::cout << "TIBRA :: Elapsed Time: " << timer.Measure() << std::endl;
         }
         if( mParameters.EchoLevel() > 0)
             std::cout << "TIBRA :: END: " << std::endl;
@@ -163,4 +161,4 @@ private:
 
 } // End namespace tibra
 
-#endif // TIBRA_HPP
+#endif // TIBRA_INCLUDE_H

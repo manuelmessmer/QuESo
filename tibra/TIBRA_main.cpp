@@ -64,23 +64,9 @@ void TIBRA::Run(){
     // Check intersection status
     IntersectionStatus status{};
     if( mParameters.Get<bool>("embedding_flag") ){
-      auto t_begin_di = std::chrono::high_resolution_clock().now();
+      Timer timer_check_intersect{};
       status = static_cast<IntersectionStatus>(mpBRepOperator->GetIntersectionState(*new_element));
-      auto t_end_di = std::chrono::high_resolution_clock().now();
-      std::chrono::duration<double> t_delta_di = (t_end_di - t_begin_di);
-      et_check_intersect += t_delta_di.count();
-
-      // auto t_begin_di_2 = std::chrono::high_resolution_clock().now();
-      // auto status_2 = mClassifier->GetIntersectionState( *new_element );
-      // auto t_end_di_2 = std::chrono::high_resolution_clock().now();
-
-      // // if( status != status_2){
-      // //   std::cout << "status: " << status << ", " << status_2 << std::endl;
-      // //   throw std::runtime_error("ooho");
-      // // }
-      // std::chrono::duration<double> t_delta_di_2 = (t_end_di_2 - t_begin_di_2);
-      // et_check_intersect_2 += t_delta_di_2.count();
-
+      et_check_intersect += timer_check_intersect.Measure();
     }
     else { // If flag is false, consider all knotspans/ elements as inside
       status = IntersectionStatus::Inside;
@@ -89,24 +75,19 @@ void TIBRA::Run(){
     // Distinguish between trimmed and non-trimmed elements.
     if( status == IntersectionStatus::Trimmed) {
       new_element->SetIsTrimmed(true);
-      auto t_begin_ci = std::chrono::high_resolution_clock().now();
-
+      Timer timer_compute_intersection{};
       auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(el_lower_bound, el_upper_bound);
       if( p_trimmed_domain ){
         new_element->pSetTrimmedDomain(p_trimmed_domain);
         valid_element = true;
       }
-      auto t_end_ci = std::chrono::high_resolution_clock().now();
-      std::chrono::duration<double> t_delta_ci = (t_end_ci - t_begin_ci);
-      et_compute_intersection += t_delta_ci.count();
+      et_compute_intersection += timer_compute_intersection.Measure();
 
       // If valid solve moment fitting equation
       if( valid_element ){
-        auto t_begin_mf = std::chrono::high_resolution_clock().now();
+        Timer timer_moment_fitting{};
         MomentFitting::CreateIntegrationPointsTrimmed(*new_element, mParameters);
-        auto t_end_mf = std::chrono::high_resolution_clock().now();
-        std::chrono::duration<double> t_delta_mf = (t_end_mf - t_begin_mf);
-        et_moment_fitting += t_delta_mf.count();
+        et_moment_fitting += timer_moment_fitting.Measure();
 
         if( new_element->GetIntegrationPoints().size() == 0 ){
           valid_element = false;
