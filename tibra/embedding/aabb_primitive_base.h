@@ -8,8 +8,7 @@
 #include <cstddef>
 #include <array>
 //// Project includes
-#include "containers/point_types.h"
-#include "utilities/define.hpp"
+#include "define.hpp"
 
 namespace tibra {
 

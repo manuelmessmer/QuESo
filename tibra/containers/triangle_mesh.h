@@ -12,7 +12,7 @@
 #include <iostream>
 
 //// Project includes
-#include "utilities/define.hpp"
+#include "define.hpp"
 #include "utilities/utilities.h"
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"

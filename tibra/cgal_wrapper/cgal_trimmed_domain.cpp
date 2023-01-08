@@ -2,8 +2,8 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
+#include "define.hpp"
 #include "cgal_wrapper/cgal_trimmed_domain.h"
-#include "utilities/define.hpp"
 #include "utilities/mesh_utilities.h"
 
 namespace tibra {

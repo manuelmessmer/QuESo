@@ -6,7 +6,7 @@
 #include <cmath>
 //// Project includes
 #include "quadrature/moment_fitting_utilities.h"
-#include "utilities/define.hpp"
+#include "define.hpp"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
 #include "containers/element.h"

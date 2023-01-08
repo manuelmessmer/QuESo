@@ -9,9 +9,9 @@
 #include <array>
 #include <algorithm>
 //// Project includes
+#include "define.hpp"
 #include "embedding/polygon.h"
 #include "containers/triangle_mesh.h"
-#include "utilities/define.hpp"
 
 namespace tibra {
 

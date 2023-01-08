@@ -10,7 +10,7 @@
 #include "containers/element.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
-#include "utilities/define.hpp"
+#include "define.hpp"
 
 namespace tibra {
 

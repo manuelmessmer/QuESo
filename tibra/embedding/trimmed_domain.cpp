@@ -3,12 +3,12 @@
 
 //// STL includes
 #include <random>
-///// Project includes
+//// Project includes
+#include "define.hpp"
 #include "embedding/trimmed_domain.h"
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
 #include "utilities/mesh_utilities.h"
-#include "utilities/define.hpp"
 #include "io/io_utilities.h"
 
 namespace tibra {

@@ -10,7 +10,6 @@
 #include <memory>
 //// Project includes
 #include "utilities/parameters.h"
-#include "utilities/define.hpp"
 
 namespace tibra {
 

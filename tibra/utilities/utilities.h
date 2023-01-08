@@ -4,7 +4,7 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-#include "containers/point_types.h"
+#include "define.hpp"
 
 namespace tibra {
 

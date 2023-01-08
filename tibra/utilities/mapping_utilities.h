@@ -5,7 +5,7 @@
 #define MAPPING_UTILITIES_INCLUDE_H
 
 //// Project includes
-#include "containers/point_types.h"
+#include "define.hpp"
 
 namespace tibra {
 
