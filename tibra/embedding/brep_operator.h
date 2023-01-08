@@ -69,20 +69,20 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @param rParam Parameters
-    /// @return TrimmedDomainBasePtrType (std::unique_ptr)
+    /// @return TrimmedDomainBasePtrType (Unique)
     TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
 
     ///@brief Return ids of triangles that intersect AABB.
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
-    ///@return std::unique_ptr<std::vector<IndexType>> containing ids.
-    std::unique_ptr<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<std::vector<IndexType>> containing ids.
+    Unique<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
     ///@brief Clips triangle mesh by AABB.
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
-    ///@return std::unique_ptr<TriangleMesh>. Clipped mesh.
-    std::unique_ptr<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
+    ///@return Unique<TriangleMesh>. Clipped mesh.
+    Unique<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
 
     ///@}
 

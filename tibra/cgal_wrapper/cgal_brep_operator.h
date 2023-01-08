@@ -57,7 +57,7 @@ public:
         // Copy triangle mesh to CGAL mesh.
         cgal::CGALUtilities::CopyMesh(rTriangleMesh, mCGALMesh);
         // Initialize inside test and AABB tree.
-        mpCGALInsideTest = std::make_unique<CGALInsideTestType>(mCGALMesh);
+        mpCGALInsideTest = MakeUnique<CGALInsideTestType>(mCGALMesh);
         CGAL::Polygon_mesh_processing::build_AABB_tree(mCGALMesh, mCGALAABBTree);
     }
 
@@ -81,7 +81,7 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @param rParam Parameters
-    /// @return TrimmedDomainBasePtrType (std::unique_ptr)
+    /// @return TrimmedDomainBasePtrType (Unique)
     TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound) const override;
 
     ///@}
@@ -91,7 +91,7 @@ private:
     ///@{
     CGALMeshType mCGALMesh;
     /// CGALInsideTestType must be ptr, since it does not have default constructor.
-    std::unique_ptr<CGALInsideTestType> mpCGALInsideTest;
+    Unique<CGALInsideTestType> mpCGALInsideTest;
     CGALAABBTreeType mCGALAABBTree;
     ///@}
 

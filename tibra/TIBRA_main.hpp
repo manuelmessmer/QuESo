@@ -10,7 +10,7 @@
 #include <fstream>
 #include <vector>
 #include <array>
-#include <string>
+//#include <string>
 #include <chrono>
 
 /// Project includes
@@ -50,10 +50,10 @@ public:
     {
         auto start_time = std::chrono::high_resolution_clock::now();
         if( mParameters.EchoLevel() > 0)
-            std::cout << "TIBRA :: Start: " << std::endl;
+            std::cout << "TIBRA :: START " << std::endl;
 
         // Allocate element/knotspans container
-        mpElementContainer = std::make_unique<ElementContainer>(mParameters);
+        mpElementContainer = MakeUnique<ElementContainer>(mParameters);
 
         // Read geometry
         double volume_brep = 0.0;
@@ -69,7 +69,7 @@ public:
             mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh, mParameters);
 
             // Compute volume
-            volume_brep = MeshUtilities::Volume(mTriangleMesh);
+            volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
             if( mParameters.EchoLevel() > 0){
                 std::cout << "TIBRA :: Read file: '" << r_filename << "'\n";
                 std::cout << "TIBRA :: Volume of B-Rep model: " << volume_brep << '\n';
@@ -101,6 +101,8 @@ public:
             std::chrono::duration<double> elapsed_time = end_time - start_time;
             std::cout << "TIBRA :: Elapsed Time: " << elapsed_time.count() << std::endl;
         }
+        if( mParameters.EchoLevel() > 0)
+            std::cout << "TIBRA :: END: " << std::endl;
     }
 
     /// Copy Constructor
@@ -117,6 +119,11 @@ public:
     const ElementContainer::ElementVectorPtrType& GetElements() const {
         return mpElementContainer->GetElements();
     }
+
+    ///@}
+    ///@name Temporary operations to perform PosProcessing after Kratos Analysis
+    ///      This will be moved to TriangleMesh.
+    ///@{
 
     /// @brief Reads Filename and writes mesh to output/results.vtk
     /// @param Filename
@@ -139,8 +146,8 @@ private:
     ///@{
     TriangleMesh mTriangleMesh;
     TriangleMesh mTriangleMeshPost;
-    std::unique_ptr<BRepOperatorBase> mpBRepOperator;
-    std::unique_ptr<ElementContainer> mpElementContainer;
+    Unique<BRepOperatorBase> mpBRepOperator;
+    Unique<ElementContainer> mpElementContainer;
     const Parameters mParameters;
     ///@}
 

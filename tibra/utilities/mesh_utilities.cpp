@@ -6,7 +6,7 @@
 #include <numeric>
 /// Project includes
 #include "utilities/mesh_utilities.h"
-#include "utilities/utilities.h"
+#include "utilities/math_utilities.hpp"
 
 namespace tibra {
 
@@ -119,7 +119,7 @@ void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNew
     }
 }
 
-std::unique_ptr<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
+Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
     //
     //     2_______3                 y
     //     /      /|                ´|`
@@ -128,7 +128,7 @@ std::unique_ptr<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerP
     //    |     | /                Z
     //   4|____5|/
     //
-    auto p_new_triangle_mesh = std::make_unique<TriangleMesh>();
+    auto p_new_triangle_mesh = MakeUnique<TriangleMesh>();
 
     p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //0
     p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //1
@@ -188,7 +188,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = math::dot(normal, point);
+            double integrand = Math::Dot(normal, point);
             volume += 1.0/3.0*integrand * point.GetWeight();
         }
     }
@@ -206,7 +206,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = math::dot(normal, point);
+            double integrand = Math::Dot(normal, point);
             volume += 1.0/3.0*integrand * point.GetWeight();
         }
     }

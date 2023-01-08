@@ -3,7 +3,7 @@
 
 //// Project includes
 #include "embedding/clipper.h"
-#include "utilities/utilities.h"
+#include "utilities/math_utilities.hpp"
 #include "io/io_utilities.h"
 #include <cstdlib>
 
@@ -11,11 +11,11 @@ namespace tibra {
 
 typedef Clipper::PolygonType PolygonType;
 
-std::unique_ptr<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
+Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
             const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound){
 
-    std::unique_ptr<PolygonType> p_current_poly = std::make_unique<PolygonType>(rNormal);
-    std::unique_ptr<PolygonType> p_prev_poly = std::make_unique<PolygonType>(rNormal);
+    Unique<PolygonType> p_current_poly = MakeUnique<PolygonType>(rNormal);
+    Unique<PolygonType> p_prev_poly = MakeUnique<PolygonType>(rNormal);
 
     // Return nullptr, if no point is on bounded side.
     // Note on_bounded_side means behind plane, since normal vectors point in outward direction.
@@ -54,14 +54,14 @@ std::unique_ptr<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const P
     {
         if(max_tri[dimension] > rLowerBound[dimension] )
         {
-            utilities::swap_unique(p_prev_poly, p_current_poly);
+            Ptr::swap(p_prev_poly, p_current_poly);
             // Plane is oriented in negative direction.
             Plane plane(2 * dimension + 0, rLowerBound[dimension]);
             ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);
         }
         if(min_tri[dimension] < rUpperBound[dimension])
         {
-            utilities::swap_unique(p_prev_poly, p_current_poly);
+            Ptr::swap(p_prev_poly, p_current_poly);
             // Plane is positive in negative direction.
             Plane plane(2 * dimension + 1, rUpperBound[dimension]);
             ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);

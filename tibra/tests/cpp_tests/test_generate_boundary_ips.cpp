@@ -53,8 +53,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == BRepOperatorBase::Trimmed){
@@ -136,8 +136,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == BRepOperatorBase::Trimmed){
                     // Get Trimmed domain
@@ -217,8 +217,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == BRepOperatorBase::Trimmed){
@@ -301,8 +301,8 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_lower_bound, rLowerBound, rUpperBound);
-                auto local_upper_bound_param = MappingUtilities::FromGlobalToLocalSpace(local_upper_bound, rLowerBound, rUpperBound);
+                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, rLowerBound, rUpperBound);
+                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, rLowerBound, rUpperBound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
                 // Get Trimmed domain

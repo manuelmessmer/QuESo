@@ -12,9 +12,10 @@
 #include <iostream>
 
 //// Project includes
+#include "define.hpp"
+#include "utilities/math_utilities.hpp"
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"
-#include "utilities/utilities.h"
 
 namespace tibra {
 
@@ -33,9 +34,9 @@ public:
     ///@name Type Definitions
     ///@{
     typedef std::vector<IntegrationPoint> IpVectorType;
-    typedef std::unique_ptr<IpVectorType> IpVectorPtrType;
+    typedef Unique<IpVectorType> IpVectorPtrType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
-    typedef std::unique_ptr<BoundaryIpVectorType> BoundaryIpVectorPtrType;
+    typedef Unique<BoundaryIpVectorType> BoundaryIpVectorPtrType;
     typedef std::vector<std::vector<std::tuple<IndexType, IndexType, IndexType>>> EdgesOnPlanesVectorType;
 
     ///@}
@@ -50,12 +51,12 @@ public:
         const auto& P2 = this->P2(TriangleId);
         const auto& P3 = this->P3(TriangleId);
 
-        const double a = std::sqrt( math::pow(P1[0] - P2[0], 2)
-            + math::pow(P1[1] - P2[1], 2) + math::pow(P1[2] - P2[2], 2));
-        const double b = std::sqrt( math::pow(P2[0] - P3[0], 2)
-            + math::pow(P2[1] - P3[1], 2) + math::pow(P2[2] - P3[2], 2));
-        const double c = std::sqrt( math::pow(P3[0] - P1[0], 2)
-            + math::pow(P3[1] - P1[1], 2) + math::pow(P3[2] - P1[2], 2));
+        const double a = std::sqrt( Math::Pow(P1[0] - P2[0], 2)
+            + Math::Pow(P1[1] - P2[1], 2) + Math::Pow(P1[2] - P2[2], 2));
+        const double b = std::sqrt( Math::Pow(P2[0] - P3[0], 2)
+            + Math::Pow(P2[1] - P3[1], 2) + Math::Pow(P2[2] - P3[2], 2));
+        const double c = std::sqrt( Math::Pow(P3[0] - P1[0], 2)
+            + Math::Pow(P3[1] - P1[1], 2) + Math::Pow(P3[2] - P1[2], 2));
 
         const double s = (a+b+c) / 2.0;
         const double radicand = s*(s-a)*(s-b)*(s-c);
@@ -92,7 +93,7 @@ public:
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
-        auto p_global_integration_points = std::make_unique<BoundaryIpVectorType>(point_numbers);
+        auto p_global_integration_points = MakeUnique<BoundaryIpVectorType>(point_numbers);
 
         const auto& P1 = this->P1(TriangleId);
         const auto& P2 = this->P2(TriangleId);

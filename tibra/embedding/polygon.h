@@ -84,7 +84,7 @@ public:
     const VertexType& GetLastVertex() const;
 
     ///@brief Triangulates polygon based on centroide and returns triangles. Centroid is computed as mean of all vertices.
-    ///@return std::unique_ptr<TriangleMesh> Contains vertices of triangles.
+    ///@return Unique<TriangleMesh> Contains vertices of triangles.
     void AddToTriangleMesh(TriangleMesh& rTriangleMesh) const;
 
     ///@brief Clears vertex container of polygon.

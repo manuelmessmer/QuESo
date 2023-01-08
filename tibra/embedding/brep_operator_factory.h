@@ -36,9 +36,9 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns Ptr to new BRepOperator (std::unique_ptr)
-    static std::unique_ptr<CurrentBRepOperator> New(const TriangleMesh& rTriangleMesh, const Parameters& rParameters){
-        return std::make_unique<CurrentBRepOperator>(rTriangleMesh, rParameters);
+    ///@brief Returns Ptr to new BRepOperator (Unique)
+    static Unique<CurrentBRepOperator> New(const TriangleMesh& rTriangleMesh, const Parameters& rParameters){
+        return MakeUnique<CurrentBRepOperator>(rTriangleMesh, rParameters);
     }
 
     ///@}

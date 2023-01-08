@@ -10,7 +10,7 @@
 #include "containers/element.h"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
-#include "utilities/tolerances.h"
+#include "define.hpp"
 
 namespace tibra {
 
@@ -27,7 +27,7 @@ class BRepOperatorBase {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainBasePtrType;
+    typedef Unique<TrimmedDomainBase> TrimmedDomainBasePtrType;
 
     enum IntersectionStatus {Inside, Outside, Trimmed};
 
@@ -66,7 +66,7 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @param rParam Parameterss
-    /// @return TrimmedDomainBasePtrType (std::unique_ptr)
+    /// @return TrimmedDomainBasePtrType (Unique)
     virtual TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
 protected:

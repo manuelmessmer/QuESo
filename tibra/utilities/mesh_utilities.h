@@ -22,7 +22,7 @@ class MeshUtilities {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::unique_ptr<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<TriangleMesh> TriangleMeshPtrType;
 
     ///@}
     ///@name Public Operations
@@ -48,7 +48,7 @@ public:
     ///@brief Return meshed cuboid.
     ///@param rLowerPoint
     ///@param rUpperPoint
-    ///@return std::unique_ptr<TriangleMesh>
+    ///@return Unique<TriangleMesh>
     static TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
     ///@brief Returns enclosed volume by triangle mesh.

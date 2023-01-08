@@ -130,7 +130,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
     auto &r_edges_dest = GetEdges(orientation_dest);
 
     ///Instantiate new mesh ptr.
-    auto p_new_mesh = std::make_unique<TriangleMesh>();
+    auto p_new_mesh = MakeUnique<TriangleMesh>();
     p_new_mesh->Reserve(5 * r_edges_origin.size());
 
     // Loop over positive oriented edges.
@@ -272,7 +272,7 @@ void TrimmedDomainOnPlane::FindAllIntersectionWithUpperBound(std::vector<double>
 }
 
 int TrimmedDomainOnPlane::FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation) const {
-    double min_distance = std::numeric_limits<double>::max();
+    double min_distance = MAXD;
     IndexType found_id = -1;
     for (int i = 0; i < GetNumberEdges(Orientation); ++i) {
         const auto &v1 = V1byEdgeId(i, Orientation);

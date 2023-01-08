@@ -2,8 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "utilities/mapping_utilities.h"
-#include "utilities/tolerances.h"
+#include "define.hpp"
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 

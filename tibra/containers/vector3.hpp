@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef POINT_TYPES_INCLUDE_H
-#define POINT_TYPES_INCLUDE_H
+#ifndef VECTOR3_INCLUDE_H
+#define VECTOR3_INCLUDE_H
 
 //// STL includes
 #include <array>
@@ -10,18 +10,6 @@
 #include <iostream>
 
 namespace tibra {
-
-/// Forward declaration
-template<typename type>
-class Vector3;
-
-/// Global Typedefs to be used in TIBRA
-typedef std::size_t  SizeType;
-typedef std::size_t  IndexType;
-
-typedef Vector3<double> PointType;
-typedef Vector3<double> Vector3d;
-typedef Vector3<IndexType> Vector3i;
 
 ///@name TIBRA Classes
 ///@{
@@ -168,4 +156,4 @@ std::ostream& operator<<(std::ostream& rOStream, const Vector3<type>& rThis)  {
 
 } // End namespace tibra
 
-#endif // POINT_TYPES_INCLUDE_H
+#endif // VECTOR3_INCLUDE_H

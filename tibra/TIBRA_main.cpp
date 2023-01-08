@@ -55,8 +55,8 @@ void TIBRA::Run(){
     const PointType el_upper_bound{lower_bound[0] + (xx+1)*delta_x, lower_bound[1] + (yy+1)*delta_y, lower_bound[2] + (zz+1)*delta_z };
 
     // Map points into parametric/local space
-    const auto el_lower_bound_param = MappingUtilities::FromGlobalToLocalSpace(el_lower_bound, lower_bound, upper_bound);
-    const auto el_upper_bound_param = MappingUtilities::FromGlobalToLocalSpace(el_upper_bound, lower_bound, upper_bound);
+    const auto el_lower_bound_param = Mapping::GlobalToParam(el_lower_bound, lower_bound, upper_bound);
+    const auto el_upper_bound_param = Mapping::GlobalToParam(el_upper_bound, lower_bound, upper_bound);
 
     // Construct element and check status
     std::shared_ptr<Element> new_element = std::make_shared<Element>(i+1, el_lower_bound_param, el_upper_bound_param, mParameters);

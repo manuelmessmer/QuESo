@@ -34,7 +34,7 @@ public:
     typedef std::size_t SizeType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
-    typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainPtrType;
+    typedef Unique<TrimmedDomainBase> TrimmedDomainPtrType;
 
     ///@}
     ///@name Life Cycle
@@ -115,13 +115,13 @@ public:
     /// @brief Get UpperBound of element in physical/global coordinates.
     /// @return PointType
     PointType GetUpperBound() const {
-        return MappingUtilities::FromLocalToGlobalSpace(mUpperBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
+        return Mapping::ParamToGlobal(mUpperBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
     }
 
     /// @brief Get LowerBound of element in physical/global coordinates.
     /// @return PointType
     PointType GetLowerBound() const{
-        return MappingUtilities::FromLocalToGlobalSpace(mLowerBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
+        return Mapping::ParamToGlobal(mLowerBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
     }
 
     /// @brief Returns 1D integration points. Required for assembly of GGQ rules.
@@ -137,7 +137,7 @@ public:
     }
 
     /// @brief Set trimmed domain of element.
-    /// @param pTrimmedDomain Ptr (std::unique_ptr) to new trimmed domain.
+    /// @param pTrimmedDomain Ptr (Unique) to new trimmed domain.
     void pSetTrimmedDomain(TrimmedDomainPtrType& pTrimmedDomain ){
         mpTrimmedDomain = std::move(pTrimmedDomain);
     }

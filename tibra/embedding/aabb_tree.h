@@ -40,9 +40,8 @@ public:
     AABB_tree(const TriangleMesh& TriangleMesh ) :
             aabb_base::Tree_base(3, 0.0, 16,  false)
     {
-        const double max_limit = std::numeric_limits<double>::max();
-        mLowerBound = {max_limit, max_limit, max_limit};
-        mUpperBound = {-max_limit, -max_limit, -max_limit};
+        mLowerBound = {MAXD, MAXD, MAXD};
+        mUpperBound = {LOWESTD, LOWESTD, LOWESTD};
         for( int i = 0; i < TriangleMesh.NumOfTriangles(); ++i){
             const auto& p1 = TriangleMesh.P1(i);
             const auto& p2 = TriangleMesh.P2(i);

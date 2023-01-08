@@ -5,7 +5,7 @@
 #define INTEGRATION_POINT_INCLUDE_H
 
 //// Project includes
-#include "containers/point_types.h"
+#include "define.hpp"
 
 namespace tibra {
 

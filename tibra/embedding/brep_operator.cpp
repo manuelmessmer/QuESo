@@ -100,7 +100,7 @@ BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
 TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
     auto p_new_mesh = ClipTriangleMesh(rLowerBound, rUpperBound);
     if( p_new_mesh->NumOfTriangles() > 0) {
-        auto p = std::make_unique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound, mParameters);
+        auto p = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound, mParameters);
         return std::move(p);
     }
 
@@ -108,14 +108,14 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
 }
 
 
-std::unique_ptr<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
+Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
         const PointType& rLowerBound, const PointType& rUpperBound ) const{
 
     // Perform fast search based on aabb tree. Conservative search.
     AABB_primitive aabb(rLowerBound, rUpperBound);
     auto potential_intersections = mTree.Query(aabb);
 
-    auto intersected_triangle_ids = std::make_unique<std::vector<IndexType>>();
+    auto intersected_triangle_ids = MakeUnique<std::vector<IndexType>>();
     int count = 0;
     intersected_triangle_ids->reserve(potential_intersections.size());
     for( auto triangle_id : potential_intersections){
@@ -132,11 +132,11 @@ std::unique_ptr<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
     return intersected_triangle_ids;
 }
 
-std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
+Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
         const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
-    auto p_triangle_mesh = std::make_unique<TriangleMesh>();
+    auto p_triangle_mesh = MakeUnique<TriangleMesh>();
     p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
     p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
     for( auto triangle_id : (*p_intersected_triangle_ids) ){
@@ -163,7 +163,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
 // std::cout << "Done" << std::endl;
 // std::cout << "Tree timer: " << tree_timer << std::endl;
 // std::cout << "ray timer: " << ray_timer << std::endl;
-// return std::make_unique<std::vector<bool>>(rr);
+// return MakeUnique<std::vector<bool>>(rr);
 // for( int triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id ){
 //     const auto& p1 = rTriangleMesh.P1(triangle_id);
 //     const auto& p2 = rTriangleMesh.P2(triangle_id);
@@ -201,7 +201,7 @@ std::unique_ptr<TriangleMesh> BRepOperator::ClipTriangleMesh(
 
 // }
 
-// std::unique_ptr<std::vector<bool>> p_result = std::make_unique<std::vector<bool>>(rPoints.size(), false);
+// Unique<std::vector<bool>> p_result = MakeUnique<std::vector<bool>>(rPoints.size(), false);
 // auto& r_result = *p_result;
 // for( int i = 0; i < ret.size(); ++i ){
 //     if( ret[i] >= (2.0*My_PI-EPS2) ) // Due to limited precision of double small treshhold (EPS2) is required.
