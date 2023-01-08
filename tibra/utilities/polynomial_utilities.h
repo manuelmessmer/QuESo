@@ -19,6 +19,7 @@ namespace tibra {
  * @class  Polynomial
  * @author Manuel Messmer
  * @brief  Provides evaluations of Legendre Polynomials.
+ * @todo Check if this is slower or faster than a standard switch.
 */
 class Polynomial {
 

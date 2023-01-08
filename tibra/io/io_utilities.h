@@ -17,9 +17,6 @@ class IO{
 
 public:
 
-  typedef std::size_t IndexType;
-  typedef std::size_t SizeType;
-
   static bool WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
                              const char* Filename,
                              const bool Binary);

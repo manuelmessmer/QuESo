@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <cmath>
 //// Project includes
-#include "quadrature/moment_fitting_utilities.h"
 #include "define.hpp"
+#include "quadrature/moment_fitting_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/polynomial_utilities.h"
 #include "containers/element.h"
@@ -81,7 +81,7 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
         const auto& normal = point_it->Normal();
-        PointType local_point = MappingUtilities::FromGlobalToLocalSpace(*point_it, lower_bound, upper_bound);
+        PointType local_point = Mapping::GlobalToParam(*point_it, lower_bound, upper_bound);
 
         // X-direction
         std::vector<double> f_x_x(order_u*ffactor+1);

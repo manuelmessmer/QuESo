@@ -9,17 +9,17 @@
 
 namespace tibra {
 
-namespace MappingUtilities {
+namespace Mapping {
 
-PointType FromGlobalToLocalSpace( const PointType& rGlobalCoord,
-                                  const PointType& rLowerPoint,
-                                  const PointType& rUpperPoint);
+PointType GlobalToParam( const PointType& rGlobalCoord,
+                         const PointType& rLowerPoint,
+                         const PointType& rUpperPoint);
 
-PointType FromLocalToGlobalSpace( const PointType& rLocalCoord,
-                                  const PointType& rLowerPoint,
-                                  const PointType& rUpperPoint);
+PointType ParamToGlobal( const PointType& rLocalCoord,
+                         const PointType& rLowerPoint,
+                         const PointType& rUpperPoint);
 
-} // End namespace MappingUtilities
+} // End namespace Mapping
 
 } // End namespace tibra
 

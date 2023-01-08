@@ -115,13 +115,13 @@ public:
     /// @brief Get UpperBound of element in physical/global coordinates.
     /// @return PointType
     PointType GetUpperBound() const {
-        return MappingUtilities::FromLocalToGlobalSpace(mUpperBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
+        return Mapping::ParamToGlobal(mUpperBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
     }
 
     /// @brief Get LowerBound of element in physical/global coordinates.
     /// @return PointType
     PointType GetLowerBound() const{
-        return MappingUtilities::FromLocalToGlobalSpace(mLowerBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
+        return Mapping::ParamToGlobal(mLowerBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
     }
 
     /// @brief Returns 1D integration points. Required for assembly of GGQ rules.

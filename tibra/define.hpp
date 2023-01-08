@@ -54,7 +54,7 @@ using Shared = std::shared_ptr<T>;
 
 template <typename T, typename... Args>
 auto MakeShared(Args&&... args) -> decltype(std::make_shared<T>(std::forward<Args>(args)...)) {
-  return std::make_shared<T>(std::forward<Args>(args)...);
+    return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
 // Unique Ptr
@@ -63,7 +63,7 @@ using Unique = std::unique_ptr<T>;
 
 template <typename T, typename... Args>
 auto MakeUnique(Args&&... args) -> decltype(std::make_unique<T>(std::forward<Args>(args)...)) {
-  return std::make_unique<T>(std::forward<Args>(args)...);
+    return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 namespace Ptr {
