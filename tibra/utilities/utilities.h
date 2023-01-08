@@ -4,6 +4,8 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+#include "containers/point_types.h"
+
 namespace tibra {
 
 namespace utilities {

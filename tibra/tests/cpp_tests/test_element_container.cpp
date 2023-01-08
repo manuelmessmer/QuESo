@@ -15,7 +15,7 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
-std::unique_ptr<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
+Unique<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
 
     Parameters param( {Component("number_of_elements", rNumberOfElemnts) } );
     ElementContainer container(param);
@@ -29,7 +29,7 @@ std::unique_ptr<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfE
             container.AddElement(tmp_element);
     }
 
-    return std::make_unique<ElementContainer>(std::move(container));
+    return MakeUnique<ElementContainer>(std::move(container));
 }
 
 BOOST_AUTO_TEST_CASE(TestElementContainerX) {

@@ -4,12 +4,13 @@
 #ifndef INTEGRATION_POINTS_FACTORY_1D_H
 #define INTEGRATION_POINTS_FACTORY_1D_H
 
-// STL includes
+//// STL includes
 #include <vector>
 #include <array>
 #include <memory>
-
+//// Project includes
 #include "utilities/parameters.h"
+#include "utilities/define.hpp"
 
 namespace tibra {
 
@@ -31,7 +32,7 @@ public:
     ///@{
     typedef std::size_t SizeType;
     typedef std::vector<std::array<double,2>> Ip1DVectorType;
-    typedef std::unique_ptr<Ip1DVectorType> Ip1DVectorPtrType;
+    typedef Unique<Ip1DVectorType> Ip1DVectorPtrType;
     typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
     typedef std::shared_ptr<Ip1DVectorVectorType> Ip1DVectorVectorPtrType;
 
