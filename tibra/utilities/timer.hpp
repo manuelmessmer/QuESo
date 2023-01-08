@@ -25,7 +25,7 @@ public:
 
     /// Constructor
     Timer(){
-        mBegin = std::chrono::high_resolution_clock::now();
+        mTimeBegin = std::chrono::high_resolution_clock::now();
     }
 
     ///@}
@@ -34,13 +34,13 @@ public:
 
     ///@brief Reset clock to current time.
     void Reset() {
-        mBegin = std::chrono::high_resolution_clock::now();
+        mTimeBegin = std::chrono::high_resolution_clock::now();
     }
 
     ///@brief Returns duration since instantiation or last reset.
     double Measure(){
         const auto time_now = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = time_now - mBegin;
+        std::chrono::duration<double> duration = time_now - mTimeBegin;
         return duration.count();
     }
     ///@}
@@ -48,7 +48,7 @@ public:
 private:
     ///@name Private Member Variables
     ///@{
-    std::chrono::_V2::system_clock::time_point mBegin;
+    std::chrono::_V2::system_clock::time_point mTimeBegin;
     ///@}
 
 }; // End class Timer
