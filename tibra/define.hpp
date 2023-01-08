@@ -11,7 +11,8 @@
 #include "containers/vector3.hpp"
 
 namespace tibra {
-///@name TIBRA GLOBAL VARIABLES
+
+///@name TIBRA GLOBAL TYPE DEFINITIONS
 ///@{
 
 typedef std::size_t  SizeType;
@@ -20,6 +21,10 @@ typedef std::size_t  IndexType;
 typedef Vector3<double> PointType;
 typedef Vector3<double> Vector3d;
 typedef Vector3<IndexType> Vector3i;
+
+///@}
+///@name TIBRA GLOBAL VARIABLES
+///@{
 
 // Large negative number
 constexpr double LOWESTD = std::numeric_limits<double>::lowest();
@@ -43,7 +48,7 @@ constexpr double EPS4 = 1e-14;
 ///@name TIBRA POINTER DEFINITIONS
 ///@{
 
-// Pointer Definitions
+// Shared Ptr
 template <typename T>
 using Shared = std::shared_ptr<T>;
 
@@ -52,6 +57,7 @@ auto MakeShared(Args&&... args) -> decltype(std::make_shared<T>(std::forward<Arg
   return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+// Unique Ptr
 template <typename T>
 using Unique = std::unique_ptr<T>;
 
@@ -71,9 +77,10 @@ namespace Ptr {
         a = std::move(b);
         b = std::move(tmp);
     }
-}
+} // End namespace Ptr
 
 ///@}
+
 } // End namespace tibra
 
 #endif // DEFINE_INCLUDE_HPP
