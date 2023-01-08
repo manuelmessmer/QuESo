@@ -8,7 +8,7 @@
 //// STL includes
 #include <chrono>
 //// Project includes
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 

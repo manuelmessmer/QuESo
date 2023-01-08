@@ -14,9 +14,9 @@
 #include <chrono>
 
 /// Project includes
-#include "containers/element_container.h"
+#include "containers/element_container.hpp"
 #include "embedding/brep_operator_factory.h"
-#include "containers/element.h"
+#include "containers/element.hpp"
 #include "io/io_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/mesh_utilities.h"

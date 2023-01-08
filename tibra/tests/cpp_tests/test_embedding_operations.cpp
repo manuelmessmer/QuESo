@@ -8,7 +8,7 @@
 //// Project includes
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
-#include "TIBRA_main.hpp"
+#include "TIBRA_main.h"
 
 namespace tibra {
 namespace Testing {

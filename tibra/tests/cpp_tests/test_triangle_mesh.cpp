@@ -6,7 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
 #include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"

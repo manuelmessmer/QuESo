@@ -7,7 +7,7 @@
 //// STL includes
 #include <memory>
 //// Project includes
-#include "containers/element.h"
+#include "containers/element.hpp"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
 #include "define.hpp"

@@ -11,7 +11,7 @@
 //// Project includes
 #include "define.hpp"
 #include "embedding/polygon.h"
-#include "containers/triangle_mesh.h"
+#include "containers/triangle_mesh.hpp"
 
 namespace tibra {
 
