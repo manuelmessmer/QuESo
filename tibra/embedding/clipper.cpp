@@ -11,11 +11,11 @@ namespace tibra {
 
 typedef Clipper::PolygonType PolygonType;
 
-std::unique_ptr<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
+Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
             const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound){
 
-    std::unique_ptr<PolygonType> p_current_poly = std::make_unique<PolygonType>(rNormal);
-    std::unique_ptr<PolygonType> p_prev_poly = std::make_unique<PolygonType>(rNormal);
+    Unique<PolygonType> p_current_poly = MakeUnique<PolygonType>(rNormal);
+    Unique<PolygonType> p_prev_poly = MakeUnique<PolygonType>(rNormal);
 
     // Return nullptr, if no point is on bounded side.
     // Note on_bounded_side means behind plane, since normal vectors point in outward direction.

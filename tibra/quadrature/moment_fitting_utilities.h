@@ -31,7 +31,7 @@ public:
     ///@{
     typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPsVectorType;
-    typedef std::unique_ptr<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
+    typedef Unique<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     ///@}

@@ -90,7 +90,7 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
     }
 
     // Construct ptr to SurfaceMesh
-    std::unique_ptr<CGALMeshType> p_refinend_intersection_mesh = std::make_unique<CGALMeshType>();
+    Unique<CGALMeshType> p_refinend_intersection_mesh = MakeUnique<CGALMeshType>();
 
     // Remesh intersected domain until minimum number of boundary triangles is reached.
     double edge_length = mParameters.InitialTriangleEdgeLength();
@@ -145,7 +145,7 @@ TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLo
     }
 
     // Return trimmed domain
-    return std::make_unique<CGALTrimmedDomain>(p_refinend_intersection_mesh, rLowerBound, rUpperBound, mParameters);
+    return MakeUnique<CGALTrimmedDomain>(p_refinend_intersection_mesh, rLowerBound, rUpperBound, mParameters);
 }
 
 } // End namespace cgal

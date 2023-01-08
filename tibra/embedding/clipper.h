@@ -46,9 +46,9 @@ public:
     ///@param rNormal Normal vector of triangle.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return std::unique_ptr<Polygon> (Will contain maximal 9 vertices).
+    ///@return Unique<Polygon> (Will contain maximal 9 vertices).
     ///@todo Overload where normal is computed from vertices.
-    static std::unique_ptr<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
+    static Unique<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
                  const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
 
     ///@}

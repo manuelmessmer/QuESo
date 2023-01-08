@@ -34,7 +34,7 @@ public:
     typedef std::size_t SizeType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
-    typedef std::unique_ptr<TrimmedDomainBase> TrimmedDomainPtrType;
+    typedef Unique<TrimmedDomainBase> TrimmedDomainPtrType;
 
     ///@}
     ///@name Life Cycle
@@ -137,7 +137,7 @@ public:
     }
 
     /// @brief Set trimmed domain of element.
-    /// @param pTrimmedDomain Ptr (std::unique_ptr) to new trimmed domain.
+    /// @param pTrimmedDomain Ptr (Unique) to new trimmed domain.
     void pSetTrimmedDomain(TrimmedDomainPtrType& pTrimmedDomain ){
         mpTrimmedDomain = std::move(pTrimmedDomain);
     }

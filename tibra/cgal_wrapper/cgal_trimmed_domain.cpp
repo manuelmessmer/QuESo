@@ -3,6 +3,7 @@
 
 //// Project includes
 #include "cgal_wrapper/cgal_trimmed_domain.h"
+#include "utilities/define.hpp"
 #include "utilities/mesh_utilities.h"
 
 namespace tibra {
@@ -23,13 +24,9 @@ bool CGALTrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const{
 }
 
 const BoundingBox CGALTrimmedDomain::GetBoundingBoxOfTrimmedDomain() const{
-    // Note: std::numeric_limits<double>::min() returns smallest positive number.
-    constexpr double min_limit = std::numeric_limits<double>::lowest();
-    constexpr double max_limit = std::numeric_limits<double>::max();
-
     // Initialize bounding box
-    BoundingBox bounding_box = { {max_limit, max_limit, max_limit},
-                                 {min_limit, min_limit, min_limit} };
+    BoundingBox bounding_box = { {MAXD, MAXD, MAXD},
+                                 {LOWESTD, LOWESTD, LOWESTD} };
 
     const auto& vertices = mpTriangleMesh->GetVertices();
     for( auto& v : vertices ){
@@ -49,7 +46,7 @@ const BoundingBox CGALTrimmedDomain::GetBoundingBoxOfTrimmedDomain() const{
 BoundaryIPVectorPtrType CGALTrimmedDomain::pGetBoundaryIps() const {
 
     /// Create boundary IPs from intersection mesh.
-    auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<BoundaryIPVectorType>();
     MeshUtilities::Refine( *mpTriangleMesh, mParameters.MinimumNumberOfTriangles());
     const SizeType num_triangles = mpTriangleMesh->NumOfTriangles();
     p_boundary_ips->reserve(3*num_triangles);

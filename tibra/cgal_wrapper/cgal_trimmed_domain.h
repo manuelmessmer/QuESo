@@ -36,8 +36,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::unique_ptr<CGALMeshType> CGALMeshPtrType;
-    typedef std::unique_ptr<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<CGALMeshType> CGALMeshPtrType;
+    typedef Unique<TriangleMesh> TriangleMeshPtrType;
     typedef CGAL::Side_of_triangle_mesh<CGALMeshType, CGALKernalType> CGALInsideTestType;
 
     ///@}
@@ -51,9 +51,9 @@ public:
     CGALTrimmedDomain(CGALMeshPtrType& pCGALMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
         : TrimmedDomainBase(rLowerBound, rUpperBound, rParameters), mpCGALMesh(std::move(pCGALMesh))
     {
-        mpTriangleMesh = std::make_unique<TriangleMesh>();
+        mpTriangleMesh = MakeUnique<TriangleMesh>();
         cgal::CGALUtilities::CopyMesh(*mpCGALMesh, *mpTriangleMesh);
-        mpCGALInsideTest = std::make_unique<CGALInsideTestType>(*mpCGALMesh);
+        mpCGALInsideTest = MakeUnique<CGALInsideTestType>(*mpCGALMesh);
     }
 
     ///@}
@@ -81,7 +81,7 @@ private:
 
     ///@name Private member variables
     ///@{
-    std::unique_ptr<CGALInsideTestType> mpCGALInsideTest;
+    Unique<CGALInsideTestType> mpCGALInsideTest;
     CGALMeshPtrType mpCGALMesh;
     ///@}
 

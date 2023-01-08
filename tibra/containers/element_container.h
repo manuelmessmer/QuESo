@@ -31,7 +31,7 @@ public:
     typedef std::shared_ptr<Element> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-    typedef std::unique_ptr<IntegrationPointVectorType> IntegrationPointVectorPtrType;
+    typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::unordered_map<IndexType, IndexType> ElementIdMapType;
 
     ///@}
@@ -247,7 +247,7 @@ public:
     }
 
     const IntegrationPointVectorPtrType pGetPoints(const char* type) const {
-        IntegrationPointVectorPtrType points = std::make_unique<IntegrationPointVectorType>();
+        IntegrationPointVectorPtrType points = MakeUnique<IntegrationPointVectorType>();
         const auto begin_el_itr_ptr = this->begin();
         for( int i = 0; i < this->size(); ++i){
             auto el_itr = *(begin_el_itr_ptr + i);

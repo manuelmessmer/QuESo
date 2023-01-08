@@ -8,6 +8,7 @@
 #include "embedding/ray_aabb_primitive.h"
 #include "embedding/trimmed_domain_on_plane.h"
 #include "utilities/mesh_utilities.h"
+#include "utilities/define.hpp"
 #include "io/io_utilities.h"
 
 namespace tibra {
@@ -49,7 +50,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         // If intersection lies on boundary cast a new ray.
         // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639
         is_on_boundary = false;
-        double min_distance = std::numeric_limits<double>::max();
+        double min_distance = MAXD;
         is_inside = false;
         for( auto r : potential_intersections){
             const auto& p1 = mClippedMesh.P1(r);
@@ -84,13 +85,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
 }
 
 const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
-    // Note: std::numeric_limits<double>::min() returns smallest positive number.
-    constexpr double min_limit = std::numeric_limits<double>::lowest();
-    constexpr double max_limit = std::numeric_limits<double>::max();
-
     // Initialize bounding box
-    BoundingBox bounding_box = { {max_limit, max_limit, max_limit},
-                                 {min_limit, min_limit, min_limit} };
+    BoundingBox bounding_box = { {MAXD, MAXD, MAXD},
+                                 {LOWESTD, LOWESTD, LOWESTD} };
 
     // Since TrimmedDomain holds only a clipped TriangleMesh (mesh is not closed), vertices of AABB must also be considered.
     PointType point_1(mUpperBound[0], mLowerBound[1], mLowerBound[2]);
@@ -135,18 +132,18 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
 
 BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
     // Pointer to boundary integration points
-    auto p_boundary_ips = std::make_unique<BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<BoundaryIPVectorType>();
 
     // Construct trimmed domain on plane z-upper bound of AABB.
     bool upper_bound = true;
-    auto p_trimmed_domain_upper_x = std::make_unique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
-    auto p_trimmed_domain_upper_y = std::make_unique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
-    auto p_trimmed_domain_upper_z = std::make_unique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
     // Construct trimmed domain on plane z-lower bound of AABB.
     upper_bound = false;
-    auto p_trimmed_domain_lower_x = std::make_unique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
-    auto p_trimmed_domain_lower_y = std::make_unique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
-    auto p_trimmed_domain_lower_z = std::make_unique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+    auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
 
     if( mpTriangleMesh->NumOfTriangles() > 0 ){
 

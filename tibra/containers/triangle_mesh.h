@@ -12,9 +12,10 @@
 #include <iostream>
 
 //// Project includes
+#include "utilities/define.hpp"
+#include "utilities/utilities.h"
 #include "containers/triangle_gauss_legendre_integration_points.h"
 #include "containers/boundary_integration_point.h"
-#include "utilities/utilities.h"
 
 namespace tibra {
 
@@ -33,9 +34,9 @@ public:
     ///@name Type Definitions
     ///@{
     typedef std::vector<IntegrationPoint> IpVectorType;
-    typedef std::unique_ptr<IpVectorType> IpVectorPtrType;
+    typedef Unique<IpVectorType> IpVectorPtrType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
-    typedef std::unique_ptr<BoundaryIpVectorType> BoundaryIpVectorPtrType;
+    typedef Unique<BoundaryIpVectorType> BoundaryIpVectorPtrType;
     typedef std::vector<std::vector<std::tuple<IndexType, IndexType, IndexType>>> EdgesOnPlanesVectorType;
 
     ///@}
@@ -92,7 +93,7 @@ public:
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
-        auto p_global_integration_points = std::make_unique<BoundaryIpVectorType>(point_numbers);
+        auto p_global_integration_points = MakeUnique<BoundaryIpVectorType>(point_numbers);
 
         const auto& P1 = this->P1(TriangleId);
         const auto& P2 = this->P2(TriangleId);

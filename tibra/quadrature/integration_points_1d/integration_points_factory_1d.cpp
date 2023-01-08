@@ -14,7 +14,7 @@ namespace tibra {
 
 typedef std::size_t SizeType;
 typedef std::vector<std::array<double,2>> Ip1DVectorType;
-typedef std::unique_ptr<Ip1DVectorType> Ip1DVectorPtrType;
+typedef Unique<Ip1DVectorType> Ip1DVectorPtrType;
 typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
 
 // Public member functions
@@ -31,11 +31,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
     switch(Method)
     {
         case Gauss:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree]);
+            return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree]);
         case Gauss_Reduced1:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
+            return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
         case Gauss_Reduced2:
-            return std::make_unique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
+            return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
         default:
             throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
             break;
@@ -148,11 +148,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
             switch(Method)
             {
                 case GGQ_Optimal:
-                    return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
+                    return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
                 case GGQ_Reduced1:
-                    return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
+                    return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
                 case GGQ_Reduced2:
-                    return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
+                    return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
                     throw std::invalid_argument("IntegrationPointFactory1D: Method not available2");
                     break;
@@ -184,11 +184,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
             switch(Method)
             {
                 case GGQ_Optimal:
-                    return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
+                    return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
                 case GGQ_Reduced1:
-                    return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
+                    return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
                 case GGQ_Reduced2:
-                    return std::make_unique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
+                    return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
                     throw std::invalid_argument("IntegrationPointFactory1D: Method not available3");
                     break;
@@ -201,7 +201,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
     std::for_each(points.begin(), points.end(), [a, h](auto& rValue) { rValue[0] = a + h*rValue[0];
                                                                         rValue[1] *= h; });
 
-    return std::make_unique<Ip1DVectorType>(points);
+    return MakeUnique<Ip1DVectorType>(points);
 }
 
 } // End namespace tibra

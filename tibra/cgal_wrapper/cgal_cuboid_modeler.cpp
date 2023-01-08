@@ -45,7 +45,7 @@ CGALMeshPtrType CuboidModeler::MakeCuboid( const PointType& rLowerPoint, const P
 
     CGALMeshType surface_mesh;
     CGAL::copy_face_graph(P, surface_mesh);
-    return std::make_unique<CGALMeshType>(surface_mesh);
+    return MakeUnique<CGALMeshType>(surface_mesh);
 }
 
 } // End namespace cgal

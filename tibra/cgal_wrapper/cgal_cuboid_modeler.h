@@ -32,7 +32,7 @@ public:
     typedef CGALKernalType::Point_3 CGALPointType;
     typedef CGAL::Surface_mesh<CGALPointType> CGALMeshType;
     typedef CGAL::Mesh_polyhedron_3<CGALKernalType>::type CGALPolyhedronMeshType;
-    typedef std::unique_ptr<CGALMeshType> CGALMeshPtrType;
+    typedef Unique<CGALMeshType> CGALMeshPtrType;
 
     ///@}
     ///@name Operations

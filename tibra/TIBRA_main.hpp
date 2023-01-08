@@ -53,7 +53,7 @@ public:
             std::cout << "TIBRA :: START " << std::endl;
 
         // Allocate element/knotspans container
-        mpElementContainer = std::make_unique<ElementContainer>(mParameters);
+        mpElementContainer = MakeUnique<ElementContainer>(mParameters);
 
         // Read geometry
         double volume_brep = 0.0;
@@ -146,8 +146,8 @@ private:
     ///@{
     TriangleMesh mTriangleMesh;
     TriangleMesh mTriangleMeshPost;
-    std::unique_ptr<BRepOperatorBase> mpBRepOperator;
-    std::unique_ptr<ElementContainer> mpElementContainer;
+    Unique<BRepOperatorBase> mpBRepOperator;
+    Unique<ElementContainer> mpElementContainer;
     const Parameters mParameters;
     ///@}
 

@@ -33,8 +33,8 @@ public:
     ///@{
 
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
-    typedef std::unique_ptr<BoundaryIPVectorType> BoundaryIPVectorPtrType;
-    typedef std::unique_ptr<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<BoundaryIPVectorType> BoundaryIPVectorPtrType;
+    typedef Unique<TriangleMesh> TriangleMeshPtrType;
     typedef std::pair<PointType, PointType> BoundingBox;
 
     ///@}
@@ -84,7 +84,7 @@ public:
 
     /// @brief Returns part of triangle mesh that IsInDomain.
     /// @param IsInDomain std::function
-    /// @return TriangleMeshPtrType (std::unique_ptr)
+    /// @return TriangleMeshPtrType (Unique)
     TriangleMeshPtrType pGetTriangleMesh(std::function<bool(double, double,double)> &IsInDomain) const {
         // Get Ids of all triangles that are inside given domain.
         std::vector<IndexType> triangle_ids;
@@ -103,7 +103,7 @@ public:
             }
         }
         // Copy all triangles in (triangle_ids) to new mesh.
-        auto p_new_mesh = std::make_unique<TriangleMesh>();
+        auto p_new_mesh = MakeUnique<TriangleMesh>();
         p_new_mesh->Reserve(mpTriangleMesh->NumOfTriangles());
         MeshUtilities::Append(*p_new_mesh, *mpTriangleMesh, triangle_ids);
         return std::move(p_new_mesh);

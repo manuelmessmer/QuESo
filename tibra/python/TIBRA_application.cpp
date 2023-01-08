@@ -105,12 +105,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         ;
 
     /// Export PointVector
-    py::bind_vector<PointVectorType,std::unique_ptr<PointVectorType>>
+    py::bind_vector<PointVectorType,Unique<PointVectorType>>
         (m, "PointVector")
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
-    py::bind_vector<IntegrationPoint1DVectorType,std::unique_ptr<IntegrationPoint1DVectorType>>
+    py::bind_vector<IntegrationPoint1DVectorType,Unique<IntegrationPoint1DVectorType>>
         (m, "IntegrationPoint1DVector")
     ;
 
@@ -133,12 +133,12 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     ;
 
     /// Export BoundaryIntegrationPoint Vector
-    py::bind_vector<BoundaryIpVectorType,std::unique_ptr<BoundaryIpVectorType>>
+    py::bind_vector<BoundaryIpVectorType,Unique<BoundaryIpVectorType>>
         (m, "BoundaryIPVector")
     ;
 
     /// Export TriangleMesh
-    py::class_<TriangleMesh, std::unique_ptr<TriangleMesh>>(m,"TriangleMesh")
+    py::class_<TriangleMesh, Unique<TriangleMesh>>(m,"TriangleMesh")
         .def(py::init<>())
         .def("Center", &TriangleMesh::Center)
         .def("Normal", &TriangleMesh::Normal)
@@ -156,7 +156,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     ;
 
     /// Export MeshUtilities
-    py::class_<MeshUtilities, std::unique_ptr<MeshUtilities>>(m,"MeshUtilities")
+    py::class_<MeshUtilities, Unique<MeshUtilities>>(m,"MeshUtilities")
         .def_static("Append", [](TriangleMesh& rMesh, const TriangleMesh& rNewMesh){
             return MeshUtilities::Append(rMesh, rNewMesh);
         })
