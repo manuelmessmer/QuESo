@@ -19,7 +19,7 @@ Required Python modules:
 ```console
 sudo pip3 install numpy scipy
 ```
-Installation:
+Installation ([configure.sh](https://github.com/manuelmessmer/TIBRA/tree/main/configure.sh)):
 ```console
 sh configure.sh
 ```
