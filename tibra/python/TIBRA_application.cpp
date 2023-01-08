@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 //// Project includes
-#include "TIBRA_main.hpp"
+#include "TIBRA_main.h"
 #include "containers/element.hpp"
 #include "containers/element_container.hpp"
 #include "containers/triangle_mesh.hpp"

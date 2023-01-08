@@ -7,7 +7,7 @@
 #include <omp.h>
 
 //// Project includes
-#include "TIBRA_main.hpp"
+#include "TIBRA_main.h"
 #include "quadrature/single_element.h"
 #include "quadrature/moment_fitting_utilities.h"
 #include "quadrature/multiple_elements.h"
