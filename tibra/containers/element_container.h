@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 //// Project includes
-#include "containers/element.h"
+#include "containers/element.hpp"
 #include "utilities/parameters.h"
 
 namespace tibra {

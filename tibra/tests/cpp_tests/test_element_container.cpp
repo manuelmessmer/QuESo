@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 // Project includes
 #include "utilities/parameters.h"
-#include "containers/element.h"
+#include "containers/element.hpp"
 #include "containers/element_container.h"
 
 namespace tibra {

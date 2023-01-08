@@ -11,7 +11,7 @@
 #include <vector>
 //// Project includes
 #include "TIBRA_main.hpp"
-#include "containers/element.h"
+#include "containers/element.hpp"
 #include "containers/element_container.h"
 #include "containers/triangle_mesh.hpp"
 #include "containers/integration_point.hpp"

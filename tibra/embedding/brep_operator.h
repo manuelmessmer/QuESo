@@ -8,7 +8,7 @@
 #include <memory>
 //// Project includes
 #include "containers/triangle_mesh.hpp"
-#include "containers/element.h"
+#include "containers/element.hpp"
 #include "containers/boundary_integration_point.hpp"
 #include "embedding/trimmed_domain.h"
 #include "embedding/aabb_tree.h"
