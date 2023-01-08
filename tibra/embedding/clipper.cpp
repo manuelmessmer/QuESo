@@ -3,7 +3,7 @@
 
 //// Project includes
 #include "embedding/clipper.h"
-#include "utilities/utilities.h"
+#include "utilities/math_utilities.hpp"
 #include "io/io_utilities.h"
 #include <cstdlib>
 

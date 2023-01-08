@@ -6,7 +6,7 @@
 #include <numeric>
 /// Project includes
 #include "utilities/mesh_utilities.h"
-#include "utilities/utilities.h"
+#include "utilities/math_utilities.hpp"
 
 namespace tibra {
 
@@ -188,7 +188,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = math::dot(normal, point);
+            double integrand = Math::Dot(normal, point);
             volume += 1.0/3.0*integrand * point.GetWeight();
         }
     }
@@ -206,7 +206,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = math::dot(normal, point);
+            double integrand = Math::Dot(normal, point);
             volume += 1.0/3.0*integrand * point.GetWeight();
         }
     }

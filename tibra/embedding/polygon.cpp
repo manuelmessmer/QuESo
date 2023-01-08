@@ -3,7 +3,7 @@
 
 //// Project includes
 #include "embedding/polygon.h"
-#include "utilities/utilities.h"
+#include "utilities/math_utilities.hpp"
 
 namespace tibra {
 
