@@ -2,7 +2,11 @@ import numpy as np
 import scipy.interpolate as si
 
 class BSplineVolume:
-    def __init__(self, Order, NumElements, LowerBound, UpperBound):
+    def __init__(self, Parameters):
+        Order = Parameters.Order()
+        NumElements = Parameters.NumberOfElements()
+        LowerBound = Parameters.LowerBound()
+        UpperBound = Parameters.UpperBound()
         self.spline_u = self.__construct_b_spline(Order[0], NumElements[0], LowerBound[0], UpperBound[0])
         self.spline_v = self.__construct_b_spline(Order[1], NumElements[1], LowerBound[1], UpperBound[1])
         self.spline_w = self.__construct_b_spline(Order[2], NumElements[2], LowerBound[2], UpperBound[2])
@@ -16,13 +20,13 @@ class BSplineVolume:
         return cps
 
     def KnotsU(self):
-        return self.spline_u.t
+        return self.spline_u.t.tolist()
 
     def KnotsV(self):
-        return self.spline_u.t
+        return self.spline_v.t.tolist()
 
     def KnotsW(self):
-        return self.spline_u.t
+        return self.spline_w.t.tolist()
 
     def __construct_b_spline(self, Order, NumElements, LowerBound, UpperBound):
         delta_u = 1.0/NumElements
