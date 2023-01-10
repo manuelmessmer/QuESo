@@ -74,8 +74,8 @@ class BSplineVolume:
         '''
         return self.spline_w.t.tolist()
 
-    def Order(self):
-        ''' Order \n
+    def PolynomialOrder(self):
+        ''' PolynomialOrder \n
         Returns polynomial order of b-spline volume: [p_x, p_y, p_z]
         '''
         return self.Order

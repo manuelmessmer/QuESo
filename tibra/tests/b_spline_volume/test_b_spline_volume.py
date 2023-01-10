@@ -34,6 +34,7 @@ class TestBSplineVolume(unittest.TestCase):
         knots_u = volume.KnotsU()
         knots_v = volume.KnotsV()
         knots_w = volume.KnotsW()
+        polynomial_order = volume.PolynomialOrder()
 
         # Read results file
         with open(results_filename, 'r') as file:
@@ -45,6 +46,10 @@ class TestBSplineVolume(unittest.TestCase):
         n_cps_w = volume.NumberControlPointsInW()
         n_cps = n_cps_u*n_cps_v*n_cps_w
         self.assertEqual(n_cps, len(res["cps"]))
+        # Check number of knot vectros
+        self.assertAlmostEqual(len(knots_u), n_cps_u + polynomial_order[0] + 1)
+        self.assertAlmostEqual(len(knots_v), n_cps_v + polynomial_order[1] + 1)
+        self.assertAlmostEqual(len(knots_w), n_cps_w + polynomial_order[2] + 1)
 
         # Check control points list (linearized)
         self.assertEqual(len(cps), n_cps)
