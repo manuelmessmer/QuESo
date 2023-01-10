@@ -1,5 +1,6 @@
 from tibra.tests.ggq_tube.test_ggq_tube import TestGGQTube
 from tibra.tests.ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
+from tibra.tests.b_spline_volume.test_b_spline_volume import TestBSplineVolume
 try:
     import KratosMultiphysics as KM
     kratos_available = True
@@ -23,6 +24,7 @@ def PyTIBRATestSuite():
 
     test_suite.addTest(unittest.makeSuite(TestGGQTube))
     test_suite.addTest(unittest.makeSuite(TestGGQ1d))
+    test_suite.addTest(unittest.makeSuite(TestBSplineVolume))
 
     return test_suite
 
