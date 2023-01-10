@@ -1,5 +1,4 @@
 # Project imports
-from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
 from tibra.python_scripts.b_spline_volume import BSplineVolume
 from tibra.python_scripts.helper import *
 
@@ -40,14 +39,36 @@ class TestBSplineVolume(unittest.TestCase):
         with open(results_filename, 'r') as file:
             res = json.load(file)
 
-        # Check Control Points
-        self.assertEqual(len(cps), len(res["cps"]))
+        # Check number of control points
+        n_cps_u = volume.NumberControlPointsInU()
+        n_cps_v = volume.NumberControlPointsInV()
+        n_cps_w = volume.NumberControlPointsInW()
+        n_cps = n_cps_u*n_cps_v*n_cps_w
+        self.assertEqual(n_cps, len(res["cps"]))
+
+        # Check control points list (linearized)
+        self.assertEqual(len(cps), n_cps)
         for cp1, cp2 in zip(res["cps"], cps):
             self.assertAlmostEqual(cp1[0], cp2[0], 12)
             self.assertAlmostEqual(cp1[1], cp2[1], 12)
             self.assertAlmostEqual(cp1[2], cp2[2], 12)
 
-        # Check Knot Vectors
+        # Check control points matrix
+        cps_matrix = volume.ControlPointsMatrix()
+        self.assertEqual(n_cps_u, cps_matrix.shape[0])
+        self.assertEqual(n_cps_v, cps_matrix.shape[1])
+        self.assertEqual(n_cps_w, cps_matrix.shape[2])
+        count = 0
+        for i_w in range(n_cps_w):
+            for i_v in range(n_cps_v):
+                for i_u in range(n_cps_u):
+                    test_cp = cps_matrix[i_u, i_v, i_w]
+                    self.assertAlmostEqual(cps[count][0], test_cp[0], 12)
+                    self.assertAlmostEqual(cps[count][1], test_cp[1], 12)
+                    self.assertAlmostEqual(cps[count][2], test_cp[2], 12)
+                    count += 1
+
+        # Check knot vectors
         self.assertEqual(len(knots_u), len(res["knots_u"]))
         for k1, k2 in zip(res["knots_u"], knots_u):
             self.assertAlmostEqual(k1, k2, 12)
