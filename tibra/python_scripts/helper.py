@@ -1,5 +1,8 @@
+# Project imports
+import TIBRA_PythonApplication as TIBRA_Application
+
+# External imports
 import json
-import TIBRA_Application
 
 def FromParamToGlobalSpace(point,lower_point, upper_point):
     tmp_point = [0.0, 0.0, 0.0]
@@ -25,6 +28,9 @@ def GetItems(dictionary):
             yield (k, v)
 
 def ReadParameters(json_filename):
+    ''' ReadParameters \n
+    Reads Parameters from json file and returns TIBRAApplication.Parameters()
+    '''
     with open(json_filename, 'r') as file:
         settings = json.load(file)
 
