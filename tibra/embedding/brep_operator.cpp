@@ -104,7 +104,8 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
         const double volume_trimmed_domain = MeshUtilities::Volume(r_trimmed_domain_mesh);
         const auto delta = rUpperBound - rLowerBound;
         const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
-        if( MeshUtilities::IsClosed(r_trimmed_domain_mesh) && volume_trimmed_domain / volume_non_trimmed_domain > 1e-3 )
+        const double min_volume_ratio = mParameters.Get<double>("min_element_volume_ratio");
+        if( MeshUtilities::IsClosed(r_trimmed_domain_mesh) && volume_trimmed_domain / volume_non_trimmed_domain > min_volume_ratio )
             return std::move(p);
     }
 
