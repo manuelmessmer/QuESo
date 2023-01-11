@@ -28,7 +28,10 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
                             Component("upper_bound", upper_bound),
                             Component("min_num_boundary_triangles", 200UL),
                             Component("number_of_elements", number_of_elements),
+                            Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
+
+
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
@@ -108,6 +111,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
                             Component("upper_bound", upper_bound),
                             Component("number_of_elements", number_of_elements),
                             Component("min_num_boundary_triangles", 100UL),
+                            Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
@@ -184,6 +188,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {
                             Component("upper_bound", upper_bound),
                             Component("number_of_elements", number_of_elements),
                             Component("min_num_boundary_triangles", 100UL),
+                            Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
     TriangleMesh triangle_mesh{};
@@ -260,6 +265,7 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
                             Component("upper_bound", rUpperBound),
                             Component("number_of_elements", number_of_elements),
                             Component("min_num_boundary_triangles", 100UL),
+                            Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
     TriangleMesh triangle_mesh{};
