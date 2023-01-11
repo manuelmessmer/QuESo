@@ -60,6 +60,12 @@ public:
     ///@param rTriangleMesh
     ///@return double
     static double VolumeOMP(const TriangleMesh& rTriangleMesh);
+
+    ///@brief Returns true if rTriangleMesh represents a closed volume.
+    ///@param rTriangleMesh
+    ///@return bool
+    static bool IsClosed(const TriangleMesh& rTriangleMesh);
+
     ///@}
 }; // End class MeshUtilities
 ///@} // End TIBRA Classes
