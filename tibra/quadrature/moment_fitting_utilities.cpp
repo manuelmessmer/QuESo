@@ -29,6 +29,9 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
     const double delta_y = std::abs(bounding_box.second[1] - bounding_box.first[1]) / ( (double)factor*(rParam.Order()[1]+1) );
     const double delta_z = std::abs(bounding_box.second[2] - bounding_box.first[2]) / ( (double)factor*(rParam.Order()[2]+1) );
 
+    const auto lower_bound = rParam.LowerBound();
+    const auto upper_bound = rParam.UpperBound();
+
     double xx = bounding_box.first[0] + 0.5*delta_x;
     while( xx < bounding_box.second[0] ){
         double yy = bounding_box.first[1] + 0.5*delta_y;
@@ -37,10 +40,8 @@ void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, 
             while( zz < bounding_box.second[2]){
                 const PointType tmp_point = {xx,yy,zz};
                 if( rElement.pGetTrimmedDomain()->IsInsideTrimmedDomain(tmp_point) ){
-                    rIntegrationPoint.push_back(IntegrationPoint((xx - rParam.LowerBound()[0]) / std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]),
-                                                    (yy - rParam.LowerBound()[1]) / std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]),
-                                                    (zz - rParam.LowerBound()[2]) / std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]),
-                                                     0.0 ));
+                    auto tmp_point_param = Mapping::GlobalToParam(tmp_point, lower_bound, upper_bound );
+                    rIntegrationPoint.push_back(IntegrationPoint(tmp_point_param, 0.0 ));
                 }
                 zz += delta_z;
             }
@@ -76,6 +77,16 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
     IndexType row_index = 0;
     // Loop over all points.
     const auto begin_points_it_ptr = pBoundaryIps->begin();
+
+    // X-direction
+    std::vector<double> f_x_x(order_u*ffactor+1);
+    std::vector<double> f_x_int_x(order_u*ffactor+1);
+    // Y-direction
+    std::vector<double> f_x_y(order_v*ffactor+1);
+    std::vector<double> f_x_int_y(order_v*ffactor+1);
+    // Z-direction
+    std::vector<double> f_x_z(order_w*ffactor+1);
+    std::vector<double> f_x_int_z(order_w*ffactor+1);
     for( int i = 0; i < pBoundaryIps->size(); ++i ){
         // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
         // for f_x_x and f_x_int at each point.
@@ -83,28 +94,23 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
         const auto& normal = point_it->Normal();
         PointType local_point = Mapping::GlobalToParam(*point_it, lower_bound, upper_bound);
 
-        // X-direction
-        std::vector<double> f_x_x(order_u*ffactor+1);
-        std::vector<double> f_x_int_x(order_u*ffactor+1);
+        // X-Direction
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
             f_x_x[i_x] = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
             f_x_int_x[i_x] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0]);
         }
-        // Y-direction
-        std::vector<double> f_x_y(order_v*ffactor+1);
-        std::vector<double> f_x_int_y(order_v*ffactor+1);
+        // Y-Direction
         for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y){
             f_x_y[i_y] = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
             f_x_int_y[i_y] = Polynomial::f_x_int(local_point[1], i_y, a[1], b[1]);
         }
-        // Z-direction
-        std::vector<double> f_x_z(order_w*ffactor+1);
-        std::vector<double> f_x_int_z(order_w*ffactor+1);
+        // Z-Direction
         for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
             f_x_z[i_z] = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
             f_x_int_z[i_z] = Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
         }
 
+        const double weight = 1.0/3.0*point_it->GetWeight();
         row_index = 0;
         // Assembly RHS
         for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
@@ -117,7 +123,7 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
                     value[2] = f_x_x[i_x]*f_x_y[i_y]*f_x_int_z[i_z];
 
                     double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
-                    rConstantTerms[row_index] += 1.0/3.0*integrand * point_it->GetWeight();
+                    rConstantTerms[row_index] += integrand * weight;
                     row_index++;
                 }
 

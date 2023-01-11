@@ -39,6 +39,12 @@ public:
     {
         mActiveFlag = true;
     }
+    /// 3D Constructor
+    IntegrationPoint(const PointType& rPoint, double weigth_) :
+        PointType(rPoint), mWeight(weigth_)
+    {
+        mActiveFlag = true;
+    }
 
     /// Destructor
     ~IntegrationPoint() = default;
