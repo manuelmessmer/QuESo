@@ -219,4 +219,22 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     return true;
 }
 
+bool Ray_AABB_primitive::is_parallel( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2) const {
+    // Substraction: v1-v0 and v2-v0
+    Vector3d v0v1 = v1 - v0;
+    Vector3d v0v2 = v2 - v0;
+
+    // Cross product: mDirection x v0v2
+    Vector3d pvec = Math::Cross(mDirection, v0v2);
+
+    // Dot product: v0v1 * pvec
+    double det = Math::Dot(v0v1, pvec);
+
+    // If det is zero, triangle is parallel to ray.
+    if (std::abs(det) < EPS3){
+        return true;
+    }
+    return false;
+}
+
 } // End namespace tibra
