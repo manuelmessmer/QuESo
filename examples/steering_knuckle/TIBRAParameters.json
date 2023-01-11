@@ -1,0 +1,18 @@
+{
+    "general_settings"   : {
+        "input_filename"  : "data/steering_knuckle.stl",
+        "echo_level"      : 1
+    },
+    "mesh_settings"     : {
+        "lower_bound": [-130.0, -110.0, -110.0],
+        "upper_bound": [20.0, 190.0, 190.0],
+        "polynomial_order" : [2, 2, 2],
+        "number_of_elements" : [60, 120, 120]
+    },
+    "trimmed_quadrature_rule_settings"     : {
+        "moment_fitting_residual": 1e-7
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+        "integration_method" : "GGQ_Optimal"
+    }
+}
