@@ -18,7 +18,7 @@ namespace tibra {
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
 
-void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam){
+void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, SizeType PointDistributionFactor, const Parameters& rParam){
 
     const double factor = PointDistributionFactor;
     rIntegrationPoint.reserve( (int) factor*(rParam.Order()[0]+1)*factor*(rParam.Order()[1]+1)*factor*(rParam.Order()[2]+1) );
@@ -130,7 +130,7 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
 void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam){
 
     double residual = 1e10;
-    int point_distribution_factor = rParam.GetPointDistributionFactor();
+    SizeType point_distribution_factor = rParam.GetPointDistributionFactor();
     VectorType constant_terms{};
 
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
@@ -149,26 +149,30 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
         residual = CreateIntegrationPointsTrimmed(rElement, constant_terms, point_distribution_factor, rParam);
 
         point_distribution_factor *= 2;
-        if( residual > 1e-5 ) {
-            //std::cout << "size: " << reduced_points.size() << std::endl;
+        if( residual > 1e-2 ) {
             reduced_points.clear();
         }
         iteration++;
     }
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
-        std::cout << "size: " << rElement.GetIntegrationPoints().size() << std::endl;
+        //std::cout << "size: " << rElement.GetIntegrationPoints().size() << std::endl;
         std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
-        // IO::WriteMeshToVTK(rElement.GetSurfaceMesh(), "fail.vtk", true);
     }
 }
 
-double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam) {
+double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, SizeType PointDistributionFactor, const Parameters& rParam) {
 
-    IntegrationPointVectorType new_integration_points;
+    IntegrationPointVectorType new_integration_points{};
+    new_integration_points.resize(0UL);
     int maximum_iteration;
     if( !rParam.UseCustomizedTrimmedPositions() ){
-        DistributeInitialIntegrationPoints( rElement, new_integration_points, PointDistributionFactor, rParam);
+        SizeType point_distribution_factor = PointDistributionFactor;
+        const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(point_distribution_factor);
+        while( new_integration_points.size() < min_num_points ){
+            DistributeInitialIntegrationPoints( rElement, new_integration_points, point_distribution_factor, rParam);
+            point_distribution_factor *= 2;
+        }
         maximum_iteration = 1000;
     }
     else { // This is only used for test_moment_fitting.cpp
@@ -209,7 +213,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
             for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                 for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                    // Loop over all faces/triangels in r_surface_mesg
+                    // Loop over all points
                     const auto points_it_begin = new_integration_points.begin();
                     for( int column_index = 0; column_index < number_reduced_points; ++column_index ){
                         auto point_it = points_it_begin + column_index;
