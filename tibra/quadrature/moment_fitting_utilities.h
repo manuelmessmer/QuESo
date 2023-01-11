@@ -55,10 +55,10 @@ private:
     ///@{
 
     ///@todo Clean this up.
-    static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, const int PointDistributionFactor, const Parameters& rParam);
+    static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, SizeType PointDistributionFactor, const Parameters& rParam);
 
 
-    static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, const int PointDistributionFactor, const Parameters& rParam);
+    static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, SizeType PointDistributionFactor, const Parameters& rParam);
 
 }; // End Class
 

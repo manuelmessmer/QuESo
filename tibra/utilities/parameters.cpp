@@ -8,6 +8,7 @@ const std::vector<Component> Parameters::mDefaultComponents = {
     Component("initial_triangle_edge_length", 1.0),
     Component("min_num_boundary_triangles", 1000UL),
     Component("moment_fitting_residual", 1.0e-10),
+    Component("min_element_volume_ratio", 1.0e-3),
     Component("init_point_distribution_factor", 2UL),
     Component("polynomial_order", Vector3i(2UL, 2Ul, 2UL) ),
     Component("integration_method", IntegrationMethod::Gauss),
@@ -25,6 +26,7 @@ const std::vector<std::pair<std::string, const std::type_info*>> Parameters::mAl
     std::make_pair<std::string, const std::type_info*>("initial_triangle_edge_length", &typeid(double) ),
     std::make_pair<std::string, const std::type_info*>("min_num_boundary_triangles", &typeid(IndexType) ),
     std::make_pair<std::string, const std::type_info*>("moment_fitting_residual", &typeid(double) ),
+    std::make_pair<std::string, const std::type_info*>("min_element_volume_ratio", &typeid(double) ),
     std::make_pair<std::string, const std::type_info*>("init_point_distribution_factor", &typeid(IndexType) ),
     std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
     std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ) };

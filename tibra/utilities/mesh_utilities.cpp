@@ -212,4 +212,24 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     }
     return volume;
 }
+
+bool MeshUtilities::IsClosed(const TriangleMesh& rTriangleMesh){
+    PointType directional_areas = {0.0, 0.0, 0.0};
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    double total_area = 0.0;
+    for( IndexType i = 0; i < num_triangles; ++i ){
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto& r_points = *p_points;
+        // Loop over all points.
+        for( const auto& point : r_points ){
+            const auto& normal = point.Normal();
+            directional_areas += normal * point.GetWeight();
+            total_area += point.GetWeight();
+        }
+    }
+    double epsilon = std::abs(1.0/total_area*
+        (directional_areas[0]+directional_areas[1]+directional_areas[2]));
+    return epsilon < 1e-5;
+}
+
 } // End namespace tibra

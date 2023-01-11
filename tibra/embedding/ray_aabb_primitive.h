@@ -83,6 +83,13 @@ public:
     bool intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
                     double &t, double &u, double &v, bool& BackFacing, bool& Parallel) const;
 
+    ///@brief Returns true if triangle is parallel to ray.
+    ///@param v0 Triangle Vertex 1
+    ///@param v1 Triangle Vertex 2
+    ///@param v2 Triangle Vertex 3
+    ///@return bool
+    bool is_parallel(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2) const;
+
     ///@}
 private:
 
