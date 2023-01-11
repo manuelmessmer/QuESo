@@ -100,7 +100,12 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
     auto p_new_mesh = ClipTriangleMesh(rLowerBound, rUpperBound);
     if( p_new_mesh->NumOfTriangles() > 0) {
         auto p = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), rLowerBound, rUpperBound, mParameters);
-        return std::move(p);
+        const auto& r_trimmed_domain_mesh = p->GetTriangleMesh();
+        const double volume_trimmed_domain = MeshUtilities::Volume(r_trimmed_domain_mesh);
+        const auto delta = rUpperBound - rLowerBound;
+        const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
+        if( MeshUtilities::IsClosed(r_trimmed_domain_mesh) && volume_trimmed_domain / volume_non_trimmed_domain > 1e-3 )
+            return std::move(p);
     }
 
     return nullptr;
