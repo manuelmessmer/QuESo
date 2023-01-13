@@ -32,7 +32,7 @@ public:
     /// Constructor
     Logger(std::string rWhere ) {
         AppendMessage( rWhere );
-        AppendMessage( " :: " );
+        AppendMessage( " -- " );
 
     }
 
@@ -100,9 +100,9 @@ public:
 
     /// Constructor
     Exception(std::string rWhere ) {
-        AppendMessage( "Where: " );
+        AppendMessage( "\n Where: " );
         AppendMessage( rWhere );
-        AppendMessage( " :: Message: " );
+        AppendMessage( " -- What: " );
     }
 
     ///@}
@@ -151,7 +151,7 @@ private:
 };
 
 #define TIBRA_ERROR(Where) throw Exception(Where)
-#define TIBRA_ERROR_IF(Where, Conditional) if(Conditional) throw Exception(Where)}
+#define TIBRA_ERROR_IF(Where, Conditional) if(Conditional) throw Exception(Where)
 
 ///@} // End TIBRA Classes
 } // End namespace tibra
