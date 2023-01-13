@@ -93,7 +93,7 @@ void TIBRA::Run(){
           valid_element = false;
           // if( mParameters.EchoLevel() > 3 ){
           //   auto mesh = new_element->pGetTrimmedDomain()->GetTriangleMesh();
-          //   std::cout << "Warning :: Moment fitting of trimmed element: " << new_element->GetId() << " with volume: "
+          //   TIBRA_INFO << "Warning :: Moment fitting of trimmed element: " << new_element->GetId() << " with volume: "
           //     << MeshUtilities::Volume(mesh) << " failed! \n";
 
           //   std::string name = "failed_element_" + std::to_string(new_element->GetId()) + ".stl";

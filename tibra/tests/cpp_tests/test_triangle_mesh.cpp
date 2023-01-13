@@ -17,7 +17,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( TriangleMeshTestSuite )
 
 BOOST_AUTO_TEST_CASE(TriangleMeshIOTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test IO" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test IO" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
@@ -50,7 +50,7 @@ std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTri
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Refine" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Refine" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Append" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Append" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Bunny" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Bunny" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Cylinder" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Cylinder" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant Splitted" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant Splitted" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeCubeTest) {
-    std::cout << "Testing :: Test Triangle Mesh :: Test Compute Volume Cube" << std::endl;
+    TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Cube" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");

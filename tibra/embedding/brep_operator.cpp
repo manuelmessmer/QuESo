@@ -165,9 +165,9 @@ Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
 
 // Winding numbers algorithm: It actually works!!!
 
-// std::cout << "Done" << std::endl;
-// std::cout << "Tree timer: " << tree_timer << std::endl;
-// std::cout << "ray timer: " << ray_timer << std::endl;
+// TIBRA_INFO << "Done" << std::endl;
+// TIBRA_INFO << "Tree timer: " << tree_timer << std::endl;
+// TIBRA_INFO << "ray timer: " << ray_timer << std::endl;
 // return MakeUnique<std::vector<bool>>(rr);
 // for( int triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id ){
 //     const auto& p1 = rTriangleMesh.P1(triangle_id);

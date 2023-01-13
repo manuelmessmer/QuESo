@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_SUITE( PointClassifierTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 
-    std::cout << "Testing :: Test Point Classifier :: Cylinder Point Classifier" << std::endl;
+    TIBRA_INFO << "Testing :: Test Point Classifier :: Cylinder Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
-    std::cout << "Testing :: Test Point Classifier :: Cube Point Classifier" << std::endl;
+    TIBRA_INFO << "Testing :: Test Point Classifier :: Cube Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
-    std::cout << "Testing :: Test Point Classifier :: Elphant Point Classifier" << std::endl;
+    TIBRA_INFO << "Testing :: Test Point Classifier :: Elphant Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
 
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
-    std::cout << "Testing :: Test Point Classifier :: Bunny Point Classifier" << std::endl;
+    TIBRA_INFO << "Testing :: Test Point Classifier :: Bunny Point Classifier" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file

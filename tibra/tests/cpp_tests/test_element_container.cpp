@@ -33,7 +33,7 @@ Unique<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
 }
 
 BOOST_AUTO_TEST_CASE(TestElementContainerX) {
-    std::cout << "Testing :: Test Element Container :: Element Container Walking along X Direction" << std::endl;
+    TIBRA_INFO << "Testing :: Test Element Container :: Element Container Walking along X Direction" << std::endl;
 
     Vector3i number_of_elements = {3, 4, 2};
     auto container = CreateTestElementContainer(number_of_elements);
@@ -83,7 +83,7 @@ bool contains(std::vector<int>& v, int test_value){
 }
 
 BOOST_AUTO_TEST_CASE(TestElementContainerY) {
-    std::cout << "Testing :: Test Element Container :: Element Container Walking along Y Direction" << std::endl;
+    TIBRA_INFO << "Testing :: Test Element Container :: Element Container Walking along Y Direction" << std::endl;
 
     Vector3i number_of_elements = {3, 4, 2};
     auto container = CreateTestElementContainer(number_of_elements);
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerY) {
 } // End Testcase
 
 BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
-    std::cout << "Testing :: Test Element Container :: Element Container Walking along Z Direction" << std::endl;
+    TIBRA_INFO << "Testing :: Test Element Container :: Element Container Walking along Z Direction" << std::endl;
 
     Vector3i number_of_elements = {3, 4, 2};
     auto container = CreateTestElementContainer(number_of_elements);

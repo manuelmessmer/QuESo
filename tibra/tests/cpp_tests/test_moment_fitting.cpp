@@ -23,7 +23,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
-    std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
+    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
 
 
     Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
@@ -78,14 +78,14 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-5);
     }
-    //std::cout << "Error Norm: " << 1.0/27.0*std::sqrt(error_norm) << std::endl;
+    //TIBRA_INFO << "Error Norm: " << 1.0/27.0*std::sqrt(error_norm) << std::endl;
 
     BOOST_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase
 
 
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
-    std::cout << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
+    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
     Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound", PointType(2.0, 2.0, 1.0)),
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);
     }
-    //std::cout << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
+    //TIBRA_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
 
     BOOST_CHECK_LT(1.0/64.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase

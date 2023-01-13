@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_SUITE( BoundingBoxOfTrimmedDomainTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 
-    std::cout << "Testing :: Test Bounding Box Of Trimmed Domain:: Cylinder" << std::endl;
+    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cylinder" << std::endl;
 
     PointType point_A = {0.0, 0.0, 0.0};
     PointType point_B = {2.0, 2.0, 3.0};
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
-    std::cout << "Testing :: Test Bounding Box Of Trimmed Domain:: Cube" << std::endl;
+    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cube" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
-    std::cout << "Testing :: Test Bounding Box Of Trimmed Domain:: Elephant" << std::endl;
+    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Elephant" << std::endl;
 
     PointType point_A = {0.0, 0.0, 0.0};
     PointType point_B = {2.0, 2.0, 3.0};
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
-    std::cout << "Testing :: Test Bounding Box Of Trimmed Domain:: Bunny" << std::endl;
+    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Bunny" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};

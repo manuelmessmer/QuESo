@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
-    std::cout << "Testing :: Parameter :: Test Defaults" << std::endl;
+    TIBRA_INFO << "Testing :: Parameter :: Test Defaults" << std::endl;
 
     Parameters parameters{};
 
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
-    std::cout << "Testing :: Parameter :: Test Custom Constructor" << std::endl;
+    TIBRA_INFO << "Testing :: Parameter :: Test Custom Constructor" << std::endl;
 
     Parameters parameters( {Component("input_filename", std::string("date/test.stl")),
                                Component("postprocess_filename", std::string("date/test2.stl")),
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
-    std::cout << "Testing :: Parameter :: Test Custom Set" << std::endl;
+    TIBRA_INFO << "Testing :: Parameter :: Test Custom Set" << std::endl;
 
     Parameters parameters{};
     parameters.Set("input_filename", std::string("date/test.stl") );

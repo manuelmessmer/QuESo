@@ -7,6 +7,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "solvers/nnls.h"
+#include "utilities/logger.hpp"
 
 namespace tibra {
 namespace Testing {
@@ -14,7 +15,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( NNLSTestSuite )
 
 BOOST_AUTO_TEST_CASE(NNLS_Rectangle_Matrix) {
-    std::cout << "Testing :: Test nnls :: Rectangle Matrix" << std::endl;
+    TIBRA_INFO << "Testing :: Test nnls :: Rectangle Matrix" << std::endl;
 
     nnls::MatrixType A(4,3);
     A(0.0) = 0.1; A(0,1) = 0.2; A(0,2) = 3.0;
@@ -42,7 +43,7 @@ BOOST_AUTO_TEST_CASE(NNLS_Rectangle_Matrix) {
 }
 
 BOOST_AUTO_TEST_CASE(NNLS_Square_Matrix) {
-    std::cout << "Testing :: Test nnls :: Square Matrix" << std::endl;
+    TIBRA_INFO << "Testing :: Test nnls :: Square Matrix" << std::endl;
 
     nnls::MatrixType A(4,4);
     A(0.0) = 0.2; A(0,1) = 0.5; A(0,2) = 6.0; A(0,3) = 0.3;

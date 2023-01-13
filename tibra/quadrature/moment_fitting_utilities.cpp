@@ -162,8 +162,8 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     }
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
-        //std::cout << "size: " << rElement.GetIntegrationPoints().size() << std::endl;
-        std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
+        //TIBRA_INFO << "size: " << rElement.GetIntegrationPoints().size() << std::endl;
+        TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
     }
 }
 
@@ -250,7 +250,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         if( !rParam.UseCustomizedTrimmedPositions() ){
             if( number_iterations == 0){
                 if( global_residual > allowed_residual ){
-                    //std::cout << "Moment Fitting :: Targeted residual can not be achieved!: " << global_residual << std::endl;
+                    //TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved!: " << global_residual << std::endl;
                 }
                 // Sort integration points according to weight
                 std::sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
