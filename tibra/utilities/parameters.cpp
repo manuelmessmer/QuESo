@@ -3,7 +3,7 @@
 namespace tibra {
 
 const std::vector<Component> Parameters::mDefaultComponents = {
-    Component("echo_level", 0UL),
+    Component("echo_level", 1UL),
     Component("embedding_flag", true),
     Component("initial_triangle_edge_length", 1.0),
     Component("min_num_boundary_triangles", 500UL),
