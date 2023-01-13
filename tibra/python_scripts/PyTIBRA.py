@@ -1,4 +1,5 @@
 import TIBRA_PythonApplication as TIBRA_Application
+from tibra.python_scripts.b_spline_volume import BSplineVolume
 from tibra.python_scripts.helper import *
 import json
 import os
@@ -27,7 +28,7 @@ class PyTIBRA:
     def __init__(self, json_filename):
         """The constructor"""
         self.parameters = ReadParameters(json_filename)
-
+        self.b_spline_volume = BSplineVolume(self.parameters)
         if self.parameters.EchoLevel() > 0:
             folder_path = "./output/"
             if os.path.exists(folder_path):
@@ -50,6 +51,9 @@ class PyTIBRA:
 
     def GetUpperBound(self):
         return self.parameters.UpperBound()
+
+    def GetBSplineVolume(self):
+        return self.b_spline_volume
 
     def GetIntegrationPoints(self):
         integration_points = TIBRA_Application.IntegrationPointVector()

@@ -1,5 +1,5 @@
 # Project imports
-from tibra.python_scripts.b_spline_volume import BSplineVolume
+from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
 from tibra.python_scripts.helper import *
 
 import unittest
@@ -27,9 +27,9 @@ class TestBSplineVolume(unittest.TestCase):
         self.RunTest(input_filename, results_filename)
 
     def RunTest(self,input_filename, results_filename):
-        # Construct B-Spline Volume from parameters
-        parameters = ReadParameters(input_filename)
-        volume = BSplineVolume(parameters)
+        pytibra = PyTIBRA(input_filename)
+
+        volume = pytibra.GetBSplineVolume()
         cps = volume.ControlPoints()
         knots_u = volume.KnotsU()
         knots_v = volume.KnotsV()
