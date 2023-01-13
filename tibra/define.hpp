@@ -8,6 +8,7 @@
 #include <limits>
 #include <memory>
 //// Project includes
+#include "utilities/logger.hpp"
 #include "containers/vector3.hpp"
 
 namespace tibra {

@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 namespace tibra {
 
@@ -37,12 +38,33 @@ public:
 
     /// Destructor
     ~Logger() {
-        std::cout << mMessage << '\n';
+        std::cout << mMessage;
     }
 
     ///@}
     ///@name Operations
     ///@{
+
+    Logger& operator << (std::ostream& (*pf)(std::ostream&)) {
+       	std::stringstream buffer;
+		pf(buffer);
+
+        AppendMessage(buffer.str());
+
+        return *this;
+    }
+
+    template<class StreamValueType>
+    Logger& operator << (StreamValueType const& rValue)
+    {
+        std::stringstream buffer;
+        buffer << std::setprecision(10) << rValue;
+
+        AppendMessage(buffer.str());
+
+        return *this;
+    }
+
     void AppendMessage(std::string const& rMessage) {
 		mMessage.append(rMessage);
 	}
@@ -86,6 +108,26 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    template<class StreamValueType>
+    Exception& operator << (StreamValueType const& rValue)
+    {
+        std::stringstream buffer;
+        buffer << rValue;
+
+        AppendMessage(buffer.str());
+
+        return *this;
+    }
+
+    Exception& operator << (std::ostream& (*pf)(std::ostream&)) {
+       	std::stringstream buffer;
+		pf(buffer);
+
+        AppendMessage(buffer.str());
+
+        return *this;
+    }
 
     void AppendMessage(std::string const& rMessage) {
 		mMessage.append(rMessage);
