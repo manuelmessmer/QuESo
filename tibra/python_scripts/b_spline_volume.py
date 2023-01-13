@@ -20,9 +20,9 @@ class BSplineVolume:
 
             cps = self.ControlPoints() \n
             count = 0 \n
-            for i_u in range(NumberControlPointsInU()):
+            for i_w in range(NumberControlPointsInW()):
                 for i_v in range(NumberControlPointsInV()):
-                    for w in range(NumberControlPointsInW()):
+                    for i_u in range(NumberControlPointsInU()):
                         point = cps[count] \n
                         count += 1
         '''
