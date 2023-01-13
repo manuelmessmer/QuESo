@@ -7,10 +7,10 @@ if sys.version_info < (3, 5):
 
 class Paths(object):
     tibra_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-    tribera_libs = os.path.join(tibra_install_path,"libs")
+    tibra_libs = os.path.join(tibra_install_path,"libs")
 
 # import core library (Kratos.so)
-sys.path.append(Paths.tribera_libs)
+sys.path.append(Paths.tibra_libs)
 from TIBRA_Application import *
 
 
