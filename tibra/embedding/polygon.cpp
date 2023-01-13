@@ -10,9 +10,8 @@ namespace tibra {
 // Function Definitions Polygon
 template<IndexType SIZE>
 IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint ) {
-    if( mNumVertices >= SIZE ){
-        throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
-    }
+    TIBRA_ERROR_IF("Polygon::AddVertex", mNumVertices >= SIZE) << "Size of Polygon is exceeded.\n";
+
     mVertices[mNumVertices].first = rPoint;
     mVertices[mNumVertices].second = {false};
     return mNumVertices++;
@@ -20,9 +19,8 @@ IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint ) {
 
 template<IndexType SIZE>
 IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint, const std::array<bool, 6>& rStatus) {
-    if( mNumVertices >= SIZE ){
-        throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
-    }
+    TIBRA_ERROR_IF("Polygon::AddVertex", mNumVertices >= SIZE) << "Size of Polygon is exceeded.\n";
+
     mVertices[mNumVertices].first = rPoint;
     mVertices[mNumVertices].second = rStatus;
     return mNumVertices++;
@@ -30,9 +28,8 @@ IndexType Polygon<SIZE>::AddVertex(const PointType& rPoint, const std::array<boo
 
 template<IndexType SIZE>
 IndexType Polygon<SIZE>::AddVertex(const VertexType& rPoint) {
-    if( mNumVertices >= SIZE ){
-        throw std::runtime_error("Polygon :: AddVertex :: Size of Polygon is exceeded.");
-    }
+    TIBRA_ERROR_IF("Polygon::AddVertex", mNumVertices >= SIZE) << "Size of Polygon is exceeded.\n";
+
     mVertices[mNumVertices] = rPoint;
     return mNumVertices++;
 }
@@ -44,17 +41,15 @@ IndexType Polygon<SIZE>::NumVertices() const {
 
 template<IndexType SIZE>
 const typename Polygon<SIZE>::VertexType& Polygon<SIZE>::GetVertex(IndexType i) const {
-    if( i >= mNumVertices ){
-        throw std::runtime_error("Polygon :: GetVertex :: Size of Polygon is exceeded.");
-    }
+    TIBRA_ERROR_IF("Polygon::GetVertex", i >= mNumVertices) << "Size of Polygon is exceeded.\n";
+
     return mVertices[i];
 }
 
 template<IndexType SIZE>
 const typename Polygon<SIZE>::VertexType& Polygon<SIZE>::operator[] (IndexType i) const {
-    if( i >= mNumVertices ){
-        throw std::runtime_error("Polygon :: GetVertex :: Size of Polygon is exceeded.");
-    }
+    TIBRA_ERROR_IF("Polygon::operator[]", i >= mNumVertices) << "Size of Polygon is exceeded.\n";
+
     return mVertices[i];
 }
 
@@ -94,7 +89,7 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMesh& rTriangleMesh) const {
             const bool v2_on_plane = mVertices[1].second[plane_index];
             const bool v3_on_plane = mVertices[2].second[plane_index];
             if( (v1_on_plane + v2_on_plane + v3_on_plane) == 3 ) {
-                throw std::runtime_error("Polygon :: pGetTriangleMesh :: All vertices are set on plane.");
+                TIBRA_ERROR("Polygon::AddToTriangleMesh") << "All vertices are set on plane.\n";
             }
             if( v1_on_plane && v2_on_plane ){
                 rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+0, num_v+1, num_t+0);

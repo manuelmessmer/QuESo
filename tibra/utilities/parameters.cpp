@@ -6,12 +6,12 @@ const std::vector<Component> Parameters::mDefaultComponents = {
     Component("echo_level", 0UL),
     Component("embedding_flag", true),
     Component("initial_triangle_edge_length", 1.0),
-    Component("min_num_boundary_triangles", 1000UL),
+    Component("min_num_boundary_triangles", 500UL),
     Component("moment_fitting_residual", 1.0e-10),
     Component("min_element_volume_ratio", 1.0e-3),
     Component("init_point_distribution_factor", 2UL),
     Component("polynomial_order", Vector3i(2UL, 2Ul, 2UL) ),
-    Component("integration_method", IntegrationMethod::Gauss),
+    Component("integration_method", IntegrationMethod::GGQ_Optimal),
     Component("use_customized_trimmed_points", false) };
 
 const std::vector<std::pair<std::string, const std::type_info*>> Parameters::mAllAvailableComponents = {

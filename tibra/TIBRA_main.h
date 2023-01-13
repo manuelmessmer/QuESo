@@ -20,6 +20,7 @@
 #include "utilities/mesh_utilities.h"
 #include "utilities/parameters.h"
 #include "utilities/timer.hpp"
+#include "utilities/logger.hpp"
 
 namespace tibra {
 
@@ -48,8 +49,7 @@ public:
     TIBRA(const Parameters& rParameters ) : mParameters(rParameters)
     {
         Timer timer{};
-        if( mParameters.EchoLevel() > 0)
-            std::cout << "TIBRA :: START " << std::endl;
+        TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "\nTIBRA ------------------------------------------ START" << std::endl;
 
         // Allocate element/knotspans container
         mpElementContainer = MakeUnique<ElementContainer>(mParameters);
@@ -69,15 +69,13 @@ public:
 
             // Compute volume
             volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
-            if( mParameters.EchoLevel() > 0){
-                std::cout << "TIBRA :: Read file: '" << r_filename << "'\n";
-                std::cout << "TIBRA :: Volume of B-Rep model: " << volume_brep << '\n';
-            }
+
+            TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
+            TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
         }
 
         // Start computation
         Run();
-
         // Count number of trimmed elements
         SizeType number_of_trimmed_elements = 0;
         std::for_each(mpElementContainer->begin(), mpElementContainer->end(), [&number_of_trimmed_elements] (auto& el_it)
@@ -88,19 +86,18 @@ public:
             IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
             IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
 
-            std::cout << "TIBRA :: Number of active knotspans: " << mpElementContainer->size() << std::endl;
-            std::cout << "TIBRA :: Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
+            TIBRA_INFO << "Number of active knotspans: " << mpElementContainer->size() << std::endl;
+            TIBRA_INFO << "Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
 
             if( mParameters.EchoLevel() > 1 ) {
                 const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
-                std::cout << "TIBRA :: The computed quadrature represents " << volume_ips/volume_brep * 100
+                TIBRA_INFO << "The computed quadrature represents " << volume_ips/volume_brep * 100
                     << "% of the volume of the BRep model.\n";
             }
 
-            std::cout << "TIBRA :: Elapsed Time: " << timer.Measure() << std::endl;
+            TIBRA_INFO << "Elapsed time: " << timer.Measure() << std::endl;
+            TIBRA_INFO << "TIBRA ------------------------------------------- END\n" << std::endl;
         }
-        if( mParameters.EchoLevel() > 0)
-            std::cout << "TIBRA :: END: " << std::endl;
     }
 
     /// Copy Constructor

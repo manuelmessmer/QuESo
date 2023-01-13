@@ -18,7 +18,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( AABB_treeTestSuite )
 
 BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
-    std::cout << "Testing :: Test Touching Cube 1" << std::endl;
+    TIBRA_INFO << "Testing :: Test Touching Cube 1" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
 
 
 BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
-    std::cout << "Testing :: Test Touching Cube 2" << std::endl;
+    TIBRA_INFO << "Testing :: Test Touching Cube 2" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
 } // End TouchingCubeTest2
 
 BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
-    std::cout << "Testing :: Test Touching Triangle " << std::endl;
+    TIBRA_INFO << "Testing :: Test Touching Triangle " << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
 } // End TouchingTriangleTest
 
 BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
-    std::cout << "Testing :: Find Intersected Triangles :: Cylinder" << std::endl;
+    TIBRA_INFO << "Testing :: Find Intersected Triangles :: Cylinder" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
 } // End CylinderFindIntersectedTrianglesTest
 
 BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
-    std::cout << "Testing :: Find Intersected Triangles :: Elephant" << std::endl;
+    TIBRA_INFO << "Testing :: Find Intersected Triangles :: Elephant" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
 } // End ElephantFindIntersectedTrianglesTest
 
 BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
-    std::cout << "Testing :: Find Intersected Triangles :: Bunny" << std::endl;
+    TIBRA_INFO << "Testing :: Find Intersected Triangles :: Bunny" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -319,7 +319,7 @@ BOOST_AUTO_TEST_SUITE_END()
 // #include <CGAL/Polygon_mesh_processing/clip.h>
 
 // BOOST_AUTO_TEST_CASE(ElephantTriangleIntersectionTest) {
-//     std::cout << "Testing :: Test AABB Tree :: Ray Intersection" << std::endl;
+//     TIBRA_INFO << "Testing :: Test AABB Tree :: Ray Intersection" << std::endl;
 
 
 //     //CGAl test
@@ -396,16 +396,16 @@ BOOST_AUTO_TEST_SUITE_END()
 //                     || y_max <= lower_bound[1] || y_min >= upper_bound[1]
 //                     || z_max <= lower_bound[2] || z_min >= upper_bound[2] )
 //                 {
-//                     std::cout << std::setprecision(15) << std::endl;
-//                     std::cout << "xx: " << lower_bound[0] << std::endl;
-//                     std::cout << "yy: " << lower_bound[1] << std::endl;
-//                     std::cout << "zz: " << lower_bound[2] << std::endl;
-//                     std::cout << "upper_bound 0: " << upper_bound[0] << std::endl;
-//                     std::cout << "upper_bound 1: " << upper_bound[1] << std::endl;
-//                     std::cout << "upper_bound 2: " << upper_bound[2] << std::endl;
-//                     // std::cout << p1 << std::endl;
-//                     // std::cout << p2 << std::endl;
-//                     // std::cout << p3 << std::endl;
+//                     TIBRA_INFO << std::setprecision(15) << std::endl;
+//                     TIBRA_INFO << "xx: " << lower_bound[0] << std::endl;
+//                     TIBRA_INFO << "yy: " << lower_bound[1] << std::endl;
+//                     TIBRA_INFO << "zz: " << lower_bound[2] << std::endl;
+//                     TIBRA_INFO << "upper_bound 0: " << upper_bound[0] << std::endl;
+//                     TIBRA_INFO << "upper_bound 1: " << upper_bound[1] << std::endl;
+//                     TIBRA_INFO << "upper_bound 2: " << upper_bound[2] << std::endl;
+//                     // TIBRA_INFO << p1 << std::endl;
+//                     // TIBRA_INFO << p2 << std::endl;
+//                     // TIBRA_INFO << p3 << std::endl;
 //                 }
 //                 else {
 //                 }
@@ -449,30 +449,30 @@ BOOST_AUTO_TEST_SUITE_END()
 //             }
 
 //             // if( intersected_triangles.size() > 0 )
-//             //     std::cout << "size: " << intersected_triangles.size() << std::endl;
+//             //     TIBRA_INFO << "size: " << intersected_triangles.size() << std::endl;
 //             int cc = 0;
 //             std::sort(intersected_triangles.begin(), intersected_triangles.end());
 //             std::sort(actual_cgal_intersections.begin(), actual_cgal_intersections.end() );
-//             //std::cout << intersected_triangles[0] << std::endl;
+//             //TIBRA_INFO << intersected_triangles[0] << std::endl;
 //             if( !(actual_cgal_intersections.size() == intersected_triangles.size())){
-//                 std::cout << "x: " << xx << ", " << yy << ", " << zz << std::endl;
-//                 std::cout << "x: " << xx+0.1 << ", " << yy+0.1 << ", " << zz+0.1 << std::endl;
+//                 TIBRA_INFO << "x: " << xx << ", " << yy << ", " << zz << std::endl;
+//                 TIBRA_INFO << "x: " << xx+0.1 << ", " << yy+0.1 << ", " << zz+0.1 << std::endl;
 //             }
 //             //BOOST_CHECK_EQUAL(actual_cgal_intersections.size(), intersected_triangles.size() );
 //             if( intersected_triangles.size() > 0){
-//                 std::cout << actual_cgal_intersections.size() << ": " << intersected_triangles.size() << std::endl;
+//                 TIBRA_INFO << actual_cgal_intersections.size() << ": " << intersected_triangles.size() << std::endl;
 //             }
 //             for( int i = 0; i < actual_cgal_intersections.size(); ++i){
-//                 //std::cout << actual_cgal_intersections[i] << ", " << intersected_triangles[i] << std::endl;
+//                 //TIBRA_INFO << actual_cgal_intersections[i] << ", " << intersected_triangles[i] << std::endl;
 //                 if( !(actual_cgal_intersections.size() == intersected_triangles.size())){
-//                     std::cout << "x: " << xx << ", " << yy << ", " << zz << std::endl;
-//                     std::cout << "x: " << xx+0.1 << ", " << yy+0.1 << ", " << zz+0.1 << std::endl;
+//                     TIBRA_INFO << "x: " << xx << ", " << yy << ", " << zz << std::endl;
+//                     TIBRA_INFO << "x: " << xx+0.1 << ", " << yy+0.1 << ", " << zz+0.1 << std::endl;
 //                     const auto p1 = triangle_mesh.P1(actual_cgal_intersections[i]);
-//                     std::cout << p1[0] << ", " << p1[1] << ", " << p1[2] << ", " << std::endl;
+//                     TIBRA_INFO << p1[0] << ", " << p1[1] << ", " << p1[2] << ", " << std::endl;
 //                     const auto p2 = triangle_mesh.P2(actual_cgal_intersections[i]);
-//                     std::cout << p2[0] << ", " << p2[1] << ", " << p2[2] << ", " << std::endl;
+//                     TIBRA_INFO << p2[0] << ", " << p2[1] << ", " << p2[2] << ", " << std::endl;
 //                     const auto p3 = triangle_mesh.P3(actual_cgal_intersections[i]);
-//                     std::cout << p3[0] << ", " << p3[1] << ", " << p3[2] << ", " << std::endl;
+//                     TIBRA_INFO << p3[0] << ", " << p3[1] << ", " << p3[2] << ", " << std::endl;
 //                 }
 //                 BOOST_CHECK_EQUAL(actual_cgal_intersections[i], intersected_triangles[i]);
 //             }
@@ -480,7 +480,7 @@ BOOST_AUTO_TEST_SUITE_END()
 //             }
 //         }
 //     }
-//     // std::cout << intersected_triangles[cc] << std::endl;
+//     // TIBRA_INFO << intersected_triangles[cc] << std::endl;
 //     // new_mesh.Copy(intersected_triangles, triangle_mesh);
 //     // IO::WriteMeshToSTL(new_mesh,"test.stl", true);
 //     myfile.close();

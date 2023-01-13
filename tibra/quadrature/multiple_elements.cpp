@@ -244,7 +244,7 @@ ElementContainer::ElementPtrType MultipleElements::NextElement(ElementContainer&
     case 5:
         return rElements.pGetPreviousElementInZ(id, dummy_next_id, found, dummy_local_end);
     default:
-        throw std::runtime_error("MultipleElements: There are only 6 different directions!" );
+        TIBRA_ERROR("MultipleElements::NextElement") << "There are only 6 different directions.\n";
     }
 }
 
@@ -253,8 +253,8 @@ double linear_function(int x, int number_neighbours){
     const double delta = std::abs(center - x);
 
     double value = (1.0 - 0.9/center*delta)* (double)number_neighbours;
-    if(value < EPS2)
-        throw std::runtime_error("Value to low!");
+
+    TIBRA_ERROR_IF("MultipleElements::linear_function", value < EPS2) << "Value too low\n";
 
     return value;
 }

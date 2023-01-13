@@ -50,9 +50,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
             // Get potential ray intersections from AABB tree.
             auto potential_intersections = mTree.Query(ray);
 
-            if( potential_intersections.size() == 0){
-                throw std::runtime_error("TrimmedDomain :: IsInsideTrimmedDomain :: No potential intersections found.");
-            }
+            TIBRA_ERROR_IF("TrimmedDomain::IsInsideTrimmedDomain", potential_intersections.size() == 0)
+                << "No potential intersections found.\n";
+
             // Test if potential intersections actually intersect.
             // If intersection lies on boundary cast a new ray.
             // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639

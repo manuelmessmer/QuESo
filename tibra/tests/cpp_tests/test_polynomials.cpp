@@ -15,7 +15,7 @@ namespace Testing{
 BOOST_AUTO_TEST_SUITE( PolynomialTestSuite )
 
 BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
-    std::cout << "Testing :: Test Polynomials :: Legendre Polynomials 1" << std::endl;
+    TIBRA_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 1" << std::endl;
     for(int order = 1; order <= 9; ++order){
         for( int order2 = 1; order2 <= 9; ++order2){
             if( order != order2){
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
 }
 
 BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
-    std::cout << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
+    TIBRA_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
     for(int order = 1; order <= 9; ++order){
 
         const auto ips = IntegrationPointFactory1D::GetGauss(order, IntegrationMethod::Gauss);

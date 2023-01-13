@@ -23,7 +23,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, 
         return GetGGQPoints(PolynomialDegree, NumberKnotSpans, Method);
     } else
     {
-        throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
+        TIBRA_ERROR("IntegrationPointFactory1D::GetGGQ") << "Method not available\n";
     }
 }
 
@@ -37,7 +37,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
         case Gauss_Reduced2:
             return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
         default:
-            throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
+            TIBRA_ERROR("IntegrationPointFactory1D::GetGauss") << "Method not available\n";
             break;
     }
 }
@@ -52,7 +52,7 @@ const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension
         case GGQ_Reduced2:
             return {2*PolynomialDegre-2, PolynomialDegre-2};
         default:
-            throw std::invalid_argument("IntegrationPointFactory1D: Method not available");
+            TIBRA_ERROR("IntegrationPointFactory1D::GetSpaceDimension") << "Method not available\n";
             break;
     }
 }
@@ -117,7 +117,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
                 p_base_points = mBasePointsReduced2[PolynomialDegree-2][odd];
                 break;
             default:
-                throw std::invalid_argument("IntegrationPointFactory1D: Method not available1");
+                TIBRA_ERROR("IntegrationPointFactory1D::GetGGQPoints") << "Method not available 1.\n";
                 break;
         }
     }
@@ -154,7 +154,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
                 case GGQ_Reduced2:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
-                    throw std::invalid_argument("IntegrationPointFactory1D: Method not available2");
+                    TIBRA_ERROR("IntegrationPointFactory1D::GetGGQPoints") << "Method not available 2.\n";
                     break;
             }
         }
@@ -190,7 +190,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
                 case GGQ_Reduced2:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
-                    throw std::invalid_argument("IntegrationPointFactory1D: Method not available3");
+                    TIBRA_ERROR("IntegrationPointFactory1D::GetGGQPoints") << "Method not available 3.\n";
                     break;
             }
         }

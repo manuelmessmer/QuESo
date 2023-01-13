@@ -10,7 +10,7 @@ try:
     import KratosMultiphysics as KM
     kratos_available = True
 except:
-    print("KratosMultiphysics is not available")
+    #print("KratosMultiphysics is not available")
     kratos_available = False
 
 if kratos_available:

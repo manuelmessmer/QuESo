@@ -16,7 +16,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
 
 BOOST_AUTO_TEST_CASE(Intersection) {
-    std::cout << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
 
     std::string filename = "tibra/tests/cpp_tests/data/cylinder.stl";
     Parameters parameters( {Component("input_filename", filename),
@@ -185,33 +185,33 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
 
 // p=2
 BOOST_AUTO_TEST_CASE(VolumeElephant1) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
     TestElephantLarge(IntegrationMethod::Gauss, 2, 2916, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant2) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
     TestElephantLarge(IntegrationMethod::GGQ_Optimal, 2, 1786, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant3) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
     TestElephantLarge(IntegrationMethod::GGQ_Reduced1, 2, 673, 0.0002);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant4) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
     TestElephantLarge(IntegrationMethod::GGQ_Reduced2, 2, 406, 0.0002);
 }
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant5) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
     TestElephantSmall(IntegrationMethod::Gauss, 3, 320, 0.0002);
 }
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant6) {
-    std::cout << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
+    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
     TestElephantSmall(IntegrationMethod::Gauss, 4, 625, 0.0002);
 }
 

@@ -122,7 +122,7 @@ public:
             DIRINDEX3 = 0;
         }
         else {
-            throw std::runtime_error("TrimmedDomainOnPlane :: Contructor :: Wrong PlaneIndex.");
+            TIBRA_ERROR("TrimmedDomainOnPlane::Constructor") << "Wrong PlaneIndex.\n";
         }
     }
 

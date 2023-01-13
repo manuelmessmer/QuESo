@@ -16,7 +16,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( ClipperTestSuite )
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
-    std::cout << "Testing :: Clipper :: Clip Cylinder Test 1" << std::endl;
+    TIBRA_INFO << "Testing :: Clipper :: Clip Cylinder Test 1" << std::endl;
 
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
-    std::cout << "Testing :: Clipper :: Clip Cylinder Test 2" << std::endl;
+    TIBRA_INFO << "Testing :: Clipper :: Clip Cylinder Test 2" << std::endl;
 
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
-    std::cout << "Testing :: Clipper :: Clip Cube With Cavity Test" << std::endl;
+    TIBRA_INFO << "Testing :: Clipper :: Clip Cube With Cavity Test" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipElephantTest) {
-    std::cout << "Testing :: Clipper :: Clip Elephant Test" << std::endl;
+    TIBRA_INFO << "Testing :: Clipper :: Clip Elephant Test" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
 
 
 BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
-    std::cout << "Testing :: Clipper :: Clip Bunny Test" << std::endl;
+    TIBRA_INFO << "Testing :: Clipper :: Clip Bunny Test" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file

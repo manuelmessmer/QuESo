@@ -16,7 +16,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( ElementClassifierTestSuite )
 
 BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
-    std::cout << "Testing :: Test Classify Elements :: Touch Cube" << std::endl;
+    TIBRA_INFO << "Testing :: Test Classify Elements :: Touch Cube" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
-    std::cout << "Testing :: Test Classify Elements :: Cylinder" << std::endl;
+    TIBRA_INFO << "Testing :: Test Classify Elements :: Cylinder" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
-    std::cout << "Testing :: Test Classify Elements :: Cube with cavity" << std::endl;
+    TIBRA_INFO << "Testing :: Test Classify Elements :: Cube with cavity" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
-    std::cout << "Testing :: Test Classify Elements :: Elephant" << std::endl;
+    TIBRA_INFO << "Testing :: Test Classify Elements :: Elephant" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
-    std::cout << "Testing :: Test Classify Elements :: Bunny" << std::endl;
+    TIBRA_INFO << "Testing :: Test Classify Elements :: Bunny" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
