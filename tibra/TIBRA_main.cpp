@@ -126,12 +126,11 @@ void TIBRA::Run(){
   // Average time spend for each task
   if( mParameters.EchoLevel() > 1 ){
     const IndexType num_procs = std::thread::hardware_concurrency();
-    std::cout << "#########################################\n";
-    std::cout << "Elapsed times of individual tasks: \n";
-    std::cout << "Detection of Trimmed Elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
-    std::cout << "Compute Intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
-    std::cout << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
-    std::cout << "#########################################\n";
+    TIBRA_INFO << "Elapsed times of individual tasks -------------- \n";
+    TIBRA_INFO << "Detection of Trimmed Elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
+    TIBRA_INFO << "Compute Intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
+    TIBRA_INFO << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
+    TIBRA_INFO << "------------------------------------------------ \n";
   }
 
 }
