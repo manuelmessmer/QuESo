@@ -62,8 +62,8 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     BOOST_CHECK_LT(std::abs(parameters.InitialTriangleEdgeLength()-1.0),1e-10);
 
     IndexType min_num_boundary_triangles = parameters.Get<IndexType>("min_num_boundary_triangles");
-    BOOST_CHECK_EQUAL(min_num_boundary_triangles, 1000L);
-    BOOST_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 1000L);
+    BOOST_CHECK_EQUAL(min_num_boundary_triangles, 500UL);
+    BOOST_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 500UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
     BOOST_CHECK_LT( std::abs(1.0e-10-moment_fitting_residual)/1.0e-10, 1.0e-10);
@@ -82,8 +82,8 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     BOOST_CHECK_EQUAL( parameters.Order()[2], 2UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::Gauss);
-    BOOST_CHECK_EQUAL( parameters.IntegrationMethod(), IntegrationMethod::Gauss);
+    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
+    BOOST_CHECK_EQUAL( parameters.IntegrationMethod(), IntegrationMethod::GGQ_Optimal);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
     BOOST_CHECK( !use_customized_trimmed_points );

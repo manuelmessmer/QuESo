@@ -33,6 +33,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 20000UL),
                             Component("init_point_distribution_factor", 3UL),
+                            Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", true) });
 
     Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, parameters);
@@ -94,6 +95,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 10000UL),
                             Component("init_point_distribution_factor", 3UL),
+                            Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", true) });
 
     Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, parameters);
