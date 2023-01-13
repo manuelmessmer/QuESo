@@ -95,10 +95,9 @@ public:
                     << "% of the volume of the BRep model.\n";
             }
 
-            TIBRA_INFO << "Elapsed Time: " << timer.Measure() << std::endl;
+            TIBRA_INFO << "Elapsed time: " << timer.Measure() << std::endl;
+            TIBRA_INFO << "TIBRA ------------------------------------------- END\n" << std::endl;
         }
-        if( mParameters.EchoLevel() > 0)
-            std::cout << "TIBRA ------------------------------------------- END\n" << std::endl;
     }
 
     /// Copy Constructor
