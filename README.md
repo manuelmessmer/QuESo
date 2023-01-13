@@ -6,9 +6,7 @@ TIBRA is an IGA preprocessor to generate analysis-ready models from volumetric B
 
 This project is still under development. TIBRA is written in C++ and has a user-friendly Python interface.
 
-Before using TIBRA, you might want to check if all unit tests pass: `./run_tests all`
-
-Different examples how to use TIBRA can be found in [Examples](https://github.com/manuelmessmer/TIBRA/tree/main/examples).
+If you want to learn how to use TIBRA, check out the [Wiki](https://github.com/manuelmessmer/TIBRA/wiki/Getting-Started).
 
 Input: Solid B-Rep Model             |  Output: IGA Model ready for FE Analysis
 :-------------------------:|:-------------------------:
