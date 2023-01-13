@@ -67,7 +67,7 @@ IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
     else if( rValue == "GGQ_Reduced2")
         return IntegrationMethod::GGQ_Reduced2;
     else
-        throw std::invalid_argument("Parameters: Integration Method: " + rValue + " not available! \n");
+        TIBRA_ERROR("Parameters::GetIntegrationMethodFromString") << "Integration Method: " + rValue + " not available! \n";
 }
 
 PYBIND11_MODULE(TIBRA_Application,m) {

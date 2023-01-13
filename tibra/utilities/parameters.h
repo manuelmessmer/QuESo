@@ -211,8 +211,7 @@ public:
             return *p_value;
         }
 
-        std::string error_message = "Parameter :: Get :: Component: '" + rName + "' not found.\n";
-        throw std::runtime_error(error_message);
+        TIBRA_ERROR("Parameters::Get") << "Component: '" + rName + "' not found.\n";
     }
 
     /// @brief Print all paramters (Name, Value).
@@ -272,15 +271,13 @@ private:
                 const auto p_current_type_info = std::visit(TypeVisit{}, r_components.Get());
                 const auto p_ref_type_info = p_pair_found->second;
                 if( !(*p_current_type_info ==  *p_ref_type_info) ){ // If type is wrong.
-                    std::string error_message = "Parameters :: CheckComponents :: Name: '" + current_name +
-                            "' is not provided with correct Type.\n";
-                    throw std::runtime_error(error_message);
+                    TIBRA_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
+                        "' is not provided with correct Type.\n";
                 }
             }
             else { // If name is part of mAllAvailableComponents.
-                std::string error_message = "Parameters :: CheckComponents :: Name: '" + current_name +
+                TIBRA_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
                     "' is not a valid Parameter.\n";
-                throw std::runtime_error(error_message);
             }
         }
     }

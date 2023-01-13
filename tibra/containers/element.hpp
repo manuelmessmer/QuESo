@@ -147,10 +147,10 @@ public:
     /// @return const TrimmedDomainBase*
     const TrimmedDomainBase* const pGetTrimmedDomain() const {
         if( !IsTrimmed() ){
-            throw  std::runtime_error("Element :: pGetTrimmedDomain :: Element is not Trimmed." );
+            TIBRA_ERROR("Element::pGetTrimmedDomain") << "Element is not Trimmed.\n";
         }
         if( !mpTrimmedDomain ){
-            throw  std::runtime_error("Element :: pGetTrimmedDomain :: Trimmed Domain Pointer has not been set." );
+            TIBRA_ERROR("Element::pGetTrimmedDomain") << "Trimmed Domain Pointer has not been set.\n";
         }
         return mpTrimmedDomain.get();
     }

@@ -285,7 +285,7 @@ private:
         case 2:
             return( rPoint[1] );
         default:
-            throw std::invalid_argument(" TriangleMesh :: ShapeFunctionValue :: Wrong Index of Shape Function! ");
+            TIBRA_ERROR("TriangleMesh::ShapeFunctionValue") << "Wrong Index of Shape Function.\n";
             break;
         }
 
@@ -308,9 +308,8 @@ private:
 
     ///@brief Get triangle Gauss Legendre points by Method - options (0,1,2,3)
     static const IpVectorType& GetIntegrationPoints( IndexType Method ){
-        if( Method > 3){
-            throw std::runtime_error("TriangleMesh::GetIntegrationPoints IntegrationPoint Index exceeds default.");
-        }
+        TIBRA_ERROR_IF("TriangleMesh::GetIntegrationPoints", Method > 3) << "IntegrationPoint Index exceeds default.\n";
+
         return AllIntegrationPoints()[Method];
     }
 

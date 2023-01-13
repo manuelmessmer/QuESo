@@ -185,7 +185,7 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
     double t = (rPlane.mPosition - rA[index]) / (rB[index] - rA[index]);
 
     if( !(0.0 <= t && t <= 1.0) ){
-        throw std::runtime_error("Clipper :: FindIntersectionPointOnPlane :: No valid intersection.");
+        TIBRA_ERROR("Clipper::FindIntersectionPointOnPlane") << "No valid intersection.\n";
     }
 
     PointType ret = {rA[0] + t*(rB[0] - rA[0]),
@@ -193,9 +193,7 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
                      rA[2] + t*(rB[2] - rA[2]) };
 
     auto status = ClassifyPointToPlane(ret, rPlane);
-    if( status != ON_PLANE){
-        throw std::runtime_error("Intersection Point is not on Boundary");
-    }
+    TIBRA_ERROR_IF("Clipper::FindIntersectionPointOnPlane", status != ON_PLANE) << "Intersection Point is not on Boundary\n.";
 
     return ret;
 }

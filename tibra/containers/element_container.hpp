@@ -55,8 +55,7 @@ public:
     const ElementPtrType pGetElement(std::size_t id) const {
         auto found_key = mElementIdMap.find(id);
         if( found_key == mElementIdMap.end() )
-            throw std::runtime_error("ID does not exist");
-
+            TIBRA_ERROR("ElementContainer::pGetElement") << "ID does not exist.\n";
         return mElements[found_key->second];
     }
 
@@ -102,7 +101,7 @@ public:
             mElements.push_back(std::move(rElement));
         }
         else {
-            throw std::runtime_error("ID already exists");
+            TIBRA_ERROR("ElementContainer::AddElement") << "ID already exists.\n";
         }
     }
 
@@ -242,7 +241,7 @@ public:
         case 5: // Backward Z
             return (indices[2] == 0);
         default:
-            throw std::invalid_argument("Element Container: There are only 6 different directions!" );
+            TIBRA_ERROR("ElementContainer::IsLast") << "There are only 6 different directions! \n";
         }
     }
 
@@ -264,9 +263,7 @@ public:
                 points_tmp = el_itr->GetIntegrationPoints();
             }
             else {
-                std::stringstream error_message;
-                error_message << "Element Container: Given type '" << type << "' not available.";
-                throw std::invalid_argument(error_message.str());
+                TIBRA_ERROR("ElementContainer::pGetPoints") << "Given type '" << type << "' not available.\n";
             }
             points->insert(points->end(), points_tmp.begin(), points_tmp.end());
         }
