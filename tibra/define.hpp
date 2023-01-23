@@ -47,6 +47,7 @@ constexpr double EPS4 = 1e-14;
 
 // Enum's
 enum IntersectionStatus {Inside, Outside, Trimmed};
+typedef IntersectionStatus IntersectionStatusType;
 
 ///@}
 ///@name TIBRA POINTER DEFINITIONS
