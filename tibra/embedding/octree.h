@@ -81,12 +81,17 @@ private:
                 if( this->IsLeaf() ){
                     auto lower_bound_param = Mapping::GlobalToParam(mLowerBound, GlobalLowerBound, GlobalUpperBound);
                     auto upper_bound_param = Mapping::GlobalToParam(mUpperBound, GlobalLowerBound, GlobalUpperBound);
+
                     IntegrationPointVectorType r_integration_points{};
                     SingleElement::AssembleIPs(r_integration_points, lower_bound_param, upper_bound_param, {2Ul, 2Ul, 2Ul});
-                    for( auto& point : r_integration_points){
-                        auto tmp_point = Mapping::ParamToGlobal(point, GlobalLowerBound, GlobalUpperBound);
-                        if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
-                            pPoints->push_back(point);
+                    if( mStatus == IntersectionStatus::Inside )
+                        pPoints->insert(pPoints->end(), r_integration_points.begin(), r_integration_points.end());
+                    else {
+                        for( auto& point : r_integration_points){
+                            auto tmp_point = Mapping::ParamToGlobal(point, GlobalLowerBound, GlobalUpperBound);
+                            if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
+                                pPoints->push_back(point);
+                            }
                         }
                     }
                 } else {
@@ -126,7 +131,7 @@ private:
 
         private:
             void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType i, const PointType& rLowerBound, const PointType& rUpperBound, TOperator* pOperator){
-                const auto status = pOperator->GetIntersectionState(rLowerBound, rUpperBound);
+                const auto status = pOperator->GetIntersectionState(rLowerBound, rUpperBound, 1e-14);
                 if( status != IntersectionStatus::Outside ){
                     mChildren[i] = MakeUnique<Node>(rLowerBound, rUpperBound, status, mLevel+1);
                     ++mNumChildren;
@@ -153,10 +158,12 @@ public:
     Octree(TOperator* pOperator, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
         : mpOperator(pOperator), mrParameters(rParameters)
     {
-        mpRoot = MakeUnique<Node>(rLowerBound, rUpperBound, IntersectionStatus::Trimmed);
+        mpRoot = MakeUnique<Node>(rLowerBound, rUpperBound, IntersectionStatus::Trimmed, 0UL);
     }
 
     void Refine(IndexType MinLevel, IndexType MaxLevel){
+        TIBRA_ERROR_IF("Octree :: Constructor", MinLevel > MaxLevel ) << "MinLevel must be smaller/equal than MaxLevel. "
+            << "Given MinLevel: " << MinLevel << ", MaxLevel: " << MaxLevel << ".\n";
         mpRoot->Refine(MinLevel, MaxLevel, mpOperator);
     }
 
@@ -184,9 +191,9 @@ private:
 
     Unique<Node> mpRoot;
     const Parameters& mrParameters;
+    TOperator* mpOperator;
 
 protected:
-    TOperator* mpOperator;
 
 };
 
