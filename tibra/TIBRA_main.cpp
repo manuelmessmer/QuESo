@@ -17,8 +17,6 @@ namespace tibra {
 
 void TIBRA::Run(){
 
-  typedef BRepOperatorBase::IntersectionStatus IntersectionStatus;
-
   // Get extreme points of bounding box
   const auto lower_bound = mParameters.LowerBound();
   const auto upper_bound = mParameters.UpperBound();

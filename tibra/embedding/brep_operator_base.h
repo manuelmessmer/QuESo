@@ -29,8 +29,6 @@ public:
     ///@{
     typedef Unique<TrimmedDomainBase> TrimmedDomainBasePtrType;
 
-    enum IntersectionStatus {Inside, Outside, Trimmed};
-
     ///@}
     ///@name Life Cycle
     ///@{

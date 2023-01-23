@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
-                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == BRepOperatorBase::Trimmed){
+                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                     // Get boundary integration points
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
                 auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
-                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == BRepOperatorBase::Trimmed){
+                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get Trimmed domain
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                     // Get boundary integration points
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
-                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == BRepOperatorBase::Trimmed){
+                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get Trimmed domain
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                     // Get boundary integration points
