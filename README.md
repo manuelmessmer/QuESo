@@ -1,6 +1,6 @@
 # Trivariate Isogeometric B-Rep Analysis - TIBRA 
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/manuelmessmer/TIBRA/blob/main/LICENSE) [![C++][c++-image]][c++standard] [![Build Status](https://github.com/manuelmessmer/TIBRA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/manuelmessmer/TIBRA/actions)
+[![License: MIT](https://img.shields.io/badge/License-BSD4-green.svg)](https://github.com/manuelmessmer/TIBRA/blob/main/LICENSE) [![C++][c++-image]][c++standard] [![Build Status](https://github.com/manuelmessmer/TIBRA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/manuelmessmer/TIBRA/actions)
 
 [c++-image]: https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B
 [c++standard]: https://isocpp.org/std/the-standard
