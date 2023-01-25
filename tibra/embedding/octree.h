@@ -8,8 +8,8 @@
 #include <array>
 
 //// Project includes
-#include "quadrature/single_element.h"
 #include "define.hpp"
+#include "quadrature/single_element.h"
 
 namespace tibra {
 
@@ -34,7 +34,7 @@ private:
     /**
      * @class  Octree::Node
      * @author Manuel Messmer
-     * @brief Node to be used in octree. Each node represents a AABB.
+     * @brief Node to be used in octree. Each node represents an AABB.
     */
     class Node {
     public:
@@ -45,7 +45,7 @@ private:
         /// @param rLowerBound LowerBound of AABB.
         /// @param rUpperBound UpperBound of AABB.
         /// @param Status Options: 'Trimmed' or 'Inside'.
-        /// @param Level Refinement Level.
+        /// @param Level Refinement Level (default - 0).
         Node( const PointType& rLowerBound, const PointType& rUpperBound, IntersectionStatusType Status, IndexType Level = 0UL) :
             mLowerBound(rLowerBound), mUpperBound(rUpperBound), mStatus(Status), mLevel(Level)
         {
@@ -71,11 +71,15 @@ private:
         /// @param GlobalUpperBound Global UpperBound of entire domain (Required for mapping.)
         /// @param rOrder Order of Gauss quadrature.
         /// @param pOperator Operator to perfrom Inside/Outside test.
-        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator);
+        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator) const;
 
         /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
         /// @param[out] rValue // Return value
         void NumberOfLeafs(IndexType& rValue) const;
+
+        /// @brief Recursive function (walks through octree) to get total number of nodes.
+        /// @param[out] rValue // Return value
+        void NumberOfNodes(IndexType& rValue) const;
 
         ///@}
     private:
@@ -85,11 +89,11 @@ private:
         /// @brief Create a new child node if aabb of this child node is NOT classified as Outside.
         /// @param MinLevel Minimum refinement level (for all nodes).
         /// @param MaxLevel Maximum refinement level (for trimmed nodes).
-        /// @param i Index of child node in mChildren[i].
+        /// @param ChildIndex Index of child node in mChildren[ChildIndex].
         /// @param rLowerBound LowerBound of AABB of new child.
         /// @param rUpperBound UpperBound of AABB of new child.
         /// @param pOperator Operator to perfrom Inside/Outside test.
-        void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType i, const PointType& rLowerBound, const PointType& rUpperBound, const TOperator* pOperator);
+        void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType ChildIndex, const PointType& rLowerBound, const PointType& rUpperBound, const TOperator* pOperator);
 
         /// @brief Returns true if this node is a leaf node.
         /// @return bool
@@ -137,13 +141,17 @@ public:
     /// @return SizeType
     SizeType NumberOfLeafs() const;
 
+    /// @brief Returns total number of nodes in octree.
+    /// @return SizeType
+    SizeType NumberOfNodes() const;
+
     /// @brief Returns ptr to integration points that are constructed on the leafs of the octree.
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
     ///        But only points that are inside the domain are considered.
     ///        Also see: AddIntegrationPoints()
     /// @param rOrder Order of Gauss quadrature.
     /// @return IntegrationPointVectorPtrType
-    IntegrationPointVectorPtrType pGetIntegrationPoints(const Vector3i& rOrder);
+    IntegrationPointVectorPtrType pGetIntegrationPoints(const Vector3i& rOrder) const;
 
     /// @brief Add integration points to rPoints. Points are constructed on the leafs of the octree.
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
@@ -151,7 +159,7 @@ public:
     ///        Also see: pGetIntegrationPoints().
     /// @param rPoints Vector of integration points.
     /// @param rOrder Order of Gauss quadrature.
-    void AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder);
+    void AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder) const;
 
     ///@}
 private:

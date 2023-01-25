@@ -49,12 +49,13 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
 }
 
 template<typename TOperator>
-void Octree<TOperator>::Node::GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator) {
+void Octree<TOperator>::Node::GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator) const{
     if( this->IsLeaf() ){
         const auto lower_bound_param = Mapping::GlobalToParam(mLowerBound, GlobalLowerBound, GlobalUpperBound);
         const auto upper_bound_param = Mapping::GlobalToParam(mUpperBound, GlobalLowerBound, GlobalUpperBound);
 
         IntegrationPointVectorType integration_points_tmp{};
+        // Note that SingleElement::AssembleIPs clears integration_points_tmp.
         SingleElement::AssembleIPs(integration_points_tmp, lower_bound_param, upper_bound_param, rOrder);
         if( mStatus == IntersectionStatus::Inside )
             pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
@@ -89,12 +90,24 @@ void Octree<TOperator>::Node::NumberOfLeafs(IndexType& rValue) const {
 }
 
 template<typename TOperator>
-void Octree<TOperator>::Node::CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType i, const PointType& rLowerBound, const PointType& rUpperBound, const TOperator* pOperator){
+void Octree<TOperator>::Node::NumberOfNodes(IndexType& rValue) const {
+    ++rValue;
+    if( !this->IsLeaf() ){
+        for( IndexType i = 0; i < 8UL; ++i){
+            if( mChildren[i] ){ // If not nullptr
+                mChildren[i]->NumberOfNodes(rValue);
+            }
+        }
+    }
+}
+
+template<typename TOperator>
+void Octree<TOperator>::Node::CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType ChildIndex, const PointType& rLowerBound, const PointType& rUpperBound, const TOperator* pOperator){
     const auto status = pOperator->GetIntersectionState(rLowerBound, rUpperBound);
     if( status != IntersectionStatus::Outside ){
-        mChildren[i] = MakeUnique<Node>(rLowerBound, rUpperBound, status, mLevel+1);
+        mChildren[ChildIndex] = MakeUnique<Node>(rLowerBound, rUpperBound, status, mLevel+1);
         ++mNumChildren;
-        mChildren[i]->Refine(MinLevel, MaxLevel, pOperator);
+        mChildren[ChildIndex]->Refine(MinLevel, MaxLevel, pOperator);
     }
 }
 
@@ -123,7 +136,14 @@ SizeType Octree<TOperator>::NumberOfLeafs() const{
 }
 
 template<typename TOperator>
-typename Octree<TOperator>::IntegrationPointVectorPtrType Octree<TOperator>::pGetIntegrationPoints(const Vector3i& rOrder){
+SizeType Octree<TOperator>::NumberOfNodes() const{
+    SizeType number_of_nodes = 0UL;
+    mpRoot->NumberOfNodes(number_of_nodes);
+    return number_of_nodes;
+}
+
+template<typename TOperator>
+typename Octree<TOperator>::IntegrationPointVectorPtrType Octree<TOperator>::pGetIntegrationPoints(const Vector3i& rOrder) const{
     auto p_points = MakeUnique<IntegrationPointVectorType>();
     p_points->reserve(NumberOfLeafs());
     mpRoot->GetIntegrationPoints(p_points.get(), mrParameters.LowerBound(), mrParameters.UpperBound(), rOrder, mpOperator );
@@ -131,7 +151,7 @@ typename Octree<TOperator>::IntegrationPointVectorPtrType Octree<TOperator>::pGe
 }
 
 template<typename TOperator>
-void Octree<TOperator>::AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder){
+void Octree<TOperator>::AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder) const{
     rPoints.reserve(NumberOfLeafs());
     mpRoot->GetIntegrationPoints(&rPoints, mrParameters.LowerBound(), mrParameters.UpperBound(), rOrder, mpOperator );
 }
