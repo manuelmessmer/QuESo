@@ -8,7 +8,6 @@
 #include <array>
 
 //// Project includes
-#include "embedding/trimmed_domain_base.h"
 #include "quadrature/single_element.h"
 #include "define.hpp"
 
@@ -17,186 +16,155 @@ namespace tibra {
 ///@name TIBRA Classes
 ///@{
 
-
-
 /**
  * @class  Octree
  * @author Manuel Messmer
  * @tparam TOperator: Required member operations:
  *                   -GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound)
- *                   -IsInside(const PointType& rPoint)
+ *                   -IsInsideTrimmedDomain(const PointType& rPoint)
 */
 template<typename TOperator>
 class Octree {
 private:
+    ///@name Type Definitions
+    ///@{
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
 
+    /**
+     * @class  Octree::Node
+     * @author Manuel Messmer
+     * @brief Node to be used in octree. Each node represents a AABB.
+    */
     class Node {
-        public:
-            Node( const PointType& rLowerBound, const PointType& rUpperBound, IntersectionStatusType Status, IndexType Level = 0UL) :
-                mLowerBound(rLowerBound), mUpperBound(rUpperBound), mStatus(Status), mLevel(Level)
-            {
-                mChildren = {nullptr};
-                mNumChildren = 0;
-            }
+    public:
+        ///@name Life Cycle
+        ///@{
 
-            void Refine(IndexType MinLevel, IndexType MaxLevel, TOperator* pOperator){
-                if( this->IsLeaf() ){
-                    const auto delta = (mUpperBound - mLowerBound) * 0.5;
-                    const PointType delta_x(delta[0], 0.0, 0.0);
-                    const PointType delta_y(0.0, delta[1], 0.0);
-                    const PointType delta_z(0.0, 0.0, delta[2]);
-                    //       d_________c
-                    //      /        /|                 y
-                    //     /        / |                ´|`
-                    //   h/_______g/  |b                |-->x
-                    //    |  a     |  /                /
-                    //    |        | /                Z
-                    //    |________|/
-                    //    e        f
-                    //
-                    if( (mLevel < MinLevel) || (mLevel < MaxLevel && mStatus == IntersectionStatus::Trimmed) ){
-                        CreateNewNode(MinLevel, MaxLevel, 0, mLowerBound, mLowerBound+delta, pOperator);                 // Corner a
-                        CreateNewNode(MinLevel, MaxLevel, 1, mLowerBound+delta_x, mLowerBound+delta+delta_x, pOperator); // Corner b (a+delta_x)
-                        CreateNewNode(MinLevel, MaxLevel, 2, mUpperBound-delta-delta_z, mUpperBound-delta_z, pOperator); // Corner c (g-delta_z)
-                        CreateNewNode(MinLevel, MaxLevel, 3, mLowerBound+delta_y, mLowerBound+delta+delta_y, pOperator); // Corner d (a+delta_y)
-                        CreateNewNode(MinLevel, MaxLevel, 4, mLowerBound+delta_z, mLowerBound+delta+delta_z, pOperator); // Corner e (a+delta_z)
-                        CreateNewNode(MinLevel, MaxLevel, 5, mUpperBound-delta-delta_y, mUpperBound-delta_y, pOperator); // Corner f (g-delta_y)
-                        CreateNewNode(MinLevel, MaxLevel, 6, mUpperBound-delta, mUpperBound, pOperator);                 // Corner g
-                        CreateNewNode(MinLevel, MaxLevel, 7, mUpperBound-delta-delta_x, mUpperBound-delta_x, pOperator); // Corner h (g-delta_x)
-                    }
-                }
-                else {
-                    for( IndexType i = 0; i < 8; ++i){
-                        if( mChildren[i] ){
-                            mChildren[i]->Refine(MinLevel, MaxLevel, pOperator);
-                        }
-                    }
-                }
+        /// @brief Contructor
+        /// @param rLowerBound LowerBound of AABB.
+        /// @param rUpperBound UpperBound of AABB.
+        /// @param Status Options: 'Trimmed' or 'Inside'.
+        /// @param Level Refinement Level.
+        Node( const PointType& rLowerBound, const PointType& rUpperBound, IntersectionStatusType Status, IndexType Level = 0UL) :
+            mLowerBound(rLowerBound), mUpperBound(rUpperBound), mStatus(Status), mLevel(Level)
+        {
+            mChildren = {nullptr};
+            mNumChildren = 0UL;
+        }
 
-            }
+        ///@}
+        ///@name Operations
+        ///@{
 
-            void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, TOperator* pOperator) {
-                if( this->IsLeaf() ){
-                    auto lower_bound_param = Mapping::GlobalToParam(mLowerBound, GlobalLowerBound, GlobalUpperBound);
-                    auto upper_bound_param = Mapping::GlobalToParam(mUpperBound, GlobalLowerBound, GlobalUpperBound);
+        /// @brief Recursive function (walks through octree) to split node into its 8 children.
+        /// @param MinLevel Minimum refinement level (for all nodes).
+        /// @param MaxLevel Maximum refinement level (for trimmed nodes).
+        /// @param pOperator Operator to perform: GetIntersectonState().
+        void Refine(IndexType MinLevel, IndexType MaxLevel, const TOperator* pOperator);
 
-                    IntegrationPointVectorType r_integration_points{};
-                    SingleElement::AssembleIPs(r_integration_points, lower_bound_param, upper_bound_param, {2Ul, 2Ul, 2Ul});
-                    if( mStatus == IntersectionStatus::Inside )
-                        pPoints->insert(pPoints->end(), r_integration_points.begin(), r_integration_points.end());
-                    else {
-                        for( auto& point : r_integration_points){
-                            auto tmp_point = Mapping::ParamToGlobal(point, GlobalLowerBound, GlobalUpperBound);
-                            if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
-                                pPoints->push_back(point);
-                            }
-                        }
-                    }
-                } else {
-                    for( IndexType i = 0; i < 8; ++i){
-                        if( mChildren[i] ){
-                            mChildren[i]->GetIntegrationPoints(pPoints, GlobalLowerBound, GlobalUpperBound, pOperator);
-                        }
-                    }
-                }
-            }
+        /// @brief Recursive function (walks through octree) to get integration points.
+        /// @details Distributes Gauss points (according to rOrder) and adds all points to pPoints that are
+        ///          inside the domain.
+        /// @param[out] pPoints IntegrationPointVectorType
+        /// @param GlobalLowerBound Global LowerBound of total domain (Required for mapping.)
+        /// @param GlobalUpperBound Global UpperBound of entire domain (Required for mapping.)
+        /// @param rOrder Order of Gauss quadrature.
+        /// @param pOperator Operator to perfrom Inside/Outside test.
+        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator);
 
-            void Count(IndexType& rValue) {
-                if( this->IsLeaf() ){
-                    ++rValue;
-                } else {
-                    for( IndexType i = 0; i < 8; ++i){
-                        if( mChildren[i] ){
-                            mChildren[i]->Count(rValue);
-                        }
-                    }
-                }
-            }
+        /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
+        /// @param[out] rValue // Return value
+        void NumberOfLeafs(IndexType& rValue) const;
 
-            void Volume(double& volume){
-                if( IsLeaf() ){
-                    const auto delta = (mUpperBound - mLowerBound);
-                    volume += delta[0]*delta[1]*delta[2];
-                    TIBRA_INFO << delta[0]*delta[1]*delta[2] << std::endl;
-                } else {
-                    for( IndexType i = 0; i < 8; ++i){
-                        if( mChildren[i] ){
-                            mChildren[i]->Volume(volume);
-                        }
-                    }
-                }
-            }
+        ///@}
+    private:
+        ///@name Private Operations
+        ///@{
 
-        private:
-            void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType i, const PointType& rLowerBound, const PointType& rUpperBound, TOperator* pOperator){
-                const auto status = pOperator->GetIntersectionState(rLowerBound, rUpperBound, 1e-14);
-                if( status != IntersectionStatus::Outside ){
-                    mChildren[i] = MakeUnique<Node>(rLowerBound, rUpperBound, status, mLevel+1);
-                    ++mNumChildren;
-                    mChildren[i]->Refine(MinLevel, MaxLevel, pOperator);
-                }
-            }
+        /// @brief Create a new child node if aabb of this child node is NOT classified as Outside.
+        /// @param MinLevel Minimum refinement level (for all nodes).
+        /// @param MaxLevel Maximum refinement level (for trimmed nodes).
+        /// @param i Index of child node in mChildren[i].
+        /// @param rLowerBound LowerBound of AABB of new child.
+        /// @param rUpperBound UpperBound of AABB of new child.
+        /// @param pOperator Operator to perfrom Inside/Outside test.
+        void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType i, const PointType& rLowerBound, const PointType& rUpperBound, const TOperator* pOperator);
 
-            bool IsLeaf(){
-                return (mNumChildren == 0);
-            }
+        /// @brief Returns true if this node is a leaf node.
+        /// @return bool
+        bool IsLeaf() const;
 
-            PointType mLowerBound;
-            PointType mUpperBound;
-            IntersectionStatus mStatus;
-            std::array<Unique<Node>, 8> mChildren{};
-            SizeType mLevel;
-            SizeType mNumChildren;
-    };
+        ///@}
+        ///@name Private Member Variables
+        ///@{
+        PointType mLowerBound;
+        PointType mUpperBound;
+        IntersectionStatus mStatus;
+        std::array<Unique<Node>, 8> mChildren{};
+        SizeType mLevel;
+        SizeType mNumChildren;
+        ///@}
+    }; ///@} End Node Class
+    ///@} End TIBRA Classes
 
 public:
-    ///@name Type Definitions
+    ///@}
+    ///@name Life Cycle
     ///@{
 
-    Octree(TOperator* pOperator, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
-        : mpOperator(pOperator), mrParameters(rParameters)
-    {
+    /// @brief Constructor
+    /// @param pOperator Operator to perform GetIntersectionState() and IsInsideTrimmedDomain().
+    /// @param rLowerBound LowerBound of AABB of Root Node.
+    /// @param rUpperBound UpperBound of AABB of Root Node.
+    /// @param rParameters TIBRA Parameters.
+    Octree(const TOperator* pOperator, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
+        : mpOperator(pOperator), mrParameters(rParameters) {
+        // Create new root node.
         mpRoot = MakeUnique<Node>(rLowerBound, rUpperBound, IntersectionStatus::Trimmed, 0UL);
     }
 
-    void Refine(IndexType MinLevel, IndexType MaxLevel){
-        TIBRA_ERROR_IF("Octree :: Constructor", MinLevel > MaxLevel ) << "MinLevel must be smaller/equal than MaxLevel. "
-            << "Given MinLevel: " << MinLevel << ", MaxLevel: " << MaxLevel << ".\n";
-        mpRoot->Refine(MinLevel, MaxLevel, mpOperator);
-    }
+    ///@}
+    ///@name Operations
+    ///@{
 
-    SizeType NumberOfLeafs(){
-        SizeType number_of_leafs = 0UL;
-        mpRoot->Count(number_of_leafs);
-        return number_of_leafs;
+    /// @brief Refine octree up to given levels.
+    /// @param MinLevel Minimum refinement level (for all nodes).
+    /// @param MaxLevel Maximum refinement level (for trimmed nodes).
+    void Refine(IndexType MinLevel, IndexType MaxLevel);
 
-    }
+    /// @brief Returns total number of leaf nodes in octree.
+    /// @return SizeType
+    SizeType NumberOfLeafs() const;
 
-    IntegrationPointVectorPtrType GetIntegrationPoints(){
-        auto p_points = MakeUnique<IntegrationPointVectorType>();
-        p_points->reserve(NumberOfLeafs());
-        mpRoot->GetIntegrationPoints(p_points.get(), mrParameters.LowerBound(), mrParameters.UpperBound(), mpOperator );
-        return std::move(p_points);
-    }
+    /// @brief Returns ptr to integration points that are constructed on the leafs of the octree.
+    ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
+    ///        But only points that are inside the domain are considered.
+    ///        Also see: AddIntegrationPoints()
+    /// @param rOrder Order of Gauss quadrature.
+    /// @return IntegrationPointVectorPtrType
+    IntegrationPointVectorPtrType pGetIntegrationPoints(const Vector3i& rOrder);
 
-    double Volume(){
-        double volume = 0.0;
-        mpRoot->Volume(volume);
-        return volume;
-    }
+    /// @brief Add integration points to rPoints. Points are constructed on the leafs of the octree.
+    ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
+    ///        But only points that are inside the domain are considered.
+    ///        Also see: pGetIntegrationPoints().
+    /// @param rPoints Vector of integration points.
+    /// @param rOrder Order of Gauss quadrature.
+    void AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder);
 
+    ///@}
 private:
 
+    ///@name Private Member Variables
+    ///@{
     Unique<Node> mpRoot;
     const Parameters& mrParameters;
-    TOperator* mpOperator;
+    const TOperator* mpOperator; // No ownership
+    ///@}
 
-protected:
-
-};
-
-} // End tibr namespace
+}; // End class Octree
+///@} TIBRA Classes
+} // End tibra namespace
 
 #endif // OCTREE_INCLUDE_H
