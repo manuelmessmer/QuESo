@@ -144,15 +144,19 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
 
     ComputeConstantTerms(rElement, p_boundary_ips, constant_terms, rParam);
 
-    const int max_iteration = 3;
-    int iteration = 1;
+    const int max_iteration = 4;
+    int iteration = 0;
+    SizeType refinement_level = 1UL;
+    //const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
+    const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
+    Octree octree(p_trimmed_domain, bounding_box.first, bounding_box.second, rParam);
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
         auto& reduced_points = rElement.GetIntegrationPoints();
         if( !rParam.UseCustomizedTrimmedPositions() ){
             // This is only used for test_moment_fitting.cpp
-            reduced_points.clear();
+            //reduced_points.clear();
         }
-        residual = CreateIntegrationPointsTrimmed(rElement, constant_terms, point_distribution_factor, rParam);
+        residual = CreateIntegrationPointsTrimmed(rElement, constant_terms, octree, point_distribution_factor, refinement_level, rParam);
 
         point_distribution_factor *= 2;
         if( residual > 1e-2 ) {
@@ -162,23 +166,36 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     }
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
-        //TIBRA_INFO << "size: " << rElement.GetIntegrationPoints().size() << std::endl;
         TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
     }
 }
 
-double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, SizeType PointDistributionFactor, const Parameters& rParam) {
+double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, Octree<TrimmedDomainBase>& rOctree, SizeType PointDistributionFactor, SizeType& RefinementLevel, const Parameters& rParam) {
 
     IntegrationPointVectorType new_integration_points{};
     new_integration_points.resize(0UL);
     int maximum_iteration;
+
+
+    //TIBRA_INFO << points_element.size() << std::endl;
+
     if( !rParam.UseCustomizedTrimmedPositions() ){
-        SizeType point_distribution_factor = PointDistributionFactor;
-        const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(point_distribution_factor);
+        auto& points_element = rElement.GetIntegrationPoints();
+        points_element.erase(std::remove_if(points_element.begin(), points_element.end(), [](const IntegrationPoint& point) {
+                return point.GetWeight() < EPS4; }), points_element.end());
+
+        const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(PointDistributionFactor);
         while( new_integration_points.size() < min_num_points ){
-            DistributeInitialIntegrationPoints( rElement, new_integration_points, point_distribution_factor, rParam);
-            point_distribution_factor *= 2;
+            rOctree.Refine(std::min<IndexType>(RefinementLevel, 4UL), RefinementLevel);
+            new_integration_points.clear();
+            rOctree.AddIntegrationPoints(new_integration_points, {rParam.Order()[0]+1,rParam.Order()[1]+1,rParam.Order()[2]+1});
+            //DistributeInitialIntegrationPoints( rElement, new_integration_points, point_distribution_factor, rParam);
+            if( new_integration_points.size() < min_num_points ){
+                RefinementLevel++;
+            }
         }
+        new_integration_points.insert(new_integration_points.end(), points_element.begin(), points_element.end() );
+        points_element.clear();
         maximum_iteration = 1000;
     }
     else { // This is only used for test_moment_fitting.cpp
@@ -292,8 +309,8 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
                     new_integration_points.erase(min_value_it);
                     change = true;
                 }
-                if( new_integration_points.size() == 4){
-                    number_iterations = maximum_iteration + 1;
+                if( new_integration_points.size() <= 4 && !change ){
+                    number_iterations = maximum_iteration + 10;
                 }
             }
         }
