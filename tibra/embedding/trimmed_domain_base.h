@@ -82,6 +82,14 @@ public:
         return *(mpTriangleMesh.get());
     }
 
+    ///@brief Returns intersections state of AABB (This is an Interface for the Octree).
+    ///@param rLowerBound
+    ///@param rUpperBound
+    ///@param Tolerance Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
+    ///                 If Tolerance>0, touch is not detected as intersection.
+    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
+    virtual IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS0) const = 0;
+
     /// @brief Returns part of triangle mesh that IsInDomain.
     /// @param IsInDomain std::function
     /// @return TriangleMeshPtrType (Unique)

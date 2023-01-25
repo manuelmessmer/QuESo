@@ -95,11 +95,11 @@ public:
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     BoundaryIPVectorPtrType pGetBoundaryIps() const;
 
-    ///@brief Returns intersections state of element (This is an Interface for the Octree).
+    ///@brief Returns intersections state of AABB (This is an Interface for the Octree).
     ///@note This test is only performed on the mClippedMesh to be more efficient.
     ///@param rLowerBound
     ///@param rUpperBound
-    ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
+    ///@param Tolerance Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS0) const;
