@@ -19,10 +19,6 @@ typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
 
 void MomentFitting::DistributeIntegrationPoints(Octree<TrimmedDomainBase>& rOctree, IntegrationPointVectorType& rIntegrationPoint, SizeType MinNumPoints, Element& rElement, const Parameters& rParam){
-
-    rIntegrationPoint.clear();
-    rIntegrationPoint.reserve(2*MinNumPoints);
-
     IndexType refinemen_level = std::max<IndexType>(rOctree.MaxRefinementLevel(), 1UL);
     while( rIntegrationPoint.size() < MinNumPoints ){
         rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
@@ -34,7 +30,7 @@ void MomentFitting::DistributeIntegrationPoints(Octree<TrimmedDomainBase>& rOctr
 
 void MomentFitting::ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& pBoundaryIps,
                                          VectorType& rConstantTerms, const Parameters& rParam){
-
+    // Initialize const variables.
     const auto lower_bound = rParam.LowerBound();
     const auto upper_bound = rParam.UpperBound();
 
@@ -52,13 +48,11 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
+    // Resize constant terms.
     rConstantTerms.resize(number_of_functions, false);
     std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
 
-    IndexType row_index = 0;
-    // Loop over all points.
-    const auto begin_points_it_ptr = pBoundaryIps->begin();
-
+    /// Initialize containers for f_x and f_x_int
     // X-direction
     std::vector<double> f_x_x(order_u*ffactor+1);
     std::vector<double> f_x_int_x(order_u*ffactor+1);
@@ -68,6 +62,10 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
     // Z-direction
     std::vector<double> f_x_z(order_w*ffactor+1);
     std::vector<double> f_x_int_z(order_w*ffactor+1);
+
+    // Loop over all points.
+    IndexType row_index = 0;
+    const auto begin_points_it_ptr = pBoundaryIps->begin();
     for( int i = 0; i < pBoundaryIps->size(); ++i ){
         // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
         // for f_x_x and f_x_int at each point.
@@ -91,9 +89,9 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
             f_x_int_z[i_z] = Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
         }
 
-        const double weight = 1.0/3.0*point_it->GetWeight();
-        row_index = 0;
         // Assembly RHS
+        row_index = 0;
+        const double weight = 1.0/3.0*point_it->GetWeight();
         for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
             for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                 for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
@@ -107,7 +105,6 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
                     rConstantTerms[row_index] += integrand * weight;
                     row_index++;
                 }
-
             }
         }
     }
@@ -133,6 +130,8 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     SizeType iteration = 0UL;
     SizeType point_distribution_factor = rParam.GetPointDistributionFactor();
     IntegrationPointVectorType integration_points{};
+
+    // If residual can not be statisfied, try with more points in initial set.
     while( residual > rParam.MomentFittingResidual() && iteration < 4UL){
 
         // Distribute intial points via an octree.
@@ -219,35 +218,32 @@ double MomentFitting::MomentFitting1(const VectorType& rConstantTerms, Integrati
 
 double MomentFitting::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam) {
 
-    int maximum_iteration = 1000;
-
+    /// Initialize const variables
     const SizeType ffactor = 1;
     const SizeType order_u = rParam.Order()[0];
     const SizeType order_v = rParam.Order()[1];
     const SizeType order_w = rParam.Order()[2];
-
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
-    double global_residual = MIND;
-    const double allowed_residual = rParam.MomentFittingResidual();
-    int number_iterations = 0;
-    bool change = false;
-    IntegrationPointVectorType prev_solution{};
-    double prev_residual = 0.0;
-
     /// Enter point elimination algorithm
-    while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
-
+    const double allowed_residual = rParam.MomentFittingResidual();
+    double global_residual = MIND;
+    double prev_residual = 0.0;
+    const SizeType maximum_iteration = 1000;
+    SizeType number_iterations = 0;
+    bool point_removed = false;
+    IntegrationPointVectorType prev_solution{};
+    while( point_removed || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
+        point_removed = false;
         global_residual = MomentFitting1(rConstantTerms, rIntegrationPoint, rElement, rParam);
-
-        change = false;
         if( number_iterations == 0){
             // Sort integration points according to weight
             std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
                     return point_a.GetWeight() > point_b.GetWeight();
                 });
+            // Only keep number_of_functions integration points.
             rIntegrationPoint.erase(rIntegrationPoint.begin()+number_of_functions, rIntegrationPoint.end());
-            change = true;
+            point_removed = true;
         }
         else if( global_residual < allowed_residual ){
             prev_solution.clear();
@@ -274,22 +270,22 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
                 // TODO: Fix this > 2..4
                 if( it->GetWeight() < EPS1*max_value && rIntegrationPoint.size() > 4){
                     rIntegrationPoint.erase(it);
-                    change = true;
+                    point_removed = true;
                     counter++;
                 }
             }
             if( counter == 0 && rIntegrationPoint.size() > 4){
                 rIntegrationPoint.erase(min_value_it);
-                change = true;
+                point_removed = true;
             }
-            if( rIntegrationPoint.size() <= 4 && !change ){
+            if( rIntegrationPoint.size() <= 4 && !point_removed ){
                 number_iterations = maximum_iteration + 10;
             }
         }
         number_iterations++;
     }
-    auto& reduced_points = rElement.GetIntegrationPoints();
 
+    auto& reduced_points = rElement.GetIntegrationPoints();
     if( (global_residual >= allowed_residual && prev_solution.size() > 0 && number_iterations < maximum_iteration) ) {
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
