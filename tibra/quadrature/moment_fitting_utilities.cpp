@@ -18,26 +18,18 @@ namespace tibra {
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
 
-void MomentFitting::DistributeInitialIntegrationPoints(Element& rElement, Octree<TrimmedDomainBase>& rOctree, IntegrationPointVectorType& rIntegrationPoint, SizeType PointDistributionFactor, const Parameters& rParam){
+void MomentFitting::DistributeIntegrationPoints(Octree<TrimmedDomainBase>& rOctree, IntegrationPointVectorType& rIntegrationPoint, SizeType MinNumPoints, Element& rElement, const Parameters& rParam){
 
-    //IntegrationPointVectorType new_integration_points{};
-    rIntegrationPoint.resize(0UL);
-
-
-    auto& points_element = rElement.GetIntegrationPoints();
-    points_element.erase(std::remove_if(points_element.begin(), points_element.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < EPS4; }), points_element.end());
+    rIntegrationPoint.clear();
+    rIntegrationPoint.reserve(2*MinNumPoints);
 
     IndexType refinemen_level = std::max<IndexType>(rOctree.MaxRefinementLevel(), 1UL);
-    const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(PointDistributionFactor);
-    while( rIntegrationPoint.size() < min_num_points ){
+    while( rIntegrationPoint.size() < MinNumPoints ){
         rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
         rIntegrationPoint.clear();
         rOctree.AddIntegrationPoints(rIntegrationPoint, {rParam.Order()[0]+1,rParam.Order()[1]+1,rParam.Order()[2]+1});
         refinemen_level++;
     }
-    rIntegrationPoint.insert(rIntegrationPoint.end(), points_element.begin(), points_element.end() );
-    points_element.clear();
 }
 
 void MomentFitting::ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& pBoundaryIps,
@@ -124,41 +116,54 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
 
 void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam){
 
-    double residual = 1e10;
-    SizeType point_distribution_factor = rParam.GetPointDistributionFactor();
-    VectorType constant_terms{};
-
+    // Get boundary integration points.
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
     const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
     // Get constant terms.
+    VectorType constant_terms{};
     ComputeConstantTerms(rElement, p_boundary_ips, constant_terms, rParam);
 
-    SizeType iteration = 0UL;
     // Construct octree. Octree is used to distribute inital points within trimmed domain.
     const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
     Octree octree(p_trimmed_domain, bounding_box.first, bounding_box.second, rParam);
 
     // Start point elimination.
+    double residual = MAXD;
+    SizeType iteration = 0UL;
+    SizeType point_distribution_factor = rParam.GetPointDistributionFactor();
     IntegrationPointVectorType integration_points{};
     while( residual > rParam.MomentFittingResidual() && iteration < 4UL){
-        DistributeInitialIntegrationPoints(rElement, octree, integration_points, point_distribution_factor, rParam);
-        residual = PointElimination(rElement, constant_terms, integration_points, rParam);
-        point_distribution_factor *= 2;
 
+        // Distribute intial points via an octree.
+        const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(point_distribution_factor);
+        DistributeIntegrationPoints(octree, integration_points, min_num_points, rElement, rParam);
+
+        // Also add old, moment fitted points to new set. 'old_integration_points' only contains points with weights > 0.0;
+        auto& old_integration_points = rElement.GetIntegrationPoints();
+        integration_points.insert(integration_points.end(), old_integration_points.begin(), old_integration_points.end() );
+        old_integration_points.clear();
+
+        // Run point elimination.
+        residual = PointElimination(constant_terms, integration_points, rElement, rParam);
+
+        // If residual is very high, remove all points. Note, elements without points will be neglected.
         if( residual > 1e-2 ) {
             auto& reduced_points = rElement.GetIntegrationPoints();
             reduced_points.clear();
         }
+
+        // Update variables.
+        point_distribution_factor *= 2;
         iteration++;
     }
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
-        TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved!: " << residual << std::endl;
+        TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
     }
 }
 
-double MomentFitting::Solve(const Element& rElement, const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Parameters& rParam){
+double MomentFitting::MomentFitting1(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam){
 
     const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
     const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
@@ -212,7 +217,7 @@ double MomentFitting::Solve(const Element& rElement, const VectorType& rConstant
 }
 
 
-double MomentFitting::PointElimination(Element& rElement, const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Parameters& rParam) {
+double MomentFitting::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam) {
 
     int maximum_iteration = 1000;
 
@@ -233,7 +238,7 @@ double MomentFitting::PointElimination(Element& rElement, const VectorType& rCon
     /// Enter point elimination algorithm
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
-        global_residual = Solve(rElement, rConstantTerms, rIntegrationPoint, rParam);
+        global_residual = MomentFitting1(rConstantTerms, rIntegrationPoint, rElement, rParam);
 
         change = false;
         if( number_iterations == 0){

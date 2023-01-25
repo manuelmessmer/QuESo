@@ -10,6 +10,7 @@
 #include <array>
 #include <variant>
 //// Project includes
+#include "embedding/octree.h"
 #include "containers/element.hpp"
 #include "containers/boundary_integration_point.hpp"
 #include "utilities/parameters.h"
@@ -49,16 +50,18 @@ public:
     static void CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam);
 
     static void ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& rBoundaryIps, VectorType& rConstantTerms, const Parameters& rParam);
+
+    static double MomentFitting1(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam);
+
     ///@}
 private:
     ///@name Private Operations
     ///@{
 
     ///@todo Clean this up.
-    static double CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, SizeType PointDistributionFactor, const Parameters& rParam);
+    static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam);
 
-
-    static void DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, SizeType PointDistributionFactor, const Parameters& rParam);
+    static void DistributeIntegrationPoints(Octree<TrimmedDomainBase>& rOctree, IntegrationPointVectorType& rIntegrationPoint, SizeType MinNumPoints, Element& rElement, const Parameters& rParam);
 
 }; // End Class
 
