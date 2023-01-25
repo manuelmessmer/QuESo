@@ -161,6 +161,17 @@ public:
     /// @param rOrder Order of Gauss quadrature.
     void AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder) const;
 
+    /// @brief Returns current refinement level of leaf nodes that are classified as inside.
+    /// @return IndexType
+    IndexType MinRefinementLevel(){
+        return mMinLevel;
+    }
+
+    /// @brief Returns current refinement level of leaf nodes that are classified as trimmed.
+    /// @return
+    IndexType MaxRefinementLevel(){
+        return mMaxLevel;
+    }
     ///@}
 private:
 
@@ -169,6 +180,8 @@ private:
     Unique<Node> mpRoot;
     const Parameters& mrParameters;
     const TOperator* mpOperator; // No ownership
+    IndexType mMinLevel = 0;
+    IndexType mMaxLevel = 0;
     ///@}
 
 }; // End class Octree

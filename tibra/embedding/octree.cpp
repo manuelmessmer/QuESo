@@ -124,6 +124,8 @@ template<typename TOperator>
 void Octree<TOperator>::Refine(IndexType MinLevel, IndexType MaxLevel){
     TIBRA_ERROR_IF("Octree :: Constructor", MinLevel > MaxLevel ) << "MinLevel must be smaller/equal than MaxLevel. "
         << "Given MinLevel: " << MinLevel << ", MaxLevel: " << MaxLevel << ".\n";
+    mMinLevel = MinLevel;
+    mMaxLevel = MaxLevel;
     mpRoot->Refine(MinLevel, MaxLevel, mpOperator);
 }
 
