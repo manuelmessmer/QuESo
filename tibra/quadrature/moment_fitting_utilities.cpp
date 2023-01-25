@@ -18,37 +18,26 @@ namespace tibra {
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
 
-void MomentFitting::DistributeInitialIntegrationPoints(const Element& rElement, IntegrationPointVectorType& rIntegrationPoint, SizeType PointDistributionFactor, const Parameters& rParam){
+void MomentFitting::DistributeInitialIntegrationPoints(Element& rElement, Octree<TrimmedDomainBase>& rOctree, IntegrationPointVectorType& rIntegrationPoint, SizeType PointDistributionFactor, const Parameters& rParam){
 
-    const double factor = PointDistributionFactor;
-    rIntegrationPoint.reserve( (int) factor*(rParam.Order()[0]+1)*factor*(rParam.Order()[1]+1)*factor*(rParam.Order()[2]+1) );
+    //IntegrationPointVectorType new_integration_points{};
+    rIntegrationPoint.resize(0UL);
 
-    const auto bounding_box = rElement.pGetTrimmedDomain()->GetBoundingBoxOfTrimmedDomain();
 
-    const double delta_x = std::abs(bounding_box.second[0] - bounding_box.first[0]) / ( (double)factor*(rParam.Order()[0]+1) );
-    const double delta_y = std::abs(bounding_box.second[1] - bounding_box.first[1]) / ( (double)factor*(rParam.Order()[1]+1) );
-    const double delta_z = std::abs(bounding_box.second[2] - bounding_box.first[2]) / ( (double)factor*(rParam.Order()[2]+1) );
+    auto& points_element = rElement.GetIntegrationPoints();
+    points_element.erase(std::remove_if(points_element.begin(), points_element.end(), [](const IntegrationPoint& point) {
+            return point.GetWeight() < EPS4; }), points_element.end());
 
-    const auto lower_bound = rParam.LowerBound();
-    const auto upper_bound = rParam.UpperBound();
-
-    double xx = bounding_box.first[0] + 0.5*delta_x;
-    while( xx < bounding_box.second[0] ){
-        double yy = bounding_box.first[1] + 0.5*delta_y;
-        while( yy < bounding_box.second[1] ){
-            double zz = bounding_box.first[2] + 0.5*delta_z;
-            while( zz < bounding_box.second[2]){
-                const PointType tmp_point = {xx,yy,zz};
-                if( rElement.pGetTrimmedDomain()->IsInsideTrimmedDomain(tmp_point) ){
-                    auto tmp_point_param = Mapping::GlobalToParam(tmp_point, lower_bound, upper_bound );
-                    rIntegrationPoint.push_back(IntegrationPoint(tmp_point_param, 0.0 ));
-                }
-                zz += delta_z;
-            }
-            yy += delta_y;
-        }
-        xx += delta_x;
+    IndexType refinemen_level = std::max<IndexType>(rOctree.MaxRefinementLevel(), 1UL);
+    const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(PointDistributionFactor);
+    while( rIntegrationPoint.size() < min_num_points ){
+        rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
+        rIntegrationPoint.clear();
+        rOctree.AddIntegrationPoints(rIntegrationPoint, {rParam.Order()[0]+1,rParam.Order()[1]+1,rParam.Order()[2]+1});
+        refinemen_level++;
     }
+    rIntegrationPoint.insert(rIntegrationPoint.end(), points_element.begin(), points_element.end() );
+    points_element.clear();
 }
 
 void MomentFitting::ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& pBoundaryIps,
@@ -142,24 +131,23 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
     const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
+    // Get constant terms.
     ComputeConstantTerms(rElement, p_boundary_ips, constant_terms, rParam);
 
-    const int max_iteration = 4;
-    int iteration = 0;
-    SizeType refinement_level = 1UL;
-    //const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
+    SizeType iteration = 0UL;
+    // Construct octree. Octree is used to distribute inital points within trimmed domain.
     const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
     Octree octree(p_trimmed_domain, bounding_box.first, bounding_box.second, rParam);
-    while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
-        auto& reduced_points = rElement.GetIntegrationPoints();
-        if( !rParam.UseCustomizedTrimmedPositions() ){
-            // This is only used for test_moment_fitting.cpp
-            //reduced_points.clear();
-        }
-        residual = CreateIntegrationPointsTrimmed(rElement, constant_terms, octree, point_distribution_factor, refinement_level, rParam);
 
+    // Start point elimination.
+    IntegrationPointVectorType integration_points{};
+    while( residual > rParam.MomentFittingResidual() && iteration < 4UL){
+        DistributeInitialIntegrationPoints(rElement, octree, integration_points, point_distribution_factor, rParam);
+        residual = PointElimination(rElement, constant_terms, integration_points, rParam);
         point_distribution_factor *= 2;
+
         if( residual > 1e-2 ) {
+            auto& reduced_points = rElement.GetIntegrationPoints();
             reduced_points.clear();
         }
         iteration++;
@@ -170,39 +158,7 @@ void MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Para
     }
 }
 
-double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const VectorType& rConstantTerms, Octree<TrimmedDomainBase>& rOctree, SizeType PointDistributionFactor, SizeType& RefinementLevel, const Parameters& rParam) {
-
-    IntegrationPointVectorType new_integration_points{};
-    new_integration_points.resize(0UL);
-    int maximum_iteration;
-
-
-    //TIBRA_INFO << points_element.size() << std::endl;
-
-    if( !rParam.UseCustomizedTrimmedPositions() ){
-        auto& points_element = rElement.GetIntegrationPoints();
-        points_element.erase(std::remove_if(points_element.begin(), points_element.end(), [](const IntegrationPoint& point) {
-                return point.GetWeight() < EPS4; }), points_element.end());
-
-        const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(PointDistributionFactor);
-        while( new_integration_points.size() < min_num_points ){
-            rOctree.Refine(std::min<IndexType>(RefinementLevel, 4UL), RefinementLevel);
-            new_integration_points.clear();
-            rOctree.AddIntegrationPoints(new_integration_points, {rParam.Order()[0]+1,rParam.Order()[1]+1,rParam.Order()[2]+1});
-            //DistributeInitialIntegrationPoints( rElement, new_integration_points, point_distribution_factor, rParam);
-            if( new_integration_points.size() < min_num_points ){
-                RefinementLevel++;
-            }
-        }
-        new_integration_points.insert(new_integration_points.end(), points_element.begin(), points_element.end() );
-        points_element.clear();
-        maximum_iteration = 1000;
-    }
-    else { // This is only used for test_moment_fitting.cpp
-        new_integration_points = rElement.GetIntegrationPoints();
-        rElement.GetIntegrationPoints().clear();
-        maximum_iteration = 1;
-    }
+double MomentFitting::Solve(const Element& rElement, const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Parameters& rParam){
 
     const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
     const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
@@ -217,8 +173,57 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     const int order_w = rParam.Order()[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+    const IndexType number_reduced_points = rIntegrationPoint.size();
 
-    double global_residual = 1e-15;
+    /// Assemble moment fitting matrix.
+    MatrixType fitting_matrix(number_of_functions, number_reduced_points);
+    IndexType row_index = 0;
+    for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
+        for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+            for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
+                // Loop over all points
+                const auto points_it_begin = rIntegrationPoint.begin();
+                for( int column_index = 0; column_index < number_reduced_points; ++column_index ){
+                    auto point_it = points_it_begin + column_index;
+
+                    const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
+                                       * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
+                                       * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
+
+                    fitting_matrix(row_index,column_index) = value;
+                }
+                row_index++;
+            }
+        }
+    }
+
+    VectorType weights(number_reduced_points);
+    // Solve non-negative Least-Square-Error problem.
+    auto residual = nnls::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
+
+    // Write computed weights onto integration points
+    for( int i = 0; i < number_reduced_points; ++i){
+        // Divide by det_jacobian to account for the corresponding multiplication during the element integration within the used external solver.
+        double new_weight = weights[i]/(jacobian_x*jacobian_y*jacobian_z);
+        rIntegrationPoint[i].SetWeight(new_weight);
+    }
+
+    return residual;
+}
+
+
+double MomentFitting::PointElimination(Element& rElement, const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Parameters& rParam) {
+
+    int maximum_iteration = 1000;
+
+    const SizeType ffactor = 1;
+    const SizeType order_u = rParam.Order()[0];
+    const SizeType order_v = rParam.Order()[1];
+    const SizeType order_w = rParam.Order()[2];
+
+    const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+
+    double global_residual = MIND;
     const double allowed_residual = rParam.MomentFittingResidual();
     int number_iterations = 0;
     bool change = false;
@@ -228,90 +233,52 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
     /// Enter point elimination algorithm
     while( change || (global_residual < allowed_residual && number_iterations < maximum_iteration) ){
 
-        const IndexType number_reduced_points = new_integration_points.size();
+        global_residual = Solve(rElement, rConstantTerms, rIntegrationPoint, rParam);
 
-        /// Assemble moment fitting matrix.
-        MatrixType fitting_matrix(number_of_functions, number_reduced_points);
-        IndexType row_index = 0;
-        for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
-            for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-                for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                    // Loop over all points
-                    const auto points_it_begin = new_integration_points.begin();
-                    for( int column_index = 0; column_index < number_reduced_points; ++column_index ){
-                        auto point_it = points_it_begin + column_index;
-
-                        const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
-                                                * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
-                                                * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
-
-                        fitting_matrix(row_index,column_index) = value;
-                    }
-                    row_index++;
+        change = false;
+        if( number_iterations == 0){
+            // Sort integration points according to weight
+            std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
+                    return point_a.GetWeight() > point_b.GetWeight();
+                });
+            rIntegrationPoint.erase(rIntegrationPoint.begin()+number_of_functions, rIntegrationPoint.end());
+            change = true;
+        }
+        else if( global_residual < allowed_residual ){
+            prev_solution.clear();
+            prev_solution.insert(prev_solution.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
+            prev_residual = global_residual;
+            auto min_value_it = rIntegrationPoint.begin();
+            double min_value = 1e10;
+            double max_value = -1e10;
+            auto begin_it = rIntegrationPoint.begin();
+            for(int i = 0; i < rIntegrationPoint.size(); i++){
+                auto it = begin_it + i;
+                if( it->GetWeight() < min_value ) {
+                    min_value_it = it;
+                    min_value = it->GetWeight();
+                }
+                if( it->GetWeight() > max_value ) {
+                    max_value = it->GetWeight();
                 }
             }
-        }
-
-        VectorType weights(number_reduced_points);
-
-        // Solve non-negative Least-Square-Error problem.
-        global_residual = nnls::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
-
-        //Write computed weights onto reduced integration points
-        for( int i = 0; i < number_reduced_points; ++i){
-            // Divide by det_jacobian to account for the corresponding multiplication during the element integration within the used external solver.
-            double new_weight = weights[i]/(jacobian_x*jacobian_y*jacobian_z);
-            new_integration_points[i].SetWeight(new_weight);
-        }
-        change = false;
-        if( !rParam.UseCustomizedTrimmedPositions() ){
-            if( number_iterations == 0){
-                if( global_residual > allowed_residual ){
-                    //TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved!: " << global_residual << std::endl;
+            begin_it = rIntegrationPoint.begin();
+            int counter = 0;
+            for(int i = 0; i < rIntegrationPoint.size(); i++){
+                auto it = begin_it + i;
+                // TODO: Fix this > 2..4
+                if( it->GetWeight() < EPS1*max_value && rIntegrationPoint.size() > 4){
+                    rIntegrationPoint.erase(it);
+                    change = true;
+                    counter++;
                 }
-                // Sort integration points according to weight
-                std::sort(new_integration_points.begin(), new_integration_points.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
-                        return point_a.GetWeight() > point_b.GetWeight();
-                    });
-                new_integration_points.erase(new_integration_points.begin()+number_of_functions, new_integration_points.end());
+            }
+            if( counter == 0 && rIntegrationPoint.size() > 4){
+                rIntegrationPoint.erase(min_value_it);
                 change = true;
             }
-            else if( global_residual < allowed_residual ){
-                prev_solution.clear();
-                prev_solution.insert(prev_solution.begin(), new_integration_points.begin(), new_integration_points.end());
-                prev_residual = global_residual;
-                auto min_value_it = new_integration_points.begin();
-                double min_value = 1e10;
-                double max_value = -1e10;
-                auto begin_it = new_integration_points.begin();
-                for(int i = 0; i < new_integration_points.size(); i++){
-                    auto it = begin_it + i;
-                    if( it->GetWeight() < min_value ) {
-                        min_value_it = it;
-                        min_value = it->GetWeight();
-                    }
-                    if( it->GetWeight() > max_value ) {
-                        max_value = it->GetWeight();
-                    }
-                }
-                begin_it = new_integration_points.begin();
-                int counter = 0;
-                for(int i = 0; i < new_integration_points.size(); i++){
-                    auto it = begin_it + i;
-                    // TODO: Fix this > 2..4
-                    if( it->GetWeight() < EPS1*max_value && new_integration_points.size() > 4){
-                        new_integration_points.erase(it);
-                        change = true;
-                        counter++;
-                    }
-                }
-                if( counter == 0 && new_integration_points.size() > 4){
-                    new_integration_points.erase(min_value_it);
-                    change = true;
-                }
-                if( new_integration_points.size() <= 4 && !change ){
-                    number_iterations = maximum_iteration + 10;
-                }
+            if( rIntegrationPoint.size() <= 4 && !change ){
+                number_iterations = maximum_iteration + 10;
             }
         }
         number_iterations++;
@@ -325,7 +292,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Ve
         return prev_residual;
     }
     else{
-        reduced_points.insert(reduced_points.begin(), new_integration_points.begin(), new_integration_points.end());
+        reduced_points.insert(reduced_points.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
             return point.GetWeight() < EPS4; }), reduced_points.end());
         return global_residual;
