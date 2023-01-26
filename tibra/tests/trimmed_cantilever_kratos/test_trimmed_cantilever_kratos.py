@@ -29,7 +29,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
     def test_2(self):
         #p=2
-        #"number_of_elements" : [2,2,3]
+        #"number_of_elements" : [2,2,4]
         #el=3000
         self.RunTest("tibra/tests/trimmed_cantilever_kratos/TIBRAParameters2.json", 0.015)
 
