@@ -111,6 +111,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
     int stop_count = 0;
     while( !AllElementsVisited(rElements) && !stop ){
         double max_value = 0;
+        // Note this is the bottleneck. TODO: Sort and make smarter.
         for( int i = 0; i < rElements.size(); ++i){
             auto element_it = element_it_begin + i;
             if( !(*element_it)->IsVisited() && !(*element_it)->IsTrimmed() ){
