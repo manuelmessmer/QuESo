@@ -10,7 +10,7 @@ namespace tibra {
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
-void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters& rParameters){
+void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters& rParameters){
 
     // Loop over all 3 space dimensions
     // i = 0: x
@@ -111,6 +111,7 @@ void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters
     int stop_count = 0;
     while( !AllElementsVisited(rElements) && !stop ){
         double max_value = 0;
+        // Note this is the bottleneck. TODO: Sort and make smarter.
         for( int i = 0; i < rElements.size(); ++i){
             auto element_it = element_it_begin + i;
             if( !(*element_it)->IsVisited() && !(*element_it)->IsTrimmed() ){
@@ -212,7 +213,7 @@ void MultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters
     }
 }
 
-bool MultipleElements::AllElementsVisited(ElementContainer& rElements){
+bool QuadratureMultipleElements::AllElementsVisited(ElementContainer& rElements){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
     for(int i = 0; i < number_neighbours; ++i){
@@ -225,7 +226,7 @@ bool MultipleElements::AllElementsVisited(ElementContainer& rElements){
     return true;
 }
 
-ElementContainer::ElementPtrType MultipleElements::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
+ElementContainer::ElementPtrType QuadratureMultipleElements::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
     bool dummy_local_end;
     std::size_t dummy_next_id;
 
@@ -244,7 +245,7 @@ ElementContainer::ElementPtrType MultipleElements::NextElement(ElementContainer&
     case 5:
         return rElements.pGetPreviousElementInZ(id, dummy_next_id, found, dummy_local_end);
     default:
-        TIBRA_ERROR("MultipleElements::NextElement") << "There are only 6 different directions.\n";
+        TIBRA_ERROR("QuadratureMultipleElements::NextElement") << "There are only 6 different directions.\n";
     }
 }
 
@@ -254,11 +255,11 @@ double linear_function(int x, int number_neighbours){
 
     double value = (1.0 - 0.9/center*delta)* (double)number_neighbours;
 
-    TIBRA_ERROR_IF("MultipleElements::linear_function", value < EPS2) << "Value too low\n";
+    TIBRA_ERROR_IF("QuadratureMultipleElements::linear_function", value < EPS2) << "Value too low\n";
 
     return value;
 }
-void MultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters){
+void QuadratureMultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
 
@@ -272,7 +273,7 @@ void MultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtr
 
 }
 
-void MultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters){
+void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters){
     const auto element_it_begin = rElements.begin();
     // Find global extrem points (within box)
     PointType global_lower_point_param{1e10, 1e10, 1e10};

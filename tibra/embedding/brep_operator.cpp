@@ -73,7 +73,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
 
 }
 
-BRepOperator::IntersectionStatus BRepOperator::GetIntersectionState(
+IntersectionStatus BRepOperator::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
     // Test if center is inside or outside.

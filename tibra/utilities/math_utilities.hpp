@@ -48,6 +48,24 @@ namespace Math {
         return std::sqrt( rLhs[0]*rLhs[0] + rLhs[1]*rLhs[1] + rLhs[2]*rLhs[2] );
     }
 
+    /// @brief Returns max value of vector
+    /// @tparam T
+    /// @param rVector
+    /// @return T
+    template<typename T>
+    static T inline Max( const Vector3<T>& rVector ){
+        return std::max<T>(std::max<T>(rVector[0], rVector[1]), rVector[2]);
+    }
+
+    /// @brief Returns min value of vector.
+    /// @tparam T
+    /// @param rVector
+    /// @return T
+    template<typename T>
+    static T inline Min( const Vector3<T>& rVector ){
+        return std::min<T>(std::min<T>(rVector[0], rVector[1]), rVector[2]);
+    }
+
 } // End namespace math
 
 } // End namespace tibra

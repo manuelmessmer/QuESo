@@ -127,4 +127,27 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
     return std::move(p_boundary_ips);
 }
 
+IntersectionStatusType TrimmedDomain::GetIntersectionState(
+        const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
+{
+    // Test if center is inside or outside.
+    const PointType center = (rLowerBound + rUpperBound) * 0.5;
+    const auto status = (IsInsideTrimmedDomain(center)) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+
+    // Test for triangle intersections;
+    AABB_primitive aabb(rLowerBound, rUpperBound);
+    auto result = mTree.Query(aabb);
+    for( auto r : result){
+        const auto& p1 = mClippedMesh.P1(r);
+        const auto& p2 = mClippedMesh.P2(r);
+        const auto& p3 = mClippedMesh.P3(r);
+        if( aabb.intersect(p1, p2, p3, Tolerance) ){
+            return IntersectionStatus::Trimmed;
+        }
+    }
+
+    // If triangle is not intersected, center location will determine if inside or outside.
+    return status;
+}
+
 } // End namespace tibra

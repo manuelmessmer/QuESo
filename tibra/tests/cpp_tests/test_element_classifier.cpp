@@ -29,16 +29,16 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
     Vector3d lower_bound = {-2, -2, -2};
     Vector3d upper_bound = {-1.5, 2, 2};
     // Touch from outside with tolerance=0.0 is trimmed.
-    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), BRepOperatorBase::Trimmed );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), IntersectionStatus::Trimmed );
     // Touch from outside with tolerance>0.0 is outside.
-    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), BRepOperatorBase::Outside );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), IntersectionStatus::Outside );
 
     lower_bound = {-1.5, -1.5, -1.5};
     upper_bound = {-1.4, -1.4, -1.4};
     // Touch from inside with tolerance=0.0 is trimmed.
-    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), BRepOperatorBase::Trimmed );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), IntersectionStatus::Trimmed );
     // Touch from inside with tolerance>0.0 is inside.
-    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), BRepOperatorBase::Inside );
+    BOOST_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), IntersectionStatus::Inside );
 }
 
 BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {

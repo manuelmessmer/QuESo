@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
 } // End TouchingTriangleTest
 
 BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
-    TIBRA_INFO << "Testing :: Find Intersected Triangles :: Cylinder" << std::endl;
+    TIBRA_INFO << "Testing :: Test Find Intersected Triangles :: Cylinder" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
 } // End CylinderFindIntersectedTrianglesTest
 
 BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
-    TIBRA_INFO << "Testing :: Find Intersected Triangles :: Elephant" << std::endl;
+    TIBRA_INFO << "Testing :: Test Find Intersected Triangles :: Elephant" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
 } // End ElephantFindIntersectedTrianglesTest
 
 BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
-    TIBRA_INFO << "Testing :: Find Intersected Triangles :: Bunny" << std::endl;
+    TIBRA_INFO << "Testing :: Test Find Intersected Triangles :: Bunny" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};

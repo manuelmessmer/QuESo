@@ -155,13 +155,13 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                 Vector3d lower_bound = {x, y, z};
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == BRepOperatorBase::Trimmed){
+                if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(lower_bound, upper_bound);
                     const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
                     auto mesh = p_trimmed_domain->GetTriangleMesh();
                     volume += MeshUtilities::Volume(mesh);
                 }
-                else if (status == BRepOperatorBase::Inside ){
+                else if (status == IntersectionStatus::Inside ){
                     const auto p_cube_mesh = MeshUtilities::pGetCuboid(lower_bound, upper_bound);
                     volume += MeshUtilities::Volume(*p_cube_mesh);
                 }

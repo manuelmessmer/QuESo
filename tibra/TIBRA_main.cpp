@@ -9,15 +9,13 @@
 //// Project includes
 #include "TIBRA_main.h"
 #include "quadrature/single_element.h"
-#include "quadrature/moment_fitting_utilities.h"
+#include "quadrature/trimmed_element.h"
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace tibra {
 
 void TIBRA::Run(){
-
-  typedef BRepOperatorBase::IntersectionStatus IntersectionStatus;
 
   // Get extreme points of bounding box
   const auto lower_bound = mParameters.LowerBound();
@@ -86,7 +84,7 @@ void TIBRA::Run(){
       // If valid solve moment fitting equation
       if( valid_element ){
         Timer timer_moment_fitting{};
-        MomentFitting::CreateIntegrationPointsTrimmed(*new_element, mParameters);
+        QuadratureTrimmedElement::AssembleIPs(*new_element, mParameters);
         et_moment_fitting += timer_moment_fitting.Measure();
 
         if( new_element->GetIntegrationPoints().size() == 0 ){
@@ -105,7 +103,7 @@ void TIBRA::Run(){
     else if( status == IntersectionStatus::Inside){
       // Get standard gauss legendre points
       if( !mParameters.GGQRuleIsUsed() ){
-        SingleElement::AssembleIPs(*new_element, mParameters);
+        QuadratureSingleElement::AssembleIPs(*new_element, mParameters);
       }
 
       //ExportVolumeMesh(cube, new_element->GetId());
@@ -120,7 +118,7 @@ void TIBRA::Run(){
 
   if( mParameters.GGQRuleIsUsed() ){
     #pragma omp single
-    MultipleElements::AssembleIPs(*mpElementContainer, mParameters);
+    QuadratureMultipleElements::AssembleIPs(*mpElementContainer, mParameters);
   }
 
   // Average time spend for each task
