@@ -7,10 +7,11 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "containers/element_container.hpp"
-#include "quadrature/moment_fitting_utilities.h"
+#include "quadrature/trimmed_element.h"
 #include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
 #include "io/io_utilities.h"
+#include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 namespace tibra {
 namespace Testing {
@@ -60,15 +61,13 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                     if( p_trimmed_domain ){
                         ++number_trimmed_elements;
-                        // Get boundary integration points
-                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
                         // Add trimmed domain to element.
                         element.SetIsTrimmed(true);
                         element.pSetTrimmedDomain(p_trimmed_domain);
 
                         // Run point elimination
-                        const auto residual = MomentFitting::CreateIntegrationPointsTrimmed(element, parameters);
+                        const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
 
                         // Check if residual is smaller than targeted.
                         BOOST_CHECK_LT(residual, 1e-6);
@@ -84,10 +83,11 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 
                         // Compute constant terms.
                         VectorType constant_terms{};
-                        MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                        QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                         // Run moment fitting again.
-                        const auto residual_2 = MomentFitting::MomentFitting1(constant_terms, r_points, element, parameters);
+                        const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
 
                         // Check if residual and weights are the same.
                         BOOST_CHECK_LT( residual, residual_2+EPS4 );
@@ -175,15 +175,13 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                     if( p_trimmed_domain ){
                         ++number_trimmed_elements;
-                        // Get boundary integration points
-                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
                         // Add trimmed domain to element.
                         element.SetIsTrimmed(true);
                         element.pSetTrimmedDomain(p_trimmed_domain);
 
                         // Run point elimination
-                        const auto residual = MomentFitting::CreateIntegrationPointsTrimmed(element, parameters);
+                        const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
 
                         // Check if residual is smaller than targeted.
                         BOOST_CHECK_LT(residual, 1e-8);
@@ -198,10 +196,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
                         // Compute constant terms.
                         VectorType constant_terms{};
-                        MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                        QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                         // Run moment fitting again.
-                        const auto residual_2 = MomentFitting::MomentFitting1(constant_terms, r_points, element, parameters);
+                        const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
 
                         // Check if residual and weights are the same.
                         BOOST_CHECK_LT( residual, residual_2+EPS4 );
@@ -273,15 +272,13 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                     if( p_trimmed_domain ){
                         ++number_trimmed_elements;
-                        // Get boundary integration points
-                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
                         // Add trimmed domain to element.
                         element.SetIsTrimmed(true);
                         element.pSetTrimmedDomain(p_trimmed_domain);
 
                         // Run point elimination
-                        const auto residual = MomentFitting::CreateIntegrationPointsTrimmed(element, parameters);
+                        const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
 
                         // Check if residual is smaller than targeted.
                         BOOST_CHECK_LT(residual, 1e-8);
@@ -296,10 +293,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
                         // Compute constant terms.
                         VectorType constant_terms{};
-                        MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                        QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                         // Run moment fitting again.
-                        const auto residual_2 = MomentFitting::MomentFitting1(constant_terms, r_points, element, parameters);
+                        const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
 
                         // Check if residual and weights are the same.
                         BOOST_CHECK_LT( residual, residual_2+EPS4 );

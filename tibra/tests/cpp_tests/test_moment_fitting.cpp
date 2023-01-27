@@ -9,13 +9,14 @@
 #include "math.h"
 // Project includes
 #include "embedding/brep_operator_factory.h"
-#include "quadrature/moment_fitting_utilities.h"
+#include "quadrature/trimmed_element.h"
 #include "quadrature/single_element.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"
+#include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 namespace tibra {
 namespace Testing {
@@ -43,14 +44,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     PointType point_b_domain = {1.0,1.0, 3.0};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
-    //MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
     auto p_boundary_ips = MakeUnique<TrimmedDomainBase::BoundaryIPVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
             auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
-
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
     SingleElement::AssembleIPs(element, parameters);
@@ -59,11 +58,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
         point.SetWeight(0.0);
     }
 
-    IO::WriteMeshToSTL(*p_triangle_mesh, "mesh.stl", true);
     // Run Moment Fitting
     VectorType constant_terms{};
-    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
-    MomentFitting::MomentFitting1(constant_terms, element.GetIntegrationPoints(), element, parameters);
+    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
+    QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, parameters);
     auto& points_moment_fitting = element.GetIntegrationPoints();
 
     // Get Gauss points as reference
@@ -122,11 +120,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         point.SetWeight(0.0);
     }
 
-    IO::WriteMeshToSTL(*p_triangle_mesh, "mesh.stl", true);
     // Run Moment Fitting
     VectorType constant_terms{};
-    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
-    MomentFitting::MomentFitting1(constant_terms, element.GetIntegrationPoints(), element, parameters);
+    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
+    QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, parameters);
     auto& points_moment_fitting = element.GetIntegrationPoints();
 
     // Get Gauss points as reference
@@ -185,11 +182,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
         point.SetWeight(0.0);
     }
 
-    IO::WriteMeshToSTL(*p_triangle_mesh, "mesh.stl", true);
     // Run Moment Fitting
     VectorType constant_terms{};
-    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
-    MomentFitting::MomentFitting1(constant_terms, element.GetIntegrationPoints(), element, parameters);
+    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
+    QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, parameters);
     auto& points_moment_fitting = element.GetIntegrationPoints();
 
     // Get Gauss points as reference

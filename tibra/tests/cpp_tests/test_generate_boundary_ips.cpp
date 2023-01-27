@@ -8,8 +8,8 @@
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
-#include "quadrature/moment_fitting_utilities.h"
-
+#include "quadrature/trimmed_element.h"
+#include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 namespace tibra {
 namespace Testing {
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
                     auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
                     VectorType constant_terms{};
-                    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     // // Read and ignore header
                     getline(file, line);
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
                     BOOST_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
 
                     VectorType constant_terms{};
-                    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     double error = 0.0;
                     double norm = 0.0;
@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {
                     BOOST_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
 
                     VectorType constant_terms{};
-                    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     double error = 0.0;
                     double norm = 0.0;
@@ -320,7 +320,7 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
                     BOOST_CHECK_LT( area_error, 5e-8 );
 
                     VectorType constant_terms{};
-                    MomentFitting::ComputeConstantTerms(element, p_boundary_ips, constant_terms, parameters);
+                    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     double error = 0.0;
                     double norm = 0.0;
