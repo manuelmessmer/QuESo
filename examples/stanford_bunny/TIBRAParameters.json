@@ -1,7 +1,7 @@
 {
     "general_settings"   : {
         "input_filename"  : "data/stanford_bunny.stl",
-        "echo_level"      : 3
+        "echo_level"      : 1
     },
     "mesh_settings"     : {
         "lower_bound": [-24.0, -43.0, 5.0],

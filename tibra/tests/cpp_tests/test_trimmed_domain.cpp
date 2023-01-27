@@ -14,10 +14,10 @@
 namespace tibra {
 namespace Testing {
 
-BOOST_AUTO_TEST_SUITE( GenerateBoundaryIPsTestSuite )
+BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Elephant" << std::endl;
+BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -99,8 +99,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsElephantTest) {
 
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Bunny" << std::endl;
+BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -175,8 +175,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsBunnyTest) {
     file.close();
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCylinderTest) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cylinder" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -351,8 +351,8 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
     file.close();
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube1Test) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cube 1" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 1" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "positive_x_e6",
@@ -372,8 +372,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube1Test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube2Test) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cube 2" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube2Test) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 2" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "positive_y_e6",
@@ -393,8 +393,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube2Test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube3Test) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cube 3" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube3Test) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 3" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "positive_z_e6",
@@ -414,8 +414,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube3Test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube4Test) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cube 4" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube4Test) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 4" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "negative_x_e6",
@@ -435,8 +435,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube4Test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube5Test) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cube 5" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube5Test) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 5" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "negative_y_e6",
@@ -456,8 +456,8 @@ BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube5Test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(GenerateBoundaryIPsCube6Test) {
-    TIBRA_INFO << "Testing :: Generate Boundary Integration Points :: Cube 6" << std::endl;
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube6Test) {
+    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 6" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
     std::vector<std::string> filenames = { "negative_z_e6",
