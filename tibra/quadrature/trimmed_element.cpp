@@ -113,7 +113,6 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
-
 double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters& rParam){
 
     // Get boundary integration points.
@@ -172,6 +171,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
 
 double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam){
 
+    // Initialize variables
     const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
     const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
     const double jacobian_z = std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]);
@@ -209,8 +209,8 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
         }
     }
 
-    VectorType weights(number_reduced_points);
     // Solve non-negative Least-Square-Error problem.
+    VectorType weights(number_reduced_points);
     auto residual = nnls::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
 
     // Write computed weights onto integration points
@@ -226,14 +226,14 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 
 double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam) {
 
-    /// Initialize const variables
+    /// Initialize variables.
     const SizeType ffactor = 1;
     const SizeType order_u = rParam.Order()[0];
     const SizeType order_v = rParam.Order()[1];
     const SizeType order_w = rParam.Order()[2];
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
     const IndexType min_number_of_points = order_u*order_v*order_w;
-    /// Enter point elimination algorithm
+
     const double targeted_residual = rParam.MomentFittingResidual();
     double global_residual = MIND;
     double prev_residual = 0.0;
@@ -242,23 +242,25 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
     bool point_is_eliminated = false;
     IntegrationPointVectorType prev_solution{};
 
-    // TIBRA_INFO << "start points \n";
-    // TIBRA_INFO << "inital size: " << rIntegrationPoint.size() << "\n";
     // If any point is eliminated, we must run another moment fitting loop, to guarantee that the weights are correct.
     // Also keep iterating, until targeted_residual is stepped over.
     while( point_is_eliminated || (global_residual < targeted_residual && number_iterations < maximum_iteration) ){
         point_is_eliminated = false;
         global_residual = MomentFitting(rConstantTerms, rIntegrationPoint, rElement, rParam);
         if( number_iterations == 0UL){
-            // In first iteration, revome all points but #number_of_functions
-            // Sort integration points according to weight
+            /// In first iteration, revome all points but #number_of_functions
+            // Sort integration points according to weight.
             std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
                     return point_a.GetWeight() > point_b.GetWeight();
                 });
             // Only keep #number_of_functions integration points.
             rIntegrationPoint.erase(rIntegrationPoint.begin()+number_of_functions, rIntegrationPoint.end());
+
+            // Additionally remove all points that are zero.
             rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point) {
                 return point.GetWeight() < EPS4; }), rIntegrationPoint.end());
+
+            // Stop if no points are left.
             if( rIntegrationPoint.size() == 0 )
                 break;
 
@@ -270,11 +272,12 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
             prev_solution.insert(prev_solution.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
             prev_residual = global_residual;
 
+            // Find min and max weights.
             auto min_value_it = rIntegrationPoint.begin();
-            double min_value = 1e10;
-            double max_value = -1e10;
-            auto begin_it = rIntegrationPoint.begin();
-            for(int i = 0; i < rIntegrationPoint.size(); i++){
+            double min_value = MAXD;
+            double max_value = LOWESTD;
+            const auto begin_it = rIntegrationPoint.begin();
+            for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
                 auto it = begin_it + i;
                 if( it->GetWeight() < min_value ) {
                     min_value_it = it;
@@ -284,10 +287,11 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
                     max_value = it->GetWeight();
                 }
             }
-            begin_it = rIntegrationPoint.begin();
-            int counter = 0;
 
-            for(int i = 0; i < rIntegrationPoint.size(); i++){
+            // Remove points that are very small (< EPS1*max_value)
+            // However, always keep #min_number_of_points.
+            SizeType counter = 0;
+            for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
                 auto it = begin_it + i;
                 // TODO: Fix this > 2..4
                 if( it->GetWeight() < EPS1*max_value && rIntegrationPoint.size() > min_number_of_points){
@@ -296,41 +300,36 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
                     counter++;
                 }
             }
+            // If nothing was removed, remove at least one points.
             if( counter == 0 && rIntegrationPoint.size() > min_number_of_points){
                 rIntegrationPoint.erase(min_value_it);
                 point_is_eliminated = true;
             }
+            // Leave loop in next iteration. Note if point_is_eliminated the moment fitting equation is solved again.
             if( rIntegrationPoint.size() <= min_number_of_points ){ //&& !point_is_eliminated ){
                 number_iterations = maximum_iteration + 10;
             }
         }
-        // std::cout << "Residual: " << global_residual << "\n";
-        // std::cout << "Size: " << rIntegrationPoint.size() << "\n";
         number_iterations++;
     }
 
-
     auto& reduced_points = rElement.GetIntegrationPoints();
-    if( (global_residual >= targeted_residual && prev_solution.size() > 0 || number_iterations > maximum_iteration) ) {
+    if( (global_residual >= targeted_residual && prev_solution.size() > 0) || number_iterations > maximum_iteration ) {
+        // Return previous solution.
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
-
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
             return point.GetWeight() < EPS4; }), reduced_points.end());
-        // if( reduced_points.size() < 8 )
-        //     std::cout << "after :" << reduced_points.size() << std::endl;
 
         return prev_residual;
     }
     else{
+        // Return current solution.
         reduced_points.insert(reduced_points.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
-
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
             return point.GetWeight() < EPS4; }), reduced_points.end());
-        // if( reduced_points.size() < 8 )
-        //     std::cout << "after :" << reduced_points.size() << std::endl;
+
         return global_residual;
     }
-
 }
 
 } // End namespace tibra

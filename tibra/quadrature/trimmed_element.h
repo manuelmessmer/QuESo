@@ -62,15 +62,29 @@ protected:
     /// @param rIntegrationOrder Order of Gauss quadrature.
     static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder);
 
-    /// @brief Computes constant terms of moment fitting equation.
+    /// @brief Computes constant terms of moment fitting equation. This functions uses the divergence theorem to
+    //         to transform the respective volume integrals to countour/surface integrals.
     /// @param[out] rConstantTerms
     /// @param rBoundaryIPs
     /// @param rElement
     /// @param rParam
     static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& rBoundaryIPs, const Element& rElement, const Parameters& rParam);
 
+    /// @brief Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
+    ///        Computed weights are directly assigned to rIntegrationPoint.
+    /// @param rConstantTerms
+    /// @param[out] rIntegrationPoint
+    /// @param rElement
+    /// @param rParam
+    /// @return double Residual
     static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam);
 
+    /// @brief Start point elimination algorihtm. Final quadrature rule is stored in rElement.
+    /// @param rConstantTerms
+    /// @param rIntegrationPoint
+    /// @param rElement
+    /// @param rParam
+    /// @return double Residual
     static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam);
 }; // End Class
 
