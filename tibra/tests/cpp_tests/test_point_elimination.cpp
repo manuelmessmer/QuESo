@@ -83,7 +83,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 
                         // Compute constant terms.
                         VectorType constant_terms{};
-                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                        auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
                         QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                         // Run moment fitting again.
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
                         // Compute constant terms.
                         VectorType constant_terms{};
-                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                        auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
                         QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                         // Run moment fitting again.
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
                         // Compute constant terms.
                         VectorType constant_terms{};
-                        auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                        auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
                         QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                         // Run moment fitting again.
