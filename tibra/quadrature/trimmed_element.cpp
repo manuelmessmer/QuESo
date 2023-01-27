@@ -6,7 +6,7 @@
 #include <cmath>
 //// Project includes
 #include "define.hpp"
-#include "quadrature/moment_fitting_utilities.h"
+#include "quadrature/trimmed_element.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/math_utilities.hpp"
 #include "utilities/polynomial_utilities.h"
@@ -19,18 +19,20 @@ namespace tibra {
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
 
-void MomentFitting::DistributeIntegrationPoints(Octree<TrimmedDomainBase>& rOctree, IntegrationPointVectorType& rIntegrationPoint, SizeType MinNumPoints, Element& rElement, const Parameters& rParam){
+void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree,
+                                                           SizeType MinNumPoints, const Vector3i& rIntegrationOrder){
     IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
     while( rIntegrationPoint.size() < MinNumPoints ){
         rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
         rIntegrationPoint.clear();
-        rOctree.AddIntegrationPoints(rIntegrationPoint, {rParam.Order()[0],rParam.Order()[1],rParam.Order()[2]});
+        rOctree.AddIntegrationPoints(rIntegrationPoint, rIntegrationOrder);
         refinemen_level++;
     }
 }
 
-void MomentFitting::ComputeConstantTerms(const Element& rElement, const BoundaryIPsVectorPtrType& pBoundaryIps,
-                                         VectorType& rConstantTerms, const Parameters& rParam){
+void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& rBoundaryIPs,
+                                                    const Element& rElement, const Parameters& rParam){
+
     // Initialize const variables.
     const auto lower_bound = rParam.LowerBound();
     const auto upper_bound = rParam.UpperBound();
@@ -64,10 +66,10 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
     std::vector<double> f_x_z(order_w*ffactor+1);
     std::vector<double> f_x_int_z(order_w*ffactor+1);
 
-    // Loop over all points.
+    // Loop over all boundary integration points.
     IndexType row_index = 0;
-    const auto begin_points_it_ptr = pBoundaryIps->begin();
-    for( int i = 0; i < pBoundaryIps->size(); ++i ){
+    const auto begin_points_it_ptr = rBoundaryIPs->begin();
+    for( int i = 0; i < rBoundaryIPs->size(); ++i ){
         // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
@@ -112,7 +114,7 @@ void MomentFitting::ComputeConstantTerms(const Element& rElement, const Boundary
 }
 
 
-double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Parameters& rParam){
+double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters& rParam){
 
     // Get boundary integration points.
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
@@ -120,7 +122,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Pa
 
     // Get constant terms.
     VectorType constant_terms{};
-    ComputeConstantTerms(rElement, p_boundary_ips, constant_terms, rParam);
+    ComputeConstantTerms(constant_terms, p_boundary_ips, rElement, rParam);
 
     // Construct octree. Octree is used to distribute inital points within trimmed domain.
     const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
@@ -138,9 +140,9 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Pa
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
 
         // Distribute intial points via an octree.
-        const SizeType min_num_points = (rParam.Order()[0]+1)*(rParam.Order()[1]+1)*(rParam.Order()[2]+1)*(point_distribution_factor);
+        const SizeType min_num_points = (order[0]+1)*(order[1]+1)*(order[2]+1)*(point_distribution_factor);
 
-        DistributeIntegrationPoints(octree, integration_points, min_num_points, rElement, rParam);
+        DistributeIntegrationPoints(integration_points, octree, min_num_points, order);
 
         // Also add old, moment fitted points to new set. 'old_integration_points' only contains points with weights > 0.0;
         auto& old_integration_points = rElement.GetIntegrationPoints();
@@ -168,7 +170,7 @@ double MomentFitting::CreateIntegrationPointsTrimmed(Element& rElement, const Pa
     return residual;
 }
 
-double MomentFitting::MomentFitting1(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam){
+double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam){
 
     const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
     const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
@@ -222,7 +224,7 @@ double MomentFitting::MomentFitting1(const VectorType& rConstantTerms, Integrati
 }
 
 
-double MomentFitting::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam) {
+double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam) {
 
     /// Initialize const variables
     const SizeType ffactor = 1;
@@ -246,7 +248,7 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
     // Also keep iterating, until targeted_residual is stepped over.
     while( point_is_eliminated || (global_residual < targeted_residual && number_iterations < maximum_iteration) ){
         point_is_eliminated = false;
-        global_residual = MomentFitting1(rConstantTerms, rIntegrationPoint, rElement, rParam);
+        global_residual = MomentFitting(rConstantTerms, rIntegrationPoint, rElement, rParam);
         if( number_iterations == 0UL){
             // In first iteration, revome all points but #number_of_functions
             // Sort integration points according to weight
@@ -333,14 +335,14 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
 
 } // End namespace tibra
 
-// double MomentFitting::f_x(double x, int order, double a, double b){
+// double QuadratureTrimmedElement::f_x(double x, int order, double a, double b){
 //     double tmp_x = (2*x - a - b)/(b-a);
 //     return p_n(tmp_x,order);
 // }
 
 
 
-// double MomentFitting::f_x(double x, int order){
+// double QuadratureTrimmedElement::f_x(double x, int order){
 //     if( order == 0){double
 //     }
 //     else {
@@ -348,7 +350,7 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
 //     }
 // }
 
-// double MomentFitting::f_x_integral(double x, int order) {
+// double QuadratureTrimmedElement::f_x_integral(double x, int order) {
 //     if(  order == 0 ){
 //         return x;
 //     }
@@ -357,7 +359,7 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
 //     }
 // }
 
-// double MomentFitting::f_x_integral(double x, int order, double a, double b){
+// double QuadratureTrimmedElement::f_x_integral(double x, int order, double a, double b){
 //     switch(order)
 //     {
 //         case 0:
@@ -380,10 +382,10 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
 //             return (35.0*x)/128.0 + (105.0*std::pow( (a + b - 2*x),3) )/(64.0*std::pow( (a - b),2) ) - (693.0*std::pow( (a + b - 2*x),5) )/(128.0*std::pow((a - b),4) ) + (429.0*std::pow((a + b - 2*x),7))/(64.0*std::pow((a - b),6)) - (715.0*std::pow( (a + b - 2*x),9) )/(256.0*std::pow((a - b),8));
 //     }
 
-//     throw  std::invalid_argument("MomentFitting :: Order out of range!\n");
+//     throw  std::invalid_argument("QuadratureTrimmedElement :: Order out of range!\n");
 // }
 
-// double MomentFitting::p_n(double x, int order) {
+// double QuadratureTrimmedElement::p_n(double x, int order) {
 //     switch(order)
 //     {
 //         case 0:
@@ -406,7 +408,7 @@ double MomentFitting::PointElimination(const VectorType& rConstantTerms, Integra
 //             return 1.0/128.0*(6435.0*std::pow(x,8) - 12012.0*std::pow(x,6)+6930.0*std::pow(x,4)-1260.0*std::pow(x,2)+35.0);
 //     }
 
-//     throw  std::invalid_argument("MomentFitting :: Order out of range!\n");
+//     throw  std::invalid_argument("QuadratureTrimmedElement :: Order out of range!\n");
 // }
 
 
