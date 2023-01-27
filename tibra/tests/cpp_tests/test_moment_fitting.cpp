@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     }
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    SingleElement::AssembleIPs(element, parameters);
+    QuadratureSingleElement::AssembleIPs(element, parameters);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Get Gauss points as reference
     Element::IntegrationPointVectorType points_gauss_legendre{};
-    SingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
+    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
         element.GetUpperBoundParam(), {2, 2, 2});
 
     double error_norm = 0.0;
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    SingleElement::AssembleIPs(element, parameters);
+    QuadratureSingleElement::AssembleIPs(element, parameters);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Get Gauss points as reference
     Element::IntegrationPointVectorType points_gauss_legendre{};
-    SingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
+    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
         element.GetUpperBoundParam(), {3, 3, 3});
 
     double error_norm = 0.0;
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    SingleElement::AssembleIPs(element, parameters);
+    QuadratureSingleElement::AssembleIPs(element, parameters);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 
     // Get Gauss points as reference
     Element::IntegrationPointVectorType points_gauss_legendre{};
-    SingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
+    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
         element.GetUpperBoundParam(), {4, 4, 4});
 
     double error_norm = 0.0;

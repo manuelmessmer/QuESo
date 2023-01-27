@@ -70,8 +70,8 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     BOOST_CHECK_LT( std::abs(1.0e-10-parameters.MomentFittingResidual())/1.0e-10, 1.0e-10);
 
     IndexType init_point_distribution_factor = parameters.Get<IndexType>("init_point_distribution_factor");
-    BOOST_CHECK_EQUAL( init_point_distribution_factor, 2UL);
-    BOOST_CHECK_EQUAL( parameters.GetPointDistributionFactor(), 2UL);
+    BOOST_CHECK_EQUAL( init_point_distribution_factor, 1UL);
+    BOOST_CHECK_EQUAL( parameters.GetPointDistributionFactor(), 1UL);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
     BOOST_CHECK_EQUAL( polynomial_order[0], 2UL);

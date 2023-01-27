@@ -55,8 +55,8 @@ void Octree<TOperator>::Node::GetIntegrationPoints(IntegrationPointVectorType* p
         const auto upper_bound_param = Mapping::GlobalToParam(mUpperBound, GlobalLowerBound, GlobalUpperBound);
 
         IntegrationPointVectorType integration_points_tmp{};
-        // Note that SingleElement::AssembleIPs clears integration_points_tmp.
-        SingleElement::AssembleIPs(integration_points_tmp, lower_bound_param, upper_bound_param, rOrder);
+        // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
+        QuadratureSingleElement::AssembleIPs(integration_points_tmp, lower_bound_param, upper_bound_param, rOrder);
         if( mStatus == IntersectionStatus::Inside )
             pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
         else {

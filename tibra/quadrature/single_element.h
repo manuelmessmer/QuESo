@@ -19,13 +19,13 @@ namespace tibra {
 
 ////
 /**
- * @class  SingleElement. Provides assembly opeartions for tensor-product quadrature rules of single non-trimmed element.
+ * @class  QuadratureSingleElement. Provides assembly opeartions for tensor-product quadrature rules of single non-trimmed element.
  * @author Manuel Messmer
  * @brief  Provides assembly for 3D quadrature rules.
  * @details Available Quadrature rules:
  *          {Gauss, Gauss_Reduced1, Gauss_Reduced2}
 */
-class SingleElement {
+class QuadratureSingleElement {
 
 public:
         ///@name Type Definitions
@@ -52,7 +52,7 @@ public:
                                 const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss );
         ///@}
 
-}; // End Class SingleElement
+}; // End Class QuadratureSingleElement
 
 ///@}
 

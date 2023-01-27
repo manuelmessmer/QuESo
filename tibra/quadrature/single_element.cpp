@@ -9,7 +9,7 @@
 
 namespace tibra {
 
-void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
+void QuadratureSingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
 {
     const auto method = rParam.IntegrationMethod();
     auto& integration_points = rElement.GetIntegrationPoints();
@@ -20,7 +20,7 @@ void SingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
     AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rParam.Order(), method);
 }
 
-void SingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
+void QuadratureSingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
         const Vector3i& rOrder, IntegrationMethodType Method ){
 
     const auto p_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
@@ -55,7 +55,7 @@ void SingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoints, const 
 
 } // End namespace tibra
 
-// void SingleElement::Assemble(
+// void QuadratureSingleElement::Assemble(
 //     IntersectionTest& rInsideTest,
 //     IntegrationPointType& rIntegrationPoints,
 //     std::array<double,3> LocalPointA,
@@ -82,7 +82,7 @@ void SingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoints, const 
 // }
 
 
-// void SingleElement::IntegrationPoints3D(
+// void QuadratureSingleElement::IntegrationPoints3D(
 //         IntersectionTest& rInsideTest,
 //         IntegrationPointType& rIntegrationPoints,
 //         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,

@@ -14,13 +14,13 @@ namespace tibra {
 ///@{
 
 /**
- * @class  MultipleElements. Provides assembly opeartions for tensor-product quadrature rules of multiple non-trimmed elements.
+ * @class  QuadratureMultipleElements. Provides assembly opeartions for tensor-product quadrature rules of multiple non-trimmed elements.
  * @author Manuel Messmer
  * @brief  Provides assembly for 3D quadrature rules.
  * @details Available Quadrature rules:
  *          {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
 */
-class MultipleElements {
+class QuadratureMultipleElements {
 
 public:
     ///@name Type Defintitions
@@ -47,7 +47,7 @@ private:
     static void StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters);
 
     static bool AllElementsVisited(ElementContainer& rElements);
-}; // End Class MultipleElements
+}; // End Class QuadratureMultipleElements
 
 ///@}
 
