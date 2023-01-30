@@ -99,28 +99,33 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         (*element_it)->SetVisited(false);
     }
 
-    // Start Loop
     ElementContainer::ElementVectorPtrType box_neighbours{};
-    // TODO: reserve
+    box_neighbours.reserve(10000);
     ElementContainer::ElementVectorPtrType::iterator max_element_it{};
     ElementContainer::ElementPtrType neighbour{};
+
+    // Construct vector of sorted,unvisiteed elements.
+    ElementContainer::ElementVectorPtrType sorted_univisited_elements{};
+    sorted_univisited_elements.insert(sorted_univisited_elements.begin(), rElements.begin(), rElements.end());
+    // Erase all trimmed elements.
+    sorted_univisited_elements.erase(std::remove_if(sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](const auto& rValue) {
+        return rValue->IsTrimmed(); }), sorted_univisited_elements.end());
+
+    // Sort according to NeighbourCoefficient().
+    std::sort( sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](auto &rLHs, auto &rRHS) -> bool
+                // If value is equal, sort according to ElementId(). This is done to keep same test results.
+                { if( std::abs((rLHs)->NeighbourCoefficient() - (rRHS)->NeighbourCoefficient()) < EPS3){ return rLHs->GetId() <= rRHS->GetId();}
+                  else { return (rLHs)->NeighbourCoefficient() > (rRHS)->NeighbourCoefficient(); }
+                });
 
     const std::array<int,6> direction_to_dimension = {0, 0, 1, 1, 2, 2};
     int color_count = 1;
     bool stop = false;
     int stop_count = 0;
-    while( !AllElementsVisited(rElements) && !stop ){
+    while( sorted_univisited_elements.size() > 0 && !stop ){
         double max_value = 0;
-        // Note this is the bottleneck. TODO: Sort and make smarter.
-        for( int i = 0; i < rElements.size(); ++i){
-            auto element_it = element_it_begin + i;
-            if( !(*element_it)->IsVisited() && !(*element_it)->IsTrimmed() ){
-                if( (*element_it)->NeighbourCoefficient() > max_value ){
-                    max_value = (*element_it)->NeighbourCoefficient();
-                    max_element_it = element_it;
-                }
-            }
-        }
+
+        max_element_it = sorted_univisited_elements.begin();
         (*max_element_it)->SetVisited(true);
         box_neighbours.push_back(*max_element_it);
 
@@ -142,15 +147,8 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
                     if( !rElements.IsLast(current_id, direction) ){
                         neighbour = NextElement(rElements, current_id, found, direction);
                         if( found && !neighbour->IsVisited() && !neighbour->IsTrimmed() ){
-                            // Check if neighbour is contained in box_neighbours already!
-                            int neighbour_id = neighbour->GetId();
-                            auto found_element = std::find_if(box_neighbours.begin(), box_neighbours.end(), [&neighbour_id](ElementContainer::ElementPtrType const& r_element)->bool {
-                                return (r_element->GetId()) == neighbour_id; });
-
-                            if(  found_element==box_neighbours.end() ){
-                                neighbour_coeff[direction] += neighbour->NeighbourCoefficient();
-                                tmp_neighbours[direction].push_back(neighbour);
-                            }
+                            neighbour_coeff[direction] += neighbour->NeighbourCoefficient();
+                            tmp_neighbours[direction].push_back(neighbour);
                         }
                     }
                 }
@@ -210,6 +208,9 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         // color_count++;
 
         box_neighbours.clear();
+        // Erase all visiteed element to make search in next iteration faster.
+        sorted_univisited_elements.erase(std::remove_if(sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](const auto& rValue) {
+                return rValue->IsVisited(); }), sorted_univisited_elements.end());
     }
 }
 
