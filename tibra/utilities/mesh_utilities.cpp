@@ -189,7 +189,27 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             double integrand = Math::Dot(normal, point);
-            volume += 1.0/3.0*integrand * point.GetWeight();
+            volume += 1.0/ 3.0*integrand * point.GetWeight();
+        }
+    }
+    return volume;
+}
+
+double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
+    double volume = 0.0;
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+
+    TIBRA_ERROR_IF("MeshUtilities::Volume", Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
+
+    // Loop over all triangles
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
+        const auto r_points = *p_points;
+        // Loop over all points.
+        for( const auto& point : r_points ){
+            const auto& normal = point.Normal();
+            double integrand = normal[Dir]*point[Dir];
+            volume += integrand * point.GetWeight();
         }
     }
     return volume;
@@ -213,13 +233,43 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     return volume;
 }
 
-bool MeshUtilities::IsClosed(const TriangleMesh& rTriangleMesh){
+
+double MeshUtilities::MaxAspectRatio(const TriangleMesh& rTriangleMesh){
+    double max_aspect_ratio = MIND;
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
+        auto P1 = rTriangleMesh.P1(i);
+        auto P2 = rTriangleMesh.P2(i);
+        auto P3 = rTriangleMesh.P3(i);
+
+        const double a = (P2-P1).Norm();
+        const double b = (P3-P2).Norm();
+        const double c = (P1-P3).Norm();
+
+        double max_edge = std::max(std::max(a, b), c);
+        double min_edge = std::min(std::min(a, b), c);
+
+        const double s = 0.5*(a+b+c);
+
+        double aspect_ratio =  1.0/8.0* a*b*c / ( (s-a)*(s-b)*(s-c) );
+        //const double aspect_ratio = max_edge/min_edge;
+        if( aspect_ratio > max_aspect_ratio ){
+            max_aspect_ratio = aspect_ratio;
+        }
+
+
+    }
+    return max_aspect_ratio;
+}
+
+bool MeshUtilities::IsClosed(const TriangleMesh& rTriangleMesh, double Tolerance){
     PointType directional_areas = {0.0, 0.0, 0.0};
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     double total_area = 0.0;
     for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
+
         const auto& r_points = *p_points;
+
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
@@ -229,7 +279,8 @@ bool MeshUtilities::IsClosed(const TriangleMesh& rTriangleMesh){
     }
     double epsilon = std::abs(1.0/total_area*
         (directional_areas[0]+directional_areas[1]+directional_areas[2]));
-    return epsilon < 1e-5;
+
+    return epsilon < Tolerance;
 }
 
 } // End namespace tibra

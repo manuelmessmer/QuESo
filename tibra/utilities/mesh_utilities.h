@@ -56,6 +56,13 @@ public:
     ///@return double
     static double Volume(const TriangleMesh& rTriangleMesh);
 
+    /// @brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
+    /// Only aplpies divergence theorem in direction Dir: 0-x, 1-y, 2-z.
+    /// @param rTriangleMesh
+    /// @param Dir
+    /// @return double
+    static double Volume(const TriangleMesh& rTriangleMesh, IndexType Dir);
+
     ///@brief Returns enclosed volume by triangle mesh (OMP-version).
     ///@param rTriangleMesh
     ///@return double
@@ -63,9 +70,14 @@ public:
 
     ///@brief Returns true if rTriangleMesh represents a closed volume.
     ///@param rTriangleMesh
+    ///@param Tolerance Default: 1e-5.
     ///@return bool
-    static bool IsClosed(const TriangleMesh& rTriangleMesh);
+    static bool IsClosed(const TriangleMesh& rTriangleMesh, double Tolerance = 1e-5);
 
+    /// @brief Prototype so far.
+    /// @param rTriangleMesh
+    /// @return
+    static double MaxAspectRatio(const TriangleMesh& rTriangleMesh);
     ///@}
 }; // End class MeshUtilities
 ///@} // End TIBRA Classes
