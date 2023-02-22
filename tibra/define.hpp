@@ -42,6 +42,11 @@ constexpr double QUIETNAND = std::numeric_limits<double>::quiet_NaN();
 constexpr double SNAPTOL = 1e-12;
 constexpr double ZEROTOL = 1e-14;
 
+inline double RelativeSnapTolerance(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL){
+    const auto delta = (rUpperBound - rLowerBound);
+    return std::max( std::max(delta[0], std::max(delta[1], delta[2]))*Tolerance, Tolerance);
+}
+
 // Tolerances for Testing
 constexpr double EPS0 = 1e-7;
 constexpr double EPS1 = 1e-8;
