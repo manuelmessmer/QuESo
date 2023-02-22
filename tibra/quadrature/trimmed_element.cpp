@@ -258,7 +258,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
 
             // Additionally remove all points that are zero.
             rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point) {
-                return point.GetWeight() < EPS4; }), rIntegrationPoint.end());
+                return point.GetWeight() < ZEROTOL; }), rIntegrationPoint.end());
 
             // Stop if no points are left.
             if( rIntegrationPoint.size() == 0 )
@@ -294,7 +294,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
             for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
                 auto it = begin_it + i;
                 // TODO: Fix this > 2..4
-                if( it->GetWeight() < EPS1*max_value && rIntegrationPoint.size() > min_number_of_points){
+                if( it->GetWeight() < 1e-8*max_value && rIntegrationPoint.size() > min_number_of_points){
                     rIntegrationPoint.erase(it);
                     point_is_eliminated = true;
                     counter++;
@@ -318,7 +318,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
         // Return previous solution.
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < EPS4; }), reduced_points.end());
+            return point.GetWeight() < ZEROTOL; }), reduced_points.end());
 
         return prev_residual;
     }
@@ -326,7 +326,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
         // Return current solution.
         reduced_points.insert(reduced_points.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < EPS4; }), reduced_points.end());
+            return point.GetWeight() < ZEROTOL; }), reduced_points.end());
 
         return global_residual;
     }
