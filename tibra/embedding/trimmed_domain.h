@@ -8,7 +8,9 @@
 #include <memory>
 /// Project includes
 #include "embedding/trimmed_domain_base.h"
+#include "embedding/brep_operator_base.h"
 #include "embedding/aabb_tree.h"
+#include "io/io_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "embedding/trimmed_domain_on_plane.h"
 
@@ -33,13 +35,13 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    ///@brief Builds AABB tree for given mesh.
-    ///@param pClippedTriangleMesh
-    ///@note mpTriangleMesh must be passed to mTree() and not mpTriangleMesh(), since ptr is moved!
-    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
+    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
+            const BRepOperatorBase* pOperator, const Parameters& rParameters )
         : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
+        const auto delta = (mUpperBound - mLowerBound);
+        mSnapTolerance = std::max(delta[0], std::max(delta[1], delta[2]))*SNAPTOL;
+
         ///TODO: Improve this!
         const auto& mesh = GetTriangleMesh();
         mClippedMesh.Reserve(mesh.NumOfTriangles());
@@ -47,38 +49,96 @@ public:
 
         // Construct trimmed domain on plane upper bound of AABB.
         bool upper_bound = true;
-        auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this, true);
+        auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, true);
+        auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, true);
         // Construct trimmed domain on plane lower bound of AABB.
         upper_bound = false;
-        auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this, true);
+        auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, true);
+        auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, true);
 
         if( mpTriangleMesh->NumOfTriangles() > 0 ){
-            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
 
             const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
                 + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
 
             mpTriangleMesh->Reserve(2UL*num_triangles);
 
-            MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t1.get()));
-            MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t2.get()));
-            MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t3.get()));
-            MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t4.get()));
-            MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t5.get()));
-            MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t6.get()));
+            MeshUtilities::Append(*(mpTriangleMesh), *(p_t1));
+            MeshUtilities::Append(*(mpTriangleMesh), *(p_t2));
+            MeshUtilities::Append(*(mpTriangleMesh), *(p_t3));
+            MeshUtilities::Append(*(mpTriangleMesh), *(p_t4));
+            MeshUtilities::Append(*(mpTriangleMesh), *(p_t5));
+            MeshUtilities::Append(*(mpTriangleMesh), *(p_t6));
+
+            // auto closed_in = MeshUtilities::IsClosedDir(*(mpTriangleMesh.get()));
+            // mpTriangleMesh->SetClosedIn(0, std::get<0>(closed_in));
+            // mpTriangleMesh->SetClosedIn(1, std::get<1>(closed_in));
+            // mpTriangleMesh->SetClosedIn(2, std::get<2>(closed_in));
+
+
+
 
             MeshUtilities::Refine(*(mpTriangleMesh.get()), mParameters.MinimumNumberOfTriangles());
+
+
         }
+
     }
+
+    // /// Constructor
+    // ///@brief Builds AABB tree for given mesh.
+    // ///@param pClippedTriangleMesh
+    // ///@note mpTriangleMesh must be passed to mTree() and not mpTriangleMesh(), since ptr is moved!
+    // TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters )
+    //     : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
+    // {
+    //     ///TODO: Improve this!
+    //     // const auto& mesh = GetTriangleMesh();
+    //     // mClippedMesh.Reserve(mesh.NumOfTriangles());
+    //     // MeshUtilities::Append(mClippedMesh, mesh);
+
+    //     // // Construct trimmed domain on plane upper bound of AABB.
+    //     // bool upper_bound = true;
+    //     // auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+    //     // auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+    //     // auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+    //     // // Construct trimmed domain on plane lower bound of AABB.
+    //     // upper_bound = false;
+    //     // auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+    //     // auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+    //     // auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+
+    //     // if( mpTriangleMesh->NumOfTriangles() > 0 ){
+    //     //     auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+    //     //     auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+    //     //     auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+    //     //     auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+    //     //     auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+    //     //     auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+
+    //     //     const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
+    //     //         + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
+
+    //     //     mpTriangleMesh->Reserve(2UL*num_triangles);
+
+    //     //     MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t1.get()));
+    //     //     MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t2.get()));
+    //     //     MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t3.get()));
+    //     //     MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t4.get()));
+    //     //     MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t5.get()));
+    //     //     MeshUtilities::Append(*(mpTriangleMesh.get()), *(p_t6.get()));
+
+    //     //     MeshUtilities::Refine(*(mpTriangleMesh.get()), mParameters.MinimumNumberOfTriangles());
+    //     // }
+    // }
 
     ///@}
     ///@name Operations
@@ -89,7 +149,7 @@ public:
     ///       based on the orientation of the closest intersected triangle (forward or backward facing).
     ///@param rPoint
     ///@return bool
-    bool IsInsideTrimmedDomain(const PointType& rPoint) const override;
+    bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const override;
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
@@ -102,7 +162,7 @@ public:
     ///@param Tolerance Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS0) const;
+    IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=SNAPTOL) const;
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
@@ -117,6 +177,8 @@ private:
 
     AABB_tree mTree;
     TriangleMesh mClippedMesh;
+    double mSnapTolerance;
+
     ///@}
 };
 
