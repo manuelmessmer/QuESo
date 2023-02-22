@@ -23,9 +23,9 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
         // [-x, x, -y, y, -z, z]
         const double plane_position = (plane_index%2UL) ? rUpperBound[plane_index/2UL] : rLowerBound[plane_index/2UL];
         Plane plane(plane_index, plane_position);
-        auto loc_v1 = ClassifyPointToPlane(rV1, plane, EPS1);
-        auto loc_v2 = ClassifyPointToPlane(rV2, plane, EPS1);
-        auto loc_v3 = ClassifyPointToPlane(rV3, plane, EPS1);
+        auto loc_v1 = ClassifyPointToPlane(rV1, plane, 10.0*ZEROTOL);
+        auto loc_v2 = ClassifyPointToPlane(rV2, plane, 10.0*ZEROTOL);
+        auto loc_v3 = ClassifyPointToPlane(rV3, plane, 10.0*ZEROTOL);
         IndexType count_on_plane = (loc_v1 == ON_PLANE) + (loc_v2 == ON_PLANE) + (loc_v3 == ON_PLANE);
         if( count_on_plane == 3 ){
             return nullptr;
@@ -192,7 +192,7 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
                      rA[1] + t*(rB[1] - rA[1]),
                      rA[2] + t*(rB[2] - rA[2]) };
 
-    auto status = ClassifyPointToPlane(ret, rPlane);
+    auto status = ClassifyPointToPlane(ret, rPlane, 1000.0*ZEROTOL);
     TIBRA_ERROR_IF("Clipper::FindIntersectionPointOnPlane", status != ON_PLANE) << "Intersection Point is not on Boundary\n.";
 
     return ret;

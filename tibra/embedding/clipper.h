@@ -105,7 +105,7 @@ private:
     ///@return IndexType (IN_FRON_OF_PLANE, BEHIND_PLANE, ON_PLANE)
     static IndexType ClassifyPointToPlane(const PointType& rPoint,
                                const Plane& rPlane,
-                               const double Eps = EPS1);
+                               const double Eps = 10.0*ZEROTOL);
 
     ///@brief Returns intersection point between line and axis aligned plane.
     ///@param rA Point behind the plane.
