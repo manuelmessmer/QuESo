@@ -179,13 +179,13 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     Parallel = false;
 
     // If det is zero, triangle is parallel to ray.
-    if (std::abs(det) < EPS3){
+    if (std::abs(det) < 10.0*ZEROTOL){
         Parallel = true;
         return true;
     }
 
     // If det is smaller than zero triangle is back facing.
-    if( det < EPS3 )
+    if( det < ZEROTOL )
         BackFacing = true;
 
     // Get inverse of determinant.
@@ -197,7 +197,7 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     // Dot product x invDet: (tvec * pvec) * invDet
     u = Math::Dot(tvec, pvec) * invDet;
 
-    if (u < -EPS2 || u > 1+EPS2)
+    if (u < -ZEROTOL || u > 1+ZEROTOL)
         return false;
 
     // Cross product: tvec x v0v1
@@ -206,20 +206,20 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     // Dot product x invDet: (mDirection * qvec) * invDet
     v = Math::Dot(mDirection, qvec) * invDet;
 
-    if (v < -EPS2 || u + v > 1+EPS2)
+    if (v < -ZEROTOL || u + v > 1+ZEROTOL)
         return false;
 
     // Dot product x invDet: (v0v2 * qvec) * invDet
     t = Math::Dot(v0v2, qvec) * invDet;
 
     // Return false if ray intersects in negative direction.
-    if( t < -EPS2 )
+    if( t < -ZEROTOL )
         return false;
 
     return true;
 }
 
-bool Ray_AABB_primitive::is_parallel( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2) const {
+bool Ray_AABB_primitive::is_parallel( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2, double Tolerance) const {
     // Substraction: v1-v0 and v2-v0
     Vector3d v0v1 = v1 - v0;
     Vector3d v0v2 = v2 - v0;
@@ -231,7 +231,7 @@ bool Ray_AABB_primitive::is_parallel( const Vector3d &v0, const Vector3d &v1, co
     double det = Math::Dot(v0v1, pvec);
 
     // If det is zero, triangle is parallel to ray.
-    if (std::abs(det) < EPS3){
+    if (std::abs(det) < Tolerance){
         return true;
     }
     return false;
