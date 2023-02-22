@@ -46,8 +46,10 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_elephant.txt");
     std::string line{};
 
-    IndexType number_trimmed_elements = 0;
+    const double volume_elephant_ref = MeshUtilities::Volume(triangle_mesh);
+    double volume_elephant_test = 0.0;
 
+    IndexType number_trimmed_elements = 0;
     for(double x = lower_bound[0]; x <= upper_bound[0]; x += delta_x){
         for(double y = lower_bound[1]; y <= upper_bound[1]; y += delta_y){
             for(double z = lower_bound[2]; z <= upper_bound[2]; z += delta_z){
@@ -58,9 +60,15 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
-                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
+                const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound );
+                if( status == IntersectionStatus::Trimmed){
                     // Get trimmed domain
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+
+                    // Get volume
+                    const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+                    volume_elephant_test += MeshUtilities::Volume(r_mesh);
+
                     // Get boundary integration points
                     auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
@@ -81,20 +89,30 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
 
                     double error = 0.0;
                     double norm = 0.0;
+                    double norm_ref = 0.0;
                     for( auto& value : constant_terms ){
                         getline(file, line);
                         double ref_value = std::stod(line);
                         error += std::abs(value-ref_value);
-                        norm += std::abs(ref_value);
+                        norm_ref += std::abs(ref_value);
+                        norm += std::abs(value);
                     }
 
-                    BOOST_CHECK_LT( error/norm, 1e-6);
+                    if( norm_ref/constant_terms.size() > 1e-12 ){
+                        BOOST_CHECK_LT( error/norm_ref, 1e-6);
+                    } else {
+                        BOOST_CHECK_LT( norm/constant_terms.size(), 1e-12);
+                    }
                     number_trimmed_elements++;
+                }
+                else if( status == IntersectionStatus::Inside ){
+                    volume_elephant_test += (local_upper_bound[0]-local_lower_bound[0])*(local_upper_bound[1]-local_lower_bound[1])*(local_upper_bound[2]-local_lower_bound[2]);
                 }
             }
         }
     }
     file.close();
+    BOOST_CHECK_LT( std::abs(volume_elephant_test-volume_elephant_ref)/volume_elephant_ref, 1e-12);
     BOOST_CHECK_EQUAL(number_trimmed_elements, 166);
 
 }
@@ -106,7 +124,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
 
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-24.0, -43.0, 5.0 };
-    Vector3d upper_bound = {-5.0, 46.0, 115 };
+    Vector3d upper_bound = {85, 46.0, 115 };
     Parameters parameters( {Component("lower_bound", lower_bound),
                             Component("upper_bound", upper_bound),
                             Component("number_of_elements", number_of_elements),
@@ -126,6 +144,9 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_bunny.txt");
     std::string line{};
 
+    const double volume_bunny_ref = MeshUtilities::Volume(triangle_mesh);
+    double volume_bunny_test = 0.0;
+
     IndexType number_trimmed_elements = 0;
     for(double x = lower_bound[0]; x <= upper_bound[0]; x += delta_x){
         for(double y = lower_bound[1]; y <= upper_bound[1]; y += delta_y){
@@ -136,11 +157,19 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                 auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
-                if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
+
+                const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound );
+                if( status == IntersectionStatus::Trimmed){
                     // Get Trimmed domain
                     auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+
+                    // Get volume
+                    const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+                    volume_bunny_test += MeshUtilities::Volume(r_mesh);
+
                     // Get boundary integration points
                     auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+
                     // Read and ignore header
                     getline(file, line);
 
@@ -160,7 +189,6 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                     double norm = 0.0;
                     for( const auto& value : constant_terms ){
                         getline(file, line);
-
                         double ref_value = std::stod(line);
                         error += std::abs(value-ref_value);
                         norm += std::abs(ref_value);
@@ -168,11 +196,16 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
 
                     BOOST_CHECK_LT( error/norm, 1e-6);
                     number_trimmed_elements++;
+                } else if( status == IntersectionStatus::Inside ){
+                    volume_bunny_test += (local_upper_bound[0]-local_lower_bound[0])*(local_upper_bound[1]-local_lower_bound[1])*(local_upper_bound[2]-local_lower_bound[2]);
                 }
             }
         }
     }
     file.close();
+
+    BOOST_CHECK_LT( std::abs(volume_bunny_test-volume_bunny_ref)/volume_bunny_ref, 1e-12);
+    BOOST_CHECK_EQUAL(number_trimmed_elements, 171);
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
