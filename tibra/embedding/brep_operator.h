@@ -36,6 +36,9 @@ public:
     typedef BRepOperatorBase BaseType;
     typedef BaseType::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
 
+    // Declare BaseType functions.
+    using BaseType::GetIntersectionState;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -60,10 +63,10 @@ public:
     ///@brief Returns intersections state of element.
     ///@param rLowerBound
     ///@param rUpperBound
-    ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
+    ///@param Tolerance Tolerance reduces element slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS0) const override;
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain holds cipped mesh. (not closed).
     /// @param rLowerBound of AABB.
