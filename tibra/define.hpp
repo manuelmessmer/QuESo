@@ -39,6 +39,10 @@ constexpr double INFINITYD = std::numeric_limits<double>::infinity();
 constexpr double QUIETNAND = std::numeric_limits<double>::quiet_NaN();
 
 // Tolerances
+constexpr double SNAPTOL = 1e-12;
+constexpr double ZEROTOL = 1e-14;
+
+// Tolerances for Testing
 constexpr double EPS0 = 1e-7;
 constexpr double EPS1 = 1e-8;
 constexpr double EPS2 = 1e-10;
