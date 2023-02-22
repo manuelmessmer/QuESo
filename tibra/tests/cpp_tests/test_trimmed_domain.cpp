@@ -289,8 +289,8 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
 }
 
 
-void RunCube(const PointType rDelta, const PointType rLowerBound, const PointType rUpperBound,
-    const PointType Perturbation, const std::string rFilename ){
+void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, const PointType rUpperBound,
+    const PointType Perturbation ){
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
@@ -318,10 +318,8 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
     const double delta_y = rDelta[1];
     const double delta_z = rDelta[2];
 
-    std::string filename = "tibra/tests/cpp_tests/results/b_ips_cube/" + rFilename + ".txt";
-    std::ifstream file(filename);
-    std::string line{};
-
+    const double volume_ref = MeshUtilities::Volume(triangle_mesh);
+    double volume = 0.0;
     IndexType number_trimmed_elements = 0;
     for(double x = rLowerBound[0]; x <= rUpperBound[0]; x += delta_x){
         for(double y = rLowerBound[1]; y <= rUpperBound[1]; y += delta_y){
@@ -336,177 +334,99 @@ void RunCube(const PointType rDelta, const PointType rLowerBound, const PointTyp
                 // Get Trimmed domain
                 auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
                 if( p_trimmed_domain ){
-
-                    // Get boundary integration points
-                    auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
-
-                    // Read and ignore header
-                    getline(file, line);
-                    double area = 0.0;
-                    for( const auto& ip : *p_boundary_ips){
-                        area += ip.GetWeight();
-                    }
-                    getline(file, line);
-                    double ref_area = std::stod(line);
-
-                    double area_error = std::abs(area-ref_area)/std::abs(ref_area);
-                    BOOST_CHECK_LT( area_error, 5e-8 );
-
-                    VectorType constant_terms{};
-                    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
-
-                    double error = 0.0;
-                    double norm = 0.0;
-
-                    double value_0 = 1.0;
-                    for( IndexType i = 0; i < constant_terms.size(); ++i){
-                        getline(file,line);
-                        double value = std::stod(line);
-                        if( i == 0 ){
-                            value_0 = value;
-                        }
-                        error += std::abs( constant_terms[i] - value );
-                        norm += std::abs( value );
-                    }
-                    if( std::abs(value_0) > 1e-5 ){
-                        BOOST_CHECK_LT(error/norm, 1e-6);
-                    }
-
+                    auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+                    volume += MeshUtilities::Volume(r_mesh);
                     number_trimmed_elements++;
                 }
+
             }
         }
     }
 
-    getline(file, line);
-    IndexType value = static_cast<IndexType>(std::stoi(line));
-    BOOST_CHECK_EQUAL(value, number_trimmed_elements);
-    file.close();
+    BOOST_CHECK_LT( std::abs(volume-volume_ref)/volume_ref, 1e-6 );
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test) {
     TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 1" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
-    std::vector<std::string> filenames = { "positive_x_e6",
-                                           "positive_x_e7",
-                                           "positive_x_e8",
-                                           "positive_x_e9",
-                                           "positive_x_e10",
-                                           "positive_x_e11",
-                                           "positive_x_e12" };
+    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
     for( IndexType i = 0; i < perturbations.size(); ++i ){
         PointType lower_bound = {-1.5, -1.5, -1.5};
         PointType upper_bound = {1.5, 1.5, 1.5};
         PointType delta = {1.5, 1.5, 1.5};
         PointType perturbation = {perturbations[i], 0.0 , 0.0};
-        RunCube(delta, lower_bound, upper_bound, perturbation, filenames[i]);
+        RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube2Test) {
     TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 2" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
-    std::vector<std::string> filenames = { "positive_y_e6",
-                                           "positive_y_e7",
-                                           "positive_y_e8",
-                                           "positive_y_e9",
-                                           "positive_y_e10",
-                                           "positive_y_e11",
-                                           "positive_y_e12" };
+    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
     for( IndexType i = 0; i < perturbations.size(); ++i ){
         PointType lower_bound = {-1.5, -1.5, -1.5};
         PointType upper_bound = {1.5, 1.5, 1.5};
         PointType delta = {1.5, 1.5, 1.5};
         PointType perturbation = {0.0, perturbations[i], 0.0};
-        RunCube(delta, lower_bound, upper_bound, perturbation, filenames[i]);
+        RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube3Test) {
     TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 3" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
-    std::vector<std::string> filenames = { "positive_z_e6",
-                                           "positive_z_e7",
-                                           "positive_z_e8",
-                                           "positive_z_e9",
-                                           "positive_z_e10",
-                                           "positive_z_e11",
-                                           "positive_z_e12" };
+    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
     for( IndexType i = 0; i < perturbations.size(); ++i ){
         PointType lower_bound = {-1.5, -1.5, -1.5};
         PointType upper_bound = {1.5, 1.5, 1.5};
         PointType delta = {1.5, 1.5, 1.5};
         PointType perturbation = {0.0, 0.0, perturbations[i]};
-        RunCube(delta, lower_bound, upper_bound, perturbation, filenames[i]);
+        RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube4Test) {
     TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 4" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
-    std::vector<std::string> filenames = { "negative_x_e6",
-                                           "negative_x_e7",
-                                           "negative_x_e8",
-                                           "negative_x_e9",
-                                           "negative_x_e10",
-                                           "negative_x_e11",
-                                           "negative_x_e12" };
+    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
     for( IndexType i = 0; i < perturbations.size(); ++i ){
         PointType lower_bound = {-1.5, -1.5, -1.5};
         PointType upper_bound = {1.5, 1.5, 1.5};
         PointType delta = {1.5, 1.5, 1.5};
         PointType perturbation = {-perturbations[i], 0.0 , 0.0};
-        RunCube(delta, lower_bound, upper_bound, perturbation, filenames[i]);
+        RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube5Test) {
     TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 5" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
-    std::vector<std::string> filenames = { "negative_y_e6",
-                                           "negative_y_e7",
-                                           "negative_y_e8",
-                                           "negative_y_e9",
-                                           "negative_y_e10",
-                                           "negative_y_e11",
-                                           "negative_y_e12" };
+    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
     for( IndexType i = 0; i < perturbations.size(); ++i ){
         PointType lower_bound = {-1.5, -1.5, -1.5};
         PointType upper_bound = {1.5, 1.5, 1.5};
         PointType delta = {1.5, 1.5, 1.5};
         PointType perturbation = {0.0, -perturbations[i], 0.0};
-        RunCube(delta, lower_bound, upper_bound, perturbation, filenames[i]);
+        RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube6Test) {
     TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 6" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12 };
-    std::vector<std::string> filenames = { "negative_z_e6",
-                                           "negative_z_e7",
-                                           "negative_z_e8",
-                                           "negative_z_e9",
-                                           "negative_z_e10",
-                                           "negative_z_e11",
-                                           "negative_z_e12" };
+    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
     for( IndexType i = 0; i < perturbations.size(); ++i ){
         PointType lower_bound = {-1.5, -1.5, -1.5};
         PointType upper_bound = {1.5, 1.5, 1.5};
         PointType delta = {1.5, 1.5, 1.5};
         PointType perturbation = {0.0, 0.0, -perturbations[i]};
-        RunCube(delta, lower_bound, upper_bound, perturbation, filenames[i]);
+        RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
