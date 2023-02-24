@@ -76,6 +76,26 @@ public:
         return (P1+P2+P3) * (1.0/3.0);
     }
 
+    /// @brief Returns aspect ratio.
+    /// @param TriangleId
+    /// @return double
+    double AspectRatio(IndexType TriangleId) const {
+        const auto P1 = this->P1(TriangleId);
+        const auto P2 = this->P2(TriangleId);
+        const auto P3 = this->P3(TriangleId);
+
+        const auto area = this->Area(TriangleId);
+
+        const double a = (P2-P1).Norm();
+        const double b = (P3-P2).Norm();
+        const double c = (P1-P3).Norm();
+
+        const double max_edge = std::max(std::max(a, b), c);
+
+        const double square_root_3 = 1.73205080756887729;
+        return max_edge*(a+b+c)/(4.0*square_root_3 * area);
+    }
+
     /// @brief Get boundary integration points in global space.
     /// @param TriangleId
     /// @param Method integration method.
