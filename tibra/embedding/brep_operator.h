@@ -78,15 +78,27 @@ public:
     ///@brief Return ids of triangles that intersect AABB.
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
+    ///@param Tolerance Positve tolerance reduces extent of AABB. This can be used to neglect touching triangles.
     ///@return Unique<std::vector<IndexType>> containing ids.
-    Unique<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    Unique<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const;
 
     ///@brief Clips triangle mesh by AABB.
+    ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.
+    ///       This is a requirement for the intersection algorithm (TrimemdDomain and TrimmedDomainOnPlane).
+    ///@see ClipTriangleMeshUnique().
     ///@param rLowerBound of AABB.
     ///@param rUpperBound of AABB.
     ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
+    Unique<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
+    ///@brief Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
+    ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
+    ///       This is a requirement for the application of boundary conditions.
+    ///@see ClipTriangleMesh()
+    ///@param rLowerBound of AABB.
+    ///@param rUpperBound of AABB.
+    ///@return Unique<TriangleMesh>. Clipped mesh.
+    Unique<TriangleMesh> ClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
     ///@}
 
 private:

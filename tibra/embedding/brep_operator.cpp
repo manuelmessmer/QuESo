@@ -20,15 +20,13 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> drandon(0.5, 1.5);
 
-
     if( mTree.IsWithinBoundingBox(rPoint)) {
         bool is_on_boundary = true;
         int intersection_count = 0;
         IndexType iteration = 0UL;
+        IndexType max_iteration = 100UL;
         while( is_on_boundary ){
-            if( iteration >= 100UL){
-                return false;
-            }
+            if( iteration >= max_iteration){ return false; }
             iteration++;
             // Get random direction. Must be postive! -> x>0, y>0, z>0
             Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
@@ -53,22 +51,22 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
                 const auto& p3 = mTriangleMesh.P3(r);
                 double t, u, v;
                 bool back_facing, parallel;
-                if( mTriangleMesh.Area(r) > 100.0*ZEROTOL ) {
-                    if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
-                        intersection_count++;
-                        const double sum_u_v = u+v;
-                        if( t < ZEROTOL ){ // Origin lies on boundary
-                            return false;
-                        }
-                        // Ray shoots through boundary of triangle.
-                        if( u < 0.0+ZEROTOL || v < 0.0+ZEROTOL || sum_u_v > 1.0-ZEROTOL ){
-                            is_on_boundary = true;
-                            break;
-                        }
-                        if( parallel ){ // Triangle is parallel to ray.
-                            is_on_boundary = true;
-                            break;
-                        }
+                // Test for actual intersection, if area is area is not zero.
+                if( mTriangleMesh.Area(r) > 100.0*ZEROTOL
+                        && ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
+                    intersection_count++;
+                    const double sum_u_v = u+v;
+                    if( t < ZEROTOL ){ // Origin lies on boundary
+                        return false;
+                    }
+                    // Ray shoots through boundary of triangle.
+                    if( u < 0.0+ZEROTOL || v < 0.0+ZEROTOL || sum_u_v > 1.0-ZEROTOL ){
+                        is_on_boundary = true;
+                        break;
+                    }
+                    if( parallel ){ // Triangle is parallel to ray.
+                        is_on_boundary = true;
+                        break;
                     }
                 }
             }
@@ -79,7 +77,6 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
     }
 
     return false;
-
 }
 
 IntersectionStatus BRepOperator::GetIntersectionState(
@@ -89,11 +86,13 @@ IntersectionStatus BRepOperator::GetIntersectionState(
     const PointType center = { 0.5*(rUpperBound[0]+rLowerBound[0]), 0.5*(rUpperBound[1]+rLowerBound[1]), 0.5*(rUpperBound[2]+rLowerBound[2]) };
 
     IntersectionStatus status = (IsInside(center)) ? Inside : Outside;
-    // IntersectionStatus status_2 = (IsInside(center)) ? Inside : Outside;
-    // while( status != status_2){
+
+    // IntersectionStatus status_confirm = (IsInside(center)) ? Inside : Outside;
+    // while( status != status_confirm){
     //     status = (IsInside(center)) ? Inside : Outside;
-    //     status_2 = (IsInside(center)) ? Inside : Outside;
+    //     status_confirm = (IsInside(center)) ? Inside : Outside;
     // }
+
     AABB_primitive aabb(rLowerBound, rUpperBound);
     auto result = mTree.Query(aabb);
 
@@ -112,17 +111,18 @@ IntersectionStatus BRepOperator::GetIntersectionState(
 }
 
 TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+    // Instantiate random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> drandon(1, 10);
+    std::uniform_real_distribution<> drandon(1, 100);
 
-
+    // Make copy of lower and upper bound.
     auto lower_bound = rLowerBound;
     auto upper_bound = rUpperBound;
 
-    const auto delta = (upper_bound - lower_bound);
-    double snap_tolerance = 10.0*std::max( std::max(delta[0], std::max(delta[1], delta[2]))*SNAPTOL, SNAPTOL);
+    const double snap_tolerance = RelativeSnapTolerance(lower_bound, upper_bound);
     const double min_volume_ratio = mParameters.Get<double>("min_element_volume_ratio");
+    const auto delta = (upper_bound - lower_bound);
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
     Unique<TrimmedDomain> best_prev_solution = nullptr;
@@ -131,71 +131,41 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
     IndexType iteration = 1UL;
     while( iteration < 10){
         auto p_new_mesh = ClipTriangleMesh(lower_bound, upper_bound);
-
         if( p_new_mesh->NumOfTriangles() > 0) {
-            auto p = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters);
-            const auto& r_trimmed_domain_mesh = p->GetTriangleMesh();
-            // const double volume_trimmed_domain = MeshUtilities::Volume(r_trimmed_domain_mesh);
-            // const auto delta = rUpperBound - rLowerBound;
-            // const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
-            // const double min_volume_ratio = mParameters.Get<double>("min_element_volume_ratio");
-            //if( MeshUtilities::IsClosed(r_trimmed_domain_mesh) && volume_trimmed_domain / volume_non_trimmed_domain > min_volume_ratio )
+            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters);
+            const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
 
-            double volume_1 = MeshUtilities::Volume( r_trimmed_domain_mesh, 0);
-            double volume_2 = MeshUtilities::Volume( r_trimmed_domain_mesh, 1);
-            double volume_3 = MeshUtilities::Volume( r_trimmed_domain_mesh, 2);
+            double volume = MeshUtilities::Volume( r_trimmed_domain_mesh);
+            bool volume_ratio = volume / volume_non_trimmed_domain > min_volume_ratio;
 
-            auto bounding_box = p->GetBoundingBoxOfTrimmedDomain();
-            auto delta = bounding_box.second - bounding_box.first;
-            double average_volume = (volume_1+volume_2+volume_3)/3.0;
-
-            bool volume_ratio = average_volume / volume_non_trimmed_domain > min_volume_ratio;
-
-            const double error_1 = std::abs( volume_1 - average_volume)/ std::abs(average_volume);
-            const double error_2 = std::abs( volume_2 - average_volume)/ std::abs(average_volume);
-            const double error_3 = std::abs( volume_3 - average_volume)/ std::abs(average_volume);
-            const double max_error = std::max(std::max(error_1, error_2), error_3);
-
-            bool is_closed = MeshUtilities::IsClosed(r_trimmed_domain_mesh, 1e-5);
-
-            if( is_closed && max_error < 1e-5  ){
+            const double epsilon = MeshUtilities::EstimateQuality(r_trimmed_domain_mesh);
+            if( epsilon < 1e-5  ){
                 if( volume_ratio )
-                    return std::move(p);
+                    return std::move(p_trimmed_domain);
                 else
                     return nullptr;
             }
             else {
-                is_closed = MeshUtilities::IsClosed(r_trimmed_domain_mesh, 1e-2);
-                if( max_error < best_error && is_closed && volume_ratio ){
-                    best_error = max_error;
-                    best_prev_solution = std::move(p);
+                if( epsilon < best_error && volume_ratio ){
+                    best_error = epsilon;
+                    best_prev_solution = std::move(p_trimmed_domain);
                 }
-                // TODO: Add Directionss!!!
-                PointType perturbation = {drandon(gen)*snap_tolerance,
-                                          drandon(gen)*snap_tolerance,
-                                          drandon(gen)*snap_tolerance};
-                PointType perturbation_1 = {drandon(gen)*snap_tolerance,
-                                          drandon(gen)*snap_tolerance,
-                                          drandon(gen)*snap_tolerance};
+                PointType lower_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
+                PointType upper_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
 
-                lower_bound -= perturbation;
-                upper_bound += perturbation_1;
+                lower_bound -= lower_perturbation;
+                upper_bound += upper_perturbation;
             }
         }
         ++iteration;
     }
-
-    //IO::WriteMeshToSTL()
 
     return best_prev_solution;
 }
 
 
 Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
-        const PointType& rLowerBound, const PointType& rUpperBound ) const{
-
-    const auto delta = (rUpperBound - rLowerBound);
-    double snap_tolerance = std::max( std::max(delta[0], std::max(delta[1], delta[2]))*SNAPTOL, SNAPTOL);
+        const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const {
 
     // Perform fast search based on aabb tree. Conservative search.
     AABB_primitive aabb(rLowerBound, rUpperBound);
@@ -210,7 +180,7 @@ Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
         const auto& p3 = mTriangleMesh.P3(triangle_id);
 
         // Perform actual intersection test.
-        if( aabb.intersect(p1, p2, p3, 0.1*snap_tolerance) ){
+        if( aabb.intersect(p1, p2, p3, Tolerance) ){
             intersected_triangle_ids->push_back(triangle_id);
         }
     }
@@ -221,7 +191,8 @@ Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
 Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
         const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
-    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound);
+    const double snap_tolerance = 0.1*RelativeSnapTolerance(rUpperBound, rLowerBound);
+    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound, snap_tolerance);
     auto p_triangle_mesh = MakeUnique<TriangleMesh>();
     p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
     p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
@@ -230,11 +201,41 @@ Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
         const auto& P2 = mTriangleMesh.P2(triangle_id);
         const auto& P3 = mTriangleMesh.P3(triangle_id);
         const auto& normal = mTriangleMesh.Normal(triangle_id);
-        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound);
+        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound );
         if( p_polygon ){
             p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
         }
     }
+    if( p_triangle_mesh->NumOfTriangles() > 0){
+        p_triangle_mesh->Check();
+    }
+    return std::move(p_triangle_mesh);
+}
+
+
+Unique<TriangleMesh> BRepOperator::ClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+
+    const PointType offset(10*ZEROTOL, 10*ZEROTOL, 10*ZEROTOL);
+    const auto lower_bound = rLowerBound + offset;
+    const auto upper_bound = rUpperBound + offset;
+    double snap_tolerance = 1.0*ZEROTOL;
+    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
+    auto p_triangle_mesh = MakeUnique<TriangleMesh>();
+    p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
+    p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
+    const bool keep_elements_on_plane = true;
+
+    for( auto triangle_id : (*p_intersected_triangle_ids) ){
+        const auto& P1 = mTriangleMesh.P1(triangle_id);
+        const auto& P2 = mTriangleMesh.P2(triangle_id);
+        const auto& P3 = mTriangleMesh.P3(triangle_id);
+        const auto& normal = mTriangleMesh.Normal(triangle_id);
+        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, lower_bound, upper_bound, keep_elements_on_plane);
+        if( p_polygon ){
+            p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
+        }
+    }
+    snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound);
     if( p_triangle_mesh->NumOfTriangles() > 0){
         p_triangle_mesh->Check();
     }
