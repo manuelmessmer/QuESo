@@ -4,6 +4,7 @@ examples/stanford_bunny/output/
 examples/steering_knuckle/output/
 examples_test/
 kratos_interface/__pycache__/
+output/
 libs/
 TestExecutables/
 TIBRA_PythonApplication/
