@@ -40,7 +40,7 @@ constexpr double QUIETNAND = std::numeric_limits<double>::quiet_NaN();
 
 // Tolerances
 constexpr double SNAPTOL = 1e-12;
-constexpr double ZEROTOL = 1e-14;
+constexpr double ZEROTOL = 5e-14;
 
 inline double RelativeSnapTolerance(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL){
     const auto delta = (rUpperBound - rLowerBound);
