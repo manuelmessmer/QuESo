@@ -46,10 +46,14 @@ public:
     ///@param rNormal Normal vector of triangle.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
+    ///@param KeepOnPlane If false, for all triangles that are aligned with any cutting plane a nullptr is returned.
+    ///                   KeepOnPlane = False must be used for intersection algorithm.
+    ///                   If true, triangle is only assigned to positive planes (+x, +y, +z) to avoid double assignements.
+    ///                   KeepOnPlane = False must be used when clipping a mesh for the application of dirichlet boundary conditions.
     ///@return Unique<Polygon> (Will contain maximal 9 vertices).
     ///@todo Overload where normal is computed from vertices.
     static Unique<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-                 const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
+                 const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound, bool KeepOnPlane = false);
 
     ///@}
 
