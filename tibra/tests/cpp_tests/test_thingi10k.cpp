@@ -29,16 +29,27 @@ bool IsValid(IndexType Id){
     return found_it == invalid_ids.end();
 }
 
+
+// Expected Results!!!
+// Max Volume Error:  Id: 238414, error: 9.814021391445386e-11
+// Max Surface Error:  Id: 177007, error: 2.248888805327658e-11
+// count_fail Elements: 0
+// Valid Elements: 4802
+
+
 BOOST_AUTO_TEST_CASE(Thingi10kTest1) {
     TIBRA_INFO << "Testing :: Test Thingi10k :: Is solid and Is manifold." << std::endl;
 
     // Nice and complictaed structure.
-    // file_ids = {472183};
+    //file_ids = {37284};
     // local_lower_bound = {20.41118530273437, -13.2892558517456, 30.29291057777406};
     // local_upper_bound = {23.12449999999999, -10.76729598236084, 32.83973582649232};
 
-    //file_ids = {37886};
+    file_ids = {88566};
     SizeType num_files = file_ids.size();
+
+    std::ofstream file;
+    file.open("output/results.txt");
 
     TIBRA_INFO << "Parsing: " << num_files << " STL Files.\n";
     IndexType count = 0;
@@ -61,7 +72,7 @@ BOOST_AUTO_TEST_CASE(Thingi10kTest1) {
             //IO::WriteMeshToSTL(triangle_mesh, "test222.stl", true);
             //TIBRA_INFO << triangle_mesh.NumOfTriangles() << std::endl;
             //IO::WriteMeshToSTL(triangle_mesh, "test.stl", true);
-            bool is_closed = MeshUtilities::IsClosed2(triangle_mesh);
+            //bool is_closed = MeshUtilities::IsClosed(triangle_mesh, 1e-10);
 
             // //MeshUtilities::Refine(triangle_mesh, 5000);
             // // TIBRA_INFO << "is_closed: " << is_closed << std::endl;
@@ -73,19 +84,18 @@ BOOST_AUTO_TEST_CASE(Thingi10kTest1) {
             double volume_2 = MeshUtilities::Volume(triangle_mesh, 1);
             double volume_3 = MeshUtilities::Volume(triangle_mesh, 2);
 
+            //std::cout << std::abs( volume_1 - volume)/ volume << std::endl;
             // // std::cout << std::setprecision(16) << volume_1 << std::endl;
             // // std::cout << std::setprecision(16) << volume_2 << std::endl;
             // std::cout << std::setprecision(16) << volume_3 << std::endl;
             double average_volume = (volume_1+volume_2+volume_3)/3.0;
             double cube_volume = 0.0;
-            if( volume > EPS0 && MeshUtilities::IsClosed2(triangle_mesh)
-                && std::abs( volume_1 - average_volume)/ average_volume < 1e-10
-                && std::abs( volume_2 - average_volume)/ average_volume < 1e-10
-                && std::abs( volume_3 - average_volume)/ average_volume < 1e-10 ){
+            if( volume > EPS0 && MeshUtilities::EstimateQuality(triangle_mesh) <  1e-11 ){
+
                 //TIBRA_INFO << "Id: " << id << ", has voluem: " << volume << std::endl;
                 //std::cout << "Coun-12.25, 0, 45.05t: " << count << std::endl;
                 count++;
-
+                //TIBRA_INFO << "Aspect Ratio: " << MeshUtilities::MaxAspectRatio(triangle_mesh) << "\n";
                 //std::cout << "count: " << count << ": fails: " << count_fail << std::endl;
                 PointType lower_bound_stl = {MAXD, MAXD, MAXD};
                 PointType upper_bound_stl = {LOWESTD, LOWESTD, LOWESTD};
@@ -112,10 +122,10 @@ BOOST_AUTO_TEST_CASE(Thingi10kTest1) {
                     upper_bound_stl[2] = std::max<double>(*z_min_max.second, upper_bound_stl[2]);
                 }
 
-                IndexType n_max = 40;
-                IndexType n_min = 5;
+                IndexType n_max = 30;
+                IndexType n_min = 3;
                 auto delta_stl = upper_bound_stl - lower_bound_stl;
-                double h = 1.20*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
+                double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
                 //std::cout << "h" << h << std::endl;
                 PointType lower_bound = lower_bound_stl - delta_stl*0.1;
                 PointType upper_bound;
@@ -148,12 +158,17 @@ BOOST_AUTO_TEST_CASE(Thingi10kTest1) {
                 const double delta_z = delta_new[2]/num_elements[2];
 
                 //TIBRA tibra(parameters);
-                //ElementContainer element_container(parameters);
+                ElementContainer element_container(parameters);
                 double test_volume = 0.0;
+                double test_area = 0.0;
                 double vol_inner = 0.0;
                 std::vector<double> volumes;
                 BRepOperator brep_operator(triangle_mesh, parameters);
                 IndexType id_el = 0;
+
+                IndexType number_trimmed_el = 0;
+                TriangleMesh clipped_meshes;
+                clipped_meshes.Reserve(5);
                 for(double x = lower_bound[0]; x <= upper_bound[0]-EPS0; x += h){
                     for(double y = lower_bound[1]; y <= upper_bound[1]-EPS0; y += h){
                         for(double z = lower_bound[2]; z <= upper_bound[2]-EPS0; z += h){
@@ -164,36 +179,60 @@ BOOST_AUTO_TEST_CASE(Thingi10kTest1) {
                             auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                             Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
+                            std::shared_ptr<Element> new_element = std::make_shared<Element>(number_trimmed_el, local_lower_bound_param, local_upper_bound_param, parameters);
 
+                            auto p_clipped_mesh = brep_operator.ClipTriangleMeshUnique(local_lower_bound, local_upper_bound );
+                            MeshUtilities::Append( clipped_meshes, *p_clipped_mesh);
+                            test_area += MeshUtilities::Area(*p_clipped_mesh);
                             auto status = brep_operator.GetIntersectionState(element);
                             if( status == IntersectionStatus::Trimmed){
                                 // Get trimmed domain
                                 auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                                number_trimmed_el++;
+                                element_container.AddElement(new_element);
                                 if( p_trimmed_domain ){
+
                                     auto mesh = p_trimmed_domain->GetTriangleMesh();
                                     auto tmp_volume = MeshUtilities::Volume(mesh);
+                                    auto tmp_volume_2 = MeshUtilities::Volume(mesh,0);
+
                                     test_volume += tmp_volume;
                                 }
                             } else if( status == IntersectionStatus::Inside ){
+
+
                                 test_volume += (local_upper_bound[0]-local_lower_bound[0]) * (local_upper_bound[1]- local_lower_bound[1]) * (local_upper_bound[2] - local_lower_bound[2]);
+                                cube_volume = (local_upper_bound[0]-local_lower_bound[0]) * (local_upper_bound[1]- local_lower_bound[1]) * (local_upper_bound[2] - local_lower_bound[2]);
                             }
                         }
                     }
                 }
 
+                double area = MeshUtilities::Area(triangle_mesh);
+                double area_test_2 = MeshUtilities::Area(clipped_meshes);
+                double error_area = std::abs(area - test_area)/area;
+                //std::cout << "Area error: " << std::abs(area - test_area)/area << std::endl;
                 volume = MeshUtilities::Volume(triangle_mesh);
                 double error = std::abs( test_volume - volume)/ volume;
-                if( error > 1e-9 && !(test_volume < 1e-9) ){
+                if( error > 1e-9 || error_area > 1e-9 ){
                     count_fail++;
                     //IO::WriteElementsToVTK(element_container, "element.vtk", true);
-                    TIBRA_INFO << "error of id: " << id << ", " << error << " volume: " <<  test_volume << ", "
-                        << "ref: " << volume << std::endl;
 
+                    TIBRA_INFO << "error of id: " << id << ", " << error << ", " << error_area << " volume: " <<  test_volume << ", " << "ref: " << volume << std::endl;
+                    std::cout << "area: " << std::setprecision(16) << area << ", " << test_area << ", " << area_test_2 << std::endl;
                     //TIBRA_INFO << "Really: " << std::abs( test_volume - volume)/cube_volume << std::endl;
                 }
+                // IO::WriteElementsToVTK(element_container, "elements.vtk", true);
+                //IO::WriteMeshToSTL(clipped_meshes, "clipped_meshes.stl", true);
+                const double max_aspect = MeshUtilities::MaxAspectRatio(triangle_mesh);
+                const double average_aspect = MeshUtilities::AverageAspectRatio(triangle_mesh);
+
+                #pragma omp critical
+                file << id << ", " << triangle_mesh.NumOfTriangles() << ", " << std::setprecision(16) << error << ", " << error_area << ", " << max_aspect << ", " << average_aspect << std::endl;
             }
         }
     }
+    file.close();
 
     TIBRA_INFO << "Valid Elements: " << count << std::endl;
     TIBRA_INFO << "count_fail Elements: " << count_fail << std::endl;
