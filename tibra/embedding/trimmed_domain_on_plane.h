@@ -47,7 +47,6 @@ public:
     typedef Unique<BoundaryIPVectorType> BoundaryIPVectorPtrType;
     typedef Unique<TriangleMesh> TriangleMeshPtrType;
 
-
     struct PointComparison {
         PointComparison(double Tolerance) : mTolerance(Tolerance){}
         bool operator() (const std::vector<Point2DType>::iterator& rLhs, const std::vector<Point2DType>::iterator& rRhs) const {
@@ -58,8 +57,10 @@ public:
                 return (*rLhs)[0] <= (*rRhs)[0] - mTolerance;
             }
         }
+    private:
         double mTolerance;
     };
+
     typedef std::set<std::vector<Point2DType>::iterator, PointComparison> Point2DSetType;
 
     /**
@@ -103,7 +104,7 @@ public:
     ///@{
 
     /// Constructor.
-    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain, bool Switch)
+    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain)
         : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain)
     {
         // Orientation
@@ -117,47 +118,30 @@ public:
         //
         mPlaneIndex = PlaneIndex;
         if (PlaneIndex == 2) {
-            if( Switch ){
-                DIRINDEX1 = 0;
-                DIRINDEX2 = 1;
-            } else {
-                DIRINDEX1 = 1;
-                DIRINDEX2 = 0;
-            }
+            DIRINDEX1 = 0;
+            DIRINDEX2 = 1;
             DIRINDEX3 = 2;
         }
         else if (PlaneIndex == 1) {
-            if( Switch ){
-                DIRINDEX1 = 2;
-                DIRINDEX2 = 0;
-            } else {
-                DIRINDEX1 = 2;
-                DIRINDEX2 = 0;
-            }
+            DIRINDEX1 = 2;
+            DIRINDEX2 = 0;
             DIRINDEX3 = 1;
         }
         else if (PlaneIndex == 0) {
-            if( Switch ){
-                DIRINDEX1 = 1;
-                DIRINDEX2 = 2;
-            } else {
-                DIRINDEX1 = 2;
-                DIRINDEX2 = 1;
-            }
+            DIRINDEX1 = 1;
+            DIRINDEX2 = 2;
             DIRINDEX3 = 0;
         }
         else {
             TIBRA_ERROR("TrimmedDomainOnPlane::Constructor") << "Wrong PlaneIndex.\n";
         }
-        const auto delta = (mUpperBound - mLowerBound);
-        const double max_extension = std::max(delta[0], std::max(delta[1], delta[2]));
 
-        mSnapTolerance = std::max( std::max(delta[0], std::max(delta[1], delta[2]))*SNAPTOL, SNAPTOL);
+        mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
 
+        // Instantiate vertices sets.
         mVerticesSetPositive = MakeUnique<Point2DSetType>(PointComparison(mSnapTolerance));
         mVerticesSetNegative = MakeUnique<Point2DSetType>(PointComparison(mSnapTolerance));
         mVerticesSetVertical = MakeUnique<Point2DSetType>(PointComparison(mSnapTolerance));
-
     }
 
     ///@}
