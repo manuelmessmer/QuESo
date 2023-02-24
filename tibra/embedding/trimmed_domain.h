@@ -39,8 +39,7 @@ public:
             const BRepOperatorBase* pOperator, const Parameters& rParameters )
         : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
-        const auto delta = (mUpperBound - mLowerBound);
-        mSnapTolerance = std::max(delta[0], std::max(delta[1], delta[2]))*SNAPTOL;
+        mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
 
         ///TODO: Improve this!
         const auto& mesh = GetTriangleMesh();
@@ -49,14 +48,14 @@ public:
 
         // Construct trimmed domain on plane upper bound of AABB.
         bool upper_bound = true;
-        auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this, true);
-        auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, true);
-        auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, true);
+        auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
         // Construct trimmed domain on plane lower bound of AABB.
         upper_bound = false;
-        auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this, true);
-        auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, true);
-        auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, true);
+        auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
 
         if( mpTriangleMesh->NumOfTriangles() > 0 ){
             auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
@@ -78,17 +77,7 @@ public:
             MeshUtilities::Append(*(mpTriangleMesh), *(p_t5));
             MeshUtilities::Append(*(mpTriangleMesh), *(p_t6));
 
-            // auto closed_in = MeshUtilities::IsClosedDir(*(mpTriangleMesh.get()));
-            // mpTriangleMesh->SetClosedIn(0, std::get<0>(closed_in));
-            // mpTriangleMesh->SetClosedIn(1, std::get<1>(closed_in));
-            // mpTriangleMesh->SetClosedIn(2, std::get<2>(closed_in));
-
-
-
-
             MeshUtilities::Refine(*(mpTriangleMesh.get()), mParameters.MinimumNumberOfTriangles());
-
-
         }
 
     }
