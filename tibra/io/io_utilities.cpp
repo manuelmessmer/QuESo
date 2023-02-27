@@ -169,7 +169,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
         vertices[j] = index_map_iterator->first;
       }
     }
-    if( Math::Norm(point_normal) > 0.99 ){ // Sometime normal is zeroin STL. Then we neglect that triangle.
+    if( Math::Norm(point_normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
       rTriangleMesh.AddTriangle(triangle);
 
       // Uses largest two edges to compute normal. We need normal in machine precesion.
