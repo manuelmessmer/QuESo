@@ -104,7 +104,7 @@ public:
     ///@{
 
     /// Constructor.
-    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain)
+    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain, bool SwitchOrientation = false)
         : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain)
     {
         // Orientation
@@ -118,18 +118,33 @@ public:
         //
         mPlaneIndex = PlaneIndex;
         if (PlaneIndex == 2) {
-            DIRINDEX1 = 0;
-            DIRINDEX2 = 1;
+            if( SwitchOrientation ){
+                DIRINDEX1 = 1;
+                DIRINDEX2 = 0;
+            } else {
+                DIRINDEX1 = 0;
+                DIRINDEX2 = 1;
+            }
             DIRINDEX3 = 2;
         }
         else if (PlaneIndex == 1) {
-            DIRINDEX1 = 2;
-            DIRINDEX2 = 0;
+            if( SwitchOrientation ){
+                DIRINDEX1 = 2;
+                DIRINDEX2 = 0;
+            } else {
+                DIRINDEX1 = 0;
+                DIRINDEX2 = 2;
+            }
             DIRINDEX3 = 1;
         }
         else if (PlaneIndex == 0) {
-            DIRINDEX1 = 1;
-            DIRINDEX2 = 2;
+            if( SwitchOrientation ){
+                DIRINDEX1 = 2;
+                DIRINDEX2 = 1;
+            } else {
+                DIRINDEX1 = 1;
+                DIRINDEX2 = 2;
+            }
             DIRINDEX3 = 0;
         }
         else {
@@ -296,7 +311,7 @@ private:
     ///
     void RemoveDublicateVerticalEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
 
-    void RemoveDublicatePositiveEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
+    void RemoveDublicateEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
     ////////////////////////
     /// Getter Functions ///
     ////////////////////////
