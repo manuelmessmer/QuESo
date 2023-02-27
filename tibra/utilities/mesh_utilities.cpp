@@ -285,12 +285,12 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
             total_volume_3 += normal[2]*point[2] * point.GetWeight();
         }
     }
-    const double total_volume = 1.0/3.0*(total_volume_1 + total_volume_2 + total_volume_3);
+    const double total_volume = std::abs(1.0/3.0*(total_volume_1 + total_volume_2 + total_volume_3));
     const double error_v1 = std::abs(total_volume_1 - total_volume) / total_volume;
     const double error_v2 = std::abs(total_volume_2 - total_volume) / total_volume;
     const double error_v3 = std::abs(total_volume_3 - total_volume) / total_volume;
 
-    const double error_area = std::abs(1.0*directional_areas.Norm()) / total_area;
+    const double error_area = std::abs(1.0*directional_areas.Norm()) / std::abs(total_area);
 
     const double max_error = std::max(std::max(std::max( error_v1, error_v2), error_v3), error_area );
     return max_error;
