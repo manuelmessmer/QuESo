@@ -78,7 +78,6 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
                             return false;
                         }
                         // Ray shoots through boundary.
-
                         if( u < 0.0+ZEROTOL || v < 0.0+ZEROTOL || sum_u_v > 1.0-ZEROTOL ){
                             try_next_triangle = true;
                             break;

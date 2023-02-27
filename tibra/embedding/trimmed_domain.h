@@ -36,7 +36,7 @@ public:
     ///@{
 
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
-            const BRepOperatorBase* pOperator, const Parameters& rParameters )
+            const BRepOperatorBase* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
         : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
@@ -48,14 +48,14 @@ public:
 
         // Construct trimmed domain on plane upper bound of AABB.
         bool upper_bound = true;
-        auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_upper_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
+        auto p_trimmed_domain_upper_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
+        auto p_trimmed_domain_upper_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
         // Construct trimmed domain on plane lower bound of AABB.
         upper_bound = false;
-        auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this);
-        auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this);
+        auto p_trimmed_domain_lower_x = MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
+        auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
+        auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
 
         if( mpTriangleMesh->NumOfTriangles() > 0 ){
             auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
