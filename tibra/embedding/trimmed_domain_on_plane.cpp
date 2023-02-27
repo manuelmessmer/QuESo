@@ -44,16 +44,19 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
     /// Find all intersections of Edges with upper bound of AABB.
     ///     UP2 x1-------x2---x3
     ///         | out   /     |      Point  x2 will be found.
-    ///         |------/      |      Points x1 and x3 are also added if do not alreadt exist.
+    ///         |------/      |      Points x1 and x3 are also added.
     ///     LB2 |  inside     |
     ///        LB1           UP1
     /// LB1 - lower bound of AABB in DIRINDEX1
     /// UP1 - upper bound of AABB in DIRINDEX1
     /// We store only the value in DIRINDEX1 in intersected_vertices, since the position in
     /// DIRINDEX2 is always mUpperBound[DIRINDEX2].
-    /// We also store if it is left (true) or rigth (false) boundary,
+    /// We also store if vertex is left (true) or right (false) boundary,
+    /// x1-left, x2-left, x3-right.
+    /// Only, x2 and x3 are connected with one edge, since x1 and x2 are both left boundaries.
 
-    /// Get all edged that intersect upper boundary (have one vertex located on the upper boundary mUpperBoundary[DIRINDEX2]).
+    /// Get all edged that intersect upper boundary
+    /// These are edges that have at least one vertex located on the upper boundary: mUpperBoundary[DIRINDEX2]).
     std::vector<Edge2D> intersect_edges_positive{};
     std::vector<Edge2D> intersect_edges_negative{};
     std::vector<Edge2D> intersect_edges_vertical{};
@@ -319,7 +322,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
         const auto &v2_up = V2byEdgeId(i, orientation_origin);
         const auto& r_edge = r_edges_origin[i];
 
-        int edge_id_dest = FindIntersectingEdge(v1_up, v2_up, r_edge.Normal(), orientation_dest);
+        int edge_id_dest = FindNegativePartnerEdge(v1_up, v2_up, r_edge.Normal() );
 
         bool skip = false;
         if (edge_id_dest > -1) { // Lower edge is found.
@@ -459,36 +462,40 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
     }  );
 }
 
-int TrimmedDomainOnPlane::FindIntersectingEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal, OrientationType Orientation) const {
+int TrimmedDomainOnPlane::FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const {
     // Get center
-    Point2DType c_positive = {0.5 * (rV1[0] + rV2[0]), 0.5 * (rV1[1] + rV2[1])};
+    const Point2DType c_positive = {0.5 * (rV1[0] + rV2[0]), 0.5 * (rV1[1] + rV2[1])};
     double min_distance = MAXD;
     IndexType found_id = -1;
 
-    for (int i = 0; i < GetNumberEdges(Orientation); ++i) {
-        const auto &v1 = V1byEdgeId(i, Orientation);
-        const auto &v2 = V2byEdgeId(i, Orientation);
-
+    for (int i = 0; i < GetNumberEdges(Orientation::Negative); ++i) {
+        const auto &v1 = V1byEdgeId(i, Orientation::Negative);
+        const auto &v2 = V2byEdgeId(i, Orientation::Negative);
+        // Check if center is containerd.
         if (c_positive[0] > v1[0] && c_positive[0] < v2[0] ) {
-            // TODO: add comment and use normal in which one is on top of other one!
-            if( std::abs(rV1[0] - v1[0]) < 1000*mSnapTolerance && std::abs(rV2[0] - v2[0]) < 1000*mSnapTolerance) {
+            // Check if left and right vertices (DIRINDEX1) are the same.
+            if( std::abs(rV1[0] - v1[0]) < 10*mSnapTolerance && std::abs(rV2[0] - v2[0]) < 10*mSnapTolerance) {
                 Point2DType c_negative = {0.5 * (v1[0] + v2[0]), 0.5 * (v1[1] + v2[1])};
-                // Vector from center to center
+                // Vector from center to center.
                 Point2DType c_pos_c_neg = {c_negative[0] - c_positive[0], c_negative[1] - c_positive[1]  };
-                // Dot produced
+                // Dot produced along normal.
                 double value = c_pos_c_neg[0]*rNormal[0] + c_pos_c_neg[1]*rNormal[1];
 
-                bool is_inside = true;
                 if( std::abs(value) <= ZEROTOL ){
+                    // This means, partner edge is aligned with initial edge.
+                    // Two options are possible.
+                    //    | Either this is inside or outside.
+                    //    V
+                    //   \ |  <- We are currently lokking from here.
+                    //    \| x-Point   We need to check if x (test_point) is inside or outside.
+                    //    /|           If x is not inside, return.
+                    //   / |
                     Point3DType test_point{};
                     test_point[DIRINDEX1] = c_positive[0];
                     test_point[DIRINDEX2] = c_positive[1];
                     double plane_position = GetPlanePosition();
-
                     test_point[DIRINDEX3] = mUpperBoundary ? plane_position + 100.0*mSnapTolerance : plane_position - 100.0*mSnapTolerance;
-
                     bool is_inside = mpTrimmedDomain->IsInsideTrimmedDomain(test_point);
-                    //std::cout << test_point << ": " << is_inside << std::endl;
                     if ( !is_inside ){
                         const double distance = c_positive[1] - 0.5*(v1[1] + v2[1]);
                         // Distance must be larger than 0.0 and large than alreade found min_distance.
@@ -501,7 +508,6 @@ int TrimmedDomainOnPlane::FindIntersectingEdge(const Point2DType &rV1, const Poi
                 else if( value < ZEROTOL ){
                     const double distance = c_positive[1] - 0.5*(v1[1] + v2[1]);
                     // Distance must be larger than 0.0 and large than alreade found min_distance.
-
                     if (distance >= -ZEROTOL && distance < min_distance) {
                         found_id = i;
                         min_distance = distance;

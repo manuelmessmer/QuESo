@@ -166,7 +166,7 @@ public:
     ///@brief Returns a triangulated mesh of trimmed domain.
     ///@param rTriangleMesh Clipped mesh inside trimmed domain. Must hold the edges on planes. No triangles on planes are allowed.
     ///@return TriangleMeshPtrType.
-    ///@details see CollectEdgesOnPlane(), CloseContourEdges(), Triangulate().
+    ///@details see CollectEdgesOnPlane(), CloseContourEdges(), TriangulateDomain().
     //
     //     a_______b                 y
     //     /      /|                ´|`
@@ -260,13 +260,14 @@ private:
     /// @param Orientation
     void FindIntersectingEdgesWithUpperBound(std::vector<Edge2D> &rEdges, OrientationType Orientation);
 
-    ///@brief Return EdgeId that overlaps rPoint in DIRINDEX1 direction. If multiple overlap, closest intersection is returned.
+    ///@brief Return EdgeId of negative oriented edge that has same start (DIRINDEX1) and end point (DIRINDEX1).
+    ///       If multiple edges are found, Id of closest partner is returned.
     ///       Return -1 if no edge is found.
-    ///       Found if: rPoint[DIRINDEX1] > EgdeV1[DIRINDEX1] and rPoint[DIRINDEX1] < EgdeV2[DIRINDEX1]
-    ///@param rPoint
-    ///@param Positive Orientation of edges to be searched.
+    ///@param rV1 Left Point
+    ///@param rV2 Right Point
+    ///@param rNormal Normal of edge (rV1 and rV2).
     ///@param int
-    int FindIntersectingEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal, OrientationType Orientation) const;
+    int FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const;
 
     ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
     ///@param rPoint Potential split point.
@@ -330,7 +331,7 @@ private:
     void AddIntersectedVertexVertical(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
 
     /// @brief Remove dublicate edges that are at the same position (DIRINDEX1) and have same normal.
-    ///        If there are still two normal at the same position, remove both of them.
+    ///        If there are still two edges at the same position, remove both of them.
     /// @param rEdges
     /// @param rVertices
     void RemoveDublicateVerticalEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
@@ -445,7 +446,7 @@ private:
     Point3DType mUpperBound; // Upper bound AABB
 
     bool mUpperBoundary; // Is current plane upper bound?
-    const TrimmedDomainBase *mpTrimmedDomain;
+    const TrimmedDomainBase *mpTrimmedDomain; // Reuiqred for IsInside()-Test.
 
     double mSnapTolerance;
     ///@}
