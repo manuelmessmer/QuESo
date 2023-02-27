@@ -35,13 +35,21 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// @brief Constructor for trimmed domain.
+    /// @param pTriangleMesh Clipped triangle mesh. Must contain edges on boundary planes of aabb.
+    /// @param rLowerBound Lower bound of trimmed domain.
+    /// @param rUpperBound Upper bound of trimmed domain.
+    /// @param pOperator Pointer to BrepOperator to perform IsInside()-check. Only used as saftey procedure, if IsInsideTrimmedDomain() failes.
+    /// @param rParameters TIBRA Parameters.
+    /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperatorBase* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
         : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
     {
+        // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
 
-        ///TODO: Improve this!
+        // Copy clipped mesh. All operations, e.g. IsInsideTrimmedDomain() are only performed on the mClippedMesh.
         const auto& mesh = GetTriangleMesh();
         mClippedMesh.Reserve(mesh.NumOfTriangles());
         MeshUtilities::Append(mClippedMesh, mesh);
