@@ -17,7 +17,7 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     Unique<PolygonType> p_current_poly = MakeUnique<PolygonType>(rNormal);
     Unique<PolygonType> p_prev_poly = MakeUnique<PolygonType>(rNormal);
 
-    // First we classify the triangle.
+    // Return nullptr, if no point is on bounded side.
     // Note on_bounded_side means behind plane, since normal vectors point in outward direction.
     for( IndexType plane_index = 0; plane_index < 6; ++plane_index){
         // [-x, x, -y, y, -z, z]

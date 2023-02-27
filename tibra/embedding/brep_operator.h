@@ -91,7 +91,7 @@ public:
     ///@return Unique<TriangleMesh>. Clipped mesh.
     Unique<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
-    ///@brief Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
+    ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
     ///       This is a requirement for the application of boundary conditions.
     ///@see ClipTriangleMesh()
