@@ -198,11 +198,11 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = Math::Dot(normal, point);
-            volume += 1.0/ 3.0*integrand * point.GetWeight();
+            const double integrand = Math::Dot(normal, point);
+            volume += integrand * point.GetWeight();
         }
     }
-    return std::abs(volume);
+    return std::abs(1.0/3.0*volume);
 }
 
 double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
@@ -216,7 +216,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = Math::Dot(normal, point);
+            const double integrand = Math::Dot(normal, point);
             volume += integrand * point.GetWeight();
         }
     }
@@ -236,7 +236,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = normal[Dir]*point[Dir];
+            const double integrand = normal[Dir]*point[Dir];
             volume += integrand * point.GetWeight();
         }
     }
