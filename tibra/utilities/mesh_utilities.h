@@ -76,7 +76,7 @@ public:
     ///@brief Returns a quaility measure of triangle mesh. This function computes the volume of the mesh using
     ///       the divergence theorem. It applies the divergence theorem individually in each space direction (volume_1, volume_2, volume_3).
     ///       Theoretically, all directional volumes must be equal. Additionally, this function computes the directional
-    ///       areas: Sum of (normal * area). This values must be zero if the mesh is closed.
+    ///       areas: Sum of (normal * area). This value must be zero if the mesh is closed.
     ///       The maximum relative errors of volume_1, volume_2, volume_3 and directional_area is returned.
     ///@param rTriangleMesh
     ///@return double maximum error.
