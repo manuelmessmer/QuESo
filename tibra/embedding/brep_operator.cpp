@@ -127,12 +127,13 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
 
     Unique<TrimmedDomain> best_prev_solution = nullptr;
     double best_error = 1e-2;
-
+    bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
     while( iteration < 10){
         auto p_new_mesh = ClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
-            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters);
+            // Change Direction every intermediate step.
+            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters, switch_plane_orientation);
             const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
 
             double volume = MeshUtilities::Volume( r_trimmed_domain_mesh);
@@ -150,14 +151,22 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
                     best_error = epsilon;
                     best_prev_solution = std::move(p_trimmed_domain);
                 }
-                PointType lower_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
-                PointType upper_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
+                if( switch_plane_orientation ){
+                    PointType lower_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
+                    PointType upper_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
 
-                lower_bound -= lower_perturbation;
-                upper_bound += upper_perturbation;
+                    lower_bound -= lower_perturbation;
+                    upper_bound += upper_perturbation;
+                }
             }
         }
-        ++iteration;
+        if(switch_plane_orientation ){
+            ++iteration;
+            switch_plane_orientation = false;
+        }
+        else {
+            switch_plane_orientation = true;
+        }
     }
 
     return best_prev_solution;
@@ -214,23 +223,23 @@ Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
 
 
 Unique<TriangleMesh> BRepOperator::ClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
-
-    const PointType offset(10*ZEROTOL, 10*ZEROTOL, 10*ZEROTOL);
+    // This needs improvement. Global triangle clipping.
+    const PointType offset(30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL);
     const auto lower_bound = rLowerBound + offset;
     const auto upper_bound = rUpperBound + offset;
     double snap_tolerance = 1.0*ZEROTOL;
+
     auto p_intersected_triangle_ids = GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
     auto p_triangle_mesh = MakeUnique<TriangleMesh>();
     p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
     p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
-    const bool keep_elements_on_plane = true;
 
     for( auto triangle_id : (*p_intersected_triangle_ids) ){
         const auto& P1 = mTriangleMesh.P1(triangle_id);
         const auto& P2 = mTriangleMesh.P2(triangle_id);
         const auto& P3 = mTriangleMesh.P3(triangle_id);
         const auto& normal = mTriangleMesh.Normal(triangle_id);
-        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, lower_bound, upper_bound, keep_elements_on_plane);
+        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, lower_bound, upper_bound);
         if( p_polygon ){
             p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
         }
