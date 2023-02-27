@@ -12,14 +12,13 @@ namespace tibra {
 typedef Clipper::PolygonType PolygonType;
 
 Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-            const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound, bool KeepOnPlane){
+            const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound ){
 
     Unique<PolygonType> p_current_poly = MakeUnique<PolygonType>(rNormal);
     Unique<PolygonType> p_prev_poly = MakeUnique<PolygonType>(rNormal);
 
     // First we classify the triangle.
     // Note on_bounded_side means behind plane, since normal vectors point in outward direction.
-    std::array<bool, 6> poly_is_on_plane = {false};
     for( IndexType plane_index = 0; plane_index < 6; ++plane_index){
         // [-x, x, -y, y, -z, z]
         const double plane_position = (plane_index%2UL) ? rUpperBound[plane_index/2UL] : rLowerBound[plane_index/2UL];
@@ -29,13 +28,7 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
         auto loc_v3 = ClassifyPointToPlane(rV3, plane, 10.0*ZEROTOL);
         IndexType count_on_plane = (loc_v1 == ON_PLANE) + (loc_v2 == ON_PLANE) + (loc_v3 == ON_PLANE);
         if( count_on_plane == 3 ){
-            // If KeepOnPlane = false return nullptr. If KeepOnPlane = true, return nullptr if plane_index: -x, -y, -z.
-            // Triangles on plane are always assigned to positive planes, to avoid double assignment.
-            if( !KeepOnPlane || plane_index == 0 || plane_index == 2 || plane_index == 4 ){
-                return nullptr;
-            }
-            // Mark polygon as on plane.
-            poly_is_on_plane[plane_index] = true;
+            return nullptr; // Triangle is aligneed with plane
         }
     }
 
@@ -61,21 +54,17 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     {
         if(max_tri[dimension] > rLowerBound[dimension] )
         {
-            if( !poly_is_on_plane[2 * dimension + 0] ){ // Don't to anything, otherwise nullptr is returned.
-                Ptr::swap(p_prev_poly, p_current_poly);
-                // Plane is oriented in negative direction.
-                Plane plane(2 * dimension + 0, rLowerBound[dimension]);
-                ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);
-            }
+            Ptr::swap(p_prev_poly, p_current_poly);
+            // Plane is oriented in negative direction.
+            Plane plane(2 * dimension + 0, rLowerBound[dimension]);
+            ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);
         }
         if(min_tri[dimension] < rUpperBound[dimension])
         {
-            if( !poly_is_on_plane[2 * dimension + 1] ){ // Don't to anything, otherwise nullptr is returned.
-                Ptr::swap(p_prev_poly, p_current_poly);
-                // Plane is positive in negative direction.
-                Plane plane(2 * dimension + 1, rUpperBound[dimension]);
-                ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);
-            }
+            Ptr::swap(p_prev_poly, p_current_poly);
+            // Plane is positive in negative direction.
+            Plane plane(2 * dimension + 1, rUpperBound[dimension]);
+            ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);
         }
 
     }

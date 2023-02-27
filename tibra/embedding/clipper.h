@@ -53,7 +53,7 @@ public:
     ///@return Unique<Polygon> (Will contain maximal 9 vertices).
     ///@todo Overload where normal is computed from vertices.
     static Unique<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-                 const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound, bool KeepOnPlane = false);
+                 const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
 
     ///@}
 
