@@ -38,104 +38,22 @@ void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh
     }
 }
 
-void TrimmedDomainOnPlane::AddPositive(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices){
-    auto status = pEdge->IsVertexOnUpperBoundary();
-    if( status.first ){
-        auto normal = pEdge->Normal();
-        auto v1 = mVerticesPositive[pEdge->V1()];
-        if (normal[0] > -ZEROTOL) {
-            rVertices.push_back( std::make_pair(v1[0], false)  );
-        }
-    }
-    else if( status.second ){
-        auto normal = pEdge->Normal();
-        auto v2 = mVerticesPositive[pEdge->V2()];
-        if ( normal[0] < ZEROTOL ){
-            rVertices.push_back( std::make_pair(v2[0], true)  );
-        }
-    }
-}
-
-void TrimmedDomainOnPlane::AddNegative(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices){
-    auto status = pEdge->IsVertexOnUpperBoundary();
-    if( status.first ){
-        auto normal = pEdge->Normal();
-        auto v1 = mVerticesNegative[pEdge->V1()];
-        if( normal[0] < ZEROTOL ) {
-            rVertices.push_back( std::make_pair(v1[0], true)  );
-        }
-    }
-    else if( status.second ){
-        auto normal = pEdge->Normal();
-        auto v2 = mVerticesNegative[pEdge->V2()];
-        if(normal[0] > -ZEROTOL) {
-            rVertices.push_back( std::make_pair(v2[0], false)  );
-        }
-    }
-}
-
-void TrimmedDomainOnPlane::AddVertical(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices){
-    auto status = pEdge->IsVertexOnUpperBoundary();
-    if( status.first || status.second ){
-        auto normal = pEdge->Normal();
-        auto v1 = mVerticesVertical[pEdge->V1()];
-        if( normal[0] < ZEROTOL ) {
-            rVertices.push_back( std::make_pair(v1[0], true)  );
-        } else {
-            rVertices.push_back( std::make_pair(v1[0], false)  );
-        }
-    }
-}
-
-void TrimmedDomainOnPlane::RemoveDublicateVerticalEdges(
-        std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices){
-
-    const double tolerance = mSnapTolerance;
-    // 1. Remove all dublicate verticals, that have equal normals.
-    rEdges.erase(std::unique(rEdges.begin(), rEdges.end(), [&rVertices, tolerance](const auto &rValue1, const auto &rValue2){
-        const bool normal_1_is_neg = rValue1.Normal()[0] < 0.0;
-        const bool normal_2_is_neg = rValue2.Normal()[0] < 0.0;
-        return normal_1_is_neg == normal_2_is_neg
-            && std::abs(rVertices[rValue1.V1()][0] - (rVertices[rValue2.V1()][0])) < tolerance;
-        }), rEdges.end() );
-
-    // 2. Only keep normals that are unique (Only contained once!).
-    std::vector<Edge2D> r_edges_copy( rEdges.begin(), rEdges.end() );
-    rEdges.clear();
-    for( auto r_edge : r_edges_copy){
-        IndexType count = std::count_if(r_edges_copy.begin(), r_edges_copy.end(), [&r_edge, &rVertices, tolerance](const auto& rValue)
-            { return std::abs(rVertices[r_edge.V1()][0] - (rVertices[rValue.V1()][0])) < tolerance; });
-
-        if(count == 1 )
-            rEdges.push_back(r_edge);
-    }
-}
-
-void TrimmedDomainOnPlane::RemoveDublicateEdges(
-        std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices){
-
-    const double tolerance = mSnapTolerance;
-    rEdges.erase(std::unique(rEdges.begin(), rEdges.end(), [&rVertices, tolerance](const auto &rValue1, const auto &rValue2){
-        return std::abs(rVertices[rValue1.V1()][0] - (rVertices[rValue2.V1()][0])) < tolerance
-            && std::abs(rVertices[rValue1.V2()][0] - (rVertices[rValue2.V2()][0])) < tolerance; }), rEdges.end() );
-}
-
 void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) {
-    /// 1.Checks if positive oriented edges span the entire AABB
+    /// 1. Insert edges such that positive oriented edges span the entire AABB.
 
     /// Find all intersections of Edges with upper bound of AABB.
     ///     UP2 x1-------x2---x3
     ///         | out   /     |      Point  x2 will be found.
-    ///         |------/      |      Points x1 and x3 are always added.
+    ///         |------/      |      Points x1 and x3 are also added if do not alreadt exist.
     ///     LB2 |  inside     |
     ///        LB1           UP1
     /// LB1 - lower bound of AABB in DIRINDEX1
     /// UP1 - upper bound of AABB in DIRINDEX1
-    /// We store only the value in DIRINDEX1 in interected_vertices, since the position in
+    /// We store only the value in DIRINDEX1 in intersected_vertices, since the position in
     /// DIRINDEX2 is always mUpperBound[DIRINDEX2].
+    /// We also store if it is left (true) or rigth (false) boundary,
 
-    std::vector<double> new_positive{};
-
+    /// Get all edged that intersect upper boundary (have one vertex located on the upper boundary mUpperBoundary[DIRINDEX2]).
     std::vector<Edge2D> intersect_edges_positive{};
     std::vector<Edge2D> intersect_edges_negative{};
     std::vector<Edge2D> intersect_edges_vertical{};
@@ -148,21 +66,21 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
     RemoveDublicateEdges(intersect_edges_positive, mVerticesPositive);
     RemoveDublicateEdges(intersect_edges_negative, mVerticesNegative);
 
-    // Remove intermediates
+    /// double: position in DIRINDEX1, bool = true: left boundary, bool = false: right boundary.
+    std::vector<std::pair<double, bool>> intersected_vertices{};
+
+    // Check if corner points need to be inserted.
     Point2DType corner_left = { mLowerBound[DIRINDEX1], mUpperBound[DIRINDEX2] };
     Point2DType corner_right = { mUpperBound[DIRINDEX1], mUpperBound[DIRINDEX2] };
-    std::vector<Point2DType> tmp_vector = {corner_left, corner_right};
-    const auto v1_res = mVerticesSetPositive->find(tmp_vector.begin());
-    const auto v2_res = mVerticesSetPositive->find(++tmp_vector.begin());
+    bool add_corner_left = !PointExists(corner_left, *mVerticesSetPositive);
+    bool add_corner_right = !PointExists(corner_right, *mVerticesSetPositive);
 
-    bool add_corner_left = v1_res == mVerticesSetPositive->end();
-    bool add_corner_right = v2_res == mVerticesSetPositive->end();;
-
-    std::vector<std::pair<double, bool>> interected_vertices{};
+    // Add corner point left if neccesary.
     if( add_corner_left ){
-        interected_vertices.push_back( std::make_pair(mLowerBound[DIRINDEX1], true) );
+        intersected_vertices.push_back( std::make_pair(mLowerBound[DIRINDEX1], true) );
     }
 
+    /// Loop until all intersected edges are visited.
     const IndexType size_positive = intersect_edges_positive.size();
     const IndexType size_negative = intersect_edges_negative.size();
     const IndexType size_vertical = intersect_edges_vertical.size();
@@ -170,7 +88,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
     IndexType pos_negative = 0;
     IndexType pos_vertical = 0;
     while( pos_vertical < size_vertical || pos_negative < size_negative || pos_positive < size_positive){
-
+        /// Get ptr to edges.
         Edge2D* edge_positive = nullptr;
         Edge2D* edge_negative = nullptr;
         Edge2D* edge_vertical = nullptr;
@@ -181,8 +99,11 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
         if( pos_vertical < size_vertical)
             edge_vertical = &intersect_edges_vertical[pos_vertical];
 
-        IndexType size = interected_vertices.size();
-        double left_bound = size > 0 ? interected_vertices[size-1].first : mLowerBound[DIRINDEX1];
+        IndexType size = intersected_vertices.size();
+        /// DIRINDEX1-value of current position.
+        const double left_bound = size > 0 ? intersected_vertices[size-1].first : mLowerBound[DIRINDEX1];
+
+        /// Get distance to current positive edge.
         double distance_pos = MAXD;
         bool double_vertex_edge = false;
         if( edge_positive ){
@@ -200,6 +121,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
 
         }
 
+        /// Get distance to current negative edge.
         double distance_neg = MAXD;
         if( edge_negative ){
             auto status = edge_negative->IsVertexOnUpperBoundary();
@@ -209,6 +131,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 distance_neg = mVerticesNegative[edge_negative->V2()][0] - left_bound;
         }
 
+        /// Get distance to current vertical edge.
         double distance_ver = MAXD;
         if( edge_vertical ){
             auto status = edge_vertical->IsVertexOnUpperBoundary();
@@ -218,13 +141,16 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 distance_ver = mVerticesVertical[edge_vertical->V2()][0] - left_bound;
         }
 
+        /// If distance pos < 0.
         if( std::abs(distance_pos) < mSnapTolerance ){
-            const IndexType size = interected_vertices.size();
+            const IndexType size = intersected_vertices.size();
+            /// Make invalid. This is continous edge.
             if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
-                interected_vertices[size-1].second = true;
-                double val = interected_vertices[size-1].first;
-                interected_vertices.push_back( std::make_pair(val, false)  );
+                intersected_vertices[size-1].second = true;
+                double val = intersected_vertices[size-1].first;
+                intersected_vertices.push_back( std::make_pair(val, false)  );
             }
+            /// Increment ++positive.
             if( double_vertex_edge ){
                 auto status = edge_positive->IsVertexOnUpperBoundary();
                 edge_positive->SetVerticesOnUpperBoundary(false, status.second);
@@ -234,19 +160,15 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
             }
         }
         else if( std::abs(distance_ver) < mSnapTolerance ){
-            IndexType size = interected_vertices.size();
-            if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
-                interected_vertices[size-1].second = true;
-                double val = interected_vertices[size-1].first;
-                interected_vertices.push_back( std::make_pair(val, false)  );
-            }
+            /// Increment ++vertical.
             ++pos_vertical;
         }
         else if( std::abs(distance_neg) < mSnapTolerance ){
-            IndexType size = interected_vertices.size();
+            /// Increment ++negative.
             ++pos_negative;
-        }
-        else if( (distance_pos+distance_ver) < 0.1*MAXD && std::abs(distance_pos-distance_ver) <= mSnapTolerance ){ // Vert and pos are the same
+        } /// Positive and vertical have the same distance.
+        else if( (distance_pos+distance_ver) < 0.1*MAXD && std::abs(distance_pos-distance_ver) <= mSnapTolerance ){
+            /// Increment positive
             if( double_vertex_edge ){
                 auto status = edge_positive->IsVertexOnUpperBoundary();
                 edge_positive->SetVerticesOnUpperBoundary(false, status.second);
@@ -255,15 +177,27 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 ++pos_positive;
             }
             ++pos_vertical;
+        /// Positive and negative have the same distance.
         } else if ( (distance_pos+distance_neg) < 0.1*MAXD &&  std::abs(distance_pos-distance_neg) <= mSnapTolerance ) {
-            ++pos_positive;
+            /// Increment positive
+            if( double_vertex_edge ){
+                auto status = edge_positive->IsVertexOnUpperBoundary();
+                edge_positive->SetVerticesOnUpperBoundary(false, status.second);
+            }
+            else {
+                ++pos_positive;
+            }
             ++pos_negative;
+        /// Negative and vertical have the same distance.
         } else if ( (distance_ver+distance_neg) < 0.1*MAXD && std::abs(distance_ver-distance_neg) <= mSnapTolerance ) {
+            /// Increment vertical and negative
+            ++pos_vertical;
             ++pos_negative;
         } else {
             /// ADD POSITIVE
             if( distance_pos < distance_neg && distance_pos < distance_ver ){
-                AddPositive(edge_positive, interected_vertices);
+                // Add and increment positive
+                AddIntersectedVertexPositive(edge_positive, intersected_vertices);
                 if( double_vertex_edge ){
                     auto status = edge_positive->IsVertexOnUpperBoundary();
                     edge_positive->SetVerticesOnUpperBoundary(false, status.second);
@@ -273,61 +207,48 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 }
             } // ADD Negative
             else if( distance_neg < distance_pos && distance_neg < distance_ver ){
-                AddNegative(edge_negative, interected_vertices);
+                // Add and increment negative
+                AddIntersectedVertexNegative(edge_negative, intersected_vertices);
                 ++pos_negative;
             } // ADD VERTICAL
             else if( distance_ver < distance_neg && distance_ver < distance_pos ){
-                AddVertical(edge_vertical, interected_vertices);
+                // Add and increment vertical
+                AddIntersectedVertexVertical(edge_vertical, intersected_vertices);
                 ++pos_vertical;
             }
         }
 
     }
 
+    /// Add corner right
     if( add_corner_right ){
-        IndexType size = interected_vertices.size();
-        if( size == 0 || std::abs(interected_vertices[size-1].first - mUpperBound[DIRINDEX1]) > mSnapTolerance ){
-            interected_vertices.push_back( std::make_pair(mUpperBound[DIRINDEX1], false) );
+        IndexType size = intersected_vertices.size();
+        // size > 0, makes sure that intersected_vertices[size-1] does not result in segmentation-fault.
+        if( size > 0 && std::abs(intersected_vertices[size-1].first - mUpperBound[DIRINDEX1]) > mSnapTolerance ){
+            intersected_vertices.push_back( std::make_pair(mUpperBound[DIRINDEX1], false) );
         } else {
             add_corner_right = false;
         }
     }
 
-    // interected_vertices.clear();
-    /// Loop over intersected vertices.
-    /// We find the center between x_i and x_i+1 and check if it is inside or outside.
-    /// If center is inside, then a new edge bewteen x_i and x_i+1 is drawn.
-    ///
-    ///     UP2 x1--c1--x2-c2-x3
-    ///         | out   /     |      c1 is outside -> no new line.
-    ///         |------/      |      c2 is inside -> new edge from x2-x3.
-    ///     LB2 |  inside     |      c1 is center between x1 and x2, etc.
-    ///        LB1           UP1
 
-    double y_max = mLowerBound[DIRINDEX2];
-    for( auto& vertex : mVerticesNegative ){
-        if( vertex[1] > y_max ){
-            y_max = vertex[1];
-        }
-    }
-    for( auto& vertex : mVerticesPositive ){
-        if( vertex[1] > y_max ){
-            y_max = vertex[1];
-        }
-    }
+    const double y_max_negative = GetMaxDIRINDEX2(mVerticesNegative);
+    const double y_max_positive = GetMaxDIRINDEX2(mVerticesPositive);
+    const double y_max = std::max( std::max( y_max_negative, y_max_positive), mLowerBound[DIRINDEX2]);
+
+    /// Insert edges
     const double plane_position = GetPlanePosition();
-    if( add_corner_left && add_corner_right && interected_vertices.size() == 2 ){
-
-        const double v_left = interected_vertices[0].first;
-        const double v_right = interected_vertices[1].first;
-
+    if( add_corner_left && add_corner_right && intersected_vertices.size() == 2 ){
+        /// Corner case, if only the corner points are part of intersected_vertices.
+        /// In this case, we have to check if this plane is inside or outside.
+        const double v_left = intersected_vertices[0].first;
+        const double v_right = intersected_vertices[1].first;
         double center = v_left + 0.5 * (v_right - v_left);
         Point3DType new_point{}; // We need 3D point, to use IsInsideTrimmedDomain().
         new_point[DIRINDEX1] = center;
         new_point[DIRINDEX2] = 0.5*(mUpperBound[DIRINDEX2]+y_max);
         new_point[DIRINDEX3] = plane_position;
         Point2DType normal = {0, 1};
-
         bool Success = true;
         if ( mpTrimmedDomain->IsInsideTrimmedDomain(new_point, Success) ) {
             InsertEdge({v_left, mUpperBound[DIRINDEX2]}, {v_right, mUpperBound[DIRINDEX2]}, normal, Orientation::Positive);
@@ -338,12 +259,13 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
             }
         }
     }
-    else if( interected_vertices.size() > 1 ){
-        for (IndexType i = 0; i < interected_vertices.size() - 1; ++i) {
-            const double v_left = interected_vertices[i].first;
-            const double v_right = interected_vertices[i + 1].first;
+    else if( intersected_vertices.size() > 1 ){
+        /// Insert edge, if two consecutive intersected_vertices are left (true) and right (false) boundary.
+        for (IndexType i = 0; i < intersected_vertices.size() - 1; ++i) {
+            const double v_left = intersected_vertices[i].first;
+            const double v_right = intersected_vertices[i + 1].first;
             Point2DType normal = {0, 1};
-            if( interected_vertices[i].second && !interected_vertices[i + 1].second  ){
+            if( intersected_vertices[i].second && !intersected_vertices[i + 1].second  ){
                 InsertEdge({v_left, mUpperBound[DIRINDEX2]}, {v_right, mUpperBound[DIRINDEX2]}, normal, Orientation::Positive);
             }
         }
@@ -778,6 +700,88 @@ void TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, IndexType New
     }
 }
 
+void TrimmedDomainOnPlane::AddIntersectedVertexPositive(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices){
+    auto status = pEdge->IsVertexOnUpperBoundary();
+    if( status.first ){
+        auto normal = pEdge->Normal();
+        auto v1 = mVerticesPositive[pEdge->V1()];
+        if (normal[0] > -ZEROTOL) { // Just additional check. Actually not required.
+            rVertices.push_back( std::make_pair(v1[0], false)  );
+        }
+    }
+    else if( status.second ){
+        auto normal = pEdge->Normal();
+        auto v2 = mVerticesPositive[pEdge->V2()];
+        if ( normal[0] < ZEROTOL ){ // Just additional check. Actually not required.
+            rVertices.push_back( std::make_pair(v2[0], true)  );
+        }
+    }
+}
+
+void TrimmedDomainOnPlane::AddIntersectedVertexNegative(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices){
+    auto status = pEdge->IsVertexOnUpperBoundary();
+    if( status.first ){
+        auto normal = pEdge->Normal();
+        auto v1 = mVerticesNegative[pEdge->V1()];
+        if( normal[0] < ZEROTOL ) { // Just additional check. Actually not required.
+            rVertices.push_back( std::make_pair(v1[0], true)  );
+        }
+    }
+    else if( status.second ){
+        auto normal = pEdge->Normal();
+        auto v2 = mVerticesNegative[pEdge->V2()];
+        if(normal[0] > -ZEROTOL) { // Just additional check. Actually not required.
+            rVertices.push_back( std::make_pair(v2[0], false)  );
+        }
+    }
+}
+
+void TrimmedDomainOnPlane::AddIntersectedVertexVertical(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices){
+    auto status = pEdge->IsVertexOnUpperBoundary();
+    if( status.first || status.second ){
+        auto normal = pEdge->Normal();
+        auto v1 = mVerticesVertical[pEdge->V1()];
+        if( normal[0] < ZEROTOL ) {
+            rVertices.push_back( std::make_pair(v1[0], true)  );
+        } else {
+            rVertices.push_back( std::make_pair(v1[0], false)  );
+        }
+    }
+}
+
+void TrimmedDomainOnPlane::RemoveDublicateVerticalEdges(
+        std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices){
+
+    const double tolerance = mSnapTolerance;
+    // 1. Remove all dublicate verticals, that have equal normals.
+    rEdges.erase(std::unique(rEdges.begin(), rEdges.end(), [&rVertices, tolerance](const auto &rValue1, const auto &rValue2){
+        const bool normal_1_is_neg = rValue1.Normal()[0] < 0.0;
+        const bool normal_2_is_neg = rValue2.Normal()[0] < 0.0;
+        return normal_1_is_neg == normal_2_is_neg
+            && std::abs(rVertices[rValue1.V1()][0] - (rVertices[rValue2.V1()][0])) < tolerance;
+        }), rEdges.end() );
+
+    // 2. Only keep normals that are unique (Only contained once!).
+    std::vector<Edge2D> r_edges_copy( rEdges.begin(), rEdges.end() );
+    rEdges.clear();
+    for( auto r_edge : r_edges_copy){
+        IndexType count = std::count_if(r_edges_copy.begin(), r_edges_copy.end(), [&r_edge, &rVertices, tolerance](const auto& rValue)
+            { return std::abs(rVertices[r_edge.V1()][0] - (rVertices[rValue.V1()][0])) < tolerance; });
+
+        if(count == 1 )
+            rEdges.push_back(r_edge);
+    }
+}
+
+void TrimmedDomainOnPlane::RemoveDublicateEdges(
+        std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices){
+
+    const double tolerance = mSnapTolerance;
+    rEdges.erase(std::unique(rEdges.begin(), rEdges.end(), [&rVertices, tolerance](const auto &rValue1, const auto &rValue2){
+        return std::abs(rVertices[rValue1.V1()][0] - (rVertices[rValue2.V1()][0])) < tolerance
+            && std::abs(rVertices[rValue1.V2()][0] - (rVertices[rValue2.V2()][0])) < tolerance; }), rEdges.end() );
+}
+
 ////////////////////////
 /// Getter Functions ///
 ////////////////////////
@@ -961,6 +965,21 @@ double TrimmedDomainOnPlane::GetPlanePosition() const {
     return mUpperBoundary ? mUpperBound[DIRINDEX3] : mLowerBound[DIRINDEX3];
 }
 
+double TrimmedDomainOnPlane::GetMaxDIRINDEX2(std::vector<Point2DType>& rPoints) const {
+    double max_value = LOWESTD;
+    for( auto& point : rPoints ){
+        if( point[1] > max_value ){
+            max_value = point[1];
+        }
+    }
+    return max_value;
+}
+
+bool TrimmedDomainOnPlane::PointExists(const Point2DType& rPoint , const Point2DSetType& rPointSet) const{
+    std::vector<Point2DType> tmp_vector = {rPoint};
+    auto it = rPointSet.find(tmp_vector.begin());
+    return it != rPointSet.end();
+}
 
 
 } // End namespace tibra
