@@ -308,10 +308,38 @@ private:
     ///@param OrientationType Current orientation.
     void InsertVertex(const Point2DType &rPoint, IndexType NewIndex, OrientationType Orientation);
 
-    ///
+    /// @brief Adds vertices of pEdge that are marked as (IsVertexOnUpperBoundary) to container.
+    ///        If left vertex is on upper boundary. Vertex is marked as right edge (std::pair.second = false).
+    ///        If right vertex is on upper boundary. Vertex is marked as left edge (std::pair.second = true).
+    /// @param pEdge Contains intersected vertices (see: IsVertexOnUpperBoundary).
+    /// @param rVertices[out]
+    void AddIntersectedVertexPositive(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+
+    /// @brief Adds vertices of pEdge that are marked as (IsVertexOnUpperBoundary) to container.
+    ///        If left vertex is on upper boundary. Vertex is marked as left edge (std::pair.second = true).
+    ///        If right vertex is on upper boundary. Vertex is marked as right edge (std::pair.second = false).
+    /// @param pEdge Contains intersected vertices (see: IsVertexOnUpperBoundary).
+    /// @param rVertices[out]
+    void AddIntersectedVertexNegative(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+
+    /// @brief Adds vertices of pEdge that are marked as (IsVertexOnUpperBoundary) to container.
+    ///        If normal[0] < ZEROTOL. Vertex is marked as left edge (std::pair.second = true).
+    ///        If normal[0] > ZEROTOL. Vertex is marked as right edge (std::pair.second = false).
+    /// @param pEdge Contains intersected vertices (see: IsVertexOnUpperBoundary).
+    /// @param rVertices[out]
+    void AddIntersectedVertexVertical(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+
+    /// @brief Remove dublicate edges that are at the same position (DIRINDEX1) and have same normal.
+    ///        If there are still two normal at the same position, remove both of them.
+    /// @param rEdges
+    /// @param rVertices
     void RemoveDublicateVerticalEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
 
+    /// @brief Remove dublicate edges that are at the same position v1[0] and v2[0].
+    /// @param rEdges
+    /// @param rVertices
     void RemoveDublicateEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
+
     ////////////////////////
     /// Getter Functions ///
     ////////////////////////
@@ -377,10 +405,16 @@ private:
     /// @return double
     double GetPlanePosition() const;
 
-    void AddPositive(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
-    void AddNegative(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
-    void AddVertical(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+    /// @brief Returns max value (DIRINDEX2) of all vertices in rPoints
+    /// @param rPoints
+    /// @return double
+    double GetMaxDIRINDEX2(std::vector<Point2DType>& rPoints) const;
 
+    ///@brief Return true if 2D point exists already in given PointSet.
+    ///@param rPoint TestPoint
+    ///@param rPointSet PointSet to search in.
+    ///@return bool
+    bool PointExists(const Point2DType& rPoint , const Point2DSetType& rPointSet) const;
 
     ///@}
     ///@name Private Members
