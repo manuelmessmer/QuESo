@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     Vector3d upper_bound = {2, 2, 1};
 
     // Clip mesh.
-    auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
+    auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
     double area = 0.0;
     for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     Vector3d upper_bound = {2, 2, 1};
 
     // Clip mesh.
-    auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
+    auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
     double area = 0.0;
     for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
                 Vector3d lower_bound = {xx,yy,zz};
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
                 // Clip mesh
-                auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
                 // Compute area of clipped domain.
                 double area = 0.0;
                 for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip  Mesh.
-                auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
                 double area = 0.0;
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip mesh.
-                auto p_clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
                 double area = 0.0;

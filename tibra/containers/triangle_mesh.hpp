@@ -44,26 +44,19 @@ public:
     ///@{
 
     /// @brief Area of triangle.
+    /// @details Computation uses cross product.
+    /// @note Do not use computation via height of triangle. Not accurate enough.
     /// @param TriangleId
     /// @return double.
     double Area(IndexType TriangleId) const {
-        const auto& P1 = this->P1(TriangleId);
-        const auto& P2 = this->P2(TriangleId);
-        const auto& P3 = this->P3(TriangleId);
+        const auto& p1 = this->P1(TriangleId);
+        const auto& p2 = this->P2(TriangleId);
+        const auto& p3 = this->P3(TriangleId);
 
-        const double a = std::sqrt( Math::Pow(P1[0] - P2[0], 2)
-            + Math::Pow(P1[1] - P2[1], 2) + Math::Pow(P1[2] - P2[2], 2));
-        const double b = std::sqrt( Math::Pow(P2[0] - P3[0], 2)
-            + Math::Pow(P2[1] - P3[1], 2) + Math::Pow(P2[2] - P3[2], 2));
-        const double c = std::sqrt( Math::Pow(P3[0] - P1[0], 2)
-            + Math::Pow(P3[1] - P1[1], 2) + Math::Pow(P3[2] - P1[2], 2));
+        const auto A = p2-p1;
+        const auto B = p3-p1;
 
-        const double s = (a+b+c) / 2.0;
-        const double radicand = s*(s-a)*(s-b)*(s-c);
-        if( radicand <= 0.0 ) {
-            return 0.0;
-        }
-        return std::sqrt(radicand);
+        return 0.5*Math::Cross(A,B).Norm();
     }
 
     /// @brief Outward pointing normal.
@@ -82,6 +75,26 @@ public:
         const auto P3 = this->P3(TriangleId);
 
         return (P1+P2+P3) * (1.0/3.0);
+    }
+
+    /// @brief Returns aspect ratio.
+    /// @param TriangleId
+    /// @return double
+    double AspectRatio(IndexType TriangleId) const {
+        const auto P1 = this->P1(TriangleId);
+        const auto P2 = this->P2(TriangleId);
+        const auto P3 = this->P3(TriangleId);
+
+        const auto area = this->Area(TriangleId);
+
+        const double a = (P2-P1).Norm(); // length a
+        const double b = (P3-P2).Norm(); // length b
+        const double c = (P1-P3).Norm(); // length c
+
+        const double max_edge = std::max(std::max(a, b), c);
+
+        const double square_root_3 = 1.73205080756887729;
+        return max_edge*(a+b+c)/(4.0*square_root_3 * area);
     }
 
     /// @brief Get boundary integration points in global space.

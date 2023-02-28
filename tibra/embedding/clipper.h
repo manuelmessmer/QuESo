@@ -39,15 +39,14 @@ public:
     ///@{
 
     ///@brief Clips triangle by AABB. Expects that input triangle does intersect one of the faces of the bounding box.
-    ///       Meaning, triangle is not fully outside, neither fully contained inside the AABB.
-    ///@param rV1 Vertex 1 of Triangle
-    ///@param rV2 Vertex 2 of Triangle
-    ///@param rV3 Vertex 3 of Triangle
-    ///@param rNormal Normal vector of triangle.
+    ///       If triangle is fully contained within AABB, same triangle is returned. If triangle is fully outside of AABB nullptr is returned.
+    ///@param rV1 Vertex 1 of Triangle.
+    ///@param rV2 Vertex 2 of Triangle.
+    ///@param rV3 Vertex 3 of Triangle.
+    ///@param rNormal Normal vector of triangle. Is provided, such that recomputation can be omitted. Recomputation would also lose accuracy.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@return Unique<Polygon> (Will contain maximal 9 vertices).
-    ///@todo Overload where normal is computed from vertices.
     static Unique<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
                  const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
 
@@ -105,7 +104,7 @@ private:
     ///@return IndexType (IN_FRON_OF_PLANE, BEHIND_PLANE, ON_PLANE)
     static IndexType ClassifyPointToPlane(const PointType& rPoint,
                                const Plane& rPlane,
-                               const double Eps = EPS1);
+                               const double Eps = 10.0*ZEROTOL);
 
     ///@brief Returns intersection point between line and axis aligned plane.
     ///@param rA Point behind the plane.

@@ -87,8 +87,9 @@ public:
     ///@param v0 Triangle Vertex 1
     ///@param v1 Triangle Vertex 2
     ///@param v2 Triangle Vertex 3
+    ///@param Tolerance Default: ZEROTOL.
     ///@return bool
-    bool is_parallel(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2) const;
+    bool is_parallel(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2, double Tolerance = ZEROTOL ) const;
 
     ///@}
 private:

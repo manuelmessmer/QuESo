@@ -36,6 +36,9 @@ public:
     typedef BRepOperatorBase BaseType;
     typedef BaseType::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
 
+    // Declare BaseType functions.
+    using BaseType::GetIntersectionState;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -43,6 +46,7 @@ public:
     /// Constructor
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
+    ///@param rParameters TIBRA parameters.
     BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters)
         : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
     {
@@ -58,35 +62,50 @@ public:
     bool IsInside(const PointType& rPoint) const override;
 
     ///@brief Returns intersections state of element.
-    ///@param rLowerBound
-    ///@param rUpperBound
-    ///@param Tolerance Tolerance reduces element slightly. If Tolerance=0 touch is detected as intersection.
+    ///@param rLowerBound Lower bound of AABB.
+    ///@param rUpperBound Upper bound of AABB.
+    ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=EPS0) const override;
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
 
-    /// @brief Returns ptr to trimmed domain. Trimmed domain holds cipped mesh. (not closed).
-    /// @param rLowerBound of AABB.
-    /// @param rUpperBound of AABB.
-    /// @param rParam Parameters
+    /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
+    /// @param rLowerBound Lower bound of AABB.
+    /// @param rUpperBound Upper bound of AABB.
     /// @return TrimmedDomainBasePtrType (Unique)
-    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
-
-    ///@brief Return ids of triangles that intersect AABB.
-    ///@param rLowerBound of AABB.
-    ///@param rUpperBound of AABB.
-    ///@return Unique<std::vector<IndexType>> containing ids.
-    Unique<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
 
     ///@brief Clips triangle mesh by AABB.
-    ///@param rLowerBound of AABB.
-    ///@param rUpperBound of AABB.
+    ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.
+    ///       This is a requirement for the intersection algorithm (see: TrimemdDomain and TrimmedDomainOnPlane).
+    ///@see pClipTriangleMeshUnique().
+    ///@param rLowerBound Lower bound of AABB.
+    ///@param rUpperBound Upper bound of AABB.
     ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound) const;
+    Unique<TriangleMesh> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
+    ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
+    ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
+    ///       This is a requirement for the application of boundary conditions.
+    ///@todo This needs improvement. Probably global function that cuts every plane only once, to guarantee that triangles on the planes are not assigned twice.
+    ///@see pClipTriangleMesh()
+    ///@param rLowerBound Lower bound of AABB.
+    ///@param rUpperBound Upper bound of AABB.
+    ///@return Unique<TriangleMesh>. Clipped mesh.
+    Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
     ///@}
 
 private:
+    ///@name Private Operations
+    ///@{
+
+    ///@brief Return ids of triangles that intersect AABB.
+    ///@param rLowerBound Lower bound of AABB.
+    ///@param rUpperBound Upper bound of AABB.
+    ///@param Tolerance Positve tolerance reduces extent of AABB. This can be used to neglect touching triangles.
+    ///@return Unique<std::vector<IndexType>> containing ids.
+    Unique<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const;
+
     ///@}
     ///@name Private Members
     ///@{

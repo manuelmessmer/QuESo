@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 } // End Testcase
 
 BOOST_AUTO_TEST_CASE(MomentFittingP4) {
-    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
+    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
                             Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(4, 4, 4)),
                             Component("moment_fitting_residual", 1e-8),
-                            Component("min_num_boundary_triangles", 1000UL),
+                            Component("min_num_boundary_triangles", 2000UL),
                             Component("init_point_distribution_factor", 3UL),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });

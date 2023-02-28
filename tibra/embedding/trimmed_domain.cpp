@@ -15,18 +15,20 @@ namespace tibra {
 typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
 typedef TrimmedDomainBase::BoundingBox BoundingBox;
 
-bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
+bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
 
     const IndexType num_triangles = mClippedMesh.NumOfTriangles();
     if( num_triangles == 0){
         return true;
     }
+    rSuccess = true;
     bool try_next_triangle = true;
     bool is_inside = false;
     IndexType current_id = 0;
     while( try_next_triangle ){
         // Return false if all triangles are tested, but non valid (all are parallel or on_boundary)
         if( current_id >= num_triangles ){
+            rSuccess = false;
             return false;
         }
         // Get direction
@@ -45,8 +47,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
         const auto& p2 = mClippedMesh.P2(current_id);
         const auto& p3 = mClippedMesh.P3(current_id);
 
-        // Make sure target triangle is not parallel
-        if( !ray.is_parallel(p1, p2, p3) ) {
+        // Make sure target triangle is not parallel and has a significant area.
+        const double area = mClippedMesh.Area(current_id);
+        if( !ray.is_parallel(p1, p2, p3, 100.0*mSnapTolerance) && area >  100*ZEROTOL) {
             // Get potential ray intersections from AABB tree.
             auto potential_intersections = mTree.Query(ray);
 
@@ -70,11 +73,12 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
                 if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
                     if( !parallel ){
                         double sum_u_v = u+v;
-                        if( t < EPS2 ){ // origin lies on boundary
+                        if( t < ZEROTOL ){ // origin lies on boundary
+                            //rSuccess = false;
                             return false;
                         }
                         // Ray shoots through boundary.
-                        if( u < 0.0+EPS3 || v < 0.0+EPS3 || sum_u_v > 1.0-EPS3 ){
+                        if( u < 0.0+ZEROTOL || v < 0.0+ZEROTOL || sum_u_v > 1.0-ZEROTOL ){
                             try_next_triangle = true;
                             break;
                         }
@@ -132,7 +136,7 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
 {
     // Test if center is inside or outside.
     const PointType center = (rLowerBound + rUpperBound) * 0.5;
-    const auto status = (IsInsideTrimmedDomain(center)) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+    const auto status = (TrimmedDomainBase::IsInsideTrimmedDomain(center)) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
 
     // Test for triangle intersections;
     AABB_primitive aabb(rLowerBound, rUpperBound);
@@ -141,7 +145,7 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
         const auto& p1 = mClippedMesh.P1(r);
         const auto& p2 = mClippedMesh.P2(r);
         const auto& p3 = mClippedMesh.P3(r);
-        if( aabb.intersect(p1, p2, p3, Tolerance) ){
+        if( aabb.intersect(p1, p2, p3, 10.0*mSnapTolerance) ){
             return IntersectionStatus::Trimmed;
         }
     }

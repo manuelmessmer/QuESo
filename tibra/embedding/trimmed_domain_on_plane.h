@@ -8,6 +8,7 @@
 #include <set>
 //// Project includes
 #include "define.hpp"
+#include "embedding/brep_operator_base.h"
 #include "embedding/trimmed_domain_base.h"
 
 namespace tibra
@@ -22,7 +23,7 @@ namespace tibra
  *        the trimmed domain.
  * @details 1. Stores vertices and edges in different containers according to the
  *             orientation of the corresponding edge (see: CollectEdgesOnPlane(rTriangleMesh)).
- *             Edges are retrieved from EdgesOnPlane storef in rTriangleMesh).
+ *             Edges are retrieved from EdgesOnPlane stored in rTriangleMesh).
  *          2. New edges are introduced, if neccessary, to close polyline (see. CloseContourEdges()).
  *          3. Domain on plane is triangulated (see: TriangulateDomain()).
  *          All three functions are called in pGetTriangulation().
@@ -47,15 +48,19 @@ public:
     typedef Unique<TriangleMesh> TriangleMeshPtrType;
 
     struct PointComparison {
+        PointComparison(double Tolerance) : mTolerance(Tolerance){}
         bool operator() (const std::vector<Point2DType>::iterator& rLhs, const std::vector<Point2DType>::iterator& rRhs) const {
-            if( std::abs( (*rLhs)[0] - (*rRhs)[0] ) < EPS1 ){ // If equal
-                return (*rLhs)[1] < (*rRhs)[1] - EPS1;
+            if( std::abs( (*rLhs)[0] - (*rRhs)[0] ) < mTolerance ){ // If equal
+                return (*rLhs)[1] < (*rRhs)[1] - mTolerance;
             }
             else {
-                return (*rLhs)[0] < (*rRhs)[0] - EPS1;
+                return (*rLhs)[0] <= (*rRhs)[0] - mTolerance;
             }
         }
+    private:
+        double mTolerance;
     };
+    // Point set to enable fast search of dublicate vertices.
     typedef std::set<std::vector<Point2DType>::iterator, PointComparison> Point2DSetType;
 
     /**
@@ -63,29 +68,34 @@ public:
      * @author Manuel Messmer
      * @brief Simple edge with 2 vertices in 2D.
      */
-    class Egde2D {
+    class Edge2D {
     public:
         ///@name Life Cycle
         ///@{
         /// Contructor
-        Egde2D(IndexType V1, IndexType V2) : mV1(V1), mV2(V2) {}
+        Edge2D(IndexType V1, IndexType V2, const Point2DType& rNormal) : mV1(V1), mV2(V2), mNormal(rNormal) {}
         ///@}
         ///@name Public Operations
         ///@{
         IndexType V1() const {return mV1;}
         IndexType V2() const {return mV2;}
         void Set(IndexType V1, IndexType V2){mV1 = V1; mV2 = V2;}
+        void SetVerticesOnUpperBoundary(bool V1, bool V2){ mVertexOnUpperBoundary = std::make_pair(V1, V2); }
+        std::pair<bool, bool> IsVertexOnUpperBoundary() const { return mVertexOnUpperBoundary; }
         const std::vector<Point2DType> &GetSplitPoints() const {return mSplitPoints;}
         std::vector<Point2DType>& GetSplitPoints(){return mSplitPoints;}
         void ClearSplitPoints(){mSplitPoints.clear();}
         void AddSplitPoint(const Point2DType &rPoint){mSplitPoints.push_back(rPoint);}
         void Reserve(IndexType NewSize){mSplitPoints.reserve(NewSize);}
+        Point2DType Normal() const {return mNormal; }
         ///@}
     private:
         ///@name Private Members
         ///@{
         IndexType mV1, mV2;
+        Point2DType mNormal;
         std::vector<Point2DType> mSplitPoints{};
+        std::pair<bool, bool> mVertexOnUpperBoundary{};
         ///@}
     };
 
@@ -94,7 +104,7 @@ public:
     ///@{
 
     /// Constructor.
-    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain)
+    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain, bool SwitchOrientation = false)
         : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain)
     {
         // Orientation
@@ -106,24 +116,47 @@ public:
         //    |     |</-- upper plane  DIRINDEX3
         //    |_____|/
         //
+        mPlaneIndex = PlaneIndex;
         if (PlaneIndex == 2) {
-            DIRINDEX1 = 0;
-            DIRINDEX2 = 1;
+            if( SwitchOrientation ){
+                DIRINDEX1 = 1;
+                DIRINDEX2 = 0;
+            } else {
+                DIRINDEX1 = 0;
+                DIRINDEX2 = 1;
+            }
             DIRINDEX3 = 2;
         }
         else if (PlaneIndex == 1) {
-            DIRINDEX1 = 2;
-            DIRINDEX2 = 0;
+            if( SwitchOrientation ){
+                DIRINDEX1 = 2;
+                DIRINDEX2 = 0;
+            } else {
+                DIRINDEX1 = 0;
+                DIRINDEX2 = 2;
+            }
             DIRINDEX3 = 1;
         }
         else if (PlaneIndex == 0) {
-            DIRINDEX1 = 1;
-            DIRINDEX2 = 2;
+            if( SwitchOrientation ){
+                DIRINDEX1 = 2;
+                DIRINDEX2 = 1;
+            } else {
+                DIRINDEX1 = 1;
+                DIRINDEX2 = 2;
+            }
             DIRINDEX3 = 0;
         }
         else {
             TIBRA_ERROR("TrimmedDomainOnPlane::Constructor") << "Wrong PlaneIndex.\n";
         }
+
+        mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
+
+        // Instantiate vertices sets with mSnapTolerance.
+        mVerticesSetPositive = MakeUnique<Point2DSetType>(PointComparison(mSnapTolerance));
+        mVerticesSetNegative = MakeUnique<Point2DSetType>(PointComparison(mSnapTolerance));
+        mVerticesSetVertical = MakeUnique<Point2DSetType>(PointComparison(mSnapTolerance));
     }
 
     ///@}
@@ -131,9 +164,9 @@ public:
     ///@{
 
     ///@brief Returns a triangulated mesh of trimmed domain.
-    ///@param rTriangleMesh Input mesh. Must hold the edges on planes.
+    ///@param rTriangleMesh Clipped mesh inside trimmed domain. Must hold the edges on planes. No triangles on planes are allowed.
     ///@return TriangleMeshPtrType.
-    ///@details see CollectEdgesOnPlane(), CloseContourEdges(), Triangulate().
+    ///@details see CollectEdgesOnPlane(), CloseContourEdges(), TriangulateDomain().
     //
     //     a_______b                 y
     //     /      /|                ´|`
@@ -142,9 +175,9 @@ public:
     //    |     |</-- plane upper  Z
     //    |_____|/
     //
-    TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh) {
+    TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh, const BRepOperatorBase* pOperator) {
         CollectEdgesOnPlane(rTriangleMesh);
-        CloseContourEdges();
+        CloseContourEdges(pOperator);
         return TriangulateDomain();
     }
 
@@ -170,7 +203,7 @@ private:
     /// @details
     ///             ^                                 DIRINDEX2
     ///        -----|----- Positive oriented.             ^
-    ///                                                   |---> DIRINDEX2
+    ///                                                   |---> DIRINDEX1
     ///        -----|----- Negative oriented.
     ///             V
     /// @param rTriangleMesh Clipped triangle mesh inside trimmed domain.
@@ -180,13 +213,13 @@ private:
     ///@details 1.) Checks if positive oriented edges span the entire AABB (we consider only the part that is inside the domain) in DIRINDEX1.
     ///             If not new edges are introduced at top of AABB (UpperBound[DIRINDEX2]) to fill gaps.
     ///        UB2                  UP2       _____
-    ///         |  out  /     |      |  out  /     |  new edges introduced since Point b is inside domain.
+    ///         |  out  /   b |      |  out  /     |  new edges introduced since Point b is inside domain.
     ///         |------/      | ---> |------/      |
     ///         |  inside     |      |  inside     |
     ///        LB12          UB1    LB12           UP1
     ///
     ///         UB2
-    ///         |  in   /     |      |  in   /     |  no new edges introduced since Point b is outside.
+    ///         |  in   /   b |      |  in   /     |  no new edges introduced since Point b is outside.
     ///         |------/      | ---> |------/      |       LB1 - lower bound of AABB in DIRINDEX1
     ///         |  outsid     |      |  outside    |       UP1 - upper bound of AABB in DIRINDEX1
     ///        LB12          UB1    LB12           UP1
@@ -197,7 +230,7 @@ private:
     ///                 |  |     |   |                                     DIRINDEX2
     ///                 |  |     |   |                                         ^
     ///            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
-    void CloseContourEdges();
+    void CloseContourEdges(const BRepOperatorBase* pOperator);
 
     ///@brief Triangulates the trimmed domain on plane (see @details for more information).
     ///@details Assumes that the vertices of positive and negative oriented edges coincide along DIRINDEX1. See RefineEdges().
@@ -209,8 +242,8 @@ private:
     ///   |   |  |   |
     ///   x___x__x___x    Negative Oriented      x-Vertices
     ///
-    /// Each vertical stripe is individually triangulated. First we generate a polygon with 4 vertices and the triangulate it.
-    /// If vertices of positve and negative edges coincide, only triangle are created.
+    /// Each vertical stripe is individually triangulated. First we generate a polygon with 4 vertices and then triangulate it.
+    /// If vertices of positve and negative edges coincide, only one triangle is created.
     ///
     ///          x___x   Positive Oriented
     ///         /|   |
@@ -220,23 +253,25 @@ private:
     ///@return TriangleMeshPtrType.
     TriangleMeshPtrType TriangulateDomain() const;
 
-    /// @brief Returns intersections (only values in DIRINDEX1 direction) with upper bound (mUpperBound[DIRINDEX2]).
-    /// @param [out] rVertices
+    /// @brief Returns intersecting edges with upper bound (mUpperBound[DIRINDEX2]). If at least one vertex is on mUpperBound[DIRINDEX2]
+    ///        edge is added. Edge vertices are marked as On_Boundary. See: Edge2D::IsVertexOnUpperBoundary.
+    ///        Also, edges are sorted from left to right along DIRINDEX1.
+    /// @param [out] rEdges
     /// @param Orientation
-    /// @param Tolerance: Default EPS0.
-    void FindAllIntersectionWithUpperBound(std::vector<double> &rVertices, OrientationType Orientation, double Tolerance = EPS0);
+    void FindIntersectingEdgesWithUpperBound(std::vector<Edge2D> &rEdges, OrientationType Orientation);
 
-    ///@brief Return EdgeId that overlaps rPoint in DIRINDEX1 direction. If multiple overlap, closest intersection is returned.
+    ///@brief Return EdgeId of negative oriented edge that has same start and end point in DIRINDEX1.
+    ///       If multiple edges are found, Id of closest partner is returned.
     ///       Return -1 if no edge is found.
-    ///       Found if: rPoint[DIRINDEX1] > EgdeV1[DIRINDEX1] and rPoint[DIRINDEX1] < EgdeV2[DIRINDEX1]
-    ///@param rPoint
-    ///@param Positive Orientation of edges to be searched.
-    ///@param int
-    int FindIntersectingEdge(const Point2DType &rPoint, OrientationType Orientation) const;
+    ///@param rV1 Left Point
+    ///@param rV2 Right Point
+    ///@param rNormal Normal of edge (rV1 and rV2).
+    ///@param int EdgeId
+    int FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const;
 
     ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
     ///@param rPoint Potential split point.
-    ///@param OrientationDest Oreintation of edges to split.
+    ///@param OrientationDest Orientation of edges to split.
     void SetSplitPoint(const Point2DType &rPoint, OrientationType OrientationDest);
 
     ///@brief Splits all edges at their defined split point.
@@ -258,7 +293,7 @@ private:
     /// @param rV2 Point1 (2D-Point).
     /// @param rOrientation Current orientation.
     /// @return True if edge is inserted.
-    bool InsertEdge(const Point2DType& rV1, const Point2DType& rV2, OrientationType rOrientation );
+    bool InsertEdge(const Point2DType& rV1, const Point2DType& rV2, const Point2DType& rNormal, OrientationType rOrientation );
 
     ///@brief Simple and fast insertion of vertex to container. Check if point is already contained is omitted.
     ///@brief If uniqueness check of point is required, use: GetUniqueVertexIDs() + InsertVertex(Point2DType, IndexType, Orientation).
@@ -273,6 +308,38 @@ private:
     ///@param NewIndex Index of new point.
     ///@param OrientationType Current orientation.
     void InsertVertex(const Point2DType &rPoint, IndexType NewIndex, OrientationType Orientation);
+
+    /// @brief Adds vertices of pEdge that are marked as (IsVertexOnUpperBoundary) to container.
+    ///        If left vertex is on upper boundary. Vertex is marked as right edge (std::pair.second = false).
+    ///        If right vertex is on upper boundary. Vertex is marked as left edge (std::pair.second = true).
+    /// @param pEdge Contains intersected vertices (see: IsVertexOnUpperBoundary).
+    /// @param rVertices[out]
+    void AddIntersectedVertexPositive(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+
+    /// @brief Adds vertices of pEdge that are marked as (IsVertexOnUpperBoundary) to container.
+    ///        If left vertex is on upper boundary. Vertex is marked as left edge (std::pair.second = true).
+    ///        If right vertex is on upper boundary. Vertex is marked as right edge (std::pair.second = false).
+    /// @param pEdge Contains intersected vertices (see: IsVertexOnUpperBoundary).
+    /// @param rVertices[out]
+    void AddIntersectedVertexNegative(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+
+    /// @brief Adds vertices of pEdge that are marked as (IsVertexOnUpperBoundary) to container.
+    ///        If normal[0] < ZEROTOL. Vertex is marked as left edge (std::pair.second = true).
+    ///        If normal[0] > ZEROTOL. Vertex is marked as right edge (std::pair.second = false).
+    /// @param pEdge Contains intersected vertices (see: IsVertexOnUpperBoundary).
+    /// @param rVertices[out]
+    void AddIntersectedVertexVertical(Edge2D* pEdge, std::vector<std::pair<double, bool>>& rVertices);
+
+    /// @brief Remove dublicate edges that are at the same position (DIRINDEX1) and have same normal.
+    ///        If there are still two edges at the same position, remove both of them.
+    /// @param rEdges
+    /// @param rVertices
+    void RemoveDublicateVerticalEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
+
+    /// @brief Remove dublicate edges that are at the same position v1[0] and v2[0].
+    /// @param rEdges
+    /// @param rVertices
+    void RemoveDublicateEdges(std::vector<Edge2D>& rEdges, std::vector<Point2DType>& rVertices);
 
     ////////////////////////
     /// Getter Functions ///
@@ -302,13 +369,13 @@ private:
 
     ///@brief Returns Edges container. (const version)
     ///@param Orientation orientation of edges
-    ///@return const std::vector<Egde2D>&
-    const std::vector<Egde2D>& GetEdges(OrientationType Orientation) const;
+    ///@return const std::vector<Edge2D>&
+    const std::vector<Edge2D>& GetEdges(OrientationType Orientation) const;
 
     ///@brief Returns Edges container.  (non const version)
     ///@param Orientation orientation of edges
-    ///@return std::vector<Egde2D>&
-    std::vector<Egde2D>& GetEdges(OrientationType Orientation);
+    ///@return std::vector<Edge2D>&
+    std::vector<Edge2D>& GetEdges(OrientationType Orientation);
 
     ///@brief Returns vertices container. (const version)
     ///@param Orientation Orientation of vertices
@@ -339,14 +406,25 @@ private:
     /// @return double
     double GetPlanePosition() const;
 
+    /// @brief Returns max value (DIRINDEX2) of all vertices in rPoints
+    /// @param rPoints
+    /// @return double
+    double GetMaxDIRINDEX2(std::vector<Point2DType>& rPoints) const;
+
+    ///@brief Return true if 2D point exists already in given PointSet.
+    ///@param rPoint TestPoint
+    ///@param rPointSet PointSet to search in.
+    ///@return bool
+    bool PointExists(const Point2DType& rPoint , const Point2DSetType& rPointSet) const;
+
     ///@}
     ///@name Private Members
     ///@{
 
     /// Edges container
-    std::vector<Egde2D> mEdgesPositiveOriented{};
-    std::vector<Egde2D> mEdgesNegativeOriented{};
-    std::vector<Egde2D> mEdgesVertical{};
+    std::vector<Edge2D> mEdgesPositiveOriented{};
+    std::vector<Edge2D> mEdgesNegativeOriented{};
+    std::vector<Edge2D> mEdgesVertical{};
 
     /// Vertices container
     std::vector<Point2DType> mVerticesPositive{};
@@ -354,11 +432,12 @@ private:
     std::vector<Point2DType> mVerticesVertical{};
 
     /// Vertices sets. Used for fast search, if new vertex already exists.
-    Point2DSetType mVerticesSetPositive{};
-    Point2DSetType mVerticesSetNegative{};
-    Point2DSetType mVerticesSetVertical{};
+    Unique<Point2DSetType> mVerticesSetPositive;
+    Unique<Point2DSetType> mVerticesSetNegative;
+    Unique<Point2DSetType> mVerticesSetVertical;
 
     /// Plane direction indices
+    IndexType mPlaneIndex;
     IndexType DIRINDEX1; // In plane 1
     IndexType DIRINDEX2; // In plane 2
     IndexType DIRINDEX3; // Out of plane
@@ -367,7 +446,9 @@ private:
     Point3DType mUpperBound; // Upper bound AABB
 
     bool mUpperBoundary; // Is current plane upper bound?
-    const TrimmedDomainBase *mpTrimmedDomain;
+    const TrimmedDomainBase *mpTrimmedDomain; // Reuiqred for IsInside()-Test.
+
+    double mSnapTolerance;
     ///@}
 }; // End TrimmedDomainOnPlane
 

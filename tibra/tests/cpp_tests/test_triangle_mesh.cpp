@@ -27,11 +27,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOTest) {
 
     BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
-    double surface_area = 0.0;
+    double surface_area = MeshUtilities::Area(triangle_mesh);
 
-    for( int triangle_id = 0; triangle_id < triangle_mesh.NumOfTriangles(); ++triangle_id){
-        surface_area += triangle_mesh.Area(triangle_id);
-    }
     BOOST_CHECK_CLOSE(surface_area, 69.11212872984862, 1e-10);
 }
 
@@ -156,7 +153,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(lower_bound, upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound);
                     const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
                     auto mesh = p_trimmed_domain->GetTriangleMesh();
                     volume += MeshUtilities::Volume(mesh);

@@ -178,21 +178,31 @@ Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, con
     return std::move(p_new_triangle_mesh);
 }
 
+
+double MeshUtilities::Area(const TriangleMesh& rTriangleMesh){
+    double area = 0.0;
+    // Loop over all triangles
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+        area += rTriangleMesh.Area(i);
+    }
+    return area;
+}
+
 double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
         const auto r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = Math::Dot(normal, point);
-            volume += 1.0/3.0*integrand * point.GetWeight();
+            const double integrand = Math::Dot(normal, point);
+            volume += integrand * point.GetWeight();
         }
     }
-    return volume;
+    return std::abs(1.0/3.0*volume);
 }
 
 double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
@@ -200,36 +210,90 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
-    for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 3);
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
         const auto r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            double integrand = Math::Dot(normal, point);
-            volume += 1.0/3.0*integrand * point.GetWeight();
+            const double integrand = Math::Dot(normal, point);
+            volume += integrand * point.GetWeight();
         }
     }
-    return volume;
+    return std::abs(1.0/3.0*volume);
 }
 
-bool MeshUtilities::IsClosed(const TriangleMesh& rTriangleMesh){
-    PointType directional_areas = {0.0, 0.0, 0.0};
+double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
+    double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
-    double total_area = 0.0;
-    for( IndexType i = 0; i < num_triangles; ++i ){
+
+    TIBRA_ERROR_IF("MeshUtilities::Volume", Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
+
+    // Loop over all triangles
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
-        const auto& r_points = *p_points;
+        const auto r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            directional_areas += normal * point.GetWeight();
-            total_area += point.GetWeight();
+            const double integrand = normal[Dir]*point[Dir];
+            volume += integrand * point.GetWeight();
         }
     }
-    double epsilon = std::abs(1.0/total_area*
-        (directional_areas[0]+directional_areas[1]+directional_areas[2]));
-    return epsilon < 1e-5;
+    return std::abs(volume);
+}
+
+double MeshUtilities::MaxAspectRatio(const TriangleMesh& rTriangleMesh){
+    double max_aspect_ratio = MIND;
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
+        const double aspect_ratio = rTriangleMesh.AspectRatio(i);
+        if( aspect_ratio > max_aspect_ratio ){
+            max_aspect_ratio = aspect_ratio;
+        }
+    }
+    return max_aspect_ratio;
+}
+
+double MeshUtilities::AverageAspectRatio(const TriangleMesh& rTriangleMesh){
+    double average_aspect_ratio = 0.0;
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
+        average_aspect_ratio += rTriangleMesh.AspectRatio(i);
+    }
+    return average_aspect_ratio/rTriangleMesh.NumOfTriangles();
+}
+
+double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    double total_volume_1 = 0.0;
+    double total_volume_2 = 0.0;
+    double total_volume_3 = 0.0;
+    double total_area = 0.0;
+    PointType directional_areas = {0.0, 0.0, 0.0};
+    for( IndexType i = 0; i < num_triangles; ++i ){
+        const double area = rTriangleMesh.Area(i);
+        const auto normal = rTriangleMesh.Normal(i);
+        total_area += area;
+        directional_areas += normal * area;
+
+        // Get integration points
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto r_points = *p_points;
+        // Loop over all points.
+        for( const auto& point : r_points ){
+            total_volume_1 += normal[0]*point[0] * point.GetWeight();
+            total_volume_2 += normal[1]*point[1] * point.GetWeight();
+            total_volume_3 += normal[2]*point[2] * point.GetWeight();
+        }
+    }
+    const double total_volume = std::abs(1.0/3.0*(total_volume_1 + total_volume_2 + total_volume_3));
+    const double error_v1 = std::abs(total_volume_1 - total_volume) / total_volume;
+    const double error_v2 = std::abs(total_volume_2 - total_volume) / total_volume;
+    const double error_v3 = std::abs(total_volume_3 - total_volume) / total_volume;
+
+    const double error_area = std::abs(1.0*directional_areas.Norm()) / std::abs(total_area);
+
+    const double max_error = std::max(std::max(std::max( error_v1, error_v2), error_v3), error_area );
+    return max_error;
 }
 
 } // End namespace tibra

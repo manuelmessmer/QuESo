@@ -53,14 +53,28 @@ public:
     {
     }
 
+    /// Destructor
+    virtual ~TrimmedDomainBase() {};
+
     ///@}
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if point is inside TrimmedDomain.
+    ///@brief Returns true if point is inside TrimmedDomain. Returns false, if test was not successful.
+    ///@note Calls: IsInsideTrimmedDomain(rPoint, rSuccess). If you want to know if test was successful, you should directly call
+    ///      IsInsideTrimmedDomain(rPoint, rSuccess).
     ///@param rPoint
     ///@return bool
-    virtual bool IsInsideTrimmedDomain(const PointType& rPoint) const = 0;
+    bool IsInsideTrimmedDomain(const PointType& rPoint) const {
+        bool success = true;
+        return IsInsideTrimmedDomain(rPoint, success);
+    }
+
+    ///@brief Returns true if point is inside TrimmedDomain.
+    ///@param rPoint
+    ///@param[out] rSuccess is true if operation was successful.
+    ///@return bool
+    virtual bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess ) const = 0;
 
     ///@brief Returns boundary integration points of TrimmedDomain.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.

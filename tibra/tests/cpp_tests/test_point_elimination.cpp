@@ -58,7 +58,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
                     if( p_trimmed_domain ){
                         ++number_trimmed_elements;
 
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
                     if( p_trimmed_domain ){
                         ++number_trimmed_elements;
 
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
                     if( p_trimmed_domain ){
                         ++number_trimmed_elements;
 

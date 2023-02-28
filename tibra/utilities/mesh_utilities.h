@@ -51,21 +51,46 @@ public:
     ///@return Unique<TriangleMesh>
     static TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
-    ///@brief Returns enclosed volume by triangle mesh.
+    /// @brief Returns surface area of triangle mesh.
+    /// @param rTriangleMesh
+    /// @return double.
+    static double Area(const TriangleMesh& rTriangleMesh);
+
+    ///@brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
     ///@param rTriangleMesh
     ///@return double
     static double Volume(const TriangleMesh& rTriangleMesh);
 
-    ///@brief Returns enclosed volume by triangle mesh (OMP-version).
+    /// @brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
+    /// Only applies divergence theorem in direction Dir: 0-x, 1-y, 2-z.
+    /// @param rTriangleMesh
+    /// @param Dir
+    /// @return double
+    static double Volume(const TriangleMesh& rTriangleMesh, IndexType Dir);
+
+    ///@brief Returns enclosed volume by triangle mesh (OMP-version). Uses divergence theorem to compute volume.
     ///@param rTriangleMesh
     ///@return double
     static double VolumeOMP(const TriangleMesh& rTriangleMesh);
 
-    ///@brief Returns true if rTriangleMesh represents a closed volume.
+    ///@brief Returns a quaility measure of triangle mesh. This function computes the volume of the mesh using
+    ///       the divergence theorem. It applies the divergence theorem individually in each space direction (volume_1, volume_2, volume_3).
+    ///       Theoretically, all directional volumes must be equal. Additionally, this function computes the directional
+    ///       areas: Sum of (normal * area). This value must be zero if the mesh is closed.
+    ///       The maximum relative errors of volume_1, volume_2, volume_3 and directional_area is returned.
     ///@param rTriangleMesh
-    ///@return bool
-    static bool IsClosed(const TriangleMesh& rTriangleMesh);
+    ///@return double maximum error.
+    static double EstimateQuality(const TriangleMesh& rTriangleMesh);
 
+    ///@brief Returns maximum aspect ratio of all triangles in triangle mesh.
+    ///@param rTriangleMesh
+    ///@return double
+    static double MaxAspectRatio(const TriangleMesh& rTriangleMesh);
+
+    ///@brief Returns average aspect ratio of all triangles in triangle mesh.
+    ///@param rTriangleMesh
+    ///@return double
+    static double AverageAspectRatio(const TriangleMesh& rTriangleMesh);
     ///@}
 }; // End class MeshUtilities
 ///@} // End TIBRA Classes

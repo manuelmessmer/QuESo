@@ -8,6 +8,19 @@
 
 namespace tibra {
 
+struct PointComparison {
+    bool operator() (const PointType& rLhs, const PointType& rRhs) const {
+        if( std::abs( rLhs[0] - rRhs[0] ) < SNAPTOL
+            && std::abs(rLhs[1] - rRhs[1]) < SNAPTOL ){ // If equal
+            return rLhs[2] < rRhs[2] - SNAPTOL;
+        } else if ( std::abs( rLhs[0] - rRhs[0] ) < SNAPTOL ){
+          return rLhs[1] < rRhs[1] - SNAPTOL; }
+        else {
+            return (rLhs)[0] <= (rRhs)[0] - SNAPTOL;
+        }
+    };
+};
+
 bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
                         const char* Filename,
                         const bool Binary){
@@ -65,6 +78,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
     }
     file << "endsolid"<<std::endl;
   }
+  file.close();
 
   return true;
 }
@@ -107,7 +121,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   }
 
   int index = 0;
-  std::map<Vector3d, IndexType> index_map;
+  std::map<Vector3d, int, PointComparison> index_map;
 
   // Read number of triangles
   unsigned int num_triangles;
@@ -122,25 +136,24 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   for(unsigned int i=0; i<num_triangles; ++i) {
     // Read normals
     float normal[3];
-    if(!(file.read(reinterpret_cast<char*>(&normal[0]), sizeof(normal[0]))) ||
-        !(file.read(reinterpret_cast<char*>(&normal[1]), sizeof(normal[1]))) ||
-        !(file.read(reinterpret_cast<char*>(&normal[2]), sizeof(normal[2])))) {
+    if(!(file.read((char*)(&normal[0]), sizeof(normal[0]))) ||
+        !(file.read((char*)(&normal[1]), sizeof(normal[1]))) ||
+        !(file.read((char*)(&normal[2]), sizeof(normal[2])))) {
       std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read normals. \n";
       return false;
     }
-    rTriangleMesh.AddNormal( {normal[0], normal[1], normal[2]} );
-
+    PointType point_normal(normal[0], normal[1], normal[2]);
     // Read triangles and vertices. Each vertex is read seperately.
     Vector3i triangle{};
+    std::array<PointType, 3> vertices;
     for(int j=0; j<3; ++j) {
       float x,y,z;
-      if(!(file.read(reinterpret_cast<char*>(&x), sizeof(x))) ||
-          !(file.read(reinterpret_cast<char*>(&y), sizeof(y))) ||
-          !(file.read(reinterpret_cast<char*>(&z), sizeof(z)))) {
+      if(!(file.read((char*)(&x), sizeof(x))) ||
+          !(file.read((char*)(&y), sizeof(y))) ||
+          !(file.read((char*)(&z), sizeof(z)))) {
         std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read coordinates. \n";
         return false;
       }
-
       Vector3d vertex = {x,y,z};
 
       // Map is used to ensure unique vertices. Note that STL does not reuse vertices.
@@ -149,21 +162,50 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
         triangle[j] = index;
         index_map_iterator->second = index++;
         rTriangleMesh.AddVertex(vertex);
+        vertices[j] = vertex;
       }
       else {
         triangle[j] = index_map_iterator->second;
+        vertices[j] = index_map_iterator->first;
       }
     }
-    rTriangleMesh.AddTriangle(triangle);
+    if( Math::Norm(point_normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
+      rTriangleMesh.AddTriangle(triangle);
+
+      // Uses largest two edges to compute normal. We need normal in machine precesion.
+      // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
+      // the given vertices.
+      const auto A = vertices[1] - vertices[0];
+      const auto B = vertices[2] - vertices[1];
+      const auto C = vertices[0] - vertices[2];
+
+      const double lenght_A = A.Norm();
+      const double lenght_B = B.Norm();
+      const double lenght_C = C.Norm();
+
+      if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
+        point_normal = Math::Cross(A, B);
+      }
+      else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
+        point_normal = Math::Cross(C, A);
+      }
+      else {
+        point_normal = Math::Cross(B, C);
+      }
+
+      point_normal *= 1.0/Math::Norm(point_normal);
+      rTriangleMesh.AddNormal( point_normal );
+    }
 
     // Read so-called attribute byte count and ignore it
     char c;
-    if(!(file.read(reinterpret_cast<char*>(&c), sizeof(c))) ||
-        !(file.read(reinterpret_cast<char*>(&c), sizeof(c)))) {
+    if(!(file.read((char*)(&c), sizeof(c))) ||
+        !(file.read((char*)(&c), sizeof(c)))) {
       std::cerr << "Warning :: IO::ReadMeshFromSTL :: Couldnt read attribute byte count.\n";
       return false;
     }
   }
+  file.close();
   return rTriangleMesh.Check();
 }
 

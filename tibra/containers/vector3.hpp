@@ -121,6 +121,13 @@ public:
         return *this;
     }
 
+    Vector3 operator-= (const Vector3& rOther)  {
+        this->data()[0] -= rOther[0];
+        this->data()[1] -= rOther[1];
+        this->data()[2] -= rOther[2];
+        return *this;
+    }
+
     Vector3 operator*= (const type& rValue)  {
         this->data()[0] *= rValue;
         this->data()[1] *= rValue;

@@ -114,7 +114,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
     // Sort according to NeighbourCoefficient().
     std::sort( sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](auto &rLHs, auto &rRHS) -> bool
                 // If value is equal, sort according to ElementId(). This is done to keep same test results.
-                { if( std::abs((rLHs)->NeighbourCoefficient() - (rRHS)->NeighbourCoefficient()) < EPS3){ return rLHs->GetId() <= rRHS->GetId();}
+                { if( std::abs((rLHs)->NeighbourCoefficient() - (rRHS)->NeighbourCoefficient()) < ZEROTOL){ return rLHs->GetId() <= rRHS->GetId();}
                   else { return (rLHs)->NeighbourCoefficient() > (rRHS)->NeighbourCoefficient(); }
                 });
 
@@ -132,7 +132,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         double max_neighbour_coefficient = 1.0;
         std::array<int,3> current_dimensions = {1, 1, 1};
         int inner_count = 0; //remove
-        while( max_neighbour_coefficient > EPS2 && !stop ){
+        while( max_neighbour_coefficient > ZEROTOL && !stop ){
             std::array<double,6> neighbour_coeff = {0, 0, 0 ,0 ,0 ,0};
             std::array<ElementContainer::ElementVectorPtrType,6> tmp_neighbours{};
 
@@ -154,7 +154,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
                 }
             }
             bool valid_direction_found = false;
-            while( !valid_direction_found && max_neighbour_coefficient > EPS2 && !stop){
+            while( !valid_direction_found && max_neighbour_coefficient > ZEROTOL && !stop){
                 int max_neighbour_coefficient_index = std::max_element(neighbour_coeff.begin(), neighbour_coeff.end()) - neighbour_coeff.begin();
 
                 max_neighbour_coefficient = neighbour_coeff[max_neighbour_coefficient_index];
@@ -256,7 +256,7 @@ double linear_function(int x, int number_neighbours){
 
     double value = (1.0 - 0.9/center*delta)* (double)number_neighbours;
 
-    TIBRA_ERROR_IF("QuadratureMultipleElements::linear_function", value < EPS2) << "Value too low\n";
+    TIBRA_ERROR_IF("QuadratureMultipleElements::linear_function", value < ZEROTOL) << "Value too low\n";
 
     return value;
 }
