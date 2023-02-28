@@ -20,7 +20,7 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     // Return nullptr, if no point is on bounded side.
     // Note on_bounded_side means behind plane, since normal vectors point in outward direction.
     for( IndexType plane_index = 0; plane_index < 6; ++plane_index){
-        // [-x, x, -y, y, -z, z]
+        // Mapping of plane_index: [-x, x, -y, y, -z, z]
         const double plane_position = (plane_index%2UL) ? rUpperBound[plane_index/2UL] : rLowerBound[plane_index/2UL];
         Plane plane(plane_index, plane_position);
         auto loc_v1 = ClassifyPointToPlane(rV1, plane, 10.0*ZEROTOL);
@@ -28,7 +28,7 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
         auto loc_v3 = ClassifyPointToPlane(rV3, plane, 10.0*ZEROTOL);
         IndexType count_on_plane = (loc_v1 == ON_PLANE) + (loc_v2 == ON_PLANE) + (loc_v3 == ON_PLANE);
         if( count_on_plane == 3 ){
-            return nullptr; // Triangle is aligneed with plane
+            return nullptr; // Triangle is aligned with plane
         }
     }
 
@@ -49,7 +49,7 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     p_current_poly->AddVertex( rV2 );
     p_current_poly->AddVertex( rV3 );
 
-    /// Loop ober all three dimensions, and clip each plane (positive and negative direction.)
+    /// Loop over all three dimensions, and clip each plane (positive and negative direction.)
     for(IndexType dimension = 0; dimension < 3; ++dimension)
     {
         if(max_tri[dimension] > rLowerBound[dimension] )

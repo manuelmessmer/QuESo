@@ -39,19 +39,14 @@ public:
     ///@{
 
     ///@brief Clips triangle by AABB. Expects that input triangle does intersect one of the faces of the bounding box.
-    ///       Meaning, triangle is not fully outside, neither fully contained inside the AABB.
-    ///@param rV1 Vertex 1 of Triangle
-    ///@param rV2 Vertex 2 of Triangle
-    ///@param rV3 Vertex 3 of Triangle
+    ///       If triangle is fully contained within AABB, same triangle is returned. If triangle is fully outside of AABB nullptr is returned.
+    ///@param rV1 Vertex 1 of Triangle.
+    ///@param rV2 Vertex 2 of Triangle.
+    ///@param rV3 Vertex 3 of Triangle.
     ///@param rNormal Normal vector of triangle. Is provided, such that recomputation can be omitted. Recomputation would also lose accuracy.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@param KeepOnPlane If false, for all triangles that are aligned with any cutting plane a nullptr is returned.
-    ///                   KeepOnPlane = False must be used for intersection algorithm.
-    ///                   If true, triangle is only assigned to positive planes (+x, +y, +z) to avoid double assignements.
-    ///                   KeepOnPlane = False must be used when clipping a mesh for the application of dirichlet boundary conditions.
     ///@return Unique<Polygon> (Will contain maximal 9 vertices).
-    ///@todo Overload where normal is computed from vertices.
     static Unique<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
                  const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
 
