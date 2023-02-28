@@ -8,9 +8,7 @@
 #include <memory>
 /// Project includes
 #include "embedding/trimmed_domain_base.h"
-#include "embedding/brep_operator_base.h"
 #include "embedding/aabb_tree.h"
-#include "io/io_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "embedding/trimmed_domain_on_plane.h"
 
@@ -22,7 +20,7 @@ namespace tibra {
 /**
  * @class  TrimmedDomain
  * @author Manuel Messmer
- * @brief  Provides geometrical operations for clipped Brep models (clipped triangle meshes).
+ * @brief  Provides geometrical operations e.g. to compute closed triangle mesh of trimmed domain (based on a clipped triangle mesh).
  * @details Uses AABB Tree for fast search.
 */
 class TrimmedDomain : public TrimmedDomainBase {
@@ -36,10 +34,10 @@ public:
     ///@{
 
     /// @brief Constructor for trimmed domain.
-    /// @param pTriangleMesh Clipped triangle mesh. Must contain edges on boundary planes of aabb.
+    /// @param pTriangleMesh Clipped triangle mesh. Must contain edges on boundary planes of aabb (see: TrimmedomainOnPlane).
     /// @param rLowerBound Lower bound of trimmed domain.
     /// @param rUpperBound Upper bound of trimmed domain.
-    /// @param pOperator Pointer to BrepOperator to perform IsInside()-check. Only used as saftey procedure, if IsInsideTrimmedDomain() failes.
+    /// @param pOperator Pointer to BrepOperator to perform IsInside()-check. Only used as safety procedure, if IsInsideTrimmedDomain() failes.
     /// @param rParameters TIBRA Parameters.
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
@@ -49,7 +47,7 @@ public:
         // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
 
-        // Copy clipped mesh. All operations, e.g. IsInsideTrimmedDomain() are only performed on the mClippedMesh.
+        // Copy clipped mesh. All operations, e.g. IsInsideTrimmedDomain() are only performed on the mClippedMesh (not on the closed mesh: mTriangelMesh).
         const auto& mesh = GetTriangleMesh();
         mClippedMesh.Reserve(mesh.NumOfTriangles());
         MeshUtilities::Append(mClippedMesh, mesh);
@@ -98,7 +96,7 @@ public:
     ///@brief Performs ray tracing in direction of the first triangle. Search for all intersection of ray. Inside/Outside is detected
     ///       based on the orientation of the closest intersected triangle (forward or backward facing).
     ///@param rPoint
-    ///@param[out] rSuccess Is set to false, if e.g. all triangles are detected as parallel and give ambiguous results.
+    ///@param[out] rSuccess Is set to false, if e.g. all triangles are detected as parallel and therefore give ambiguous results.
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const override;
 
@@ -106,11 +104,11 @@ public:
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     BoundaryIPVectorPtrType pGetBoundaryIps() const;
 
-    ///@brief Returns intersections state of AABB (This is an Interface for the Octree).
+    ///@brief Returns intersections state of AABB. This is an interface for the octree.
     ///@note This test is only performed on the mClippedMesh to be more efficient.
-    ///@param rLowerBound
-    ///@param rUpperBound
-    ///@param Tolerance Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
+    ///@param rLowerBound Lower bound of AABB to be tested. Expected to be inside trimmed domain.
+    ///@param rUpperBound Upper bound of AABB to be tested. Expected to be inside trimmed domain.
+    ///@param Tolerance Default: SNAPTOL. Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=SNAPTOL) const;

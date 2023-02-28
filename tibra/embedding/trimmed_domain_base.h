@@ -60,7 +60,9 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if point is inside TrimmedDomain.
+    ///@brief Returns true if point is inside TrimmedDomain. Returns false, if test was not successful.
+    ///@note Calls: IsInsideTrimmedDomain(rPoint, rSuccess). If you want to know if test was successful, you should directly call
+    ///      IsInsideTrimmedDomain(rPoint, rSuccess).
     ///@param rPoint
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint) const {
