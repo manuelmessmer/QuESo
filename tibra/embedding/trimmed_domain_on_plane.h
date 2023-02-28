@@ -213,13 +213,13 @@ private:
     ///@details 1.) Checks if positive oriented edges span the entire AABB (we consider only the part that is inside the domain) in DIRINDEX1.
     ///             If not new edges are introduced at top of AABB (UpperBound[DIRINDEX2]) to fill gaps.
     ///        UB2                  UP2       _____
-    ///         |  out  /     |      |  out  /     |  new edges introduced since Point b is inside domain.
+    ///         |  out  /   b |      |  out  /     |  new edges introduced since Point b is inside domain.
     ///         |------/      | ---> |------/      |
     ///         |  inside     |      |  inside     |
     ///        LB12          UB1    LB12           UP1
     ///
     ///         UB2
-    ///         |  in   /     |      |  in   /     |  no new edges introduced since Point b is outside.
+    ///         |  in   /   b |      |  in   /     |  no new edges introduced since Point b is outside.
     ///         |------/      | ---> |------/      |       LB1 - lower bound of AABB in DIRINDEX1
     ///         |  outsid     |      |  outside    |       UP1 - upper bound of AABB in DIRINDEX1
     ///        LB12          UB1    LB12           UP1
@@ -242,8 +242,8 @@ private:
     ///   |   |  |   |
     ///   x___x__x___x    Negative Oriented      x-Vertices
     ///
-    /// Each vertical stripe is individually triangulated. First we generate a polygon with 4 vertices and the triangulate it.
-    /// If vertices of positve and negative edges coincide, only triangle are created.
+    /// Each vertical stripe is individually triangulated. First we generate a polygon with 4 vertices and then triangulate it.
+    /// If vertices of positve and negative edges coincide, only one triangle is created.
     ///
     ///          x___x   Positive Oriented
     ///         /|   |
@@ -260,18 +260,18 @@ private:
     /// @param Orientation
     void FindIntersectingEdgesWithUpperBound(std::vector<Edge2D> &rEdges, OrientationType Orientation);
 
-    ///@brief Return EdgeId of negative oriented edge that has same start (DIRINDEX1) and end point (DIRINDEX1).
+    ///@brief Return EdgeId of negative oriented edge that has same start and end point in DIRINDEX1.
     ///       If multiple edges are found, Id of closest partner is returned.
     ///       Return -1 if no edge is found.
     ///@param rV1 Left Point
     ///@param rV2 Right Point
     ///@param rNormal Normal of edge (rV1 and rV2).
-    ///@param int
+    ///@param int EdgeId
     int FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const;
 
     ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
     ///@param rPoint Potential split point.
-    ///@param OrientationDest Oreintation of edges to split.
+    ///@param OrientationDest Orientation of edges to split.
     void SetSplitPoint(const Point2DType &rPoint, OrientationType OrientationDest);
 
     ///@brief Splits all edges at their defined split point.
