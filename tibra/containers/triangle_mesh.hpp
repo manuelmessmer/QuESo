@@ -45,6 +45,7 @@ public:
 
     /// @brief Area of triangle.
     /// @details Computation uses cross product.
+    /// @note Do not use computation via height of triangle. Not accurate enough.
     /// @param TriangleId
     /// @return double.
     double Area(IndexType TriangleId) const {
@@ -86,9 +87,9 @@ public:
 
         const auto area = this->Area(TriangleId);
 
-        const double a = (P2-P1).Norm();
-        const double b = (P3-P2).Norm();
-        const double c = (P1-P3).Norm();
+        const double a = (P2-P1).Norm(); // length a
+        const double b = (P3-P2).Norm(); // length b
+        const double c = (P1-P3).Norm(); // length c
 
         const double max_edge = std::max(std::max(a, b), c);
 

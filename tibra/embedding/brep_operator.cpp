@@ -24,7 +24,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
         bool is_on_boundary = true;
         int intersection_count = 0;
         IndexType iteration = 0UL;
-        IndexType max_iteration = 100UL;
+        const IndexType max_iteration = 100UL;
         while( is_on_boundary ){
             if( iteration >= max_iteration){ return false; }
             iteration++;
@@ -83,10 +83,10 @@ IntersectionStatus BRepOperator::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
     // Test if center is inside or outside.
-    const PointType center = { 0.5*(rUpperBound[0]+rLowerBound[0]), 0.5*(rUpperBound[1]+rLowerBound[1]), 0.5*(rUpperBound[2]+rLowerBound[2]) };
-
+    const PointType center = (rUpperBound+rLowerBound) * 0.5;
     IntersectionStatus status = (IsInside(center)) ? Inside : Outside;
 
+    // Multiple test do not seem to be necessary.
     // IntersectionStatus status_confirm = (IsInside(center)) ? Inside : Outside;
     // while( status != status_confirm){
     //     status = (IsInside(center)) ? Inside : Outside;
@@ -96,7 +96,7 @@ IntersectionStatus BRepOperator::GetIntersectionState(
     AABB_primitive aabb(rLowerBound, rUpperBound);
     auto result = mTree.Query(aabb);
 
-    double snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, Tolerance);
+    const double snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, Tolerance);
     for( auto r : result){
         const auto& p1 = mTriangleMesh.P1(r);
         const auto& p2 = mTriangleMesh.P2(r);
@@ -132,7 +132,6 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
     while( iteration < 10){
         auto p_new_mesh = ClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
-            // Change Direction every intermediate step.
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters, switch_plane_orientation);
             const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
 
@@ -152,6 +151,7 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
                     best_prev_solution = std::move(p_trimmed_domain);
                 }
                 if( switch_plane_orientation ){
+                    // Perturb AABB slightly.
                     PointType lower_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
                     PointType upper_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
 
@@ -181,7 +181,6 @@ Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
     auto potential_intersections = mTree.Query(aabb);
 
     auto intersected_triangle_ids = MakeUnique<std::vector<IndexType>>();
-    int count = 0;
     intersected_triangle_ids->reserve(potential_intersections.size());
     for( auto triangle_id : potential_intersections){
         const auto& p1 = mTriangleMesh.P1(triangle_id);
@@ -223,7 +222,6 @@ Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
 
 
 Unique<TriangleMesh> BRepOperator::ClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
-    // This needs improvement. Global triangle clipping.
     const PointType offset(30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL);
     const auto lower_bound = rLowerBound + offset;
     const auto upper_bound = rUpperBound + offset;
@@ -244,7 +242,6 @@ Unique<TriangleMesh> BRepOperator::ClipTriangleMeshUnique(const PointType& rLowe
             p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
         }
     }
-    snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound);
     if( p_triangle_mesh->NumOfTriangles() > 0){
         p_triangle_mesh->Check();
     }

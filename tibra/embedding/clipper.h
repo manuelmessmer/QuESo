@@ -43,7 +43,7 @@ public:
     ///@param rV1 Vertex 1 of Triangle
     ///@param rV2 Vertex 2 of Triangle
     ///@param rV3 Vertex 3 of Triangle
-    ///@param rNormal Normal vector of triangle.
+    ///@param rNormal Normal vector of triangle. Is provided, such that recomputation can be omitted. Recomputation would also lose accuracy.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@param KeepOnPlane If false, for all triangles that are aligned with any cutting plane a nullptr is returned.
