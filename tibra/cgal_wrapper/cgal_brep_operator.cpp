@@ -52,7 +52,7 @@ bool CGALBRepOperator::IsInside(const PointType& rPoint) const {
     return false;
 }
 
-TrimmedDomainBasePtrType CGALBRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+TrimmedDomainBasePtrType CGALBRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     typedef boost::property_map<CGALMeshType, CGAL::edge_is_feature_t>::type CGALEIFMap;
     typedef CGALKernalType::Vector_3 CGALVectorType;

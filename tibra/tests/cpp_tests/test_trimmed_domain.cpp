@@ -61,14 +61,14 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                 auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
-                auto p_clipped_mesh = brep_operator.ClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound );
                 if( status == IntersectionStatus::Trimmed){
                     // Get trimmed domain
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
 
                     // Get volume
                     const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                 auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
-                auto p_clipped_mesh = brep_operator.ClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                 const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound );
                 if( status == IntersectionStatus::Trimmed){
                     // Get Trimmed domain
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
 
                     // Get volume
                     const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                 auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
-                auto p_clipped_mesh = brep_operator.ClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                 const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound);
                 if( status == IntersectionStatus::Trimmed){
                     // Get Trimmed domain
-                    auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
 
                     // Get volume
                     const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
@@ -365,10 +365,10 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
                 auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, rLowerBound, rUpperBound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
-                auto p_clipped_mesh = brep_operator.ClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
+                auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area += MeshUtilities::Area(*p_clipped_mesh);
                 // Get Trimmed domain
-                auto p_trimmed_domain = brep_operator.GetTrimmedDomain(local_lower_bound, local_upper_bound);
+                auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
                 if( p_trimmed_domain ){
                     auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
                     volume += MeshUtilities::Volume(r_mesh);

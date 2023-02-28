@@ -73,26 +73,26 @@ public:
     /// @param rLowerBound Lower bound of AABB.
     /// @param rUpperBound Upper bound of AABB.
     /// @return TrimmedDomainBasePtrType (Unique)
-    TrimmedDomainBasePtrType GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
+    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
 
     ///@brief Clips triangle mesh by AABB.
     ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.
     ///       This is a requirement for the intersection algorithm (see: TrimemdDomain and TrimmedDomainOnPlane).
-    ///@see ClipTriangleMeshUnique().
+    ///@see pClipTriangleMeshUnique().
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> ClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    Unique<TriangleMesh> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
     ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
     ///       This is a requirement for the application of boundary conditions.
     ///@todo This needs improvement. Probably global function that cuts every plane only once, to guarantee that triangles on the planes are not assigned twice.
-    ///@see ClipTriangleMesh()
+    ///@see pClipTriangleMesh()
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> ClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
     ///@}
 
 private:

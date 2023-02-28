@@ -110,7 +110,7 @@ IntersectionStatus BRepOperator::GetIntersectionState(
     return status;
 }
 
-TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
     // Instantiate random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -130,7 +130,7 @@ TrimmedDomainBasePtrType BRepOperator::GetTrimmedDomain(const PointType& rLowerB
     bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
     while( iteration < 10){
-        auto p_new_mesh = ClipTriangleMesh(lower_bound, upper_bound);
+        auto p_new_mesh = pClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters, switch_plane_orientation);
             const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
@@ -196,7 +196,7 @@ Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
     return intersected_triangle_ids;
 }
 
-Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
+Unique<TriangleMesh> BRepOperator::pClipTriangleMesh(
         const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     const double snap_tolerance = 0.1*RelativeSnapTolerance(rUpperBound, rLowerBound);
@@ -221,7 +221,7 @@ Unique<TriangleMesh> BRepOperator::ClipTriangleMesh(
 }
 
 
-Unique<TriangleMesh> BRepOperator::ClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+Unique<TriangleMesh> BRepOperator::pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
     const PointType offset(30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL);
     const auto lower_bound = rLowerBound + offset;
     const auto upper_bound = rUpperBound + offset;

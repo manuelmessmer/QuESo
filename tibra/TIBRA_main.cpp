@@ -74,7 +74,7 @@ void TIBRA::Run(){
     if( status == IntersectionStatus::Trimmed) {
       new_element->SetIsTrimmed(true);
       Timer timer_compute_intersection{};
-      auto p_trimmed_domain = mpBRepOperator->GetTrimmedDomain(el_lower_bound, el_upper_bound);
+      auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(el_lower_bound, el_upper_bound);
       if( p_trimmed_domain ){
         new_element->pSetTrimmedDomain(p_trimmed_domain);
         valid_element = true;

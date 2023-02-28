@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh, params);
-    auto p_trimmed_domain = brep_operator.GetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3});
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3});
 
     // Construct octree.
     Octree octree(p_trimmed_domain.get(), {-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3} , params);
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh, params);
-    auto p_trimmed_domain = brep_operator.GetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3});
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3});
 
     // Construct octree.
     Octree octree(p_trimmed_domain.get(), {-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3} , params);
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh);
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh, params);
-    auto p_trimmed_domain = brep_operator.GetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35});
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35});
 
     // Construct octree.
     Octree octree(p_trimmed_domain.get(), {-0.4, -0.6, -0.35},{0.4, 0.6, 0.35} , params);
