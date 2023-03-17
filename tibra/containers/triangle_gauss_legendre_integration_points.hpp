@@ -61,30 +61,6 @@ public:
 
     static SizeType IntegrationPointsNumber()
     {
-        return 4;
-    }
-
-    static const PointArrayType& IntegrationPoints(){
-
-        static const PointArrayType s_integration_points{{
-            IntegrationPoint( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
-            IntegrationPoint( 3.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
-            IntegrationPoint( 1.00 / 5.00 , 3.00 / 5.00 , 25.00 / 96.00 ),
-            IntegrationPoint( 1.00 / 3.00 , 1.00 / 3.00 , -27.00 / 96.00 )
-        }};
-
-        return s_integration_points;
-    }
-};
-
-class TriangleGaussLegendrePoints4
-{
-public:
-    typedef std::size_t SizeType;
-    typedef std::vector<IntegrationPoint> PointArrayType;
-
-    static SizeType IntegrationPointsNumber()
-    {
         return 6;
     }
 
@@ -109,6 +85,47 @@ public:
     }
 };
 
+class TriangleGaussLegendrePoints4
+{
+public:
+    typedef std::size_t SizeType;
+    typedef std::vector<IntegrationPoint> PointArrayType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 12;
+    }
+
+    static const PointArrayType& IntegrationPoints(){
+        const double wa = 0.025422453185103408460;
+        const double wb = 0.058393137863189683013;
+        const double wc = 0.041425537809186787597;
+
+        const double N1 = 0.87382197101699554332;
+        const double N2 = 0.063089014491502228340;
+        const double N3 = 0.50142650965817915742;
+        const double N4 = 0.24928674517091042129;
+        const double N5 = 0.053145049844816947353;
+        const double N6 = 0.31035245103378440542;
+        const double N7 = 0.63650249912139864723;
+
+        static const PointArrayType s_integration_points{{
+            IntegrationPoint( N1, N2, wa ),
+            IntegrationPoint( N2, N1, wa ),
+            IntegrationPoint( N2, N2, wa ),
+            IntegrationPoint( N3, N4, wb ),
+            IntegrationPoint( N4, N3, wb ),
+            IntegrationPoint( N4, N4, wb ),
+            IntegrationPoint( N5, N6, wc ),
+            IntegrationPoint( N6, N5, wc ),
+            IntegrationPoint( N5, N7, wc ),
+            IntegrationPoint( N6, N7, wc ),
+            IntegrationPoint( N7, N5, wc ),
+            IntegrationPoint( N7, N6, wc )
+        }};
+        return s_integration_points;
+    }
+};
 } // End namespace tibra
 
 #endif // TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H
