@@ -22,15 +22,18 @@ typedef boost::numeric::ublas::vector<double> VectorType;
 void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree,
                                                            SizeType MinNumPoints, const Vector3i& rIntegrationOrder){
     IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
-    while( rIntegrationPoint.size() < MinNumPoints ){
+    const IndexType max_iteration = 5UL;
+    IndexType iteration = 0UL;
+    while( rIntegrationPoint.size() < MinNumPoints && iteration < max_iteration){
         rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
         rIntegrationPoint.clear();
         rOctree.AddIntegrationPoints(rIntegrationPoint, rIntegrationOrder);
         refinemen_level++;
+        iteration++;
     }
 }
 
-void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& rBoundaryIPs,
+void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs,
                                                     const Element& rElement, const Parameters& rParam){
 
     // Initialize const variables.
@@ -68,8 +71,8 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
 
     // Loop over all boundary integration points.
     IndexType row_index = 0;
-    const auto begin_points_it_ptr = rBoundaryIPs->begin();
-    for( int i = 0; i < rBoundaryIPs->size(); ++i ){
+    const auto begin_points_it_ptr = pBoundaryIPs->begin();
+    for( int i = 0; i < pBoundaryIPs->size(); ++i ){
         // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
@@ -113,6 +116,48 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
+void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints,
+                                                    const Element& rElement, const Parameters& rParam){
+
+    // Initialize const variables.
+    const PointType& a = rElement.GetLowerBoundParam();
+    const PointType& b = rElement.GetUpperBoundParam();
+
+    const int ffactor = 1;
+    const int order_u = rParam.Order()[0];
+    const int order_v = rParam.Order()[1];
+    const int order_w = rParam.Order()[2];
+
+    const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+
+    // Resize constant terms.
+    rConstantTerms.resize(number_of_functions, false);
+    std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
+
+    // Loop over all boundary integration points.
+    IndexType row_index = 0UL;
+    const auto begin_points_it = pIntegrationPoints->begin();
+    for( int i = 0; i < pIntegrationPoints->size(); ++i ){
+        // Get iterator
+        auto point_it = (begin_points_it + i);
+        // For all functions
+        row_index = 0;
+        const double weight = point_it->GetWeight();
+        for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
+                    // Assemble RHS
+                    const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
+                        * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
+                        * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
+                    rConstantTerms[row_index] += value * weight;
+                    row_index++;
+                }
+            }
+        }
+    }
+}
+
 double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters& rParam){
 
     // Get boundary integration points.
@@ -140,8 +185,13 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
 
         // Distribute intial points via an octree.
         const SizeType min_num_points = (order[0]+1)*(order[1]+1)*(order[2]+1)*(point_distribution_factor);
-
         DistributeIntegrationPoints(integration_points, octree, min_num_points, order);
+
+        // If no point is contained in integration_points -> exit.
+        if( integration_points.size() == 0 ){
+            rElement.GetIntegrationPoints().clear();
+            return 1;
+        }
 
         // Also add old, moment fitted points to new set. 'old_integration_points' only contains points with weights > 0.0;
         auto& old_integration_points = rElement.GetIntegrationPoints();

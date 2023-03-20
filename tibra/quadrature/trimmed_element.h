@@ -30,6 +30,7 @@ public:
     ///@name Type Definition
     ///@{
     typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
+    typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPsVectorType;
     typedef Unique<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
     typedef boost::numeric::ublas::vector<double> VectorType;
@@ -62,13 +63,20 @@ protected:
     /// @param rIntegrationOrder Order of Gauss quadrature.
     static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder);
 
-    /// @brief Computes constant terms of moment fitting equation. This functions uses the divergence theorem to
-    //         to transform the respective volume integrals to countour/surface integrals.
+    /// @brief Computes constant terms of moment fitting equation via volume integration points.
     /// @param[out] rConstantTerms
-    /// @param rBoundaryIPs
+    /// @param pIntegrationPoints (Unique<T>)
     /// @param rElement
     /// @param rParam
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& rBoundaryIPs, const Element& rElement, const Parameters& rParam);
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const Element& rElement, const Parameters& rParam);
+
+    /// @brief Computes constant terms of moment fitting equation via boundary integration points. This functions uses the divergence theorem
+    //         to transform the respective volume integrals to countour/surface integrals.
+    /// @param[out] rConstantTerms
+    /// @param pBoundaryIPs (Unique<T>)
+    /// @param rElement
+    /// @param rParam
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs, const Element& rElement, const Parameters& rParam);
 
     /// @brief Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
     ///        Computed weights are directly assigned to rIntegrationPoint.
