@@ -72,9 +72,11 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        cd \TEMP\boost\boost_1_74_0
-        bootstrap.bat
-        b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install
+        call "cd \TEMP\boost\boost_1_74_0: || goto:error
+        set CC=cl.exe
+        set CXX=cl.exe
+        call "bootstrap.bat" || goto :error
+        call "b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install" || goto:error
 
     - name: Installing dependencies
       shell: cmd
