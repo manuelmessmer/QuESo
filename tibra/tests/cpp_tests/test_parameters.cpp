@@ -33,12 +33,12 @@ BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
     // Check if wrong types are detected.
     Parameters parameters{};
     BOOST_CHECK_THROW( parameters.Set<bool>("moment_fitting_residual", true), std::exception);
-    BOOST_CHECK_THROW( parameters.Set<IndexType>("moment_fitting_residual", 1UL), std::exception);
+    BOOST_CHECK_THROW( parameters.Set<unsigned long>("moment_fitting_residual", 1UL), std::exception);
     BOOST_CHECK_THROW( parameters.Set<IntegrationMethodType>("moment_fitting_residual", IntegrationMethod::Gauss), std::exception);
     BOOST_CHECK_THROW( parameters.Set<double>("echo_level", 1.0), std::exception);
     BOOST_CHECK_THROW( parameters.Set<IntegrationMethodType>("echo_level", IntegrationMethod::Gauss), std::exception);
     // Check if wrong Names (typos) are detected.
-    BOOST_CHECK_THROW( parameters.Set<IndexType>("echo_leve", 1UL), std::exception);
+    BOOST_CHECK_THROW( parameters.Set<unsigned long>("echo_leve", 1UL), std::exception);
 
     /// Check if error for non-default types is detected.
     Parameters parameters2{};
@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
 
     Parameters parameters{};
 
-    IndexType eche_level = parameters.Get<IndexType>("echo_level");
+    IndexType eche_level = parameters.Get<unsigned long>("echo_level");
     BOOST_CHECK_EQUAL(eche_level, 0UL);
     BOOST_CHECK_EQUAL(eche_level, parameters.EchoLevel());
 
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     BOOST_CHECK_LT(std::abs(initial_triangle_edge_length-1.0),1e-10);
     BOOST_CHECK_LT(std::abs(parameters.InitialTriangleEdgeLength()-1.0),1e-10);
 
-    IndexType min_num_boundary_triangles = parameters.Get<IndexType>("min_num_boundary_triangles");
+    IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
     BOOST_CHECK_EQUAL(min_num_boundary_triangles, 500UL);
     BOOST_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 500UL);
 
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     BOOST_CHECK_LT( std::abs(1.0e-10-moment_fitting_residual)/1.0e-10, 1.0e-10);
     BOOST_CHECK_LT( std::abs(1.0e-10-parameters.MomentFittingResidual())/1.0e-10, 1.0e-10);
 
-    IndexType init_point_distribution_factor = parameters.Get<IndexType>("init_point_distribution_factor");
+    IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
     BOOST_CHECK_EQUAL( init_point_distribution_factor, 1UL);
     BOOST_CHECK_EQUAL( parameters.GetPointDistributionFactor(), 1UL);
 
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     std::string postprocess_filename = parameters.Get<std::string>("postprocess_filename");
     BOOST_CHECK_EQUAL(postprocess_filename, std::string("date/test2.stl"));
 
-    IndexType eche_level = parameters.Get<IndexType>("echo_level");
+    IndexType eche_level = parameters.Get<unsigned long>("echo_level");
     BOOST_CHECK_EQUAL(eche_level, 2UL);
 
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
@@ -141,13 +141,13 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     double initial_triangle_edge_length = parameters.Get<double>("initial_triangle_edge_length");
     BOOST_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
 
-    IndexType min_num_boundary_triangles = parameters.Get<IndexType>("min_num_boundary_triangles");
+    IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
     BOOST_CHECK_EQUAL(min_num_boundary_triangles, 2000UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
     BOOST_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
 
-    IndexType init_point_distribution_factor = parameters.Get<IndexType>("init_point_distribution_factor");
+    IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
     BOOST_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     std::string postprocess_filename = parameters.Get<std::string>("postprocess_filename");
     BOOST_CHECK_EQUAL(postprocess_filename, std::string("date/test2.stl"));
 
-    IndexType eche_level = parameters.Get<IndexType>("echo_level");
+    IndexType eche_level = parameters.Get<unsigned long>("echo_level");
     BOOST_CHECK_EQUAL(eche_level, 2UL);
 
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
@@ -206,13 +206,13 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     double initial_triangle_edge_length = parameters.Get<double>("initial_triangle_edge_length");
     BOOST_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
 
-    IndexType min_num_boundary_triangles = parameters.Get<IndexType>("min_num_boundary_triangles");
+    IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
     BOOST_CHECK_EQUAL(min_num_boundary_triangles, 2000UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
     BOOST_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
 
-    IndexType init_point_distribution_factor = parameters.Get<IndexType>("init_point_distribution_factor");
+    IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
     BOOST_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
