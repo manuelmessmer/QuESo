@@ -72,7 +72,7 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        cd $env:TEMP\boost
+        cd \TEMP\boost
         bootstrap.bat
         b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install
 
@@ -95,6 +95,6 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/libs
-        set PATH=%PATH%;$env:TEMP\boost\boost_install\lib
+        set PATH=%PATH%;\TEMP\boost\boost_install\lib
         python kratos/python_scripts/run_tests.py -l small -c python
 
