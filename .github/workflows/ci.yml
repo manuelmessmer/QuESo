@@ -72,7 +72,7 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        cd %GITHUB_WORKSPACE%\boost\boost_1_81_0 || goto:error
+        cd \boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
         b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install || goto:error
 
