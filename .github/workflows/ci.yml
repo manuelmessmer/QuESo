@@ -113,6 +113,6 @@ jobs:
       shell: cmd
       run: |
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
-        start TestExecutables\Release\test_tibra.exe
+        TestExecutables\Release\test_tibra.exe
 
 
