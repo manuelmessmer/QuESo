@@ -69,13 +69,14 @@ jobs:
         7z.exe x "$env:TEMP\boost.tar.gz" -o"\TEMP\boostArchive" -y | Out-Null
         7z.exe x "\TEMP\boostArchive" -o"\TEMP\boost" -y | Out-Null
 
+
     - name: Build boost unit test framework
       shell: cmd
       run: |
 
-        cd \TEMP\boost\boost_1_81_0 || goto:error
+        cd D:\TEMP\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
-        b2 address-model=64 toolset=msvc architecture=x86 --with-test link=shared --prefix=boost_install install || goto:error
+        b2 address-model=64 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
       shell: cmd
