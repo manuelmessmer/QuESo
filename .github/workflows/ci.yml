@@ -67,6 +67,7 @@ jobs:
       run: |
         echo %TEMP%
         echo %GITHUB_WORKSPACE%
+        echo %RUNNER_TEMP%
         python --version
 
     - name: Download boost
@@ -106,14 +107,10 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
-        echo %PYTHONPATH%
-        echo %PATH%
-        DIR
-
         python tibra/tests/test_tibra.py
 
     - name: Test cpp
       shell: cmd
-      run: start TestExecutables\Release\test_tibra.exe --log_level=test_suite
+      run: start "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
 
 
