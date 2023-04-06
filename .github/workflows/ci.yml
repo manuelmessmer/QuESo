@@ -97,8 +97,8 @@ jobs:
         set PATH=%PATH%;\TEMP\boost\boost_install\lib
         py tibra/tests/test_tibra.py
 
-    # - name: Test cpp
-    #   shell: cmd
-    #   run: "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
+    - name: Test cpp
+      shell: cmd
+      run: "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
 
 
