@@ -11,7 +11,6 @@ set APP_BUILD=%APP_SOURCE%\..\build
 rem Set basic configuration
 set CMAKE_BUILD_TYPE=Release
 set BOOST_ROOT=D:\TEMP\boost\boost_1_81_0
-set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem rem Clean
 del /F /Q "%APP_BUILD%\%CMAKE_BUILD_TYPE%\cmake_install.cmake"

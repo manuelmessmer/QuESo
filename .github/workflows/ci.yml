@@ -76,7 +76,7 @@ jobs:
 
         cd D:\TEMP\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
-        b2 address-model=64 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
+        b2 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
       shell: cmd
@@ -95,7 +95,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/libs
-        set PATH=%PATH%;\TEMP\boost\boost_install\lib
+        set PATH=%PATH%;D:\TEMP\boost\boost_install\lib
         py tibra/tests/test_tibra.py
 
     - name: Test cpp
