@@ -75,8 +75,8 @@ jobs:
         cd \TEMP\boost || goto:error
         set CC=cl.exe
         set CXX=cl.exe
-        call "bootstrap.bat" || goto :error
-        call "b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install" || goto:error
+        bootstrap.bat || goto :error
+        b2 address-model=64 architecture=x64 --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
       shell: cmd
