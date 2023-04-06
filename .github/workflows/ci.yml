@@ -99,6 +99,6 @@ jobs:
 
     - name: Test cpp
       shell: cmd
-      run: "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
+      run: call "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
 
 
