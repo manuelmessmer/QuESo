@@ -10,7 +10,7 @@ set APP_BUILD=%APP_SOURCE%\..\build
 
 rem Set basic configuration
 set CMAKE_BUILD_TYPE=Release
-set BOOST_ROOT="%TEMP%\boost\boost_1_81_0"
+set BOOST_ROOT=D:\boost\boost_1_81_0
 set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem rem Clean
