@@ -114,6 +114,6 @@ jobs:
 
     - name: Test cpp
       shell: cmd
-      run: %GITHUB_WORKSPACE%\TestExecutables\Release\test_tibra.exe --log_level=test_suite
+      run: "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
 
 
