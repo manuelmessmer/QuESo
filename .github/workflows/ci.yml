@@ -64,16 +64,16 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download"
+        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
-        7z.exe x "%GITHUB_WORKSPACE%\boost.tar.gz" -o"%GITHUB_WORKSPACE%\boostArchive" -y | Out-Null
-        7z.exe x "%GITHUB_WORKSPACE%\boostArchive" -o"%GITHUB_WORKSPACE%\boost" -y | Out-Null
+        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
     - name: Build boost unit test framework
       shell: cmd
       run: |
 
-        cd "%GITHUB_WORKSPACE%\boost\boost_1_81_0" || goto:error
+        cd "%TMP%\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
         b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install || goto:error
 
