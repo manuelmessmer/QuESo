@@ -65,7 +65,7 @@ jobs:
     - name: Configure boost unit test framework
       shell: cmd
       run: |
-        DIR
+        echo %GITHUB_WORKSPACE%
 
     - name: Download boost
       run: |
