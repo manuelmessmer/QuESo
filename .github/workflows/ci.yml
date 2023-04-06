@@ -66,6 +66,7 @@ jobs:
       shell: cmd
       run: |
         echo %GITHUB_WORKSPACE%
+        py --version
 
     - name: Download boost
       run: |
@@ -102,7 +103,7 @@ jobs:
     - name: Test py
       shell: cmd
       run: |
-        set PYTHONPATH=%GITHUB_WORKSPACE%
+
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
         echo %PYTHONPATH%
         echo %PATH%
