@@ -59,6 +59,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v1
+    - uses: ilammy/msvc-dev-cmd@v1.4.1
       with:
         python-version: '3.8'
 
@@ -72,7 +73,6 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
         cd \TEMP\boost\boost_1_81_0 || goto:error
         DIR
         bootstrap.bat -|| goto :error
