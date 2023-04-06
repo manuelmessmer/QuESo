@@ -70,6 +70,12 @@ jobs:
         7z.exe x "$env:TEMP\boost.tar.gz" -o"\TEMP\boostArchive" -y | Out-Null
         7z.exe x "\TEMP\boostArchive" -o"\TEMP\boost" -y | Out-Null
 
+    - name: Append the directory of 'vcvarsall.bat' to PATH environment variable
+      uses: myci-actions/export-env-var-powershell@1
+      with:
+        name: PATH
+        value: $env:PATH;C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build
+
     - name: Build boost unit test framework
       shell: cmd
       run: |
