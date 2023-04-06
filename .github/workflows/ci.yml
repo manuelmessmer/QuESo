@@ -73,10 +73,8 @@ jobs:
       shell: cmd
       run: |
         cd \TEMP\boost\boost_1_74_0 || goto:error
-        set CC=cl.exe
-        set CXX=cl.exe
-        bootstrap.bat || goto :error
-        b2 --with-test link=shared --prefix=boost_install install || goto:error
+        bootstrap.bat --with-toolset=clang-win || goto :error
+        b2 toolset=clang-win --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
       shell: cmd
