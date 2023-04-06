@@ -58,8 +58,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
     - uses: ilammy/msvc-dev-cmd@v1.4.1
+    - uses: actions/setup-python@v1
       with:
         python-version: '3.8'
 
