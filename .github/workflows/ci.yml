@@ -74,7 +74,7 @@ jobs:
       run: |
         cd \TEMP\boost\boost_1_74_0 || goto:error
         bootstrap.bat --with-toolset=clang-win || goto :error
-        b2 toolset=clang-win --with-test link=shared --prefix=boost_install install || goto:error
+        b2 toolset=clang-win address-model=64 --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
       shell: cmd
