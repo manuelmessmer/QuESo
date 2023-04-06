@@ -72,7 +72,7 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        call "cd \TEMP\boost: || goto:error
+        call "cd \TEMP\boost\boost_1_74_0" || goto:error
         set CC=cl.exe
         set CXX=cl.exe
         call "bootstrap.bat" || goto :error
