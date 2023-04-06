@@ -107,14 +107,12 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
-
-
         python tibra/tests/test_tibra.py
 
     - name: Test cpp
       shell: cmd
       run: |
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
-        start "TestExecutables\Release\test_tibra.exe"
+        start TestExecutables\Release\test_tibra.exe
 
 
