@@ -70,13 +70,13 @@ jobs:
         7z.exe x "\TEMP\boostArchive" -o"\TEMP\boost" -y | Out-Null
 
 
-    - name: Build boost unit test framework
+    - name: Configure boost unit test framework
       shell: cmd
       run: |
         cd D:\TEMP\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
 
-    - name: Build boost unit test framework 2
+    - name: Build boost unit test framework
       shell: cmd
       run: |
         cd D:\TEMP\boost\boost_1_81_0
@@ -98,7 +98,7 @@ jobs:
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%/libs
+        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs
         set PATH=%PATH%;D:\TEMP\boost\boost_install\lib
         py tibra/tests/test_tibra.py
 
