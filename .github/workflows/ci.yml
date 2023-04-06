@@ -65,6 +65,7 @@ jobs:
     - name: Configure boost unit test framework
       shell: cmd
       run: |
+        echo %TEMP%
         echo %GITHUB_WORKSPACE%
         python --version
 
@@ -103,7 +104,7 @@ jobs:
     - name: Test py
       shell: cmd
       run: |
-
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
         echo %PYTHONPATH%
         echo %PATH%
