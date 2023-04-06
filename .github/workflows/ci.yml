@@ -76,7 +76,7 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
         bootstrap.bat || goto :error
-        b2 address-model=64 architecture=x64 --with-test link=shared --prefix=boost_install install || goto:error
+        b2 --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
       shell: cmd
