@@ -72,7 +72,7 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        cd \TEMP\boost || goto:error
+        cd \TEMP\boost\boost_1_74_0 || goto:error
         set CC=cl.exe
         set CXX=cl.exe
         bootstrap.bat || goto :error
@@ -95,7 +95,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/libs
-        set PATH=%PATH%;\TEMP\boost\boost_1_74_0\boost_install\lib
+        set PATH=%PATH%;\TEMP\boost\boost_install\lib
         py tibra/tests/test_tibra.py
 
     # - name: Test cpp
