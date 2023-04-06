@@ -107,8 +107,7 @@ jobs:
         echo %PYTHONPATH%
         echo %PATH%
         DIR
-        cd libs
-        DIR
+
         py tibra/tests/test_tibra.py
 
     - name: Test cpp
