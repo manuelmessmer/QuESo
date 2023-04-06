@@ -81,7 +81,7 @@ jobs:
       run: |
         cd \TEMP\boost\boost_1_81_0 || goto:error
         DIR
-        bootstrap.bat -|| goto :error
+        ./bootstrap.bat || goto :error
         b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
