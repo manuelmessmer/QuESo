@@ -25,5 +25,5 @@ cmake -G"Visual Studio 17 2022" -A x64 -H"%APP_SOURCE%" -B"%APP_BUILD%\%CMAKE_BU
 -DCGAL_DIR="..."
 
 rem Build
-cmake --build "%APP_BUILD%/%CMAKE_BUILD_TYPE%" --target install -- /property:configuration=%CMAKE_BUILD_TYPE% /p:Platform=x64
+cmake --build "%APP_BUILD%\%CMAKE_BUILD_TYPE%" --target install -- /property:configuration=%CMAKE_BUILD_TYPE% /p:Platform=x64
 goto:eof
