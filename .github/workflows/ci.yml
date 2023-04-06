@@ -73,9 +73,13 @@ jobs:
     - name: Build boost unit test framework
       shell: cmd
       run: |
-
         cd D:\TEMP\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
+
+    - name: Build boost unit test framework 2
+      shell: cmd
+      run: |
+        cd D:\TEMP\boost\boost_1_81_0
         b2 address-model=64 architecture=x86 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
