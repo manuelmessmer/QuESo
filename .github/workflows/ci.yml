@@ -58,7 +58,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1.4.1
     - uses: actions/setup-python@v1
       with:
         python-version: '3.8'
@@ -68,20 +67,13 @@ jobs:
         $url = "https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"\TEMP\boostArchive" -y | Out-Null
-        7z.exe x "\TEMP\boostArchive" -o"\TEMP\boost" -y | Out-Null
-
-    - name: Append the directory of 'vcvarsall.bat' to PATH environment variable
-      uses: myci-actions/export-env-var-powershell@1
-      with:
-        name: PATH
-        value: $env:PATH;C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build
+        7z.exe x "\TEMP\boostArchive" -o"%GITHUB_WORKSPACE%\boost" -y | Out-Null
 
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        cd \TEMP\boost\boost_1_81_0 || goto:error
-        DIR
-        ./bootstrap.bat || goto :error
+        cd %GITHUB_WORKSPACE%\boost\boost_1_81_0 || goto:error
+        bootstrap.bat || goto :error
         b2 address-model=64 architecture=x86 --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
