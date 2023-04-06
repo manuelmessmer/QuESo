@@ -66,7 +66,7 @@ jobs:
       shell: cmd
       run: |
         echo %GITHUB_WORKSPACE%
-        py --version
+        python --version
 
     - name: Download boost
       run: |
@@ -109,7 +109,7 @@ jobs:
         echo %PATH%
         DIR
 
-        py tibra/tests/test_tibra.py
+        python tibra/tests/test_tibra.py
 
     - name: Test cpp
       shell: cmd
