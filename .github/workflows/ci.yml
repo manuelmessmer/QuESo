@@ -62,6 +62,11 @@ jobs:
       with:
         python-version: '3.8'
 
+    - name: Configure boost unit test framework
+      shell: cmd
+      run: |
+        DIR
+
     - name: Download boost
       run: |
         $url = "https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download"
