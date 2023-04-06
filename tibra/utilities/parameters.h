@@ -38,7 +38,8 @@ class Component {
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType> ComponentType;
+    // Here we use unsigned long instead of IndexTyep, a.k.a size_t.
+    typedef std::variant<PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType> ComponentType;
 
     ///@}
     ///@name Life Cycle
@@ -89,7 +90,7 @@ public:
     struct TypeVisit {
         const std::type_info* operator()(const PointType& rValue){return &typeid(rValue); };
         const std::type_info* operator()(const Vector3i& rValue){return &typeid(rValue); };
-        const std::type_info* operator()(const IndexType& rValue){return &typeid(rValue); };
+        const std::type_info* operator()(const unsigned long& rValue){return &typeid(rValue); };
         const std::type_info* operator()(const double& rValue){return &typeid(rValue); };
         const std::type_info* operator()(const std::string& rValue){return &typeid(rValue); };
         const std::type_info* operator()(const bool& rValue){return &typeid(rValue); };
@@ -100,7 +101,7 @@ public:
         PrintVisit(std::ostream& rOStream) : mOStream(rOStream){}
         void operator()(const PointType& rValue){mOStream << rValue; };
         void operator()(const Vector3i& rValue){mOStream << rValue;};
-        void operator()(const IndexType& rValue){ mOStream << rValue;};
+        void operator()(const unsigned long& rValue){ mOStream << rValue;};
         void operator()(const double& rValue){mOStream << rValue;};
         void operator()(const std::string& rValue){mOStream << rValue;};
         void operator()(const bool& rValue){mOStream << rValue; };
@@ -158,7 +159,7 @@ public:
 
     IndexType MinimumNumberOfTriangles() const {
         /// deprecated
-        return Get<IndexType>("min_num_boundary_triangles");
+        return Get<unsigned long>("min_num_boundary_triangles");
     }
 
     double MomentFittingResidual() const {
@@ -166,7 +167,7 @@ public:
     }
 
     IndexType EchoLevel() const {
-        return Get<IndexType>("echo_level");
+        return Get<unsigned long>("echo_level");
     }
 
     bool UseCustomizedTrimmedPositions() const{
@@ -175,7 +176,7 @@ public:
     }
 
     IndexType GetPointDistributionFactor() const {
-        return Get<IndexType>("init_point_distribution_factor");
+        return Get<unsigned long>("init_point_distribution_factor");
     }
 
     bool GGQRuleIsUsed() const {
@@ -238,7 +239,7 @@ private:
             AddValueIfTypesMatch<Vector3i>(value);
             AddValueIfTypesMatch<bool>(value);
             AddValueIfTypesMatch<double>(value);
-            AddValueIfTypesMatch<IndexType>(value);
+            AddValueIfTypesMatch<unsigned long>(value);
             AddValueIfTypesMatch<std::string>(value);
             AddValueIfTypesMatch<IntegrationMethodType>(value);
         }
@@ -321,8 +322,36 @@ private:
     ///@{
 
     std::vector<Component> mComponents{};
-    static const std::vector<Component> mDefaultComponents;
-    static const std::vector<std::pair<std::string, const std::type_info*>> mAllAvailableComponents;
+
+    inline static const std::vector<Component> mDefaultComponents = {
+        Component("echo_level", 0UL),
+        Component("embedding_flag", true),
+        Component("initial_triangle_edge_length", 1.0),
+        Component("min_num_boundary_triangles", 500UL),
+        Component("moment_fitting_residual", 1.0e-10),
+        Component("min_element_volume_ratio", 1.0e-3),
+        Component("init_point_distribution_factor", 1UL),
+        Component("polynomial_order", Vector3i(2UL, 2UL, 2UL) ),
+        Component("integration_method", IntegrationMethod::GGQ_Optimal),
+        Component("use_customized_trimmed_points", false) };
+
+    inline static const std::vector<std::pair<std::string, const std::type_info*>> mAllAvailableComponents = {
+        std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("echo_level", &typeid(unsigned long) ),
+        std::make_pair<std::string, const std::type_info*>("embedding_flag", &typeid(bool) ),
+        std::make_pair<std::string, const std::type_info*>("lower_bound", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("upper_bound", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("polynomial_order", &typeid(Vector3i) ),
+        std::make_pair<std::string, const std::type_info*>("number_of_elements", &typeid(Vector3i) ),
+        std::make_pair<std::string, const std::type_info*>("initial_triangle_edge_length", &typeid(double) ),
+        std::make_pair<std::string, const std::type_info*>("min_num_boundary_triangles", &typeid(unsigned long) ),
+        std::make_pair<std::string, const std::type_info*>("moment_fitting_residual", &typeid(double) ),
+        std::make_pair<std::string, const std::type_info*>("min_element_volume_ratio", &typeid(double) ),
+        std::make_pair<std::string, const std::type_info*>("init_point_distribution_factor", &typeid(unsigned long) ),
+        std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
+        std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ) };
+
     ///@}
 
 }; // End class Parameters

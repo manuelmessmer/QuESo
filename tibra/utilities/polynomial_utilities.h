@@ -178,7 +178,7 @@ private:
     ///@name Private operations
     ///@{
 
-    static Legendre mLegendre;
+    inline static Legendre mLegendre = {Polynomial::p0{}, Polynomial::p1{}, Polynomial::p2{}, Polynomial::p3{}, Polynomial::p4{}, Polynomial::p5{}, Polynomial::p6{}, Polynomial::p7{}, Polynomial::p8{}};
     ///@}
 }; // End Class
 
