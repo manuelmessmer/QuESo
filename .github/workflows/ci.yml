@@ -104,6 +104,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib
+        echo %PYTHONPATH%
         py tibra/tests/test_tibra.py
 
     - name: Test cpp
