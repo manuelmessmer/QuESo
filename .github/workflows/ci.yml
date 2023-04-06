@@ -114,6 +114,6 @@ jobs:
 
     - name: Test cpp
       shell: cmd
-      run: "TestExecutables\Release\test_tibra.exe" --log_level=test_suite
+      run: start TestExecutables\Release\test_tibra.exe --log_level=test_suite
 
 
