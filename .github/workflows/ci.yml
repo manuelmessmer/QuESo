@@ -68,8 +68,7 @@ jobs:
         echo %TEMP%
         echo %GITHUB_WORKSPACE%
         echo %RUNNER_TEMP%
-        cd C:\Users\RUNNER~1
-        cd  \%TEMP%
+        cd  "%TEMP%"
         python --version
 
     - name: Download boost
