@@ -15,41 +15,41 @@ env:
   compiler: gcc
 
 jobs:
-  # ubuntu:
-  #   # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-  #   # You can convert this to a matrix build if you need cross-platform coverage.
-  #   # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-  #   runs-on: ubuntu-latest
+  ubuntu:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: 'false'
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'false'
 
-  #   - name: Install Dependencies
-  #     run: sudo apt-get install -y libboost-test-dev
+    - name: Install Dependencies
+      run: sudo apt-get install -y libboost-test-dev
 
-  #   - name: Build
-  #     shell: bash
-  #     # Build your program with the given configuration
-  #     run: |
-  #       export CC=/usr/bin/gcc
-  #       export CXX=/usr/bin/g++
-  #       cp .github/workflows/configure.sh configure.sh
-  #       bash configure.sh
+    - name: Build
+      shell: bash
+      # Build your program with the given configuration
+      run: |
+        export CC=/usr/bin/gcc
+        export CXX=/usr/bin/g++
+        cp .github/workflows/configure.sh configure.sh
+        bash configure.sh
 
-  #   - name: Test py
-  #     shell: bash
-  #     run: |
-  #       pip3 install numpy
-  #       pip3 install scipy
-  #       export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
-  #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
-  #       python3 tibra/tests/test_tibra.py
+    - name: Test py
+      shell: bash
+      run: |
+        pip3 install numpy
+        pip3 install scipy
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
+        python3 tibra/tests/test_tibra.py
 
-  #   - name: Test cpp
-  #     shell: bash
-  #     run: ./TestExecutables/test_tibra --log_level=test_suite
+    - name: Test cpp
+      shell: bash
+      run: ./TestExecutables/test_tibra --log_level=test_suite
 
   windows:
     runs-on: windows-latest
@@ -62,13 +62,6 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Configure boost unit test framework
-      shell: cmd
-      run: |
-        echo %TEMP%
-        echo $env:TEMP
-        python --version
-
     - name: Download boost
       run: |
         $url = "https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download"
@@ -76,11 +69,10 @@ jobs:
         7z.exe x "$env:RUNNER_TEMP\boost.tar.gz" -o"$env:RUNNER_TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:RUNNER_TEMP\boostArchive" -o"$env:RUNNER_TEMP\boost" -y | Out-Null
 
-
     - name: Configure boost unit test framework
       shell: cmd
       run: |
-        cd "%RUNNER_TEMP%\boost\boost_1_81_0" || goto:error
+        cd "%RUNNER_TEMP%\boost\boost_1_81_0"
         bootstrap.bat --with-toolset=msvc || goto :error
 
     - name: Build boost unit test framework
@@ -112,7 +104,6 @@ jobs:
       shell: cmd
       run: |
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;%RUNNER_TEMP%\boost\boost_1_81_0\boost_install\lib
-        DIR
-        call "TestExecutables\Release\test_tibra.exe" || goto:error
+        call "TestExecutables\Release\test_tibra.exe" --log_level=test_suite || goto:error
 
 
