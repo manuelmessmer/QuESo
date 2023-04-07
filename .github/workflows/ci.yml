@@ -72,22 +72,22 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download"
-        (New-Object System.Net.WebClient).DownloadFile($url, "%RUNNER_TEMP%\boost.tar.gz")
-        7z.exe x "%RUNNER_TEMP%\boost.tar.gz" -o"%RUNNER_TEMP%\boostArchive" -y | Out-Null
-        7z.exe x "%RUNNER_TEMP%\boostArchive" -o"%RUNNER_TEMP%\boost" -y | Out-Null
+        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
+        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
 
     - name: Configure boost unit test framework
       shell: cmd
       run: |
-        cd %RUNNER_TEMP%\boost\boost_1_81_0 || goto:error
+        cd %TEMP%\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
 
     - name: Build boost unit test framework
       shell: cmd
       run: |
-        cd %RUNNER_TEMP%\boost\boost_1_81_0
+        cd %TEMP%\boost\boost_1_81_0
         b2 address-model=64 architecture=x86 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
 
     - name: Installing dependencies
