@@ -114,6 +114,6 @@ jobs:
       run: |
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\TEMP\boost\boost_install\lib;D:\TEMP\boost
         DIR
-        .\TestExecutables\Release\test_tibra.exe || goto:error
+        call "TestExecutables\Release\test_tibra.exe" || goto:error
 
 
