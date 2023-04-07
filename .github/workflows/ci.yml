@@ -80,7 +80,10 @@ jobs:
     - name: Configure boost unit test framework
       shell: cmd
       run: |
+        cd "$env:TEMP"
+        DIR
         cd "$env:TEMP\boost\boost_1_74_0" || goto:error
+        DIR
         bootstrap.bat || goto :error
 
     - name: Build boost unit test framework
