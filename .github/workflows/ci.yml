@@ -84,7 +84,7 @@ jobs:
         DIR
         cd "%RUNNER_TEMP%\boost\boost_1_74_0" || goto:error
         DIR
-        bootstrap.bat || goto :error
+        bootstrap.bat --with-toolset=msvc || goto :error
 
     - name: Build boost unit test framework
       shell: cmd
