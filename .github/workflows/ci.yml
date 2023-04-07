@@ -81,6 +81,7 @@ jobs:
     - name: Configure boost unit test framework
       shell: cmd
       run: |
+        cd C:\Users
         cd %TEMP%\boost\boost_1_81_0 || goto:error
         bootstrap.bat || goto :error
 
