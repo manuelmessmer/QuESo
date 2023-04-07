@@ -80,10 +80,7 @@ jobs:
     - name: Configure boost unit test framework
       shell: cmd
       run: |
-        cd "%RUNNER_TEMP%"
-        DIR
         cd "%RUNNER_TEMP%\boost\boost_1_81_0" || goto:error
-        DIR
         bootstrap.bat --with-toolset=msvc || goto :error
 
     - name: Build boost unit test framework
@@ -108,13 +105,13 @@ jobs:
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\RUNNER_TEMP\boost\boost_install\lib
+        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\RUNNER_TEMP\boost\boost_1_81_0\boost_install\lib
         python tibra/tests/test_tibra.py
 
     - name: Test cpp
       shell: cmd
       run: |
-        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;%RUNNER_TEMP%\boost\boost_1_74_0\boost_install\lib
+        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;%RUNNER_TEMP%\boost\boost_1_81_0\boost_install\lib
         DIR
         call "TestExecutables\Release\test_tibra.exe" || goto:error
 

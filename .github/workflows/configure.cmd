@@ -20,7 +20,7 @@ rem Configure
 @echo on
 cmake -G"Visual Studio 17 2022" -A x64 -H"%APP_SOURCE%" -B"%APP_BUILD%\%CMAKE_BUILD_TYPE%"  ^
 -DUSE_CGAL=OFF                                                                       ^
--DBOOST_ROOT="%RUNNER_TEMP%\boost\boost_1_74_0"                                              ^
+-DBOOST_ROOT="%RUNNER_TEMP%\boost\boost_1_81_0"                                              ^
 -DCGAL_DIR="..."
 
 rem Build
