@@ -219,7 +219,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
             rParams.Set(rName, Vector3i(rValue)); })
         .def("Set",[](Parameters& rParams, const std::string& rName, const bool rValue){
             rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const IndexType rValue){
+        .def("Set",[](Parameters& rParams, const std::string& rName, const unsigned long rValue){
             rParams.Set(rName, rValue); })
         .def("Set",[](Parameters& rParams, const std::string& rName, const double rValue){
             rParams.Set(rName, rValue); })
