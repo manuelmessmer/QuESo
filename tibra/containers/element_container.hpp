@@ -276,7 +276,7 @@ public:
         const IndexType num_points = p_points->size();
         const auto it_begin = p_points->begin();
         #pragma omp parallel for reduction(+ : weight)
-        for( IndexType i = 0; i < num_points; ++i ){
+        for( int i = 0; i < num_points; ++i ){
             auto it = it_begin + i;
             weight += it->GetWeight();
         }

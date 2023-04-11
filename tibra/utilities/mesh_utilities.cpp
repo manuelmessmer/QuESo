@@ -210,7 +210,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+    for( int i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
         const auto r_points = *p_points;
         // Loop over all points.

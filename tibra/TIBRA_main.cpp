@@ -40,7 +40,7 @@ void TIBRA::Run(){
   double et_moment_fitting = 0.0;
 
   #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_check_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
-  for( IndexType i = 0; i < global_number_of_elements; ++i){
+  for( int i = 0; i < global_number_of_elements; ++i){
     // Unroll 'for' loop to enable better parallelization.
     // First walk along rows (x), then columns (y) then into depths (z).
     const IndexType index_in_row_column_plane = i % (number_elements_x*number_elements_y);
