@@ -34,13 +34,13 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
     double area = 0.0;
-    for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
+    for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
         area += p_clipped_mesh->Area(i);
     }
 
     // Check surface area of clipped mesh.
     const double ref = 2.35619449;  // pi/2+pi/4 -> One quarte of the lateral surface + a quarter of the head face.
-    BOOST_CHECK_SMALL( area-2.35619449, 5e-4);
+    BOOST_CHECK_SMALL( area-ref, 5e-4);
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
     double area = 0.0;
-    for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
+    for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
         area += p_clipped_mesh->Area(i);
     }
 
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
                 auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
                 // Compute area of clipped domain.
                 double area = 0.0;
-                for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
+                for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
                     area += p_clipped_mesh->Area(i);
                 }
                 results_area.push_back(area);
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
     // Compare reference areas of each clipped domain.
     std::ifstream file("tibra/tests/cpp_tests/results/clipper_cube.txt");
     std::string line{};
-    for( int i = 0; i < results_area.size(); i++ ){
+    for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
         BOOST_CHECK_SMALL( std::stod(line) - results_area[i], 1e-10 );
     }
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
 
                 // Compute area of clipped domain.
                 double area = 0.0;
-                for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
+                for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
                     area += p_clipped_mesh->Area(i);
                 }
                 results_area.push_back(area);
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
     // Compare reference areas of each clipped domain.
     std::ifstream file("tibra/tests/cpp_tests/results/clipper_elephant.txt");
     std::string line{};
-    for( int i = 0; i < results_area.size(); i++ ){
+    for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
         BOOST_CHECK_SMALL( std::stod(line) - results_area[i], 1e-10 );
     }
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
 
                 // Compute area of clipped domain.
                 double area = 0.0;
-                for( int i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
+                for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
                     area += p_clipped_mesh->Area(i);
                 }
                 results_area.push_back(area);
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     // Compare reference areas of each clipped domain.
     std::ifstream file("tibra/tests/cpp_tests/results/clipper_bunny.txt");
     std::string line{};
-    for( int i = 0; i < results_area.size(); i++ ){
+    for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
         BOOST_CHECK_SMALL( std::stod(line) - results_area[i], 1e-10 );
     }

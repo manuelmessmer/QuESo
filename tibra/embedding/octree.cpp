@@ -149,7 +149,7 @@ typename Octree<TOperator>::IntegrationPointVectorPtrType Octree<TOperator>::pGe
     auto p_points = MakeUnique<IntegrationPointVectorType>();
     p_points->reserve(NumberOfLeafs());
     mpRoot->GetIntegrationPoints(p_points.get(), mrParameters.LowerBound(), mrParameters.UpperBound(), rOrder, mpOperator );
-    return std::move(p_points);
+    return p_points;
 }
 
 template<typename TOperator>

@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     BOOST_CHECK_EQUAL( result.size(), 117900);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_cylinder.txt");
     std::string line;
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
     }
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     BOOST_CHECK_EQUAL( result.size(), 9261);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_cube.txt");
     std::string line;
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
         //myfile << result[i] << "\n";
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     BOOST_CHECK_EQUAL( result.size(), 6375);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_elephant.txt");
     std::string line;
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
     }
@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     BOOST_CHECK_EQUAL( result.size(), 41070);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_bunny.txt");
     std::string line;
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
     }

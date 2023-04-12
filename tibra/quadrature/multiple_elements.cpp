@@ -94,7 +94,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
     // Set all as not visited
     const auto element_it_begin = rElements.begin();
-    for( int i = 0; i < rElements.size(); ++i){
+    for( IndexType i = 0; i < rElements.size(); ++i){
         auto element_it = element_it_begin + i;
         (*element_it)->SetVisited(false);
     }
@@ -119,11 +119,10 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
                 });
 
     const std::array<int,6> direction_to_dimension = {0, 0, 1, 1, 2, 2};
-    int color_count = 1;
+    // int color_count = 1;
     bool stop = false;
-    int stop_count = 0;
+    //int stop_count = 0;
     while( sorted_univisited_elements.size() > 0 && !stop ){
-        double max_value = 0;
 
         max_element_it = sorted_univisited_elements.begin();
         (*max_element_it)->SetVisited(true);
@@ -131,14 +130,14 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
         double max_neighbour_coefficient = 1.0;
         std::array<int,3> current_dimensions = {1, 1, 1};
-        int inner_count = 0; //remove
+
         while( max_neighbour_coefficient > ZEROTOL && !stop ){
             std::array<double,6> neighbour_coeff = {0, 0, 0 ,0 ,0 ,0};
             std::array<ElementContainer::ElementVectorPtrType,6> tmp_neighbours{};
 
             // Check all four nighbours
             const auto element_it_begin = box_neighbours.begin();
-            for( int i = 0; i < box_neighbours.size(); ++i){
+            for( IndexType i = 0; i < box_neighbours.size(); ++i){
                 auto element_it = element_it_begin + i;
                 int current_id = (*element_it)->GetId();
 
@@ -172,7 +171,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
                 if( number_neighbours_in_max_direction ==  required_number_neighbours){
                     auto element_it_begin = tmp_neighbours[max_neighbour_coefficient_index].begin();
-                    for(  int i = 0; i < tmp_neighbours[max_neighbour_coefficient_index].size(); ++i){
+                    for(  IndexType i = 0; i < tmp_neighbours[max_neighbour_coefficient_index].size(); ++i){
                         auto element_it = element_it_begin + i;
                         (*element_it)->SetVisited(true);
                         box_neighbours.push_back(*element_it);
@@ -280,7 +279,7 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
     PointType global_lower_point_param{1e10, 1e10, 1e10};
     PointType global_upper_point_param{-1e10, -1e10, -1e10};
 
-    for( int i = 0; i < rElements.size(); ++i){
+    for( IndexType i = 0; i < rElements.size(); ++i){
         auto element_it = *(element_it_begin + i);
         const auto& lower_point = element_it->GetLowerBoundParam();
         const auto& upper_point = element_it->GetUpperBoundParam();
@@ -302,7 +301,7 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
     const auto polynomial_degrees = rParameters.Order();
 
     // Loop over all elements
-    for( int i = 0; i < rElements.size(); ++i){
+    for( IndexType i = 0; i < rElements.size(); ++i){
         auto element_it = *(element_it_begin + i);
 
         // Local lower and upper points
@@ -318,7 +317,7 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
             const auto p_integration_point_list =
                 IntegrationPointFactory1D::GetGGQ(polynomial_degrees[direction], rNumberKnotspans[direction], rParameters.IntegrationMethod());
 
-            for( int j = 0; j < p_integration_point_list->size(); ++j){
+            for( IndexType j = 0; j < p_integration_point_list->size(); ++j){
                 double position = global_lower_point_param[direction] + distance_global* (*p_integration_point_list)[j][0];
                 double weight = length_global *  (*p_integration_point_list)[j][1];
                 std::array<double, 2> tmp_point = {position, weight};

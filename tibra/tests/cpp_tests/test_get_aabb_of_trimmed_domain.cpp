@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     BOOST_CHECK_EQUAL(results.size(), 344);
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_trimmed_domain_cylinder.txt");
     std::string line;
-    for( int i = 0; i < results.size(); ++i){
+    for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
         double ref_value = std::stod(line);
         double error = std::abs(results[i] - ref_value)/ref_value;
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     BOOST_CHECK_EQUAL(results.size(), 826);
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_trimmed_domain_cube.txt");
     std::string line;
-    for( int i = 0; i < results.size(); ++i){
+    for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
         double ref_value = std::stod(line);
         double error = std::abs(results[i] - ref_value)/ref_value;
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     BOOST_CHECK_EQUAL(results.size(), 166);
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_trimmed_domain_elephant.txt");
     std::string line;
-    for( int i = 0; i < results.size(); ++i){
+    for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
         double ref_value = std::stod(line);
         double error = std::abs(results[i] - ref_value)/ref_value;
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     BOOST_CHECK_EQUAL(results.size(), 381);
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_trimmed_domain_bunny.txt");
     std::string line;
-    for( int i = 0; i < results.size(); ++i){
+    for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
         double ref_value = std::stod(line);
         double error = std::abs(results[i] - ref_value)/ref_value;

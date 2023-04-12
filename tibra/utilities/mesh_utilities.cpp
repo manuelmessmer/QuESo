@@ -175,7 +175,7 @@ Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, con
     p_new_triangle_mesh->AddTriangle({4, 7, 6});
     p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
 
-    return std::move(p_new_triangle_mesh);
+    return p_new_triangle_mesh;
 }
 
 
@@ -192,7 +192,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+    for( IndexType i = 0; i < num_triangles; ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
         const auto r_points = *p_points;
         // Loop over all points.
@@ -210,7 +210,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
-    for( int i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+    for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
         const auto r_points = *p_points;
         // Loop over all points.
@@ -230,7 +230,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
     TIBRA_ERROR_IF("MeshUtilities::Volume", Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
 
     // Loop over all triangles
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+    for( IndexType i = 0; i < num_triangles; ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
         const auto r_points = *p_points;
         // Loop over all points.

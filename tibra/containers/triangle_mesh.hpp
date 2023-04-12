@@ -112,7 +112,7 @@ public:
         const auto& P2 = this->P2(TriangleId);
         const auto& P3 = this->P3(TriangleId);
 
-        for( int i = 0; i < point_numbers; ++i){
+        for( IndexType i = 0; i < point_numbers; ++i){
             const double xx  = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
                                ShapeFunctionValue( 1, s_integration_points[i] ) * P2[0] +
                                ShapeFunctionValue( 2, s_integration_points[i] ) * P3[0] ;
@@ -130,7 +130,7 @@ public:
             (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
         }
 
-        return std::move(p_global_integration_points);
+        return p_global_integration_points;
     }
 
     ///@brief Get triangle vertex 1
@@ -268,8 +268,8 @@ public:
             return false;
         }
         // Check if all vertex ids exist.
-        for( int i = 0; i < mTriangles.size(); ++i ){
-            for(int j = 0; j < 3; ++j){
+        for( IndexType i = 0; i < mTriangles.size(); ++i ){
+            for(IndexType j = 0; j < 3; ++j){
                 if( mTriangles[i][j] >= mVertices.size() ){
                     std::cerr << "TriangleMesh :: Triangle/Vertex mismatch.\n";
                     return false;

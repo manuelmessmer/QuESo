@@ -62,8 +62,6 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
             try_next_triangle = false;
             double min_distance = MAXD;
             is_inside = false;
-            IndexType invalid_count = 0;
-            IndexType count_intersect = 0;
             for( auto r : potential_intersections){
                 const auto& p1 = mClippedMesh.P1(r);
                 const auto& p2 = mClippedMesh.P2(r);
@@ -128,7 +126,7 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
         p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
-    return std::move(p_boundary_ips);
+    return p_boundary_ips;
 }
 
 IntersectionStatusType TrimmedDomain::GetIntersectionState(

@@ -47,10 +47,10 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     const PointType& a = rElement.GetLowerBoundParam();
     const PointType& b = rElement.GetUpperBoundParam();
 
-    const int ffactor = 1;
-    const int order_u = rParam.Order()[0];
-    const int order_v = rParam.Order()[1];
-    const int order_w = rParam.Order()[2];
+    const IndexType ffactor = 1;
+    const IndexType order_u = rParam.Order()[0];
+    const IndexType order_v = rParam.Order()[1];
+    const IndexType order_w = rParam.Order()[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
@@ -72,7 +72,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     // Loop over all boundary integration points.
     IndexType row_index = 0;
     const auto begin_points_it_ptr = pBoundaryIPs->begin();
-    for( int i = 0; i < pBoundaryIPs->size(); ++i ){
+    for( IndexType i = 0; i < pBoundaryIPs->size(); ++i ){
         // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
@@ -98,9 +98,9 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
         // Assembly RHS
         row_index = 0;
         const double weight = 1.0/3.0*point_it->GetWeight();
-        for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
-            for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-                for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
+        for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
                     // Compute normal for each face/triangle.
                     PointType value;
                     value[0] = f_x_int_x[i_x]*f_x_y[i_y]*f_x_z[i_z];
@@ -123,10 +123,10 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     const PointType& a = rElement.GetLowerBoundParam();
     const PointType& b = rElement.GetUpperBoundParam();
 
-    const int ffactor = 1;
-    const int order_u = rParam.Order()[0];
-    const int order_v = rParam.Order()[1];
-    const int order_w = rParam.Order()[2];
+    const IndexType ffactor = 1;
+    const IndexType order_u = rParam.Order()[0];
+    const IndexType order_v = rParam.Order()[1];
+    const IndexType order_w = rParam.Order()[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
@@ -137,15 +137,15 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     // Loop over all boundary integration points.
     IndexType row_index = 0UL;
     const auto begin_points_it = pIntegrationPoints->begin();
-    for( int i = 0; i < pIntegrationPoints->size(); ++i ){
+    for( IndexType i = 0; i < pIntegrationPoints->size(); ++i ){
         // Get iterator
         auto point_it = (begin_points_it + i);
         // For all functions
         row_index = 0;
         const double weight = point_it->GetWeight();
-        for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
-            for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-                for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
+        for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
                     // Assemble RHS
                     const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
                         * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
@@ -229,10 +229,10 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     PointType a = rElement.GetLowerBoundParam();
     PointType b = rElement.GetUpperBoundParam();
 
-    const int ffactor = 1;
-    const int order_u = rParam.Order()[0];
-    const int order_v = rParam.Order()[1];
-    const int order_w = rParam.Order()[2];
+    const IndexType ffactor = 1;
+    const IndexType order_u = rParam.Order()[0];
+    const IndexType order_v = rParam.Order()[1];
+    const IndexType order_w = rParam.Order()[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
     const IndexType number_reduced_points = rIntegrationPoint.size();
@@ -240,12 +240,12 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     /// Assemble moment fitting matrix.
     MatrixType fitting_matrix(number_of_functions, number_reduced_points);
     IndexType row_index = 0;
-    for( int i_x = 0; i_x <= order_u*ffactor; ++i_x){
-        for( int i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-            for( int i_z = 0; i_z <= order_w*ffactor; ++i_z){
+    for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+        for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+            for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
                 // Loop over all points
                 const auto points_it_begin = rIntegrationPoint.begin();
-                for( int column_index = 0; column_index < number_reduced_points; ++column_index ){
+                for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
                     auto point_it = points_it_begin + column_index;
 
                     const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
@@ -264,7 +264,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     auto residual = nnls::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
 
     // Write computed weights onto integration points
-    for( int i = 0; i < number_reduced_points; ++i){
+    for( IndexType i = 0; i < number_reduced_points; ++i){
         // Divide by det_jacobian to account for the corresponding multiplication during the element integration within the used external solver.
         double new_weight = weights[i]/(jacobian_x*jacobian_y*jacobian_z);
         rIntegrationPoint[i].SetWeight(new_weight);

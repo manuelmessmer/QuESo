@@ -16,7 +16,6 @@ namespace tibra {
 
 double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     typedef boost::numeric::ublas::matrix<double> MatrixType;
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     // Get Dimension
     int m = A.size1();
@@ -60,7 +59,7 @@ double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
         std::cerr << b << std::endl;
     }
 
-    if( x.size() != n ){
+    if( x.size() != static_cast<std::size_t>(n) ){
         x.resize(n);
     }
     // Copy results into x

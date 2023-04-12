@@ -196,16 +196,15 @@ private:
     IntegrationPoint1DVectorType mIntegrationPointsY{};
     IntegrationPoint1DVectorType mIntegrationPointsZ{};
 
-    const Parameters& mParameters;
-    PointType mUpperBoundParam{};
-    PointType mLowerBoundParam{};
-
-    TrimmedDomainPtrType mpTrimmedDomain = nullptr;
-
     IndexType mElementId{};
     bool mIsTrimmed{};
     bool mIsVisited{};
 
+    PointType mLowerBoundParam{};
+    PointType mUpperBoundParam{};
+    const Parameters& mParameters;
+
+    TrimmedDomainPtrType mpTrimmedDomain = nullptr;
     PointType mNumberOfNeighbours{};
     ///@}
 }; // End class Element

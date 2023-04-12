@@ -42,9 +42,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 
     BOOST_CHECK_GT(num_triangles, parameters.MinimumNumberOfTriangles());
 
-    int large_radius_count = 0;
     double area = 0.0;
-
     for( std::size_t triangle_id = 0; triangle_id < num_triangles; ++triangle_id){
         const PointType coordinates = r_triangle_mesh.Center(triangle_id);
 

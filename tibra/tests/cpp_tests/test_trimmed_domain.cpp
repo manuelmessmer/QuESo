@@ -323,7 +323,6 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
 
 void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, const PointType rUpperBound,
     const PointType Perturbation ){
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
     Parameters parameters( {Component("lower_bound", rLowerBound),

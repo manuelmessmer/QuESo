@@ -94,7 +94,7 @@ public:
         auto found_key = mElementIdMap.find(current_id);
         if( found_key == mElementIdMap.end() ){
             // critical section
-            if( rElement->GetId() > mLastElementId){
+            if( rElement->GetId() > static_cast<IndexType>(mLastElementId) ){
                 mLastElementId = rElement->GetId();
             }
             mElementIdMap.insert(std::pair<IndexType, IndexType>(rElement->GetId(), mElements.size()));
@@ -248,7 +248,7 @@ public:
     const IntegrationPointVectorPtrType pGetPoints(const char* type) const {
         IntegrationPointVectorPtrType points = MakeUnique<IntegrationPointVectorType>();
         const auto begin_el_itr_ptr = this->begin();
-        for( int i = 0; i < this->size(); ++i){
+        for( IndexType i = 0; i < this->size(); ++i){
             auto el_itr = *(begin_el_itr_ptr + i);
             IntegrationPointVectorType points_tmp;
             if( std::strcmp(type,"Trimmed") == 0 ){
@@ -267,7 +267,7 @@ public:
             }
             points->insert(points->end(), points_tmp.begin(), points_tmp.end());
         }
-        return std::move(points);
+        return points;
     }
 
     double GetVolumeOfAllIPs(){
@@ -276,7 +276,7 @@ public:
         const IndexType num_points = p_points->size();
         const auto it_begin = p_points->begin();
         #pragma omp parallel for reduction(+ : weight)
-        for( int i = 0; i < num_points; ++i ){
+        for( int i = 0; i < static_cast<int>(num_points); ++i ){
             auto it = it_begin + i;
             weight += it->GetWeight();
         }

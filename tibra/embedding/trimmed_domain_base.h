@@ -128,7 +128,7 @@ public:
         auto p_new_mesh = MakeUnique<TriangleMesh>();
         p_new_mesh->Reserve(mpTriangleMesh->NumOfTriangles());
         MeshUtilities::Append(*p_new_mesh, *mpTriangleMesh, triangle_ids);
-        return std::move(p_new_mesh);
+        return p_new_mesh;
     }
 
     ///@}
@@ -136,9 +136,9 @@ public:
 protected:
     ///@name Protected member variables
     ///@{
+    TriangleMeshPtrType mpTriangleMesh;
     PointType mLowerBound;
     PointType mUpperBound;
-    TriangleMeshPtrType mpTriangleMesh;
     const Parameters& mParameters;
     ///@}
 }; // End TrimmedDomainBase

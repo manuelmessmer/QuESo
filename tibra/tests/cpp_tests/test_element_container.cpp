@@ -21,7 +21,7 @@ Unique<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
     ElementContainer container(param);
 
     std::size_t number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
-    for( int i = 1; i <= number_elements; ++i){
+    for( IndexType i = 1; i <= number_elements; ++i){
         PointType tmp_point_A = {0.0, 0.0, 0.0};
         PointType tmp_point_B = {0.1, 0.1, 0.1};
         std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i, tmp_point_A, tmp_point_B, param);
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerX) {
     std::size_t current_id = 1;
     BOOST_CHECK_EQUAL(container->size(), 23);
     std::size_t active_element_counter = 1;
-    for( int i = 1; i < container->size() + 1; ++i){
+    for( IndexType i = 1; i < container->size() + 1; ++i){
         auto neighbour = container->pGetNextElementInX(current_id, next_id, found, local_end);
         if( found ){
             std::size_t reverse_id;
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerY) {
 
     BOOST_CHECK_EQUAL(container->size(), 23);
     std::size_t active_element_counter = 1;
-    for( int i = 1; i < container->size() + 1; ++i){
+    for( IndexType i = 1; i < container->size() + 1; ++i){
         auto neighbour = container->pGetNextElementInY(current_id, next_id, found, local_end);
         if( found ){
             std::size_t reverse_id;
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
 
     BOOST_CHECK_EQUAL(container->size(), 23);
     std::size_t active_element_counter = 1;
-    for( int i = 1; i < container->size() + 1; ++i){
+    for( IndexType i = 1; i < container->size() + 1; ++i){
         auto neighbour = container->pGetNextElementInZ(current_id, next_id, found, local_end);
         if( found ){
             std::size_t reverse_id;
