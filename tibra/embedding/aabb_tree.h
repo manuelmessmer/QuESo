@@ -42,7 +42,7 @@ public:
     {
         mLowerBound = {MAXD, MAXD, MAXD};
         mUpperBound = {LOWESTD, LOWESTD, LOWESTD};
-        for( int i = 0; i < TriangleMesh.NumOfTriangles(); ++i){
+        for( IndexType i = 0; i < TriangleMesh.NumOfTriangles(); ++i){
             const auto& p1 = TriangleMesh.P1(i);
             const auto& p2 = TriangleMesh.P2(i);
             const auto& p3 = TriangleMesh.P3(i);

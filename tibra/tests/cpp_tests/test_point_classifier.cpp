@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
         count++;
     }
 
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] );
         if( radius < 1.0 && rPoints[i][2] > 0.0 && rPoints[i][2] < 10.0){
             BOOST_CHECK((result)[i]);
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
         count++;
     }
 
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] + rPoints[i][2]*rPoints[i][2] );
         if( radius <= 1.0 ){
             BOOST_CHECK(!(result)[i]);
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 
     // Check if point on boundary is not inside.
     // Note the stl has a mesh at (1.0, 0.0, 0.0)
-    BOOST_CHECK( !classifier.IsInside({1.0d, 0.0d, 0.0d}) );
+    BOOST_CHECK( !classifier.IsInside({1.0, 0.0, 0.0}) );
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     // std::ofstream myfile;
     // myfile.open ("test.txt");
     // Compare results
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         BOOST_CHECK_EQUAL(result[i], result_ref[i]);
     }
     // myfile.close();
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
     // std::ofstream myfile;
     // myfile.open ("test.txt");
     // Compare results
-    for( int i = 0; i < result.size(); ++i){
+    for( IndexType i = 0; i < result.size(); ++i){
         BOOST_CHECK_EQUAL(result[i], result_ref[i]);
     }
     // myfile.close();

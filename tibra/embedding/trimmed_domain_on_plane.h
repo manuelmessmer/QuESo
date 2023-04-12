@@ -442,10 +442,11 @@ private:
     IndexType DIRINDEX2; // In plane 2
     IndexType DIRINDEX3; // Out of plane
 
+    bool mUpperBoundary; // Is current plane upper bound?
+
     Point3DType mLowerBound; // Lower bound AABB
     Point3DType mUpperBound; // Upper bound AABB
 
-    bool mUpperBoundary; // Is current plane upper bound?
     const TrimmedDomainBase *mpTrimmedDomain; // Reuiqred for IsInside()-Test.
 
     double mSnapTolerance;

@@ -41,6 +41,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 /// Null node flag.
 const unsigned int NULL_NODE = 0xffffffff;

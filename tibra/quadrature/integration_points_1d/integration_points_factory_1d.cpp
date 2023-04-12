@@ -68,7 +68,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
     const SizeType r = dimension.second; // Continuity
 
     const SizeType n = (p+1)*2 + (e-1)*(p-r) - p - 1; // Number of dofs
-    const SizeType m = std::ceil(n/2.0);              // Number of quadrature points
+    const SizeType m = static_cast<SizeType>( std::ceil(n/2.0) );              // Number of quadrature points
 
     // Get correct base rule points
     Ip1DVectorVectorPtrType p_base_points{};
@@ -130,10 +130,10 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
     if( 2*m == n ){ // For odd number of nodes
         if( m > 2*m1 ){
             const Ip1DVectorVectorType& base_points =  *p_base_points;
-            const SizeType z = std::ceil(0.5*m);
+            const SizeType z = static_cast<SizeType>( std::ceil(0.5*m) );
             std::copy_n(base_points[0].begin(), m1, points.begin());
-            SizeType left = std::ceil(base_points[0][m1-1][0]);
-            const SizeType right = std::ceil(base_points[1][m2-1][0]);
+            SizeType left = static_cast<SizeType>( std::ceil(base_points[0][m1-1][0]) );
+            const SizeType right = static_cast<SizeType>( std::ceil(base_points[1][m2-1][0]) );
             SizeType ii = m1;
             while( ii < z ){
                 std::copy_n(base_points[1].begin(), m2, points.begin()+ii);
@@ -162,10 +162,10 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
     else { // For odd number of nodes
         if( m > 2*(m1+m3)-1 ){
             const Ip1DVectorVectorType& base_points =  *p_base_points;
-            const SizeType z = std::ceil(0.5*m);
+            const SizeType z = static_cast<SizeType>( std::ceil(0.5*m) );
             std::copy_n(base_points[0].begin(), m1, points.begin());
-            SizeType left = std::ceil(base_points[0].back()[0]);
-            const SizeType right = std::ceil(base_points[1].back()[0]);
+            SizeType left = static_cast<SizeType>( std::ceil(base_points[0].back()[0]) );
+            const SizeType right = static_cast<SizeType>( std::ceil(base_points[1].back()[0]) );
             SizeType ii = m1;
             while( ii < z ){
                 std::copy_n(base_points[1].begin(), m2, points.begin()+ii);

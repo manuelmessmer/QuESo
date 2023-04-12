@@ -110,8 +110,8 @@ private:
     ///@name Private Members
     ///@{
 
-    AABB_tree mTree;
     const TriangleMesh& mTriangleMesh;
+    AABB_tree mTree;
 
     ///@}
 }; // End BRepOperator class

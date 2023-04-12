@@ -109,7 +109,7 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMesh& rTriangleMesh) const {
     for( IndexType i = 0 ; i < mNumVertices; ++i){
         centroid += mVertices[i].first;
     }
-    centroid /= mNumVertices;
+    centroid /= static_cast<double>(mNumVertices);
 
     IndexType vertex_count = num_v;
     IndexType triangle_count = num_t;

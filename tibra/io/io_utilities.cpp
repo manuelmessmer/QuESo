@@ -41,7 +41,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
     file << "FileType: Binary                                                                ";
     file.write(reinterpret_cast<const char *>(&static_cast<const int&>(num_triangles)), sizeof(static_cast<const int&>(num_triangles)));
 
-    for(int triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
+    for(IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
     {
       const auto& p1 = rTriangleMesh.P1(triangle_id);
       const auto& p2 = rTriangleMesh.P2(triangle_id);
@@ -62,7 +62,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
   else
   {
     file << "solid\n";
-    for(int triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
+    for(IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id)
     {
       const auto& p1 = rTriangleMesh.P1(triangle_id);
       const auto& p2 = rTriangleMesh.P2(triangle_id);
@@ -133,7 +133,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
   rTriangleMesh.Reserve(num_triangles);
 
   // Loop over all triangles
-  for(unsigned int i=0; i<num_triangles; ++i) {
+  for(IndexType i=0; i<num_triangles; ++i) {
     // Read normals
     float normal[3];
     if(!(file.read((char*)(&normal[0]), sizeof(normal[0]))) ||
@@ -233,8 +233,6 @@ bool IO::WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
   file << "DATASET UNSTRUCTURED_GRID" << std::endl;
   file << "POINTS " << num_points << " double" << std::endl;
 
-
-  IndexType inum = 0;
   const auto& r_vertices = rTriangleMesh.GetVertices();
   const auto v_it_begin = r_vertices.begin();
   for(IndexType i = 0; i < num_points; ++i)
@@ -280,7 +278,7 @@ bool IO::WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
   file << std::endl;
 
   file << "CELL_TYPES " << num_elements << std::endl;
-  for( int i = 0; i < num_elements; ++i){
+  for( IndexType i = 0; i < num_elements; ++i){
     if( Binary ){
         int k = 5;
         WriteBinary(file, k);
@@ -309,7 +307,7 @@ bool IO::WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
 
   file << "POINT_DATA " << num_points << std::endl;
   file << "VECTORS Displacement double" << std::endl;
-  for(int i = 0; i < num_points; ++i){
+  for(IndexType i = 0; i < num_points; ++i){
       if( Binary ){
         double rw1 = rDisplacement[i][0];
         WriteBinary(file, rw1);
@@ -353,7 +351,7 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
   file << "POINTS " << num_elements*8 << " double" << std::endl;
 
   const auto begin_el_itr = rElementContainer.begin();
-  for( int i = 0; i < rElementContainer.size(); ++i){
+  for( IndexType i = 0; i < rElementContainer.size(); ++i){
     auto el_itr = *(begin_el_itr + i);
     const auto& lower_point = el_itr->GetLowerBound();
     const auto& upper_point = el_itr->GetUpperBound();
@@ -459,8 +457,8 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
 
   auto p_points = rElementContainer.pGetPoints(type);
   const auto begin_points_it_ptr = p_points->begin();
-  const int num_points = p_points->size();
-  const int num_elements = p_points->size();
+  const IndexType num_points = p_points->size();
+  const IndexType num_elements = p_points->size();
 
   std::ofstream file;
   if(Binary)
@@ -480,7 +478,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
   file << "POINTS " << num_points << " double" << std::endl;
 
   const Parameters& param = (*rElementContainer.begin())->GetParameters();
-  for(int i = 0; i < num_points; ++i){
+  for(IndexType i = 0; i < num_points; ++i){
     auto points_it = (begin_points_it_ptr + i);
     auto point_global = Mapping::ParamToGlobal(*points_it, param.LowerBound(), param.UpperBound() );
 
@@ -497,7 +495,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
 
   //Write Cells
   file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
-  for( int i = 0; i < num_elements; ++i){
+  for( IndexType i = 0; i < num_elements; ++i){
     if( Binary ){
       int k = 1;
       WriteBinary(file, k);
@@ -511,7 +509,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
   file << std::endl;
 
   file << "CELL_TYPES " << num_elements << std::endl;
-  for( int i = 0; i < num_elements; ++i){
+  for( IndexType i = 0; i < num_elements; ++i){
     if( Binary ){
         int k = 1;
         WriteBinary(file, k);
@@ -525,7 +523,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
   file << "POINT_DATA " << num_points << std::endl;
   file << "SCALARS Weights double 1" << std::endl;
   file << "LOOKUP_TABLE default" << std::endl;
-  for(int i = 0; i < num_points; ++i){
+  for(IndexType i = 0; i < num_points; ++i){
       auto points_it = (begin_points_it_ptr + i);
 
       if( Binary ){
@@ -549,8 +547,8 @@ bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
                           const bool Binary){
 
   const auto begin_points_it_ptr = rPoints.begin();
-  const int num_points = rPoints.size();
-  const int num_elements = rPoints.size();
+  const IndexType num_points = rPoints.size();
+  const IndexType num_elements = rPoints.size();
 
   std::ofstream file;
   if(Binary)
@@ -569,7 +567,7 @@ bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
   file << "DATASET UNSTRUCTURED_GRID" << std::endl;
   file << "POINTS " << num_points << " double" << std::endl;
 
-  for(int i = 0; i < num_points; ++i){
+  for(IndexType i = 0; i < num_points; ++i){
     auto points_it = (begin_points_it_ptr + i);
 
     if( Binary ){
@@ -589,7 +587,7 @@ bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
 
   //Write Cells
   file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
-  for( int i = 0; i < num_elements; ++i){
+  for( IndexType i = 0; i < num_elements; ++i){
     if( Binary ){
       int k = 1;
       WriteBinary(file, k);
@@ -603,7 +601,7 @@ bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
   file << std::endl;
 
   file << "CELL_TYPES " << num_elements << std::endl;
-  for( int i = 0; i < num_elements; ++i){
+  for( IndexType i = 0; i < num_elements; ++i){
     if( Binary ){
         int k = 1;
         WriteBinary(file, k);
@@ -617,7 +615,7 @@ bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
   file << "POINT_DATA " << num_points << std::endl;
   file << "SCALARS Weights double 1" << std::endl;
   file << "LOOKUP_TABLE default" << std::endl;
-  for(int i = 0; i < num_points; ++i){
+  for(IndexType i = 0; i < num_points; ++i){
       auto points_it = (begin_points_it_ptr + i);
 
       if( Binary ){

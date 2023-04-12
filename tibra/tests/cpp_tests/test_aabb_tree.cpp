@@ -34,7 +34,6 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     auto results = tree.Query(aabb);
 
     std::vector<IndexType> intersected_triangles{};
-    int count = 0;
 
     for( auto r : results){
         const auto& p1 = triangle_mesh.P1(r);
@@ -69,7 +68,6 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     auto results = tree.Query(aabb);
 
     std::vector<IndexType> intersected_triangles{};
-    int count = 0;
 
     for( auto r : results){
         const auto& p1 = triangle_mesh.P1(r);
@@ -111,7 +109,6 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     auto results = tree.Query(aabb);
 
     std::vector<IndexType> intersected_triangles{};
-    int count = 0;
 
     for( auto r : results){
         const auto& p1 = triangle_mesh.P1(r);
@@ -158,7 +155,6 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
                 std::map<int,int> index_map{};
 
                 std::vector<IndexType> intersected_triangles{};
-                int count = 0;
 
                 for( auto r : results){
                     const auto& p1 = triangle_mesh.P1(r);
@@ -213,7 +209,6 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
                 auto results = tree.Query(aabb);
 
                 std::vector<IndexType> intersected_triangles{};
-                int count = 0;
                 for( auto r : results){
                     const auto& p1 = triangle_mesh.P1(r);
                     const auto& p2 = triangle_mesh.P2(r);

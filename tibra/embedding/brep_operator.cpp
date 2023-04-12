@@ -141,7 +141,7 @@ TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLower
             const double epsilon = MeshUtilities::EstimateQuality(r_trimmed_domain_mesh);
             if( epsilon < 1e-5  ){
                 if( volume_ratio )
-                    return std::move(p_trimmed_domain);
+                    return p_trimmed_domain;
                 else
                     return nullptr;
             }
@@ -217,7 +217,7 @@ Unique<TriangleMesh> BRepOperator::pClipTriangleMesh(
     if( p_triangle_mesh->NumOfTriangles() > 0){
         p_triangle_mesh->Check();
     }
-    return std::move(p_triangle_mesh);
+    return p_triangle_mesh;
 }
 
 
@@ -245,7 +245,7 @@ Unique<TriangleMesh> BRepOperator::pClipTriangleMeshUnique(const PointType& rLow
     if( p_triangle_mesh->NumOfTriangles() > 0){
         p_triangle_mesh->Check();
     }
-    return std::move(p_triangle_mesh);
+    return p_triangle_mesh;
 }
 
 } // End namespace tibra

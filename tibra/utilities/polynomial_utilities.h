@@ -56,7 +56,7 @@ private:
     using Legendre = std::vector<Lp>;
 
     /// @brief F_x provides implementation of Legendre polynomials
-    typedef struct {
+    typedef struct F_x_ {
         // Shifted legendre polynomial (p=0)
         double inline operator()(const p0& p) const {
             return 1;
@@ -108,7 +108,7 @@ private:
 
     /// @brief F_x_int provides implementation of integrals of Legendre polynomials
     /// @todo: power() is still relatively slow.
-    typedef struct {
+    typedef struct F_x_int_ {
         // Integral of shifted legendre polynomial (p=0)
         double operator()(const p0& p) const {
             return x;
@@ -178,7 +178,7 @@ private:
     ///@name Private operations
     ///@{
 
-    static Legendre mLegendre;
+    inline static Legendre mLegendre = {Polynomial::p0{}, Polynomial::p1{}, Polynomial::p2{}, Polynomial::p3{}, Polynomial::p4{}, Polynomial::p5{}, Polynomial::p6{}, Polynomial::p7{}, Polynomial::p8{}};
     ///@}
 }; // End Class
 

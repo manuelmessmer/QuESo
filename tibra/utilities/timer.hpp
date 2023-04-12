@@ -48,7 +48,7 @@ public:
 private:
     ///@name Private Member Variables
     ///@{
-    std::chrono::_V2::system_clock::time_point mTimeBegin;
+    std::chrono::time_point<std::chrono::high_resolution_clock> mTimeBegin;
     ///@}
 
 }; // End class Timer

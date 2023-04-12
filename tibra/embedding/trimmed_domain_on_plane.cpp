@@ -25,7 +25,7 @@ void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh
     const auto& edges_on_plane = edges_on_planes[plane_index];
     // Should only require 2UL*edges_on_plane.size(), however small buffer is used.
     // Note, initial capacity must be large enough. New allocation is not allowed and will crash.
-    Reserve( std::max(3UL*edges_on_plane.size(), 10UL) );
+    Reserve( std::max<IndexType>(3UL*edges_on_plane.size(), 10UL) );
     for( const auto& edge : edges_on_plane ){
         const IndexType vertex_index_1 = std::get<0>(edge);
         const IndexType vertex_index_2 = std::get<1>(edge);
@@ -39,24 +39,22 @@ void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh
 }
 
 void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) {
-    /// 1. Insert edges such that positive oriented edges span the entire AABB.
-
-    /// Find all intersections of Edges with upper bound of AABB.
-    ///     UP2 x1-------x2---x3
-    ///         | out   /     |      Point  x2 will be found.
-    ///         |------/      |      Points x1 and x3 are also added.
-    ///     LB2 |  inside     |
-    ///        LB1           UP1
-    /// LB1 - lower bound of AABB in DIRINDEX1
-    /// UP1 - upper bound of AABB in DIRINDEX1
-    /// We store only the value in DIRINDEX1 in intersected_vertices, since the position in
-    /// DIRINDEX2 is always mUpperBound[DIRINDEX2].
-    /// We also store if vertex is left (true) or right (false) boundary,
-    /// x1-left, x2-left, x3-right.
-    /// Only, x2 and x3 are connected with one edge, since x1 and x2 are both left boundaries.
-
-    /// Get all edged that intersect upper boundary
-    /// These are edges that have at least one vertex located on the upper boundary: mUpperBoundary[DIRINDEX2]).
+    // 1. Insert edges such that positive oriented edges span the entire AABB.
+    // Find all intersections of Edges with upper bound of AABB.
+    //     UP2 x1-------x2---x3
+    //         | out   /     |      Point  x2 will be found.
+    //         |------/      |      Points x1 and x3 are also added.
+    //     LB2 |  inside     |
+    //        LB1           UP1
+    // LB1 - lower bound of AABB in DIRINDEX1
+    // UP1 - upper bound of AABB in DIRINDEX1
+    // We store only the value in DIRINDEX1 in intersected_vertices, since the position in
+    // DIRINDEX2 is always mUpperBound[DIRINDEX2].
+    // We also store if vertex is left (true) or right (false) boundary,
+    // x1-left, x2-left, x3-right.
+    // Only, x2 and x3 are connected with one edge, since x1 and x2 are both left boundaries.
+    // Get all edged that intersect upper boundary
+    // These are edges that have at least one vertex located on the upper boundary: mUpperBoundary[DIRINDEX2]).
     std::vector<Edge2D> intersect_edges_positive{};
     std::vector<Edge2D> intersect_edges_negative{};
     std::vector<Edge2D> intersect_edges_vertical{};
@@ -64,12 +62,12 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
     FindIntersectingEdgesWithUpperBound(intersect_edges_negative, Orientation::Negative);
     FindIntersectingEdgesWithUpperBound(intersect_edges_vertical, Orientation::Vertical);
 
-    /// Remove dublicates
+    // Remove dublicates
     RemoveDublicateVerticalEdges(intersect_edges_vertical, mVerticesVertical);
     RemoveDublicateEdges(intersect_edges_positive, mVerticesPositive);
     RemoveDublicateEdges(intersect_edges_negative, mVerticesNegative);
 
-    /// double: position in DIRINDEX1, bool = true: left boundary, bool = false: right boundary.
+    // double: position in DIRINDEX1, bool = true: left boundary, bool = false: right boundary.
     std::vector<std::pair<double, bool>> intersected_vertices{};
 
     // Check if corner points need to be inserted.
@@ -83,7 +81,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
         intersected_vertices.push_back( std::make_pair(mLowerBound[DIRINDEX1], true) );
     }
 
-    /// Loop until all intersected edges are visited.
+    // Loop until all intersected edges are visited.
     const IndexType size_positive = intersect_edges_positive.size();
     const IndexType size_negative = intersect_edges_negative.size();
     const IndexType size_vertical = intersect_edges_vertical.size();
@@ -91,7 +89,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
     IndexType pos_negative = 0;
     IndexType pos_vertical = 0;
     while( pos_vertical < size_vertical || pos_negative < size_negative || pos_positive < size_positive){
-        /// Get ptr to edges.
+        // Get ptr to edges.
         Edge2D* edge_positive = nullptr;
         Edge2D* edge_negative = nullptr;
         Edge2D* edge_vertical = nullptr;
@@ -103,10 +101,10 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
             edge_vertical = &intersect_edges_vertical[pos_vertical];
 
         IndexType size = intersected_vertices.size();
-        /// DIRINDEX1-value of current position.
+        // DIRINDEX1-value of current position.
         const double left_bound = size > 0 ? intersected_vertices[size-1].first : mLowerBound[DIRINDEX1];
 
-        /// Get distance to current positive edge.
+        // Get distance to current positive edge.
         double distance_pos = MAXD;
         bool double_vertex_edge = false;
         if( edge_positive ){
@@ -124,7 +122,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
 
         }
 
-        /// Get distance to current negative edge.
+        // Get distance to current negative edge.
         double distance_neg = MAXD;
         if( edge_negative ){
             auto status = edge_negative->IsVertexOnUpperBoundary();
@@ -134,7 +132,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 distance_neg = mVerticesNegative[edge_negative->V2()][0] - left_bound;
         }
 
-        /// Get distance to current vertical edge.
+        // Get distance to current vertical edge.
         double distance_ver = MAXD;
         if( edge_vertical ){
             auto status = edge_vertical->IsVertexOnUpperBoundary();
@@ -144,16 +142,16 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 distance_ver = mVerticesVertical[edge_vertical->V2()][0] - left_bound;
         }
 
-        /// If distance pos < 0.
+        // If distance pos < 0.
         if( std::abs(distance_pos) < mSnapTolerance ){
             const IndexType size = intersected_vertices.size();
-            /// Make invalid. This is continous edge.
+            // Make invalid. This is continous edge.
             if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
                 intersected_vertices[size-1].second = true;
                 double val = intersected_vertices[size-1].first;
                 intersected_vertices.push_back( std::make_pair(val, false)  );
             }
-            /// Increment ++positive.
+            // Increment ++positive.
             if( double_vertex_edge ){
                 auto status = edge_positive->IsVertexOnUpperBoundary();
                 edge_positive->SetVerticesOnUpperBoundary(false, status.second);
@@ -163,15 +161,15 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
             }
         }
         else if( std::abs(distance_ver) < mSnapTolerance ){
-            /// Increment ++vertical.
+            // Increment ++vertical.
             ++pos_vertical;
         }
         else if( std::abs(distance_neg) < mSnapTolerance ){
-            /// Increment ++negative.
+            // Increment ++negative.
             ++pos_negative;
-        } /// Positive and vertical have the same distance.
+        } // Positive and vertical have the same distance.
         else if( (distance_pos+distance_ver) < 0.1*MAXD && std::abs(distance_pos-distance_ver) <= mSnapTolerance ){
-            /// Increment positive
+            // Increment positive
             if( double_vertex_edge ){
                 auto status = edge_positive->IsVertexOnUpperBoundary();
                 edge_positive->SetVerticesOnUpperBoundary(false, status.second);
@@ -180,9 +178,9 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 ++pos_positive;
             }
             ++pos_vertical;
-        /// Positive and negative have the same distance.
+        // Positive and negative have the same distance.
         } else if ( (distance_pos+distance_neg) < 0.1*MAXD &&  std::abs(distance_pos-distance_neg) <= mSnapTolerance ) {
-            /// Increment positive
+            // Increment positive
             if( double_vertex_edge ){
                 auto status = edge_positive->IsVertexOnUpperBoundary();
                 edge_positive->SetVerticesOnUpperBoundary(false, status.second);
@@ -191,13 +189,13 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
                 ++pos_positive;
             }
             ++pos_negative;
-        /// Negative and vertical have the same distance.
+        // Negative and vertical have the same distance.
         } else if ( (distance_ver+distance_neg) < 0.1*MAXD && std::abs(distance_ver-distance_neg) <= mSnapTolerance ) {
-            /// Increment vertical and negative
+            // Increment vertical and negative
             ++pos_vertical;
             ++pos_negative;
         } else {
-            /// ADD POSITIVE
+            // ADD POSITIVE
             if( distance_pos < distance_neg && distance_pos < distance_ver ){
                 // Add and increment positive
                 AddIntersectedVertexPositive(edge_positive, intersected_vertices);
@@ -223,7 +221,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
 
     }
 
-    /// Add corner right
+    // Add corner right
     if( add_corner_right ){
         IndexType size = intersected_vertices.size();
         // size > 0, makes sure that intersected_vertices[size-1] does not result in segmentation-fault.
@@ -239,11 +237,11 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
     const double y_max_positive = GetMaxDIRINDEX2(mVerticesPositive);
     const double y_max = std::max( std::max( y_max_negative, y_max_positive), mLowerBound[DIRINDEX2]);
 
-    /// Insert edges
+    // Insert edges
     const double plane_position = GetPlanePosition();
     if( add_corner_left && add_corner_right && intersected_vertices.size() == 2 ){
-        /// Corner case, if only the corner points are part of intersected_vertices.
-        /// In this case, we have to check if this plane is inside or outside.
+        // Corner case, if only the corner points are part of intersected_vertices.
+        // In this case, we have to check if this plane is inside or outside.
         const double v_left = intersected_vertices[0].first;
         const double v_right = intersected_vertices[1].first;
         double center = v_left + 0.5 * (v_right - v_left);
@@ -263,7 +261,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
         }
     }
     else if( intersected_vertices.size() > 1 ){
-        /// Insert edge, if two consecutive intersected_vertices are left (true) and right (false) boundary.
+        // Insert edge, if two consecutive intersected_vertices are left (true) and right (false) boundary.
         for (IndexType i = 0; i < intersected_vertices.size() - 1; ++i) {
             const double v_left = intersected_vertices[i].first;
             const double v_right = intersected_vertices[i + 1].first;
@@ -274,23 +272,23 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) 
         }
     }
 
-    /// 2. We split all positive edges at all negative oriented vertices and vice versa.
-    ///                 x--^-----x---^--x   positive oriented edges
-    ///                 |  |     |   |                                     DIRINDEX2
-    ///                 |  |     |   |                                         ^
-    ///            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
+    // 2. We split all positive edges at all negative oriented vertices and vice versa.
+    //                 x--^-----x---^--x   positive oriented edges
+    //                 |  |     |   |                                     DIRINDEX2
+    //                 |  |     |   |                                         ^
+    //            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
 
-    /// Set split points at negative oriented vertices.
-    for (int i = 0; i < mVerticesPositive.size(); ++i) {
+    // Set split points at negative oriented vertices.
+    for (IndexType i = 0; i < mVerticesPositive.size(); ++i) {
         SetSplitPoint(mVerticesPositive[i], Orientation::Negative);
     }
 
-    /// Set split points at positive oriented vertices.
-    for (int i = 0; i < mVerticesNegative.size(); ++i) {
+    // Set split points at positive oriented vertices.
+    for (IndexType i = 0; i < mVerticesNegative.size(); ++i) {
         SetSplitPoint(mVerticesNegative[i], Orientation::Positive);
     }
 
-    /// Split edges
+    // Split edges
     SplitEdgesAtSplitPoint(Orientation::Negative);
     SplitEdgesAtSplitPoint(Orientation::Positive);
 }
@@ -307,17 +305,15 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
     }
 
     auto orientation_origin = Orientation::Positive;
-    auto orientation_dest = Orientation::Negative;
 
     auto &r_edges_origin = GetEdges(orientation_origin);
-    auto &r_edges_dest = GetEdges(orientation_dest);
 
-    ///Instantiate new mesh ptr.
+    //Instantiate new mesh ptr.
     auto p_new_mesh = MakeUnique<TriangleMesh>();
     p_new_mesh->Reserve(5 * r_edges_origin.size());
 
     // Loop over positive oriented edges.
-    for (int i = 0; i < r_edges_origin.size(); ++i) {
+    for (IndexType i = 0; i < r_edges_origin.size(); ++i) {
         const auto &v1_up = V1byEdgeId(i, orientation_origin);
         const auto &v2_up = V2byEdgeId(i, orientation_origin);
         const auto& r_edge = r_edges_origin[i];
@@ -329,10 +325,10 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
             const auto &v1_low = V1byEdgeId(edge_id_dest, Orientation::Negative);
             const auto &v2_low = V2byEdgeId(edge_id_dest, Orientation::Negative);
 
-            /// If v1 of lower and upper edge coincide.
-            /// Add:    /|
-            ///        / |
-            ///         \|
+            // If v1 of lower and upper edge coincide.
+            // Add:    /|
+            //        / |
+            //         \|
             if (std::abs(v1_low[1] - v1_up[1]) < mSnapTolerance) {
                 Point3DType tmp_point = {0.0, 0.0, 0.0};
                 tmp_point[DIRINDEX3] = plane_position;
@@ -355,10 +351,10 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
             }
 
             else if (std::abs(v2_low[1] - v2_up[1]) < mSnapTolerance) {
-                /// If v2 of lower and upper edge coincide.
-                /// Add:  |\
-                ///       | \
-                ///       |/
+                /* If v2 of lower and upper edge coincide.
+                   Add:  |\
+                         | \
+                         |/                              */
                 Point3DType tmp_point = {0.0, 0.0, 0.0};
                 tmp_point[DIRINDEX3] = plane_position;
                 tmp_point[DIRINDEX1] = v1_low[0];
@@ -381,7 +377,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
         }
 
         if (!skip) {
-            /// Counter clock-wise orientation. Get first and last point of polygon.
+            // Counter clock-wise orientation. Get first and last point of polygon.
             std::array<Point3DType, 4> corner_points{};
             corner_points[0][DIRINDEX1] = v1_up[0];
             corner_points[0][DIRINDEX2] = v1_up[1];
@@ -391,7 +387,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
             corner_points[3][DIRINDEX2] = v2_up[1];
             corner_points[3][DIRINDEX3] = plane_position;
 
-            /// Second and third point depends if lower edge is found or not.
+            // Second and third point depends if lower edge is found or not.
             if (edge_id_dest > -1) {
                 const auto &v1_low = V1byEdgeId(edge_id_dest, Orientation::Negative);
                 const auto &v2_low = V2byEdgeId(edge_id_dest, Orientation::Negative);
@@ -414,9 +410,9 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 corner_points[2][DIRINDEX3] = plane_position;
             }
 
-            /// Instantiate new polygon.
+            // Instantiate new polygon.
             Polygon<4> polygon(normal);
-            /// Orientation of triangle depends whether we are on upper or lower bound of AABB.
+            // Orientation of triangle depends whether we are on upper or lower bound of AABB.
             if (mUpperBoundary) {
                 polygon.AddVertex(corner_points[0]);
                 polygon.AddVertex(corner_points[1]);
@@ -433,7 +429,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
         }
     }
     //MeshUtilities::Refine(*p_new_mesh, 10);
-    return std::move(p_new_mesh);
+    return p_new_mesh;
 }
 
 void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2D>& rEdges, OrientationType Orientation ) {
@@ -468,7 +464,7 @@ int TrimmedDomainOnPlane::FindNegativePartnerEdge(const Point2DType &rV1, const 
     double min_distance = MAXD;
     IndexType found_id = -1;
 
-    for (int i = 0; i < GetNumberEdges(Orientation::Negative); ++i) {
+    for (IndexType i = 0; i < GetNumberEdges(Orientation::Negative); ++i) {
         const auto &v1 = V1byEdgeId(i, Orientation::Negative);
         const auto &v2 = V2byEdgeId(i, Orientation::Negative);
         // Check if center is containerd.
@@ -550,8 +546,6 @@ void TrimmedDomainOnPlane::SetSplitPoint(const Point2DType &rPoint, OrientationT
         }
     }
 
-    double current_lenght = MAXD;
-
     for (IndexType i = 0; i < r_edges_dest.size(); ++i)
     {
         const auto &v1 = V1byEdgeId(i, OrientationDest);
@@ -597,19 +591,19 @@ void TrimmedDomainOnPlane::SplitEdgesAtSplitPoint(OrientationType Orientation)
             std::sort(split_points.begin(), split_points.end(), [](auto &point_a, auto &point_b) -> bool
                 { return point_a[0] < point_b[0]; });
 
-            /// Insert egde (vertex V1 + first split point)
+            // Insert egde (vertex V1 + first split point)
             IndexType index1 = edge.V1();
             IndexType index2 = InsertVertex(split_points[0], Orientation);
             r_edges.push_back(Edge2D(index1, index2, normal) );
 
-            /// Insert egdes (only split points.)
-            for (int j = 0; j < num_split_points - 1; ++j) {
+            // Insert egdes (only split points.)
+            for (IndexType j = 0; j < num_split_points - 1; ++j) {
                 index1 = InsertVertex(split_points[j], Orientation);
                 index2 = InsertVertex(split_points[j + 1], Orientation);
                 r_edges.push_back(Edge2D(index1, index2, normal));
             }
 
-            /// Insert egde (last split point + vertex V2)
+            // Insert egde (last split point + vertex V2)
             index1 = InsertVertex(split_points[num_split_points - 1], Orientation);
             index2 = edge.V2();
             r_edges.push_back(Edge2D(index1, index2, normal));
@@ -698,7 +692,7 @@ void TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, IndexType New
     IndexType index = r_vertices.size();
     if (NewIndex == index) {
         r_vertices.push_back(rPoint);
-        auto res = r_vertices_set.insert(--r_vertices.end());
+        r_vertices_set.insert(--r_vertices.end());
         //TIBRA_ERROR_IF("TrimmedDomainOnPlane::InsertVertex", !res.second) << "Vetrex already exists.\n";
     }
     else if(NewIndex > index) {
@@ -796,7 +790,6 @@ std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const P
 {
     const auto& r_vertices = GetVertices(Orientation);
     const auto& r_vertices_set = GetVerticesSet(Orientation);
-    const auto& r_edges = GetEdges(Orientation);
 
     // Instaniate a tmp_vector, as the following functio call require iterators.
     std::vector<Point2DType> tmp_vector = {rV1, rV2};

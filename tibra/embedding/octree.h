@@ -178,8 +178,8 @@ private:
     ///@name Private Member Variables
     ///@{
     Unique<Node> mpRoot;
-    const Parameters& mrParameters;
     const TOperator* mpOperator; // No ownership
+    const Parameters& mrParameters;
     IndexType mMinLevel = 0;
     IndexType mMaxLevel = 0;
     ///@}

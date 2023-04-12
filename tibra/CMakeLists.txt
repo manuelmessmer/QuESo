@@ -11,6 +11,10 @@ set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 # Import CGAL and its components
 if( USE_CGAL MATCHES ON )
   find_package( CGAL QUIET COMPONENTS  )
@@ -23,18 +27,26 @@ if( USE_CGAL MATCHES ON )
   add_definitions( -DUSE_CGAL )
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -funroll-loops -std=c++17 ")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /EHsc -W2 /std:c++17 /D _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -funroll-loops -std=c++17 ")
+endif()
 
 # OMP support
 find_package(OpenMP)
 if (OPENMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
+  else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ")
+  endif()
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 else()
   message(STATUS "OMP was not found")
   return()
-  endif()
+endif()
 
 message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
@@ -87,6 +99,11 @@ pybind11_add_module(TIBRA_Application MODULE THIN_LTO ${TIBRA_PYTHON_INTERFACE})
 target_link_libraries( TIBRA_Application PRIVATE TIBRA_ApplicationCore )
 set_target_properties( TIBRA_Application PROPERTIES PREFIX "")
 
+if(DEFINED ENV{BOOST_ROOT})
+  set(BOOST_ROOT $ENV{BOOST_ROOT})
+endif(DEFINED ENV{BOOST_ROOT})
+
+option(Boost_USE_STATIC_LIBS "Use static versions of Boost libraries" OFF)
 #include testing directories
 enable_testing()
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
