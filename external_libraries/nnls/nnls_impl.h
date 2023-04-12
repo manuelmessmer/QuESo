@@ -127,6 +127,7 @@ int nnls_( double *a, int *mda, int *m, int *n,
     double up, ss;
     int rtnkey, iz1, iz2, npp1;
 
+    izmax = 0;
     /* Fortran I/O blocks */
     /* The following line was commented out after the f2c translation */
     /* static cilist io___22 = { 0, 6, 0, "(/a)", 0 }; */

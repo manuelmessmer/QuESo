@@ -1230,7 +1230,7 @@ namespace aabb_base
                 if (separation[i] >= posMinImage[i])
                 {
                     separation[i] -= periodicity[i]*boxSize[i];
-                    shift[i] = -periodicity[i]*boxSize[i];
+                    shift[i] = -static_cast<int>(periodicity[i])*boxSize[i];
                     isShifted = true;
                 }
             }
