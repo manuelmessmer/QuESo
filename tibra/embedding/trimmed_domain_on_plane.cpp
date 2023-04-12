@@ -1,9 +1,9 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-/// STL includes
+//// STL includes
 
-/// Project includes
+//// Project includes
 #include "embedding/trimmed_domain_on_plane.h"
 #include "embedding/polygon.h"
 
@@ -621,9 +621,9 @@ void TrimmedDomainOnPlane::SplitEdgesAtSplitPoint(OrientationType Orientation)
     }
 }
 
-/*/////////////////////
-// Setter Functions ///
-/////////////////////*/
+////////////////////////
+/// Setter Functions ///
+////////////////////////
 
 bool TrimmedDomainOnPlane::InsertEdge(const Point2DType& rV1, const Point2DType& rV2, const Point2DType& rNormal, OrientationType Orientation ){
     // Get unique vertex indices.
@@ -688,11 +688,11 @@ IndexType TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, Orientat
 
 void TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, IndexType NewIndex, OrientationType Orientation) {
     auto &r_vertices = GetVertices(Orientation);
-    // auto& r_vertices_set = GetVerticesSet(Orientation);
+    auto& r_vertices_set = GetVerticesSet(Orientation);
     IndexType index = r_vertices.size();
     if (NewIndex == index) {
         r_vertices.push_back(rPoint);
-        // auto res = r_vertices_set.insert(--r_vertices.end());
+        r_vertices_set.insert(--r_vertices.end());
         //TIBRA_ERROR_IF("TrimmedDomainOnPlane::InsertVertex", !res.second) << "Vetrex already exists.\n";
     }
     else if(NewIndex > index) {
@@ -782,9 +782,9 @@ void TrimmedDomainOnPlane::RemoveDublicateEdges(
             && std::abs(rVertices[rValue1.V2()][0] - (rVertices[rValue2.V2()][0])) < tolerance; }), rEdges.end() );
 }
 
-/*/////////////////////
-// Setter Functions ///
-/////////////////////*/
+////////////////////////
+/// Getter Functions ///
+////////////////////////
 
 std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const Point2DType &rV1, const Point2DType &rV2, OrientationType Orientation) const
 {
