@@ -557,34 +557,11 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
     std::getline(file, message); // Ignore "Solid"
 
     while( !file.eof() || file.fail() ) {
-        std::getline(file, message); // Read normal
+        std::getline(file, message); // Read normal (normals are computed from vertices later.)
         if(  message.find("endsolid") !=  std::string::npos ){
             break;
         }
-        Vector3d normal{};
-        IndexType k = 0;
         std::string token;
-        std::stringstream ss_normal(message);
-        while( std::getline(ss_normal, token, ' ') ){
-            token.erase(remove_if(token.begin(), token.end(), isspace), token.end());
-            if( token.size() > 0 && token.find("facet") == std::string::npos
-                    && token.find("normal") == std::string::npos ) {
-                float value = 0.0;
-                try {
-                    value = std::stof(token);
-                } catch (const std::invalid_argument& e) {
-                    std::cout << "Invalid argument: " << e.what() << 'n';
-                } catch (const std::out_of_range& e) {
-                    double test_value = std::stod(token);
-                    if( std::abs(test_value) > 1e-16 ){
-                        std::cout << "IO::ReadMeshFromSTL_Ascii :: Out-of-range-value of normal: " << token << " is set to zero.\n";
-                    }
-                    value = 0.0;
-                }
-                normal[k] = value;
-                ++k;
-            }
-        }
         std::getline(file, message); // Ignore outer loop
 
         Vector3i triangle{};
@@ -629,33 +606,33 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
         }
         }
 
-        //if( Math::Norm(normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
-            rTriangleMesh.AddTriangle(triangle);
+        // Add Triangle
+        rTriangleMesh.AddTriangle(triangle);
 
-            // Uses largest two edges to compute normal. We need normal in machine precesion.
-            // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
-            // the given vertices.
-            const auto A = vertices[1] - vertices[0];
-            const auto B = vertices[2] - vertices[1];
-            const auto C = vertices[0] - vertices[2];
+        // Uses largest two edges to compute normal. We need normal in machine precesion.
+        // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
+        // the given vertices.
+        const auto A = vertices[1] - vertices[0];
+        const auto B = vertices[2] - vertices[1];
+        const auto C = vertices[0] - vertices[2];
 
-            const double lenght_A = A.Norm();
-            const double lenght_B = B.Norm();
-            const double lenght_C = C.Norm();
+        const double lenght_A = A.Norm();
+        const double lenght_B = B.Norm();
+        const double lenght_C = C.Norm();
 
-            if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
-                normal = Math::Cross(A, B);
-            }
-            else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
-                normal = Math::Cross(C, A);
-            }
-            else {
-                normal = Math::Cross(B, C);
-            }
+        PointType normal{};
+        if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
+            normal = Math::Cross(A, B);
+        }
+        else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
+            normal = Math::Cross(C, A);
+        }
+        else {
+            normal = Math::Cross(B, C);
+        }
 
-            normal *= 1.0/Math::Norm(normal);
-            rTriangleMesh.AddNormal( normal );
-        //}
+        normal *= 1.0/Math::Norm(normal);
+        rTriangleMesh.AddNormal( normal );
 
         std::getline(file, message); // Ignore endloop
         std::getline(file, message); // Ignore endfacet
@@ -663,9 +640,6 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
     file.close();
     return rTriangleMesh.Check();
 }
-
-
-
 
 bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
                                 const char* Filename){
@@ -714,14 +688,14 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
     // Loop over all triangles
     for(IndexType i=0; i<num_triangles; ++i) {
         // Read normals
-        float normal[3];
-        if(!(file.read((char*)(&normal[0]), sizeof(normal[0]))) ||
-                !(file.read((char*)(&normal[1]), sizeof(normal[1]))) ||
-                !(file.read((char*)(&normal[2]), sizeof(normal[2])))) {
+        float normal_tmp[3]; // Normals are ignored. They are computed from the vertices later.
+        if(!(file.read((char*)(&normal_tmp[0]), sizeof(normal_tmp[0]))) ||
+                !(file.read((char*)(&normal_tmp[1]), sizeof(normal_tmp[1]))) ||
+                !(file.read((char*)(&normal_tmp[2]), sizeof(normal_tmp[2])))) {
             TIBRA_ERROR("IO::ReadMeshFromSTL_Binary") << "Couldnt read normals. \n";
             return false;
         }
-        PointType point_normal(normal[0], normal[1], normal[2]);
+
         // Read triangles and vertices. Each vertex is read seperately.
         Vector3i triangle{};
         std::array<PointType, 3> vertices;
@@ -748,33 +722,34 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
                 vertices[j] = index_map_iterator->first;
             }
         }
-        //if( Math::Norm(point_normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
-            rTriangleMesh.AddTriangle(triangle);
 
-            // Uses largest two edges to compute normal. We need normal in machine precesion.
-            // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
-            // the given vertices.
-            const auto A = vertices[1] - vertices[0];
-            const auto B = vertices[2] - vertices[1];
-            const auto C = vertices[0] - vertices[2];
+        // Add triangle
+        rTriangleMesh.AddTriangle(triangle);
 
-            const double lenght_A = A.Norm();
-            const double lenght_B = B.Norm();
-            const double lenght_C = C.Norm();
+        // Uses largest two edges to compute normal. We need normal in machine precesion.
+        // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
+        // the given vertices.
+        const auto A = vertices[1] - vertices[0];
+        const auto B = vertices[2] - vertices[1];
+        const auto C = vertices[0] - vertices[2];
 
-            if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
-                point_normal = Math::Cross(A, B);
-            }
-            else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
-                point_normal = Math::Cross(C, A);
-            }
-            else {
-                point_normal = Math::Cross(B, C);
-            }
+        const double lenght_A = A.Norm();
+        const double lenght_B = B.Norm();
+        const double lenght_C = C.Norm();
 
-            point_normal *= 1.0/Math::Norm(point_normal);
-            rTriangleMesh.AddNormal( point_normal );
-        //}
+        PointType normal{};
+        if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
+            normal = Math::Cross(A, B);
+        }
+        else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
+            normal = Math::Cross(C, A);
+        }
+        else {
+            normal = Math::Cross(B, C);
+        }
+
+        normal *= 1.0/Math::Norm(normal);
+        rTriangleMesh.AddNormal( normal );
 
         // Read so-called attribute byte count and ignore it
         char c;
