@@ -546,6 +546,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
         return false;
     }
 
+    // Initialize map
     int index = 0;
     std::map<Vector3d, int, PointComparison> index_map;
 
@@ -553,8 +554,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
     rTriangleMesh.Reserve(100000);
 
     std::string message;
-    // Ignore "Solid"
-    std::getline(file, message);
+    std::getline(file, message); // Ignore "Solid"
 
     while( !file.eof() || file.fail() ) {
         std::getline(file, message); // Read normal
@@ -569,11 +569,22 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
             token.erase(remove_if(token.begin(), token.end(), isspace), token.end());
             if( token.size() > 0 && token.find("facet") == std::string::npos
                     && token.find("normal") == std::string::npos ) {
-                normal[k] = std::stod(token);
+                float value = 0.0;
+                try {
+                    value = std::stof(token);
+                } catch (const std::invalid_argument& e) {
+                    std::cout << "Invalid argument: " << e.what() << 'n';
+                } catch (const std::out_of_range& e) {
+                    double test_value = std::stod(token);
+                    if( std::abs(test_value) > 1e-16 ){
+                        std::cout << "IO::ReadMeshFromSTL_Ascii :: Out-of-range-value of normal: " << token << " is set to zero.\n";
+                    }
+                    value = 0.0;
+                }
+                normal[k] = value;
                 ++k;
             }
         }
-
         std::getline(file, message); // Ignore outer loop
 
         Vector3i triangle{};
@@ -587,7 +598,19 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
         while( std::getline(ss, token, ' ') ){
             token.erase(remove_if(token.begin(), token.end(), isspace), token.end());
             if( token.size() > 0 && token.find("vertex") == std::string::npos ) {
-                vertex[j] = std::stod(token);
+                float value = 0.0;
+                try {
+                    value = std::stof(token);
+                } catch (const std::invalid_argument& e) {
+                    std::cout << "Invalid argument: " << e.what() << 'n';
+                } catch (const std::out_of_range& e) {
+                    double test_value = std::stod(token);
+                    if( std::abs(test_value) > 1e-16 ){
+                        std::cout << "IO::ReadMeshFromSTL_Ascii :: Out-of-range-value of vertex: " << token << " is set to zero.\n";
+                    }
+                    value = 0.0;
+                }
+                vertex[j] = value;
                 ++j;
             }
         }
@@ -606,7 +629,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
         }
         }
 
-        if( Math::Norm(normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
+        //if( Math::Norm(normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
             rTriangleMesh.AddTriangle(triangle);
 
             // Uses largest two edges to compute normal. We need normal in machine precesion.
@@ -632,7 +655,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
 
             normal *= 1.0/Math::Norm(normal);
             rTriangleMesh.AddNormal( normal );
-        }
+        //}
 
         std::getline(file, message); // Ignore endloop
         std::getline(file, message); // Ignore endfacet
@@ -725,7 +748,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
                 vertices[j] = index_map_iterator->first;
             }
         }
-        if( Math::Norm(point_normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
+        //if( Math::Norm(point_normal) > 0.99 ){ // Sometime normal is zero in STL. If so we neglect the triangle.
             rTriangleMesh.AddTriangle(triangle);
 
             // Uses largest two edges to compute normal. We need normal in machine precesion.
@@ -751,7 +774,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
 
             point_normal *= 1.0/Math::Norm(point_normal);
             rTriangleMesh.AddNormal( point_normal );
-        }
+        //}
 
         // Read so-called attribute byte count and ignore it
         char c;
