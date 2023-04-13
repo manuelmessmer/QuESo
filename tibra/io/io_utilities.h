@@ -62,6 +62,13 @@ private:
     stream.write(reinterpret_cast<char*>(&var), sizeof(T));
   }
 
+  static bool ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
+                                    const char* Filename);
+  static bool ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
+                                    const char* Filename);
+
+  static bool STLIsInASCIIFormat(const char* Filename);
+
 };
 
 } // End namespace tibra
