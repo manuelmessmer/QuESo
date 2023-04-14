@@ -109,33 +109,34 @@ enable_testing()
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 include_directories (${Boost_INCLUDE_DIRS})
 file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-file(GLOB TEST_SRCS_2 ${CMAKE_CURRENT_SOURCE_DIR}/tests/thingi10k_tests/*.cpp)
+file(GLOB TEST_THINGI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/thingi10k_tests/*.cpp)
 
 #file(GLOB TEST_SRCS2 ${CMAKE_CURRENT_SOURCE_DIR}/tests/thingi10k_tests/*.cpp)
 # Run compile cpp tests
 # Extract the filename without an extension (NAME_WE)
 get_filename_component(testName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra.cpp NAME_WE)
-get_filename_component(testName_2 ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra_big.cpp NAME_WE)
+get_filename_component(testThingiName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra_thingi10k.cpp NAME_WE)
 # Add compile target
 add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra.cpp ${TEST_SRCS})
-add_executable(${testName_2} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra_big.cpp ${TEST_SRCS_2})
+add_executable(${testThingiName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra_thingi10k.cpp ${TEST_THINGI_SRCS})
 
 # Link to Boost libraries and TIBRA
 target_link_libraries(${testName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
-target_link_libraries(${testName_2} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
+target_link_libraries(${testThingiName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
 
 # Move to TestExecutables
 set_target_properties(${testName} PROPERTIES
              RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
-set_target_properties(${testName_2} PROPERTIES
+set_target_properties(${testThingiName} PROPERTIES
              RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
+
 add_test(NAME ${testName}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testName} )
 
-add_test(NAME ${testName_2}
+add_test(NAME ${testThingiName}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testName_2} )
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testThingiName} )
 
 #Setting the libs folder for the shared objects built in kratos
 install(TARGETS TIBRA_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
