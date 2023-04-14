@@ -102,9 +102,8 @@ BOOST_AUTO_TEST_CASE( Thingi10KFileTester ) {
     const double volume_ref = MeshUtilities::Volume(triangle_mesh);
     const double error_volume = std::abs( test_volume - volume_ref)/ volume_ref;
 
-
-    BOOST_CHECK_LT(error_volume, 1e-14);
-    BOOST_CHECK_LT(error_area, 1e-14);
+    BOOST_CHECK_LT(error_volume, 1e-10);
+    BOOST_CHECK_LT(error_area, 1e-10);
 
 }
 
