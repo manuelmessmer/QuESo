@@ -10,7 +10,6 @@
 #include <cmath>
 #include <memory>
 #include <iostream>
-#include <algorithm>
 
 //// Project includes
 #include "define.hpp"
@@ -132,35 +131,6 @@ public:
         }
 
         return p_global_integration_points;
-    }
-
-    std::pair<PointType, PointType> BoundingBox(){
-        PointType lower_bound = {MAXD, MAXD, MAXD};
-        PointType upper_bound = {LOWESTD, LOWESTD, LOWESTD};
-        for( IndexType i = 0; i < this->NumOfTriangles(); ++i){
-            const auto& p1 = this->P1(i);
-            const auto& p2 = this->P2(i);
-            const auto& p3 = this->P3(i);
-
-            const PointType x_values = {p1[0], p2[0], p3[0]};
-            const PointType y_values = {p1[1], p2[1], p3[1]};
-            const PointType z_values = {p1[2], p2[2], p3[2]};
-
-            auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
-            auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
-            auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
-
-            lower_bound[0] = std::min<double>(*x_min_max.first, lower_bound[0]);
-            upper_bound[0] = std::max<double>(*x_min_max.second, upper_bound[0]);
-
-            lower_bound[1] = std::min<double>(*y_min_max.first, lower_bound[1]);
-            upper_bound[1] = std::max<double>(*y_min_max.second, upper_bound[1]);
-
-            lower_bound[2] = std::min<double>(*z_min_max.first, lower_bound[2]);
-            upper_bound[2] = std::max<double>(*z_min_max.second, upper_bound[2]);
-        }
-
-        return std::make_pair(lower_bound, upper_bound);
     }
 
     ///@brief Get triangle vertex 1
