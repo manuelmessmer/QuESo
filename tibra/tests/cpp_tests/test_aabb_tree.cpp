@@ -3,6 +3,7 @@
 
 #define BOOST_TEST_DYN_LINK
 
+// Test für Linda
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// STL includes
