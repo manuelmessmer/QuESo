@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE( Thingi10KTester ) {
     std::cout << "Testing " << filenames.size() << " STLs;\n";
 
     #pragma omp parallel for schedule(dynamic)
-    for( IndexType i = 0; i < filenames.size(); ++i ){
+    for( int i = 0; i < static_cast<int>(filenames.size()); ++i ){
         std::string filename = filenames[i];
         // Read triangle mesh
         TriangleMesh triangle_mesh{};
