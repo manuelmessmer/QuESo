@@ -38,6 +38,12 @@ jobs:
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
 
+    - name: Test Thingi10K
+      shell: bash
+      run: |
+        cp .github/workflows/run_tests_thingi10k.sh run_tests_thingi10k.sh
+        bash run_tests_thingi10k.sh
+
     - name: Test py
       shell: bash
       run: |

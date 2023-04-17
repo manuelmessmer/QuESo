@@ -13,3 +13,9 @@ do
   fi
 done
 
+if ( [ $1 == "thingi10k" ] )
+then
+  ./TestExecutables/test_tibra_thingi10k -- all $2 5 50
+  ./TestExecutables/test_tibra_thingi10k -- all $2 2 10
+fi
+

@@ -91,6 +91,13 @@ public:
     ///@param rTriangleMesh
     ///@return double
     static double AverageAspectRatio(const TriangleMesh& rTriangleMesh);
+
+
+    ///@brief Returns axis-aligned bounding box of triangle mesh.
+    ///@param rTriangleMesh
+    ///@return std::pair<PointType, PointType>
+    static std::pair<PointType, PointType> BoundingBox(const TriangleMesh& rTriangleMesh);
+
     ///@}
 }; // End class MeshUtilities
 ///@} // End TIBRA Classes
