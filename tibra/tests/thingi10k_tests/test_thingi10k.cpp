@@ -45,9 +45,9 @@ BOOST_AUTO_TEST_CASE( Thingi10KTester ) {
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
     const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
 
-    std::cout << "Testing " << filenames.size() << " STLs;\n";
-
-    #pragma omp parallel for schedule(dynamic)
+    std::cout << "Testing " << filenames.size() << " STLs\n";
+    IndexType count = 0;
+    #pragma omp parallel for reduction(+ : count) schedule(dynamic)
     for( int i = 0; i < static_cast<int>(filenames.size()); ++i ){
         std::string filename = filenames[i];
         // Read triangle mesh
@@ -65,9 +65,9 @@ BOOST_AUTO_TEST_CASE( Thingi10KTester ) {
         PointType lower_bound = lower_bound_stl - delta_stl*0.1;
 
         Vector3i num_elements{};
-        num_elements[0] = std::ceil( 1.2* delta_stl[0] / h );
-        num_elements[1] = std::ceil( 1.2* delta_stl[1] / h );
-        num_elements[2] = std::ceil( 1.2* delta_stl[2] / h );
+        num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));
+        num_elements[1] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[1] / h ));
+        num_elements[2] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[2] / h ));
 
         PointType upper_bound{};
         upper_bound[0] = lower_bound[0] + num_elements[0]*h;
@@ -125,8 +125,13 @@ BOOST_AUTO_TEST_CASE( Thingi10KTester ) {
 
         BOOST_CHECK_LT(error_volume, 3e-10);
         BOOST_CHECK_LT(error_area, 1e-10);
+
+        if( error_volume < 3e-10 && error_area < 1e-10 ){
+            count++;
+        }
     }
 
+    std::cout << "Successfull tests: " << count << std::endl;
 }
 
 
