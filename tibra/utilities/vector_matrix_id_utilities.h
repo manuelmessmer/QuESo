@@ -32,7 +32,7 @@ public:
     ///@name  Operation
     ///@{
     IndexType GetNextIndexX(IndexType i, bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[0] < mNumberOfElements[0]-1 ){
             local_end = false;
         } else {
@@ -42,7 +42,7 @@ public:
     }
 
     IndexType GetNextIndexY(IndexType i, bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[1] < mNumberOfElements[1]-1) {
             indices[1] += 1;
             local_end = false;
@@ -61,11 +61,11 @@ public:
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
 
-        return new_index+1;
+        return new_index;
     }
 
     IndexType GetNextIndexZ(IndexType i, bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[2] < mNumberOfElements[2]-1) {
             indices[2] += 1;
             local_end = false;
@@ -84,11 +84,11 @@ public:
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
 
-        return new_index+1;
+        return new_index;
     }
 
     IndexType GetPreviousIndexX(IndexType i, bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[0] > 0) {
             local_end = false;
         } else {
@@ -121,7 +121,7 @@ public:
     }
 
     IndexType GetPreviousIndexZ(IndexType i, bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[2] > 0 ){
             indices[2] -= 1;
             local_end = false;
@@ -140,7 +140,7 @@ public:
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
 
-        return new_index+1;
+        return new_index;
     }
 
     std::array<IndexType,3> GetMatrixIndicesFromVectorIndex(const IndexType Index) noexcept
