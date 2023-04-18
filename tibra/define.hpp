@@ -47,6 +47,10 @@ inline double RelativeSnapTolerance(const PointType& rLowerBound, const PointTyp
     return std::max( std::max(delta[0], std::max(delta[1], delta[2]))*Tolerance, Tolerance);
 }
 
+inline double RelativeSnapTolerance(const PointType& rDelta, double Tolerance = SNAPTOL){
+    return std::max( std::max(rDelta[0], std::max(rDelta[1], rDelta[2]))*Tolerance, Tolerance);
+}
+
 // Tolerances for Testing
 constexpr double EPS0 = 1e-7;
 constexpr double EPS1 = 1e-8;
@@ -55,7 +59,7 @@ constexpr double EPS3 = 1e-12;
 constexpr double EPS4 = 1e-14;
 
 // Enum's
-enum IntersectionStatus {Inside, Outside, Trimmed};
+enum IntersectionStatus {Inside, Outside, Trimmed, NotVisited, PartOfNewGroup, OppositeGroup};
 typedef IntersectionStatus IntersectionStatusType;
 
 ///@}
