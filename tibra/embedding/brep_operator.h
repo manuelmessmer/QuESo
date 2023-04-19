@@ -11,7 +11,7 @@
 #include "containers/element.hpp"
 #include "containers/boundary_integration_point.hpp"
 #include "embedding/trimmed_domain.h"
-#include "embedding/aabb_tree.h"
+#include "embedding/geometry_query.h"
 #include "embedding/clipper.h"
 #include "embedding/brep_operator_base.h"
 #include "io/io_utilities.h"
@@ -48,7 +48,7 @@ public:
     ///@param rTriangleMesh
     ///@param rParameters TIBRA parameters.
     BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters)
-        : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh)
+        : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, true)
     {
     }
 
@@ -84,6 +84,10 @@ public:
     ///@return Unique<TriangleMesh>. Clipped mesh.
     Unique<TriangleMesh> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
+    //bool OnBoundedSideOfIntersectedFaces( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const;
+
+    bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
+
     ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
     ///       This is a requirement for the application of boundary conditions.
@@ -111,7 +115,7 @@ private:
     ///@{
 
     const TriangleMesh& mTriangleMesh;
-    AABB_tree mTree;
+    GeometryQuery mGeometryQuery;
 
     ///@}
 }; // End BRepOperator class
