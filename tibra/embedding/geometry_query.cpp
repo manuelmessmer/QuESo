@@ -85,7 +85,7 @@ namespace tibra {
             }
         }
 
-        return std::make_pair(is_inside, false);
+        return std::make_pair(is_inside, true);
     }
 
     std::pair<bool, bool> GeometryQuery::IsInsideClosed( const Ray_AABB_primitive& rRay ) const {
