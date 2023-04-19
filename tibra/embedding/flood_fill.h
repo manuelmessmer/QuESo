@@ -50,50 +50,25 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void FillFromOutside(ElementContainer& rElementContainer ) {
-        const auto it_el_begin = rElementContainer.begin();
+    void ClassifyElements( ) {
 
-        if( (*it_el_begin)->GetId() == 1 ){
-            TIBRA_ERROR("here") << "you know.\n";
-        }
-
-        auto element_ptr_vector = rElementContainer.GetElements();
         StatusVectorType states(mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2]);
         std::fill(states.begin(), states.end(), IntersectionStatus::NotVisited );
 
         Timer timer{};
 
+
         for( IndexType i = 0; i < states.size(); ++i) {
             if( states[i] == IntersectionStatus::NotVisited ) {
-
-                auto indices =  mIdMapper.GetMatrixIndicesFromVectorIndex(i);
-                PointType indices_d( indices[0], indices[1], indices[2] );
-                PointType lower_bound = mLowerBound + indices_d * mDelta;
-                PointType upper_bound = mLowerBound + (indices_d+1.0) * mDelta;
-
-                if( mpBrepOperator->IsTrimmed(lower_bound, upper_bound) ){
+                const auto box = GetBoundingBoxFromIndex(i);
+                if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
                     states[i] = IntersectionStatus::Trimmed;
                 } else {
+                    // If box is not trimmed, run flood fill.
                     std::stack<IndexType> index_stack;
                     index_stack.push(i);
                     states[i] = IntersectionStatus::PartOfNewGroup;
-
-                    std::array<int, 6> new_indices;
-                    double criterion = 0.0;
-                    while( !index_stack.empty() ){
-                        new_indices[0] = Fill(0, index_stack, states, criterion );
-                        new_indices[1] = Fill(1, index_stack, states, criterion );
-                        new_indices[2] = Fill(2, index_stack, states, criterion );
-                        new_indices[3] = Fill(3, index_stack, states, criterion );
-                        new_indices[4] = Fill(4, index_stack, states, criterion );
-                        new_indices[5] = Fill(5, index_stack, states, criterion );
-                        index_stack.pop();
-                        for( IndexType j = 0; j < 6; ++j){
-                            if( new_indices[j] > -1 ){
-                                index_stack.push(new_indices[j]);
-                            }
-                        }
-                    }
+                    double criterion = Fill(index_stack, states);
 
                     IntersectionStatus current_state = (criterion > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
                     IntersectionStatus opposite_state = (current_state == IntersectionStatus::Inside) ? IntersectionStatus::Outside : IntersectionStatus::Inside;
@@ -111,17 +86,14 @@ public:
         }
 
         std::cout << "Timer: " << timer.Measure() << std::endl;
+
+        #pragma omp parallel for
         for( IndexType i = 0; i < states.size(); ++i){
-            auto indices =  mIdMapper.GetMatrixIndicesFromVectorIndex(i);
-            PointType indices_d( indices[0], indices[1], indices[2] );
-            PointType lower_bound = mLowerBound + indices_d * mDelta;
-            PointType upper_bound = mLowerBound + (indices_d+1.0) * mDelta;
-
-
-            auto status_ref = mpBrepOperator->GetIntersectionState(lower_bound, upper_bound);
+            auto box = GetBoundingBoxFromIndex(i);
+            auto status_ref = mpBrepOperator->GetIntersectionState(box.first, box.second);
 
             if( status_ref != states[i] ){
-                auto cube = MeshUtilities::pGetCuboid(lower_bound, upper_bound);
+                auto cube = MeshUtilities::pGetCuboid(box.first, box.second);
                 IO::WriteMeshToSTL(*cube, "cube.stl", true);
                 std::cout << "i: " << i << std::endl;
                 std::cout << "status_ref: " << status_ref << ", " << states[i] << std::endl;
@@ -131,9 +103,28 @@ public:
         }
     }
 
+    double Fill( IndexStackType& rIndexStack, StatusVectorType& rStates ){
+        double criterion = 0.0;
+        std::array<int, 6> new_indices;
+        while( !rIndexStack.empty() ){
+
+            for( IndexType i = 0; i < 6; ++i){
+                new_indices[i] = FillDirection(i, rIndexStack, rStates, criterion );
+            }
+
+            rIndexStack.pop();
+            for( IndexType i = 0; i < 6; ++i){
+                if( new_indices[i] > -1 ){
+                    rIndexStack.push(new_indices[i]);
+                }
+            }
+        }
+        return criterion;
+    }
+
 private:
 
-    int Fill(IndexType Direction, IndexStackType& stack, StatusVectorType& rStates, double& rCriterion){
+    int FillDirection(IndexType Direction, IndexStackType& stack, StatusVectorType& rStates, double& rCriterion){
         bool local_end = false;
         IndexType index = stack.top();
 
@@ -202,6 +193,8 @@ private:
                 auto normal = p_mesh->Normal(k);
                 double area = p_mesh->Area(k);
                 auto c_c = center_tri - center_box;
+
+                //#pragma omp atomic update
                 rCriterion += area / c_c.Norm() * Math::Dot(normal, c_c);
             }
             rStates[next_index] = IntersectionStatus::Trimmed;
@@ -218,6 +211,12 @@ private:
         return next_index;
     }
 
+    std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType Index){
+        const auto indices =  mIdMapper.GetMatrixIndicesFromVectorIndex(Index);
+        const PointType indices_d( indices[0], indices[1], indices[2] );
+        return std::make_pair( mLowerBound + indices_d * mDelta,
+                               mLowerBound + (indices_d+1.0) * mDelta );
+    }
     // int FillPreviousX(IndexStackType& stack, StatusVectorType& rStates){
     //     bool local_end = false;
     //     IndexType index = stack.top();
