@@ -84,9 +84,22 @@ public:
     ///@return Unique<TriangleMesh>. Clipped mesh.
     Unique<TriangleMesh> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
-    //bool OnBoundedSideOfIntersectedFaces( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const;
-
+    /// @brief Returns true, if AABB is intersected by at least one triangle.
+    /// @param rLowerBound of AABB.
+    /// @param rUpperBound of AABB.
+    /// @param Tolerance Reduces size of AABB.
+    /// @return bool.
     bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
+
+    /// @brief Finds all triangles that are intersected by AABB, and returns true if rPoint lies on bounded side.
+    ///        Ray tracing trough the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
+    ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.
+    ///        However, rPoint must be close to AABB. This is e.g. used to classify an aabb next to a trimmed aabb.
+    /// @param rPoint Query Point.
+    /// @param rLowerBound of AABB.
+    /// @param rUpperBound of AABB.
+    /// @return bool
+    bool OnBoundedSideOfIntersectedTriangles( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const override;
 
     ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).

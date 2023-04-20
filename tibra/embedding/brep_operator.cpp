@@ -21,6 +21,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> drandon(0.5, 1.5);
 
+    // Rough test, if point is actually within the bounding box of the mesh.
     if( mGeometryQuery.IsWithinBoundingBox(rPoint)) {
         bool success = false;
         IndexType iteration = 0UL;
@@ -33,12 +34,13 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
             Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
 
             // Normalize
-            double norm_direction = direction.Norm();
+            const double norm_direction = direction.Norm();
             direction /= norm_direction;
 
             // Construct ray
             Ray_AABB_primitive ray(rPoint, direction);
 
+            // Query ray
             std::tie(is_inside, success) = mGeometryQuery.IsInside(ray);
         }
         return is_inside;
@@ -48,6 +50,60 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
 
 bool BRepOperator::IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance) const {
     return mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance);
+}
+
+
+bool BRepOperator::OnBoundedSideOfIntersectedTriangles( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const {
+    double tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, SNAPTOL);
+    auto intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(rLowerBound, rUpperBound, tolerance);
+    TriangleMesh intersected_mesh;
+    MeshUtilities::Append(intersected_mesh, mTriangleMesh, *intersected_triangle_ids);
+    GeometryQuery goemetry_query_local(intersected_mesh, false);
+
+    IndexType current_id = 0;
+    const IndexType num_triangles = intersected_mesh.NumOfTriangles();
+    if( num_triangles == 0 ){ return false; }
+
+    IndexType success_count = 0;
+    int inside_count = 0;
+    while( success_count < 10 && current_id < num_triangles ){
+        // Get direction
+        const auto center_triangle = intersected_mesh.Center(current_id);
+        Vector3d direction = center_triangle - rPoint;
+
+        // Normalize
+        double norm_direction = direction.Norm();
+        direction /= norm_direction;
+
+        // Construct ray
+        Ray_AABB_primitive ray(rPoint, direction);
+
+        // Get vertices of current triangle
+        const auto& p1 = intersected_mesh.P1(current_id);
+        const auto& p2 = intersected_mesh.P2(current_id);
+        const auto& p3 = intersected_mesh.P3(current_id);
+
+        // Make sure target triangle is not parallel and has a significant area.
+        const double area = intersected_mesh.Area(current_id);
+        if( !ray.is_parallel(p1, p2, p3, 100.0*tolerance) && area >  100*ZEROTOL) {
+            auto [is_inside, success] = goemetry_query_local.IsInside(ray);
+            if( success ){
+                ++success_count;
+                if( is_inside ){
+                    ++inside_count;
+                } else {
+                    --inside_count;
+                }
+            }
+        }
+        ++current_id;
+    }
+    if( inside_count > 0){
+        return true;
+    } else {
+        return false;
+    }
+
 }
 
 IntersectionStatus BRepOperator::GetIntersectionState(
