@@ -52,6 +52,8 @@ public:
     ///@{
     Unique<StatusVectorType> ClassifyElements() const;
 
+    int Fill2D( IndexStackType& rIndexStack, StatusVectorType& rStates ) const;
+
     int Fill( IndexStackType& rIndexStack, StatusVectorType& rStates ) const;
 
 private:
@@ -60,6 +62,17 @@ private:
 
     std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType Index) const;
 
+    std::pair<PointType, PointType> GetBoundingBoxFromIndex(Vector3i Indices) const{
+        const PointType indices_d( Indices[0], Indices[1], Indices[2] );
+        return std::make_pair( mLowerBound + indices_d * mDelta,
+                               mLowerBound + (indices_d+1.0) * mDelta );
+    }
+
+    std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k) const{
+        const PointType indices_d( i, j, k);
+        return std::make_pair( mLowerBound + indices_d * mDelta,
+                               mLowerBound + (indices_d+1.0) * mDelta );
+    }
 private:
     const BRepOperatorBase* mpBrepOperator;
     VectorMatrixIdUtilities mIdMapper;
