@@ -91,7 +91,7 @@ public:
     /// @return bool.
     bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
 
-    /// @brief Finds all triangles that are intersected by AABB, and returns true if rPoint lies on bounded side.
+    /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
     ///        Ray tracing trough the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
     ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.
     ///        However, rPoint must be close to AABB. This is e.g. used to classify an aabb next to a trimmed aabb.
@@ -99,7 +99,7 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @return bool
-    bool OnBoundedSideOfIntersectedTriangles( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const override;
+    bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const override;
 
     ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).

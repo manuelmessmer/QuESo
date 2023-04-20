@@ -53,22 +53,23 @@ bool BRepOperator::IsTrimmed(const PointType& rLowerBound,  const PointType& rUp
 }
 
 
-bool BRepOperator::OnBoundedSideOfIntersectedTriangles( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const {
+bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const {
     double tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, SNAPTOL);
-    auto intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(rLowerBound, rUpperBound, tolerance);
-    TriangleMesh intersected_mesh;
-    MeshUtilities::Append(intersected_mesh, mTriangleMesh, *intersected_triangle_ids);
-    GeometryQuery goemetry_query_local(intersected_mesh, false);
+
+    auto p_clipped_mesh = pClipTriangleMesh(rLowerBound, rUpperBound);
+    auto& clipped_mesh = *p_clipped_mesh;
+
+    GeometryQuery goemetry_query_local(clipped_mesh, false);
 
     IndexType current_id = 0;
-    const IndexType num_triangles = intersected_mesh.NumOfTriangles();
+    const IndexType num_triangles = clipped_mesh.NumOfTriangles();
     if( num_triangles == 0 ){ return false; }
 
     IndexType success_count = 0;
     int inside_count = 0;
     while( success_count < 10 && current_id < num_triangles ){
         // Get direction
-        const auto center_triangle = intersected_mesh.Center(current_id);
+        const auto center_triangle = clipped_mesh.Center(current_id);
         Vector3d direction = center_triangle - rPoint;
 
         // Normalize
@@ -79,12 +80,12 @@ bool BRepOperator::OnBoundedSideOfIntersectedTriangles( const PointType& rPoint,
         Ray_AABB_primitive ray(rPoint, direction);
 
         // Get vertices of current triangle
-        const auto& p1 = intersected_mesh.P1(current_id);
-        const auto& p2 = intersected_mesh.P2(current_id);
-        const auto& p3 = intersected_mesh.P3(current_id);
+        const auto& p1 = clipped_mesh.P1(current_id);
+        const auto& p2 = clipped_mesh.P2(current_id);
+        const auto& p3 = clipped_mesh.P3(current_id);
 
         // Make sure target triangle is not parallel and has a significant area.
-        const double area = intersected_mesh.Area(current_id);
+        const double area = clipped_mesh.Area(current_id);
         if( !ray.is_parallel(p1, p2, p3, 100.0*tolerance) && area >  100*ZEROTOL) {
             auto [is_inside, success] = goemetry_query_local.IsInside(ray);
             if( success ){

@@ -81,7 +81,7 @@ public:
     /// @return TrimmedDomainBasePtrType (Unique)
     virtual TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
-    /// @brief Finds all triangles that are intersected by AABB, and returns true if rPoint lies on bounded side.
+    /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
     ///        Ray tracing trough the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
     ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.
     ///        However, rPoint must be close to AABB. This is e.g. used to classify an aabb next to a trimmed aabb.
@@ -89,7 +89,7 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @return bool
-    virtual bool OnBoundedSideOfIntersectedTriangles( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
+    virtual bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
 protected:
     ///@}
