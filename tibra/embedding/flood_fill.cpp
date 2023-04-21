@@ -33,7 +33,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
         std::vector<IndexType> max_group_ids(mNumberOfElements[0]);
         #pragma omp parallel for
         for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
-            IndexType group_id = 0;
+            IndexType group_id = i * mNumberOfElements[1]*mNumberOfElements[2]; // Ensure unique ID.
             for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
                 for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
                     const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
@@ -48,49 +48,85 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
             }
         }
 
+        std::vector<int> group_inside_count(total_num_elements, 0);
+
         #pragma omp parallel for
-        for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
-            for( IndexType group_id = 0; group_id < max_group_ids[i]; ++group_id){
-                int inside_count = 0;
-                IndexType group_size = 0;
-                for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
-                    for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
-                        const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                        if( std::get<1>(groups[index]) == group_id ){
-                            inside_count += std::get<2>(groups[index]);
-                            std::get<0>(groups[index]) = -1;
-                            group_size++;
+        for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
+            for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
+                for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
+                    const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
+                    const int group_id = std::get<1>(groups[index]);
+                    if( group_id > -1 ){
+                        group_inside_count[group_id] += std::get<2>(groups[index]);
+                    }
+                    if( i < mNumberOfElements[0]-1) {
+                        const IndexType index_next = mIdMapper.GetVectorIndexFromMatrixIndices(i+1, j, k);
+                        const int group_id_next = std::get<1>(groups[index_next]);
+                        if( group_id > 1 && group_id_next > -1 ){
+                            //group_inside_count[group_id] += std::get<2>(groups[index_next]);
+                            std::get<1>(groups[index_next]) = group_id;
                         }
                     }
                 }
-                IntersectionStatus status = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
-                for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
-                    for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
-                        const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                        if( std::get<1>(groups[index]) == group_id ){
-                            // auto bounding_box = GetBoundingBoxFromIndex(index);
-                            // auto low_el = Mapping::GlobalToParam(bounding_box.first, mLowerBound, mUpperBound);
-                            // auto up_el = Mapping::GlobalToParam(bounding_box.second, mLowerBound, mUpperBound);
-
-                            // Shared<Element> el_ptr = MakeShared<Element>(index, low_el, up_el, params);
-                            // elcont.AddElement(el_ptr);
-                            states[index].second = status;
-                        }
-                    }
-                }
-                // std::cout << "status; " << inside_count << std::endl;
-                // std::string filename = "elements";
-                // filename.append(std::to_string(i));
-                // filename.append("_");
-                // filename.append(std::to_string(group_id));
-                // filename.append(".vtk");
-
-                // IO::WriteElementsToVTK(elcont, filename.c_str(), true);
-
-                // if( i == 5 )
-                //     TIBRA_ERROR("waf") << std::endl;
             }
         }
+
+        #pragma omp parallel for
+        for( IndexType index = 0; index < total_num_elements; ++index) {
+            const int group_id = std::get<1>(groups[index]);
+            if( group_id > -1 ){
+                const int inside_count = group_inside_count[group_id];
+                IntersectionStatus status = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+                states[index].second = status;
+            } else {
+                states[index].second = IntersectionStatus::Trimmed;
+            }
+        }
+
+
+        // #pragma omp parallel for
+        // for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
+        //     for( IndexType group_id = 0; group_id < max_group_ids[i]; ++group_id){
+        //         int inside_count = 0;
+        //         IndexType group_size = 0;
+        //         for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
+        //             for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
+        //                 const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
+        //                 if( std::get<1>(groups[index]) == group_id ){
+        //                     inside_count += std::get<2>(groups[index]);
+        //                     std::get<0>(groups[index]) = -1;
+        //                     group_size++;
+        //                 }
+        //             }
+        //         }
+        //         IntersectionStatus status = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+        //         for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
+        //             for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
+        //                 const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
+        //                 if( std::get<1>(groups[index]) == group_id ){
+        //                     // auto bounding_box = GetBoundingBoxFromIndex(index);
+        //                     // auto low_el = Mapping::GlobalToParam(bounding_box.first, mLowerBound, mUpperBound);
+        //                     // auto up_el = Mapping::GlobalToParam(bounding_box.second, mLowerBound, mUpperBound);
+
+        //                     // Shared<Element> el_ptr = MakeShared<Element>(index, low_el, up_el, params);
+        //                     // elcont.AddElement(el_ptr);
+        //                     states[index].second = status;
+        //                 }
+        //             }
+        //         }
+        //         // std::cout << "status; " << inside_count << std::endl;
+        //         // std::string filename = "elements";
+        //         // filename.append(std::to_string(i));
+        //         // filename.append("_");
+        //         // filename.append(std::to_string(group_id));
+        //         // filename.append(".vtk");
+
+        //         // IO::WriteElementsToVTK(elcont, filename.c_str(), true);
+
+        //         // if( i == 5 )
+        //         //     TIBRA_ERROR("waf") << std::endl;
+        //     }
+        // }
 
         std::cout << "Timer: " << timer.Measure() << std::endl;
         return MakeUnique<StatusVectorType>(states);
