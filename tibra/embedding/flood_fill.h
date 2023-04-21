@@ -31,8 +31,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<IntersectionStatusType> StatusVectorType;
+    typedef std::vector<std::pair<IndexType, IntersectionStatusType>> StatusVectorType;
     typedef std::stack<IndexType> IndexStackType;
+    typedef std::vector< std::tuple<int, int, int> > GroupVectorType;
 
     ///@}
     ///@name Life cycle
@@ -52,13 +53,16 @@ public:
     ///@{
     Unique<StatusVectorType> ClassifyElements() const;
 
-    int Fill2D( IndexStackType& rIndexStack, StatusVectorType& rStates ) const;
+    int Fill(IndexType index, GroupVectorType& rGroups, IndexType& rGroupId) const;
+    //int Fill(IndexType index, , StatusVectorType& rStates ) const;
 
-    int Fill( IndexStackType& rIndexStack, StatusVectorType& rStates ) const;
+    // int Fill2D( IndexStackType& rIndexStack, GroupVectorType& rGroups, IndexType& rGroupId ) const;
+
+    int Fill_old( IndexStackType& rIndexStack, StatusVectorType& rStates ) const;
 
 private:
 
-    int FillDirection(IndexType Direction, IndexStackType& stack, StatusVectorType& rStates, int& rInsideCount) const;
+    int FillDirection(IndexType Direction, IndexStackType& rStack, GroupVectorType& rGroups, IndexType& rGroupId) const;
 
     std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType Index) const;
 
@@ -73,6 +77,7 @@ private:
         return std::make_pair( mLowerBound + indices_d * mDelta,
                                mLowerBound + (indices_d+1.0) * mDelta );
     }
+
 private:
     const BRepOperatorBase* mpBrepOperator;
     VectorMatrixIdUtilities mIdMapper;
