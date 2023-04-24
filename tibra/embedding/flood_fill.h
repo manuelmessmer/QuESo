@@ -8,6 +8,7 @@
 #include <array>
 #include <algorithm>
 #include <stack>
+#include <unordered_set>
 
 //// Project includes
 #include "define.hpp"
@@ -32,8 +33,13 @@ public:
     ///@{
 
     typedef std::vector<std::pair<IndexType, IntersectionStatusType>> StatusVectorType;
+    typedef std::vector<IntersectionStatusType> StatusVector2Type;
     typedef std::stack<IndexType> IndexStackType;
     typedef std::vector< std::tuple<int, int, int> > GroupVectorType;
+    typedef std::pair< std::unordered_set<IndexType>, int > GroupSetType;
+    typedef std::vector<GroupSetType> GroupVectorSetType;
+    typedef std::pair<PointType, PointType> BoundingBoxType;
+    typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
 
     ///@}
     ///@name Life cycle
@@ -51,7 +57,14 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    Unique<StatusVectorType> ClassifyElements() const;
+
+    void PartitionedFill(GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
+
+    void SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
+
+    int FillDirectionNew(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, std::vector<bool>& rVisited, PartitionBoxType& rPartition, StatusVector2Type& rStates ) const;
+
+    Unique<StatusVector2Type> ClassifyElements() const;
 
     int Fill(IndexType index, GroupVectorType& rGroups, IndexType& rGroupId) const;
 

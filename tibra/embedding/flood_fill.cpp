@@ -11,8 +11,147 @@
 namespace tibra {
 
 typedef FloodFill::StatusVectorType StatusVectorType;
+typedef FloodFill::StatusVector2Type StatusVector2Type;
 
-Unique<StatusVectorType> FloodFill::ClassifyElements() const {
+void FloodFill::PartitionedFill(GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const {
+
+    for( IndexType i = rPartition.first[0]; i < rPartition.second[0]; ++i ){
+        for( IndexType j = rPartition.first[1]; j < rPartition.second[1]; ++j ) {
+            for( IndexType k = rPartition.first[2]; k < rPartition.second[2]; ++k ) {
+                const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
+                if( !rVisited[index] ) { // Unvisited
+                    GroupSetType new_group;
+                    SinglePartitionFill(index, new_group, rPartition, rVisited, rStates);
+                    if( new_group.first.size() > 0 ){
+                        #pragma omp critical
+                        rGroupVectorSet.push_back(new_group);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void FloodFill::SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const {
+
+    // Set index as visited
+    rVisited[Index] = true;
+    // Get indices
+    const auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(Index);
+    const auto box = GetBoundingBoxFromIndex(indices);
+    if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
+        rStates[Index] = IntersectionStatus::Trimmed;
+    } else {
+
+        rGroupSet.first.insert(Index);
+        // If box is not trimmed, run flood fill.
+        IndexStackType index_stack;
+
+        index_stack.push( Index );
+        //std::cout << "start flodd 2D "  << std::endl;
+        std::array<int, 6> new_indices;
+        while( !index_stack.empty() ){
+            for( IndexType i = 0; i < 6; ++i){
+                new_indices[i] = FillDirectionNew(i, index_stack, rGroupSet, rVisited, rPartition, rStates );
+            }
+
+            index_stack.pop();
+            for( IndexType i = 0; i < 6; ++i){
+                if( new_indices[i] > -1 ){
+                    index_stack.push(new_indices[i]);
+                }
+            }
+        }
+    }
+
+}
+
+int FloodFill::FillDirectionNew(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, std::vector<bool>& rVisited, PartitionBoxType& rPartition, StatusVector2Type& rStates ) const{
+    bool local_end = false;
+    const IndexType index = rStack.top();
+    const Vector3i indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
+    const IndexType max_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
+    Vector3i next_indices = indices;
+
+    PointType lower_perturb = {0.0, 0.0, 0.0};
+    PointType upper_perturb = {0.0, 0.0, 0.0};
+    double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
+
+    switch(Direction){
+        case 0:
+            if( indices[0] < rPartition.second[0]-1 ){ next_indices[0] += 1; }
+            else { return -1; }
+            lower_perturb = {-tolerance, 0.0, 0.0};
+            break;
+        case 1:
+            if( indices[0] > rPartition.first[0] ){ next_indices[0] -= 1; }
+            else { return -1; }
+            upper_perturb = {tolerance, 0.0, 0.0};
+            break;
+        case 2:
+            if( indices[1] < rPartition.second[1]-1 ){ next_indices[1] += 1; }
+            else { return -1; }
+            lower_perturb = {0.0, -tolerance, 0.0};
+            break;
+        case 3:
+            if( indices[1] > rPartition.first[1] ){ next_indices[1] -= 1; }
+            else { return -1; }
+            upper_perturb = {0.0, tolerance, 0.0};
+            break;
+        case 4:
+            if( indices[2] < rPartition.second[2]-1 ){ next_indices[2] += 1; }
+            else { return -1; }
+            lower_perturb = {0.0, 0.0, -tolerance};
+            break;
+        case 5:
+            if( indices[2] > rPartition.first[2] ){ next_indices[2] -= 1; }
+            else { return -1; }
+            upper_perturb = {0.0, 0.0, tolerance};
+            break;
+        default:
+            TIBRA_ERROR("error") << "error\n";
+    }
+
+
+    const IndexType next_index = mIdMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
+
+    //Check if out-of-range
+    if( next_index >= max_num_elements || next_index < 0 ) {
+        return -1;
+    }
+
+    auto box_next = GetBoundingBoxFromIndex(next_indices);
+
+    if( mpBrepOperator->IsTrimmed(box_next.first + lower_perturb , box_next.second + upper_perturb) ){
+        auto box_current = GetBoundingBoxFromIndex(indices);
+        PointType center_box = (box_current.first + box_current.second)*0.5;
+        if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, box_next.first + lower_perturb , box_next.second + upper_perturb) ) {
+            rGroupSet.second += 1;
+        } else {
+            rGroupSet.second -= 1;
+        }
+        return -1;
+    }
+    // Already classified
+    if( rVisited[next_index] ) {
+        return -1;
+    }
+
+    // Is trimmed
+    if( mpBrepOperator->IsTrimmed(box_next.first, box_next.second) ){
+        rVisited[next_index] = true;
+        rStates[next_index] = IntersectionStatus::Trimmed;
+
+        return -1;
+    }
+
+    rVisited[next_index] = true;
+    rGroupSet.first.insert(next_index);
+
+    return next_index;
+}
+
+Unique<StatusVector2Type> FloodFill::ClassifyElements() const {
 
         Timer timer{};
         Parameters params( {Component("lower_bound", mLowerBound),
@@ -21,109 +160,42 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
         ElementContainer elcont(params);
 
         IndexType max_num_elements = Math::Max(mNumberOfElements);
-        StatusVectorType states(mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2]);
-        std::fill(states.begin(), states.end(), std::make_pair( 0, IntersectionStatus::NotVisited) );
+        StatusVector2Type states(mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2]);
+        std::fill(states.begin(), states.end(), IntersectionStatus::NotVisited );
 
 
         IndexType total_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
-        GroupVectorType groups(total_num_elements);
 
-        std::fill(groups.begin(), groups.end(), std::make_tuple<int, int, int>(-1, -1, 0));
 
-        std::vector<IndexType> max_group_ids(mNumberOfElements[0]);
-        #pragma omp parallel for
-        for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
-            IndexType group_id = i * mNumberOfElements[1]*mNumberOfElements[2]; // Ensure unique ID.
-            for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
-                for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
-                    const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                    if( std::get<0>(groups[index]) <= -1 ) { // Unvisited
-                        Fill(index, groups, group_id);
-                        if ( std::get<1>(groups[index]) == -1 ){
-                            states[index].second = IntersectionStatus::Trimmed;
-                        }
-                    }
-                    max_group_ids[i] = group_id;
-                }
+        GroupVectorSetType groups;
+        PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements );
+        std::vector<bool> visited(total_num_elements, false);
+        PartitionedFill(groups, partition_box, visited, states);
+
+        int id = 0;
+        int cc = 0;
+        for( auto& r_group : groups ){
+            int inside_count = r_group.second;
+            auto state = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+            //std::cout << "Size: " << r_group.first.size() << ", Count: " << inside_count << std::endl;
+            for( auto group_it = r_group.first.begin(); group_it !=  r_group.first.end(); ++group_it){
+                // auto box = GetBoundingBoxFromIndex(*group_it);
+                // auto lower_bound_param = Mapping::GlobalToParam(box.first, mLowerBound,mUpperBound);
+                // auto upper_bound_param = Mapping::GlobalToParam(box.second, mLowerBound, mUpperBound);
+                // Shared<Element> new_el = MakeShared<Element>(id,  lower_bound_param,upper_bound_param, params );
+                // if( cc > 0  ){
+                //     elcont.AddElement(new_el);
+                //     id++;
+                // }
+                states[*group_it] = state;
             }
+            // cc++;
+            // IO::WriteElementsToVTK(elcont, "Elements.vtk", true);
+            //TIBRA_ERROR("test") << "waf\n";
+
         }
 
-        double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
-        PointType offset(-tolerance, 0.0, 0.0);
-        // Group_id and count.
-        std::map<IndexType, int> group_inside_count;
-
-        //#pragma omp parallel for
-        for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
-            for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
-                for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
-                    const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                    const int group_id = std::get<1>(groups[index]);
-                    if( group_id > -1 ){
-                        if (group_inside_count.find(group_id) == group_inside_count.end()) {
-                            group_inside_count.insert(std::make_pair(group_id, std::get<2>(groups[index])) );
-                        } else {
-                            group_inside_count[group_id] += std::get<2>(groups[index]);
-                        }
-                    }
-                    if( i < mNumberOfElements[0]-1) {
-                        const auto box = GetBoundingBoxFromIndex(index);
-                        const PointType center = (box.first + box.second) * 0.5;
-                        const IndexType index_next = mIdMapper.GetVectorIndexFromMatrixIndices(i+1, j, k);
-                        const auto box_next = GetBoundingBoxFromIndex(index_next);
-                        const int group_id_next = std::get<1>(groups[index_next]);
-
-                        if( group_id > -1 && group_id_next > -1 ){
-                            if ( !mpBrepOperator->IsTrimmed(box_next.first+offset, box_next.second) ){
-
-                                // std::get<1>(groups[index_next]) = group_id;
-                                // muss fuer alle auf der ebenen j, k passieren.
-                                // make group id reference to something..
-
-                                /// Das Funktioneirt noch nciht!!
-
-                                // if( mpBrepOperator->OnBoundedSideOfClippedSection(center, box_next.first+offset, box_next.second+offset) ){
-                                //     /// reduced next
-                                //     if (group_inside_count.find(group_id) == group_inside_count.end()) {
-                                //         group_inside_count.insert(std::make_pair(group_id, 1));
-                                //     } else {
-                                //         group_inside_count[group_id] += 1;
-                                //     }
-                                // } else {
-                                //     /// Update next
-                                //     if (group_inside_count.find(group_id) == group_inside_count.end()) {
-                                //         group_inside_count.insert(std::make_pair(group_id, -1));
-                                //     } else {
-                                //         group_inside_count[group_id] -= 1;
-                                //     }
-                                // }
-                            } else {
-                                 /// Das Funktioneirt noch nciht!!
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // for( auto it = group_inside_count.begin(); it != group_inside_count.end(); ++it){
-        //     std::cout << it->first << ", " << it->second << std::endl;
-        // }
-
-        #pragma omp parallel for
-        for( IndexType index = 0; index < total_num_elements; ++index) {
-            const int group_id = std::get<1>(groups[index]);
-            if( group_id > -1 ){
-                const int inside_count = group_inside_count[group_id];
-                IntersectionStatus status = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
-                states[index].second = status;
-            } else {
-                states[index].second = IntersectionStatus::Trimmed;
-            }
-        }
-
-        //std::cout << "Timer: " << timer.Measure() << std::endl;
-        return MakeUnique<StatusVectorType>(states);
+        return MakeUnique<StatusVector2Type>(states);
     }
 
     int FloodFill::Fill(IndexType index, GroupVectorType& rGroups, IndexType& rGroupId) const {
