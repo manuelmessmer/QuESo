@@ -54,11 +54,6 @@ public:
     Unique<StatusVectorType> ClassifyElements() const;
 
     int Fill(IndexType index, GroupVectorType& rGroups, IndexType& rGroupId) const;
-    //int Fill(IndexType index, , StatusVectorType& rStates ) const;
-
-    // int Fill2D( IndexStackType& rIndexStack, GroupVectorType& rGroups, IndexType& rGroupId ) const;
-
-    int Fill_old( IndexStackType& rIndexStack, StatusVectorType& rStates ) const;
 
 private:
 

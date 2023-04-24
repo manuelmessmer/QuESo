@@ -3,6 +3,7 @@
 
 //// External includes
 #include <omp.h>
+#include <map>
 //// Project includes
 #include "embedding/flood_fill.h"
 
@@ -26,8 +27,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
 
         IndexType total_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
         GroupVectorType groups(total_num_elements);
-        /// Groups[index]: index: global index
-        /// Tuple< Row_index: e.g. i, GroupId, InsideCount >
+
         std::fill(groups.begin(), groups.end(), std::make_tuple<int, int, int>(-1, -1, 0));
 
         std::vector<IndexType> max_group_ids(mNumberOfElements[0]);
@@ -48,28 +48,67 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
             }
         }
 
-        std::vector<int> group_inside_count(total_num_elements, 0);
+        double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
+        PointType offset(-tolerance, 0.0, 0.0);
+        // Group_id and count.
+        std::map<IndexType, int> group_inside_count;
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
             for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
                 for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
                     const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
                     const int group_id = std::get<1>(groups[index]);
                     if( group_id > -1 ){
-                        group_inside_count[group_id] += std::get<2>(groups[index]);
+                        if (group_inside_count.find(group_id) == group_inside_count.end()) {
+                            group_inside_count.insert(std::make_pair(group_id, std::get<2>(groups[index])) );
+                        } else {
+                            group_inside_count[group_id] += std::get<2>(groups[index]);
+                        }
                     }
                     if( i < mNumberOfElements[0]-1) {
+                        const auto box = GetBoundingBoxFromIndex(index);
+                        const PointType center = (box.first + box.second) * 0.5;
                         const IndexType index_next = mIdMapper.GetVectorIndexFromMatrixIndices(i+1, j, k);
+                        const auto box_next = GetBoundingBoxFromIndex(index_next);
                         const int group_id_next = std::get<1>(groups[index_next]);
-                        if( group_id > 1 && group_id_next > -1 ){
-                            //group_inside_count[group_id] += std::get<2>(groups[index_next]);
-                            std::get<1>(groups[index_next]) = group_id;
+
+                        if( group_id > -1 && group_id_next > -1 ){
+                            if ( !mpBrepOperator->IsTrimmed(box_next.first+offset, box_next.second) ){
+
+                                // std::get<1>(groups[index_next]) = group_id;
+                                // muss fuer alle auf der ebenen j, k passieren.
+                                // make group id reference to something..
+
+                                /// Das Funktioneirt noch nciht!!
+
+                                // if( mpBrepOperator->OnBoundedSideOfClippedSection(center, box_next.first+offset, box_next.second+offset) ){
+                                //     /// reduced next
+                                //     if (group_inside_count.find(group_id) == group_inside_count.end()) {
+                                //         group_inside_count.insert(std::make_pair(group_id, 1));
+                                //     } else {
+                                //         group_inside_count[group_id] += 1;
+                                //     }
+                                // } else {
+                                //     /// Update next
+                                //     if (group_inside_count.find(group_id) == group_inside_count.end()) {
+                                //         group_inside_count.insert(std::make_pair(group_id, -1));
+                                //     } else {
+                                //         group_inside_count[group_id] -= 1;
+                                //     }
+                                // }
+                            } else {
+                                 /// Das Funktioneirt noch nciht!!
+                            }
                         }
                     }
                 }
             }
         }
+
+        // for( auto it = group_inside_count.begin(); it != group_inside_count.end(); ++it){
+        //     std::cout << it->first << ", " << it->second << std::endl;
+        // }
 
         #pragma omp parallel for
         for( IndexType index = 0; index < total_num_elements; ++index) {
@@ -83,52 +122,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
             }
         }
 
-
-        // #pragma omp parallel for
-        // for( IndexType i = 0; i < mNumberOfElements[0]; ++i ){
-        //     for( IndexType group_id = 0; group_id < max_group_ids[i]; ++group_id){
-        //         int inside_count = 0;
-        //         IndexType group_size = 0;
-        //         for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
-        //             for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
-        //                 const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
-        //                 if( std::get<1>(groups[index]) == group_id ){
-        //                     inside_count += std::get<2>(groups[index]);
-        //                     std::get<0>(groups[index]) = -1;
-        //                     group_size++;
-        //                 }
-        //             }
-        //         }
-        //         IntersectionStatus status = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
-        //         for( IndexType j = 0; j < mNumberOfElements[1]; ++j ) {
-        //             for( IndexType k = 0; k < mNumberOfElements[2]; ++k ) {
-        //                 const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
-        //                 if( std::get<1>(groups[index]) == group_id ){
-        //                     // auto bounding_box = GetBoundingBoxFromIndex(index);
-        //                     // auto low_el = Mapping::GlobalToParam(bounding_box.first, mLowerBound, mUpperBound);
-        //                     // auto up_el = Mapping::GlobalToParam(bounding_box.second, mLowerBound, mUpperBound);
-
-        //                     // Shared<Element> el_ptr = MakeShared<Element>(index, low_el, up_el, params);
-        //                     // elcont.AddElement(el_ptr);
-        //                     states[index].second = status;
-        //                 }
-        //             }
-        //         }
-        //         // std::cout << "status; " << inside_count << std::endl;
-        //         // std::string filename = "elements";
-        //         // filename.append(std::to_string(i));
-        //         // filename.append("_");
-        //         // filename.append(std::to_string(group_id));
-        //         // filename.append(".vtk");
-
-        //         // IO::WriteElementsToVTK(elcont, filename.c_str(), true);
-
-        //         // if( i == 5 )
-        //         //     TIBRA_ERROR("waf") << std::endl;
-        //     }
-        // }
-
-        std::cout << "Timer: " << timer.Measure() << std::endl;
+        //std::cout << "Timer: " << timer.Measure() << std::endl;
         return MakeUnique<StatusVectorType>(states);
     }
 
@@ -168,12 +162,6 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
         }
 
         return 1;
-    }
-
-
-
-    int FloodFill::Fill_old( IndexStackType& rIndexStack, StatusVectorType& rStates ) const {
-
     }
 
 
