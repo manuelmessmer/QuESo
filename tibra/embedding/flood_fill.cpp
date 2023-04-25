@@ -33,8 +33,8 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
     {
         num_threads = omp_get_num_threads();
     }
-
     num_threads = 11;
+    //std::cout << "num Threads: " << num_threads << std::endl;
     IndexType size = std::max<IndexType>( std::ceil( static_cast<double>(mNumberOfElements[0]) / static_cast<double>(num_threads) ), 1);
     for( IndexType i = 0; i < num_threads; ++i ){
         //std::cout << i*5 << ", " << 5*(i+1)+2 << std::endl;
@@ -48,26 +48,27 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
 
     GroupVectorSetType groups;
     BoolVectorType visited(total_num_elements, false);
-    #pragma omp parallel for firstprivate(visited)
+    #pragma omp parallel for firstprivate(visited) schedule(static, 1)
     for( IndexType i = 0; i < partition.size(); ++i){
         PartitionedFill(i, groups, partition[i], visited, states);
     }
 
 
-    std::cout << "Num Groups: " << groups.size() << std::endl;
+    //std::cout << "Num Groups: " << groups.size() << std::endl;
     GroupVectorSetType merged_groups;
     MergeGroups( merged_groups, groups, states );
 
-    std::cout << "Merged groups: " << merged_groups.size() << std::endl;
+    //std::cout << "Merged groups: " << merged_groups.size() << std::endl;
     for( auto& r_group : merged_groups ){
         int inside_count = std::get<2>(r_group);
+        //std::cout << std::get<1>(r_group).size() << ", count: " << inside_count << std::endl;
         auto state = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
         for( auto group_it = std::get<1>(r_group).begin(); group_it !=  std::get<1>(r_group).end(); ++group_it){
             states[*group_it] = state;
         }
     }
 
-
+    //std::cout << "Total: " << timer.Measure() << std::endl;
     timer.Reset();
     #pragma omp parallel for
     for( IndexType i = 0; i < total_num_elements; ++i){
@@ -145,60 +146,18 @@ int FloodFill::FillDirection(IndexType Direction, IndexStackType& rStack, GroupS
     PointType upper_perturb = {0.0, 0.0, 0.0};
     double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
 
-    switch(Direction){
-        case 0:
-            if( indices[0] < rPartition.second[0]-1 ){ next_indices[0] += 1; }
-            else { return -1; }
-            lower_perturb = {-tolerance, 0.0, 0.0};
-            break;
-        case 1:
-            if( indices[0] > rPartition.first[0] ){ next_indices[0] -= 1; }
-            else { return -1; }
-            upper_perturb = {tolerance, 0.0, 0.0};
-            break;
-        case 2:
-            if( indices[1] < rPartition.second[1]-1 ){ next_indices[1] += 1; }
-            else { return -1; }
-            lower_perturb = {0.0, -tolerance, 0.0};
-            break;
-        case 3:
-            if( indices[1] > rPartition.first[1] ){ next_indices[1] -= 1; }
-            else { return -1; }
-            upper_perturb = {0.0, tolerance, 0.0};
-            break;
-        case 4:
-            if( indices[2] < rPartition.second[2]-1 ){ next_indices[2] += 1; }
-            else { return -1; }
-            lower_perturb = {0.0, 0.0, -tolerance};
-            break;
-        case 5:
-            if( indices[2] > rPartition.first[2] ){ next_indices[2] -= 1; }
-            else { return -1; }
-            upper_perturb = {0.0, 0.0, tolerance};
-            break;
-        default:
-            TIBRA_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
-    }
+    int next_index = GetNextIndex(Direction, index, rPartition, lower_perturb, upper_perturb);
 
-    // Next index
-    const IndexType next_index = mIdMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
-
-    //Check if out-of-range
+    // Check if out-of-range
     if( next_index >= max_num_elements || next_index < 0 ) {
         return -1;
     }
 
     // If next box is trimmed, add inside count.
     // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
-    auto box_next = GetBoundingBoxFromIndex(next_indices);
+    auto box_next = GetBoundingBoxFromIndex(next_index);
     if( mpBrepOperator->IsTrimmed(box_next.first + lower_perturb , box_next.second + upper_perturb) ){
-        auto box_current = GetBoundingBoxFromIndex(indices);
-        PointType center_box = (box_current.first + box_current.second)*0.5;
-        if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, box_next.first + lower_perturb , box_next.second + upper_perturb) ) {
-            std::get<2>(rGroupSet) += 1;
-        } else {
-            std::get<2>(rGroupSet) -= 1;
-        }
+        std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
         return -1;
     }
 
@@ -243,85 +202,50 @@ void FloodFill::MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetTyp
 
     #pragma omp parallel for
     for( IndexType group_index = 0; group_index < num_groups;  ++group_index){
-        const auto& index_set = std::get<1>(rGroupVectorSet[group_index]);
+        auto& group_set = rGroupVectorSet[group_index];
+        const auto& index_set = std::get<1>(group_set);
         auto& group_bounding_box = group_bounding_boxes[group_index];
         auto& boundary_indices = group_boundary_indices[group_index];
 
         for(auto& index : index_set ){
             const auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
-
+            PointType lower_offset;
+            PointType upper_offset;
             if( indices[0] >= group_bounding_box.second[0] ){
-                auto box = GetBoundingBoxFromIndex(indices[0]+1, indices[1], indices[2]);
-                if( !mpBrepOperator->IsTrimmed(box.first - PointType(tolerance, 0.0, 0.0), box.second) ) {
+                auto next_index = GetNextIndex(0, index, lower_offset, upper_offset );
+                auto box_next = GetBoundingBoxFromIndex(next_index);
+                if( !mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ) {
                     if( indices[0] > group_bounding_box.second[0] ){
                         group_bounding_box.second[0] = indices[0];
+                        group_bounding_box.second[1] = 0;
+                        group_bounding_box.second[2] = 0;
                         boundary_indices[0].clear();
                     }
                     boundary_indices[0].insert(index);
+                } else {
+                    // Slight error here. This should acutally only be applied to all boundary indices.
+                    // This would require another loop.
+                    std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
             if( indices[0] <= group_bounding_box.first[0] ){
-                auto box = GetBoundingBoxFromIndex(indices[0]-1, indices[1], indices[2]);
-                if( !mpBrepOperator->IsTrimmed(box.first, box.second + PointType(tolerance, 0.0, 0.0) ) ){
+                auto next_index = GetNextIndex(1, index, lower_offset, upper_offset );
+                auto box_next = GetBoundingBoxFromIndex(next_index);
+                if( !mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
                     if( indices[0] < group_bounding_box.first[0] ){
                         group_bounding_box.first[0] = indices[0];
+                        group_bounding_box.first[1] = 0;
+                        group_bounding_box.first[2] = 0;
                         boundary_indices[1].clear();
                     }
                     boundary_indices[1].insert(index);
+                } else {
+                    std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
-            if( indices[1] >= group_bounding_box.second[1] ){
-                auto box = GetBoundingBoxFromIndex(indices[0], indices[1]+1, indices[2]);
-                if( !mpBrepOperator->IsTrimmed(box.first - PointType(0.0, tolerance, 0.0), box.second) ) {
-                    if( indices[1] > group_bounding_box.second[1] ){
-                        group_bounding_box.second[1] = indices[1];
-                        boundary_indices[2].clear();
-                    }
-                    boundary_indices[2].insert(index);
-                }
-            }
-
-            if( indices[1] <= group_bounding_box.first[1] ){
-                auto box = GetBoundingBoxFromIndex(indices[0], indices[1]-1, indices[2]);
-                if( !mpBrepOperator->IsTrimmed(box.first, box.second + PointType(0.0, tolerance, 0.0)) ){
-                    if( indices[1] < group_bounding_box.first[1] ){
-                        group_bounding_box.first[1] = indices[1];
-                        boundary_indices[3].clear();
-                    }
-                    boundary_indices[3].insert(index);
-                }
-            }
-
-            if( indices[2] >= group_bounding_box.second[2] ){
-                auto box = GetBoundingBoxFromIndex(indices[0], indices[1], indices[2]+1);
-                if( !mpBrepOperator->IsTrimmed(box.first - PointType(0.0, 0.0, tolerance), box.second) ) {
-                    if( indices[2] > group_bounding_box.second[2] ){
-                        group_bounding_box.second[2] = indices[2];
-                        boundary_indices[4].clear();
-                    }
-                    boundary_indices[4].insert(index);
-                }
-            }
-
-            if( indices[2] <= group_bounding_box.first[2] ){
-                auto box = GetBoundingBoxFromIndex(indices[0], indices[1], indices[2]-1);
-                if( !mpBrepOperator->IsTrimmed(box.first, box.second  + PointType(0.0, 0.0, tolerance)) ) {
-                    if( indices[2] < group_bounding_box.first[2] ){
-                        group_bounding_box.first[2] = indices[2];
-                        boundary_indices[5].clear();
-                    }
-                    boundary_indices[5].insert(index);
-                }
-            }
-
-
-
         }
     }
 
-    //std::cout << "GroupFill: " << std::endl;
-
-    // Test if nothing is found
     for( IndexType group_index = 0; group_index < num_groups; ++group_index){
         if( !visited[group_index] ){
             GroupFill(group_boundary_indices, rMergedGroups, group_index, group_bounding_boxes, rGroupVectorSet, visited, rStates);
@@ -348,16 +272,14 @@ void FloodFill::MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetTyp
 
             auto& current_boundary_indices = rBoundaryIndices[current_group_index];
 
-           // std::vector<PartitionBoxType>
+            // std::vector<PartitionBoxType>
             auto& current_bounding_box = rPartitionBox[current_group_index];
-            std::cout << current_bounding_box.first << ": " << current_bounding_box.second << std::endl;
-            //std::cout << current_bounding_box.first << "; " << current_bounding_box.second << std::endl;
             for( IndexType i = 0; i < rGroupVectorSet.size(); ++i ){
                 auto other_partition_index = std::get<0>(rGroupVectorSet[i]);
                 if( !rVisited[i] && std::abs( static_cast<int>(partition_index-other_partition_index)) <=1 ){
 
                     auto& other_bounding_box = rPartitionBox[i];
-                    if( Touch(other_bounding_box, current_bounding_box) ){
+                    //if( Touch(other_bounding_box, current_bounding_box) ){
                         auto& other_boundary_indices = rBoundaryIndices[i];
                         bool are_boundary = false;
 
@@ -388,7 +310,7 @@ void FloodFill::MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetTyp
                             rVisited[i] = true;
                             index_stack.push(i);
                         }
-                    }
+                    //}
                 }
 
             }

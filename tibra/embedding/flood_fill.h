@@ -68,39 +68,70 @@ public:
                 return false;
             }
         }
-    return true;
-}
+        return true;
+    }
 
-    int GetNextIndex(IndexType Direction, IndexType Index) const {
+    int GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
+        auto box_current = GetBoundingBoxFromIndex(Index);
+        auto box_next = GetBoundingBoxFromIndex(NextIndex);
+        const PointType center_box = (box_current.first + box_current.second)*0.5;
+        if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, box_next.first + rLowerOffset , box_next.second + rUpperOffset) ) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    int GetNextIndex( IndexType Direction, IndexType Index ) const {
+        PointType dummy_1, dummy_2;
+        PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
+        return GetNextIndex(Direction, Index, partition_box, dummy_1, dummy_2);
+    }
+
+    int GetNextIndex( IndexType Direction, IndexType Index, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset ) const {
+        PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
+        return GetNextIndex(Direction, Index, partition_box, rLowerBoundOffset, rUpperBoundOffset);
+    }
+
+    int GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const {
         auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(Index);
         Vector3i next_indices = indices;
+        rLowerBoundOffset = {0.0, 0.0, 0.0};
+        rUpperBoundOffset = {0.0, 0.0, 0.0};
+        double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
         switch(Direction){
             case 0:
-                if( indices[0] < mNumberOfElements[0]-1 ){ next_indices[0] += 1; }
+                if( indices[0] < rPartition.second[0]-1 ){ next_indices[0] += 1; }
                 else { return -1; }
+                rLowerBoundOffset = {-tolerance, 0.0, 0.0};
                 break;
             case 1:
-                if( indices[0] > 0 ){ next_indices[0] -= 1; }
+                if( indices[0] > rPartition.first[0] ){ next_indices[0] -= 1; }
                 else { return -1; }
+                rUpperBoundOffset = {tolerance, 0.0, 0.0};
                 break;
             case 2:
-                if( indices[1] < mNumberOfElements[1]-1 ){ next_indices[1] += 1; }
+                if( indices[1] < rPartition.second[1]-1 ){ next_indices[1] += 1; }
                 else { return -1; }
+                rLowerBoundOffset = {0.0, -tolerance, 0.0};
                 break;
             case 3:
-                if( indices[1] > 0 ){ next_indices[1] -= 1; }
+                if( indices[1] > rPartition.first[1] ){ next_indices[1] -= 1; }
                 else { return -1; }
+                rUpperBoundOffset = {0.0, tolerance, 0.0};
                 break;
             case 4:
-                if( indices[2] < mNumberOfElements[2]-1 ){ next_indices[2] += 1; }
+                if( indices[2] < rPartition.second[2]-1 ){ next_indices[2] += 1; }
                 else { return -1; }
+                rLowerBoundOffset = {0.0, 0.0, -tolerance};
                 break;
             case 5:
-                if( indices[2] > 0 ){ next_indices[2] -= 1; }
+                if( indices[2] > rPartition.first[2] ){ next_indices[2] -= 1; }
                 else { return -1; }
+                rUpperBoundOffset = {0.0, 0.0, tolerance};
                 break;
             default:
-                TIBRA_ERROR("error") << "error\n";
+                TIBRA_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
         }
 
         return mIdMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
