@@ -32,15 +32,16 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<std::pair<IndexType, IntersectionStatusType>> StatusVectorType;
-    typedef std::vector<IntersectionStatusType> StatusVector2Type;
+    typedef std::vector<IntersectionStatusType> StatusVectorType;
     typedef std::stack<IndexType> IndexStackType;
     typedef std::vector< std::tuple<int, int, int> > GroupVectorType;
+    typedef std::vector<bool> BoolVectorType;
                        // Partition index, Indices, Count
     typedef std::tuple<IndexType, std::set<IndexType>, int > GroupSetType;
     typedef std::vector<GroupSetType> GroupVectorSetType;
     typedef std::pair<PointType, PointType> BoundingBoxType;
     typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
+    typedef std::vector<std::vector<std::set<IndexType>>> BoundaryIndicesVectorType;
 
     ///@}
     ///@name Life cycle
@@ -60,20 +61,13 @@ public:
     ///@{
 
 
-// bool AABB_primitive::intersect(const AABB_primitive &aabb) const  {
-//     for (unsigned int i = 0; i < 3; ++i) {
-//         if (aabb.upperBound[i] < lowerBound[i] || aabb.lowerBound[i] > upperBound[i] ) {
-//             return false;
-//         }
-//     }
-//     return true;
-// }
     bool Touch(const PartitionBoxType& rBox1, const PartitionBoxType& rBox2) const  {
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (rBox1.second[i] < rBox2.first[i]-1 || rBox1.first[i] > rBox2.second[i]+1 ) {
-            return false;
+        for (IndexType i = 0; i < 3; ++i) {
+            if ( static_cast<int>(rBox1.second[i]) < static_cast<int>(rBox2.first[i])-1
+                    || rBox1.first[i] > rBox2.second[i]+1 ) {
+                return false;
+            }
         }
-    }
     return true;
 }
 
@@ -112,23 +106,20 @@ public:
         return mIdMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
     }
 
-    void PartitionedFill(IndexType PartitionIndex, GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
+    void PartitionedFill(IndexType PartitionIndex, GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, BoolVectorType& rVisited, StatusVectorType& rStates) const;
 
-    void SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
+    void SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, PartitionBoxType rPartition, BoolVectorType& rVisited, StatusVectorType& rStates) const;
 
-    int FillDirectionNew(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, std::vector<bool>& rVisited, PartitionBoxType& rPartition, StatusVector2Type& rStates ) const;
+    int FillDirection(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, BoolVectorType& rVisited, PartitionBoxType& rPartition, StatusVectorType& rStates ) const;
 
-    void MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVector2Type& rStates) const;
+    void MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const;
 
-    void GroupFill(std::vector<std::vector<std::set<IndexType>>>& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<PartitionBoxType>& rPartitionBox, GroupVectorSetType& rGroupVectorSet, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
+    void GroupFill(BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<PartitionBoxType>& rPartitionBox, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
 
-    Unique<StatusVector2Type> ClassifyElements() const;
+    Unique<StatusVectorType> ClassifyElements() const;
 
-    int Fill(IndexType index, GroupVectorType& rGroups, IndexType& rGroupId) const;
 
 private:
-
-    int FillDirection(IndexType Direction, IndexStackType& rStack, GroupVectorType& rGroups, IndexType& rGroupId) const;
 
     std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType Index) const;
 
