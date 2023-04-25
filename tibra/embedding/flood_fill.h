@@ -36,7 +36,8 @@ public:
     typedef std::vector<IntersectionStatusType> StatusVector2Type;
     typedef std::stack<IndexType> IndexStackType;
     typedef std::vector< std::tuple<int, int, int> > GroupVectorType;
-    typedef std::pair< std::unordered_set<IndexType>, int > GroupSetType;
+                       // Partition index, Indices, Count
+    typedef std::tuple<IndexType, std::set<IndexType>, int > GroupSetType;
     typedef std::vector<GroupSetType> GroupVectorSetType;
     typedef std::pair<PointType, PointType> BoundingBoxType;
     typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
@@ -58,11 +59,68 @@ public:
     ///@name Operations
     ///@{
 
-    void PartitionedFill(GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
+
+// bool AABB_primitive::intersect(const AABB_primitive &aabb) const  {
+//     for (unsigned int i = 0; i < 3; ++i) {
+//         if (aabb.upperBound[i] < lowerBound[i] || aabb.lowerBound[i] > upperBound[i] ) {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
+    bool Touch(const PartitionBoxType& rBox1, const PartitionBoxType& rBox2) const  {
+    for (unsigned int i = 0; i < 3; ++i) {
+        if (rBox1.second[i] < rBox2.first[i]-1 || rBox1.first[i] > rBox2.second[i]+1 ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+    int GetNextIndex(IndexType Direction, IndexType Index) const {
+        auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(Index);
+        Vector3i next_indices = indices;
+        switch(Direction){
+            case 0:
+                if( indices[0] < mNumberOfElements[0]-1 ){ next_indices[0] += 1; }
+                else { return -1; }
+                break;
+            case 1:
+                if( indices[0] > 0 ){ next_indices[0] -= 1; }
+                else { return -1; }
+                break;
+            case 2:
+                if( indices[1] < mNumberOfElements[1]-1 ){ next_indices[1] += 1; }
+                else { return -1; }
+                break;
+            case 3:
+                if( indices[1] > 0 ){ next_indices[1] -= 1; }
+                else { return -1; }
+                break;
+            case 4:
+                if( indices[2] < mNumberOfElements[2]-1 ){ next_indices[2] += 1; }
+                else { return -1; }
+                break;
+            case 5:
+                if( indices[2] > 0 ){ next_indices[2] -= 1; }
+                else { return -1; }
+                break;
+            default:
+                TIBRA_ERROR("error") << "error\n";
+        }
+
+        return mIdMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
+    }
+
+    void PartitionedFill(IndexType PartitionIndex, GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
 
     void SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, PartitionBoxType rPartition, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
 
     int FillDirectionNew(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, std::vector<bool>& rVisited, PartitionBoxType& rPartition, StatusVector2Type& rStates ) const;
+
+    void MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVector2Type& rStates) const;
+
+    void GroupFill(std::vector<std::vector<std::set<IndexType>>>& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<PartitionBoxType>& rPartitionBox, GroupVectorSetType& rGroupVectorSet, std::vector<bool>& rVisited, StatusVector2Type& rStates) const;
 
     Unique<StatusVector2Type> ClassifyElements() const;
 
