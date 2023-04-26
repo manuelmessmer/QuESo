@@ -41,6 +41,7 @@ public:
     typedef std::vector<GroupSetType> GroupVectorSetType;
     typedef std::pair<PointType, PointType> BoundingBoxType;
     typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
+    typedef std::pair<IndexType, IndexType> Partition1DBoxType;
     typedef std::vector<std::vector<std::set<IndexType>>> BoundaryIndicesVectorType;
 
     ///@}
@@ -61,13 +62,13 @@ public:
     ///@{
 
 
-    bool Touch(const PartitionBoxType& rBox1, const PartitionBoxType& rBox2) const  {
-        for (IndexType i = 0; i < 3; ++i) {
-            if ( static_cast<int>(rBox1.second[i]) < static_cast<int>(rBox2.first[i])-1
-                    || rBox1.first[i] > rBox2.second[i]+1 ) {
-                return false;
-            }
+    bool Touch(const Partition1DBoxType& rBox1, const Partition1DBoxType& rBox2) const  {
+
+        if ( static_cast<int>(rBox1.second) < static_cast<int>(rBox2.first)-1
+                || rBox1.first > rBox2.second+1 ) {
+            return false;
         }
+
         return true;
     }
 
@@ -143,9 +144,9 @@ public:
 
     int FillDirection(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, BoolVectorType& rVisited, PartitionBoxType& rPartition, StatusVectorType& rStates ) const;
 
-    void MergeGroups(GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const;
+    void MergeGroups(IndexType PartitionDir, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const;
 
-    void GroupFill(BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<PartitionBoxType>& rPartitionBox, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
+    void GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<Partition1DBoxType>& rPartitionBox, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
 
     Unique<StatusVectorType> ClassifyElements() const;
 
