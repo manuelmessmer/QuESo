@@ -45,14 +45,14 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
     }
 
     std::vector<PartitionBoxType> partition;
-    dir_index = 2;
+    //dir_index = 2;
 
     IndexType num_threads = 1;
     #pragma omp parallel
     {
         num_threads = omp_get_num_threads();
     }
-    num_threads = 10;
+    //num_threads = 10;
     //std::cout << "num Threads: " << num_threads << std::endl;
     const IndexType partition_size = std::max<IndexType>( std::ceil( static_cast<double>(mNumberOfElements[dir_index]) /
         static_cast<double>(num_threads) ), 1);
@@ -78,28 +78,32 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
     GroupVectorSetType groups2;
     BoolVectorType visited2(total_num_elements, false);
 
-    auto partition_2 = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
-    PartitionedFill(1000, groups2, partition_2, visited2, states);
+    // auto partition_2 = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
+    // PartitionedFill(1000, groups2, partition_2, visited2, states);
 
+    for( auto& r_group : groups ){
+        int inside_count = std::get<2>(r_group);
+        std::cout << std::get<1>(r_group).size() << ", count: " << inside_count << std::endl;
+    }
 
     std::cout << "Num Groups: " << groups.size() << std::endl;
     GroupVectorSetType merged_groups;
-    MergeGroups( dir_index, merged_groups, groups, states );
+    MergeGroups( dir_index, partition, merged_groups, groups, states );
 
     std::cout << "Merged groups: " << merged_groups.size() << std::endl;
-    if( merged_groups.size()  != groups2.size() ){
-        TIBRA_ERROR("errorrrrrrrrrrr") << "Waf\n";
-    }
+    // if( merged_groups.size()  != groups2.size() ){
+    //     TIBRA_ERROR("errorrrrrrrrrrr") << "Waf\n";
+    // }
     for( auto& r_group : merged_groups ){
         int inside_count = std::get<2>(r_group);
-        //std::cout << std::get<1>(r_group).size() << ", count: " << inside_count << std::endl;
+        std::cout << std::get<1>(r_group).size() << ", count: " << inside_count << std::endl;
         auto state = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
         for( auto group_it = std::get<1>(r_group).begin(); group_it !=  std::get<1>(r_group).end(); ++group_it){
             states[*group_it] = state;
         }
     }
 
-    //std::cout << "Total: " << timer.Measure() << std::endl;
+    std::cout << "Total: " << timer.Measure() << std::endl;
     timer.Reset();
     #pragma omp parallel for
     for( IndexType i = 0; i < total_num_elements; ++i){
@@ -107,7 +111,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
         auto box = GetBoundingBoxFromIndex(i);
         mpBrepOperator->GetIntersectionState(box.first, box.second);
     }
-    //std::cout << "Total Classical: " << timer.Measure() << std::endl;
+    std::cout << "Total Classical: " << timer.Measure() << std::endl;
 
     return MakeUnique<StatusVectorType>(states);
 }
@@ -214,7 +218,7 @@ int FloodFill::FillDirection(IndexType Direction, IndexStackType& rStack, GroupS
 
 
 
-void FloodFill::MergeGroups(IndexType PartitionDir, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const {
+void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType>& rPartitions, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const {
 
     const IndexType num_groups = rGroupVectorSet.size();
     BoolVectorType visited(num_groups, false);
@@ -223,67 +227,90 @@ void FloodFill::MergeGroups(IndexType PartitionDir, GroupVectorSetType& rMergedG
 
     const std::array<IndexType, 2> walk_directions = {2*PartitionDir, (2*PartitionDir)+1};
     // Compute bounding box for each group (only along PartitionDir).
-    std::vector<std::pair<IndexType, IndexType>> group_bounding_boxes(num_groups);
+    std::vector<std::pair<int, int>> group_bounding_boxes(num_groups);
     std::fill(group_bounding_boxes.begin(), group_bounding_boxes.end(),
-        std::make_pair( mNumberOfElements[PartitionDir]+1,  0 ) );
+        std::make_pair( mNumberOfElements[PartitionDir]+1,  -1 ) );
 
     BoundaryIndicesVectorType group_boundary_indices(num_groups);
     for( IndexType i = 0; i < num_groups; ++i){
         group_boundary_indices[i].resize(2);
     }
+    PointType lower_offset, upper_offset;
 
     #pragma omp parallel for
     for( IndexType group_index = 0; group_index < num_groups;  ++group_index){
         auto& group_set = rGroupVectorSet[group_index];
         const auto& index_set = std::get<1>(group_set);
+        const auto partition_index = std::get<0>(group_set);
         auto& group_bounding_box = group_bounding_boxes[group_index];
         auto& boundary_indices = group_boundary_indices[group_index];
 
         for(auto& index : index_set ){
             const auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
-            PointType lower_offset;
-            PointType upper_offset;
 
-            if( indices[PartitionDir] >= std::get<1>( group_bounding_box ) ){
+            if( static_cast<int>(indices[PartitionDir]) >= std::get<1>( group_bounding_box ) ){
                 auto next_index = GetNextIndex(walk_directions[0], index, lower_offset, upper_offset );
                 auto box_next = GetBoundingBoxFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ) {
-                    if( indices[PartitionDir] > std::get<1>( group_bounding_box ) ){
+                    if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
                         std::get<1>( group_bounding_box ) = indices[PartitionDir];
                         boundary_indices[1].clear();
                     }
                     boundary_indices[1].insert(index);
-                } else {
-                    // Slight error here. This should acutally only be applied to all boundary indices.
-                    // This would require another loop.
-                    std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
+                // else {
+                //     // Slight error here. This should acutally only be applied to all boundary indices.
+                //     // This would require another loop.
+                //     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
+                // }
             }
-            if( indices[PartitionDir] <= std::get<0>( group_bounding_box ) ){
+            if( static_cast<int>(indices[PartitionDir]) <= std::get<0>( group_bounding_box ) ){
                 auto next_index = GetNextIndex(walk_directions[1], index, lower_offset, upper_offset );
                 auto box_next = GetBoundingBoxFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
-                    if( indices[PartitionDir] < std::get<0>( group_bounding_box ) ){
+                    if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
                         std::get<0>( group_bounding_box ) = indices[PartitionDir];
                         boundary_indices[0].clear();
                     }
                     boundary_indices[0].insert(index);
-                } else {
+                }
+                // else {
+                //     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
+                // }
+            }
+        }
+
+        for(auto& index : index_set ){
+            const auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
+            // Upper bound
+            if( static_cast<int>(indices[PartitionDir]) == std::get<1>(rPartitions[partition_index])[PartitionDir]-1 ) {
+                auto next_index = GetNextIndex(walk_directions[0], index, lower_offset, upper_offset );
+                auto box_next = GetBoundingBoxFromIndex(next_index);
+                if( mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
+            // Lower bound
+            if( static_cast<int>(indices[PartitionDir]) == std::get<0>(rPartitions[partition_index])[PartitionDir] ) {
+                auto next_index = GetNextIndex(walk_directions[1], index, lower_offset, upper_offset );
+                auto box_next = GetBoundingBoxFromIndex(next_index);
+                if( mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
+                    std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
+                }
+            }
+
         }
     }
 
     for( IndexType group_index = 0; group_index < num_groups; ++group_index){
         if( !visited[group_index] ){
-            GroupFill(PartitionDir, group_boundary_indices, rMergedGroups, group_index, group_bounding_boxes, rGroupVectorSet, visited, rStates);
+            GroupFill(PartitionDir, group_boundary_indices, rMergedGroups, group_index, rGroupVectorSet, visited, rStates);
         }
     }
 
 }
 
-    void FloodFill::GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndices, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<Partition1DBoxType>& rPartition1DBoxex, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const {
+    void FloodFill::GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndices, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const {
 
         const std::array<IndexType, 2> walk_directions = {2*PartitionDir, (2*PartitionDir)+1};
 
@@ -302,44 +329,36 @@ void FloodFill::MergeGroups(IndexType PartitionDir, GroupVectorSetType& rMergedG
             IndexType partition_index = std::get<0>(rGroupVectorSet[current_group_index]);
 
             auto& current_boundary_indices = rBoundaryIndices[current_group_index];
-
-            // std::vector<PartitionBoxType>
-            auto& current_partition_box = rPartition1DBoxex[current_group_index];
             for( IndexType i = 0; i < rGroupVectorSet.size(); ++i ){
                 auto other_partition_index = std::get<0>(rGroupVectorSet[i]);
                 if( !rVisited[i] && std::abs( static_cast<int>(partition_index-other_partition_index)) <=1 ){
+                    auto& other_boundary_indices = rBoundaryIndices[i];
+                    bool are_boundary = false;
 
-                    auto& other_partition_box = rPartition1DBoxex[i];
+                    for( auto direction : walk_directions){
+                        if( are_boundary ){
+                            break;
+                        }
 
-                    //if( Touch(other_partition_box, current_partition_box) ){
-                        auto& other_boundary_indices = rBoundaryIndices[i];
-                        bool are_boundary = false;
-
-                        for( auto direction : walk_directions){
-                            if( are_boundary ){
+                        for( auto& iii : current_boundary_indices[map_direction[direction] % 2] ) { // -1{
+                            auto next_index = GetNextIndex(direction, iii);
+                            if( other_boundary_indices[direction % 2].find(next_index) != other_boundary_indices[direction % 2].end() ){
+                                are_boundary = true;
                                 break;
                             }
-
-                            for( auto& iii : current_boundary_indices[map_direction[direction] % 2] ) { // -1{
-                                auto next_index = GetNextIndex(direction, iii);
-                                if( other_boundary_indices[direction % 2].find(next_index) != other_boundary_indices[direction % 2].end() ){
-                                    are_boundary = true;
-                                    break;
-                                }
-                            }
                         }
+                    }
 
-                        if( are_boundary ) {
-                            auto& merged_group = rMergedGroups[rMergedGroups.size()-1];
-                            auto &new_set = std::get<1>(rGroupVectorSet[i]);
+                    if( are_boundary ) {
+                        auto& merged_group = rMergedGroups[rMergedGroups.size()-1];
+                        auto &new_set = std::get<1>(rGroupVectorSet[i]);
 
-                            std::get<1>(merged_group).insert( new_set.begin(), new_set.end() );
-                            std::get<2>(merged_group) +=  std::get<2>(rGroupVectorSet[i]);
+                        std::get<1>(merged_group).insert( new_set.begin(), new_set.end() );
+                        std::get<2>(merged_group) +=  std::get<2>(rGroupVectorSet[i]);
 
-                            rVisited[i] = true;
-                            index_stack.push(i);
-                        }
-                    //}
+                        rVisited[i] = true;
+                        index_stack.push(i);
+                    }
                 }
 
             }

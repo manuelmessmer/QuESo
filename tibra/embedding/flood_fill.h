@@ -144,9 +144,9 @@ public:
 
     int FillDirection(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, BoolVectorType& rVisited, PartitionBoxType& rPartition, StatusVectorType& rStates ) const;
 
-    void MergeGroups(IndexType PartitionDir, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const;
+    void MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType>& rPartitions, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const;
 
-    void GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, std::vector<Partition1DBoxType>& rPartitionBox, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
+    void GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
 
     Unique<StatusVectorType> ClassifyElements() const;
 
