@@ -13,7 +13,6 @@
 //// Project includes
 #include "define.hpp"
 #include "utilities/timer.hpp"
-#include "utilities/vector_matrix_id_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "containers/element_container.hpp"
 #include "embedding/brep_operator.h"
@@ -48,7 +47,7 @@ public:
     ///@name Life cycle
     ///@{
     FloodFill(BRepOperatorBase* pBrepOperator, const Parameters& Parameters) :
-        mpBrepOperator(pBrepOperator), mIdMapper(Parameters.NumberOfElements()), mLowerBound(Parameters.LowerBound()), mUpperBound(Parameters.UpperBound()),
+        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBound()), mUpperBound(Parameters.UpperBound()),
         mNumberOfElements( Parameters.NumberOfElements() )
     {
         // Obtain discretization of background mesh.
@@ -61,6 +60,13 @@ public:
     ///@name Operations
     ///@{
 
+    Unique<StatusVectorType> ClassifyElements() const;
+
+protected:
+    std::pair<Unique<StatusVectorType>, Unique<GroupVectorSetType>> ClassifyElementsForTest() const;
+private:
+
+    Unique<StatusVectorType> ClassifyElements(GroupVectorSetType& rGroupsOutput) const;
 
     bool Touch(const Partition1DBoxType& rBox1, const Partition1DBoxType& rBox2) const  {
 
@@ -73,8 +79,8 @@ public:
     }
 
     int GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
-        auto box_current = GetBoundingBoxFromIndex(Index);
-        auto box_next = GetBoundingBoxFromIndex(NextIndex);
+        auto box_current = mMapper.GetBoundingBoxFromIndex(Index);
+        auto box_next = mMapper.GetBoundingBoxFromIndex(NextIndex);
         const PointType center_box = (box_current.first + box_current.second)*0.5;
         if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, box_next.first + rLowerOffset , box_next.second + rUpperOffset) ) {
             return 1;
@@ -95,7 +101,7 @@ public:
     }
 
     int GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const {
-        auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(Index);
+        auto indices = mMapper.GetMatrixIndicesFromVectorIndex(Index);
         Vector3i next_indices = indices;
         rLowerBoundOffset = {0.0, 0.0, 0.0};
         rUpperBoundOffset = {0.0, 0.0, 0.0};
@@ -135,7 +141,7 @@ public:
                 TIBRA_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
         }
 
-        return mIdMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
+        return mMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
     }
 
     void PartitionedFill(IndexType PartitionIndex, GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, BoolVectorType& rVisited, StatusVectorType& rStates) const;
@@ -148,28 +154,9 @@ public:
 
     void GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
 
-    Unique<StatusVectorType> ClassifyElements() const;
 
-
-private:
-
-    std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType Index) const;
-
-    std::pair<PointType, PointType> GetBoundingBoxFromIndex(Vector3i Indices) const{
-        const PointType indices_d( Indices[0], Indices[1], Indices[2] );
-        return std::make_pair( mLowerBound + indices_d * mDelta,
-                               mLowerBound + (indices_d+1.0) * mDelta );
-    }
-
-    std::pair<PointType, PointType> GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k) const{
-        const PointType indices_d( i, j, k);
-        return std::make_pair( mLowerBound + indices_d * mDelta,
-                               mLowerBound + (indices_d+1.0) * mDelta );
-    }
-
-private:
     const BRepOperatorBase* mpBrepOperator;
-    VectorMatrixIdUtilities mIdMapper;
+    Mapper mMapper;
     const PointType mLowerBound;
     const PointType mUpperBound;
     const Vector3i mNumberOfElements;

@@ -13,9 +13,20 @@ namespace tibra {
 
 typedef FloodFill::StatusVectorType StatusVectorType;
 typedef FloodFill::StatusVectorType StatusVectorType;
+typedef FloodFill::GroupVectorSetType GroupVectorSetType;
 
 Unique<StatusVectorType> FloodFill::ClassifyElements() const {
+    GroupVectorSetType element_groups;
+    return ClassifyElements(element_groups);
+}
 
+std::pair<Unique<StatusVectorType>, Unique<GroupVectorSetType>> FloodFill::ClassifyElementsForTest() const {
+    GroupVectorSetType element_groups;
+    auto p_states = ClassifyElements(element_groups);
+    return std::make_pair( std::move(p_states), MakeUnique<GroupVectorSetType>(element_groups) );
+}
+
+Unique<StatusVectorType> FloodFill::ClassifyElements(GroupVectorSetType& rGroupsOutput) const {
     Timer timer{};
     const IndexType total_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
 
@@ -52,8 +63,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
     {
         num_threads = omp_get_num_threads();
     }
-    //num_threads = 10;
-    //std::cout << "num Threads: " << num_threads << std::endl;
+
     const IndexType partition_size = std::max<IndexType>( std::ceil( static_cast<double>(mNumberOfElements[dir_index]) /
         static_cast<double>(num_threads) ), 1);
 
@@ -74,55 +84,27 @@ Unique<StatusVectorType> FloodFill::ClassifyElements() const {
         PartitionedFill(i, groups, partition[i], visited, states);
     }
 
+    // Merge groups from all partitions.
+    MergeGroups( dir_index, partition, rGroupsOutput, groups, states );
 
-    GroupVectorSetType groups2;
-    BoolVectorType visited2(total_num_elements, false);
-
-    // auto partition_2 = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
-    // PartitionedFill(1000, groups2, partition_2, visited2, states);
-
-    for( auto& r_group : groups ){
+    // Mark states
+    for( auto& r_group : rGroupsOutput ){
         int inside_count = std::get<2>(r_group);
-        std::cout << std::get<1>(r_group).size() << ", count: " << inside_count << std::endl;
-    }
-
-    std::cout << "Num Groups: " << groups.size() << std::endl;
-    GroupVectorSetType merged_groups;
-    MergeGroups( dir_index, partition, merged_groups, groups, states );
-
-    std::cout << "Merged groups: " << merged_groups.size() << std::endl;
-    // if( merged_groups.size()  != groups2.size() ){
-    //     TIBRA_ERROR("errorrrrrrrrrrr") << "Waf\n";
-    // }
-    for( auto& r_group : merged_groups ){
-        int inside_count = std::get<2>(r_group);
-        std::cout << std::get<1>(r_group).size() << ", count: " << inside_count << std::endl;
         auto state = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
         for( auto group_it = std::get<1>(r_group).begin(); group_it !=  std::get<1>(r_group).end(); ++group_it){
             states[*group_it] = state;
         }
     }
 
-    std::cout << "Total: " << timer.Measure() << std::endl;
-    timer.Reset();
-    #pragma omp parallel for
-    for( IndexType i = 0; i < total_num_elements; ++i){
-        auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(i);
-        auto box = GetBoundingBoxFromIndex(i);
-        mpBrepOperator->GetIntersectionState(box.first, box.second);
-    }
-    std::cout << "Total Classical: " << timer.Measure() << std::endl;
-
     return MakeUnique<StatusVectorType>(states);
 }
-
 
 void FloodFill::PartitionedFill(IndexType PartitionIndex, GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, BoolVectorType& rVisited, StatusVectorType& rStates) const {
     // Loop through current partition
     for( IndexType i = rPartition.first[0]; i < rPartition.second[0]; ++i ){
         for( IndexType j = rPartition.first[1]; j < rPartition.second[1]; ++j ) {
             for( IndexType k = rPartition.first[2]; k < rPartition.second[2]; ++k ) {
-                const IndexType index = mIdMapper.GetVectorIndexFromMatrixIndices(i, j, k);
+                const IndexType index = mMapper.GetVectorIndexFromMatrixIndices(i, j, k);
                 if( !rVisited[index] ) { // Unvisited
                     GroupSetType new_group;
                     std::get<0>(new_group) = PartitionIndex;
@@ -141,7 +123,7 @@ void FloodFill::SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, Pa
 
     // Set Index as visited
     rVisited[Index] = true;
-    const auto box = GetBoundingBoxFromIndex(Index);
+    const auto box = mMapper.GetBoundingBoxFromIndex(Index);
     // Only start filling of current element is not trimmed.
     if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
         rStates[Index] = IntersectionStatus::Trimmed;
@@ -173,7 +155,7 @@ int FloodFill::FillDirection(IndexType Direction, IndexStackType& rStack, GroupS
         BoolVectorType& rVisited, PartitionBoxType& rPartition, StatusVectorType& rStates ) const {
 
     const IndexType index = rStack.top();
-    const Vector3i indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
+    const Vector3i indices = mMapper.GetMatrixIndicesFromVectorIndex(index);
     const IndexType max_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
     Vector3i next_indices = indices;
 
@@ -190,7 +172,7 @@ int FloodFill::FillDirection(IndexType Direction, IndexStackType& rStack, GroupS
 
     // If next box is trimmed, add inside count.
     // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
-    auto box_next = GetBoundingBoxFromIndex(next_index);
+    auto box_next = mMapper.GetBoundingBoxFromIndex(next_index);
     if( mpBrepOperator->IsTrimmed(box_next.first + lower_perturb , box_next.second + upper_perturb) ){
         std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
         return -1;
@@ -215,9 +197,6 @@ int FloodFill::FillDirection(IndexType Direction, IndexStackType& rStack, GroupS
     return next_index;
 }
 
-
-
-
 void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType>& rPartitions, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const {
 
     const IndexType num_groups = rGroupVectorSet.size();
@@ -235,7 +214,6 @@ void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType
     for( IndexType i = 0; i < num_groups; ++i){
         group_boundary_indices[i].resize(2);
     }
-    PointType lower_offset, upper_offset;
 
     #pragma omp parallel for
     for( IndexType group_index = 0; group_index < num_groups;  ++group_index){
@@ -244,13 +222,13 @@ void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType
         const auto partition_index = std::get<0>(group_set);
         auto& group_bounding_box = group_bounding_boxes[group_index];
         auto& boundary_indices = group_boundary_indices[group_index];
-
+        PointType lower_offset, upper_offset;
         for(auto& index : index_set ){
-            const auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
+            const auto indices = mMapper.GetMatrixIndicesFromVectorIndex(index);
 
             if( static_cast<int>(indices[PartitionDir]) >= std::get<1>( group_bounding_box ) ){
                 auto next_index = GetNextIndex(walk_directions[0], index, lower_offset, upper_offset );
-                auto box_next = GetBoundingBoxFromIndex(next_index);
+                auto box_next = mMapper.GetBoundingBoxFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ) {
                     if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
                         std::get<1>( group_bounding_box ) = indices[PartitionDir];
@@ -266,7 +244,7 @@ void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType
             }
             if( static_cast<int>(indices[PartitionDir]) <= std::get<0>( group_bounding_box ) ){
                 auto next_index = GetNextIndex(walk_directions[1], index, lower_offset, upper_offset );
-                auto box_next = GetBoundingBoxFromIndex(next_index);
+                auto box_next = mMapper.GetBoundingBoxFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
                     if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
                         std::get<0>( group_bounding_box ) = indices[PartitionDir];
@@ -281,11 +259,11 @@ void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType
         }
 
         for(auto& index : index_set ){
-            const auto indices = mIdMapper.GetMatrixIndicesFromVectorIndex(index);
+            const auto indices = mMapper.GetMatrixIndicesFromVectorIndex(index);
             // Upper bound
             if( static_cast<int>(indices[PartitionDir]) == std::get<1>(rPartitions[partition_index])[PartitionDir]-1 ) {
                 auto next_index = GetNextIndex(walk_directions[0], index, lower_offset, upper_offset );
-                auto box_next = GetBoundingBoxFromIndex(next_index);
+                auto box_next = mMapper.GetBoundingBoxFromIndex(next_index);
                 if( mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
@@ -293,7 +271,7 @@ void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType
             // Lower bound
             if( static_cast<int>(indices[PartitionDir]) == std::get<0>(rPartitions[partition_index])[PartitionDir] ) {
                 auto next_index = GetNextIndex(walk_directions[1], index, lower_offset, upper_offset );
-                auto box_next = GetBoundingBoxFromIndex(next_index);
+                auto box_next = mMapper.GetBoundingBoxFromIndex(next_index);
                 if( mpBrepOperator->IsTrimmed(box_next.first + lower_offset, box_next.second + upper_offset ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
@@ -354,26 +332,16 @@ void FloodFill::MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType
                         auto &new_set = std::get<1>(rGroupVectorSet[i]);
 
                         std::get<1>(merged_group).insert( new_set.begin(), new_set.end() );
-                        std::get<2>(merged_group) +=  std::get<2>(rGroupVectorSet[i]);
+                        std::get<2>(merged_group) += std::get<2>(rGroupVectorSet[i]);
 
                         rVisited[i] = true;
                         index_stack.push(i);
                     }
                 }
-
             }
-
         }
     }
 
-
-
-    std::pair<PointType, PointType> FloodFill::GetBoundingBoxFromIndex(IndexType Index) const{
-        const auto indices =  mIdMapper.GetMatrixIndicesFromVectorIndex(Index);
-        const PointType indices_d( indices[0], indices[1], indices[2] );
-        return std::make_pair( mLowerBound + indices_d * mDelta,
-                               mLowerBound + (indices_d+1.0) * mDelta );
-    }
 
 
 } // End namespace tibra

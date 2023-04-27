@@ -4,6 +4,8 @@
 #ifndef TRIMMED_ELEMENT_TESTER_INCLUDE_HPP
 #define TRIMMED_ELEMENT_TESTER_INCLUDE_HPP
 
+#include "quadrature/trimmed_element.h"
+
 namespace tibra {
 namespace Testing {
 
