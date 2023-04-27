@@ -52,8 +52,8 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
@@ -166,8 +166,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
@@ -263,8 +263,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){

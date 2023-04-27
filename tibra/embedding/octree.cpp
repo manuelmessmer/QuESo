@@ -51,8 +51,8 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
 template<typename TOperator>
 void Octree<TOperator>::Node::GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator) const{
     if( this->IsLeaf() ){
-        const auto lower_bound_param = Mapping::GlobalToParam(mLowerBound, GlobalLowerBound, GlobalUpperBound);
-        const auto upper_bound_param = Mapping::GlobalToParam(mUpperBound, GlobalLowerBound, GlobalUpperBound);
+        const auto lower_bound_param = Mapping::PointFromGlobalToParam(mLowerBound, GlobalLowerBound, GlobalUpperBound);
+        const auto upper_bound_param = Mapping::PointFromGlobalToParam(mUpperBound, GlobalLowerBound, GlobalUpperBound);
 
         IntegrationPointVectorType integration_points_tmp{};
         // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
@@ -61,7 +61,7 @@ void Octree<TOperator>::Node::GetIntegrationPoints(IntegrationPointVectorType* p
             pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
         else {
             for( auto& point : integration_points_tmp){
-                const auto tmp_point = Mapping::ParamToGlobal(point, GlobalLowerBound, GlobalUpperBound);
+                const auto tmp_point = Mapping::PointFromParamToGlobal(point, GlobalLowerBound, GlobalUpperBound);
                 if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
                     pPoints->push_back(point);
                 }

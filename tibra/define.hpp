@@ -22,6 +22,7 @@ typedef std::size_t  IndexType;
 typedef Vector3<double> PointType;
 typedef Vector3<double> Vector3d;
 typedef Vector3<IndexType> Vector3i;
+typedef std::pair<PointType, PointType> BoundingBoxType;
 
 ///@}
 ///@name TIBRA GLOBAL VARIABLES

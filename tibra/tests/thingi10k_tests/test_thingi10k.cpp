@@ -93,8 +93,8 @@ BOOST_AUTO_TEST_CASE( Thingi10KTester ) {
                     Vector3d local_lower_bound = {x, y, z};
                     Vector3d local_upper_bound = {x+h, y+h, z+h};
 
-                    auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                    auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                    auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                    auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
                     Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
                     auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound );
