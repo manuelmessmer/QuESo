@@ -13,6 +13,6 @@
         "moment_fitting_residual": 1e-6
     },
     "non_trimmed_quadrature_rule_settings" : {
-        "integration_method" : "GGQ_Optimal"
+        "integration_method" : "Gauss"
     }
 }
