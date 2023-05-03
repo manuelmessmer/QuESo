@@ -60,7 +60,7 @@ constexpr double EPS3 = 1e-12;
 constexpr double EPS4 = 1e-14;
 
 // Enum's
-enum IntersectionStatus {Inside, Outside, Trimmed, NotVisited, PartOfNewGroup, OppositeGroup};
+enum IntersectionStatus {Inside, Outside, Trimmed};
 typedef IntersectionStatus IntersectionStatusType;
 
 ///@}
