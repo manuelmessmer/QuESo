@@ -8,13 +8,9 @@
 #include <array>
 #include <algorithm>
 #include <stack>
-#include <unordered_set>
 
 //// Project includes
 #include "define.hpp"
-#include "utilities/timer.hpp"
-#include "utilities/mesh_utilities.h"
-#include "containers/element_container.hpp"
 #include "embedding/brep_operator.h"
 
 namespace tibra {
@@ -25,6 +21,7 @@ namespace tibra {
 /**
  * @class  FloodFill
  * @author Manuel Messmer
+ * @brief Provides methods to robustly classify elements / cells as interior, exterior or trimmed.
 */
 class FloodFill {
 public:
@@ -33,22 +30,25 @@ public:
 
     typedef std::vector<IntersectionStatusType> StatusVectorType;
     typedef std::stack<IndexType> IndexStackType;
-    typedef std::vector< std::tuple<int, int, int> > GroupVectorType;
     typedef std::vector<bool> BoolVectorType;
-                       // Partition index, Indices, Count
+    // GroupSetType holds the following information <Partition index, Element Indices, IsInsideCount>
     typedef std::tuple<IndexType, std::set<IndexType>, int > GroupSetType;
-    typedef std::vector<GroupSetType> GroupVectorSetType;
-    typedef std::pair<PointType, PointType> BoundingBoxType;
+    typedef std::vector<GroupSetType> GroupSetVectorType;
     typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
-    typedef std::pair<IndexType, IndexType> Partition1DBoxType;
+    typedef std::vector<PartitionBoxType> PartitionBoxVectorType;
+    typedef std::pair<int, int> Partition1DBoxType;
     typedef std::vector<std::vector<std::set<IndexType>>> BoundaryIndicesVectorType;
 
     ///@}
     ///@name Life cycle
     ///@{
+
+    /// @brief Constructor of FloodFill.
+    /// @param pBrepOperator
+    /// @param Parameters
     FloodFill(BRepOperatorBase* pBrepOperator, const Parameters& Parameters) :
-        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBound()), mUpperBound(Parameters.UpperBound()),
-        mNumberOfElements( Parameters.NumberOfElements() )
+        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBound()),
+        mUpperBound(Parameters.UpperBound()), mNumberOfElements( Parameters.NumberOfElements() )
     {
         // Obtain discretization of background mesh.
         mDelta[0] = std::abs(mUpperBound[0] - mLowerBound[0]) / (mNumberOfElements[0]);
@@ -60,110 +60,137 @@ public:
     ///@name Operations
     ///@{
 
+    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
+    /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
+    ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
+    /// @return Unique<StatusVectorType>.
     Unique<StatusVectorType> ClassifyElements() const;
 
 protected:
-    std::pair<Unique<StatusVectorType>, Unique<GroupVectorSetType>> ClassifyElementsForTest() const;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /// @brief Only used for testing. Also provides the actual groups.
+    /// @see ClassifyElements()
+    /// @return std::pair<Unique<StatusVectorType>, Unique<GroupSetVectorType>>
+    std::pair<Unique<StatusVectorType>, Unique<GroupSetVectorType>> ClassifyElementsForTest() const;
+
 private:
 
-    Unique<StatusVectorType> ClassifyElements(GroupVectorSetType& rGroupsOutput) const;
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-    bool Touch(const Partition1DBoxType& rBox1, const Partition1DBoxType& rBox2) const  {
+    /// @brief Interface for ClassifyElements() and ClassifyElementsForTest().
+    /// @param rGroupsOutput.
+    /// @return Unique<StatusVectorType>.
+    Unique<StatusVectorType> ClassifyElements(GroupSetVectorType& rGroupsOutput) const;
 
-        if ( static_cast<int>(rBox1.second) < static_cast<int>(rBox2.first)-1
-                || rBox1.first > rBox2.second+1 ) {
-            return false;
-        }
+    /// @brief Partitions the background grid in "n_threads" stripes along the directon with "n_element_max" and filles each domain (see: SinglePartitionFill()).
+    ///        Afterwards the domains are merged (see: MergeGroups).
+    /// @param rGroupSetVector Vector to group sets: see GroupSetVectorType.
+    /// @param rPartitions Vector of partitions.
+    /// @param rStates Global classification vector (enum: Inside / outside or trimmed).
+    void PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const;
 
-        return true;
-    }
+    /// @brief Starts flood fill from 'Index' over given partition and adds found elements to 'rGroupSet'.
+    ///        Marks trimmed elements in global vector: rStates.
+    ///        Marks visited elements in rVisited.
+    /// @param Index of start element.
+    /// @param rGroupSet Current Group.
+    /// @param rPartition Current Partition.
+    /// @param rStates Global classification vector.
+    /// @param rVisited Vector<bool> for all elements.
+    void Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBoxType &rPartition,
+        StatusVectorType& rStates, BoolVectorType& rVisited ) const;
 
-    int GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
-        auto box_current = mMapper.GetBoundingBoxFromIndex(Index);
-        auto box_next = mMapper.GetBoundingBoxFromIndex(NextIndex);
-        const PointType center_box = (box_current.first + box_current.second)*0.5;
-        if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, box_next.first + rLowerOffset , box_next.second + rUpperOffset) ) {
-            return 1;
-        } else {
-            return -1;
-        }
-    }
+    /// @brief Move from current 'Index' towards 'Direction' to next index.
+    ///        If next is trimmed, it is marked in rStates. And Is_inside cout of 'rGroupSet' is increased/decreased.
+    ///        If next index is not already visited and not trimmed, it is returned. Otherwise -1 is returned.
+    /// @param Index Current index.
+    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param rGroupSet Current group.
+    /// @param rPartition Current partition.
+    /// @param rStates Global classification vector.
+    /// @param rVisited Vector<bool> for all elements.
+    /// @return NextIndex.
+    int Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSet,
+        const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
 
-    int GetNextIndex( IndexType Direction, IndexType Index ) const {
-        PointType dummy_1, dummy_2;
-        PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
-        return GetNextIndex(Direction, Index, partition_box, dummy_1, dummy_2);
-    }
+    /// @brief Merge groups that emerged from PartitionedFill.
+    /// @param rGroups Contains all groups from all partitiones.
+    /// @param [out] rMergedGroups Output vector of groups.
+    /// @param PartitionDir Direction along the partition was performed. Direction with "n_element_max".
+    /// @param rPartitions Vector with all partitions.
+    /// @param rStates Global classification vector.
+    void MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMergedGroups, IndexType PartitionDir,
+        PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const;
 
-    int GetNextIndex( IndexType Direction, IndexType Index, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset ) const {
-        PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
-        return GetNextIndex(Direction, Index, partition_box, rLowerBoundOffset, rUpperBoundOffset);
-    }
 
-    int GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const {
-        auto indices = mMapper.GetMatrixIndicesFromVectorIndex(Index);
-        Vector3i next_indices = indices;
-        rLowerBoundOffset = {0.0, 0.0, 0.0};
-        rUpperBoundOffset = {0.0, 0.0, 0.0};
-        double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
-        switch(Direction){
-            case 0:
-                if( indices[0] < rPartition.second[0]-1 ){ next_indices[0] += 1; }
-                else { return -1; }
-                rLowerBoundOffset = {-tolerance, 0.0, 0.0};
-                break;
-            case 1:
-                if( indices[0] > rPartition.first[0] ){ next_indices[0] -= 1; }
-                else { return -1; }
-                rUpperBoundOffset = {tolerance, 0.0, 0.0};
-                break;
-            case 2:
-                if( indices[1] < rPartition.second[1]-1 ){ next_indices[1] += 1; }
-                else { return -1; }
-                rLowerBoundOffset = {0.0, -tolerance, 0.0};
-                break;
-            case 3:
-                if( indices[1] > rPartition.first[1] ){ next_indices[1] -= 1; }
-                else { return -1; }
-                rUpperBoundOffset = {0.0, tolerance, 0.0};
-                break;
-            case 4:
-                if( indices[2] < rPartition.second[2]-1 ){ next_indices[2] += 1; }
-                else { return -1; }
-                rLowerBoundOffset = {0.0, 0.0, -tolerance};
-                break;
-            case 5:
-                if( indices[2] > rPartition.first[2] ){ next_indices[2] -= 1; }
-                else { return -1; }
-                rUpperBoundOffset = {0.0, 0.0, tolerance};
-                break;
-            default:
-                TIBRA_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
-        }
+    /// @brief Run flood fill to merge groups starting at 'GroupIndex'.
+    /// @param GroupIndex Starting point.
+    /// @param rGroupSetVector Vector that holds all groups.
+    /// @param [out] rMergedGroups Output vector of groups.
+    /// @param rBoundaryIndices Contains all indices of element that are on the boundary.
+    /// @param PartitionDir Direction along the partition was performed. Direction with "n_element_max".
+    /// @param rStates Global classification vector.
+    /// @param rVisited Vector<bool> for all elements.
+    void GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVector, GroupSetVectorType& rMergedGroups,
+        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
 
-        return mMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
-    }
+    /// @brief Performs a local ray tracing of two adjacent elements. On that is part of a new group and its trimmed neighbour.
+    ///        We up to 10 rays, from the center of the first element towards the intersected triangles of the cut element. Based on the orientation of each triangle
+    ///        the ray indicates inside or outside. The majoriy decides about the classification of the tested element. Returns +1 if inside and -1 if outside.
+    /// @param Index
+    /// @param NextIndex
+    /// @param rLowerOffset
+    /// @param rUpperOffset
+    /// @return int
+    int GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const;
 
-    void PartitionedFill(IndexType PartitionIndex, GroupVectorSetType& rGroupVectorSet, PartitionBoxType rPartition, BoolVectorType& rVisited, StatusVectorType& rStates) const;
+    /// @brief Returns the next index for a given direction.
+    /// @param Direction
+    /// @param Index Current index.
+    /// @return int Next index.
+    int GetNextIndex( IndexType Direction, IndexType Index ) const;
 
-    void SinglePartitionFill(IndexType Index, GroupSetType& rGroupSet, PartitionBoxType rPartition, BoolVectorType& rVisited, StatusVectorType& rStates) const;
+    /// @brief Returns the next index for a given direction. It also outputs 'offsets', which extend the size of the next element towards the direction
+    ///        of the start element to catch trimming surfaces that are exactly on the boundary.
+    /// @param Direction
+    /// @param Index
+    /// @param [out] rLowerBoundOffset
+    /// @param [out] rUpperBoundOffset
+    /// @return int NextIndex.
+    int GetNextIndex( IndexType Direction, IndexType Index, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset ) const;
 
-    int FillDirection(IndexType Direction, IndexStackType& rStack, GroupSetType& rGroupSet, BoolVectorType& rVisited, PartitionBoxType& rPartition, StatusVectorType& rStates ) const;
+    /// @brief Returns the next index for a given direction and partition. It also outputs 'offsets', which extend the size of the next element towards the direction
+    ///        of the start element to catch trimming surfaces that are exactly on the boundary.
+    /// @param Direction
+    /// @param Index
+    /// @param rPartition
+    /// @param [out] rLowerBoundOffset
+    /// @param [out] rUpperBoundOffset
+    /// @return int NextIndex.
+    int GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition,
+        PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const;
 
-    void MergeGroups(IndexType PartitionDir, std::vector<PartitionBoxType>& rPartitions, GroupVectorSetType& rMergedGroups, GroupVectorSetType& rGroupVectorSet, StatusVectorType& rStates) const;
-
-    void GroupFill(IndexType PartitionDir, BoundaryIndicesVectorType& rBoundaryIndics, GroupVectorSetType& rMergedGroups, IndexType GroupIndex, GroupVectorSetType& rGroupVectorSet, BoolVectorType& rVisited, StatusVectorType& rStates) const;
-
+    ///@}
+    ///@name Members
+    ///@{
 
     const BRepOperatorBase* mpBrepOperator;
     Mapper mMapper;
+
+    // The following parameters are global values, w.r.t. to the background mesh.
     const PointType mLowerBound;
     const PointType mUpperBound;
     const Vector3i mNumberOfElements;
     PointType mDelta;
 
 }; // End class FloodFill
-
+///@}
 ///@} TIBRA Classes
 } // End tibra namespace
 
