@@ -108,7 +108,7 @@ class PyTIBRA:
             displacements = TIBRA_Application.PointVector()
             for point in mesh_points:
                 global_point = [point[0], point[1], point[2]]
-                local_point = FromPointFromGlobalToParamSpace(global_point, self.GetLowerBound(), self.GetUpperBound())
+                local_point = PointFromGlobalToParamSpace(global_point, self.GetLowerBound(), self.GetUpperBound())
 
                 local_point_kratos = KM.Vector(3)
                 local_point_kratos[0] = local_point[0]
