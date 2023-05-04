@@ -58,8 +58,8 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
@@ -162,8 +162,8 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
@@ -262,8 +262,8 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
 
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
@@ -360,8 +360,8 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::GlobalToParam(local_lower_bound, rLowerBound, rUpperBound);
-                auto local_upper_bound_param = Mapping::GlobalToParam(local_upper_bound, rLowerBound, rUpperBound);
+                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, rLowerBound, rUpperBound);
+                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, rLowerBound, rUpperBound);
                 Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);

@@ -1,21 +1,22 @@
 #!/bin/bash
 
-if ( [ $1 == "all" ] || [ $1 == "py" ] )
+if ( [ $1 == "py" ] )
 then
   python3 tibra/tests/test_tibra.py
 fi
 
-for file in TestExecutables/*
-do
-  if ( [ ! ${file: -3} == ".py" ] && ( [ $1 == "all" ] || [ $1 == "cpp" ]) )
-  then
-    ./"$file"
-  fi
-done
+
+if ( [ $1 == "cpp" ] )
+then
+  ./TestExecutables/test_tibra
+fi
+
 
 if ( [ $1 == "thingi10k" ] )
 then
-  ./TestExecutables/test_tibra_thingi10k -- all $2 5 50
-  ./TestExecutables/test_tibra_thingi10k -- all $2 2 10
+  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 5 50
+  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 2 10
+  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 5 50
+  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 2 10
 fi
 

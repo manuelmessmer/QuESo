@@ -11,6 +11,7 @@
 #include "embedding/brep_operator.h"
 #include "embedding/ray_aabb_primitive.h"
 
+
 namespace tibra {
 
 typedef BRepOperator::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
@@ -20,91 +21,111 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> drandon(0.5, 1.5);
 
-    if( mTree.IsWithinBoundingBox(rPoint)) {
-        bool is_on_boundary = true;
-        int intersection_count = 0;
+    // Rough test, if point is actually within the bounding box of the mesh.
+    if( mGeometryQuery.IsWithinBoundingBox(rPoint)) {
+        bool success = false;
         IndexType iteration = 0UL;
         const IndexType max_iteration = 100UL;
-        while( is_on_boundary ){
+        bool is_inside = false;
+        while( !success ){
             if( iteration >= max_iteration){ return false; }
             iteration++;
             // Get random direction. Must be postive! -> x>0, y>0, z>0
             Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
 
             // Normalize
-            double norm_direction = direction.Norm();
+            const double norm_direction = direction.Norm();
             direction /= norm_direction;
 
             // Construct ray
             Ray_AABB_primitive ray(rPoint, direction);
-            // Get potential ray intersections from AABB tree.
-            auto potential_intersections = mTree.Query(ray);
 
-            // Test if potential intersections actually intersect.
-            // If intersection lies on boundary cast a new ray.
-            // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639
-            intersection_count = 0;
-            is_on_boundary = false;
-            for( auto r : potential_intersections){
-                const auto& p1 = mTriangleMesh.P1(r);
-                const auto& p2 = mTriangleMesh.P2(r);
-                const auto& p3 = mTriangleMesh.P3(r);
-                double t, u, v;
-                bool back_facing, parallel;
-                // Test for actual intersection, if area is area is not zero.
-                if( mTriangleMesh.Area(r) > 100.0*ZEROTOL
-                        && ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
-                    intersection_count++;
-                    const double sum_u_v = u+v;
-                    if( t < ZEROTOL ){ // Origin lies on boundary
-                        return false;
-                    }
-                    // Ray shoots through boundary of triangle.
-                    if( u < 0.0+ZEROTOL || v < 0.0+ZEROTOL || sum_u_v > 1.0-ZEROTOL ){
-                        is_on_boundary = true;
-                        break;
-                    }
-                    if( parallel ){ // Triangle is parallel to ray.
-                        is_on_boundary = true;
-                        break;
-                    }
+            // Query ray
+            std::tie(is_inside, success) = mGeometryQuery.IsInside(ray);
+        }
+        return is_inside;
+    }
+    return false;
+}
+
+bool BRepOperator::IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance) const {
+    return mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance);
+}
+
+
+bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const {
+    double tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, SNAPTOL);
+
+    auto p_clipped_mesh = pClipTriangleMesh(rLowerBound, rUpperBound);
+    auto& clipped_mesh = *p_clipped_mesh;
+
+    GeometryQuery geometry_query_local(clipped_mesh, false);
+
+    IndexType current_id = 0;
+    const IndexType num_triangles = clipped_mesh.NumOfTriangles();
+    if( num_triangles == 0 ){ return false; }
+
+    IndexType success_count = 0;
+    int inside_count = 0;
+    while( success_count < 10 && current_id < num_triangles ){
+        // Get direction
+        const auto center_triangle = clipped_mesh.Center(current_id);
+        Vector3d direction = center_triangle - rPoint;
+
+        // Normalize
+        double norm_direction = direction.Norm();
+        direction /= norm_direction;
+
+        // Construct ray
+        Ray_AABB_primitive ray(rPoint, direction);
+
+        // Get vertices of current triangle
+        const auto& p1 = clipped_mesh.P1(current_id);
+        const auto& p2 = clipped_mesh.P2(current_id);
+        const auto& p3 = clipped_mesh.P3(current_id);
+
+        // Make sure target triangle is not parallel and has a significant area.
+        const double area = clipped_mesh.Area(current_id);
+        if( !ray.is_parallel(p1, p2, p3, 100.0*tolerance) && area >  100*ZEROTOL) {
+            auto [is_inside, success] = geometry_query_local.IsInside(ray);
+            if( success ){
+                ++success_count;
+                if( is_inside ){
+                    ++inside_count;
+                } else {
+                    --inside_count;
                 }
             }
         }
-        if( intersection_count % 2 == 1){ // If intersection count is odd, return true.
-            return true;
-        }
+        ++current_id;
+    }
+    if( inside_count > 0){
+        return true;
+    } else {
+        return false;
     }
 
-    return false;
 }
 
 IntersectionStatus BRepOperator::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
-    // Test if center is inside or outside.
-    const PointType center = (rUpperBound+rLowerBound) * 0.5;
-    IntersectionStatus status = (IsInside(center)) ? Inside : Outside;
+
+    if( mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance) ){
+        return IntersectionStatus::Trimmed;
+    }
 
     // Multiple test do not seem to be necessary.
+    // Note that for robust analysis, use flood flow.
     // IntersectionStatus status_confirm = (IsInside(center)) ? Inside : Outside;
     // while( status != status_confirm){
     //     status = (IsInside(center)) ? Inside : Outside;
     //     status_confirm = (IsInside(center)) ? Inside : Outside;
     // }
 
-    AABB_primitive aabb(rLowerBound, rUpperBound);
-    auto result = mTree.Query(aabb);
-
-    const double snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, Tolerance);
-    for( auto r : result){
-        const auto& p1 = mTriangleMesh.P1(r);
-        const auto& p2 = mTriangleMesh.P2(r);
-        const auto& p3 = mTriangleMesh.P3(r);
-        if( aabb.intersect(p1, p2, p3, snap_tolerance) ){
-            return IntersectionStatus::Trimmed;
-        }
-    }
+    // Test if center is inside or outside.
+    const PointType center = (rUpperBound+rLowerBound) * 0.5;
+    IntersectionStatus status = (IsInside(center)) ? Inside : Outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;
@@ -173,34 +194,11 @@ TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLower
 }
 
 
-Unique<std::vector<IndexType>> BRepOperator::GetIntersectedTriangleIds(
-        const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const {
-
-    // Perform fast search based on aabb tree. Conservative search.
-    AABB_primitive aabb(rLowerBound, rUpperBound);
-    auto potential_intersections = mTree.Query(aabb);
-
-    auto intersected_triangle_ids = MakeUnique<std::vector<IndexType>>();
-    intersected_triangle_ids->reserve(potential_intersections.size());
-    for( auto triangle_id : potential_intersections){
-        const auto& p1 = mTriangleMesh.P1(triangle_id);
-        const auto& p2 = mTriangleMesh.P2(triangle_id);
-        const auto& p3 = mTriangleMesh.P3(triangle_id);
-
-        // Perform actual intersection test.
-        if( aabb.intersect(p1, p2, p3, Tolerance) ){
-            intersected_triangle_ids->push_back(triangle_id);
-        }
-    }
-
-    return intersected_triangle_ids;
-}
-
 Unique<TriangleMesh> BRepOperator::pClipTriangleMesh(
         const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     const double snap_tolerance = 0.1*RelativeSnapTolerance(rUpperBound, rLowerBound);
-    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(rLowerBound, rUpperBound, snap_tolerance);
+    auto p_intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(rLowerBound, rUpperBound, snap_tolerance);
     auto p_triangle_mesh = MakeUnique<TriangleMesh>();
     p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
     p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
@@ -227,7 +225,7 @@ Unique<TriangleMesh> BRepOperator::pClipTriangleMeshUnique(const PointType& rLow
     const auto upper_bound = rUpperBound + offset;
     double snap_tolerance = 1.0*ZEROTOL;
 
-    auto p_intersected_triangle_ids = GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
+    auto p_intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
     auto p_triangle_mesh = MakeUnique<TriangleMesh>();
     p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
     p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );

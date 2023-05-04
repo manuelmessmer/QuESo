@@ -22,15 +22,16 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         return true;
     }
     rSuccess = true;
-    bool try_next_triangle = true;
+    bool success_local = false;
     bool is_inside = false;
     IndexType current_id = 0;
-    while( try_next_triangle ){
+    while( !success_local ){
         // Return false if all triangles are tested, but non valid (all are parallel or on_boundary)
         if( current_id >= num_triangles ){
             rSuccess = false;
             return false;
         }
+
         // Get direction
         const auto center_triangle = mClippedMesh.Center(current_id);
         Vector3d direction = center_triangle - rPoint;
@@ -50,43 +51,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         // Make sure target triangle is not parallel and has a significant area.
         const double area = mClippedMesh.Area(current_id);
         if( !ray.is_parallel(p1, p2, p3, 100.0*mSnapTolerance) && area >  100*ZEROTOL) {
-            // Get potential ray intersections from AABB tree.
-            auto potential_intersections = mTree.Query(ray);
-
-            TIBRA_ERROR_IF("TrimmedDomain::IsInsideTrimmedDomain", potential_intersections.size() == 0)
-                << "No potential intersections found.\n";
-
-            // Test if potential intersections actually intersect.
-            // If intersection lies on boundary cast a new ray.
-            // @todo Use symbolic perturbations: http://dl.acm.org/citation.cfm?id=77639
-            try_next_triangle = false;
-            double min_distance = MAXD;
-            is_inside = false;
-            for( auto r : potential_intersections){
-                const auto& p1 = mClippedMesh.P1(r);
-                const auto& p2 = mClippedMesh.P2(r);
-                const auto& p3 = mClippedMesh.P3(r);
-                double t, u, v;
-                bool back_facing, parallel;
-                if( ray.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
-                    if( !parallel ){
-                        double sum_u_v = u+v;
-                        if( t < ZEROTOL ){ // origin lies on boundary
-                            //rSuccess = false;
-                            return false;
-                        }
-                        // Ray shoots through boundary.
-                        if( u < 0.0+ZEROTOL || v < 0.0+ZEROTOL || sum_u_v > 1.0-ZEROTOL ){
-                            try_next_triangle = true;
-                            break;
-                        }
-                        if( t < min_distance ){
-                            is_inside = back_facing;
-                            min_distance = t;
-                        }
-                    }
-                }
-            }
+            std::tie(is_inside, success_local) = mGeometryQuery.IsInside(ray);
         }
         current_id++;
     }
@@ -132,21 +97,13 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
 IntersectionStatusType TrimmedDomain::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
+    if( mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance) ){
+        return IntersectionStatus::Trimmed;
+    }
+
     // Test if center is inside or outside.
     const PointType center = (rLowerBound + rUpperBound) * 0.5;
     const auto status = (TrimmedDomainBase::IsInsideTrimmedDomain(center)) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
-
-    // Test for triangle intersections;
-    AABB_primitive aabb(rLowerBound, rUpperBound);
-    auto result = mTree.Query(aabb);
-    for( auto r : result){
-        const auto& p1 = mClippedMesh.P1(r);
-        const auto& p2 = mClippedMesh.P2(r);
-        const auto& p3 = mClippedMesh.P3(r);
-        if( aabb.intersect(p1, p2, p3, 10.0*mSnapTolerance) ){
-            return IntersectionStatus::Trimmed;
-        }
-    }
 
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;

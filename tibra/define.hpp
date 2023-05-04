@@ -22,6 +22,7 @@ typedef std::size_t  IndexType;
 typedef Vector3<double> PointType;
 typedef Vector3<double> Vector3d;
 typedef Vector3<IndexType> Vector3i;
+typedef std::pair<PointType, PointType> BoundingBoxType;
 
 ///@}
 ///@name TIBRA GLOBAL VARIABLES
@@ -45,6 +46,10 @@ constexpr double ZEROTOL = 1e-14;
 inline double RelativeSnapTolerance(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL){
     const auto delta = (rUpperBound - rLowerBound);
     return std::max( std::max(delta[0], std::max(delta[1], delta[2]))*Tolerance, Tolerance);
+}
+
+inline double RelativeSnapTolerance(const PointType& rDelta, double Tolerance = SNAPTOL){
+    return std::max( std::max(rDelta[0], std::max(rDelta[1], rDelta[2]))*Tolerance, Tolerance);
 }
 
 // Tolerances for Testing

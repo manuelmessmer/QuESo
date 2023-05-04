@@ -77,7 +77,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
         const auto& normal = point_it->Normal();
-        PointType local_point = Mapping::GlobalToParam(*point_it, lower_bound, upper_bound);
+        PointType local_point = Mapping::PointFromGlobalToParam(*point_it, lower_bound, upper_bound);
 
         // X-Direction
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){

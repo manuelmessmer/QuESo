@@ -67,6 +67,13 @@ public:
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     virtual IntersectionStatus GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const = 0;
 
+    /// @brief Returns true, if AABB is intersected by at least one triangle.
+    /// @param rLowerBound of AABB.
+    /// @param rUpperBound of AABB.
+    /// @param Tolerance Reduces size of AABB.
+    /// @return bool.
+    virtual bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const = 0;
+
     /// @brief Returns ptr to trimmed domain.
     /// @param rLowerBound Lower bound of AABB.
     /// @param rUpperBound Lower bound of AABB.
@@ -74,8 +81,23 @@ public:
     /// @return TrimmedDomainBasePtrType (Unique)
     virtual TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
+    /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
+    ///        Ray tracing through the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
+    ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.
+    ///        However, rPoint must be close to AABB. This is e.g. used to classify an aabb next to a trimmed aabb (see: FloodFlow()).
+    /// @param rPoint Query Point.
+    /// @param rLowerBound of AABB.
+    /// @param rUpperBound of AABB.
+    /// @return bool
+    virtual bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
+
 protected:
+    ///@}
+    ///@name Protected memmbers
+    ///@{
+
     const Parameters& mParameters;
+
     ///@}
 }; // End BRepOperatorBase class
 ///@} // End TIBRA classes

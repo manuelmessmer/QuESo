@@ -8,7 +8,7 @@
 #include <memory>
 /// Project includes
 #include "embedding/trimmed_domain_base.h"
-#include "embedding/aabb_tree.h"
+#include "embedding/geometry_query.h"
 #include "utilities/mesh_utilities.h"
 #include "embedding/trimmed_domain_on_plane.h"
 
@@ -42,15 +42,11 @@ public:
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperatorBase* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
-        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters), mTree(GetTriangleMesh())
+        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters),
+          mClippedMesh(GetTriangleMesh()), mGeometryQuery(mClippedMesh, false)
     {
         // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
-
-        // Copy clipped mesh. All operations, e.g. IsInsideTrimmedDomain() are only performed on the mClippedMesh (not on the closed mesh: mTriangelMesh).
-        const auto& mesh = GetTriangleMesh();
-        mClippedMesh.Reserve(mesh.NumOfTriangles());
-        MeshUtilities::Append(mClippedMesh, mesh);
 
         // Construct trimmed domain on plane upper bound of AABB.
         bool upper_bound = true;
@@ -124,8 +120,8 @@ private:
     ///@name Private Members
     ///@{
 
-    AABB_tree mTree;
     TriangleMesh mClippedMesh;
+    GeometryQuery mGeometryQuery;
     double mSnapTolerance;
 
     ///@}
