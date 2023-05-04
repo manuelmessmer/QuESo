@@ -62,8 +62,8 @@ Unique<StatusVectorType> FloodFill::ClassifyElements(GroupSetVectorType& rGroups
         num_threads = omp_get_num_threads();
     }
 
-    const IndexType partition_size = std::max<IndexType>( std::ceil( static_cast<double>(mNumberOfElements[partition_index]) /
-        static_cast<double>(num_threads) ), 1);
+    const IndexType partition_size = std::max<IndexType>( static_cast<IndexType>(std::ceil( static_cast<double>(mNumberOfElements[partition_index]) /
+        static_cast<double>(num_threads) ) ), 1);
 
     Vector3i partition_lower_bound(0, 0, 0);
     Vector3i partition_upper_bound = mNumberOfElements;
@@ -99,7 +99,7 @@ void FloodFill::PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBo
      const IndexType total_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
     BoolVectorType visited(total_num_elements, false);
     #pragma omp parallel for firstprivate(visited) schedule(static, 1)
-    for( int p_i = 0; p_i < rPartitions.size(); ++p_i){
+    for( int p_i = 0; p_i < static_cast<int>(rPartitions.size()); ++p_i){
         const auto& partition = rPartitions[p_i];
         for( IndexType i = partition.first[0]; i < partition.second[0]; ++i ){
             for( IndexType j = partition.first[1]; j < partition.second[1]; ++j ) {
@@ -220,7 +220,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
     }
 
     #pragma omp parallel for
-    for( int group_index = 0; group_index < num_groups;  ++group_index){
+    for( int group_index = 0; group_index < static_cast<int>(num_groups);  ++group_index){
         auto& group_set = rGroups[group_index];
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         const auto& index_set = std::get<1>(group_set);
