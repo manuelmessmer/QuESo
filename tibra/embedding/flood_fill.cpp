@@ -106,7 +106,7 @@ void FloodFill::PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBo
                 for( IndexType k = partition.first[2]; k < partition.second[2]; ++k ) {
                     const IndexType index = mMapper.GetVectorIndexFromMatrixIndices(i, j, k);
                     if( !visited[index] ) { // Unvisited
-                        GroupSetType new_group;
+                        GroupSetType new_group; // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
                         std::get<0>(new_group) = p_i; // Partition index
                         Fill(index, new_group, partition, rStates, visited);
                         if( std::get<1>(new_group).size() > 0 ){
@@ -126,10 +126,11 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
     // Set Index as visited
     rVisited[Index] = true;
     const auto box = mMapper.GetBoundingBoxFromIndex(Index);
-    // Only start filling of current element is not trimmed.
+    // Only start filling if current element is not trimmed.
     if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
         rStates[Index] = IntersectionStatus::Trimmed;
     } else {
+        // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<1>(rGroupSet).insert(Index);
 
         // If box is not trimmed, run flood fill.
@@ -174,6 +175,7 @@ int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSe
     // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
     auto box_next = mMapper.GetBoundingBoxFromIndex(next_index);
     if( mpBrepOperator->IsTrimmed(box_next.first + lower_perturb , box_next.second + upper_perturb) ){
+        // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
         return -1;
     }
@@ -192,6 +194,7 @@ int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSe
 
     // Add next_index to current group.
     rVisited[next_index] = true;
+    // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
     std::get<1>(rGroupSet).insert(next_index);
 
     return next_index;
@@ -201,7 +204,6 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
         IndexType PartitionDir, PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const {
 
     const IndexType num_groups = rGroups.size();
-    BoolVectorType visited(num_groups, false);
 
     // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
     const std::array<IndexType, 2> walk_directions = {2*PartitionDir, (2*PartitionDir)+1};
@@ -220,6 +222,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
     #pragma omp parallel for
     for( IndexType group_index = 0; group_index < num_groups;  ++group_index){
         auto& group_set = rGroups[group_index];
+        // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         const auto& index_set = std::get<1>(group_set);
         const auto partition_index = std::get<0>(group_set);
 
@@ -278,7 +281,8 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
 
     }
 
-    // Run group fill.
+    // Run group fill. Must be single-thread.
+    BoolVectorType visited(num_groups, false);
     for( IndexType group_index = 0; group_index < num_groups; ++group_index){
         if( !visited[group_index] ){
             GroupFill(group_index, rGroups, rMergedGroup, group_boundary_indices, PartitionDir, rStates, visited);
@@ -290,7 +294,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
 void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVector, GroupSetVectorType& rMergedGroups,
         const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, StatusVectorType& rStates, BoolVectorType& rVisited ) const {
 
-     // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
     const std::array<IndexType, 2> walk_directions = {2*PartitionDir, (2*PartitionDir)+1};
 
     // Set index as visited
@@ -316,21 +320,21 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
             auto other_partition_index = std::get<0>(rGroupSetVector[i]);
             if( !rVisited[i] && std::abs( static_cast<int>(partition_index-other_partition_index)) <=1 ){
                 const auto& other_boundary_indices = rBoundaryIndices[i];
-                bool are_boundary = false;
+                bool are_neighbours = false;
                 for( auto direction : walk_directions){
-                    if( are_boundary ){
+                    if( are_neighbours ){
                         break;
                     }
                     for( auto& iii : current_boundary_indices[map_direction[direction] % 2] ) { // -1{
                         auto next_index = GetNextIndex(direction, iii);
                         if( other_boundary_indices[direction % 2].find(next_index) != other_boundary_indices[direction % 2].end() ){
-                            are_boundary = true;
+                            are_neighbours = true;
                             break;
                         }
                     }
                 }
 
-                if( are_boundary ) {
+                if( are_neighbours ) {
                     // Add group to merged groups.
                     auto& merged_group = rMergedGroups[rMergedGroups.size()-1];
                     auto &new_set = std::get<1>(rGroupSetVector[i]);
@@ -347,8 +351,8 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
 }
 
 int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
-    auto box_current = mMapper.GetBoundingBoxFromIndex(Index);
-    auto box_next = mMapper.GetBoundingBoxFromIndex(NextIndex);
+    const auto box_current = mMapper.GetBoundingBoxFromIndex(Index);
+    const auto box_next = mMapper.GetBoundingBoxFromIndex(NextIndex);
     const PointType center_box = (box_current.first + box_current.second)*0.5;
     if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, box_next.first + rLowerOffset , box_next.second + rUpperOffset) ) {
         return 1;
@@ -359,21 +363,21 @@ int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const Poi
 
 int FloodFill::GetNextIndex( IndexType Direction, IndexType Index ) const {
     PointType dummy_1, dummy_2;
-    PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
+    const PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
     return GetNextIndex(Direction, Index, partition_box, dummy_1, dummy_2);
 }
 
 int FloodFill::GetNextIndex( IndexType Direction, IndexType Index, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset ) const {
-    PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
+    const PartitionBoxType partition_box = std::make_pair(Vector3i(0, 0, 0), mNumberOfElements);
     return GetNextIndex(Direction, Index, partition_box, rLowerBoundOffset, rUpperBoundOffset);
 }
 
 int FloodFill::GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const {
-    auto indices = mMapper.GetMatrixIndicesFromVectorIndex(Index);
+    const auto indices = mMapper.GetMatrixIndicesFromVectorIndex(Index);
     Vector3i next_indices = indices;
     rLowerBoundOffset = {0.0, 0.0, 0.0};
     rUpperBoundOffset = {0.0, 0.0, 0.0};
-    double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
+    const double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
     switch(Direction){
         case 0:
             if( indices[0] < rPartition.second[0]-1 ){ next_indices[0] += 1; }

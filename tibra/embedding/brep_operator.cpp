@@ -59,7 +59,7 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
     auto p_clipped_mesh = pClipTriangleMesh(rLowerBound, rUpperBound);
     auto& clipped_mesh = *p_clipped_mesh;
 
-    GeometryQuery goemetry_query_local(clipped_mesh, false);
+    GeometryQuery geometry_query_local(clipped_mesh, false);
 
     IndexType current_id = 0;
     const IndexType num_triangles = clipped_mesh.NumOfTriangles();
@@ -87,7 +87,7 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
         // Make sure target triangle is not parallel and has a significant area.
         const double area = clipped_mesh.Area(current_id);
         if( !ray.is_parallel(p1, p2, p3, 100.0*tolerance) && area >  100*ZEROTOL) {
-            auto [is_inside, success] = goemetry_query_local.IsInside(ray);
+            auto [is_inside, success] = geometry_query_local.IsInside(ray);
             if( success ){
                 ++success_count;
                 if( is_inside ){
@@ -116,6 +116,7 @@ IntersectionStatus BRepOperator::GetIntersectionState(
     }
 
     // Multiple test do not seem to be necessary.
+    // Note that for robust analysis, use flood flow.
     // IntersectionStatus status_confirm = (IsInside(center)) ? Inside : Outside;
     // while( status != status_confirm){
     //     status = (IsInside(center)) ? Inside : Outside;

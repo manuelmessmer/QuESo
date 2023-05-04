@@ -62,6 +62,8 @@ public:
     bool IsInside(const PointType& rPoint) const override;
 
     ///@brief Returns intersections state of element.
+    ///       Only use this function, if a single element has to be classified.
+    ///       For robust element classification of the entire domain use flood_flow.h!
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
@@ -91,10 +93,11 @@ public:
     /// @return bool.
     bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
 
+
     /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
-    ///        Ray tracing trough the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
+    ///        Ray tracing through the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
     ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.
-    ///        However, rPoint must be close to AABB. This is e.g. used to classify an aabb next to a trimmed aabb.
+    ///        However, rPoint must be close to AABB. This is e.g. used to classify an aabb next to a trimmed aabb (see: FloodFlow()).
     /// @param rPoint Query Point.
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.

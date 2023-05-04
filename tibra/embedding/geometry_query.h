@@ -43,13 +43,13 @@ public:
 
     /// @brief Returns true, if rPoint is within the bounding box of the given triangle mesh.
     /// @param rPoint
-    /// @return bool
+    /// @return bool.
     bool IsWithinBoundingBox(const PointType& rPoint) const;
 
     /// @brief Ray tracing to check, if a Point is inside or outside of the given triangle mesh.
     /// @details Calls: IsInsideOpen or IsInsideClosed depending on mMeshIsClosed.
-    /// @param rRay Ray
-    /// @return std::pair<bool, bool> first-is_inside second-test_successful
+    /// @param rRay Ray.
+    /// @return std::pair<bool, bool> first-is_inside second-test_successful.
     std::pair<bool, bool> IsInside( const Ray_AABB_primitive& rRay ) const;
 
     /// @brief Returns true, if the AABB intersects with the given triangle mesh.
