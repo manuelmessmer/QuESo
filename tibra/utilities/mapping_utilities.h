@@ -41,7 +41,7 @@ public:
     /// @return PointType.
     static PointType PointFromParamToGlobal( const PointType& rLocalCoord, const PointType& rLowerPoint, const PointType& rUpperPoint);
 
-    /// @brief Maps univaraite index to trivariate indices i -> (i,j,k)
+    /// @brief Maps univariate index to trivariate indices i -> (i,j,k)
     /// @see GetVectorIndexFromMatrixIndices
     /// @param Index
     /// @param rNumberOfElements in background mesh.
@@ -126,7 +126,7 @@ public:
     /// @return PointType.
     PointType PointFromParamToGlobal( const PointType& rLocalCoord ) const;
 
-    /// @brief Maps univaraite index to trivariate indices i -> (i,j,k).
+    /// @brief Maps univariate index to trivariate indices i -> (i,j,k).
     /// @see GetVectorIndexFromMatrixIndices.
     /// @param Index
     /// @return Vector3i.
