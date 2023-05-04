@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
 
         Mapper mapper(parameters);
         #pragma omp parallel for
-        for(IndexType i = 0; i < num_elements[0]; ++i ){
+        for(int i = 0; i < num_elements[0]; ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
