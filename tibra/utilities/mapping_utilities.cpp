@@ -49,7 +49,7 @@ std::pair<PointType, PointType> Mapping::GetBoundingBoxFromIndex(const Vector3i&
 }
 
 std::pair<PointType, PointType> Mapping::GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k, const PointType& rLowerBound, const PointType& rUpperBound, const Vector3i& rNumberOfElements)  {
-    const PointType indices_d( static_cast<double>(i), static_cast<double>(j), static_cast<double(k) );
+    const PointType indices_d( static_cast<double>(i), static_cast<double>(j), static_cast<double>(k) );
     PointType delta;
     delta[0] = std::abs(rUpperBound[0] - rLowerBound[0]) / (rNumberOfElements[0]);
     delta[1] = std::abs(rUpperBound[1] - rLowerBound[1]) / (rNumberOfElements[1]);

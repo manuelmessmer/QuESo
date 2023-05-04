@@ -211,7 +211,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
     // Compute bounding box for each group (only along PartitionDir).
     std::vector<Partition1DBoxType> group_bounding_boxes(num_groups);
     std::fill(group_bounding_boxes.begin(), group_bounding_boxes.end(),
-        std::make_pair( mNumberOfElements[PartitionDir]+1,  -1 ) );
+        std::make_pair( static_cast<int>(mNumberOfElements[PartitionDir]+1),  -1 ) );
 
     // We compute the indices of all element are located on the boundary of a group.
     BoundaryIndicesVectorType group_boundary_indices(num_groups);
