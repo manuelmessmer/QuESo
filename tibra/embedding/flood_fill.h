@@ -39,6 +39,48 @@ public:
     typedef std::pair<int, int> Partition1DBoxType;
     typedef std::vector<std::vector<std::set<IndexType>>> BoundaryIndicesVectorType;
 
+    class ClassificationResults {
+    public:
+        ClassificationResults(IndexType Size){
+            mStates.resize(Size);
+            mContainsBoundary.resize(Size);
+            std::fill(mStates.begin(), mStates.end(), IntersectionStatus::Outside);
+            std::fill(mContainsBoundary.begin(), mContainsBoundary.end(), false);
+        }
+
+        IntersectionStatusType GetState(IndexType Index) {
+            return (mStates)[Index];
+        }
+
+        void SetState(IndexType Index, IntersectionStatusType State){
+            mStates[Index] = State;
+        }
+
+        bool IsTouching(IndexType Index){
+            return mContainsBoundary[Index];
+        }
+
+        void SetIsTouching(IndexType Index, std::pair<PointType, PointType> rOffsets){
+            mContainsBoundary[Index] = true;
+            if( mOffsets.find(Index) == mOffsets.end() ){ // Not found
+                mOffsets.insert( std::make_pair(Index, rOffsets )  );
+            } else {
+                mOffsets[Index].first += rOffsets.first;
+                mOffsets[Index].second += rOffsets.second;
+            }
+        }
+
+        std::pair<PointType, PointType> GetOffsets(IndexType Index){
+            return mOffsets[Index];
+        }
+
+    private:
+        StatusVectorType mStates;
+        std::vector<bool> mContainsBoundary;
+        std::unordered_map<IndexType, std::pair<PointType, PointType>> mOffsets;
+
+    };
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -63,8 +105,8 @@ public:
     /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
-    /// @return Unique<StatusVectorType>.
-    Unique<StatusVectorType> ClassifyElements() const;
+    /// @return Unique<ClassificationResults>.
+    Unique<ClassificationResults> ClassifyElements() const;
 
 protected:
 
@@ -74,8 +116,8 @@ protected:
 
     /// @brief Only used for testing. Also provides the actual groups.
     /// @see ClassifyElements()
-    /// @return std::pair<Unique<StatusVectorType>, Unique<GroupSetVectorType>>
-    std::pair<Unique<StatusVectorType>, Unique<GroupSetVectorType>> ClassifyElementsForTest() const;
+    /// @return std::pair<Unique<ClassificationResults>, Unique<GroupSetVectorType>>
+    std::pair<Unique<ClassificationResults>, Unique<GroupSetVectorType>> ClassifyElementsForTest() const;
 
 private:
 
@@ -85,15 +127,15 @@ private:
 
     /// @brief Interface for ClassifyElements() and ClassifyElementsForTest().
     /// @param rGroupsOutput.
-    /// @return Unique<StatusVectorType>.
-    Unique<StatusVectorType> ClassifyElements(GroupSetVectorType& rGroupsOutput) const;
+    /// @return Unique<ClassificationResults>.
+    Unique<ClassificationResults> ClassifyElements(GroupSetVectorType& rGroupsOutput) const;
 
     /// @brief Partitions the background grid in "n_threads" stripes along the directon with "n_element_max" and filles each domain (see: SinglePartitionFill()).
     ///        Afterwards the domains are merged (see: MergeGroups).
     /// @param rGroupSetVector Vector to group sets: see GroupSetVectorType.
     /// @param rPartitions Vector of partitions.
     /// @param rStates Global classification vector (enum: Inside / outside or trimmed).
-    void PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const;
+    void PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBoxVectorType& rPartitions, ClassificationResults& rStates) const;
 
     /// @brief Starts flood fill from 'Index' over given partition and adds found elements to 'rGroupSet'.
     ///        Marks trimmed elements in global vector: rStates.
@@ -104,7 +146,7 @@ private:
     /// @param rStates Global classification vector.
     /// @param rVisited Vector<bool> for all elements.
     void Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBoxType &rPartition,
-        StatusVectorType& rStates, BoolVectorType& rVisited ) const;
+        ClassificationResults& rStates, BoolVectorType& rVisited ) const;
 
     /// @brief Move from current 'Index' towards 'Direction' to next index.
     ///        If next is trimmed, it is marked in rStates. And Is_inside cout of 'rGroupSet' is increased/decreased.
@@ -117,7 +159,7 @@ private:
     /// @param rVisited Vector<bool> for all elements.
     /// @return NextIndex.
     int Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSet,
-        const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
+        const PartitionBoxType& rPartition, ClassificationResults& rStates, BoolVectorType& rVisited ) const;
 
     /// @brief Merge groups that emerged from PartitionedFill.
     /// @param rGroups Contains all groups from all partitiones.
@@ -126,7 +168,7 @@ private:
     /// @param rPartitions Vector with all partitions.
     /// @param rStates Global classification vector.
     void MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMergedGroups, IndexType PartitionDir,
-        PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const;
+        PartitionBoxVectorType& rPartitions, ClassificationResults& rStates) const;
 
 
     /// @brief Run flood fill to merge groups starting at 'GroupIndex'.
@@ -138,7 +180,7 @@ private:
     /// @param rStates Global classification vector.
     /// @param rVisited Vector<bool> for all elements.
     void GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVector, GroupSetVectorType& rMergedGroups,
-        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
+        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, ClassificationResults& rStates, BoolVectorType& rVisited ) const;
 
     /// @brief Performs a local ray tracing of two adjacent elements. On that is part of a new group and its trimmed neighbour.
     ///        We up to 10 rays, from the center of the first element towards the intersected triangles of the cut element. Based on the orientation of each triangle
