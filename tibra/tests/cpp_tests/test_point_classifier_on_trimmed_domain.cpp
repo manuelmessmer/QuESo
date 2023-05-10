@@ -21,11 +21,11 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cylinder Point Classifier" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     Parameters params( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
 
     const double delta_x = 0.50;
     const double delta_y = 0.50;
@@ -65,11 +65,11 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cube with Cavity Point Classifier" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     Parameters params( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
 
     const double delta_x = 0.15;
     const double delta_y = 0.15;
@@ -109,11 +109,11 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Elephant Point Classifier" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     Parameters params( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
 
     const double delta_x = 0.05;
     const double delta_y = 0.05;
@@ -153,11 +153,11 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Bunny Point Classifier" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
     Parameters params( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
 
     const double delta_x = 10;
     const double delta_y = 10;

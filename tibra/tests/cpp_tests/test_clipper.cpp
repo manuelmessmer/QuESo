@@ -19,13 +19,13 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     TIBRA_INFO << "Testing :: Test Clipper :: Clip Cylinder Test 1" << std::endl;
 
     //Read mesh from STL file
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
 
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     Parameters param{};
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
 
     Vector3d lower_bound = {0.0, 0.0, -0.1};
     Vector3d upper_bound = {2, 2, 1};
@@ -47,13 +47,13 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     TIBRA_INFO << "Testing :: Test Clipper :: Clip Cylinder Test 2" << std::endl;
 
     //Read mesh from STL file
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
 
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     Parameters param{};
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
 
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2, 2, 1};
@@ -74,13 +74,13 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
 BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
     TIBRA_INFO << "Testing :: Test Clipper :: Clip Cube With Cavity Test" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     Parameters param{};
     // Construct BRep_Operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
 
     const double delta_x = 0.15;
     const double delta_y = 0.15;
@@ -121,13 +121,13 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
 BOOST_AUTO_TEST_CASE(ClipElephantTest) {
     TIBRA_INFO << "Testing :: Test Clipper :: Clip Elephant Test" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     Parameters param{};
     // Construct BRep_operator.
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
 
     const double delta_x = 0.05;
     const double delta_y = 0.05;
@@ -171,13 +171,16 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
 BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     TIBRA_INFO << "Testing :: Test Clipper :: Clip Bunny Test" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
     Parameters param{};
     // Construct BRep operator.
-    BRepOperator brep_operator(triangle_mesh, param);
+    Unique<BRepOperator> brep_operator = nullptr;
+    brep_operator = MakeUnique<BRepOperator>(p_triangle_mesh, param);
+
+    auto a = MeshUtilities::Volume(brep_operator->GetTriangleMesh());
     const double delta_x = 5;
     const double delta_y = 5;
     const double delta_z = 5;
@@ -190,7 +193,7 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip mesh.
-                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
+                auto p_clipped_mesh = brep_operator->pClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
                 double area = 0.0;

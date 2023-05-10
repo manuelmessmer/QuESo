@@ -33,11 +33,12 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
 
 
 
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(p_triangle_mesh,parameters);
+    const auto& r_triangle_mesh = brep_operator.GetTriangleMesh();
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
@@ -46,9 +47,9 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_elephant.txt");
     std::string line{};
 
-    const double volume_ref = MeshUtilities::Volume(triangle_mesh);
+    const double volume_ref = MeshUtilities::Volume(r_triangle_mesh);
     double volume_test = 0.0;
-    const double area_ref = MeshUtilities::Area(triangle_mesh);
+    const double area_ref = MeshUtilities::Area(r_triangle_mesh);
     double area_test = 0.0;
 
     IndexType number_trimmed_elements = 0;
@@ -137,12 +138,12 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                             Component("min_num_boundary_triangles", 100UL),
                             Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, parameters);
-
+    BRepOperator brep_operator(p_triangle_mesh, parameters);
+    const auto& r_triangle_mesh = brep_operator.GetTriangleMesh();
     const double delta_x = 15;
     const double delta_y = 15;
     const double delta_z = 15;
@@ -150,9 +151,9 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_bunny.txt");
     std::string line{};
 
-    const double volume_ref = MeshUtilities::Volume(triangle_mesh);
+    const double volume_ref = MeshUtilities::Volume(r_triangle_mesh);
     double volume_test = 0.0;
-    const double area_ref = MeshUtilities::Area(triangle_mesh);
+    const double area_ref = MeshUtilities::Area(r_triangle_mesh);
     double area_test = 0.0;
 
     IndexType number_trimmed_elements = 0;
@@ -237,11 +238,12 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                             Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, parameters);
+    BRepOperator brep_operator(p_triangle_mesh, parameters);
+    const auto& r_triangle_mesh = brep_operator.GetTriangleMesh();
 
     const double delta_x = 1;
     const double delta_y = 1;
@@ -250,9 +252,9 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     std::ifstream file("tibra/tests/cpp_tests/results/surface_integral_cylinder.txt");
     std::string line{};
 
-    const double volume_ref = MeshUtilities::Volume(triangle_mesh);
+    const double volume_ref = MeshUtilities::Volume(r_triangle_mesh);
     double volume_test = 0.0;
-    const double area_ref = MeshUtilities::Area(triangle_mesh);
+    const double area_ref = MeshUtilities::Area(r_triangle_mesh);
     double area_test = 0.0;
 
     IndexType number_trimmed_elements = 0;
@@ -332,10 +334,10 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
                             Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    auto& vertices = triangle_mesh.GetVertices();
+    auto& vertices = p_triangle_mesh->GetVertices();
     for( auto& v : vertices ){
         v[0] += Perturbation[0];
         v[1] += Perturbation[1];
@@ -343,14 +345,15 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     }
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, parameters);
+    BRepOperator brep_operator(p_triangle_mesh, parameters);
+    const auto& r_triangle_mesh = brep_operator.GetTriangleMesh();
 
     const double delta_x = rDelta[0];
     const double delta_y = rDelta[1];
     const double delta_z = rDelta[2];
 
-    const double volume_ref = MeshUtilities::Volume(triangle_mesh);
-    const double area_ref = MeshUtilities::Area(triangle_mesh);
+    const double volume_ref = MeshUtilities::Volume(r_triangle_mesh);
+    const double area_ref = MeshUtilities::Area(r_triangle_mesh);
     double volume = 0.0;
     double area = 0.0;
     IndexType number_trimmed_elements = 0;

@@ -26,11 +26,11 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     Vector3i order = {2, 2, 2};
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
     const double delta_x = 0.50;
     const double delta_y = 0.50;
     const double delta_z = 0.50;
@@ -68,11 +68,11 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cube" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
 
     const double delta_x = 0.3;
     const double delta_y = 0.3;
@@ -119,11 +119,11 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     Vector3i order = {2, 2, 2};
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;
@@ -163,11 +163,11 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Bunny" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
     Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(p_triangle_mesh, param);
 
     const double delta_x = 10;
     const double delta_y = 10;

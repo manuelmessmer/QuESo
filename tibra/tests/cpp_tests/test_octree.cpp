@@ -22,8 +22,8 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     /// Uniform refinement, each node has 8 children.
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2.0, 2.0, 2.0};
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
                         Component("upper_bound", upper_bound) });
 
     // Get trimmed domain.
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3});
 
     // Construct octree.
@@ -62,8 +62,8 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     /// Refinement in only on trimmed nodes in one direction.
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     Vector3d lower_bound = {-1.0, -1.0, -1.0};
     Vector3d upper_bound = {2.0, 2.0, 2.0};
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
                         Component("upper_bound", upper_bound) });
 
     // Get trimmed domain.
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3});
 
     // Construct octree.
@@ -98,17 +98,17 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     // Compute volume of elephant through octree.
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {5.0, 5.0, 5.0};
     Parameters params( {Component("lower_bound", lower_bound),
                         Component("upper_bound", upper_bound) });
 
-    const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh);
+    const double ref_volume = MeshUtilities::VolumeOMP(p_triangle_mesh);
     // Get trimmed domain.
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35});
 
     // Construct octree.

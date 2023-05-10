@@ -34,11 +34,11 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                             Component("min_element_volume_ratio", 1e-3),
                             Component("polynomial_order", rOrder ) } );
 
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(p_triangle_mesh,parameters);
 
     const double delta_x = 0.5;
     const double delta_y = 0.5;
@@ -148,11 +148,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
 
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/steering_knuckle.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/steering_knuckle.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(p_triangle_mesh,parameters);
 
     const double delta_x = 10;
     const double delta_y = 10;
@@ -245,11 +245,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                             Component("min_element_volume_ratio", 1e-3),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(p_triangle_mesh,parameters);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;

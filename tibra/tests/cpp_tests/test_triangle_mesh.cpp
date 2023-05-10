@@ -64,7 +64,7 @@ std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTri
 
 BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Refine" << std::endl;
-    TriangleMesh triangle_mesh{};
+    TriangleMesh triangle_mesh;
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
     TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Cylinder" << std::endl;
-    TriangleMesh triangle_mesh{};
+    TriangleMesh triangle_mesh;
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
@@ -148,12 +148,12 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
     TIBRA_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant Splitted" << std::endl;
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     Parameters params( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(p_triangle_mesh, params);
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;

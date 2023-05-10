@@ -8,7 +8,7 @@
 //// STL includes
 #include "math.h"
 // Project includes
-#include "embedding/brep_operator_factory.h"
+#include "TIBRA_main.h"
 #include "quadrature/trimmed_element.h"
 #include "quadrature/single_element.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
@@ -27,7 +27,9 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
-    Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+    std::string filename = "tibra/tests/cpp_tests/data/elephant.stl";
+    Parameters parameters( {Component("input_filename", filename),
+                            Component("lower_bound", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound", PointType(2.0, 2.0, 3.0)),
                             Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(2, 2, 2)),
@@ -36,6 +38,9 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
                             Component("init_point_distribution_factor", 3UL),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
+
+
+    TIBRA tibra(parameters);
 
     Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, parameters);
 

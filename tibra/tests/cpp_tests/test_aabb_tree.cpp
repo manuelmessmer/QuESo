@@ -21,11 +21,11 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     TIBRA_INFO << "Testing :: Test Touching Cube 1" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(*p_triangle_mesh);
 
     Vector3d lower_bound = {-2.0, -2, -2};
     Vector3d upper_bound = {-1.5, 2, 2};
@@ -36,9 +36,9 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     std::vector<IndexType> intersected_triangles{};
 
     for( auto r : results){
-        const auto& p1 = triangle_mesh.P1(r);
-        const auto& p2 = triangle_mesh.P2(r);
-        const auto& p3 = triangle_mesh.P3(r);
+        const auto& p1 = p_triangle_mesh->P1(r);
+        const auto& p2 = p_triangle_mesh->P2(r);
+        const auto& p3 = p_triangle_mesh->P3(r);
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
         BOOST_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
@@ -55,11 +55,11 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     TIBRA_INFO << "Testing :: Test Touching Cube 2" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(*p_triangle_mesh);
 
     Vector3d lower_bound = {1.5, -2, -2};
     Vector3d upper_bound = {5.0, 2, 2};
@@ -70,9 +70,9 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     std::vector<IndexType> intersected_triangles{};
 
     for( auto r : results){
-        const auto& p1 = triangle_mesh.P1(r);
-        const auto& p2 = triangle_mesh.P2(r);
-        const auto& p3 = triangle_mesh.P3(r);
+        const auto& p1 = p_triangle_mesh->P1(r);
+        const auto& p2 = p_triangle_mesh->P2(r);
+        const auto& p3 = p_triangle_mesh->P3(r);
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
         BOOST_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
@@ -88,16 +88,16 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     TIBRA_INFO << "Testing :: Test Touching Triangle " << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
 
     // Construct inclined triangle.
-    triangle_mesh.AddVertex({0.0,0.0,0.0});
-    triangle_mesh.AddVertex({-1.0,1.0,0.0});
-    triangle_mesh.AddVertex({-1.0,1.0,1.0});
-    triangle_mesh.AddTriangle({0, 1, 2});
+    p_triangle_mesh->AddVertex({0.0,0.0,0.0});
+    p_triangle_mesh->AddVertex({-1.0,1.0,0.0});
+    p_triangle_mesh->AddVertex({-1.0,1.0,1.0});
+    p_triangle_mesh->AddTriangle({0, 1, 2});
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(*p_triangle_mesh);
 
     // Lower bound touched triangle.
     Vector3d lower_bound = {-0.5, 0.5, 0.1};
@@ -111,9 +111,9 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     std::vector<IndexType> intersected_triangles{};
 
     for( auto r : results){
-        const auto& p1 = triangle_mesh.P1(r);
-        const auto& p2 = triangle_mesh.P2(r);
-        const auto& p3 = triangle_mesh.P3(r);
+        const auto& p1 = p_triangle_mesh->P1(r);
+        const auto& p2 = p_triangle_mesh->P2(r);
+        const auto& p3 = p_triangle_mesh->P3(r);
 
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
@@ -129,11 +129,11 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
     TIBRA_INFO << "Testing :: Test Find Intersected Triangles :: Cylinder" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(*p_triangle_mesh);
 
     // Open results file. Results are checked with CGAL
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_cylinder.txt");
@@ -157,9 +157,9 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
                 std::vector<IndexType> intersected_triangles{};
 
                 for( auto r : results){
-                    const auto& p1 = triangle_mesh.P1(r);
-                    const auto& p2 = triangle_mesh.P2(r);
-                    const auto& p3 = triangle_mesh.P3(r);
+                    const auto& p1 = p_triangle_mesh->P1(r);
+                    const auto& p2 = p_triangle_mesh->P2(r);
+                    const auto& p3 = p_triangle_mesh->P3(r);
                     const double tolerance = 0.0;
                     if( aabb.intersect(p1, p2, p3, tolerance) ){
                         intersected_triangles.push_back(r);
@@ -189,11 +189,11 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
     TIBRA_INFO << "Testing :: Test Find Intersected Triangles :: Elephant" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     // Build aabb tree.
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(*p_triangle_mesh);
 
     // Open results file. Results are verified with CGAL. Touching triangles are not considered as intersected.
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_elephant.txt");
@@ -210,9 +210,9 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
 
                 std::vector<IndexType> intersected_triangles{};
                 for( auto r : results){
-                    const auto& p1 = triangle_mesh.P1(r);
-                    const auto& p2 = triangle_mesh.P2(r);
-                    const auto& p3 = triangle_mesh.P3(r);
+                    const auto& p1 = p_triangle_mesh->P1(r);
+                    const auto& p2 = p_triangle_mesh->P2(r);
+                    const auto& p3 = p_triangle_mesh->P3(r);
                     const double tolerance = 0.0;
                     if( aabb.intersect(p1, p2, p3, tolerance) ){
                         intersected_triangles.push_back(r);
@@ -244,11 +244,11 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
     TIBRA_INFO << "Testing :: Test Find Intersected Triangles :: Bunny" << std::endl;
 
     // Read mesh from STL file
-    TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    auto p_triangle_mesh = TriangleMesh::New();
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
     // Build aabb tree.
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(*p_triangle_mesh);
 
     // Read results file. Results are verified with CGAL:
     std::ifstream myfile("tibra/tests/cpp_tests/results/aabb_bunny.txt");
@@ -266,9 +266,9 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
 
                 std::vector<IndexType> intersected_triangles{};
                 for( auto r : results){
-                    const auto& p1 = triangle_mesh.P1(r);
-                    const auto& p2 = triangle_mesh.P2(r);
-                    const auto& p3 = triangle_mesh.P3(r);
+                    const auto& p1 = p_triangle_mesh->P1(r);
+                    const auto& p2 = p_triangle_mesh->P2(r);
+                    const auto& p3 = p_triangle_mesh->P3(r);
                     const double tolerance = 0.0;
                     if( aabb.intersect(p1, p2, p3, tolerance) ){
                         intersected_triangles.push_back(r);
@@ -331,9 +331,9 @@ BOOST_AUTO_TEST_SUITE_END()
 //     AABBTreeType tree_cgal{};
 //     CGAL::Polygon_mesh_processing::build_AABB_tree(mPolyhedron, tree_cgal);
 
-//     TriangleMesh triangle_mesh{};
+//     auto p_triangle_mesh = TriangleMesh::New();
 //     // Read mesh from STL file
-//     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+//     IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
 //     AABB_tree tree(triangle_mesh);
 
@@ -375,9 +375,9 @@ BOOST_AUTO_TEST_SUITE_END()
 //                 p1 = points_[0];
 //                 p2 = points_[1];
 //                 p3 = points_[2];
-//                 // const auto& p1 = triangle_mesh.P1(pri.idx());
-//                 // const auto& p2 = triangle_mesh.P2(pri.idx());
-//                 // const auto& p3 = triangle_mesh.P3(pri.idx());
+//                 // const auto& p1 = p_triangle_mesh->P1(pri.idx());
+//                 // const auto& p2 = p_triangle_mesh->P2(pri.idx());
+//                 // const auto& p3 = p_triangle_mesh->P3(pri.idx());
 
 //                 double x_min = std::min({p1[0], p2[0], p3[0] });
 //                 double y_min = std::min({p1[1], p2[1], p3[1] });
@@ -420,9 +420,9 @@ BOOST_AUTO_TEST_SUITE_END()
 //             std::vector<IndexType> intersected_triangles{};
 //             int count = 0;
 //             for( auto r : results){
-//                 const auto& p1 = triangle_mesh.P1(r);
-//                 const auto& p2 = triangle_mesh.P2(r);
-//                 const auto& p3 = triangle_mesh.P3(r);
+//                 const auto& p1 = p_triangle_mesh->P1(r);
+//                 const auto& p2 = p_triangle_mesh->P2(r);
+//                 const auto& p3 = p_triangle_mesh->P3(r);
 //                 double t, u, v;
 
 //                     //actual_cgal_intersections.push_back( pri.idx() );
@@ -462,11 +462,11 @@ BOOST_AUTO_TEST_SUITE_END()
 //                 if( !(actual_cgal_intersections.size() == intersected_triangles.size())){
 //                     TIBRA_INFO << "x: " << xx << ", " << yy << ", " << zz << std::endl;
 //                     TIBRA_INFO << "x: " << xx+0.1 << ", " << yy+0.1 << ", " << zz+0.1 << std::endl;
-//                     const auto p1 = triangle_mesh.P1(actual_cgal_intersections[i]);
+//                     const auto p1 = p_triangle_mesh->P1(actual_cgal_intersections[i]);
 //                     TIBRA_INFO << p1[0] << ", " << p1[1] << ", " << p1[2] << ", " << std::endl;
-//                     const auto p2 = triangle_mesh.P2(actual_cgal_intersections[i]);
+//                     const auto p2 = p_triangle_mesh->P2(actual_cgal_intersections[i]);
 //                     TIBRA_INFO << p2[0] << ", " << p2[1] << ", " << p2[2] << ", " << std::endl;
-//                     const auto p3 = triangle_mesh.P3(actual_cgal_intersections[i]);
+//                     const auto p3 = p_triangle_mesh->P3(actual_cgal_intersections[i]);
 //                     TIBRA_INFO << p3[0] << ", " << p3[1] << ", " << p3[2] << ", " << std::endl;
 //                 }
 //                 BOOST_CHECK_EQUAL(actual_cgal_intersections[i], intersected_triangles[i]);

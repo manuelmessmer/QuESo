@@ -20,9 +20,9 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 
     TIBRA_INFO << "Testing :: Test Point Classifier :: Cylinder Point Classifier" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(167620);
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
         }
     }
     Parameters params{};
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(p_triangle_mesh, params);
 
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
@@ -59,9 +59,9 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier :: Cube Point Classifier" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
     std::vector<PointType> rPoints{};
     // rPoints.reserve(117900);
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
     }
 
     Parameters params{};
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(p_triangle_mesh, params);
 
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
@@ -111,12 +111,12 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier :: Elphant Point Classifier" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     Parameters params{};
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(p_triangle_mesh, params);
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(84000);
@@ -163,12 +163,12 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
     TIBRA_INFO << "Testing :: Test Point Classifier :: Bunny Point Classifier" << std::endl;
 
-    TriangleMesh triangle_mesh{};
+    auto p_triangle_mesh = TriangleMesh::New();
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
+    IO::ReadMeshFromSTL(*p_triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
     Parameters params{};
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(p_triangle_mesh, params);
 
 
     std::vector<PointType> rPoints{};
