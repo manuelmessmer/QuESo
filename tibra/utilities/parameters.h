@@ -23,6 +23,9 @@ namespace tibra {
 enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
 typedef enum IntegrationMethod IntegrationMethodType;
 
+enum ConditionValue {Neumann, Dirichlet};
+typedef ConditionValue ConditionValueType;
+
 ///@}
 ///@name  TIBRA Classes
 ///@{
@@ -75,6 +78,27 @@ private:
 
 }; // End class Component
 
+class ConditionParameter {
+public:
+    ConditionParameter(ConditionValueType rType, const std::string& Filename, const PointType& rPrescribed, double Penalty ) :
+        mType(rType), mFilename(Filename), mPrescribed(rPrescribed), mPenalty(Penalty)
+    {
+    }
+
+    ConditionValueType Type() const { return mType; }
+
+    std::string Filename() const { return mFilename; }
+
+    PointType Prescribed() const { return mPrescribed; }
+
+    double PenaltyFactor() const { return mPenalty; }
+
+private:
+    ConditionValueType mType;
+    std::string mFilename;
+    PointType mPrescribed;
+    double mPenalty;
+};
 
 /**
  * @class  Parameters
@@ -200,6 +224,20 @@ public:
         CheckComponents();
     }
 
+    void AddCondition(std::string Type, const std::string& rFilename, const PointType& rPrescribed, double Penalty){
+        if( Type == "Dirichlet" ){
+            mConditions.push_back(ConditionParameter(ConditionValue::Dirichlet, rFilename, rPrescribed, Penalty) );
+        } else if ( Type == "Neumann" ) {
+            mConditions.push_back(ConditionParameter(ConditionValue::Neumann, rFilename, rPrescribed, Penalty) );
+        } else {
+            TIBRA_ERROR("Parameters::AddCondition") << "Type: " << Type << " not available. Available options: 'Dirichlet' and 'Neumann'.\n";
+        }
+    }
+
+    const std::vector<ConditionParameter>& GetConditions() const {
+        return mConditions;
+    }
+
     /// @brief Get parameter value. Throws an error if parameter is not available.
     /// @tparam type
     /// @param rName Name (Key) of parameter.
@@ -321,6 +359,7 @@ private:
     ///@{
 
     std::vector<Component> mComponents{};
+    std::vector<ConditionParameter> mConditions{};
 
     inline static const std::vector<Component> mDefaultComponents = {
         Component("echo_level", 0UL),

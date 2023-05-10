@@ -20,17 +20,24 @@ namespace tibra {
 
     bool GeometryQuery::DoIntersect(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const {
         AABB_primitive aabb(rLowerBound, rUpperBound);
+        std::cout << "Before: query \n";
         auto result = mTree.Query(aabb);
+        std::cout << "After: query \n";
 
         const double snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, Tolerance);
+        std::cout << "Bef: intersect \n";
         for( auto r : result){
+            std::cout << "01 \n";
             const auto& p1 = mTriangleMesh.P1(r);
             const auto& p2 = mTriangleMesh.P2(r);
             const auto& p3 = mTriangleMesh.P3(r);
+            std::cout << "02 \n";
+            std::cerr << p1 << ", " << p2 << ", " << p3 << std::endl;
             if( aabb.intersect(p1, p2, p3, snap_tolerance) ){
                 return true;
             }
         }
+        std::cout << "After: intersect \n";
         return false;
     }
 

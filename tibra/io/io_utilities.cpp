@@ -714,6 +714,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
             if(index_map_iterator->second == -1) {
                 triangle[j] = index;
                 index_map_iterator->second = index++;
+                std::cout << vertex << std::endl;
                 rTriangleMesh.AddVertex(vertex);
                 vertices[j] = vertex;
             }

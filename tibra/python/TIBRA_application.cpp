@@ -231,6 +231,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
                 rParams.Set(rName, GetIntegrationMethodFromString(rValue)); }
             else {
                 rParams.Set(rName, rValue); } })
+        .def("AddCondition", &Parameters::AddCondition)
         .def("EchoLevel", &Parameters::EchoLevel)
         // Return std::array<type,3> types. Easier to handle in python.
         .def("LowerBound", []( const Parameters& rParams ) { return rParams.LowerBound().Coordinates(); })

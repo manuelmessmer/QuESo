@@ -81,6 +81,16 @@ public:
     /// @return TrimmedDomainBasePtrType (Unique)
     virtual TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
+    ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
+    ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
+    ///       This is a requirement for the application of boundary conditions.
+    ///@todo This needs improvement. Probably global function that cuts every plane only once, to guarantee that triangles on the planes are not assigned twice.
+    ///@see pClipTriangleMesh()
+    ///@param rLowerBound Lower bound of AABB.
+    ///@param rUpperBound Upper bound of AABB.
+    ///@return Unique<TriangleMesh>. Clipped mesh.
+    virtual Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
+
     /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
     ///        Ray tracing through the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
     ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.

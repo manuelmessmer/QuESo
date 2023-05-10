@@ -22,10 +22,26 @@ def PointFromGlobalToParamSpace(point,lower_point, upper_point):
 
 def GetItems(dictionary):
     for k, v in dictionary.items():
-        if isinstance(v, dict):
-            yield from GetItems(v)
-        else:
+        if k != "conditions":
+            if isinstance(v, dict):
+                yield from GetItems(v)
+            else:
+                yield (k, v)
+
+def GetConditions(dictionary):
+    for k, v in dictionary.items():
+        if k == "conditions":
+            yield from GetConditions(v)
+        if k == "neumann" or k == "dirichlet":
             yield (k, v)
+
+# def GetDirichletConditions(dictionary):
+#     for k, v in dictionary.items():
+#         if k == "Conditions":
+#             yield from GetItems(v)
+#         if k == "Dirichlet":
+#             yield (k, v)
+
 
 def ReadParameters(json_filename):
     ''' ReadParameters \n
@@ -37,6 +53,16 @@ def ReadParameters(json_filename):
     parameters = TIBRA_Application.Parameters()
     items = GetItems(settings)
     for key, value in items:
+        print("Key: ", key)
+        print("Value: ", value)
         parameters.Set(key, value)
+
+    for key, value in GetConditions(settings):
+        if key == "dirichlet":
+            point = TIBRA_Application.Point(value["displacement"])
+            parameters.AddCondition("Dirichlet", value["filename"], point, value["penalty_factor"])
+        if key == "neumann":
+            point = TIBRA_Application.Point(value["force"])
+            parameters.AddCondition("Dirichlet", value["filename"], point, 0.0)
 
     return parameters

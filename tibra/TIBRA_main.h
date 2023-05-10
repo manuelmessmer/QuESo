@@ -15,12 +15,14 @@
 #include "containers/element_container.hpp"
 #include "embedding/brep_operator_factory.h"
 #include "containers/element.hpp"
+#include "containers/condition.hpp"
 #include "io/io_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "utilities/parameters.h"
 #include "utilities/timer.hpp"
 #include "utilities/logger.hpp"
+
 
 namespace tibra {
 
@@ -39,14 +41,15 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<Element> ElementVectorType;
+    typedef std::vector<Condition> ConditionVectorType;
+    typedef std::vector<Unique<BRepOperatorBase>> BRepOperatorPtrVectorType;
 
     ///@}
     ///@name  Life Cycle
     ///@{
 
     /// @brief Constructor. Runs all processes.
-    TIBRA(const Parameters& rParameters ) : mParameters(rParameters)
+    TIBRA(const Parameters& rParameters ) : mParameters(rParameters), mIdMapper(mParameters)
     {
         Timer timer{};
         TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "\nTIBRA ------------------------------------------ START" << std::endl;
@@ -72,6 +75,19 @@ public:
 
             TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
             TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
+        }
+
+        const auto& conditions = mParameters.GetConditions();
+        for( const auto condition : conditions){
+            const auto& r_cond_filename = condition.Filename();
+            TriangleMesh cond_triangle_mesh;
+            IO::ReadMeshFromSTL(cond_triangle_mesh, r_cond_filename.c_str());
+            if( r_cond_filename == "data/N1.stl")
+                IO::WriteMeshToSTL(cond_triangle_mesh, "test.stl", false);
+            auto p_value = BRepOperatorFactory::New(cond_triangle_mesh, mParameters) ;
+
+            mpBRepOperatorsForConditions.push_back( std::move(p_value) );
+
         }
 
         // Start computation
@@ -144,7 +160,11 @@ private:
     TriangleMesh mTriangleMeshPost;
     Unique<BRepOperatorBase> mpBRepOperator;
     Unique<ElementContainer> mpElementContainer;
+    BRepOperatorPtrVectorType mpBRepOperatorsForConditions;
+    ConditionVectorType mConditionContainer;
+
     const Parameters mParameters;
+    Mapper mIdMapper;
     ///@}
 
     ///@name Private Member Operations

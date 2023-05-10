@@ -120,6 +120,43 @@ void TIBRA::Run(){
     QuadratureMultipleElements::AssembleIPs(*mpElementContainer, mParameters);
   }
 
+  /// Conditions
+  const auto& conditions = mParameters.GetConditions();
+  const IndexType num_conditions = conditions.size();
+  const IndexType total_number_elements = global_number_of_elements;
+  std::cout << "num cond: " << num_conditions << std::endl;
+  std::cout << "operators: " << mpBRepOperatorsForConditions.size() << std::endl;
+
+  for( IndexType i = 0; i < num_conditions; ++i ){
+
+    Unique<TriangleMesh> p_new_mesh = MakeUnique<TriangleMesh>();
+    p_new_mesh->Reserve(1000);
+    auto& p_operatos = mpBRepOperatorsForConditions[i];
+    for( IndexType index = 0; index < global_number_of_elements; ++index){
+        auto bounding_box = mIdMapper.GetBoundingBoxFromIndex(index);
+        const double tolerance = 100*RelativeSnapTolerance(bounding_box.first, bounding_box.second);
+        const PointType offset(tolerance, tolerance, tolerance);
+        TIBRA_INFO << bounding_box.first << ", " << bounding_box.second << std::endl;
+        if( p_operatos->IsTrimmed(bounding_box.first, bounding_box.second) ){
+        //     auto p_mesh = mpBRepOpbounding_box.firsteratorsForConditions[i]->pClipTriangleMeshUnique(bounding_box.first, bounding_box.second);
+        //     if( p_mesh->NumOfTriangles() > 0 ){
+        //         MeshUtilities::Append(*p_new_mesh, *p_mesh);
+        //     }
+       }
+    }
+    // TIBRA_INFO << "Size: " << num_conditions << std::endl;
+    // if( p_new_mesh->NumOfTriangles() > 0 ){
+    //     TIBRA_INFO << "I: " << i << std::endl;
+    //     auto con = conditions[i];
+    //     // if( conditions[i].Type() == ConditionValue::Dirichlet ){
+    //     //     //mConditionContainer.push_back(Condition(std::move(p_new_mesh), conditions[i].Prescribed(), conditions[i].PenaltyFactor() ));
+    //     // } else if( conditions[i].Type() == ConditionValue::Neumann ){
+    //     //    // mConditionContainer.push_back(Condition(std::move(p_new_mesh), conditions[i].Prescribed()  ));
+    //     // }
+    // }
+  }
+
+  std::cout << "waf: \n" << std::endl;
   // Average time spend for each task
   if( mParameters.EchoLevel() > 1 ){
     const IndexType num_procs = std::thread::hardware_concurrency();
