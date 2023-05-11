@@ -196,7 +196,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
-        const auto r_points = *p_points;
+        const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
@@ -214,7 +214,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     #pragma omp parallel for reduction(+ : volume)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
-        const auto r_points = *p_points;
+        const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
@@ -234,7 +234,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
-        const auto r_points = *p_points;
+        const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
@@ -279,7 +279,7 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
 
         // Get integration points
         const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
-        const auto r_points = *p_points;
+        const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             total_volume_1 += normal[0]*point[0] * point.GetWeight();
