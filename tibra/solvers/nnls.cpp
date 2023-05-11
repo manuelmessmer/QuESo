@@ -65,12 +65,12 @@ double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     // Copy results into x
     std::copy(X, X+n, x.begin());
 
-    delete A_doubles;
-    delete B_doubles;
-    delete X;
-    delete W;
-    delete ZZ;
-    delete index;
+    delete[] A_doubles;
+    delete[] B_doubles;
+    delete[] X;
+    delete[] W;
+    delete[] ZZ;
+    delete[] index;
 
     return Rnorm;
 }
