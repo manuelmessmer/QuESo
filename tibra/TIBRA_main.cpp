@@ -95,6 +95,20 @@ void TIBRA::Run(){
                 mpElementContainer->AddElement(new_element); // After this new_element is a null_ptr. Is std::moved to container.
             }
         }
+
+    }
+
+    // Treat conditions
+    #pragma omp parallel for
+    for( IndexType index = 0; index < global_number_of_elements; ++index ) {
+        for( IndexType i = 0; i < mConditions.size(); ++i ){
+            const auto bounding_box = mMapper.GetBoundingBoxFromIndex(index);
+            const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box.first, bounding_box.second);
+            if( p_new_mesh->NumOfTriangles() > 0 ){
+                #pragma omp critical
+                mConditions[i]->AddToConformingMesh(*p_new_mesh);
+            }
+        }
     }
 
     if( mParameters.GGQRuleIsUsed() ){

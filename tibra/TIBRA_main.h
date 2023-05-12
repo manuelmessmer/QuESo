@@ -15,6 +15,7 @@
 #include "containers/element_container.hpp"
 #include "embedding/brep_operator_factory.h"
 #include "containers/element.hpp"
+#include "containers/condition.hpp"
 #include "io/io_utilities.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/mesh_utilities.h"
@@ -40,6 +41,8 @@ public:
     ///@{
 
     typedef std::vector<Element> ElementVectorType;
+    typedef std::vector<Shared<Condition>> ConditionPtrVectorType;
+    typedef std::vector<Unique<BRepOperator>> BRepOperatorPtrVectorType;
 
     ///@}
     ///@name  Life Cycle
@@ -53,6 +56,16 @@ public:
 
         // Allocate element/knotspans container
         mpElementContainer = MakeUnique<ElementContainer>(mParameters);
+
+        // Loop over all conditions
+        for( const auto& p_condition :  mParameters.GetConditions() ){
+            const std::string& r_filename = p_condition->GetFilename();
+            Unique<TriangleMesh> p_new_mesh = MakeUnique<TriangleMesh>();
+            IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
+            // Condition owns triangle mesh.
+            mConditions.push_back( ConditionFactory::New(p_condition, p_new_mesh) );
+            mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(mConditions.back()->GetTriangleMesh(), mParameters) );
+        }
 
         // Read geometry
         double volume_brep = 0.0;
@@ -87,6 +100,11 @@ public:
             IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points_all.vtk", true);
             IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/integration_points_trimmed.vtk", true);
 
+            for( const auto& r_condition : mConditions ){
+                std::string bc_filename = "output/BC_" + std::to_string(r_condition->GetId()) + ".stl";
+                IO::WriteMeshToSTL(r_condition->GetConformingMesh(), bc_filename.c_str(), true);
+            }
+
             TIBRA_INFO << "Number of active knotspans: " << mpElementContainer->size() << std::endl;
             TIBRA_INFO << "Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
 
@@ -116,6 +134,12 @@ public:
         return mpElementContainer->GetElements();
     }
 
+    /// @brief Get all conditions.
+    /// @return const Reference to ElementVectorPtrType
+    const ConditionPtrVectorType& GetConditions() const {
+        return mConditions;
+    }
+
     ///@}
     ///@name Temporary operations to perform PosProcessing after Kratos Analysis
     ///      This will be moved to TriangleMesh.
@@ -143,8 +167,11 @@ private:
     TriangleMesh mTriangleMesh;
     TriangleMesh mTriangleMeshPost;
     Unique<BRepOperatorBase> mpBRepOperator;
+    BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainer> mpElementContainer;
+    ConditionPtrVectorType mConditions;
     const Parameters mParameters;
+
     Mapper mMapper;
     ///@}
 
