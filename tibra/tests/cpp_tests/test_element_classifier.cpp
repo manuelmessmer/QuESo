@@ -51,37 +51,34 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+    Parameters params( {Component("lower_bound", PointType(-1.5, -1.5, -1.0)),
+                        Component("upper_bound", PointType(1.5, 1.5, 12.0)),
+                        Component("number_of_elements", Vector3i(30, 30, 130)) });
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
-
-    const double delta_x = 0.1;
-    const double delta_y = 0.1;
-    const double delta_z = 0.1;
+    Mapper mapper(params);
 
     std::vector<IndexType> result{};
-    double tolerance = 0.0;
-    result.reserve(117900);
-    for(double x = -1.5; x <= 1.5; x += delta_x){
-        for(double y = -1.5; y <= 1.5; y += delta_y){
-            for(double z = -1; z <= 12; z += delta_z){
+    result.reserve(117000);
+    std::vector<std::pair<PointType, PointType>> boxes{};
+    for(IndexType i = 0; i < 117000; ++i) {
+        auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
 
-                Vector3d lower_bound = {x, y, z};
-                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
-            }
-        }
     }
 
-    BOOST_CHECK_EQUAL( result.size(), 117900);
+    // Get flood fill solution
+    const auto p_classification = brep_operator.GetElementClassifications();
+
+    BOOST_CHECK_EQUAL( result.size(), 117000);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_cylinder.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
+        // Now test against flood fill solution.
+        BOOST_CHECK_EQUAL( result[i], (*p_classification)[i]);
     }
     myfile.close();
 }
@@ -93,38 +90,32 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+    Parameters params( {Component("lower_bound", PointType(-1.5, -1.5, -1.5)),
+                        Component("upper_bound", PointType(1.5, 1.5, 1.5)),
+                        Component("number_of_elements", Vector3i(20, 20, 20)) });
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
-
-    const double delta_x = 0.15;
-    const double delta_y = 0.15;
-    const double delta_z = 0.15;
+    Mapper mapper(params);
 
     std::vector<IndexType> result{};
-    double tolerance = 0.0;
     result.reserve(9261);
-    for(double x = -1.5001; x <= 1.5; x += delta_x){
-        for(double y = -1.5001; y <= 1.5; y += delta_y){
-            for(double z = -1.5001; z <= 1.5; z += delta_z){
-
-                Vector3d lower_bound = {x, y, z};
-                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
-            }
-        }
+    for( IndexType i = 0; i < 8000; ++i ){
+        const auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
     }
 
-    BOOST_CHECK_EQUAL( result.size(), 9261);
+    // Get flood fill solution
+    const auto p_classification = brep_operator.GetElementClassifications();
+
+    BOOST_CHECK_EQUAL( result.size(), 8000);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_cube.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
-        //myfile << result[i] << "\n";
+        // Now test against flood fill solution.
+        BOOST_CHECK_EQUAL( result[i], (*p_classification)[i]);
     }
     myfile.close();
 }
@@ -136,37 +127,32 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+    Parameters params( {Component("lower_bound", PointType(-0.4, -0.6, -0.35)),
+                        Component("upper_bound", PointType(0.4, 0.6, 0.35)),
+                        Component("number_of_elements", Vector3i(16, 24, 14)) });
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
-
-    const double delta_x = 0.05;
-    const double delta_y = 0.05;
-    const double delta_z = 0.05;
+    Mapper mapper(params);
 
     std::vector<IndexType> result{};
-    double tolerance = 0.0;
-    result.reserve(6375);
-    for(double x = -0.4; x <= 0.4; x += delta_x){
-        for(double y = -0.6; y <= 0.6; y += delta_y){
-            for(double z = -0.35; z <= 0.35; z += delta_x){
-
-                Vector3d lower_bound = {x, y, z};
-                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
-            }
-        }
+    result.reserve(5376);
+    for( IndexType i = 0; i < 5376; ++i ){
+        const auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
     }
 
-    BOOST_CHECK_EQUAL( result.size(), 6375);
+    // Get flood fill solution
+    const auto p_classification = brep_operator.GetElementClassifications();
+
+    BOOST_CHECK_EQUAL( result.size(), 5376);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_elephant.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
+        // Now test against flood fill solution.
+        BOOST_CHECK_EQUAL( result[i], (*p_classification)[i]);
     }
     myfile.close();
 }
@@ -178,37 +164,32 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+    Parameters params( {Component("lower_bound", PointType(-24, -43, 5)),
+                        Component("upper_bound", PointType(85, 46, 115)),
+                        Component("number_of_elements", Vector3i(36, 30, 40)) });
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
-
-    const double delta_x = 3;
-    const double delta_y = 3;
-    const double delta_z = 3;
+    Mapper mapper(params);
 
     std::vector<IndexType> result{};
-    double tolerance = 0.0;
-    result.reserve(41070);
-    for(double x = -24; x <= 85; x += delta_x){
-        for(double y = -43; y <= 46; y += delta_y){
-            for(double z = 5; z <= 115; z += delta_z){
-
-                Vector3d lower_bound = {x, y, z};
-                Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                result.push_back( brep_operator.GetIntersectionState(lower_bound, upper_bound, tolerance) );
-            }
-        }
+    result.reserve(43200);
+    for( IndexType i = 0; i < 43200; ++i){
+        const auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second ) );
     }
 
-    BOOST_CHECK_EQUAL( result.size(), 41070);
+    // Get flood fill solution
+    const auto p_classification = brep_operator.GetElementClassifications();
+
+    BOOST_CHECK_EQUAL( result.size(), 43200);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_bunny.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
         BOOST_CHECK_EQUAL( result[i], std::stoi(line) );
+        // Now test against flood fill solution.
+        BOOST_CHECK_EQUAL( result[i], (*p_classification)[i]);
     }
     myfile.close();
 }
