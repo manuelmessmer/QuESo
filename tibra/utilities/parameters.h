@@ -56,6 +56,11 @@ public:
     /// Returns type of condition.
     virtual ConditionTypeType Type() const = 0;
 
+    /// Returns filename.
+    virtual const std::string& GetFilename() const {
+        return mFilename;
+    }
+
     /// Returns condition id.
     virtual IndexType GetId() const {
         return mId;
