@@ -46,7 +46,7 @@ public:
     ///@{
 
     /// @brief Constructor. Runs all processes.
-    TIBRA(const Parameters& rParameters ) : mParameters(rParameters)
+    TIBRA(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters)
     {
         Timer timer{};
         TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "\nTIBRA ------------------------------------------ START" << std::endl;
@@ -145,6 +145,7 @@ private:
     Unique<BRepOperatorBase> mpBRepOperator;
     Unique<ElementContainer> mpElementContainer;
     const Parameters mParameters;
+    Mapper mMapper;
     ///@}
 
     ///@name Private Member Operations
