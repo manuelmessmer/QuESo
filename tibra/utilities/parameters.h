@@ -200,6 +200,19 @@ public:
         CheckComponents();
     }
 
+    /// @brief Returns true if parameter component exists.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @return bool
+    template<typename type>
+    bool Has( const std::string& rName ) const {
+        const auto p_value = pFind<type>(rName);
+        if( p_value ){
+            return true;
+        }
+        return false;
+    }
+
     /// @brief Get parameter value. Throws an error if parameter is not available.
     /// @tparam type
     /// @param rName Name (Key) of parameter.
