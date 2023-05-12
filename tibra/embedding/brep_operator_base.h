@@ -28,7 +28,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef Unique<TrimmedDomainBase> TrimmedDomainBasePtrType;
-
+    typedef std::vector<IntersectionStatusType> StatusVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -36,6 +36,9 @@ public:
     /// Constructor
     BRepOperatorBase(const Parameters& rParameters) : mParameters(rParameters)
     {
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound") ) << "Parameter does not contain 'lower_bound'.\n";
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound") ) << "Parameter does not contain 'upper_bound'.\n";
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<Vector3i>("number_of_elements") ) << "Parameter does not contain 'number_of_elements'.\n";
     }
 
     /// Destructor
@@ -66,6 +69,12 @@ public:
     ///@param Tolerance Default is SNAPTOL. Slightly reduces aabb such that "touches" are not considered as trimming.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     virtual IntersectionStatus GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const = 0;
+
+    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
+    /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
+    ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
+    /// @return Unique<StatusVectorType>.
+    virtual Unique<StatusVectorType> pGetElementClassifications() const = 0;
 
     /// @brief Returns true, if AABB is intersected by at least one triangle.
     /// @param rLowerBound of AABB.

@@ -29,8 +29,15 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+
+    Parameters params( {Component("lower_bound", point_A),
+                        Component("upper_bound", point_B),
+                        Component("number_of_elements", number_of_elements),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
+
     const double delta_x = 0.50;
     const double delta_y = 0.50;
     const double delta_z = 0.50;
@@ -71,8 +78,13 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.3;
     const double delta_y = 0.3;
@@ -122,8 +134,14 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", point_A),
+                        Component("upper_bound", point_B),
+                        Component("number_of_elements", number_of_elements),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
+
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;
@@ -166,8 +184,13 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters param( {Component("min_element_volume_ratio", 0.0) });
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 10;
     const double delta_y = 10;

@@ -15,6 +15,7 @@
 namespace tibra {
 
 typedef BRepOperator::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
+typedef BRepOperator::StatusVectorType StatusVectorType;
 
 bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::random_device rd;
@@ -129,6 +130,11 @@ IntersectionStatus BRepOperator::GetIntersectionState(
 
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;
+}
+
+
+Unique<StatusVectorType> BRepOperator::pGetElementClassifications() const {
+    return mFloodFill.ClassifyElements();
 }
 
 TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {

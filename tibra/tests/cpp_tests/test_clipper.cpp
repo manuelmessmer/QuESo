@@ -23,12 +23,14 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
 
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters param{};
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
-
     Vector3d lower_bound = {0.0, 0.0, -0.1};
     Vector3d upper_bound = {2, 2, 1};
+
+    Parameters param( { Component("lower_bound", lower_bound),
+                        Component("upper_bound", upper_bound),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
+    // Build brep_operator
+    BRepOperator brep_operator(triangle_mesh, param);
 
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
@@ -51,12 +53,15 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
 
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters param{};
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
-
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2, 2, 1};
+
+    Parameters param( { Component("lower_bound", lower_bound),
+                        Component("upper_bound", upper_bound),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
+
+    // Build brep_operator
+    BRepOperator brep_operator(triangle_mesh, param);
 
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
@@ -78,7 +83,9 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters param{};
+    Parameters param( { Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
     // Construct BRep_Operator
     BRepOperator brep_operator(triangle_mesh, param);
 
@@ -125,7 +132,11 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters param{};
+
+    Parameters param( { Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
+
     // Construct BRep_operator.
     BRepOperator brep_operator(triangle_mesh, param);
 
@@ -175,7 +186,11 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters param{};
+
+    Parameters param( { Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
+
     // Construct BRep operator.
     BRepOperator brep_operator(triangle_mesh, param);
     const double delta_x = 5;

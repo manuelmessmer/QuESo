@@ -10,6 +10,7 @@
 #include "containers/triangle_mesh.hpp"
 #include "containers/element.hpp"
 #include "containers/boundary_integration_point.hpp"
+#include "embedding/flood_fill.h"
 #include "embedding/trimmed_domain.h"
 #include "embedding/geometry_query.h"
 #include "embedding/clipper.h"
@@ -47,8 +48,8 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
     ///@param rParameters TIBRA parameters.
-    BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters)
-        : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, true)
+    BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters, bool Closed=true)
+        : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed), mFloodFill(this, rParameters)
     {
     }
 
@@ -63,13 +64,19 @@ public:
 
     ///@brief Returns intersections state of element.
     ///       Only use this function, if a single element has to be classified.
-    ///       For robust element classification of the entire domain use flood_flow.h!
+    ///       For robust element classification of the entire domain use pGetElementClassifications()!
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
+
+    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
+    /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
+    ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
+    /// @return Unique<StatusVectorType>.
+    Unique<StatusVectorType> pGetElementClassifications() const override;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
     /// @param rLowerBound Lower bound of AABB.
@@ -93,7 +100,6 @@ public:
     /// @return bool.
     bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
 
-
     /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
     ///        Ray tracing through the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
     ///        The majority decides about the classification of rPoint. Note that this function is much more efficient than IsInside.
@@ -116,22 +122,13 @@ public:
     ///@}
 
 private:
-    ///@name Private Operations
-    ///@{
 
-    ///@brief Return ids of triangles that intersect AABB.
-    ///@param rLowerBound Lower bound of AABB.
-    ///@param rUpperBound Upper bound of AABB.
-    ///@param Tolerance Positve tolerance reduces extent of AABB. This can be used to neglect touching triangles.
-    ///@return Unique<std::vector<IndexType>> containing ids.
-    Unique<std::vector<IndexType>> GetIntersectedTriangleIds( const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const;
-
-    ///@}
     ///@name Private Members
     ///@{
 
     const TriangleMesh& mTriangleMesh;
     GeometryQuery mGeometryQuery;
+    FloodFill mFloodFill;
 
     ///@}
 }; // End BRepOperator class

@@ -8,10 +8,11 @@
 #include <array>
 #include <algorithm>
 #include <stack>
+#include <set>
 
 //// Project includes
 #include "define.hpp"
-#include "embedding/brep_operator.h"
+#include "embedding/brep_operator_base.h"
 
 namespace tibra {
 

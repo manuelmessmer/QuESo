@@ -152,8 +152,14 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("min_element_volume_ratio", 0.0) });
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
+
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;
