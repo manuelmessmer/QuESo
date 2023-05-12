@@ -66,8 +66,8 @@ void TIBRA::Run(){
                 Timer timer_compute_intersection{};
                 auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box.first, bounding_box.second);
                 if( p_trimmed_domain ){
-                new_element->pSetTrimmedDomain(p_trimmed_domain);
-                valid_element = true;
+                    new_element->pSetTrimmedDomain(p_trimmed_domain);
+                    valid_element = true;
                 }
                 et_compute_intersection += timer_compute_intersection.Measure();
 
