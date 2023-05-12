@@ -74,11 +74,15 @@ def ReadParameters(json_filename):
     for key, value in components.items():
         parameters.Set(key, value)
 
-    for condition_id, (key, value) in enumerate(GetConditions(settings).items()):
-        if key == "dirichlet":
+    for condition_id, condition in enumerate(GetConditions(settings)):
+        if "dirichlet" in condition:
+            value = condition["dirichlet"]
+            print(value)
             point = TIBRA_Application.Point(value["displacement"])
             parameters.AddDirichletBC(condition_id, value["filename"], point, value["penalty_factor"])
-        elif key == "neumann":
+        elif "neumann" in condition:
+            value = condition["neumann"]
+            print(value)
             point = TIBRA_Application.Point(value["force"])
             parameters.AddNeumannBC(condition_id, value["filename"], point )
         else:
