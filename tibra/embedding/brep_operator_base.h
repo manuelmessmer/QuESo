@@ -74,7 +74,7 @@ public:
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.
-    virtual Unique<StatusVectorType> GetElementClassifications() const = 0;
+    virtual Unique<StatusVectorType> pGetElementClassifications() const = 0;
 
     /// @brief Returns true, if AABB is intersected by at least one triangle.
     /// @param rLowerBound of AABB.

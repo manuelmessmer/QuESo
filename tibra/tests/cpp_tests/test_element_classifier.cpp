@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.GetElementClassifications();
+    const auto p_classification = brep_operator.pGetElementClassifications();
 
     BOOST_CHECK_EQUAL( result.size(), 117000);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_cylinder.txt");
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.GetElementClassifications();
+    const auto p_classification = brep_operator.pGetElementClassifications();
 
     BOOST_CHECK_EQUAL( result.size(), 8000);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_cube.txt");
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.GetElementClassifications();
+    const auto p_classification = brep_operator.pGetElementClassifications();
 
     BOOST_CHECK_EQUAL( result.size(), 5376);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_elephant.txt");
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.GetElementClassifications();
+    const auto p_classification = brep_operator.pGetElementClassifications();
 
     BOOST_CHECK_EQUAL( result.size(), 43200);
     std::ifstream myfile("tibra/tests/cpp_tests/results/element_classifier_bunny.txt");

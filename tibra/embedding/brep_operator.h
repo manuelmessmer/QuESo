@@ -64,7 +64,7 @@ public:
 
     ///@brief Returns intersections state of element.
     ///       Only use this function, if a single element has to be classified.
-    ///       For robust element classification of the entire domain use GetElementClassifications()!
+    ///       For robust element classification of the entire domain use pGetElementClassifications()!
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
@@ -76,7 +76,7 @@ public:
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.
-    Unique<StatusVectorType> GetElementClassifications() const override;
+    Unique<StatusVectorType> pGetElementClassifications() const override;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
     /// @param rLowerBound Lower bound of AABB.

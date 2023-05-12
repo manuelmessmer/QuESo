@@ -133,7 +133,7 @@ IntersectionStatus BRepOperator::GetIntersectionState(
 }
 
 
-Unique<StatusVectorType> BRepOperator::GetElementClassifications() const {
+Unique<StatusVectorType> BRepOperator::pGetElementClassifications() const {
     return mFloodFill.ClassifyElements();
 }
 

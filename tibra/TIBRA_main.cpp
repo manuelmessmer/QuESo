@@ -33,7 +33,7 @@ void TIBRA::Run(){
     Unique<BRepOperatorBase::StatusVectorType> p_classifications = nullptr;
     if( mParameters.Get<bool>("embedding_flag") ){
         Timer timer_check_intersect{};
-        p_classifications = mpBRepOperator->GetElementClassifications();
+        p_classifications = mpBRepOperator->pGetElementClassifications();
         et_check_intersect += timer_check_intersect.Measure();
     }
 
