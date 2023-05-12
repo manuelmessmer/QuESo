@@ -27,8 +27,10 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2.0, 2.0, 2.0};
+
     Parameters params( {Component("lower_bound", lower_bound),
-                        Component("upper_bound", upper_bound) });
+                        Component("upper_bound", upper_bound),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh, params);
@@ -67,8 +69,10 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
     Vector3d lower_bound = {-1.0, -1.0, -1.0};
     Vector3d upper_bound = {2.0, 2.0, 2.0};
+
     Parameters params( {Component("lower_bound", lower_bound),
-                        Component("upper_bound", upper_bound) });
+                        Component("upper_bound", upper_bound),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh, params);
@@ -103,8 +107,10 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
 
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {5.0, 5.0, 5.0};
+
     Parameters params( {Component("lower_bound", lower_bound),
-                        Component("upper_bound", upper_bound) });
+                        Component("upper_bound", upper_bound),
+                        Component("number_of_elements", Vector3i(1, 1, 1) )});
 
     const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh);
     // Get trimmed domain.

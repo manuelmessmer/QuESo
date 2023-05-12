@@ -24,7 +24,12 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters params( {Component("min_element_volume_ratio", 0.0) });
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.50;
@@ -68,7 +73,12 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("min_element_volume_ratio", 0.0) });
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.15;
@@ -112,7 +122,12 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("min_element_volume_ratio", 0.0) });
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.05;
@@ -156,7 +171,12 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("min_element_volume_ratio", 0.0) });
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)),
+                        Component("min_element_volume_ratio", 0.0) });
+
+    // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 10;

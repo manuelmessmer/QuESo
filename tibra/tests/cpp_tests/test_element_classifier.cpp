@@ -22,9 +22,12 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters param{};
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+
     // Instatiate brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(triangle_mesh, params);
 
     Vector3d lower_bound = {-2, -2, -2};
     Vector3d upper_bound = {-1.5, 2, 2};
@@ -48,8 +51,12 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters param{};
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+
+    // Instantiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
@@ -86,9 +93,12 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters param{};
-    // Instatiate classifier
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+
+    // Instatiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.15;
     const double delta_y = 0.15;
@@ -126,8 +136,12 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters param{};
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+
+    // Instatiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 0.05;
     const double delta_y = 0.05;
@@ -164,8 +178,12 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters param{};
-    BRepOperator brep_operator(triangle_mesh, param);
+    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+
+    // Instatiate brep_operator
+    BRepOperator brep_operator(triangle_mesh, params);
 
     const double delta_x = 3;
     const double delta_y = 3;
