@@ -23,9 +23,132 @@ namespace tibra {
 enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
 typedef enum IntegrationMethod IntegrationMethodType;
 
+enum ConditionType {Neumann, Dirichlet};
+typedef enum ConditionType ConditionTypeType;
+
 ///@}
 ///@name  TIBRA Classes
 ///@{
+
+/**
+ * @class  ParamCondition (Base class)
+ * @author Manuel Messmer
+ * @brief  Interface for ParamConditionNeumann and ParamConditionDirichlet.
+**/
+class ParamCondition {
+public:
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+    ParamCondition(IndexType Id, const std::string& rFilename, const Vector3d& rPrescribed )
+        : mId(Id), mFilename( rFilename ), mPrescribed( rPrescribed )
+    {
+    }
+    /// Destructor
+    virtual ~ParamCondition(){};
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Returns type of condition.
+    virtual ConditionTypeType Type() const = 0;
+
+    /// Returns condition id.
+    virtual IndexType GetId() const {
+        return mId;
+    }
+
+    /// Returns prescribed values.
+    virtual const Vector3d& GetPrescribed() const {
+        return mPrescribed;
+    }
+
+    /// Returns penalty factor.
+    virtual double GetPenaltyFactor() const {
+        TIBRA_ERROR("ParamCondition::GetPenaltyFactor") << "Calling base class. Penalty factor is only available for 'ParamConditionDirichlet'.\n";
+    }
+
+private:
+    ///@}
+    ///@name Private Members
+    ///@{
+    IndexType mId;
+    std::string mFilename;
+    Vector3d mPrescribed;
+    ///@}
+}; // End class ParamCondition
+
+/**
+ * @class  ParamConditionNeumann
+ * @author Manuel Messmer
+ * @brief  Container for neumann condition related parameters.
+**/
+class ParamConditionNeumann : public ParamCondition {
+public:
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+    ParamConditionNeumann(IndexType Id, const std::string& rFilename, const Vector3d& rPrescribed)
+        : ParamCondition(Id, rFilename, rPrescribed )
+    {
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Returns type of condition.
+    ConditionTypeType Type() const override {
+        return ConditionType::Neumann;
+    }
+    ///@}
+
+}; /// End of class ParamConditionNeumann
+
+/**
+ * @class  ParamConditionDirichlet
+ * @author Manuel Messmer
+ * @brief  Container for dirichlet condition related parameters.
+**/
+class ParamConditionDirichlet : public ParamCondition {
+public:
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor
+    ParamConditionDirichlet(IndexType Id, const std::string& rFilename, const Vector3d& rPrescribed, double PenaltyFactor)
+        : ParamCondition(Id, rFilename, rPrescribed ), mPenaltyFactor(PenaltyFactor)
+    {
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Returns type of condition.
+    ConditionTypeType Type() const override {
+        return ConditionType::Dirichlet;
+    }
+
+    /// Returns penalty factor.
+    double GetPenaltyFactor() const override {
+        return mPenaltyFactor;
+    }
+
+private:
+    ///@}
+    ///@name Private members
+    ///@{
+    double mPenaltyFactor;
+    ///@}
+}; // End of ParamConditionDirichlet class.
+
 
 /**
  * @class  Component
@@ -83,6 +206,10 @@ private:
 **/
 class Parameters {
 public:
+    ///@name Typedefs
+    ///@{
+    typedef std::vector<Shared<ParamCondition>> ConditionPtrVectorType;
+    ///@}
 
     ///@name std::visit Structs
     ///@{
@@ -227,6 +354,29 @@ public:
         TIBRA_ERROR("Parameters::Get") << "Component: '" + rName + "' not found.\n";
     }
 
+    /// @brief Adds neumann condition to parameters.
+    /// @param Id Id of condition (Must be unique).
+    /// @param rFilename of STL.
+    /// @param rPrescribed force.
+    void AddNeumannCondition(IndexType Id, const std::string& rFilename, const PointType& rPrescribed ) {
+        mConditions.push_back( MakeShared<ParamConditionNeumann>(Id, rFilename, rPrescribed) );
+    }
+
+    /// @brief Adds dirichlet condition to parameters.
+    /// @param Id Id of condition (Must be unique).
+    /// @param rFilename of STL.
+    /// @param rPrescribed displacement.
+    /// @param PenaltyFactor
+    void AddDirichletCondition(IndexType Id, const std::string& rFilename, const PointType& rPrescribed, double PenaltyFactor ){
+        mConditions.push_back( MakeShared<ParamConditionDirichlet>(Id, rFilename, rPrescribed, PenaltyFactor) );
+    }
+
+    /// @brief Returns vector of ptr to conditions.
+    /// @return const ConditionPtrVectorType&
+    const ConditionPtrVectorType& GetConditions() const {
+        return mConditions;
+    }
+
     /// @brief Print all paramters (Name, Value).
     /// @param rOStream
     void PrintInfo(std::ostream& rOStream) const {
@@ -334,6 +484,7 @@ private:
     ///@{
 
     std::vector<Component> mComponents{};
+    std::vector<Shared<ParamCondition>> mConditions{};
 
     inline static const std::vector<Component> mDefaultComponents = {
         Component("echo_level", 0UL),
