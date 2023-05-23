@@ -153,7 +153,7 @@ TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLower
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
     Unique<TrimmedDomain> best_prev_solution = nullptr;
-    double best_error = 1e-2;
+    double best_error = 5e-1;
     bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
     while( iteration < 10){
