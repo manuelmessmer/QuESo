@@ -117,11 +117,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
             self.pytibra.Run()
 
             # Direct Analysis with kratos
-            surface_force = [0, 0.1, 0]
-            neumann_boundaries = [[neumann_condition, surface_force]]
-            penalty_factor = 1e10
-            dirichlet_boundaries = [[dirichlet_condition, penalty_factor]]
-            self.pytibra.RunKratosAnalysis(dirichlet_boundaries, neumann_boundaries, "tibra/tests/trimmed_cantilever_kratos/KratosParameters.json")
+            self.pytibra.RunKratosAnalysis("tibra/tests/trimmed_cantilever_kratos/KratosParameters.json")
 
             model_part = self.pytibra.GetAnalysis().GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
