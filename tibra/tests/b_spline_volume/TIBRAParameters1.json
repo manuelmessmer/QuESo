@@ -1,4 +1,5 @@
 {
+    "general_settings"  : {},
     "mesh_settings"     : {
         "lower_bound": [-1.5, -1.5, -1.00],
         "upper_bound": [1.5, 1.5, 11.00],
