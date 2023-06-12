@@ -39,9 +39,13 @@ class PyTIBRA:
     def Run(self):
         self.tibra = TIBRA_Application.TIBRA(self.parameters)
         self.elements = self.tibra.GetElements()
+        self.conditions = self.tibra.GetConditions()
 
     def GetElements(self):
         return self.elements
+
+    def GetConditions(self):
+        return self.conditions
 
     def GetNumberElements(self):
         return self.parameters.NumberOfElememnts()
@@ -69,29 +73,19 @@ class PyTIBRA:
                     integration_points.append(point_inside)
         return integration_points
 
-
-    def GetTrianglesOnBoundary(self, condition):
-        triangle_mesh = TIBRA_Application.TriangleMesh()
-        #TODO. Better value?.
-        triangle_mesh.Reserve(1000)
-        #Loop over all elements
-        for element in self.elements:
-            if element.IsTrimmed():
-                new_mesh = element.GetBCTriangleMesh(condition)
-                TIBRA_Application.MeshUtilities.Append(triangle_mesh, new_mesh)
-
-        return triangle_mesh
-
-    def RunKratosAnalysis(self, dirichlet_settings, neumann_settings, kratos_settings="KratosParameters.json"):
+    def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
             integration_points = self.GetIntegrationPoints()
             boundary_conditions = []
-            for bc in dirichlet_settings:
-                dirichlet_triangles = self.GetTrianglesOnBoundary(bc[0])
-                boundary_conditions.append( PenaltySupport(dirichlet_triangles, self.GetLowerBound(), self.GetUpperBound(), bc[1]) )
-            for bc in neumann_settings:
-                neumann_triangles = self.GetTrianglesOnBoundary(bc[0])
-                boundary_conditions.append( SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc[1], False) )
+            for bc in self.conditions:
+                if( bc.Type() == "dirichlet" ):
+                    dirichlet_triangles = bc.GetTriangleMesh()
+                    boundary_conditions.append(
+                        PenaltySupport(dirichlet_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), bc.GetPenaltyFactor()) )
+                elif( bc.Type() == "neumann" ):
+                    neumann_triangles = bc.GetTriangleMesh()
+                    boundary_conditions.append(
+                        SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), False) )
 
             self.analysis = Analysis( self.parameters, kratos_settings, integration_points, boundary_conditions)
 

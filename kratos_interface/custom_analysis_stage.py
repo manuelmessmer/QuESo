@@ -18,7 +18,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         self.integration_points_embedder = integration_points_embedder
 
         #Override the NurbsGeometryModeler input parameters
-        for modeler in analysis_parameters["modelers"]:
+        for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
                 parameters.AddEmptyValue("lower_point")

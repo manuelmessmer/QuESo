@@ -15,6 +15,7 @@
 #include "containers/element_container.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "containers/integration_point.hpp"
+#include "containers/condition.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"
@@ -23,7 +24,8 @@
 typedef std::vector<tibra::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<tibra::IntegrationPoint> IntegrationPointVectorType;
-typedef std::vector<std::shared_ptr<tibra::Element>> ElementVectorPtrType;
+typedef std::vector<tibra::Shared<tibra::Element>> ElementVectorPtrType;
+typedef std::vector<tibra::Shared<tibra::Condition>> ConditionVectorPtrType;
 typedef std::vector<tibra::BoundaryIntegrationPoint> BoundaryIpVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
@@ -31,6 +33,7 @@ PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
+PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
 
 namespace tibra {
 namespace Python {
@@ -190,6 +193,28 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         }, py::keep_alive<0, 1>())
     ;
 
+    /// Export Condition
+    py::class_<Condition, std::shared_ptr<Condition>>(m,"Condition")
+        .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
+        .def("Type", [](const Condition& rCondition){
+            if( rCondition.Type() == ConditionType::Neumann ){ return "neumann";}
+            else if (rCondition.Type() == ConditionType::Dirichlet){ return "dirichlet"; }
+            else { TIBRA_ERROR("Pybind::Condition") << "ConditionType no available.\n"; }
+
+        })
+        .def("GetPrescribed", &Condition::GetPrescribed)
+        .def("GetPenaltyFactor", &Condition::GetPenaltyFactor)
+    ;
+
+    /// Export Condition Vector
+    py::class_<ConditionVectorPtrType>(m, "ConditionVector")
+        .def(py::init<>())
+        .def("__len__", [](const ConditionVectorPtrType &v) { return v.size(); })
+        .def("__iter__", [](ConditionVectorPtrType &v) {
+            return py::make_iterator( v.begin(), v.end() );
+        }, py::keep_alive<0, 1>())
+    ;
+
     /// Export enum IntegrationMethod
     py::enum_<IntegrationMethod>(m, "IntegrationMethod")
         .value("Gauss", IntegrationMethod::Gauss)
@@ -231,6 +256,8 @@ PYBIND11_MODULE(TIBRA_Application,m) {
                 rParams.Set(rName, GetIntegrationMethodFromString(rValue)); }
             else {
                 rParams.Set(rName, rValue); } })
+        .def("AddDirichletBC", &Parameters::AddDirichletCondition)
+        .def("AddNeumannBC", &Parameters::AddNeumannCondition)
         .def("EchoLevel", &Parameters::EchoLevel)
         // Return std::array<type,3> types. Easier to handle in python.
         .def("LowerBound", []( const Parameters& rParams ) { return rParams.LowerBound().Coordinates(); })
@@ -243,6 +270,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
         .def(py::init<const Parameters&>())
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
+        .def("GetConditions", &TIBRA::GetConditions, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const TIBRA& v){
             auto& mesh = v.GetPostMesh();
