@@ -22,10 +22,11 @@ class PenaltySupport(WeakBcsBase):
 
     Derived from WeakBcsBase.
     """
-    def __init__(self, bcs_triangles, lower_point, upper_point, penalty):
+    def __init__(self, bcs_triangles, lower_point, upper_point, prescribed, penalty):
         """The constructor."""
         super(PenaltySupport, self).__init__(bcs_triangles, lower_point, upper_point)
         self.penalty = penalty
+        self.prescribed = prescribed # Not used here
 
     def apply(self, model_part):
         """Overrides base class."""
