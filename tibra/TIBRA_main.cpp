@@ -100,7 +100,7 @@ void TIBRA::Run(){
 
     // Treat conditions
     #pragma omp parallel for
-    for( IndexType index = 0; index < global_number_of_elements; ++index ) {
+    for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index ) {
         for( IndexType i = 0; i < mConditions.size(); ++i ){
             const auto bounding_box = mMapper.GetBoundingBoxFromIndex(index);
             const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box.first, bounding_box.second);
