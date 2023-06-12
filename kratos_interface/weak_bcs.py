@@ -22,11 +22,10 @@ class PenaltySupport(WeakBcsBase):
 
     Derived from WeakBcsBase.
     """
-    def __init__(self, bcs_triangles, lower_point, upper_point, displacement, penalty):
+    def __init__(self, bcs_triangles, lower_point, upper_point, penalty):
         """The constructor."""
         super(PenaltySupport, self).__init__(bcs_triangles, lower_point, upper_point)
         self.penalty = penalty
-        self.displacement = displacement
 
     def apply(self, model_part):
         """Overrides base class."""
@@ -60,7 +59,7 @@ class PenaltySupport(WeakBcsBase):
             surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
             cond = model_part.CreateNewCondition('SupportPenaltyCondition', id_counter, quadrature_point_geometries[0], properties)
-            displacement = [KM.Vector([self.displacement.GetX(), self.displacement.GetY(), self.displacement.GetZ()])]
+            displacement = [KM.Vector([0.0, 0.0, 0.0])]
             cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT,displacement,process_info)
             id_counter += 1
 
@@ -73,9 +72,6 @@ class SurfaceLoad(WeakBcsBase):
         """The constructor."""
         super(SurfaceLoad, self).__init__(bcs_triangles, lower_point, upper_point)
         self.force = force
-        print(self.force[0])
-        print(self.force[1])
-        print(self.force[2])
         self.normal_flag = normal_flag
         self.conditions = []
 

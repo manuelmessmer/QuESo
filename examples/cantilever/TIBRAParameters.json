@@ -23,7 +23,6 @@
         }},{
         "dirichlet": {
             "filename" : "data/base.stl",
-            "displacement" : [0.0, 0.0, 0.0],
             "penalty_factor" : 1e10
         }}
     ]

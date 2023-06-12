@@ -48,7 +48,7 @@ def GetComponents(dictionary):
         components.update(GetItems(dictionary["trimmed_quadrature_rule_settings"]))
 
     if "non_trimmed_quadrature_rule_settings" in dictionary:
-        components.update(GetItems(dictionary["trimmed_quadrature_rule_settings"]))
+        components.update(GetItems(dictionary["non_trimmed_quadrature_rule_settings"]))
 
     return components
 
@@ -78,8 +78,7 @@ def ReadParameters(json_filename):
         if "dirichlet" in condition:
             value = condition["dirichlet"]
             print(value)
-            point = TIBRA_Application.Point(value["displacement"])
-            parameters.AddDirichletBC(condition_id, value["filename"], point, value["penalty_factor"])
+            parameters.AddDirichletBC(condition_id, value["filename"], value["penalty_factor"])
         elif "neumann" in condition:
             value = condition["neumann"]
             print(value)
