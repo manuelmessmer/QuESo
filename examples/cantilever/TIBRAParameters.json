@@ -15,5 +15,16 @@
     },
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
-    }
+    },
+    "conditions"    :  [{
+        "neumann": {
+            "filename" : "data/tip.stl",
+            "force" : [0.0, 0.1, 0.0]
+        }},{
+        "dirichlet": {
+            "filename" : "data/base.stl",
+            "displacement" : [0.0, 0.0, 0.0],
+            "penalty_factor" : 1e10
+        }}
+    ]
 }
