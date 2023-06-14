@@ -9,5 +9,5 @@ output/
 libs/
 TestExecutables/
 TIBRA_PythonApplication/
-*.pyc
 .vscode/
+*.pyc
