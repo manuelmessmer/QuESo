@@ -98,7 +98,6 @@ class PyTIBRA:
             self.tibra.ReadWritePostMesh()
             mesh_points = self.tibra.GetPostMeshPoints()
 
-            #print(num_points)
             displacements = TIBRA_Application.PointVector()
             for point in mesh_points:
                 global_point = [point[0], point[1], point[2]]
