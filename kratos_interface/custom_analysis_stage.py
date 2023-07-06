@@ -8,14 +8,14 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
     Overrides the StructuralMechanicsAnalysis Stage from Kratos.
     """
-    def __init__(self, model, tibra_parameters, kratos_settings_filename, integration_points_embedder, boundary_conditions):
+    def __init__(self, model, tibra_parameters, kratos_settings_filename, elements, boundary_conditions):
         """The constructor."""
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
             analysis_parameters = KM.Parameters(parameter_file.read())
 
         self.boundary_conditions = boundary_conditions
-        self.integration_points_embedder = integration_points_embedder
+        self.elements = elements
 
         #Override the NurbsGeometryModeler input parameters
         for modeler in analysis_parameters["modelers"].values():
@@ -61,21 +61,25 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
         volume_properties = model_part.GetProperties()[1]
 
-        integration_points = []
-        # Loop over all given integration points
-        for point in self.integration_points_embedder:
-            integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
+        el_count = 0
+        for element in self.elements:
+            integration_points = []
+            if element.IsTrimmed():
+                for point in element.GetIntegrationPoints():
+                    weight = point.GetWeight()
+                    if( weight > 0):
+                        integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
+            else:
+                for point in element.GetIntegrationPoints():
+                    integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
 
-        # Create quadrature_point_geometries
-        # These are basically just integration points.
-        quadrature_point_geometries = KM.GeometriesVector()
-        nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2,
-           integration_points)
-
-        print("Number quadrature point geometries: ", len(quadrature_point_geometries))
-        # Assing element formulation and constitutive law to each integration point.
-        for i in range(0, len(quadrature_point_geometries)):
-            el = model_part.CreateNewElement('SmallDisplacementElement3D8N', i+1, quadrature_point_geometries[i], volume_properties)
+            if( len(integration_points) > 0 ):
+                el_count += 1
+                # Create quadrature_point_geometries
+                # These are basically just integration points.
+                quadrature_point_geometries = KM.GeometriesVector()
+                nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
+                el = model_part.CreateNewElement('SmallDisplacementElement3D8N', el_count, quadrature_point_geometries[0], volume_properties)
 
         print("Number of Elements/Integration Points (In BSpline Volume): ", model_part.NumberOfElements())
 

@@ -75,7 +75,7 @@ class PyTIBRA:
 
     def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
-            integration_points = self.GetIntegrationPoints()
+            elements = self.elements
             boundary_conditions = []
             for bc in self.conditions:
                 if( bc.Type() == "dirichlet" ):
@@ -87,7 +87,7 @@ class PyTIBRA:
                     boundary_conditions.append(
                         SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), False) )
 
-            self.analysis = Analysis( self.parameters, kratos_settings, integration_points, boundary_conditions)
+            self.analysis = Analysis( self.parameters, kratos_settings, elements, boundary_conditions)
 
     def PostProcess(self):
         if kratos_available:
