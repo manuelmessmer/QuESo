@@ -31,18 +31,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
             parameters.Set("integration_method", "GGQ_Optimal")
 
         embedder = TIBRA_APP.TIBRA(parameters)
-
-        points_all = TIBRA_APP.IntegrationPointVector()
         elements = embedder.GetElements()
-
-        for element in elements:
-            if element.IsTrimmed():
-                for point_trimmed_reduced in element.GetIntegrationPoints():
-                    if(point_trimmed_reduced.GetWeight() > 0.0):
-                        points_all.append(point_trimmed_reduced)
-            else:
-                for point_inside in element.GetIntegrationPoints():
-                    points_all.append(point_inside)
 
         p = 100
         boundary_condition = []
@@ -51,11 +40,14 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
 
 
         kratos_settings_filename = "tibra/tests/ggq_cantilever_kratos/KratosParameters.json"
-        analysis = Analysis(parameters, kratos_settings_filename, points_all, boundary_condition)
+        analysis = Analysis(parameters, kratos_settings_filename, elements, boundary_condition)
         model_part = analysis.GetModelPart()
         geometry = model_part.GetGeometry("NurbsVolume")
 
-        number_of_elements = model_part.NumberOfElements()
+        number_of_quad_points = 0
+        for el in model_part.Elements:
+            number_of_quad_points += el.GetGeometry().IntegrationPointsNumber()
+
         param = KM.Vector(3)
         param[0] = 0.5
         param[1] = 0.5
@@ -63,24 +55,24 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
         coord = geometry.GlobalCoordinates(param)
         disp_simulation = coord[1]-1
 
-        return [disp_simulation, number_of_elements]
+        return [disp_simulation, number_of_quad_points]
 
 class TestGGQCantileverKratos(unittest.TestCase):
     def compare_full_vs_reduced_p_2(self, number_knotspans):
         number_knot_spans_cross = 2
-        [disp_reduced, n_elements_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[2,2,2])
-        [disp_full, n_elements_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[2,2,2])
+        [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[2,2,2])
+        [disp_full, n_integration_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[2,2,2])
 
-        n_elements_full_ref = (number_knot_spans_cross*3) * (number_knot_spans_cross*3) * (number_knotspans*3)
+        n_integration_full_ref = (number_knot_spans_cross*3) * (number_knot_spans_cross*3) * (number_knotspans*3)
         order = 4
         continuity = 0
         red_continuity = order - continuity
         ndof = (order+1)*number_knotspans - (order-red_continuity+1)*(number_knotspans-1)
         ndof_2 = (order+1)*number_knot_spans_cross - (order-red_continuity+1)*(number_knot_spans_cross-1)
-        n_elements_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
+        n_integration_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
 
-        self.assertEqual(n_elements_full, n_elements_full_ref)
-        self.assertEqual(n_elements_reduced, n_elements_reduced_ref)
+        self.assertEqual(n_integration_full, n_integration_full_ref)
+        self.assertEqual(n_integration_reduced, n_integration_reduced_ref)
 
         print("disp_reduced: ", disp_reduced)
         print("disp_full: ", disp_full)
@@ -89,36 +81,36 @@ class TestGGQCantileverKratos(unittest.TestCase):
 
     def compare_full_vs_reduced_p_3(self, number_knotspans):
         number_knot_spans_cross = 1
-        [disp_reduced, n_elements_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[3,3,3])
-        [disp_full, n_elements_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[3,3,3])
+        [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[3,3,3])
+        [disp_full, n_integration_points] = run_analysis(number_knot_spans_cross, number_knotspans, False,[3,3,3])
 
-        n_elements_full_ref = (number_knot_spans_cross*4) * (number_knot_spans_cross*4) * (number_knotspans*4)
+        n_integration_full_ref = (number_knot_spans_cross*4) * (number_knot_spans_cross*4) * (number_knotspans*4)
         order = 6
         continuity = 1
         red_continuity = order - continuity
         ndof = (order+1)*number_knotspans - (order-red_continuity+1)*(number_knotspans-1)
         ndof_2 = (order+1)*number_knot_spans_cross - (order-red_continuity+1)*(number_knot_spans_cross-1)
-        n_elements_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
+        n_integration_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
 
-        self.assertEqual(n_elements_full, n_elements_full_ref)
-        self.assertEqual(n_elements_reduced, n_elements_reduced_ref)
+        self.assertEqual(n_integration_points, n_integration_full_ref)
+        self.assertEqual(n_integration_reduced, n_integration_reduced_ref)
         self.assertAlmostEqual(disp_reduced, disp_full, 11)
 
     def compare_full_vs_reduced_p_4(self, number_knotspans):
         number_knot_spans_cross = 1
-        [disp_reduced, n_elements_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[4,4,4])
-        [disp_full, n_elements_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[4,4,4])
+        [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[4,4,4])
+        [disp_full, n_integration_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[4,4,4])
 
-        n_elements_full_ref = (number_knot_spans_cross*5) * (number_knot_spans_cross*5) * (number_knotspans*5)
+        n_integration_full_ref = (number_knot_spans_cross*5) * (number_knot_spans_cross*5) * (number_knotspans*5)
         order = 8
         continuity = 2
         red_continuity = order - continuity
         ndof = (order+1)*number_knotspans - (order-red_continuity+1)*(number_knotspans-1)
         ndof_2 = (order+1)*number_knot_spans_cross - (order-red_continuity+1)*(number_knot_spans_cross-1)
-        n_elements_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
+        n_integration_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
 
-        self.assertEqual(n_elements_full, n_elements_full_ref)
-        self.assertEqual(n_elements_reduced, n_elements_reduced_ref)
+        self.assertEqual(n_integration_full, n_integration_full_ref)
+        self.assertEqual(n_integration_reduced, n_integration_reduced_ref)
         print( "Rel error: ", (disp_reduced-disp_full)/disp_full )
         self.assertAlmostEqual(disp_reduced, disp_full, 10)
 
