@@ -156,6 +156,10 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("P2", &TriangleMesh::P2)
         .def("P3", &TriangleMesh::P3)
         .def("Reserve", &TriangleMesh::Reserve)
+        .def("GetVertices",  static_cast< const std::vector<PointType>& (TriangleMesh::*)() const>(&TriangleMesh::GetVertices)
+            , py::return_value_policy::reference_internal ) // Export const version
+        .def("GetTriangles",  static_cast< const std::vector<Vector3i>& (TriangleMesh::*)() const>(&TriangleMesh::GetTriangles)
+            , py::return_value_policy::reference_internal ) // Export const version
     ;
 
     /// Export MeshUtilities
@@ -271,6 +275,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def(py::init<const Parameters&>())
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("GetConditions", &TIBRA::GetConditions, py::return_value_policy::reference_internal )
+        .def("GetTriangleMesh", &TIBRA::GetTriangleMesh, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const TIBRA& v){
             auto& mesh = v.GetPostMesh();

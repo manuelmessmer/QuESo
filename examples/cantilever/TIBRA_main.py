@@ -7,7 +7,7 @@ def main():
 
     # Direct Analysis with kratos
     pytibra.RunKratosAnalysis()
-    pytibra.PostProcess()
+    #pytibra.PostProcess()
 
 if __name__ == "__main__":
     main()

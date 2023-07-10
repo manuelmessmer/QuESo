@@ -1,6 +1,7 @@
 import TIBRA_PythonApplication as TIBRA_Application
 from tibra.python_scripts.b_spline_volume import BSplineVolume
 from tibra.python_scripts.helper import *
+from kratos_interface.model_part_io import *
 import json
 import os
 import shutil
@@ -47,6 +48,9 @@ class PyTIBRA:
     def GetConditions(self):
         return self.conditions
 
+    def GetTriangleMesh(self):
+        return self.tibra.GetTriangleMesh()
+
     def GetNumberElements(self):
         return self.parameters.NumberOfElememnts()
 
@@ -87,35 +91,61 @@ class PyTIBRA:
                     boundary_conditions.append(
                         SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), False) )
 
-            self.analysis = Analysis( self.parameters, kratos_settings, elements, boundary_conditions)
+            self.analysis = Analysis( self.parameters, kratos_settings, elements, boundary_conditions, self.GetTriangleMesh())
 
-    def PostProcess(self):
-        if kratos_available:
-            model_part = self.analysis.GetModelPart()
-            nurbs_volume = model_part.GetGeometry("NurbsVolume")
+    # def PostProcess(self):
+    #     if kratos_available:
+    #         model_part = self.analysis.GetModelPart()
+    #         nurbs_volume = model_part.GetGeometry("NurbsVolume")
+
+    #         model = self.analysis.GetModel()
+    #         embedded_model_part = model.CreateModelPart("EmbeddedModelPart")
+    #         triangle_mesh = self.GetTriangleMesh()
+    #         WriteKratosModelPart(triangle_mesh, embedded_model_part)
+
+    #         #  Map deformation to embedded geometry
+    #         nodal_process_params = KM.Parameters(
+    #         """ {
+    #                 "main_model_part_name"                    : "NurbsMesh",
+    #                 "nurbs_volume_name"                       : "NurbsVolume",
+    #                 "embedded_model_part_name"                : "EmbeddedModelPart",
+    #                 "nodal_results": ["DISPLACEMENT"]
+    #         } """ )
+    #         nodal_process = KM.MapNurbsVolumeResultsToEmbeddedGeometryProcess(model, nodal_process_params)
+    #         nodal_process.ExecuteBeforeOutputStep()
+
+    #         point_process_params = KM.Parameters(
+    #         """ {
+    #                 "main_model_part_name"                    : "NurbsMesh",
+    #                 "nurbs_volume_name"                       : "NurbsVolume",
+    #                 "embedded_model_part_name"                : "EmbeddedModelPart",
+    #                 "nodal_results": ["DISPLACEMENT"]
+    #         } """ )
+    #         point_process = KM.MapNurbsVolumeRAssignIntegrationPointsToBackgroundElementsProcessesultsToEmbeddedGeometryProcess(model, point_process_params)
+    #         point_process.ExecuteBeforeOutputStep()
 
             # Mesh points are stored in one consecutive array
-            self.tibra.ReadWritePostMesh()
-            mesh_points = self.tibra.GetPostMeshPoints()
+            # self.tibra.ReadWritePostMesh()
+            # mesh_points = self.tibra.GetPostMeshPoints()
 
-            displacements = TIBRA_Application.PointVector()
-            for point in mesh_points:
-                global_point = [point[0], point[1], point[2]]
-                local_point = PointFromGlobalToParamSpace(global_point, self.GetLowerBound(), self.GetUpperBound())
+            # displacements = TIBRA_Application.PointVector()
+            # for point in mesh_points:
+            #     global_point = [point[0], point[1], point[2]]
+            #     local_point = PointFromGlobalToParamSpace(global_point, self.GetLowerBound(), self.GetUpperBound())
 
-                local_point_kratos = KM.Vector(3)
-                local_point_kratos[0] = local_point[0]
-                local_point_kratos[1] = local_point[1]
-                local_point_kratos[2] = local_point[2]
-                # Evaluate deformed nurbs_volume
-                deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
-                deformed_pos = TIBRA_Application.Point(deformed_pos_kratos[0] - global_point[0],
-                    deformed_pos_kratos[1] - global_point[1],
-                    deformed_pos_kratos[2] - global_point[2])
+            #     local_point_kratos = KM.Vector(3)
+            #     local_point_kratos[0] = local_point[0]
+            #     local_point_kratos[1] = local_point[1]
+            #     local_point_kratos[2] = local_point[2]
+            #     # Evaluate deformed nurbs_volume
+            #     deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
+            #     deformed_pos = TIBRA_Application.Point(deformed_pos_kratos[0] - global_point[0],
+            #         deformed_pos_kratos[1] - global_point[1],
+            #         deformed_pos_kratos[2] - global_point[2])
 
-                displacements.append( deformed_pos )
+            #     displacements.append( deformed_pos )
 
-            TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
+            # TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
 
     def GetAnalysis(self):
         return self.analysis

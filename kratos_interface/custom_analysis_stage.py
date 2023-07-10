@@ -2,13 +2,17 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.IgaApplication.map_nurbs_volume_results_to_embedded_geometry_process import MapNurbsVolumeResultsToEmbeddedGeometryProcess
+#from KratosMultiphysics.IgaApplication.assign_integration_points_to_background_elements_process import AssignIntegrationPointsToBackgroundElementsProcess
+from kratos_interface.model_part_io import *
+from tibra.python_scripts.helper import *
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):
     """Customized Kratos Analysis Stage.
 
     Overrides the StructuralMechanicsAnalysis Stage from Kratos.
     """
-    def __init__(self, model, tibra_parameters, kratos_settings_filename, elements, boundary_conditions):
+    def __init__(self, model, tibra_parameters, kratos_settings_filename, elements, boundary_conditions, triangle_mesh):
         """The constructor."""
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
@@ -16,7 +20,9 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         self.boundary_conditions = boundary_conditions
         self.elements = elements
-
+        self.triangle_mesh = triangle_mesh
+        self.lower_bound = tibra_parameters.LowerBound()
+        self.upper_bound = tibra_parameters.UpperBound()
         #Override the NurbsGeometryModeler input parameters
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
@@ -42,6 +48,17 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE,3)
+
+        embedded_model_part = self.model.CreateModelPart("EmbeddedModelPart")
+
+        embedded_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        embedded_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE,3)
+        WriteKratosModelPart(self.triangle_mesh, embedded_model_part)
+
+        embedded_model_part2 = self.model.CreateModelPart("EmbeddedModelPart2")
+        embedded_model_part2.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        WriteKratosModelPart(self.triangle_mesh, embedded_model_part2)
+
 
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
@@ -87,6 +104,73 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
+
+    # def OutputSolutionStep(self):
+
+    #     execute_was_called = False
+    #     for output_process in self._GetListOfOutputProcesses():
+    #         if output_process.IsOutputStep():
+    #             if not execute_was_called:
+    #                 for process in self._GetListOfProcesses():
+    #                     process.ExecuteBeforeOutputStep()
+    #                 execute_was_called = True
+
+    #     #         output_process.PrintOutput()
+
+    #     # if execute_was_called:
+    #     #     for process in self._GetListOfProcesses():
+    #     #         process.ExecuteAfterOutputStep()
+
+
+    #     embedded_model_part = self.model.GetModelPart("EmbeddedModelPart")
+    #     for element in embedded_model_part.Elements:
+    #         #print("0")
+    #         print(element.GetGeometry())
+    #         values = element.CalculateOnIntegrationPoints(KM.STRAIN_ENERGY, embedded_model_part.ProcessInfo)
+    #         #print("1")
+
+        #super().OutputSolutionStep()
+        #return super().OutputSolutionStep()
+    #     model_part = self.model.GetModelPart('NurbsMesh')
+    #     embedded_model_part = self.model.GetModelPart("EmbeddedModelPart")
+    #     embedded_model_part.SetProperties(model_part.GetProperties())
+    #     return super().OutputSolutionStep()
+    #     #  Map nodal values
+    #     process_params = KM.Parameters(
+    #     """ {
+    #             "main_model_part_name"                    : "NurbsMesh",
+    #             "nurbs_volume_name"                       : "NurbsVolume",
+    #             "embedded_model_part_name"                : "EmbeddedModelPart",
+    #             "nodal_results": ["DISPLACEMENT"]
+    #     } """ )
+    #     process = MapNurbsVolumeResultsToEmbeddedGeometryProcess(self.model, process_params)
+    #     process.ExecuteBeforeOutputStep()
+
+    #     # point_process_params = KM.Parameters(
+    #     # """ {
+    #     #         "main_model_part_name"                    : "NurbsMesh",
+    #     #         "nurbs_volume_name"                       : "NurbsVolume",
+    #     #         "embedded_model_part_name"                : "EmbeddedModelPart"
+    #     # } """ )
+    #     # point_process = KM.AssignIntegrationPointsToBackgroundElementsProcess(model, point_process_params)
+    #     # point_process.ExecuteBeforeOutputStep()
+
+    #     # Map integration point values
+    #     # model_part = self.model.GetModelPart("NurbsMesh")
+    #     # embedded_model_part = self.model.GetModelPart("EmbeddedModelPart")
+
+    #     # for element in embedded_model_part.Elements:
+    #     #     center = element.GetGeometry().Center()
+    #     #     local_point = PointFromGlobalToParamSpace(center, self.lower_bound, self.upper_bound)
+    #     #     local_point_kratos = KM.Vector(3)
+    #     #     local_point_kratos[0] = local_point[0]
+    #     #     local_point_kratos[1] = local_point[1]
+    #     #     local_point_kratos[2] = local_point[2]
+
+    #     #     values = element.CalculateOnIntegrationPoints(KM.CAUCHY_STRESS_VECTROR, model_part.ProcessInfo)
+
+    #     return super().OutputSolutionStep()
+
 
     def InitializeSolutionStep(self):
         if not self.Initialized:

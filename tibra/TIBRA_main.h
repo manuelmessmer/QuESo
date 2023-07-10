@@ -140,6 +140,12 @@ public:
         return mConditions;
     }
 
+    /// @brief Return reference to triangle mesh
+    /// @return const TriangleMesh&
+    const TriangleMesh& GetTriangleMesh() const{
+        return (mTriangleMesh);
+    }
+
     ///@}
     ///@name Temporary operations to perform PosProcessing after Kratos Analysis
     ///      This will be moved to TriangleMesh.
