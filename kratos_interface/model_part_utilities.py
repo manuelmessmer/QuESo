@@ -1,4 +1,6 @@
 import KratosMultiphysics
+from kratos_interface.weak_bcs import PenaltySupport
+from kratos_interface.weak_bcs import SurfaceLoad
 import re
 
 class ModelPartUtilities:
@@ -62,6 +64,23 @@ class ModelPartUtilities:
                 quadrature_point_geometries = KratosMultiphysics.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
                 KratosNurbsVolumeModelPart.CreateNewElement('SmallDisplacementElement3D8N', el_count, quadrature_point_geometries[0], volume_properties)
+
+    @staticmethod
+    def AddConditionsToModelPart(KratosNurbsVolumeModelPart, Conditions, LowerBound, UpperBound):
+        ''' Adds the TIBRA elements to the KratosNurbsVolumeModelPart. '''
+        boundary_conditions = []
+        for bc in Conditions:
+            if( bc.Type() == "dirichlet" ):
+                dirichlet_triangles = bc.GetTriangleMesh()
+                boundary_conditions.append(
+                    PenaltySupport(dirichlet_triangles, LowerBound, UpperBound, bc.GetPrescribed(), bc.GetPenaltyFactor()) )
+            elif( bc.Type() == "neumann" ):
+                neumann_triangles = bc.GetTriangleMesh()
+                boundary_conditions.append(
+                    SurfaceLoad(neumann_triangles, LowerBound, UpperBound, bc.GetPrescribed(), False) )
+
+        for bc in boundary_conditions:
+            bc.apply(KratosNurbsVolumeModelPart)
 
     @staticmethod
     def RemoveAllElements(KratosModelPart):
