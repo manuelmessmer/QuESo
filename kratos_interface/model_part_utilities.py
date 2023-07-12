@@ -91,6 +91,8 @@ class ModelPartUtilities:
                     neumann_triangles = bc.GetTriangleMesh()
                     boundary_conditions.append(
                         SurfaceLoad(neumann_triangles, LowerBound, UpperBound, bc.GetPrescribed(), False) )
+            else:
+                boundary_conditions.append(bc)
 
         for bc in boundary_conditions:
             bc.apply(KratosNurbsVolumeModelPart)
