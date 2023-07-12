@@ -1,7 +1,6 @@
 import TIBRA_PythonApplication as TIBRA_Application
 from tibra.python_scripts.b_spline_volume import BSplineVolume
 from tibra.python_scripts.helper import *
-import json
 import os
 import shutil
 
@@ -15,6 +14,7 @@ except:
 
 if kratos_available:
     from kratos_interface.kratos_analysis import Analysis
+    from kratos_interface.model_part_utilities import ModelPartUtilities
     from kratos_interface.weak_bcs import PenaltySupport
     from kratos_interface.weak_bcs import SurfaceLoad
     from kratos_interface.bounding_box_bcs import DirichletCondition
@@ -35,9 +35,12 @@ class PyTIBRA:
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
 
-
-    def Run(self):
         self.tibra = TIBRA_Application.TIBRA(self.parameters)
+
+    def Run(self, kratos_model_part = ""):
+        if kratos_available and kratos_model_part != "":
+            ModelPartUtilities.CreateTIBRAInput(kratos_model_part, self.parameters)
+        self.tibra.Run()
         self.elements = self.tibra.GetElements()
         self.conditions = self.tibra.GetConditions()
 
@@ -73,6 +76,14 @@ class PyTIBRA:
                     integration_points.append(point_inside)
         return integration_points
 
+    def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part):
+        if kratos_available:
+            ModelPartUtilities.RemoveAllElements(kratos_model_part)
+            ModelPartUtilities.AddElementsToModelPart(kratos_model_part)
+        else:
+            raise Exception("UpdateKratosNurbsVolumeModelPart :: Kratos is not available.")
+
+
     def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
             elements = self.elements
@@ -88,6 +99,8 @@ class PyTIBRA:
                         SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), False) )
 
             self.analysis = Analysis( self.parameters, kratos_settings, elements, boundary_conditions)
+        else:
+            raise Exception("RunKratosAnalysis :: Kratos is not available.")
 
     def PostProcess(self):
         if kratos_available:
@@ -116,6 +129,8 @@ class PyTIBRA:
                 displacements.append( deformed_pos )
 
             TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
+        else:
+            raise Exception("PostProcess :: Kratos is not available.")
 
     def GetAnalysis(self):
         return self.analysis
