@@ -14,6 +14,9 @@ class WeakBcsBase():
         self.lower_point = lower_point
         self.upper_point = upper_point
 
+    def IsWeakCondition():
+        return True
+
     def apply(self, model_part):
         raise Exception("WeakBcsBase :: Function of base class is called!")
 

@@ -376,6 +376,20 @@ public:
         mConditions.push_back( MakeShared<ParamConditionDirichlet>(Id, rFilename, rPrescribed, PenaltyFactor) );
     }
 
+    /// @brief Returns number of conditions. Including Neumann and Dirichlet.
+    /// @return IndexType
+    IndexType NumberOfConditions(){
+        return mConditions.size();
+    }
+
+    /// @brief Returns filename of condition.
+    /// @param Id of condition.
+    /// @return const std::string&
+    const std::string& GetFilenameOfCondition(IndexType Id) {
+        TIBRA_ERROR_IF( "Parameters::GetFilenameOfCondition", mConditions[Id]->GetId() != Id ) << "Id does not match index.\n";
+        return mConditions[Id]->GetFilename();
+    }
+
     /// @brief Returns vector of ptr to conditions.
     /// @return const ConditionPtrVectorType&
     const ConditionPtrVectorType& GetConditions() const {

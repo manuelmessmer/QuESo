@@ -12,6 +12,9 @@ class BoundingBox():
         self.lower_point = lower_point
         self.upper_point = upper_point
 
+    def IsWeakCondition(self):
+        return False
+
     def apply(self, model_part):
         raise Exception("BoundingBox :: Base class method is called!")
 

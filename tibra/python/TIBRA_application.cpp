@@ -195,6 +195,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 
     /// Export Condition
     py::class_<Condition, std::shared_ptr<Condition>>(m,"Condition")
+        .def("IsWeakCondition", [](const Condition& rCondition)->bool { return true; } )
         .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
         .def("Type", [](const Condition& rCondition){
             if( rCondition.Type() == ConditionType::Neumann ){ return "neumann";}
@@ -264,11 +265,16 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("UpperBound", []( const Parameters& rParams ) { return rParams.UpperBound().Coordinates(); })
         .def("Order", []( const Parameters& rParams ) { return rParams.Order().Coordinates(); })
         .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements().Coordinates(); })
+        .def("NumberOfConditions", &Parameters::NumberOfConditions)
+        .def("GetInputFilename", []( const Parameters& rParams ) { return rParams.Get<std::string>("input_filename"); } )
+        .def("GetFilenameOfCondition", &Parameters::GetFilenameOfCondition)
         ;
 
     /// Export TIBRA
     py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
         .def(py::init<const Parameters&>())
+        .def("Run", &TIBRA::Run)
+        .def("Clear", &TIBRA::Clear)
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("GetConditions", &TIBRA::GetConditions, py::return_value_policy::reference_internal )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )

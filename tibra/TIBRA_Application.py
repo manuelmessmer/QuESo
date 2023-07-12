@@ -3,7 +3,7 @@ import os
 import sys
 
 if sys.version_info < (3, 5):
-    raise Exception("Kratos only supports Python version 3.5 and above")
+    raise Exception("TIBRA only supports Python version 3.5 and above")
 
 class Paths(object):
     tibra_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
