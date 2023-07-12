@@ -9,7 +9,6 @@ try:
     import KratosMultiphysics as KM
     kratos_available = True
 except:
-    #print("KratosMultiphysics is not available")
     kratos_available = False
 
 if kratos_available:
@@ -72,6 +71,13 @@ class PyTIBRA:
                     integration_points.append(point_inside)
         return integration_points
 
+    def GetAnalysis(self):
+        return self.analysis
+
+    #########################################
+    #### Kratos related member functions ####
+    #########################################
+
     def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part):
         if kratos_available:
             ModelPartUtilities.RemoveAllElements(kratos_model_part)
@@ -117,5 +123,3 @@ class PyTIBRA:
         else:
             raise Exception("PostProcess :: Kratos is not available.")
 
-    def GetAnalysis(self):
-        return self.analysis
