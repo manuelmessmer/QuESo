@@ -59,8 +59,10 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         """Override BaseClass to pass integration points to Kratos."""
         model_part = self.model.GetModelPart('NurbsMesh')
         ModelPartUtilities.RemoveAllElements(model_part)
+        ModelPartUtilities.RemoveAllConditions(model_part)
         ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
         ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, self.tibra_parameters.LowerBound(), self.tibra_parameters.UpperBound())
+
         # Add Dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)

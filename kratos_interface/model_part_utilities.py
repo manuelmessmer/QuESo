@@ -70,14 +70,15 @@ class ModelPartUtilities:
         ''' Adds the TIBRA elements to the KratosNurbsVolumeModelPart. '''
         boundary_conditions = []
         for bc in Conditions:
-            if( bc.Type() == "dirichlet" ):
-                dirichlet_triangles = bc.GetTriangleMesh()
-                boundary_conditions.append(
-                    PenaltySupport(dirichlet_triangles, LowerBound, UpperBound, bc.GetPrescribed(), bc.GetPenaltyFactor()) )
-            elif( bc.Type() == "neumann" ):
-                neumann_triangles = bc.GetTriangleMesh()
-                boundary_conditions.append(
-                    SurfaceLoad(neumann_triangles, LowerBound, UpperBound, bc.GetPrescribed(), False) )
+            if bc.IsWeakCondition():
+                if( bc.Type() == "dirichlet" ):
+                    dirichlet_triangles = bc.GetTriangleMesh()
+                    boundary_conditions.append(
+                        PenaltySupport(dirichlet_triangles, LowerBound, UpperBound, bc.GetPrescribed(), bc.GetPenaltyFactor()) )
+                elif( bc.Type() == "neumann" ):
+                    neumann_triangles = bc.GetTriangleMesh()
+                    boundary_conditions.append(
+                        SurfaceLoad(neumann_triangles, LowerBound, UpperBound, bc.GetPrescribed(), False) )
 
         for bc in boundary_conditions:
             bc.apply(KratosNurbsVolumeModelPart)
@@ -88,3 +89,10 @@ class ModelPartUtilities:
         for element in KratosModelPart.Elements:
             element.Set(KratosMultiphysics.TO_ERASE, True)
         KratosModelPart.RemoveElements(KratosMultiphysics.TO_ERASE)
+
+    @staticmethod
+    def RemoveAllConditions(KratosModelPart):
+        ''' Removes all conditions from the KratosModelPart. '''
+        for condition in KratosModelPart.Conditions:
+            condition.Set(KratosMultiphysics.TO_ERASE, True)
+        KratosModelPart.RemoveConditions(KratosMultiphysics.TO_ERASE)

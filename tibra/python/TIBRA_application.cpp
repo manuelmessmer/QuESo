@@ -195,6 +195,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 
     /// Export Condition
     py::class_<Condition, std::shared_ptr<Condition>>(m,"Condition")
+        .def("IsWeakCondition", [](const Condition& rCondition)->bool { return true; } )
         .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
         .def("Type", [](const Condition& rCondition){
             if( rCondition.Type() == ConditionType::Neumann ){ return "neumann";}

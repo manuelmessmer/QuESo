@@ -31,6 +31,8 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
             parameters.Set("integration_method", "GGQ_Optimal")
 
         embedder = TIBRA_APP.TIBRA(parameters)
+        embedder.Run()
+
         elements = embedder.GetElements()
 
         p = 100

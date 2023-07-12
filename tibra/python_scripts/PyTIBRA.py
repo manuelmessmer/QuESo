@@ -81,6 +81,7 @@ class PyTIBRA:
     def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part):
         if kratos_available:
             ModelPartUtilities.RemoveAllElements(kratos_model_part)
+            ModelPartUtilities.RemoveAllConditions(kratos_model_part)
             ModelPartUtilities.AddElementsToModelPart(kratos_model_part, self.elements)
             ModelPartUtilities.AddConditionsToModelPart(kratos_model_part, self.conditions, self.GetLowerBound(), self.GetUpperBound())
         else:

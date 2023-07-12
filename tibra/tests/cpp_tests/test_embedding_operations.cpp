@@ -29,6 +29,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
                             Component("min_num_boundary_triangles", 5000UL),
                             Component("moment_fitting_residual", 1e-8) });
     TIBRA tibra(parameters);
+    tibra.Run();
 
     const auto& elements = tibra.GetElements();
 
@@ -73,6 +74,7 @@ void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, In
                             Component("polynomial_order", Vector3i(p, p, p)),
                             Component("integration_method", IntegrationMethod) });
     TIBRA tibra(parameters);
+    tibra.Run();
 
     const auto& elements = tibra.GetElements();
 
@@ -132,6 +134,7 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
                             Component("integration_method", IntegrationMethod) });
 
     TIBRA tibra(parameters);
+    tibra.Run();
 
     const auto& elements = tibra.GetElements();
 
