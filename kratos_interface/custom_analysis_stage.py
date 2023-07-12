@@ -2,6 +2,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from kratos_interface.model_part_utilities import ModelPartUtilities
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):
     """Customized Kratos Analysis Stage.
@@ -45,7 +46,6 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
-            print(modeler)
             if self.echo_level > 1:
                 KM.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
             modeler.SetupModelPart()
@@ -58,30 +58,8 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
     def ModifyInitialGeometry(self):
         """Override BaseClass to pass integration points to Kratos."""
         model_part = self.model.GetModelPart('NurbsMesh')
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
-        volume_properties = model_part.GetProperties()[1]
-
-        el_count = 0
-        for element in self.elements:
-            integration_points = []
-            if element.IsTrimmed():
-                for point in element.GetIntegrationPoints():
-                    weight = point.GetWeight()
-                    if( weight > 0):
-                        integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
-            else:
-                for point in element.GetIntegrationPoints():
-                    integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
-
-            if( len(integration_points) > 0 ):
-                el_count += 1
-                # Create quadrature_point_geometries
-                # These are basically just integration points.
-                quadrature_point_geometries = KM.GeometriesVector()
-                nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
-                el = model_part.CreateNewElement('SmallDisplacementElement3D8N', el_count, quadrature_point_geometries[0], volume_properties)
-
-        print("Number of Elements/Integration Points (In BSpline Volume): ", model_part.NumberOfElements())
+        ModelPartUtilities.RemoveAllElements(model_part)
+        ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
 
         # Add Dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
