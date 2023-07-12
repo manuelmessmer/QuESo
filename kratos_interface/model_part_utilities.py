@@ -19,9 +19,21 @@ class ModelPartUtilities:
     @staticmethod
     def CreateTIBRAInput(KratosEmbeddedModelPart, TibraParameters):
         ''' Writes the KratosEmbeddedModelPart (including submodelpart for conditions) to STL files, which can be read by TIRBA. '''
-        input_filename = TibraParameters.GetInputFilename()
-        ModelPartUtilities._WriteModelPartToSTL(KratosEmbeddedModelPart, input_filename)
 
+        # Write main model part
+        input_filename = TibraParameters.GetInputFilename()
+        m_lower_case = re.search('/(.*).stl', input_filename)
+        m_upper_case = re.search('/(.*).STL', input_filename)
+        if m_lower_case:
+            model_part_name = m_lower_case.group(1)
+        elif m_upper_case:
+            model_part_name = m_lower_case.group(1)
+        else:
+            raise Exception("CreateTIBRAInput::Filename is not valid.")
+
+        ModelPartUtilities._WriteModelPartToSTL(KratosEmbeddedModelPart.GetSubModelPart(model_part_name), input_filename)
+
+        # Write condition model part
         condition_filenames = {}
         for cond_id in range(TibraParameters.NumberOfConditions()):
             tmp_filename = TibraParameters.GetFilenameOfCondition(cond_id)

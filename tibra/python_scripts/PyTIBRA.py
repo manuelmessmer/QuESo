@@ -39,6 +39,11 @@ class PyTIBRA:
         self.elements = self.tibra.GetElements()
         self.conditions = self.tibra.GetConditions()
 
+    def Clear(self):
+        self.tibra.Clear()
+        self.elements = ""
+        self.conditions = ""
+
     def GetElements(self):
         return self.elements
 
