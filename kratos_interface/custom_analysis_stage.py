@@ -17,19 +17,19 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         self.boundary_conditions = boundary_conditions
         self.elements = elements
-
+        self.tibra_parameters = tibra_parameters
         #Override the NurbsGeometryModeler input parameters
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
                 parameters.AddEmptyValue("lower_point")
-                parameters["lower_point"].SetVector(tibra_parameters.LowerBound())
+                parameters["lower_point"].SetVector(self.tibra_parameters.LowerBound())
                 parameters.AddEmptyValue("upper_point")
-                parameters["upper_point"].SetVector(tibra_parameters.UpperBound())
+                parameters["upper_point"].SetVector(self.tibra_parameters.UpperBound())
                 parameters.AddEmptyValue("polynomial_order")
-                parameters["polynomial_order"].SetVector(tibra_parameters.Order())
+                parameters["polynomial_order"].SetVector(self.tibra_parameters.Order())
                 parameters.AddEmptyValue("number_of_knot_spans")
-                parameters["number_of_knot_spans"].SetVector(tibra_parameters.NumberOfElements())
+                parameters["number_of_knot_spans"].SetVector(self.tibra_parameters.NumberOfElements())
 
         self.Initialized = False
         super().__init__(model, analysis_parameters)
@@ -42,7 +42,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         model_part.AddNodalSolutionStepVariable(KM.REACTION)
 
         model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE,3)
+        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
 
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
@@ -60,19 +60,10 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         model_part = self.model.GetModelPart('NurbsMesh')
         ModelPartUtilities.RemoveAllElements(model_part)
         ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
-
+        ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, self.tibra_parameters.LowerBound(), self.tibra_parameters.UpperBound())
         # Add Dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
-
-    def InitializeSolutionStep(self):
-        if not self.Initialized:
-            model_part = self.model.GetModelPart("NurbsMesh")
-            for bc in self.boundary_conditions:
-                bc.apply(model_part)
-            self.Initialized = True
-
-        return super().InitializeSolutionStep()
 
 

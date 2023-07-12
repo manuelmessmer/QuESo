@@ -15,10 +15,6 @@ except:
 if kratos_available:
     from kratos_interface.kratos_analysis import Analysis
     from kratos_interface.model_part_utilities import ModelPartUtilities
-    from kratos_interface.weak_bcs import PenaltySupport
-    from kratos_interface.weak_bcs import SurfaceLoad
-    from kratos_interface.bounding_box_bcs import DirichletCondition
-    from kratos_interface.bounding_box_bcs import NeumannCondition
 
 class PyTIBRA:
     """Main TIBRA python class.
@@ -79,26 +75,15 @@ class PyTIBRA:
     def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part):
         if kratos_available:
             ModelPartUtilities.RemoveAllElements(kratos_model_part)
-            ModelPartUtilities.AddElementsToModelPart(kratos_model_part)
+            ModelPartUtilities.AddElementsToModelPart(kratos_model_part, self.elements)
+            ModelPartUtilities.AddConditionsToModelPart(kratos_model_part, self.conditions, self.GetLowerBound(), self.GetUpperBound())
         else:
             raise Exception("UpdateKratosNurbsVolumeModelPart :: Kratos is not available.")
 
 
     def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
-            elements = self.elements
-            boundary_conditions = []
-            for bc in self.conditions:
-                if( bc.Type() == "dirichlet" ):
-                    dirichlet_triangles = bc.GetTriangleMesh()
-                    boundary_conditions.append(
-                        PenaltySupport(dirichlet_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), bc.GetPenaltyFactor()) )
-                elif( bc.Type() == "neumann" ):
-                    neumann_triangles = bc.GetTriangleMesh()
-                    boundary_conditions.append(
-                        SurfaceLoad(neumann_triangles, self.GetLowerBound(), self.GetUpperBound(), bc.GetPrescribed(), False) )
-
-            self.analysis = Analysis( self.parameters, kratos_settings, elements, boundary_conditions)
+            self.analysis = Analysis( self.parameters, kratos_settings, self.elements, self.conditions)
         else:
             raise Exception("RunKratosAnalysis :: Kratos is not available.")
 
