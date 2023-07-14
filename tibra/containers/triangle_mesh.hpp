@@ -260,6 +260,12 @@ public:
         return mVertices;
     }
 
+    ///@brief Get triangles from mesh. (const version)
+    ///@return const std::vector<Vector3i>&
+    const std::vector<Vector3i>& GetTriangles() const {
+        return mTriangles;
+    }
+
     ///@brief Basic check of this TriangleMesh instance.
     bool Check() const{
         // Check if mTriangles and mNormals are of the same size.
