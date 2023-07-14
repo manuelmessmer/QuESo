@@ -17,6 +17,17 @@ class ModelPartUtilities:
         stl_io.WriteModelPart(KratosModelPart)
 
     @staticmethod
+    def ReadModelPartFromTriangleMesh(KratosModelPart, TriangleMesh):
+        ''' Reads Kratos ModelPart from the TIBRA triangle mesh. '''
+        vertices = TriangleMesh.GetVertices()
+        for v_id, vertex in enumerate(vertices):
+            KratosModelPart.CreateNewNode(v_id+1, vertex[0], vertex[1], vertex[2])
+
+        triangles = TriangleMesh.GetTriangles()
+        for t_id, triangle in enumerate(triangles):
+            KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, [triangle[0]+1, triangle[1]+1, triangle[2]+1], KratosModelPart.GetProperties()[1])
+
+    @staticmethod
     def CreateTIBRAInput(KratosEmbeddedModelPart, TibraParameters):
         ''' Writes the KratosEmbeddedModelPart (including submodelpart for conditions) to STL files, which can be read by TIRBA. '''
 
