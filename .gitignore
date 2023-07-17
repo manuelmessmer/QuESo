@@ -6,6 +6,7 @@ examples_test/
 kratos_interface/__pycache__/
 tibra/python_scripts/write_ls_dyna_keyword.py
 output/
+kratos_output/
 libs/
 TestExecutables/
 TIBRA_PythonApplication/

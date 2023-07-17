@@ -84,6 +84,12 @@ public:
         mConditions.clear();
     }
 
+    /// @brief Returns triangle mesh.
+    /// @return const TriangleMesh&
+    const TriangleMesh& GetTriangleMesh() {
+        return mTriangleMesh;
+    }
+
     ///@}
     ///@name Temporary operations to perform PosProcessing after Kratos Analysis
     ///      This will be moved to TriangleMesh.
@@ -92,6 +98,7 @@ public:
     /// @brief Reads Filename and writes mesh to output/results.vtk
     /// @param Filename
     void ReadWritePostMesh() {
+        TIBRA_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
         const auto& r_filename = mParameters.Get<std::string>("postprocess_filename");
         IO::ReadMeshFromSTL(mTriangleMeshPost, r_filename.c_str());
         IO::WriteMeshToVTK(mTriangleMeshPost, "output/results.vtk", true);
@@ -100,6 +107,7 @@ public:
     /// @brief  Get mesh for prosptrocessing
     /// @return const Reference to TriangleMesh
     const TriangleMesh& GetPostMesh() const {
+        TIBRA_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
         return mTriangleMeshPost;
     }
     ///@}
@@ -109,7 +117,7 @@ private:
     ///@name Private Members Variables
     ///@{
     TriangleMesh mTriangleMesh;
-    TriangleMesh mTriangleMeshPost;
+    TriangleMesh mTriangleMeshPost; // Deprecated. Will be removed soon.
     Unique<BRepOperatorBase> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainer> mpElementContainer;

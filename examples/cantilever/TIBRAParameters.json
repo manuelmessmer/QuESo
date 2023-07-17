@@ -1,7 +1,6 @@
 {
     "general_settings"   : {
         "input_filename"  : "data/cylinder.stl",
-        "postprocess_filename" : "data/cylinder_post.stl",
         "echo_level"      : 1
     },
     "mesh_settings"     : {

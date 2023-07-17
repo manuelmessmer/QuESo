@@ -9,13 +9,14 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
     Overrides the StructuralMechanicsAnalysis Stage from Kratos.
     """
-    def __init__(self, model, tibra_parameters, kratos_settings_filename, elements, boundary_conditions):
+    def __init__(self, model, tibra_parameters, kratos_settings_filename, elements, boundary_conditions, triangle_mesh):
         """The constructor."""
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
             analysis_parameters = KM.Parameters(parameter_file.read())
 
         self.boundary_conditions = boundary_conditions
+        self.triangle_mesh = triangle_mesh
         self.elements = elements
         self.tibra_parameters = tibra_parameters
         #Override the NurbsGeometryModeler input parameters
@@ -43,6 +44,12 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+
+        embedded_model_part = self.model.CreateModelPart('EmbeddedModelPart')
+        embedded_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+        embedded_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+        ModelPartUtilities.ReadModelPartFromTriangleMesh(embedded_model_part, self.triangle_mesh)
 
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():

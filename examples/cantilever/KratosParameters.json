@@ -1,38 +1,81 @@
 {
-    "problem_data"    : {
-        "parallel_type" : "OpenMP",
-        "echo_level"    : 1,
-        "start_time"    : 0.0,
-        "end_time"      : 1.0
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
     },
-    "solver_settings" : {
-        "solver_type"              : "Static",
-        "analysis_type"            : "linear",
-        "model_part_name"          : "NurbsMesh",
-        "echo_level"    : 1,
-        "domain_size"              : 3,
-        "model_import_settings"    : {
-            "input_type"     : "use_input_model_part"
+    "solver_settings": {
+        "solver_type": "Static",
+        "analysis_type": "linear",
+        "model_part_name": "NurbsMesh",
+        "echo_level": 1,
+        "domain_size": 3,
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
         },
-        "material_import_settings"        : {
-            "materials_filename" : "StructuralMaterials.json"
+        "material_import_settings": {
+            "materials_filename": "StructuralMaterials.json"
         },
-        "time_stepping"            : {
-            "time_step" : 1.1
+        "time_stepping": {
+            "time_step": 1.1
         },
-        "linear_solver_settings":{
+        "linear_solver_settings": {
             "solver_type": "pardiso_lu"
         },
-        "rotation_dofs"            : false,
-        "builder_and_solver_settings" : {
-            "use_block_builder" : true
+        "rotation_dofs": false,
+        "builder_and_solver_settings": {
+            "use_block_builder": true
         },
-        "residual_relative_tolerance"        : 0.000001
+        "residual_relative_tolerance": 0.000001
     },
-    "modelers" : [{
-                "modeler_name": "NurbsGeometryModeler",
+    "modelers": [
+        {
+            "modeler_name": "NurbsGeometryModeler",
+            "Parameters": {
+                "model_part_name": "NurbsMesh",
+                "geometry_name": "NurbsVolume"
+            }
+        }
+    ],
+    "output_processes": {
+        "vtk_output": [
+            {
+                "python_module": "vtk_embedded_geometry_output_process",
+                "kratos_module": "KratosMultiphysics.IgaApplication",
+                "process_name": "VtkEmbeddedGeometryOutputProcess",
+                "help": "This process writes postprocessing files for Paraview",
                 "Parameters": {
-                    "model_part_name" : "NurbsMesh",
-                    "geometry_name"   : "NurbsVolume"}
-            }]
+                    "mapping_parameters": {
+                        "main_model_part_name": "NurbsMesh",
+                        "nurbs_volume_name": "NurbsVolume",
+                        "embedded_model_part_name": "EmbeddedModelPart"
+                    },
+                    "vtk_parameters": {
+                        "model_part_name": "EmbeddedModelPart",
+                        "output_control_type": "step",
+                        "output_interval": 1,
+                        "file_format": "ascii",
+                        "output_precision": 7,
+                        "output_sub_model_parts": false,
+                        "output_path": "kratos_output",
+                        "save_output_files_in_folder": true,
+                        "nodal_solution_step_data_variables": [
+                            "DISPLACEMENT"
+                        ],
+                        "nodal_data_value_variables": [
+                            "CAUCHY_STRESS_VECTOR",
+                            "VON_MISES_STRESS"
+                        ],
+                        "nodal_flags": [],
+                        "element_data_value_variables": [],
+                        "element_flags": [],
+                        "condition_data_value_variables": [],
+                        "condition_flags": [],
+                        "gauss_point_variables_extrapolated_to_nodes": []
+                    }
+                }
+            }
+        ]
+    }
 }

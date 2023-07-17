@@ -95,37 +95,6 @@ class PyTIBRA:
 
     def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
-            self.analysis = Analysis( self.parameters, kratos_settings, self.elements, self.conditions)
+            self.analysis = Analysis( self.parameters, kratos_settings, self.elements, self.conditions, self.tibra.GetTriangleMesh())
         else:
             raise Exception("RunKratosAnalysis :: Kratos is not available.")
-
-    def PostProcess(self):
-        if kratos_available:
-            model_part = self.analysis.GetModelPart()
-            nurbs_volume = model_part.GetGeometry("NurbsVolume")
-
-            # Mesh points are stored in one consecutive array
-            self.tibra.ReadWritePostMesh()
-            mesh_points = self.tibra.GetPostMeshPoints()
-
-            displacements = TIBRA_Application.PointVector()
-            for point in mesh_points:
-                global_point = [point[0], point[1], point[2]]
-                local_point = PointFromGlobalToParamSpace(global_point, self.GetLowerBound(), self.GetUpperBound())
-
-                local_point_kratos = KM.Vector(3)
-                local_point_kratos[0] = local_point[0]
-                local_point_kratos[1] = local_point[1]
-                local_point_kratos[2] = local_point[2]
-                # Evaluate deformed nurbs_volume
-                deformed_pos_kratos = nurbs_volume.GlobalCoordinates(local_point_kratos)
-                deformed_pos = TIBRA_Application.Point(deformed_pos_kratos[0] - global_point[0],
-                    deformed_pos_kratos[1] - global_point[1],
-                    deformed_pos_kratos[2] - global_point[2])
-
-                displacements.append( deformed_pos )
-
-            TIBRA_Application.WriteDisplacementToVTK(displacements, "output/results.vtk", True)
-        else:
-            raise Exception("PostProcess :: Kratos is not available.")
-
