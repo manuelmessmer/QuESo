@@ -64,7 +64,7 @@ class NeumannCondition(BoundingBox):
             nodal_force_y = self.force[1]/len(node_id_force)
             nodal_force_z = self.force[2]/len(node_id_force)
             id_counter = id_counter = model_part.NumberOfConditions() + 1
-            properties = model_part.GetProperties()[0]
+            properties = model_part.GetProperties()[1]
             for i in node_id_force:
                 model_part.CreateNewCondition('PointLoadCondition3D1N', id_counter, [i], properties)
                 model_part.GetNode(i).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_X, nodal_force_x)

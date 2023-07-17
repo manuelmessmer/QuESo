@@ -34,7 +34,7 @@ class PenaltySupport(WeakBcsBase):
     def apply(self, model_part):
         """Overrides base class."""
         id_counter = model_part.NumberOfConditions() + 1
-        properties = model_part.GetProperties()[0]
+        properties = model_part.GetProperties()[1]
         properties.SetValue(IgaApplication.PENALTY_FACTOR, self.penalty)
         process_info = KM.ProcessInfo()
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
@@ -82,7 +82,7 @@ class SurfaceLoad(WeakBcsBase):
     def apply(self, model_part ):
         """Overrides base class."""
         id_counter = model_part.NumberOfConditions() + 1
-        properties = model_part.GetProperties()[0]
+        properties = model_part.GetProperties()[1]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
         num_triangles = self.bcs_triangles.NumOfTriangles()
