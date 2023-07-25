@@ -51,7 +51,7 @@ class PyTIBRA:
         return self.conditions
 
     def GetNumberElements(self):
-        return self.parameters.NumberOfElememnts()
+        return self.parameters.NumberOfElements()
 
     def GetLowerBound(self):
         return self.parameters.LowerBound()
