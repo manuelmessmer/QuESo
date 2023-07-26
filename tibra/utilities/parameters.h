@@ -329,6 +329,7 @@ public:
             mComponents.push_back(Component(rName, rValue));
         }
 
+        EnsureValidValues();
         CheckComponents();
     }
 
@@ -437,6 +438,15 @@ private:
             if( !p_value ){
                 mComponents.push_back( rValues );
             }
+        }
+    }
+
+    /// @brief Adjust values that are not feasible.
+    void EnsureValidValues() {
+        // Make sure this value is not numerically zero.
+        const double value = Get<double>("min_element_volume_ratio");
+        if( value < 0.9e-10 ){
+            Set<double>("min_element_volume_ratio", 1e-10);
         }
     }
 
