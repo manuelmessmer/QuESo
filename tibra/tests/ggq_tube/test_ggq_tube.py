@@ -38,6 +38,9 @@ class TestGGQTube(unittest.TestCase):
                     tmp_list.append( [point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()] )
                 ips[element.ID()] = tmp_list
 
+        # with open("test.json", 'w') as file:
+        #     json.dump(ips, file )
+
         ref_file = open(filename_result, "r")
         ref_ips = json.load(ref_file)
         ref_file.close()
