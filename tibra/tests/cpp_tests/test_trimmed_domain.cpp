@@ -24,8 +24,10 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-0.4, -0.6, -0.35 };
     Vector3d upper_bound = {0.4, 0.6, 0.35 };
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                            Component("upper_bound", upper_bound),
+    Parameters parameters( {Component("lower_bound_xyz", lower_bound),
+                            Component("upper_bound_xyz", upper_bound),
+                            Component("lower_bound_uvw", lower_bound),
+                            Component("upper_bound_uvw", upper_bound),
                             Component("min_num_boundary_triangles", 200UL),
                             Component("number_of_elements", number_of_elements),
                             Component("min_element_volume_ratio", 0.0),
@@ -37,7 +39,7 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(triangle_mesh, parameters);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
@@ -58,13 +60,13 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
-
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
 
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
+                // Construct element
+                Element element(1, MakeBox(local_lower_bound, local_upper_bound),
+                                   MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
+
                 const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound );
                 if( status == IntersectionStatus::Trimmed){
                     // Get trimmed domain
@@ -131,8 +133,10 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-24.0, -43.0, 5.0 };
     Vector3d upper_bound = {85, 46.0, 115 };
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                            Component("upper_bound", upper_bound),
+    Parameters parameters( {Component("lower_bound_xyz", lower_bound),
+                            Component("upper_bound_xyz", upper_bound),
+                            Component("lower_bound_uvw", lower_bound),
+                            Component("upper_bound_uvw", upper_bound),
                             Component("number_of_elements", number_of_elements),
                             Component("min_num_boundary_triangles", 100UL),
                             Component("min_element_volume_ratio", 0.0),
@@ -162,13 +166,12 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
-
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
 
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
+                // Construct element
+                Element element(1, MakeBox(local_lower_bound, local_upper_bound),
+                                   MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
                 const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound );
                 if( status == IntersectionStatus::Trimmed){
@@ -230,8 +233,10 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
 
     Vector3d lower_bound = {-1.5, -1.5, -1 };
     Vector3d upper_bound = {1.5, 1.5, 12 };
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                            Component("upper_bound", upper_bound),
+    Parameters parameters( {Component("lower_bound_xyz", lower_bound),
+                            Component("upper_bound_xyz", upper_bound),
+                            Component("lower_bound_uvw", lower_bound),
+                            Component("upper_bound_uvw", upper_bound),
                             Component("number_of_elements", number_of_elements),
                             Component("min_num_boundary_triangles", 100UL),
                             Component("min_element_volume_ratio", 0.0),
@@ -262,13 +267,12 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
-
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area_test += MeshUtilities::Area(*p_clipped_mesh);
 
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
+                // Construct element
+                Element element(1, MakeBox(local_lower_bound, local_upper_bound),
+                                   MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
                 const auto status = brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound);
                 if( status == IntersectionStatus::Trimmed){
@@ -325,8 +329,10 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     const PointType Perturbation ){
 
     Vector3i number_of_elements = {1, 1, 1};
-    Parameters parameters( {Component("lower_bound", rLowerBound),
-                            Component("upper_bound", rUpperBound),
+    Parameters parameters( {Component("lower_bound_xyz", rLowerBound),
+                            Component("upper_bound_xyz", rUpperBound),
+                            Component("lower_bound_uvw", rLowerBound),
+                            Component("upper_bound_uvw", rUpperBound),
                             Component("number_of_elements", number_of_elements),
                             Component("min_num_boundary_triangles", 100UL),
                             Component("min_element_volume_ratio", 0.0),
@@ -359,10 +365,6 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
             for(double z = rLowerBound[2]; z <= rUpperBound[2]; z += delta_z){
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, rLowerBound, rUpperBound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, rLowerBound, rUpperBound);
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
 
                 auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound);
                 area += MeshUtilities::Area(*p_clipped_mesh);
