@@ -24,9 +24,9 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
                 parameters.AddEmptyValue("lower_point")
-                parameters["lower_point"].SetVector(self.tibra_parameters.LowerBound())
+                parameters["lower_point"].SetVector(self.tibra_parameters.LowerBoundXYZ())
                 parameters.AddEmptyValue("upper_point")
-                parameters["upper_point"].SetVector(self.tibra_parameters.UpperBound())
+                parameters["upper_point"].SetVector(self.tibra_parameters.UpperBoundXYZ())
                 parameters.AddEmptyValue("polynomial_order")
                 parameters["polynomial_order"].SetVector(self.tibra_parameters.Order())
                 parameters.AddEmptyValue("number_of_knot_spans")
@@ -68,7 +68,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         ModelPartUtilities.RemoveAllElements(model_part)
         ModelPartUtilities.RemoveAllConditions(model_part)
         ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
-        ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, self.tibra_parameters.LowerBound(), self.tibra_parameters.UpperBound())
+        ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, self.tibra_parameters.LowerBoundXYZ(), self.tibra_parameters.UpperBoundXYZ())
 
         # Add Dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
