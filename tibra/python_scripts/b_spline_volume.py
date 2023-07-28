@@ -8,11 +8,16 @@ class BSplineVolume:
         '''
         self.Order = Parameters.Order()
         NumElements = Parameters.NumberOfElements()
-        LowerBound = Parameters.LowerBound()
-        UpperBound = Parameters.UpperBound()
-        self.spline_u = self.__construct_b_spline(self.Order[0], NumElements[0], LowerBound[0], UpperBound[0])
-        self.spline_v = self.__construct_b_spline(self.Order[1], NumElements[1], LowerBound[1], UpperBound[1])
-        self.spline_w = self.__construct_b_spline(self.Order[2], NumElements[2], LowerBound[2], UpperBound[2])
+        LowerBoundXYZ = Parameters.LowerBoundXYZ()
+        UpperBoundXYZ = Parameters.UpperBoundXYZ()
+        LowerBoundUVW = Parameters.LowerBoundUVW()
+        UpperBoundUVW = Parameters.UpperBoundUVW()
+        self.spline_u = self.__construct_b_spline(
+            self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0])
+        self.spline_v = self.__construct_b_spline(
+            self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1])
+        self.spline_w = self.__construct_b_spline(
+            self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2])
 
     def ControlPoints(self):
         ''' Returns control points of B-Spline volume in a list.
@@ -98,16 +103,17 @@ class BSplineVolume:
         '''
         return len(self.spline_w.c)
 
-    def __construct_b_spline(self, Order, NumElements, LowerBound, UpperBound):
-        delta_u = 1.0/NumElements
-        knots_u = np.array( (Order+1)*[0] )
-        knots_u = np.append( knots_u, (Order+1)*[1] )
+    def __construct_b_spline(self, Order, NumElements, LowerBoundX, UpperBoundX, LowerBoundU, UpperBoundU):
+        delta_u = (UpperBoundU-LowerBoundU)/NumElements
+        knots_u = np.array( (Order+1)*[LowerBoundU] )
+        knots_u = np.append( knots_u, (Order+1)*[UpperBoundU] )
 
-        delta_x = (UpperBound-LowerBound) / Order
+        delta_x = (UpperBoundX-LowerBoundX) / Order
 
-        cps_x = np.arange(LowerBound, UpperBound+0.5*delta_x,  delta_x )
+        cps_x = np.arange(LowerBoundX, UpperBoundX+0.5*delta_x,  delta_x )
         spline_u = si.BSpline(knots_u, cps_x, Order)
-        knots_u_to_insert = np.arange(delta_u, 1.0-0.5*delta_u, delta_u)
+
+        knots_u_to_insert = np.arange(LowerBoundU+delta_u, UpperBoundU-0.5*delta_u, delta_u)
 
         for knot in knots_u_to_insert:
             spline_u = si.insert(knot, spline_u)
