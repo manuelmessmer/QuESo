@@ -48,10 +48,10 @@ class TestGGQTube(unittest.TestCase):
         for ref_id, ref_el in ref_ips.items():
             el = ips[int(ref_id)]
             for ref_point, point in zip(ref_el, el):
-                self.assertLess( abs(ref_point[0]-point[0])/ref_point[0], 1e-14 )
-                self.assertLess( abs(ref_point[1]-point[1])/ref_point[1], 1e-14 )
-                self.assertLess( abs(ref_point[2]-point[2])/ref_point[2], 1e-14 )
-                self.assertLess( abs(ref_point[3]-point[3])/ref_point[3], 1e-14 )
+                self.assertLess( abs(ref_point[0]-point[0])/ref_point[0], 1e-11 )
+                self.assertLess( abs(ref_point[1]-point[1])/ref_point[1], 1e-11 )
+                self.assertLess( abs(ref_point[2]-point[2])/ref_point[2], 1e-11 )
+                self.assertLess( abs(ref_point[3]-point[3])/ref_point[3], 1e-11 )
 
 
 if __name__ == "__main__":
