@@ -36,8 +36,10 @@ public:
     /// Constructor
     BRepOperatorBase(const Parameters& rParameters) : mParameters(rParameters)
     {
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound") ) << "Parameter does not contain 'lower_bound'.\n";
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound") ) << "Parameter does not contain 'upper_bound'.\n";
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_xyz") ) << "Parameter does not contain 'lower_bound_xyz'.\n";
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_xyz") ) << "Parameter does not contain 'upper_bound_xyz'.\n";
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_uvw") ) << "Parameter does not contain 'lower_bound_uvw'.\n";
+        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_uvw") ) << "Parameter does not contain 'upper_bound_uvw'.\n";
         TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<Vector3i>("number_of_elements") ) << "Parameter does not contain 'number_of_elements'.\n";
     }
 
@@ -58,8 +60,8 @@ public:
     ///@param rElement
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     virtual IntersectionStatus GetIntersectionState(const Element& rElement){
-        const auto& lower_bound = rElement.GetLowerBound();
-        const auto& upper_bound = rElement.GetUpperBound();
+        const auto& lower_bound = rElement.GetBoundsXYZ().first;
+        const auto& upper_bound = rElement.GetBoundsXYZ().second;
         return GetIntersectionState(lower_bound, upper_bound);
     }
 
