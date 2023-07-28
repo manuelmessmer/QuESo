@@ -126,21 +126,18 @@ void TIBRA::Compute(){
 
         if( status == IntersectionStatus::Inside || status == IntersectionStatus::Trimmed ) {
             // Get bounding box of element
-            const auto bounding_box = mMapper.GetBoundingBoxFromIndex(index);
-
-            // Map points into parametric/local space
-            const auto bb_lower_bound_param = mMapper.PointFromGlobalToParam(bounding_box.first);
-            const auto bb_upper_bound_param = mMapper.PointFromGlobalToParam(bounding_box.second);
+            const auto bounding_box_xyz = mMapper.GetBoundingBoxXYZFromIndex(index);
+            const auto bounding_box_uvw = mMapper.GetBoundingBoxUVWFromIndex(index);
 
             // Construct element and check status
-            Shared<Element> new_element = MakeShared<Element>(index+1, bb_lower_bound_param, bb_upper_bound_param, mParameters);
+            Shared<Element> new_element = MakeShared<Element>(index+1, bounding_box_xyz, bounding_box_uvw, mParameters);
             bool valid_element = false;
 
             // Distinguish between trimmed and non-trimmed elements.
             if( status == IntersectionStatus::Trimmed) {
                 new_element->SetIsTrimmed(true);
                 Timer timer_compute_intersection{};
-                auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box.first, bounding_box.second);
+                auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second);
                 if( p_trimmed_domain ){
                     new_element->pSetTrimmedDomain(p_trimmed_domain);
                     valid_element = true;
@@ -178,8 +175,8 @@ void TIBRA::Compute(){
     #pragma omp parallel for
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index ) {
         for( IndexType i = 0; i < mConditions.size(); ++i ){
-            const auto bounding_box = mMapper.GetBoundingBoxFromIndex(index);
-            const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box.first, bounding_box.second);
+            const auto bounding_box_xyz = mMapper.GetBoundingBoxXYZFromIndex(index);
+            const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
             if( p_new_mesh->NumOfTriangles() > 0 ){
                 #pragma omp critical
                 mConditions[i]->AddToConformingMesh(*p_new_mesh);
