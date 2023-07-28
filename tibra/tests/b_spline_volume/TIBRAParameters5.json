@@ -3,8 +3,8 @@
     "mesh_settings"     : {
         "lower_bound_xyz": [-1.5, -1.5, -1.00],
         "upper_bound_xyz": [1.5, 1.5, 11.00],
-        "lower_bound_uvw": [0.0, 0.0, 0.0],
-        "upper_bound_uvw": [1.0, 1.0, 1.0],
+        "lower_bound_uvw": [5.5, 4.5, 2.22],
+        "upper_bound_uvw": [8.0, 6.6, 10.4],
         "polynomial_order" : [2, 2, 2],
         "number_of_elements" : [2,2,10]
     }

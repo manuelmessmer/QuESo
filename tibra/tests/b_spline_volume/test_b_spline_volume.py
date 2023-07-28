@@ -26,6 +26,26 @@ class TestBSplineVolume(unittest.TestCase):
         results_filename = "tibra/tests/b_spline_volume/results_4.json"
         self.RunTest(input_filename, results_filename)
 
+    def test5(self):
+        input_filename = "tibra/tests/b_spline_volume/TIBRAParameters5.json"
+        results_filename = "tibra/tests/b_spline_volume/results_5.json"
+        self.RunTest(input_filename, results_filename)
+
+    def test6(self):
+        input_filename = "tibra/tests/b_spline_volume/TIBRAParameters6.json"
+        results_filename = "tibra/tests/b_spline_volume/results_6.json"
+        self.RunTest(input_filename, results_filename)
+
+    def test7(self):
+        input_filename = "tibra/tests/b_spline_volume/TIBRAParameters7.json"
+        results_filename = "tibra/tests/b_spline_volume/results_7.json"
+        self.RunTest(input_filename, results_filename)
+
+    def test8(self):
+        input_filename = "tibra/tests/b_spline_volume/TIBRAParameters8.json"
+        results_filename = "tibra/tests/b_spline_volume/results_8.json"
+        self.RunTest(input_filename, results_filename)
+
     def RunTest(self,input_filename, results_filename):
         pytibra = PyTIBRA(input_filename)
 
@@ -35,6 +55,17 @@ class TestBSplineVolume(unittest.TestCase):
         knots_v = volume.KnotsV()
         knots_w = volume.KnotsW()
         polynomial_order = volume.PolynomialOrder()
+
+        # To write results:
+        # dict_a = {}
+        # dict_a["cps"] = cps
+        # dict_a["knots_u"] = knots_u
+        # dict_a["knots_v"] = knots_v
+        # dict_a["knots_w"] = knots_w
+
+        # # Read results file
+        # with open("test.json", 'w') as file:
+        #     json.dump(dict_a, file )
 
         # Read results file
         with open(results_filename, 'r') as file:
