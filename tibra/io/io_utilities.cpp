@@ -356,9 +356,9 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
     const auto el_it_ptr_begin = rElementContainer.begin();
     for( IndexType i = 0; i < rElementContainer.size(); ++i){
         const auto el_ptr = *(el_it_ptr_begin + i);
-        const auto& points = el_ptr->GetIntegrationPoints();
-        for( const auto& point : points ){
-            auto point_global = el_ptr->PointFromParamToGlobal(point);
+        const auto& r_points = el_ptr->GetIntegrationPoints();
+        for( const auto& r_point : r_points ){
+            auto point_global = el_ptr->PointFromParamToGlobal(r_point);
 
             if( Binary ){
                 WriteBinary(file, point_global[0]);
