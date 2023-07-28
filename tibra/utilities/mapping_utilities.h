@@ -29,17 +29,17 @@ public:
 
     /// @brief Maps point from global to parametric space.
     /// @param rGlobalCoord Point to map.
-    /// @param rLowerPoint of background mesh.
-    /// @param rUpperPoint of background mesh.
+    /// @param rBoundsXYZ physical bounds of background mesh.
+    /// @param rBoundsUVW parametric bounds of background mesh.
     /// @return PointType
-    static PointType PointFromGlobalToParam( const PointType& rGlobalCoord, const PointType& rLowerPoint, const PointType& rUpperPoint);
+    static PointType PointFromGlobalToParam( const PointType& rGlobalCoord, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW);
 
     /// @brief Maps point from parametric to global space.
     /// @param rLocalCoord Point to map.
-    /// @param rLowerPoint of background mesh.
-    /// @param rUpperPoint of background mesh.
+    /// @param rBoundsXYZ of background mesh.
+    /// @param rBoundsUVW of background mesh.
     /// @return PointType.
-    static PointType PointFromParamToGlobal( const PointType& rLocalCoord, const PointType& rLowerPoint, const PointType& rUpperPoint);
+    static PointType PointFromParamToGlobal( const PointType& rLocalCoord, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW);
 
     /// @brief Maps univariate index to trivariate indices i -> (i,j,k)
     /// @see GetVectorIndexFromMatrixIndices
@@ -107,8 +107,10 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    Mapper( const Parameters& rParameters ) : mLowerBound(rParameters.LowerBound()),
-        mUpperBound(rParameters.UpperBound()), mNumberOfElements(rParameters.NumberOfElements())
+    Mapper( const Parameters& rParameters ) :
+        mBoundXYZ( std::make_pair(rParameters.LowerBoundXYZ(), rParameters.UpperBoundXYZ()) ),
+        mBoundUVW( std::make_pair(rParameters.LowerBoundUVW(), rParameters.UpperBoundUVW()) ),
+        mNumberOfElements(rParameters.NumberOfElements()), mBSplineMesh(rParameters.Get<bool>("b_spline_mesh"))
     {
     }
 
@@ -116,15 +118,6 @@ public:
     ///@name Public Operations
     ///@{
 
-    /// @brief Maps point from global to parametric space.
-    /// @param rGlobalCoord Point to map.
-    /// @return PointType.
-    PointType PointFromGlobalToParam( const PointType& rGlobalCoord ) const;
-
-    /// @brief Maps point from parametric to global space.
-    /// @param rLocalCoord
-    /// @return PointType.
-    PointType PointFromParamToGlobal( const PointType& rLocalCoord ) const;
 
     /// @brief Maps univariate index to trivariate indices i -> (i,j,k).
     /// @see GetVectorIndexFromMatrixIndices.
@@ -146,30 +139,48 @@ public:
     /// @return IndexType.
     IndexType GetVectorIndexFromMatrixIndices(const Vector3i& rIndices ) const;
 
-    /// @brief Creates bounding box from given index.
+    /// @brief Creates bounding box in physical space from given index.
     /// @param Index
     /// @return BoundingBoxType.
-    BoundingBoxType GetBoundingBoxFromIndex(IndexType Index) const;
+    BoundingBoxType GetBoundingBoxXYZFromIndex(IndexType Index) const;
 
-    /// @brief Creates bounding box from given indices.
+    /// @brief Creates bounding box in physical space from given indices.
     /// @param Indices
     /// @return BoundingBoxType.
-    BoundingBoxType GetBoundingBoxFromIndex(const Vector3i& Indices) const;
+    BoundingBoxType GetBoundingBoxXYZFromIndex(const Vector3i& Indices) const;
 
-    /// @brief Creates bounding box from given indices.
+    /// @brief Creates bounding box in physical space from given indices.
     /// @param i
     /// @param j
     /// @param k
     /// @return BoundingBoxType
-    BoundingBoxType GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k) const;
+    BoundingBoxType GetBoundingBoxXYZFromIndex(IndexType i, IndexType j, IndexType k) const;
+
+    /// @brief Creates bounding box in parametric space from given index.
+    /// @param Index
+    /// @return BoundingBoxType.
+    BoundingBoxType GetBoundingBoxUVWFromIndex(IndexType Index) const;
+
+    /// @brief Creates bounding box in parametric space from given indices.
+    /// @param Indices
+    /// @return BoundingBoxType.
+    BoundingBoxType GetBoundingBoxUVWFromIndex(const Vector3i& Indices) const;
+
+    /// @brief Creates bounding box in parametric space from given indices.
+    /// @param i
+    /// @param j
+    /// @param k
+    /// @return BoundingBoxType
+    BoundingBoxType GetBoundingBoxUVWFromIndex(IndexType i, IndexType j, IndexType k) const;
 
     ///@}
 private:
     ///@name Private Members
     ///@{
-    const PointType mLowerBound;
-    const PointType mUpperBound;
+    const BoundingBoxType mBoundXYZ;
+    const BoundingBoxType mBoundUVW;
     const Vector3i mNumberOfElements;
+    const bool mBSplineMesh;
     ///@}
 }; // End class Mapper.
 ///@} End tibra classes.
