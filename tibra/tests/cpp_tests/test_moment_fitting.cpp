@@ -27,8 +27,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
-    Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound", PointType(2.0, 2.0, 3.0)),
+    Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
+                            Component("upper_bound_xyz", PointType(2.0, 2.0, 3.0)),
                             Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(2, 2, 2)),
                             Component("moment_fitting_residual", 1e-8),
@@ -37,11 +37,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, {0, 0, 0}, {0.5, 0.5, 1}, parameters);
+    Element element(1, MakeBox({0, 0, 0}, {1, 1, 3.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
-    PointType point_b_domain = {1.0,1.0, 3.0};
+    PointType point_b_domain = {1.0, 1.0, 3.0};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     auto p_boundary_ips = MakeUnique<TrimmedDomainBase::BoundaryIPVectorType>();
@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Get Gauss points as reference
     Element::IntegrationPointVectorType points_gauss_legendre{};
-    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
-        element.GetUpperBoundParam(), {2, 2, 2});
+    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
+        element.GetBoundsUVW().second, {2, 2, 2});
 
     double error_norm = 0.0;
     // Check if weights are similar
@@ -87,8 +87,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
-    Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound", PointType(2.0, 2.0, 1.0)),
+    Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
+                            Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
                             Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(3, 3, 3)),
                             Component("moment_fitting_residual", 1e-8),
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, parameters);
+    Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
@@ -128,8 +128,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Get Gauss points as reference
     Element::IntegrationPointVectorType points_gauss_legendre{};
-    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
-        element.GetUpperBoundParam(), {3, 3, 3});
+    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
+        element.GetBoundsUVW().second, {3, 3, 3});
 
     double error_norm = 0.0;
     // Check if weights are similar
@@ -149,8 +149,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
-    Parameters parameters( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound", PointType(2.0, 2.0, 1.0)),
+    Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
+                            Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
                             Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(4, 4, 4)),
                             Component("moment_fitting_residual", 1e-8),
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, {0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, parameters);
+     Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
@@ -190,8 +190,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 
     // Get Gauss points as reference
     Element::IntegrationPointVectorType points_gauss_legendre{};
-    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetLowerBoundParam(),
-        element.GetUpperBoundParam(), {4, 4, 4});
+    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
+        element.GetBoundsUVW().second, {4, 4, 4});
 
     double error_norm = 0.0;
     // Check if weights are similar

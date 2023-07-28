@@ -16,16 +16,19 @@ BOOST_AUTO_TEST_SUITE( MapperTestSuite )
 BOOST_AUTO_TEST_CASE(MapperTest) {
     TIBRA_INFO << "Testing :: Test Mapping Utilities :: Mapper" << std::endl;
 
-    const PointType lower_bound(-1.0, -0.5, 1.0);
-    const PointType upper_bound(5.0, 10.5, 13.0);
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  5.0, 2.0}, {-2.0, 7.0, 100.0} );
+
     const Vector3i number_of_elements(5, 10, 7);
 
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                        Component("upper_bound", upper_bound),
-                        Component("number_of_elements", number_of_elements) } );
+    Parameters parameters( {Component("lower_bound_xyz", bounds_xyz.first),
+                            Component("upper_bound_xyz", bounds_xyz.second),
+                            Component("lower_bound_uvw", bounds_uvw.first),
+                            Component("upper_bound_uvw", bounds_uvw.second),
+                            Component("number_of_elements", number_of_elements) } );
 
     Mapper mapper(parameters);
-    const auto delta = upper_bound - lower_bound;
+    const auto delta = bounds_xyz.second - bounds_xyz.first;
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -36,9 +39,9 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
                 BOOST_CHECK_EQUAL(j, indices[1]);
                 BOOST_CHECK_EQUAL(k, indices[2]);
 
-                auto box_1 = mapper.GetBoundingBoxFromIndex(index);
-                auto box_2 = mapper.GetBoundingBoxFromIndex(i, j, k);
-                auto box_3 = mapper.GetBoundingBoxFromIndex(indices);
+                auto box_1 = mapper.GetBoundingBoxXYZFromIndex(index);
+                auto box_2 = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
+                auto box_3 = mapper.GetBoundingBoxXYZFromIndex(indices);
 
                 BOOST_CHECK_LT( (box_1.first - box_2.first).Norm(), 1e-12 );
                 BOOST_CHECK_LT( (box_1.first - box_3.first).Norm(), 1e-12 );
@@ -56,12 +59,6 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
                 IndexType index_2 = mapper.GetVectorIndexFromMatrixIndices(indices);
                 BOOST_CHECK_EQUAL(index_1, index);
                 BOOST_CHECK_EQUAL(index_2, index);
-
-                PointType point_global(i+0.1232321, j-123.44, k+0.333);
-                PointType point_param =  mapper.PointFromGlobalToParam(point_global);
-                PointType point_global_2 =  mapper.PointFromParamToGlobal(point_param);
-
-                BOOST_CHECK_LT( (point_global - point_global_2).Norm(), 1e-12 );
             }
         }
     }
@@ -73,15 +70,18 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
 BOOST_AUTO_TEST_CASE(MappingTest) {
     TIBRA_INFO << "Testing :: Test Mapping Utilities :: Mapping" << std::endl;
 
-    const PointType lower_bound(-25, -111.44, 7.89);
-    const PointType upper_bound(78.67, -35.68, 18.99);
+    const BoundingBoxType bounds_xyz = MakeBox( {-25, -111.44, 7.89}, {78.67, -35.68, 18.99} );
+    const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  -2.2, 2.0}, {2.0, 10.0, 17.0} );
+
     const Vector3i number_of_elements(15, 11, 17);
 
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                        Component("upper_bound", upper_bound),
-                        Component("number_of_elements", number_of_elements) } );
+    Parameters parameters( {Component("lower_bound_xyz", bounds_xyz.first),
+                            Component("upper_bound_xyz", bounds_xyz.second),
+                            Component("lower_bound_uvw", bounds_uvw.first),
+                            Component("upper_bound_uvw", bounds_uvw.second),
+                            Component("number_of_elements", number_of_elements) } );
 
-    const auto delta = upper_bound - lower_bound;
+    const auto delta = bounds_xyz.second - bounds_xyz.first;
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -92,9 +92,9 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
                 BOOST_CHECK_EQUAL(j, indices[1]);
                 BOOST_CHECK_EQUAL(k, indices[2]);
 
-                auto box_1 = Mapping::GetBoundingBoxFromIndex(index, lower_bound, upper_bound, number_of_elements);
-                auto box_2 = Mapping::GetBoundingBoxFromIndex(i, j, k, lower_bound, upper_bound, number_of_elements);
-                auto box_3 = Mapping::GetBoundingBoxFromIndex(indices, lower_bound, upper_bound, number_of_elements);
+                auto box_1 = Mapping::GetBoundingBoxFromIndex(index, bounds_xyz.first, bounds_xyz.second, number_of_elements);
+                auto box_2 = Mapping::GetBoundingBoxFromIndex(i, j, k, bounds_xyz.first, bounds_xyz.second, number_of_elements);
+                auto box_3 = Mapping::GetBoundingBoxFromIndex(indices, bounds_xyz.first, bounds_xyz.second, number_of_elements);
 
                 BOOST_CHECK_LT( (box_1.first - box_2.first).Norm(), 1e-12 );
                 BOOST_CHECK_LT( (box_1.first - box_3.first).Norm(), 1e-12 );
@@ -114,8 +114,8 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
                 BOOST_CHECK_EQUAL(index_2, index);
 
                 PointType point_global(i+100.0, j-44.27, k+88.90);
-                PointType point_param =  Mapping::PointFromGlobalToParam(point_global, lower_bound, upper_bound);
-                PointType point_global_2 =  Mapping::PointFromParamToGlobal(point_param, lower_bound, upper_bound);
+                PointType point_param =  Mapping::PointFromGlobalToParam(point_global, bounds_xyz, bounds_uvw);
+                PointType point_global_2 =  Mapping::PointFromParamToGlobal(point_param, bounds_xyz, bounds_uvw);
 
                 BOOST_CHECK_LT( (point_global - point_global_2).Norm(), 1e-12 );
             }
