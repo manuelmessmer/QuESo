@@ -179,8 +179,10 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("GetBCTriangleMesh", [](const Element& rElement, std::function<bool(double, double,double)> &IsInDomain){
             return rElement.pGetTrimmedDomain()->pGetTriangleMesh(IsInDomain);
         })
-        .def("GetLowerBoundParam", &Element::GetLowerBoundParam)
-        .def("GetUpperBoundParam", &Element::GetUpperBoundParam)
+        .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first.Coordinates(); })
+        .def("UpperBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().second.Coordinates(); })
+        .def("LowerBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().first.Coordinates(); })
+        .def("UpperBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().second.Coordinates(); })
         .def("GetNumberBoundaryTriangles", [](const Element& rElement ){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
         })
@@ -265,8 +267,10 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("AddNeumannBC", &Parameters::AddNeumannCondition)
         .def("EchoLevel", &Parameters::EchoLevel)
         // Return std::array<type,3> types. Easier to handle in python.
-        .def("LowerBound", []( const Parameters& rParams ) { return rParams.LowerBound().Coordinates(); })
-        .def("UpperBound", []( const Parameters& rParams ) { return rParams.UpperBound().Coordinates(); })
+        .def("LowerBoundXYZ", []( const Parameters& rParams ) { return rParams.LowerBoundXYZ().Coordinates(); })
+        .def("UpperBoundXYZ", []( const Parameters& rParams ) { return rParams.UpperBoundXYZ().Coordinates(); })
+        .def("LowerBoundUVW", []( const Parameters& rParams ) { return rParams.LowerBoundUVW().Coordinates(); })
+        .def("UpperBoundUVW", []( const Parameters& rParams ) { return rParams.UpperBoundUVW().Coordinates(); })
         .def("Order", []( const Parameters& rParams ) { return rParams.Order().Coordinates(); })
         .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements().Coordinates(); })
         .def("NumberOfConditions", &Parameters::NumberOfConditions)
