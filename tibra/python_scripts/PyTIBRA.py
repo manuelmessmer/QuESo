@@ -53,11 +53,11 @@ class PyTIBRA:
     def GetNumberElements(self):
         return self.parameters.NumberOfElements()
 
-    def GetLowerBound(self):
-        return self.parameters.LowerBound()
+    def GetLowerBoundDomainXYZ(self):
+        return self.parameters.LowerBoundXYZ()
 
-    def GetUpperBound(self):
-        return self.parameters.UpperBound()
+    def GetUpperBoundDomainXYZ(self):
+        return self.parameters.UpperBoundXYZ()
 
     def GetBSplineVolume(self):
         return self.b_spline_volume
