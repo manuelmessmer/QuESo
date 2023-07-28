@@ -63,6 +63,11 @@ constexpr double EPS4 = 1e-14;
 enum IntersectionStatus {Inside, Outside, Trimmed};
 typedef IntersectionStatus IntersectionStatusType;
 
+// Factories
+inline BoundingBoxType MakeBox( std::array<double, 3> rL, std::array<double, 3> rR ){
+    return std::make_pair(PointType(rL), PointType(rR));
+}
+
 ///@}
 ///@name TIBRA POINTER DEFINITIONS
 ///@{
