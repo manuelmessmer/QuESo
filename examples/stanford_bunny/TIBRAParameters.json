@@ -4,8 +4,10 @@
         "echo_level"      : 1
     },
     "mesh_settings"     : {
-        "lower_bound": [-24.0, -43.0, 5.0],
-        "upper_bound": [85.0, 46.0, 115.0],
+        "lower_bound_xyz": [-24.0, -43.0, 5.0],
+        "upper_bound_xyz": [85.0, 46.0, 115.0],
+        "lower_bound_uvw": [-24.0, -43.0, 5.0],
+        "upper_bound_uvw": [85.0, 46.0, 115.0],
         "polynomial_order" : [2, 2, 2],
         "number_of_elements" : [50, 50, 50]
     },
