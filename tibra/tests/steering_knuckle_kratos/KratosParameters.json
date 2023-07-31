@@ -15,7 +15,7 @@
             "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "tibra/tests/steering_knuckle/StructuralMaterials.json"
+            "materials_filename": "tibra/tests/steering_knuckle_kratos/StructuralMaterials.json"
         },
         "time_stepping": {
             "time_step": 1.1

@@ -1,6 +1,6 @@
 {
     "general_settings"   : {
-        "input_filename"  : "tibra/tests/steering_knuckle/data/steering_knuckle.stl",
+        "input_filename"  : "tibra/tests/steering_knuckle_kratos/data/steering_knuckle.stl",
         "echo_level"      : 1
     },
     "mesh_settings"     : {
@@ -9,7 +9,7 @@
         "lower_bound_uvw": [0.0, 0.0, 0.0],
         "upper_bound_uvw": [1.0, 1.0, 1.0],
         "polynomial_order" : [2, 2, 2],
-        "number_of_elements" : [50, 100, 100]
+        "number_of_elements" : [20, 50, 50]
     },
     "trimmed_quadrature_rule_settings"     : {
         "moment_fitting_residual": 1e-8,
@@ -20,19 +20,19 @@
     },
     "conditions"    :  [{
         "neumann": {
-            "filename" : "tibra/tests/steering_knuckle/data/N1.stl",
+            "filename" : "tibra/tests/steering_knuckle_kratos/data/N1.stl",
             "force" : [-2.0, 0.0, 0.0]
         }},{
         "neumann": {
-            "filename" : "tibra/tests/steering_knuckle/data/N2.stl",
+            "filename" : "tibra/tests/steering_knuckle_kratos/data/N2.stl",
             "force" : [0.0, 0.0, 1.0]
         }},{
         "neumann": {
-            "filename" : "tibra/tests/steering_knuckle/data/N3.stl",
+            "filename" : "tibra/tests/steering_knuckle_kratos/data/N3.stl",
             "force" : [0.0, 0.3, 0.0]
         }},{
         "dirichlet": {
-            "filename" : "tibra/tests/steering_knuckle/data/D1.stl",
+            "filename" : "tibra/tests/steering_knuckle_kratos/data/D1.stl",
             "displacement" : [0.0, 0.0, 0.0],
             "penalty_factor" : 1e10
         }}
