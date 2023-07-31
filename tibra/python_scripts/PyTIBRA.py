@@ -59,6 +59,12 @@ class PyTIBRA:
     def GetUpperBoundDomainXYZ(self):
         return self.parameters.UpperBoundXYZ()
 
+    def GetBoundsXYZ(self):
+        return [self.parameters.LowerBoundXYZ(), self.parameters.UpperBoundXYZ()]
+
+    def GetBoundsUVW(self):
+        return [self.parameters.LowerBoundUVW(), self.parameters.UpperBoundUVW()]
+
     def GetBSplineVolume(self):
         return self.b_spline_volume
 
@@ -88,7 +94,7 @@ class PyTIBRA:
             ModelPartUtilities.RemoveAllElements(kratos_model_part)
             ModelPartUtilities.RemoveAllConditions(kratos_model_part)
             ModelPartUtilities.AddElementsToModelPart(kratos_model_part, self.elements)
-            ModelPartUtilities.AddConditionsToModelPart(kratos_model_part, self.conditions, self.GetLowerBound(), self.GetUpperBound())
+            ModelPartUtilities.AddConditionsToModelPart(kratos_model_part, self.conditions, self.GetBoundsXYZ(), self.GetBoundsUVW())
         else:
             raise Exception("UpdateKratosNurbsVolumeModelPart :: Kratos is not available.")
 

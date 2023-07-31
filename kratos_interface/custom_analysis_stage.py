@@ -56,7 +56,6 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         embedded_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
         ModelPartUtilities.ReadModelPartFromTriangleMesh(embedded_model_part, self.triangle_mesh)
-
         # Convert the geometry model or import analysis suitable models.
         for modeler in self._GetListOfModelers():
             if self.echo_level > 1:
@@ -64,7 +63,6 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             modeler.SetupModelPart()
             if self.echo_level > 1:
                 KM.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
-
         return super()._ModelersSetupModelPart()
 
 
@@ -74,7 +72,9 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         ModelPartUtilities.RemoveAllElements(model_part)
         ModelPartUtilities.RemoveAllConditions(model_part)
         ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
-        ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, self.tibra_parameters.LowerBoundXYZ(), self.tibra_parameters.UpperBoundXYZ())
+        bounds_xyz = [self.tibra_parameters.LowerBoundXYZ(), self.tibra_parameters.UpperBoundXYZ()]
+        bounds_uvw = [self.tibra_parameters.LowerBoundUVW(), self.tibra_parameters.UpperBoundUVW()]
+        ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, bounds_xyz, bounds_uvw)
 
         # Add Dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
