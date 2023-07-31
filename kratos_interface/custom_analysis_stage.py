@@ -23,10 +23,16 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
-                parameters.AddEmptyValue("lower_point")
-                parameters["lower_point"].SetVector(self.tibra_parameters.LowerBoundXYZ())
-                parameters.AddEmptyValue("upper_point")
-                parameters["upper_point"].SetVector(self.tibra_parameters.UpperBoundXYZ())
+                parameters.AddEmptyValue("lower_point_xyz")
+                parameters["lower_point_xyz"].SetVector(self.tibra_parameters.LowerBoundXYZ())
+                parameters.AddEmptyValue("upper_point_xyz")
+                parameters["upper_point_xyz"].SetVector(self.tibra_parameters.UpperBoundXYZ())
+
+                parameters.AddEmptyValue("lower_point_uvw")
+                parameters["lower_point_uvw"].SetVector(self.tibra_parameters.LowerBoundUVW())
+                parameters.AddEmptyValue("upper_point_uvw")
+                parameters["upper_point_uvw"].SetVector(self.tibra_parameters.UpperBoundUVW())
+
                 parameters.AddEmptyValue("polynomial_order")
                 parameters["polynomial_order"].SetVector(self.tibra_parameters.Order())
                 parameters.AddEmptyValue("number_of_knot_spans")
