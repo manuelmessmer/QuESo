@@ -91,6 +91,9 @@ public:
     ///@return bool
     bool is_parallel(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2, double Tolerance = ZEROTOL ) const;
 
+    const Vector3d& GetOrigin() const {
+        return mOrigin;
+    }
     ///@}
 private:
 

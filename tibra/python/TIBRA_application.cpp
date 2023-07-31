@@ -23,6 +23,7 @@
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<tibra::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
+typedef std::vector<double> DoubleVectorType;
 typedef std::vector<tibra::IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<tibra::Shared<tibra::Element>> ElementVectorPtrType;
 typedef std::vector<tibra::Shared<tibra::Condition>> ConditionVectorPtrType;
@@ -31,6 +32,7 @@ typedef std::vector<tibra::BoundaryIntegrationPoint> BoundaryIpVectorType;
 PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
+PYBIND11_MAKE_OPAQUE(DoubleVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
@@ -112,8 +114,13 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         (m, "PointVector")
     ;
 
+    /// Export PointVector
+    py::bind_vector<DoubleVectorType, Unique<DoubleVectorType>>
+        (m, "DoubleVector")
+    ;
+
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
-    py::bind_vector<IntegrationPoint1DVectorType,Unique<IntegrationPoint1DVectorType>>
+    py::bind_vector<IntegrationPoint1DVectorType, Unique<IntegrationPoint1DVectorType>>
         (m, "IntegrationPoint1DVector")
     ;
 
@@ -282,6 +289,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
         .def("GetTriangleMesh", &TIBRA::GetTriangleMesh, py::return_value_policy::reference_internal)
         .def("GetConditions", &TIBRA::GetConditions, py::return_value_policy::reference_internal )
+        .def("ClosestDistances", &TIBRA::ClosestDistances, py::return_value_policy::move )
         .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const TIBRA& v){
             auto& mesh = v.GetPostMesh();

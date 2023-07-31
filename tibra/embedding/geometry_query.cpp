@@ -122,4 +122,39 @@ namespace tibra {
         }
     }
 
+
+    bool AreSame(const PointType& rLhs, const PointType& rRhs)  {
+        return( std::abs( rLhs[0] - rRhs[0] ) < 1e-6
+             && std::abs( rLhs[1] - rRhs[1] ) < 1e-6
+             && std::abs( rLhs[2] - rRhs[2] ) < 1e-6 );
+    };
+
+
+    double GeometryQuery::DistanceToClosestTriangle( const Ray_AABB_primitive& rRay ) const {
+        double min_distance = 1e12;
+        auto potential_intersections = mTree.Query(rRay);
+        for( auto r : potential_intersections){
+            const auto& p1 = mTriangleMesh.P1(r);
+            const auto& p2 = mTriangleMesh.P2(r);
+            const auto& p3 = mTriangleMesh.P3(r);
+            double t, u, v;
+            bool back_facing, parallel;
+
+            if( !AreSame(rRay.GetOrigin(), p1) && !AreSame(rRay.GetOrigin(), p2) && !AreSame(rRay.GetOrigin(), p3) ){
+                if( rRay.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
+                    if( !parallel ){;
+                        if( std::abs(t) < ZEROTOL ){ // origin lies on boundary
+                            return 0.0;
+                        } else {
+                            if( t < min_distance ){
+                                min_distance = t;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return min_distance;
+    }
+
 } // End tibra namespace

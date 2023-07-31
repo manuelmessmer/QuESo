@@ -52,6 +52,11 @@ public:
     /// @return std::pair<bool, bool> first-is_inside second-test_successful.
     std::pair<bool, bool> IsInside( const Ray_AABB_primitive& rRay ) const;
 
+    /// @brief Returns distance to closed triangle.
+    /// @param rRay
+    /// @return double
+    double DistanceToClosestTriangle( const Ray_AABB_primitive& rRay ) const;
+
     /// @brief Returns true, if the AABB intersects with the given triangle mesh.
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.

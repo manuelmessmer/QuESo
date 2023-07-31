@@ -90,6 +90,13 @@ public:
         return mTriangleMesh;
     }
 
+
+    Unique<std::vector<double>> ClosestDistances(std::vector<PointType>& rPoints,
+                                                 std::vector<PointType>& rDirections) const {
+
+        return mpBRepOperator->ClosestDistances(rPoints, rDirections);
+    }
+
     ///@}
     ///@name Temporary operations to perform PosProcessing after Kratos Analysis
     ///      This will be moved to TriangleMesh.

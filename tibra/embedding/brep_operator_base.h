@@ -100,6 +100,7 @@ public:
     /// @return bool
     virtual bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const = 0;
 
+    virtual Unique<std::vector<double>> ClosestDistances(std::vector<PointType>& rPoints, std::vector<PointType>& rDirections) const = 0;
 protected:
     ///@}
     ///@name Protected memmbers

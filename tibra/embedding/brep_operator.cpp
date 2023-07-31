@@ -17,6 +17,32 @@ namespace tibra {
 typedef BRepOperator::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
 typedef BRepOperator::StatusVectorType StatusVectorType;
 
+Unique<std::vector<double>> BRepOperator::ClosestDistances(std::vector<PointType>& rPoints,
+                                                           std::vector<PointType>& rDirections) const{
+    TIBRA_ERROR_IF("BRepOperator::ClosestDistance", rPoints.size() != rDirections.size() ) << "Sizes do not match. \n";
+
+    Unique<std::vector<double>> distances = MakeUnique<std::vector<double>>();
+    auto& r_distances = *distances;
+    r_distances.resize(rPoints.size());
+
+    #pragma omp parallel for
+    for( int i = 0; i < static_cast<int>(rPoints.size()); ++i ){
+        Vector3d direction(rDirections[i]);
+        // Normalize
+        const double norm_direction = direction.Norm();
+        direction /= norm_direction;
+
+        Vector3d point(rPoints[i]);
+
+        // Construct ray
+        Ray_AABB_primitive ray(point, direction);
+
+        r_distances[i] = mGeometryQuery.DistanceToClosestTriangle(ray);
+    }
+
+    return distances;
+}
+
 bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::random_device rd;
     std::mt19937 gen(rd());

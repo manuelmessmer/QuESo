@@ -119,7 +119,10 @@ public:
     ///@param rUpperBound Upper bound of AABB.
     ///@return Unique<TriangleMesh>. Clipped mesh.
     Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+
+    Unique<std::vector<double>> ClosestDistances(std::vector<PointType>& rPoints, std::vector<PointType>& rDirections) const;
     ///@}
+
 
 private:
 

@@ -79,6 +79,9 @@ class PyTIBRA:
     def GetAnalysis(self):
         return self.analysis
 
+    def ClosestDistances(self, points, directions):
+        return self.tibra.ClosestDistances(points, directions)
+
     #########################################
     #### Kratos related member functions ####
     #########################################
