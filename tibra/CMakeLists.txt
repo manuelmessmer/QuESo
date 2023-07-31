@@ -15,18 +15,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-# Import CGAL and its components
-if( USE_CGAL MATCHES ON )
-  find_package( CGAL QUIET COMPONENTS  )
-
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-  if ( NOT CGAL_FOUND )
-    message(STATUS "This project requires the CGAL library, and will not be compiled.")
-    return()
-  endif()
-  add_definitions( -DUSE_CGAL )
-endif()
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /EHsc -W2 /std:c++17 /D _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS")
 else()
@@ -74,13 +62,6 @@ file(GLOB TIBRA_ApplicationSource
   # Add external libraries
   ${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries/aabb_tree/*.cc
 )
-
-## If cgal support is enables
-if( USE_CGAL MATCHES ON )
-  file(GLOB TIBRA_CGALWrapperSource
-    ${CMAKE_CURRENT_SOURCE_DIR}/cgal_wrapper/*.cpp
-  )
-endif()
 
 ## CGAL python interface sources
 file(GLOB_RECURSE TIBRA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
