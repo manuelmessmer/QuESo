@@ -4,7 +4,7 @@
 export CC=gcc
 export CXX=g++
 
-export APP_SOURCE="${APP_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"}/tibra"
+export APP_SOURCE="${APP_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"}/queso"
 export APP_BUILD="${APP_SOURCE}/../build/"
 
 # Set basic configuration

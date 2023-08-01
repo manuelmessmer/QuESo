@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-from tibra.python_scripts.helper import *
+from queso.python_scripts.helper import *
 
 class WeakBcsBase():
     """Base Class to provide interface for the application of boundary conditions.

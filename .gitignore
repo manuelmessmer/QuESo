@@ -4,11 +4,11 @@ examples/stanford_bunny/output/
 examples/steering_knuckle/output/
 examples_test/
 kratos_interface/__pycache__/
-tibra/python_scripts/write_ls_dyna_keyword.py
+queso/python_scripts/write_ls_dyna_keyword.py
 output/
 kratos_output/
 libs/
 TestExecutables/
-TIBRA_PythonApplication/
+QuESo_PythonApplication/
 .vscode/
 *.pyc

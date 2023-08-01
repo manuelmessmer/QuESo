@@ -1,0 +1,35 @@
+{
+    "general_settings"   : {
+        "input_filename"  : "queso/tests/trimmed_cantilever_kratos/cylinder.stl",
+        "postprocess_filename" : "queso/tests/trimmed_cantilever_kratos/cylinder.stl",
+        "echo_level"      : 0,
+        "embedding_flag"  : true
+    },
+    "mesh_settings"     : {
+        "lower_bound_xyz": [-1.5, -1.5, -1.00],
+        "upper_bound_xyz": [1.5, 1.5, 11.00],
+        "lower_bound_uvw": [0.0, 0.0, 0.0],
+        "upper_bound_uvw": [1.0, 1.0, 1.0],
+        "polynomial_order" : [2, 2, 2],
+        "number_of_elements" : [8,8,10]
+    },
+    "trimmed_quadrature_rule_settings"     : {
+        "initial_triangle_edge_length" : 1.0,
+        "min_num_boundary_triangles"  : 1000,
+        "moment_fitting_residual": 1e-10,
+        "init_point_distribution_factor": 2
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+        "integration_method" : "GGQ_Optimal"
+    },
+    "conditions"    :  [{
+        "neumann": {
+            "filename" : "queso/tests/trimmed_cantilever_kratos/tip.stl",
+            "force" : [0.0, 0.1, 0.0]
+        }},{
+        "dirichlet": {
+            "filename" : "queso/tests/trimmed_cantilever_kratos/base.stl",
+            "penalty_factor" : 1e10
+        }}
+    ]
+}
