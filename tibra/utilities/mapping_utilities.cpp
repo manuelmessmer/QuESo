@@ -10,16 +10,22 @@
 namespace tibra {
 
 // Static member operations for Mapping
-PointType Mapping::PointFromGlobalToParam( const PointType& rGlobalCoord, const PointType& rLowerPoint, const PointType& rUpperPoint){
-    return PointType( (rGlobalCoord[0] - rLowerPoint[0]) / std::abs(rUpperPoint[0] - rLowerPoint[0]),
-                      (rGlobalCoord[1] - rLowerPoint[1]) / std::abs(rUpperPoint[1] - rLowerPoint[1]),
-                      (rGlobalCoord[2] - rLowerPoint[2]) / std::abs(rUpperPoint[2] - rLowerPoint[2]) );
+PointType Mapping::PointFromGlobalToParam( const PointType& rGlobalCoord, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW){
+    const auto delta_xyz = rBoundXYZ.second - rBoundXYZ.first;
+    const auto delta_uvw = rBoundUVW.second - rBoundUVW.first;
+
+    return PointType( ( (rGlobalCoord[0] - rBoundXYZ.first[0]) / std::abs(delta_xyz[0]) * std::abs(delta_uvw[0]) ) + rBoundUVW.first[0],
+                      ( (rGlobalCoord[1] - rBoundXYZ.first[1]) / std::abs(delta_xyz[1]) * std::abs(delta_uvw[1]) ) + rBoundUVW.first[1],
+                      ( (rGlobalCoord[2] - rBoundXYZ.first[2]) / std::abs(delta_xyz[2]) * std::abs(delta_uvw[2]) ) + rBoundUVW.first[2] );
 }
 
-PointType Mapping::PointFromParamToGlobal( const PointType& rLocalCoord, const PointType& rLowerPoint, const PointType& rUpperPoint ) {
-    return PointType( (rLocalCoord[0] * std::abs(rUpperPoint[0] - rLowerPoint[0]) ) + rLowerPoint[0],
-                      (rLocalCoord[1] * std::abs(rUpperPoint[1] - rLowerPoint[1]) ) + rLowerPoint[1],
-                      (rLocalCoord[2] * std::abs(rUpperPoint[2] - rLowerPoint[2]) ) + rLowerPoint[2] );
+PointType Mapping::PointFromParamToGlobal( const PointType& rLocalCoord, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW ) {
+    const auto delta_xyz = rBoundXYZ.second - rBoundXYZ.first;
+    const auto delta_uvw = rBoundUVW.second - rBoundUVW.first;
+
+    return PointType( ( (rLocalCoord[0] - rBoundUVW.first[0]) / std::abs(delta_uvw[0]) * std::abs(delta_xyz[0]) ) + rBoundXYZ.first[0],
+                      ( (rLocalCoord[1] - rBoundUVW.first[1]) / std::abs(delta_uvw[1]) * std::abs(delta_xyz[1]) ) + rBoundXYZ.first[1],
+                      ( (rLocalCoord[2] - rBoundUVW.first[2]) / std::abs(delta_uvw[2]) * std::abs(delta_xyz[2]) ) + rBoundXYZ.first[2] );
 }
 
 Vector3i Mapping::GetMatrixIndicesFromVectorIndex(const IndexType Index, const Vector3i& rNumberOfElements) {
@@ -59,13 +65,7 @@ std::pair<PointType, PointType> Mapping::GetBoundingBoxFromIndex(IndexType i, In
 }
 
 // Member operations for Mapper
-PointType Mapper::PointFromGlobalToParam( const PointType& rGlobalCoord ) const {
-    return Mapping::PointFromGlobalToParam(rGlobalCoord, mLowerBound, mUpperBound);
-}
 
-PointType Mapper::PointFromParamToGlobal( const PointType& rLocalCoord ) const {
-    return Mapping::PointFromParamToGlobal(rLocalCoord, mLowerBound, mUpperBound);
-}
 
 Vector3i Mapper::GetMatrixIndicesFromVectorIndex(const IndexType Index ) const {
     return Mapping::GetMatrixIndicesFromVectorIndex(Index, mNumberOfElements);
@@ -79,16 +79,37 @@ IndexType Mapper::GetVectorIndexFromMatrixIndices(const Vector3i& rIndices ) con
     return Mapping::GetVectorIndexFromMatrixIndices(rIndices, mNumberOfElements );
 }
 
-std::pair<PointType, PointType> Mapper::GetBoundingBoxFromIndex(IndexType Index) const {
-    return Mapping::GetBoundingBoxFromIndex(Index, mLowerBound, mUpperBound, mNumberOfElements);
+std::pair<PointType, PointType> Mapper::GetBoundingBoxXYZFromIndex(IndexType Index) const {
+    return Mapping::GetBoundingBoxFromIndex(Index, mBoundXYZ.first, mBoundXYZ.second, mNumberOfElements);
 }
 
-std::pair<PointType, PointType> Mapper::GetBoundingBoxFromIndex(const Vector3i& Indices) const {
-    return Mapping::GetBoundingBoxFromIndex(Indices, mLowerBound, mUpperBound, mNumberOfElements);
+std::pair<PointType, PointType> Mapper::GetBoundingBoxXYZFromIndex(const Vector3i& Indices) const {
+    return Mapping::GetBoundingBoxFromIndex(Indices, mBoundXYZ.first, mBoundXYZ.second, mNumberOfElements);
 }
 
-std::pair<PointType, PointType> Mapper::GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k) const {
-    return Mapping::GetBoundingBoxFromIndex(i, j, k, mLowerBound, mUpperBound, mNumberOfElements);
+std::pair<PointType, PointType> Mapper::GetBoundingBoxXYZFromIndex(IndexType i, IndexType j, IndexType k) const {
+    return Mapping::GetBoundingBoxFromIndex(i, j, k, mBoundXYZ.first, mBoundXYZ.second, mNumberOfElements);
+}
+
+std::pair<PointType, PointType> Mapper::GetBoundingBoxUVWFromIndex(IndexType Index) const {
+    if( mBSplineMesh ){
+        return Mapping::GetBoundingBoxFromIndex(Index, mBoundUVW.first, mBoundUVW.second, mNumberOfElements);
+    }
+    return mBoundUVW;
+}
+
+std::pair<PointType, PointType> Mapper::GetBoundingBoxUVWFromIndex(const Vector3i& Indices) const {
+    if( mBSplineMesh ){
+        return Mapping::GetBoundingBoxFromIndex(Indices, mBoundUVW.first, mBoundUVW.second, mNumberOfElements);
+    }
+    return mBoundUVW;
+}
+
+std::pair<PointType, PointType> Mapper::GetBoundingBoxUVWFromIndex(IndexType i, IndexType j, IndexType k) const {
+    if( mBSplineMesh ){
+        return Mapping::GetBoundingBoxFromIndex(i, j, k, mBoundUVW.first, mBoundUVW.second, mNumberOfElements);
+    }
+    return mBoundUVW;
 }
 
 } // End namespace tibra

@@ -6,8 +6,10 @@
         "embedding_flag"  : false
     },
     "mesh_settings"     : {
-        "lower_bound": [0.0, 0.0, 0.0],
-        "upper_bound": [2.0, 2.0, 10.0],
+        "lower_bound_xyz": [0.0, 0.0, 0.0],
+        "upper_bound_xyz": [2.0, 2.0, 10.0],
+        "lower_bound_uvw": [0.0, 0.0, 0.0],
+        "upper_bound_uvw": [1.0, 1.0, 1.0],
         "polynomial_order" : [2, 2, 2],
         "number_of_elements" : [2,2,20]
     },

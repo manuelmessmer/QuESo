@@ -281,8 +281,8 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
 
     for( IndexType i = 0; i < rElements.size(); ++i){
         auto element_it = *(element_it_begin + i);
-        const auto& lower_point = element_it->GetLowerBoundParam();
-        const auto& upper_point = element_it->GetUpperBoundParam();
+        const auto& lower_point = element_it->GetBoundsUVW().first;
+        const auto& upper_point = element_it->GetBoundsUVW().second;
         if( lower_point[0] < global_lower_point_param[0] )
             global_lower_point_param[0] = lower_point[0];
         if( lower_point[1] < global_lower_point_param[1] )
@@ -305,8 +305,8 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
         auto element_it = *(element_it_begin + i);
 
         // Local lower and upper points
-        const auto lower_point_param = element_it->GetLowerBoundParam();
-        const auto upper_point_param = element_it->GetUpperBoundParam();
+        const auto lower_point_param = element_it->GetBoundsUVW().first;
+        const auto upper_point_param = element_it->GetBoundsUVW().second;
 
         std::array<Element::IntegrationPoint1DVectorType, 3> tmp_integration_points{};
 
@@ -321,8 +321,11 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
                 double position = global_lower_point_param[direction] + distance_global* (*p_integration_point_list)[j][0];
                 double weight = length_global *  (*p_integration_point_list)[j][1];
                 std::array<double, 2> tmp_point = {position, weight};
-                // Keep this in mind.
-                if( position > lower_point_param[direction] && position <= upper_point_param[direction]){
+                if( lower_point_param[direction]-EPS3 <= position && position < upper_point_param[direction]-EPS3){
+                    if( lower_point_param[direction]+0.1*EPS3 > position) {
+                        // Make sure point is clearly inside one element.
+                        tmp_point[0] = lower_point_param[direction]+0.1*EPS3;
+                    }
                     tmp_integration_points[direction].push_back(tmp_point);
                 }
             }

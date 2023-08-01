@@ -231,8 +231,8 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
     const auto begin_el_itr = rElementContainer.begin();
     for( IndexType i = 0; i < rElementContainer.size(); ++i){
         auto el_itr = *(begin_el_itr + i);
-        const auto& lower_point = el_itr->GetLowerBound();
-        const auto& upper_point = el_itr->GetUpperBound();
+        const auto& lower_point = el_itr->GetBoundsXYZ().first;
+        const auto& upper_point = el_itr->GetBoundsXYZ().second;
 
         if( Binary ){
             double rx0 = lower_point[0];
@@ -333,7 +333,6 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
                           const bool Binary){
 
     auto p_points = rElementContainer.pGetPoints(type);
-    const auto begin_points_it_ptr = p_points->begin();
     const IndexType num_points = p_points->size();
     const IndexType num_elements = p_points->size();
 
@@ -354,19 +353,23 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
     file << "DATASET UNSTRUCTURED_GRID" << std::endl;
     file << "POINTS " << num_points << " double" << std::endl;
 
-    const Parameters& param = (*rElementContainer.begin())->GetParameters();
-    for(IndexType i = 0; i < num_points; ++i){
-        auto points_it = (begin_points_it_ptr + i);
-        auto point_global = Mapping::PointFromParamToGlobal(*points_it, param.LowerBound(), param.UpperBound() );
+    const auto el_it_ptr_begin = rElementContainer.begin();
+    for( IndexType i = 0; i < rElementContainer.size(); ++i){
+        const auto el_ptr = *(el_it_ptr_begin + i);
+        const auto& r_points = el_ptr->GetIntegrationPoints();
+        for( const auto& r_point : r_points ){
+            auto point_global = el_ptr->PointFromParamToGlobal(r_point);
 
-        if( Binary ){
-            WriteBinary(file, point_global[0]);
-            WriteBinary(file, point_global[1]);
-            WriteBinary(file, point_global[2]);
+            if( Binary ){
+                WriteBinary(file, point_global[0]);
+                WriteBinary(file, point_global[1]);
+                WriteBinary(file, point_global[2]);
+            }
+            else {
+                file << point_global[0] << ' ' << point_global[1] << ' ' << point_global[2] << std::endl;
+            }
         }
-        else {
-            file << point_global[0] << ' ' << point_global[1] << ' ' << point_global[2] << std::endl;
-        }
+
     }
     file << std::endl;
 
@@ -400,15 +403,17 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
     file << "POINT_DATA " << num_points << std::endl;
     file << "SCALARS Weights double 1" << std::endl;
     file << "LOOKUP_TABLE default" << std::endl;
-    for(IndexType i = 0; i < num_points; ++i){
-        auto points_it = (begin_points_it_ptr + i);
-
-        if( Binary ){
-            double rw = points_it->GetWeight();
-            WriteBinary(file, rw);
-        }
-        else {
-            file << points_it->GetWeight() << std::endl;
+    for( IndexType i = 0; i < rElementContainer.size(); ++i){
+        const auto el_ptr = *(el_it_ptr_begin + i);
+        const auto& points = el_ptr->GetIntegrationPoints();
+        for( const auto& point : points ){
+            if( Binary ){
+                double rw = point.GetWeight();
+                WriteBinary(file, rw);
+            }
+            else {
+                file << point.GetWeight() << std::endl;
+            }
         }
     }
     file << std::endl;

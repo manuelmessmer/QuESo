@@ -14,14 +14,15 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( ParamtersTestSuite )
 
 BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
+    TIBRA_INFO << "Testing :: Test Parameter :: Test Wrong Types" << std::endl;
     /// Constructor Tests
     // Check if wrong types are actually detected.
-    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound", Vector3i(1, 2, 3))} ), std::exception );
-    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound", false)} ), std::exception );
-    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound", 1.0)} ), std::exception );
-    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound", 1UL)} ), std::exception );
-    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound", IntegrationMethod::Gauss)} ), std::exception );
-    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound", std::string("Hallo"))} ), std::exception );
+    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", Vector3i(1, 2, 3))} ), std::exception );
+    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", false)} ), std::exception );
+    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", 1.0)} ), std::exception );
+    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", 1UL)} ), std::exception );
+    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", IntegrationMethod::Gauss)} ), std::exception );
+    BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", std::string("Hallo"))} ), std::exception );
 
     BOOST_CHECK_THROW( Parameters parameters( {Component("integration_method", 1UL)} ), std::exception );
     BOOST_CHECK_THROW( Parameters parameters( {Component("integration_method", std::string("Hallo"))} ), std::exception );
@@ -42,7 +43,7 @@ BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
 
     /// Check if error for non-default types is detected.
     Parameters parameters2{};
-    BOOST_CHECK_THROW( parameters2.Get<PointType>("upper_bound"), std::exception );
+    BOOST_CHECK_THROW( parameters2.Get<PointType>("upper_bound_xyz"), std::exception );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
@@ -82,8 +83,8 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     BOOST_CHECK_EQUAL( parameters.Order()[2], 2UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
-    BOOST_CHECK_EQUAL( parameters.IntegrationMethod(), IntegrationMethod::GGQ_Optimal);
+    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::Gauss);
+    BOOST_CHECK_EQUAL( parameters.IntegrationMethod(), IntegrationMethod::Gauss);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
     BOOST_CHECK( !use_customized_trimmed_points );
@@ -96,8 +97,10 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
                                Component("postprocess_filename", std::string("date/test2.stl")),
                                Component("echo_level", 2UL),
                                Component("embedding_flag", false),
-                               Component("lower_bound", PointType(-1.0, 0.0, 1.22)),
-                               Component("upper_bound", PointType(1.1, 3.3, 4.4)),
+                               Component("lower_bound_xyz", PointType(-1.0, 0.0, 1.22)),
+                               Component("upper_bound_xyz", PointType(1.1, 3.3, 4.4)),
+                               Component("lower_bound_uvw", PointType(-1.0, 0.0, 1.22)),
+                               Component("upper_bound_uvw", PointType(1.1, 3.3, 4.4)),
                                Component("polynomial_order", Vector3i(3,2,4)),
                                Component("number_of_elements", Vector3i(10,12,14)),
                                Component("initial_triangle_edge_length", 5.0),
@@ -118,15 +121,25 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
     BOOST_CHECK(!embedding_flag);
 
-    PointType lower_bound = parameters.Get<PointType>("lower_bound");
+    PointType lower_bound = parameters.Get<PointType>("lower_bound_xyz");
     BOOST_CHECK_LT(std::abs(lower_bound[0]+1.0), 1e-10);
     BOOST_CHECK_LT(std::abs(lower_bound[1]+0.0), 1e-10);
     BOOST_CHECK_LT(std::abs(lower_bound[2]-1.22), 1e-10);
 
-    PointType upper_bound = parameters.Get<PointType>("upper_bound");
+    PointType upper_bound = parameters.Get<PointType>("upper_bound_xyz");
     BOOST_CHECK_LT(std::abs(upper_bound[0]-1.1), 1e-10);
     BOOST_CHECK_LT(std::abs(upper_bound[1]-3.3), 1e-10);
     BOOST_CHECK_LT(std::abs(upper_bound[2]-4.4), 1e-10);
+
+    PointType lower_bound_uvw = parameters.Get<PointType>("lower_bound_uvw");
+    BOOST_CHECK_LT(std::abs(lower_bound_uvw[0]+1.0), 1e-10);
+    BOOST_CHECK_LT(std::abs(lower_bound_uvw[1]+0.0), 1e-10);
+    BOOST_CHECK_LT(std::abs(lower_bound_uvw[2]-1.22), 1e-10);
+
+    PointType upper_bound_uvw = parameters.Get<PointType>("upper_bound_uvw");
+    BOOST_CHECK_LT(std::abs(upper_bound_uvw[0]-1.1), 1e-10);
+    BOOST_CHECK_LT(std::abs(upper_bound_uvw[1]-3.3), 1e-10);
+    BOOST_CHECK_LT(std::abs(upper_bound_uvw[2]-4.4), 1e-10);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
     BOOST_CHECK_EQUAL(polynomial_order[0], 3Ul);
@@ -165,8 +178,10 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     parameters.Set("postprocess_filename", std::string("date/test2.stl"));
     parameters.Set("echo_level", 2UL);
     parameters.Set("embedding_flag", false);
-    parameters.Set("lower_bound", PointType(-1.0, 0.0, 1.22));
-    parameters.Set("upper_bound", PointType(1.1, 3.3, 4.4));
+    parameters.Set("lower_bound_xyz", PointType(-1.0, 0.0, 1.22));
+    parameters.Set("upper_bound_xyz", PointType(1.1, 3.3, 4.4));
+    parameters.Set("lower_bound_uvw", PointType(-2.0, 1.0, 2.22));
+    parameters.Set("upper_bound_uvw", PointType(2.1, 6.3, 6.4));
     parameters.Set("polynomial_order", Vector3i(3,2,4));
     parameters.Set("number_of_elements", Vector3i(10,12,14));
     parameters.Set("initial_triangle_edge_length", 5.0);
@@ -188,15 +203,25 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
     BOOST_CHECK(!embedding_flag);
 
-    PointType lower_bound = parameters.Get<PointType>("lower_bound");
+    PointType lower_bound = parameters.Get<PointType>("lower_bound_xyz");
     BOOST_CHECK_LT(std::abs(lower_bound[0]+1.0), 1e-10);
     BOOST_CHECK_LT(std::abs(lower_bound[1]+0.0), 1e-10);
     BOOST_CHECK_LT(std::abs(lower_bound[2]-1.22), 1e-10);
 
-    PointType upper_bound = parameters.Get<PointType>("upper_bound");
+    PointType upper_bound = parameters.Get<PointType>("upper_bound_xyz");
     BOOST_CHECK_LT(std::abs(upper_bound[0]-1.1), 1e-10);
     BOOST_CHECK_LT(std::abs(upper_bound[1]-3.3), 1e-10);
     BOOST_CHECK_LT(std::abs(upper_bound[2]-4.4), 1e-10);
+
+    PointType lower_bound_uvw = parameters.LowerBoundUVW();
+    BOOST_CHECK_LT(std::abs(lower_bound_uvw[0]+2.0), 1e-10);
+    BOOST_CHECK_LT(std::abs(lower_bound_uvw[1]-1.0), 1e-10);
+    BOOST_CHECK_LT(std::abs(lower_bound_uvw[2]-2.22), 1e-10);
+
+    PointType upper_bound_uvw = parameters.UpperBoundUVW();
+    BOOST_CHECK_LT(std::abs(upper_bound_uvw[0]-2.1), 1e-10);
+    BOOST_CHECK_LT(std::abs(upper_bound_uvw[1]-6.3), 1e-10);
+    BOOST_CHECK_LT(std::abs(upper_bound_uvw[2]-6.4), 1e-10);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
     BOOST_CHECK_EQUAL(polynomial_order[0], 3Ul);

@@ -22,8 +22,10 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound", PointType(1.0, 1.0, 1.0)),
+    Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
+                        Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
+                        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
                         Component("number_of_elements", Vector3i(1, 1, 1)) });
 
     // Instatiate brep_operator
@@ -51,8 +53,10 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters params( {Component("lower_bound", PointType(-1.5, -1.5, -1.0)),
-                        Component("upper_bound", PointType(1.5, 1.5, 12.0)),
+    Parameters params( {Component("lower_bound_xyz", PointType(-1.5, -1.5, -1.0)),
+                        Component("upper_bound_xyz", PointType(1.5, 1.5, 12.0)),
+                        Component("lower_bound_uvw", PointType(-1.5, -1.5, -1.0)),
+                        Component("upper_bound_uvw", PointType(1.5, 1.5, 12.0)),
                         Component("number_of_elements", Vector3i(30, 30, 130)) });
 
     // Instantiate brep_operator
@@ -63,7 +67,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     result.reserve(117000);
     std::vector<std::pair<PointType, PointType>> boxes{};
     for(IndexType i = 0; i < 117000; ++i) {
-        auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
 
     }
@@ -90,8 +94,10 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound", PointType(-1.5, -1.5, -1.5)),
-                        Component("upper_bound", PointType(1.5, 1.5, 1.5)),
+    Parameters params( {Component("lower_bound_xyz", PointType(-1.5, -1.5, -1.5)),
+                        Component("upper_bound_xyz", PointType(1.5, 1.5, 1.5)),
+                        Component("lower_bound_uvw", PointType(-1.5, -1.5, -1.5)),
+                        Component("upper_bound_uvw", PointType(1.5, 1.5, 1.5)),
                         Component("number_of_elements", Vector3i(20, 20, 20)) });
 
     // Instatiate brep_operator
@@ -101,7 +107,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     std::vector<IndexType> result{};
     result.reserve(9261);
     for( IndexType i = 0; i < 8000; ++i ){
-        const auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
     }
 
@@ -127,8 +133,10 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound", PointType(-0.4, -0.6, -0.35)),
-                        Component("upper_bound", PointType(0.4, 0.6, 0.35)),
+    Parameters params( {Component("lower_bound_xyz", PointType(-0.4, -0.6, -0.35)),
+                        Component("upper_bound_xyz", PointType(0.4, 0.6, 0.35)),
+                        Component("lower_bound_uvw", PointType(-0.4, -0.6, -0.35)),
+                        Component("upper_bound_uvw", PointType(0.4, 0.6, 0.35)),
                         Component("number_of_elements", Vector3i(16, 24, 14)) });
 
     // Instatiate brep_operator
@@ -138,7 +146,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     std::vector<IndexType> result{};
     result.reserve(5376);
     for( IndexType i = 0; i < 5376; ++i ){
-        const auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
     }
 
@@ -164,8 +172,10 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "tibra/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("lower_bound", PointType(-24, -43, 5)),
-                        Component("upper_bound", PointType(85, 46, 115)),
+    Parameters params( {Component("lower_bound_xyz", PointType(-24, -43, 5)),
+                        Component("upper_bound_xyz", PointType(85, 46, 115)),
+                        Component("lower_bound_uvw", PointType(-24, -43, 5)),
+                        Component("upper_bound_uvw", PointType(85, 46, 115)),
                         Component("number_of_elements", Vector3i(36, 30, 40)) });
 
     // Instatiate brep_operator
@@ -175,7 +185,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     std::vector<IndexType> result{};
     result.reserve(43200);
     for( IndexType i = 0; i < 43200; ++i){
-        const auto bounding_box = mapper.GetBoundingBoxFromIndex(i);
+        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second ) );
     }
 

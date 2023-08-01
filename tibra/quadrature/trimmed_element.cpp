@@ -37,15 +37,11 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
                                                     const Element& rElement, const Parameters& rParam){
 
     // Initialize const variables.
-    const auto lower_bound = rParam.LowerBound();
-    const auto upper_bound = rParam.UpperBound();
+    const auto bounds_xyz = rElement.GetBoundsXYZ();
 
-    const double jacobian_x = std::abs(lower_bound[0] - upper_bound[0]);
-    const double jacobian_y = std::abs(lower_bound[1] - upper_bound[1]);
-    const double jacobian_z = std::abs(lower_bound[2] - upper_bound[2]);
-
-    const PointType& a = rElement.GetLowerBoundParam();
-    const PointType& b = rElement.GetUpperBoundParam();
+    // Constant terms / moments are evaluated in physical space.
+    const PointType& a = bounds_xyz.first;
+    const PointType& b = bounds_xyz.second;
 
     const IndexType ffactor = 1;
     const IndexType order_u = rParam.Order()[0];
@@ -77,22 +73,22 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
         const auto& normal = point_it->Normal();
-        PointType local_point = Mapping::PointFromGlobalToParam(*point_it, lower_bound, upper_bound);
+        PointType point = *point_it;
 
         // X-Direction
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-            f_x_x[i_x] = Polynomial::f_x(local_point[0], i_x, a[0], b[0]);
-            f_x_int_x[i_x] = Polynomial::f_x_int(local_point[0], i_x, a[0], b[0]);
+            f_x_x[i_x] = Polynomial::f_x(point[0], i_x, a[0], b[0]);
+            f_x_int_x[i_x] = Polynomial::f_x_int(point[0], i_x, a[0], b[0]);
         }
         // Y-Direction
         for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y){
-            f_x_y[i_y] = Polynomial::f_x(local_point[1], i_y, a[1], b[1]);
-            f_x_int_y[i_y] = Polynomial::f_x_int(local_point[1], i_y, a[1], b[1]);
+            f_x_y[i_y] = Polynomial::f_x(point[1], i_y, a[1], b[1]);
+            f_x_int_y[i_y] = Polynomial::f_x_int(point[1], i_y, a[1], b[1]);
         }
         // Z-Direction
         for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
-            f_x_z[i_z] = Polynomial::f_x(local_point[2], i_z, a[2], b[2]);
-            f_x_int_z[i_z] = Polynomial::f_x_int(local_point[2], i_z, a[2], b[2]);
+            f_x_z[i_z] = Polynomial::f_x(point[2], i_z, a[2], b[2]);
+            f_x_int_z[i_z] = Polynomial::f_x_int(point[2], i_z, a[2], b[2]);
         }
 
         // Assembly RHS
@@ -107,7 +103,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
                     value[1] = f_x_x[i_x]*f_x_int_y[i_y]*f_x_z[i_z];
                     value[2] = f_x_x[i_x]*f_x_y[i_y]*f_x_int_z[i_z];
 
-                    double integrand = normal[0]*value[0]*jacobian_x + normal[1]*value[1]*jacobian_y + normal[2]*value[2]*jacobian_z;
+                    double integrand = normal[0]*value[0] + normal[1]*value[1] + normal[2]*value[2];
                     rConstantTerms[row_index] += integrand * weight;
                     row_index++;
                 }
@@ -120,8 +116,8 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
                                                     const Element& rElement, const Parameters& rParam){
 
     // Initialize const variables.
-    const PointType& a = rElement.GetLowerBoundParam();
-    const PointType& b = rElement.GetUpperBoundParam();
+    const PointType& a = rElement.GetBoundsUVW().first;
+    const PointType& b = rElement.GetBoundsUVW().second;
 
     const IndexType ffactor = 1;
     const IndexType order_u = rParam.Order()[0];
@@ -170,7 +166,11 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
 
     // Construct octree. Octree is used to distribute inital points within trimmed domain.
     const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-    Octree octree(p_trimmed_domain, bounding_box.first, bounding_box.second, rParam);
+
+    BoundingBoxType bounding_box_uvw = MakeBox( rElement.PointFromGlobalToParam(bounding_box.first),
+                                                rElement.PointFromGlobalToParam(bounding_box.second));
+
+    Octree octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
 
     // Start point elimination.
     double residual = MAXD;
@@ -221,13 +221,11 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
 
 double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam){
 
-    // Initialize variables
-    const double jacobian_x = std::abs(rParam.UpperBound()[0] - rParam.LowerBound()[0]);
-    const double jacobian_y = std::abs(rParam.UpperBound()[1] - rParam.LowerBound()[1]);
-    const double jacobian_z = std::abs(rParam.UpperBound()[2] - rParam.LowerBound()[2]);
 
-    PointType a = rElement.GetLowerBoundParam();
-    PointType b = rElement.GetUpperBoundParam();
+    PointType a = rElement.GetBoundsUVW().first;
+    PointType b = rElement.GetBoundsUVW().second;
+
+    double jacobian = rElement.DetJ();
 
     const IndexType ffactor = 1;
     const IndexType order_u = rParam.Order()[0];
@@ -266,7 +264,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     // Write computed weights onto integration points
     for( IndexType i = 0; i < number_reduced_points; ++i){
         // Divide by det_jacobian to account for the corresponding multiplication during the element integration within the used external solver.
-        double new_weight = weights[i]/(jacobian_x*jacobian_y*jacobian_z);
+        double new_weight = weights[i]/(jacobian);
         rIntegrationPoint[i].SetWeight(new_weight);
     }
 

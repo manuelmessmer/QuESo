@@ -24,8 +24,10 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-1.5, -1.5, -1.0 };
     Vector3d upper_bound = {1.5, 1.5, 12.0 };
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                            Component("upper_bound", upper_bound),
+    Parameters parameters( {Component("lower_bound_xyz", lower_bound),
+                            Component("upper_bound_xyz", upper_bound),
+                            Component("lower_bound_uvw", lower_bound),
+                            Component("upper_bound_uvw", upper_bound),
                             Component("min_num_boundary_triangles", 500UL),
                             Component("moment_fitting_residual", Residual),
                             Component("number_of_elements", number_of_elements),
@@ -52,10 +54,10 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                // Construct element
+                Element element(1, MakeBox(local_lower_bound, local_upper_bound),
+                                   MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
@@ -99,7 +101,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                             const double weight2 = copy_points[i].GetWeight();
                             const double error = std::abs(weight1 - weight2)/ weight1;
                             BOOST_CHECK_LT( error , EPS2 );
-                            volume += weight1*117.0; // Multiplied with det(J).
+                            volume += weight1*element.DetJ(); // Multiplied with det(J).
                         }
                         // Check if integration points contain correct volume;
                         const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
@@ -137,8 +139,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-130.0, -110.0, -110.0 };
     Vector3d upper_bound = {-50, 0.0, 0.0 };
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                            Component("upper_bound", upper_bound),
+    Parameters parameters( {Component("lower_bound_xyz", lower_bound),
+                            Component("upper_bound_xyz", upper_bound),
+                            Component("lower_bound_uvw", lower_bound),
+                            Component("upper_bound_uvw", upper_bound),
                             Component("min_num_boundary_triangles", 500UL),
                             Component("moment_fitting_residual", 1e-8),
                             Component("number_of_elements", number_of_elements),
@@ -166,10 +170,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                // Construct element
+                Element element(1, MakeBox(local_lower_bound, local_upper_bound),
+                                   MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
@@ -212,7 +216,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                             const double weight2 = copy_points[i].GetWeight();
                             const double error = std::abs(weight1 - weight2)/ weight1;
                             BOOST_CHECK_LT( error , EPS2 );
-                            volume += weight1*968000.0; // Multiplied with det(J).
+                            volume += weight1*element.DetJ(); // Multiplied with det(J).
                         }
                         // Check if integration points contain correct volume;
                         const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
@@ -235,8 +239,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-0.4, -0.6, -0.35 };
     Vector3d upper_bound = {0.4, 0.6, 0.35 };
-    Parameters parameters( {Component("lower_bound", lower_bound),
-                            Component("upper_bound", upper_bound),
+    Parameters parameters( {Component("lower_bound_xyz", lower_bound),
+                            Component("upper_bound_xyz", upper_bound),
+                            Component("lower_bound_uvw", lower_bound),
+                            Component("upper_bound_uvw", upper_bound),
                             Component("min_num_boundary_triangles", 500UL),
                             Component("moment_fitting_residual", 1e-8),
                             Component("number_of_elements", number_of_elements),
@@ -263,10 +269,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 Vector3d local_lower_bound = {x, y, z};
                 Vector3d local_upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-                auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
+                // Construct element
+                Element element(1, MakeBox(local_lower_bound, local_upper_bound),
+                                   MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
 
-                Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
                 if( brep_operator.GetIntersectionState(local_lower_bound, local_upper_bound) == IntersectionStatus::Trimmed){
                     // Get trimmed domain
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
@@ -309,7 +315,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                             const double weight2 = copy_points[i].GetWeight();
                             const double error = std::abs(weight1 - weight2)/ weight1;
                             BOOST_CHECK_LT( error , EPS2 );
-                            volume += weight1*0.672; // Multiplied with det(J).
+                            volume += weight1*element.DetJ(); // Multiplied with det(J).
                         }
                         // Check if integration points contain correct volume;
                         const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();

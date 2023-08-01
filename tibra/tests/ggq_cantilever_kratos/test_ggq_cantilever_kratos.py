@@ -42,7 +42,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
 
 
         kratos_settings_filename = "tibra/tests/ggq_cantilever_kratos/KratosParameters.json"
-        analysis = Analysis(parameters, kratos_settings_filename, elements, boundary_condition)
+        analysis = Analysis(parameters, kratos_settings_filename, elements, boundary_condition, embedder.GetTriangleMesh())
         model_part = analysis.GetModelPart()
         geometry = model_part.GetGeometry("NurbsVolume")
 

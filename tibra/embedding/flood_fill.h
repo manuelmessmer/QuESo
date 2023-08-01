@@ -48,8 +48,8 @@ public:
     /// @param pBrepOperator
     /// @param Parameters
     FloodFill(BRepOperatorBase* pBrepOperator, const Parameters& Parameters) :
-        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBound()),
-        mUpperBound(Parameters.UpperBound()), mNumberOfElements( Parameters.NumberOfElements() )
+        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBoundXYZ()),
+        mUpperBound(Parameters.UpperBoundXYZ()), mNumberOfElements( Parameters.NumberOfElements() )
     {
         // Obtain discretization of background mesh.
         mDelta[0] = std::abs(mUpperBound[0] - mLowerBound[0]) / (mNumberOfElements[0]);

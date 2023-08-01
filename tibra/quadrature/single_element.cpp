@@ -14,8 +14,8 @@ void QuadratureSingleElement::AssembleIPs(Element& rElement, const Parameters& r
     const auto method = rParam.IntegrationMethod();
     auto& integration_points = rElement.GetIntegrationPoints();
 
-    PointType lower_bound_param = rElement.GetLowerBoundParam();
-    PointType upper_bound_param = rElement.GetUpperBoundParam();
+    PointType lower_bound_param = rElement.GetBoundsUVW().first;
+    PointType upper_bound_param = rElement.GetBoundsUVW().second;
 
     AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rParam.Order(), method);
 }

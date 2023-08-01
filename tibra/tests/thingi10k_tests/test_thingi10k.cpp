@@ -85,8 +85,10 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
 
         Parameters parameters( { Component("input_filename", filename),
-                                Component("lower_bound", lower_bound),
-                                Component("upper_bound", upper_bound),
+                                Component("lower_bound_xyz", lower_bound),
+                                Component("upper_bound_xyz", upper_bound),
+                                Component("lower_bound_uvw", lower_bound),
+                                Component("upper_bound_uvw", upper_bound),
                                 Component("min_num_boundary_triangles", 10UL),
                                 Component("number_of_elements", num_elements),
                                 Component("min_element_volume_ratio", 0.0) } );
@@ -104,16 +106,11 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                    auto box = mapper.GetBoundingBoxFromIndex(i, j, k);
+                    auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    Vector3d local_lower_bound = box.first;
-                    Vector3d local_upper_bound = box.second;
+                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), parameters);
 
-                    auto local_lower_bound_param = Mapping::PointFromGlobalToParam(local_lower_bound, lower_bound, upper_bound);
-                    auto local_upper_bound_param = Mapping::PointFromGlobalToParam(local_upper_bound, lower_bound, upper_bound);
-                    Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
-
-                    auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound );
+                    auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
                     test_area += MeshUtilities::Area(*p_clipped_mesh);
 
                     auto status = brep_operator.GetIntersectionState(element);
@@ -122,15 +119,15 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     }
                     if( status == IntersectionStatus::Trimmed){
                         // Get trimmed domain
-                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(local_lower_bound, local_upper_bound);
+                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second);
                         if( p_trimmed_domain ){
                             auto mesh = p_trimmed_domain->GetTriangleMesh();
                             test_volume += MeshUtilities::Volume(mesh);
                         }
                     } else if( status == IntersectionStatus::Inside ){
-                        test_volume += (local_upper_bound[0] - local_lower_bound[0])
-                                     * (local_upper_bound[1] - local_lower_bound[1])
-                                     * (local_upper_bound[2] - local_lower_bound[2]);
+                        test_volume += (box.second[0] - box.first[0])
+                                     * (box.second[1] - box.first[1])
+                                     * (box.second[2] - box.first[2]);
                     }
                 }
             }
@@ -222,8 +219,10 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
 
         Parameters parameters( { Component("input_filename", filename),
-                                Component("lower_bound", lower_bound),
-                                Component("upper_bound", upper_bound),
+                                Component("lower_bound_xyz", lower_bound),
+                                Component("upper_bound_xyz", upper_bound),
+                                Component("lower_bound_uvw", lower_bound),
+                                Component("upper_bound_uvw", upper_bound),
                                 Component("min_num_boundary_triangles", 10UL),
                                 Component("number_of_elements", num_elements),
                                 Component("min_element_volume_ratio", 0.0) } );
@@ -270,16 +269,11 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                    auto box = mapper.GetBoundingBoxFromIndex(i, j, k);
-                    Vector3d local_lower_bound = box.first;
-                    Vector3d local_upper_bound = box.second;
+                    auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    auto local_lower_bound_param = mapper.PointFromGlobalToParam(local_lower_bound);
-                    auto local_upper_bound_param = mapper.PointFromGlobalToParam(local_upper_bound);
+                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), parameters);
 
-                    Element element(1, local_lower_bound_param, local_upper_bound_param, parameters);
-
-                    auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(local_lower_bound, local_upper_bound );
+                    auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
 
                     auto status = brep_operator.GetIntersectionState(element);
                     // Boost unit test framework throws warning when comparing enum's.

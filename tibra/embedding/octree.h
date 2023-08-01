@@ -42,12 +42,12 @@ private:
         ///@{
 
         /// @brief Contructor
-        /// @param rLowerBound LowerBound of AABB.
-        /// @param rUpperBound UpperBound of AABB.
+        /// @param rBoundsXYZ Bounds of AABB in physical space.
+        /// @param rBoundsUVW Bounds of AABB in parametric space..
         /// @param Status Options: 'Trimmed' or 'Inside'.
         /// @param Level Refinement Level (default - 0).
-        Node( const PointType& rLowerBound, const PointType& rUpperBound, IntersectionStatusType Status, IndexType Level = 0UL) :
-            mLowerBound(rLowerBound), mUpperBound(rUpperBound), mStatus(Status), mLevel(Level)
+        Node( const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW, IntersectionStatusType Status, IndexType Level = 0UL) :
+            mBoundsXYZ(rBoundsXYZ), mBoundsUVW(rBoundsUVW), mStatus(Status), mLevel(Level)
         {
             mChildren = {nullptr};
             mNumChildren = 0UL;
@@ -67,11 +67,9 @@ private:
         /// @details Distributes Gauss points (according to rOrder) and adds all points to pPoints that are
         ///          inside the domain.
         /// @param[out] pPoints IntegrationPointVectorType
-        /// @param GlobalLowerBound Global LowerBound of total domain (Required for mapping.)
-        /// @param GlobalUpperBound Global UpperBound of entire domain (Required for mapping.)
         /// @param rOrder Order of Gauss quadrature.
         /// @param pOperator Operator to perfrom Inside/Outside test.
-        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const PointType& GlobalLowerBound, const PointType& GlobalUpperBound, const Vector3i& rOrder, const TOperator* pOperator) const;
+        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
 
         /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
         /// @param[out] rValue // Return value
@@ -90,10 +88,10 @@ private:
         /// @param MinLevel Minimum refinement level (for all nodes).
         /// @param MaxLevel Maximum refinement level (for trimmed nodes).
         /// @param ChildIndex Index of child node in mChildren[ChildIndex].
-        /// @param rLowerBound LowerBound of AABB of new child.
-        /// @param rUpperBound UpperBound of AABB of new child.
+        /// @param rBoundsXYZ Bounds of AABB of new child in physical space.
+        /// @param rBoundsUVW Bounds of AABB of new child in parametric space..
         /// @param pOperator Operator to perfrom Inside/Outside test.
-        void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType ChildIndex, const PointType& rLowerBound, const PointType& rUpperBound, const TOperator* pOperator);
+        void CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType ChildIndex, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW, const TOperator* pOperator);
 
         /// @brief Returns true if this node is a leaf node.
         /// @return bool
@@ -102,8 +100,8 @@ private:
         ///@}
         ///@name Private Member Variables
         ///@{
-        PointType mLowerBound;
-        PointType mUpperBound;
+        BoundingBoxType mBoundsXYZ;
+        BoundingBoxType mBoundsUVW;
         IntersectionStatus mStatus;
         std::array<Unique<Node>, 8> mChildren{};
         SizeType mLevel;
@@ -119,13 +117,14 @@ public:
 
     /// @brief Constructor
     /// @param pOperator Operator to perform GetIntersectionState() and IsInsideTrimmedDomain().
-    /// @param rLowerBound LowerBound of AABB of Root Node.
-    /// @param rUpperBound UpperBound of AABB of Root Node.
+    /// @param rBoundsXYZ Bounds of AABB of Root Node in physical space.
+    /// @param rBoundsUVW Bounds of AABB of Root Node in parametric space.
     /// @param rParameters TIBRA Parameters.
-    Octree(const TOperator* pOperator, const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters)
-        : mpOperator(pOperator), mrParameters(rParameters) {
+    Octree(const TOperator* pOperator, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW)
+        : mpOperator(pOperator) {
+
         // Create new root node.
-        mpRoot = MakeUnique<Node>(rLowerBound, rUpperBound, IntersectionStatus::Trimmed, 0UL);
+        mpRoot = MakeUnique<Node>(rBoundsXYZ, rBoundsUVW, IntersectionStatus::Trimmed, 0UL);
     }
 
     ///@}
@@ -179,7 +178,6 @@ private:
     ///@{
     Unique<Node> mpRoot;
     const TOperator* mpOperator; // No ownership
-    const Parameters& mrParameters;
     IndexType mMinLevel = 0;
     IndexType mMaxLevel = 0;
     ///@}

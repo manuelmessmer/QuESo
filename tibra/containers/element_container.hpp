@@ -271,19 +271,19 @@ public:
     }
 
     double GetVolumeOfAllIPs(){
-        const auto p_points = pGetPoints("All");
-        double weight = 0.0;
-        const IndexType num_points = p_points->size();
-        const auto it_begin = p_points->begin();
-        #pragma omp parallel for reduction(+ : weight)
-        for( int i = 0; i < static_cast<int>(num_points); ++i ){
-            auto it = it_begin + i;
-            weight += it->GetWeight();
+        double volume = 0.0;
+        const auto el_it_ptr_begin = this->begin();
+        #pragma omp parallel for reduction(+ : volume)
+        for( int i = 0; i < static_cast<int>(this->size()); ++i ){
+            const auto el_ptr = *(el_it_ptr_begin + i);
+            const double det_j = el_ptr->DetJ();
+            const auto& r_points = el_ptr->GetIntegrationPoints();
+            for( const auto& r_point : r_points ){
+                volume += r_point.GetWeight()*det_j;
+            }
         }
 
-        const auto parameters = (*this->begin())->GetParameters();
-        const auto jacobian = parameters.UpperBound() - parameters.LowerBound();
-        return weight*(jacobian[0]*jacobian[1]*jacobian[2]);
+        return volume;
     }
 
 private:

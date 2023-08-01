@@ -24,8 +24,6 @@ rem set TIBRA_PARALLEL_BUILD_FLAG=/MP4
 rem Configure
 @echo on
 cmake -G"Visual Studio 17 2022" -A x64 -H"%APP_SOURCE%" -B"%APP_BUILD%\%CMAKE_BUILD_TYPE%"  ^
--DUSE_CGAL=OFF                                                                              ^
--DCGAL_DIR="..."                                                                            ^
 -DCMAKE_CXX_FLAGS="%TIBRA_PARALLEL_BUILD_FLAG%"
 
 rem Build

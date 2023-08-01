@@ -4,19 +4,28 @@ import TIBRA_PythonApplication as TIBRA_Application
 # External imports
 import json
 
-def PointFromParamToGlobalSpace(point,lower_point, upper_point):
+
+def PointFromGlobalToParamSpace(point, bound_xyz, bound_uvw):
     tmp_point = [0.0, 0.0, 0.0]
-    tmp_point[0] = (point[0] * abs(lower_point[0] - upper_point[0])) + lower_point[0]
-    tmp_point[1] = (point[1] * abs(lower_point[1] - upper_point[1])) + lower_point[1]
-    tmp_point[2] = (point[2] * abs(lower_point[2] - upper_point[2])) + lower_point[2]
+    lower_point_xyz = bound_xyz[0]
+    upper_point_xyz = bound_xyz[1]
+    lower_point_uvw = bound_uvw[0]
+    upper_point_uvw = bound_uvw[1]
+    tmp_point[0] = (point[0] - lower_point_xyz[0]) * abs(upper_point_uvw[0] - lower_point_uvw[0]) / abs(upper_point_xyz[0]-lower_point_xyz[0]) + lower_point_uvw[0]
+    tmp_point[1] = (point[1] - lower_point_xyz[1]) * abs(upper_point_uvw[1] - lower_point_uvw[1]) / abs(upper_point_xyz[1]-lower_point_xyz[1]) + lower_point_uvw[1]
+    tmp_point[2] = (point[2] - lower_point_xyz[2]) * abs(upper_point_uvw[2] - lower_point_uvw[2]) / abs(upper_point_xyz[2]-lower_point_xyz[2]) + lower_point_uvw[2]
 
     return tmp_point
 
-def PointFromGlobalToParamSpace(point,lower_point, upper_point):
+def PointFromParamToGlobalSpace(point, bound_xyz, bound_uvw):
     tmp_point = [0.0, 0.0, 0.0]
-    tmp_point[0] = (point[0] - lower_point[0])/ abs(lower_point[0] - upper_point[0])
-    tmp_point[1] = (point[1] - lower_point[1])/ abs(lower_point[1] - upper_point[1])
-    tmp_point[2] = (point[2] - lower_point[2])/ abs(lower_point[2] - upper_point[2])
+    lower_point_xyz = bound_xyz[0]
+    upper_point_xyz = bound_xyz[1]
+    lower_point_uvw = bound_uvw[0]
+    upper_point_uvw = bound_uvw[1]
+    tmp_point[0] = (point[0] - lower_point_uvw[0]) * abs(upper_point_xyz[0] - lower_point_xyz[0]) / abs(upper_point_uvw[0]-lower_point_uvw[0]) + lower_point_xyz[0]
+    tmp_point[1] = (point[1] - lower_point_uvw[1]) * abs(upper_point_xyz[1] - lower_point_xyz[1]) / abs(upper_point_uvw[1]-lower_point_uvw[1]) + lower_point_xyz[1]
+    tmp_point[2] = (point[2] - lower_point_uvw[2]) * abs(upper_point_xyz[2] - lower_point_xyz[2]) / abs(upper_point_uvw[2]-lower_point_uvw[2]) + lower_point_xyz[2]
 
     return tmp_point
 

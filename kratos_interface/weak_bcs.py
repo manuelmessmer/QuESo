@@ -8,11 +8,11 @@ class WeakBcsBase():
 
     Derived class must override 'apply()'.
     """
-    def __init__(self, bcs_triangles, lower_point, upper_point):
+    def __init__(self, bcs_triangles, bounds_xyz, bounds_uvw):
         """The constructor."""
         self.bcs_triangles = bcs_triangles
-        self.lower_point = lower_point
-        self.upper_point = upper_point
+        self.bounds_xyz = bounds_xyz
+        self.bounds_uvw = bounds_uvw
 
     def IsWeakCondition():
         return True
@@ -25,9 +25,9 @@ class PenaltySupport(WeakBcsBase):
 
     Derived from WeakBcsBase.
     """
-    def __init__(self, bcs_triangles, lower_point, upper_point, prescribed, penalty):
+    def __init__(self, bcs_triangles, bounds_xyz, bounds_uvw, prescribed, penalty):
         """The constructor."""
-        super(PenaltySupport, self).__init__(bcs_triangles, lower_point, upper_point)
+        super(PenaltySupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
         self.penalty = penalty
         self.prescribed = prescribed # Not used here
 
@@ -43,15 +43,15 @@ class PenaltySupport(WeakBcsBase):
         for id in range(num_triangles):
             # Create kratos nodes on each vertex
             param1 = KM.Vector(3)
-            param1 = PointFromGlobalToParamSpace( self.bcs_triangles.P1(id), self.lower_point, self.upper_point)
+            param1 = PointFromGlobalToParamSpace( self.bcs_triangles.P1(id), self.bounds_xyz, self.bounds_uvw)
             node1 = KM.Node(1, param1[0], param1[1], param1[2])
 
             param2 = KM.Vector(3)
-            param2 = PointFromGlobalToParamSpace( self.bcs_triangles.P2(id), self.lower_point, self.upper_point)
+            param2 = PointFromGlobalToParamSpace( self.bcs_triangles.P2(id), self.bounds_xyz, self.bounds_uvw)
             node2 = KM.Node(2, param2[0], param2[1], param2[2])
 
             param3 = KM.Vector(3)
-            param3 = PointFromGlobalToParamSpace( self.bcs_triangles.P3(id), self.lower_point, self.upper_point)
+            param3 = PointFromGlobalToParamSpace( self.bcs_triangles.P3(id), self.bounds_xyz, self.bounds_uvw)
             node3 = KM.Node(3, param3[0], param3[1], param3[2])
 
             # Create kratos triangles
@@ -95,7 +95,7 @@ class SurfaceLoad(WeakBcsBase):
                 integration_points = []
                 global_point = [point.GetX(), point.GetY(), point.GetZ()]
                 #Map points to local space of B-Spline box
-                local_point = PointFromGlobalToParamSpace(global_point, self.lower_point, self.upper_point)
+                local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
 
                 integration_points.append([local_point[0], local_point[1], local_point[2], point.GetWeight()])
                 quadrature_point_geometries_boundary = KM.GeometriesVector()

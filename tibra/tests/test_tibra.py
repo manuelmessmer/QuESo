@@ -10,7 +10,7 @@ except:
 if kratos_available:
     from tibra.tests.ggq_cantilever_kratos.test_ggq_cantilever_kratos import TestGGQCantileverKratos
     from tibra.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
-
+    from tibra.tests.steering_knuckle_kratos.test_strain_energy_steering_knuckle import TestStrainEnergySteeringKnuckleKratos
 import unittest
 import sys
 
@@ -19,6 +19,7 @@ def PyTIBRATestSuite():
     if kratos_available:
         test_suite.addTest(unittest.makeSuite(TestGGQCantileverKratos))
         test_suite.addTest(unittest.makeSuite(TestTrimmedCantileverKratos))
+        test_suite.addTest(unittest.makeSuite(TestStrainEnergySteeringKnuckleKratos))
     else:
         print("Warning :: Tests with KratosMultiphysics dependencies are skipped.")
 

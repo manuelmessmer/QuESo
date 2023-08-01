@@ -42,11 +42,11 @@ public:
 
     /// Constructor
     ///@param ElementId UniqueID
-    ///@param rLowerBoundParam LowerBound of Element in parametric space.
-    ///@param rUpperBoundParam LowerBound of Element in parametric space.
+    ///@param rBoundXYZ Bounds of Element in physical space.
+    ///@param rBoundUVW Bounds of Element in parametric space.
     ///@param rParam TIBRA Parameters.
-    Element(IndexType ElementId, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam, const Parameters& rParam) :
-        mElementId(ElementId), mLowerBoundParam(rLowerBoundParam), mUpperBoundParam(rUpperBoundParam), mParameters(rParam)
+    Element(IndexType ElementId, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW, const Parameters& rParam) :
+        mElementId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW), mParameters(rParam)
     {
         mIsTrimmed = false;
     }
@@ -100,28 +100,39 @@ public:
         return mIntegrationPoints;
     }
 
-    /// @brief Get UpperBound of element in parametric coordinates.
-    /// @return const PointType&
-    const PointType& GetUpperBoundParam() const {
-        return mUpperBoundParam;
+
+    /// @brief Get bounds of element in physical/global coordinates.
+    /// @return BoundingBoxType
+    const BoundingBoxType& GetBoundsXYZ() const {
+        return mBoundsXYZ;
     }
 
-    /// @brief Get LowerBound of element in parametric coordinates.
-    /// @return const PointType&
-    const PointType& GetLowerBoundParam() const {
-        return mLowerBoundParam;
+    /// @brief Get bounds of element in parametric coordinates.
+    /// @return BoundingBoxType
+    const BoundingBoxType& GetBoundsUVW() const{
+        return mBoundsUVW;
     }
 
-    /// @brief Get UpperBound of element in physical/global coordinates.
+    /// @brief Map point from global space to parametric space.
+    /// @param rGlobalCoord
     /// @return PointType
-    PointType GetUpperBound() const {
-        return Mapping::PointFromParamToGlobal(mUpperBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
+    PointType PointFromGlobalToParam( const PointType& rGlobalCoord ) const {
+        return Mapping::PointFromGlobalToParam(rGlobalCoord, mBoundsXYZ, mBoundsUVW);
     }
 
-    /// @brief Get LowerBound of element in physical/global coordinates.
+    /// @brief Map point from parametric space to global space.
+    /// @param rLocalCoord
     /// @return PointType
-    PointType GetLowerBound() const{
-        return Mapping::PointFromParamToGlobal(mLowerBoundParam, mParameters.LowerBound(), mParameters.UpperBound());
+    PointType PointFromParamToGlobal( const PointType& rLocalCoord ) const {
+        return Mapping::PointFromParamToGlobal(rLocalCoord, mBoundsXYZ, mBoundsUVW);
+    }
+
+    /// @brief Returns determinant of jacobian.
+    /// @return double.
+    double DetJ() const {
+        const auto detla_xyz = mBoundsXYZ.second - mBoundsXYZ.first;
+        const auto detla_uvw = mBoundsUVW.second - mBoundsUVW.first;
+        return (detla_xyz[0]*detla_xyz[1]*detla_xyz[2]) / (detla_uvw[0]*detla_uvw[1]*detla_uvw[2]);
     }
 
     /// @brief Returns 1D integration points. Required for assembly of GGQ rules.
@@ -200,8 +211,8 @@ private:
     bool mIsTrimmed{};
     bool mIsVisited{};
 
-    PointType mLowerBoundParam{};
-    PointType mUpperBoundParam{};
+    const BoundingBoxType mBoundsXYZ{};
+    const BoundingBoxType mBoundsUVW{};
     const Parameters& mParameters;
 
     TrimmedDomainPtrType mpTrimmedDomain = nullptr;

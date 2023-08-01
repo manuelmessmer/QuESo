@@ -15,18 +15,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-# Import CGAL and its components
-if( USE_CGAL MATCHES ON )
-  find_package( CGAL QUIET COMPONENTS  )
-
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-  if ( NOT CGAL_FOUND )
-    message(STATUS "This project requires the CGAL library, and will not be compiled.")
-    return()
-  endif()
-  add_definitions( -DUSE_CGAL )
-endif()
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /EHsc -W2 /std:c++17 /D _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS")
 else()
@@ -75,24 +63,11 @@ file(GLOB TIBRA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries/aabb_tree/*.cc
 )
 
-## If cgal support is enables
-if( USE_CGAL MATCHES ON )
-  file(GLOB TIBRA_CGALWrapperSource
-    ${CMAKE_CURRENT_SOURCE_DIR}/cgal_wrapper/*.cpp
-  )
-endif()
-
-## CGAL python interface sources
+## TIBRA python interface sources
 file(GLOB_RECURSE TIBRA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
-if( USE_CGAL MATCHES ON )
-  add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource} ${TIBRA_CGALWrapperSource})
-  target_link_libraries(TIBRA_ApplicationCore PUBLIC CGAL ${PYTHON_LIBRARIES})
-else()
-  add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource} )
-  target_link_libraries(TIBRA_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
-endif()
-
+add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource} )
+target_link_libraries(TIBRA_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
 set_target_properties(TIBRA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TIBRA_Application=EXPORT,API")
 
 pybind11_add_module(TIBRA_Application MODULE THIN_LTO ${TIBRA_PYTHON_INTERFACE})
@@ -138,7 +113,7 @@ add_test(NAME ${testThingiName}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testThingiName} )
 
-#Setting the libs folder for the shared objects built in kratos
+# Setting the libs folder for the shared objects built in kratos
 install(TARGETS TIBRA_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
 install(TARGETS TIBRA_ApplicationCore DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
 

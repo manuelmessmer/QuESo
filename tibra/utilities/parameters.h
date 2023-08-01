@@ -256,6 +256,7 @@ public:
     Parameters(std::vector<Component> Component) : mComponents(Component)
     {
         AddDefaults();
+        EnsureValidValues();
         CheckComponents();
     }
 
@@ -263,12 +264,20 @@ public:
     ///@name Operations
     ///@{
 
-    const PointType& LowerBound() const {
-        return Get<PointType>("lower_bound");
+    const PointType& LowerBoundXYZ() const {
+        return Get<PointType>("lower_bound_xyz");
     }
 
-    const PointType& UpperBound() const {
-        return Get<PointType>("upper_bound");
+    const PointType& UpperBoundXYZ() const {
+        return Get<PointType>("upper_bound_xyz");
+    }
+
+    const PointType& LowerBoundUVW() const {
+        return Get<PointType>("lower_bound_uvw");
+    }
+
+    const PointType& UpperBoundUVW() const {
+        return Get<PointType>("upper_bound_uvw");
     }
 
     const Vector3i& Order() const {
@@ -522,9 +531,10 @@ private:
         Component("min_num_boundary_triangles", 500UL),
         Component("moment_fitting_residual", 1.0e-10),
         Component("min_element_volume_ratio", 1.0e-3),
+        Component("b_spline_mesh", true),
         Component("init_point_distribution_factor", 1UL),
         Component("polynomial_order", Vector3i(2UL, 2UL, 2UL) ),
-        Component("integration_method", IntegrationMethod::GGQ_Optimal),
+        Component("integration_method", IntegrationMethod::Gauss),
         Component("use_customized_trimmed_points", false) };
 
     inline static const std::vector<std::pair<std::string, const std::type_info*>> mAllAvailableComponents = {
@@ -532,8 +542,11 @@ private:
         std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("echo_level", &typeid(unsigned long) ),
         std::make_pair<std::string, const std::type_info*>("embedding_flag", &typeid(bool) ),
-        std::make_pair<std::string, const std::type_info*>("lower_bound", &typeid(PointType) ),
-        std::make_pair<std::string, const std::type_info*>("upper_bound", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("lower_bound_xyz", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("upper_bound_xyz", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("lower_bound_uvw", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("upper_bound_uvw", &typeid(PointType) ),
+        std::make_pair<std::string, const std::type_info*>("b_spline_mesh", &typeid(bool) ),
         std::make_pair<std::string, const std::type_info*>("polynomial_order", &typeid(Vector3i) ),
         std::make_pair<std::string, const std::type_info*>("number_of_elements", &typeid(Vector3i) ),
         std::make_pair<std::string, const std::type_info*>("initial_triangle_edge_length", &typeid(double) ),
