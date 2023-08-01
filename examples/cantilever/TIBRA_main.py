@@ -1,12 +1,12 @@
 # Project imports
-from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
+from QuESo_PythonApplication.PyQuESo import PyQuESo
 
 def main():
-    pytibra = PyTIBRA("TIBRAParameters.json")
-    pytibra.Run()
+    pyqueso = PyQuESo("QuESoParameters.json")
+    pyqueso.Run()
 
     # Direct Analysis with kratos
-    pytibra.RunKratosAnalysis()
+    pyqueso.RunKratosAnalysis()
 
 if __name__ == "__main__":
     main()

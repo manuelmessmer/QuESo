@@ -51,11 +51,11 @@ jobs:
         pip3 install scipy
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
-        python3 tibra/tests/test_tibra.py
+        python3 queso/tests/test_queso.py
 
     - name: Test cpp
       shell: bash
-      run: ./TestExecutables/test_tibra --log_level=test_suite
+      run: ./TestExecutables/test_queso --log_level=test_suite
 
   windows:
     runs-on: windows-latest
@@ -99,10 +99,10 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\RUNNER_TEMP\boost\boost_1_81_0\boost_install\lib
-        python tibra/tests/test_tibra.py
+        python queso/tests/test_queso.py
     - name: Test cpp
       shell: cmd
       run: |
         set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;%RUNNER_TEMP%\boost\boost_1_81_0\boost_install\lib
-        call "TestExecutables\Release\test_tibra.exe" --log_level=test_suite || goto:error
+        call "TestExecutables\Release\test_queso.exe" --log_level=test_suite || goto:error
 

@@ -10,7 +10,7 @@
 //// Project includes
 #include "containers/triangle_mesh.hpp"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
 class CGALUtilities
@@ -30,6 +30,6 @@ public:
 };
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso
 
 #endif // End CGAL_UTILTIES_H

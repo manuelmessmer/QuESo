@@ -11,14 +11,14 @@
 #include "embedding/brep_operator.h"
 #include "io/io_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( PointClassifierOnTrimmedDomainTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
 
-    TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cylinder Point Classifier" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cylinder Point Classifier" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
-    TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cube with Cavity Point Classifier" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cube with Cavity Point Classifier" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
-    TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Elephant Point Classifier" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Elephant Point Classifier" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
-    TIBRA_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Bunny Point Classifier" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Bunny Point Classifier" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -224,4 +224,4 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

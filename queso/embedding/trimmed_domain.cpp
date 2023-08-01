@@ -10,7 +10,7 @@
 #include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"
 
-namespace tibra {
+namespace queso {
 
 typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
 typedef TrimmedDomainBase::BoundingBox BoundingBox;
@@ -109,4 +109,4 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
     return status;
 }
 
-} // End namespace tibra
+} // End namespace queso

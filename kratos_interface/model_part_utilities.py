@@ -18,7 +18,7 @@ class ModelPartUtilities:
 
     @staticmethod
     def ReadModelPartFromTriangleMesh(KratosModelPart, TriangleMesh):
-        ''' Reads Kratos ModelPart from the TIBRA triangle mesh. '''
+        ''' Reads Kratos ModelPart from the QuESo triangle mesh. '''
         vertices = TriangleMesh.GetVertices()
         for v_id, vertex in enumerate(vertices):
             KratosModelPart.CreateNewNode(v_id+1, vertex[0], vertex[1], vertex[2])
@@ -28,11 +28,11 @@ class ModelPartUtilities:
             KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, [triangle[0]+1, triangle[1]+1, triangle[2]+1], KratosModelPart.GetProperties()[1])
 
     @staticmethod
-    def CreateTIBRAInput(KratosEmbeddedModelPart, TibraParameters):
+    def CreateQuESoInput(KratosEmbeddedModelPart, QuESoParameters):
         ''' Writes the KratosEmbeddedModelPart (including submodelpart for conditions) to STL files, which can be read by TIRBA. '''
 
         # Write main model part
-        input_filename = TibraParameters.GetInputFilename()
+        input_filename = QuESoParameters.GetInputFilename()
         m_lower_case = re.search('/(.*).stl', input_filename)
         m_upper_case = re.search('/(.*).STL', input_filename)
         if m_lower_case:
@@ -40,14 +40,14 @@ class ModelPartUtilities:
         elif m_upper_case:
             model_part_name = m_lower_case.group(1)
         else:
-            raise Exception("CreateTIBRAInput::Filename is not valid.")
+            raise Exception("CreateQuESoInput::Filename is not valid.")
 
         ModelPartUtilities._WriteModelPartToSTL(KratosEmbeddedModelPart.GetSubModelPart(model_part_name), input_filename)
 
         # Write condition model part
         condition_filenames = {}
-        for cond_id in range(TibraParameters.NumberOfConditions()):
-            tmp_filename = TibraParameters.GetFilenameOfCondition(cond_id)
+        for cond_id in range(QuESoParameters.NumberOfConditions()):
+            tmp_filename = QuESoParameters.GetFilenameOfCondition(cond_id)
             m_lower_case = re.search('/(.*).stl', tmp_filename)
             m_upper_case = re.search('/(.*).STL', tmp_filename)
             if m_lower_case:
@@ -55,17 +55,17 @@ class ModelPartUtilities:
             elif m_upper_case:
                 condition_filenames[m_lower_case.group(1)] = cond_id
             else:
-                raise Exception("CreateTIBRAInput::Filename is not valid.")
+                raise Exception("CreateQuESoInput::Filename is not valid.")
 
         for sub_model_part in KratosEmbeddedModelPart.SubModelParts:
             sub_model_part_name = sub_model_part.Name
             if( sub_model_part_name in condition_filenames.keys()):
                 cond_id = condition_filenames[sub_model_part_name]
-                ModelPartUtilities._WriteModelPartToSTL(sub_model_part, TibraParameters.GetFilenameOfCondition(cond_id))
+                ModelPartUtilities._WriteModelPartToSTL(sub_model_part, QuESoParameters.GetFilenameOfCondition(cond_id))
 
     @staticmethod
     def AddElementsToModelPart(KratosNurbsVolumeModelPart, Elements):
-        ''' Adds the TIBRA elements to the KratosNurbsVolumeModelPart. '''
+        ''' Adds the QuESo elements to the KratosNurbsVolumeModelPart. '''
         nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry("NurbsVolume")
         volume_properties = KratosNurbsVolumeModelPart.GetProperties()[1]
 
@@ -90,7 +90,7 @@ class ModelPartUtilities:
 
     @staticmethod
     def AddConditionsToModelPart(KratosNurbsVolumeModelPart, Conditions, BoundsXYZ, BoundsUVW):
-        ''' Adds the TIBRA elements to the KratosNurbsVolumeModelPart. '''
+        ''' Adds the QuESo elements to the KratosNurbsVolumeModelPart. '''
         boundary_conditions = []
         for bc in Conditions:
             if bc.IsWeakCondition():

@@ -11,13 +11,13 @@
 #include "quadrature/trimmed_element.h"
 #include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
 
 BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -385,7 +385,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 1" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 1" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
@@ -399,7 +399,7 @@ BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test) {
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube2Test) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 2" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 2" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
@@ -413,7 +413,7 @@ BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube2Test) {
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube3Test) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 3" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 3" << std::endl;
 
     std::vector<double> perturbations = { 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
@@ -427,7 +427,7 @@ BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube3Test) {
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube4Test) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 4" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 4" << std::endl;
 
     std::vector<double> perturbations = { 1e-6}; //, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube4Test) {
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube5Test) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 5" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 5" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube5Test) {
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube6Test) {
-    TIBRA_INFO << "Testing :: Test Trimmed Domain :: Cube 6" << std::endl;
+    QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 6" << std::endl;
 
     std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
@@ -472,4 +472,4 @@ BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube6Test) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

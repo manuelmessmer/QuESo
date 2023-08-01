@@ -7,7 +7,7 @@
 //// Projecy includes
 #include "containers/integration_point.hpp"
 
-namespace tibra {
+namespace queso {
 
 class TriangleGaussLegendrePoints1
 {
@@ -126,6 +126,6 @@ public:
         return s_integration_points;
     }
 };
-} // End namespace tibra
+} // End namespace queso
 
 #endif // TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H

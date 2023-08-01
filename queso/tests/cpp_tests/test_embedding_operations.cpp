@@ -8,15 +8,15 @@
 //// Project includes
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
-#include "TIBRA_main.h"
+#include "QuESo_main.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
 
 BOOST_AUTO_TEST_CASE(Intersection) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
 
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
     Parameters parameters( {Component("input_filename", filename),
@@ -30,10 +30,10 @@ BOOST_AUTO_TEST_CASE(Intersection) {
                             Component("init_point_distribution_factor", 3UL),
                             Component("min_num_boundary_triangles", 5000UL),
                             Component("moment_fitting_residual", 1e-8) });
-    TIBRA tibra(parameters);
-    tibra.Run();
+    QuESo queso(parameters);
+    queso.Run();
 
-    const auto& elements = tibra.GetElements();
+    const auto& elements = queso.GetElements();
 
     BOOST_CHECK_EQUAL(elements.size(), 1);
 
@@ -79,10 +79,10 @@ void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, In
                             Component("number_of_elements", Vector3i(14, 22, 12)),
                             Component("polynomial_order", Vector3i(p, p, p)),
                             Component("integration_method", IntegrationMethod) });
-    TIBRA tibra(parameters);
-    tibra.Run();
+    QuESo queso(parameters);
+    queso.Run();
 
-    const auto& elements = tibra.GetElements();
+    const auto& elements = queso.GetElements();
 
     const PointType delta_uvw = rBoundsUVW.second - rBoundsUVW.first;
     // Compute total weight
@@ -145,10 +145,10 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
                             Component("polynomial_order", Vector3i(p, p, p)),
                             Component("integration_method", IntegrationMethod) });
 
-    TIBRA tibra(parameters);
-    tibra.Run();
+    QuESo queso(parameters);
+    queso.Run();
 
-    const auto& elements = tibra.GetElements();
+    const auto& elements = queso.GetElements();
 
     // Compute total weight
     double weigth_trimmed = 0.0;
@@ -199,7 +199,7 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
 
 // p=2
 BOOST_AUTO_TEST_CASE(VolumeElephant1) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantLarge(IntegrationMethod::Gauss, 2, 2916, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantLarge(IntegrationMethod::Gauss, 2, 2916, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}));
@@ -207,21 +207,21 @@ BOOST_AUTO_TEST_CASE(VolumeElephant1) {
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant2) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantLarge(IntegrationMethod::GGQ_Optimal, 2, 1786, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantLarge(IntegrationMethod::GGQ_Optimal, 2, 1786, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}));
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant3) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantLarge(IntegrationMethod::GGQ_Reduced1, 2, 673, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantLarge(IntegrationMethod::GGQ_Reduced1, 2, 673, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}));
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant4) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantLarge(IntegrationMethod::GGQ_Reduced2, 2, 406, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantLarge(IntegrationMethod::GGQ_Reduced2, 2, 406, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}));
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant4) {
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant5) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantSmall(IntegrationMethod::Gauss, 3, 320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantSmall(IntegrationMethod::Gauss, 3, 320, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}));
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant5) {
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant6) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=3)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantSmall(IntegrationMethod::GGQ_Optimal, 3, 256, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantSmall(IntegrationMethod::GGQ_Optimal, 3, 256, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}));
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant6) {
 
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant7) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantSmall(IntegrationMethod::Gauss, 4, 625, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
     TestElephantSmall(IntegrationMethod::Gauss, 4, 625, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}));
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant7) {
 
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant8) {
-    TIBRA_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=4)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephantSmall(IntegrationMethod::GGQ_Optimal, 4, 525, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 }
@@ -263,4 +263,4 @@ BOOST_AUTO_TEST_CASE(VolumeElephant8) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

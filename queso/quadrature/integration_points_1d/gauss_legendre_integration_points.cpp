@@ -4,7 +4,7 @@
 //// Project includes
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
-namespace tibra {
+namespace queso {
 
 const IntegrationPointFactory1D::Ip1DVectorVectorType IntegrationPointFactory1D::mGaussLegendrePoints = {
 {   // degree 1
@@ -83,4 +83,4 @@ const IntegrationPointFactory1D::Ip1DVectorVectorType IntegrationPointFactory1D:
     { 0.9869532642585859000, 0.0333356721543440340 }
 } };
 
-} // End namespace tibra
+} // End namespace queso

@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 //// Project includes
-#include "TIBRA_main.h"
+#include "QuESo_main.h"
 #include "containers/element.hpp"
 #include "containers/element_container.hpp"
 #include "containers/triangle_mesh.hpp"
@@ -21,12 +21,12 @@
 #include "io/io_utilities.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
-typedef std::vector<tibra::PointType> PointVectorType;
+typedef std::vector<queso::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
-typedef std::vector<tibra::IntegrationPoint> IntegrationPointVectorType;
-typedef std::vector<tibra::Shared<tibra::Element>> ElementVectorPtrType;
-typedef std::vector<tibra::Shared<tibra::Condition>> ConditionVectorPtrType;
-typedef std::vector<tibra::BoundaryIntegrationPoint> BoundaryIpVectorType;
+typedef std::vector<queso::IntegrationPoint> IntegrationPointVectorType;
+typedef std::vector<queso::Shared<queso::Element>> ElementVectorPtrType;
+typedef std::vector<queso::Shared<queso::Condition>> ConditionVectorPtrType;
+typedef std::vector<queso::BoundaryIntegrationPoint> BoundaryIpVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
@@ -35,7 +35,7 @@ PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
 
-namespace tibra {
+namespace queso {
 namespace Python {
 namespace py = pybind11;
 
@@ -70,12 +70,12 @@ IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
     else if( rValue == "GGQ_Reduced2")
         return IntegrationMethod::GGQ_Reduced2;
     else
-        TIBRA_ERROR("Parameters::GetIntegrationMethodFromString") << "Integration Method: " + rValue + " not available! \n";
+        QuESo_ERROR("Parameters::GetIntegrationMethodFromString") << "Integration Method: " + rValue + " not available! \n";
 }
 
-PYBIND11_MODULE(TIBRA_Application,m) {
+PYBIND11_MODULE(QuESo_Application,m) {
 
-    m.doc() = "This is a Python binding for TIBRA";
+    m.doc() = "This is a Python binding for QuESo";
 
     /// Required for GetPostMeshPointsRaw()
     py::class_<ptr_wrapper<double>>(m,"pdouble")
@@ -206,7 +206,7 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("Type", [](const Condition& rCondition){
             if( rCondition.Type() == ConditionType::Neumann ){ return "neumann";}
             else if (rCondition.Type() == ConditionType::Dirichlet){ return "dirichlet"; }
-            else { TIBRA_ERROR("Pybind::Condition") << "ConditionType no available.\n"; }
+            else { QuESo_ERROR("Pybind::Condition") << "ConditionType no available.\n"; }
 
         })
         .def("GetPrescribed", &Condition::GetPrescribed)
@@ -278,16 +278,16 @@ PYBIND11_MODULE(TIBRA_Application,m) {
         .def("GetFilenameOfCondition", &Parameters::GetFilenameOfCondition)
         ;
 
-    /// Export TIBRA
-    py::class_<TIBRA,std::shared_ptr<TIBRA>>(m,"TIBRA")
+    /// Export QuESo
+    py::class_<QuESo,std::shared_ptr<QuESo>>(m,"QuESo")
         .def(py::init<const Parameters&>())
-        .def("Run", &TIBRA::Run)
-        .def("Clear", &TIBRA::Clear)
-        .def("GetElements",  &TIBRA::GetElements, py::return_value_policy::reference_internal )
-        .def("GetTriangleMesh", &TIBRA::GetTriangleMesh, py::return_value_policy::reference_internal)
-        .def("GetConditions", &TIBRA::GetConditions, py::return_value_policy::reference_internal )
-        .def("ReadWritePostMesh", &TIBRA::ReadWritePostMesh )
-        .def("GetPostMeshPoints", [](const TIBRA& v){
+        .def("Run", &QuESo::Run)
+        .def("Clear", &QuESo::Clear)
+        .def("GetElements",  &QuESo::GetElements, py::return_value_policy::reference_internal )
+        .def("GetTriangleMesh", &QuESo::GetTriangleMesh, py::return_value_policy::reference_internal)
+        .def("GetConditions", &QuESo::GetConditions, py::return_value_policy::reference_internal )
+        .def("ReadWritePostMesh", &QuESo::ReadWritePostMesh )
+        .def("GetPostMeshPoints", [](const QuESo& v){
             auto& mesh = v.GetPostMesh();
             return  mesh.GetVertices();
         });
@@ -299,4 +299,4 @@ PYBIND11_MODULE(TIBRA_Application,m) {
 }
 
 }// End namespace Python
-}// End namespace tibra
+}// End namespace queso

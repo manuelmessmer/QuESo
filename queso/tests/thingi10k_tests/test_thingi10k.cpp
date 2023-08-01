@@ -16,19 +16,19 @@
 #include "embedding/flood_fill.h"
 #include "tests/cpp_tests/class_testers/flood_fill_tester.hpp"
 
-namespace tibra {
+namespace queso {
 namespace Testing{
 
 
 BOOST_AUTO_TEST_SUITE( Thingi10KTestSuite )
 
 BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
-    TIBRA_INFO << "Testing :: Test Thingi10k :: STL embedding test.\n";
+    QuESo_INFO << "Testing :: Test Thingi10k :: STL embedding test.\n";
 
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
 
-    TIBRA_ERROR_IF("Thingi10KTestSuite::Thingi10KSTLEmbeddingTest", argc_ != 5 )
+    QuESo_ERROR_IF("Thingi10KTestSuite::Thingi10KSTLEmbeddingTest", argc_ != 5 )
         << "Please provide following arguments: -- single/all Filename/Directory n_min n_max\n";
 
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
     std::string option = argv_[1];
     if( option == "single"){
         filenames.push_back(argv_[2]);
-        TIBRA_INFO << "Thingi10KSTLEmbeddingTest :: Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
+        QuESo_INFO << "Thingi10KSTLEmbeddingTest :: Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
             << ", n_max : " << std::to_string(n_max) << ".\n";
     } else if( option == "small_set" || option == "large_set") {
         std::string filename = "queso/tests/thingi10k_tests/model_ids_" + option + ".txt";
@@ -49,10 +49,10 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
             std::string name = argv_[2] +  buffer + ".stl";
             filenames.push_back( name );
         }
-        TIBRA_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
+        QuESo_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
             << ", n_max: " << std::to_string(n_max) << ".\n";
     } else {
-        TIBRA_ERROR("Thingi10KSTLEmbeddingTest :: Thingi10KTestSuite::Thingi10KSTLEmbeddingTest")
+        QuESo_ERROR("Thingi10KSTLEmbeddingTest :: Thingi10KTestSuite::Thingi10KSTLEmbeddingTest")
             << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
     }
 
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 }
 
 BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
-    TIBRA_INFO << "Testing :: Test Thingi10k :: Element classification.\n";
+    QuESo_INFO << "Testing :: Test Thingi10k :: Element classification.\n";
 
     // This test does not paralize the outer loop, such that FloodFillTester::ClassifyElementsForTest() (inside the loop) can be run locally in parallel.
     // Therefore, this test is quite slow.
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
 
-    TIBRA_ERROR_IF("Thingi10KTestSuite::ElementClassificationTest", argc_ != 5 )
+    QuESo_ERROR_IF("Thingi10KTestSuite::ElementClassificationTest", argc_ != 5 )
         << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
 
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     std::string option = argv_[1];
     if( option == "single"){
         filenames.push_back(argv_[2]);
-        TIBRA_INFO << "Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
+        QuESo_INFO << "Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
             << ", n_max : " << std::to_string(n_max) << ".\n";
     } else if( option == "small_set" || option == "large_set") {
         std::string filename = "queso/tests/thingi10k_tests/model_ids_" + option + ".txt";
@@ -180,10 +180,10 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
             std::string name = argv_[2] +  buffer + ".stl";
             filenames.push_back( name );
         }
-        TIBRA_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
+        QuESo_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
             << ", n_max : " << std::to_string(n_max) << ".\n";
     } else {
-        TIBRA_ERROR("Thingi10KTestSuite::ElementClassificationTest")
+        QuESo_ERROR("Thingi10KTestSuite::ElementClassificationTest")
             << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
     }
 
@@ -291,4 +291,4 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

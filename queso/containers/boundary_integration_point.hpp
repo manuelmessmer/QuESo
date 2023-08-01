@@ -7,9 +7,9 @@
 //// Project includes
 #include "containers/integration_point.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -74,8 +74,8 @@ private:
     Vector3d mNormal;
     ///@}
 }; // End class BoundaryIntegrationPoint
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // BOUNDARY_INTEGRATION_POINT_INCLUDE_H

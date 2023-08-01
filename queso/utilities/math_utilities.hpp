@@ -7,7 +7,7 @@
 //// Project includes
 #include "define.hpp"
 
-namespace tibra {
+namespace queso {
 
 namespace Math {
     ///@brief Simple Power function
@@ -68,6 +68,6 @@ namespace Math {
 
 } // End namespace math
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif

@@ -13,9 +13,9 @@
 #include "utilities/mesh_utilities.h"
 #include "utilities/parameters.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /// Forward declarations
@@ -144,6 +144,6 @@ protected:
 }; // End TrimmedDomainBase
 ///@}
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // TRIMMED_DOMAIN_BASE_INCLUDE_H

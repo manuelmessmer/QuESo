@@ -4,7 +4,7 @@
 //// Project includes
 #include "embedding/geometry_query.h"
 
-namespace tibra {
+namespace queso {
 
     bool GeometryQuery::IsWithinBoundingBox(const PointType& rPoint) const {
         return mTree.IsWithinBoundingBox(rPoint);
@@ -122,4 +122,4 @@ namespace tibra {
         }
     }
 
-} // End tibra namespace
+} // End queso namespace

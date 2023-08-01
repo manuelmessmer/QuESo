@@ -1,5 +1,5 @@
 # Project imports
-import TIBRA_PythonApplication as TIBRA_Application
+import QuESo_PythonApplication as QuESo_Application
 
 # External imports
 import json
@@ -71,13 +71,13 @@ def GetConditions(dictionary):
 
 def ReadParameters(json_filename):
     ''' ReadParameters \n
-    Reads Parameters from json file and returns TIBRAApplication.Parameters()
-    parameters = TIBRA_Application.Parameters()
+    Reads Parameters from json file and returns QuESoApplication.Parameters()
+    parameters = QuESo_Application.Parameters()
     '''
     with open(json_filename, 'r') as file:
         settings = json.load(file)
 
-    parameters = TIBRA_Application.Parameters()
+    parameters = QuESo_Application.Parameters()
     components = GetComponents(settings)
 
     for key, value in components.items():
@@ -86,10 +86,10 @@ def ReadParameters(json_filename):
     for condition_id, condition in enumerate(GetConditions(settings)):
         if "dirichlet" in condition:
             value = condition["dirichlet"]
-            parameters.AddDirichletBC(condition_id, value["filename"], TIBRA_Application.Point(0.0, 0.0, 0.0), value["penalty_factor"])
+            parameters.AddDirichletBC(condition_id, value["filename"], QuESo_Application.Point(0.0, 0.0, 0.0), value["penalty_factor"])
         elif "neumann" in condition:
             value = condition["neumann"]
-            point = TIBRA_Application.Point(value["force"])
+            point = QuESo_Application.Point(value["force"])
             parameters.AddNeumannBC(condition_id, value["filename"], point )
         else:
             raise Exception("Helper::ReadParameters :: Condition type does not exits.")

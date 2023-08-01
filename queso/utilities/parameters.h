@@ -15,9 +15,9 @@
 ////Project includes
 #include "define.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name  TIBRA Globals
+///@name  QuESo Globals
 ///@{
 
 enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
@@ -27,7 +27,7 @@ enum ConditionType {Neumann, Dirichlet};
 typedef enum ConditionType ConditionTypeType;
 
 ///@}
-///@name  TIBRA Classes
+///@name  QuESo Classes
 ///@{
 
 /**
@@ -73,7 +73,7 @@ public:
 
     /// Returns penalty factor.
     virtual double GetPenaltyFactor() const {
-        TIBRA_ERROR("ParamCondition::GetPenaltyFactor") << "Calling base class. Penalty factor is only available for 'ParamConditionDirichlet'.\n";
+        QuESo_ERROR("ParamCondition::GetPenaltyFactor") << "Calling base class. Penalty factor is only available for 'ParamConditionDirichlet'.\n";
     }
 
 private:
@@ -366,7 +366,7 @@ public:
             return *p_value;
         }
 
-        TIBRA_ERROR("Parameters::Get") << "Component: '" + rName + "' not found.\n";
+        QuESo_ERROR("Parameters::Get") << "Component: '" + rName + "' not found.\n";
     }
 
     /// @brief Adds neumann condition to parameters.
@@ -396,7 +396,7 @@ public:
     /// @param Id of condition.
     /// @return const std::string&
     const std::string& GetFilenameOfCondition(IndexType Id) {
-        TIBRA_ERROR_IF( "Parameters::GetFilenameOfCondition", mConditions[Id]->GetId() != Id ) << "Id does not match index.\n";
+        QuESo_ERROR_IF( "Parameters::GetFilenameOfCondition", mConditions[Id]->GetId() != Id ) << "Id does not match index.\n";
         return mConditions[Id]->GetFilename();
     }
 
@@ -472,12 +472,12 @@ private:
                 const auto p_current_type_info = std::visit(TypeVisit{}, r_components.Get());
                 const auto p_ref_type_info = p_pair_found->second;
                 if( !(*p_current_type_info ==  *p_ref_type_info) ){ // If type is wrong.
-                    TIBRA_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
+                    QuESo_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
                         "' is not provided with correct Type.\n";
                 }
             }
             else { // If name is part of mAllAvailableComponents.
-                TIBRA_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
+                QuESo_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
                     "' is not a valid Parameter.\n";
             }
         }
@@ -560,10 +560,10 @@ private:
     ///@}
 
 }; // End class Parameters
-///@} End TIBRA classes
+///@} End QuESo classes
 
 std::ostream& operator<< (std::ostream& rOStream, const Parameters& rThis);
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // PARAMETERS_INCLUDE_H

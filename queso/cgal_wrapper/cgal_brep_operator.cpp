@@ -14,7 +14,7 @@
 #include "cgal_wrapper/cgal_trimmed_domain.h"
 #include "cgal_wrapper/cgal_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
 namespace PMP = CGAL::Polygon_mesh_processing;
@@ -148,5 +148,5 @@ TrimmedDomainBasePtrType CGALBRepOperator::pGetTrimmedDomain(const PointType& rL
 }
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso
 

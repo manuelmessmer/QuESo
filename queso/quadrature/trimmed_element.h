@@ -15,9 +15,9 @@
 #include "containers/boundary_integration_point.hpp"
 #include "utilities/parameters.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -97,6 +97,6 @@ protected:
 }; // End Class
 
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // MOMENT_FITTING_UTILITIES_INCLUDE_H

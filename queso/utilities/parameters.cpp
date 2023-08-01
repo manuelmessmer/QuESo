@@ -1,10 +1,10 @@
 #include "utilities/parameters.h"
 
-namespace tibra {
+namespace queso {
 
 std::ostream& operator<< (std::ostream& rOStream, const Parameters& rThis){
     rThis.PrintInfo(rOStream);
     return rOStream;
 }
 
-} // End tibra namespace
+} // End queso namespace

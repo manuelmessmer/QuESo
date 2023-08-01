@@ -22,16 +22,16 @@
 #include "utilities/parameters.h"
 #include "io/io_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
  * @class  CGAL brep operator
  * @author Manuel Messmer
- * @brief Provides geometrical operations for Brep models using CGAL (optional dependency of TIBRA).
+ * @brief Provides geometrical operations for Brep models using CGAL (optional dependency of QuESo).
 */
 class CGALBRepOperator : public BRepOperatorBase {
 
@@ -96,9 +96,9 @@ private:
     ///@}
 
 }; // End Class CGALBRepOperator
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso
 
 #endif // CGAL_BREP_OPERATOR_INCLUDE_H

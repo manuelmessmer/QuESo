@@ -12,13 +12,13 @@
 #include "embedding/brep_operator.h"
 #include "embedding/octree.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( Octree_TestSuite )
 
 BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
-    TIBRA_INFO << "Testing :: Test Octree :: Test Cube 1" << std::endl;
+    QuESo_INFO << "Testing :: Test Octree :: Test Cube 1" << std::endl;
     /// Uniform refinement, each node has 8 children.
 
     // Read mesh from STL file
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 } // End TouchingCubeTest1
 
 BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
-    TIBRA_INFO << "Testing :: Test Octree :: Test Cube 2" << std::endl;
+    QuESo_INFO << "Testing :: Test Octree :: Test Cube 2" << std::endl;
     /// Refinement in only on trimmed nodes in one direction.
 
     // Read mesh from STL file
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 } // End OctreeCubeTest2
 
 BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
-    TIBRA_INFO << "Testing :: Test Octree :: Test Elephant" << std::endl;
+    QuESo_INFO << "Testing :: Test Octree :: Test Elephant" << std::endl;
     // Compute volume of elephant through octree.
 
     // Read mesh from STL file
@@ -160,5 +160,5 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso
 

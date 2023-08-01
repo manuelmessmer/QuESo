@@ -4,7 +4,7 @@
 //// Project includes
 #include "cgal_wrapper/cgal_cuboid_modeler.h"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
 typedef CuboidModeler::CGALMeshType CGALMeshType;
@@ -49,4 +49,4 @@ CGALMeshPtrType CuboidModeler::MakeCuboid( const PointType& rLowerPoint, const P
 }
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso

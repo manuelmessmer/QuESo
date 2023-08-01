@@ -13,7 +13,7 @@
 #include "io/io_utilities.h"
 #include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( PointEliminationTestSuite )
@@ -117,22 +117,22 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationCylinder1Test) {
-    TIBRA_INFO << "Testing :: Test Point Elimination :: Cylinder Quadratic" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Quadratic" << std::endl;
     RunCylinder({2, 2, 2}, 1e-8);
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationCylinder2Test) {
-    TIBRA_INFO << "Testing :: Test Point Elimination :: Cylinder Cubic" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Cubic" << std::endl;
     RunCylinder({3, 3, 3}, 1e-8);
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test) {
-    TIBRA_INFO << "Testing :: Test Point Elimination :: Cylinder Mixed" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Mixed" << std::endl;
     RunCylinder({2, 3, 4}, 1e-7);
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
-    TIBRA_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
-    TIBRA_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
+    QuESo_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
 
     typedef boost::numeric::ublas::vector<double> VectorType;
 
@@ -333,4 +333,4 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

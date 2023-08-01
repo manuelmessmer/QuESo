@@ -7,7 +7,7 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "quadrature/single_element.h"
 
-namespace tibra {
+namespace queso {
 
 void QuadratureSingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
 {
@@ -53,7 +53,7 @@ void QuadratureSingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoin
     }
 }
 
-} // End namespace tibra
+} // End namespace queso
 
 // void QuadratureSingleElement::Assemble(
 //     IntersectionTest& rInsideTest,

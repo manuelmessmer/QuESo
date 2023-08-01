@@ -14,10 +14,10 @@
 #include "embedding/trimmed_domain_base.h"
 #include "containers/triangle_mesh.hpp"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel CGALKernalType;
@@ -88,6 +88,6 @@ private:
 }; // End class
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso
 
 #endif // End

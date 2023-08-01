@@ -11,9 +11,9 @@
 #include "embedding/brep_operator_base.h"
 #include "embedding/trimmed_domain_base.h"
 
-namespace tibra
+namespace queso
 {
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -148,7 +148,7 @@ public:
             DIRINDEX3 = 0;
         }
         else {
-            TIBRA_ERROR("TrimmedDomainOnPlane::Constructor") << "Wrong PlaneIndex.\n";
+            QuESo_ERROR("TrimmedDomainOnPlane::Constructor") << "Wrong PlaneIndex.\n";
         }
 
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
@@ -453,7 +453,7 @@ private:
     ///@}
 }; // End TrimmedDomainOnPlane
 
-///@} // End Tibra Classes
+///@} // End QuESo Classes
 
-} // End namespace tibra
+} // End namespace queso
 #endif // TRIMMED_DOMAIN_ON_PLANE_INCLUDE_H

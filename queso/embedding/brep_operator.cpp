@@ -12,7 +12,7 @@
 #include "embedding/ray_aabb_primitive.h"
 
 
-namespace tibra {
+namespace queso {
 
 typedef BRepOperator::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
 typedef BRepOperator::StatusVectorType StatusVectorType;
@@ -252,13 +252,13 @@ Unique<TriangleMesh> BRepOperator::pClipTriangleMeshUnique(const PointType& rLow
     return p_triangle_mesh;
 }
 
-} // End namespace tibra
+} // End namespace queso
 
 // Winding numbers algorithm: It actually works!!!
 
-// TIBRA_INFO << "Done" << std::endl;
-// TIBRA_INFO << "Tree timer: " << tree_timer << std::endl;
-// TIBRA_INFO << "ray timer: " << ray_timer << std::endl;
+// QuESo_INFO << "Done" << std::endl;
+// QuESo_INFO << "Tree timer: " << tree_timer << std::endl;
+// QuESo_INFO << "ray timer: " << ray_timer << std::endl;
 // return MakeUnique<std::vector<bool>>(rr);
 // for( int triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id ){
 //     const auto& p1 = rTriangleMesh.P1(triangle_id);

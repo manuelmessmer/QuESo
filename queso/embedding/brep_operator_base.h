@@ -12,9 +12,9 @@
 #include "utilities/parameters.h"
 #include "define.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -36,11 +36,11 @@ public:
     /// Constructor
     BRepOperatorBase(const Parameters& rParameters) : mParameters(rParameters)
     {
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_xyz") ) << "Parameter does not contain 'lower_bound_xyz'.\n";
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_xyz") ) << "Parameter does not contain 'upper_bound_xyz'.\n";
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_uvw") ) << "Parameter does not contain 'lower_bound_uvw'.\n";
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_uvw") ) << "Parameter does not contain 'upper_bound_uvw'.\n";
-        TIBRA_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<Vector3i>("number_of_elements") ) << "Parameter does not contain 'number_of_elements'.\n";
+        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_xyz") ) << "Parameter does not contain 'lower_bound_xyz'.\n";
+        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_xyz") ) << "Parameter does not contain 'upper_bound_xyz'.\n";
+        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_uvw") ) << "Parameter does not contain 'lower_bound_uvw'.\n";
+        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_uvw") ) << "Parameter does not contain 'upper_bound_uvw'.\n";
+        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<Vector3i>("number_of_elements") ) << "Parameter does not contain 'number_of_elements'.\n";
     }
 
     /// Destructor
@@ -111,8 +111,8 @@ protected:
 
     ///@}
 }; // End BRepOperatorBase class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // BREP_OPERATOR_BASE_INCLUDE_H

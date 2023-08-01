@@ -11,14 +11,14 @@
 #include "embedding/brep_operator.h"
 #include "io/io_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( BoundingBoxOfTrimmedDomainTestSuite )
 
 BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 
-    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cylinder" << std::endl;
+    QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cylinder" << std::endl;
 
     PointType point_A = {0.0, 0.0, 0.0};
     PointType point_B = {2.0, 2.0, 3.0};
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
-    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cube" << std::endl;
+    QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cube" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
-    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Elephant" << std::endl;
+    QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Elephant" << std::endl;
 
     PointType point_A = {0.0, 0.0, 0.0};
     PointType point_B = {2.0, 2.0, 3.0};
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 }
 
 BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
-    TIBRA_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Bunny" << std::endl;
+    QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Bunny" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -236,4 +236,4 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

@@ -1,15 +1,15 @@
 # Project imports
-from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
+from QuESo_PythonApplication.PyQuESo import PyQuESo
 import KratosMultiphysics
 import unittest
 
 class TestStrainEnergySteeringKnuckleKratos(unittest.TestCase):
     def run_test(self, filename, tolerance):
-        pytibra = PyTIBRA(filename)
-        pytibra.Run()
-        pytibra.RunKratosAnalysis("queso/tests/steering_knuckle_kratos/KratosParameters.json")
+        pyqueso = PyQuESo(filename)
+        pyqueso.Run()
+        pyqueso.RunKratosAnalysis("queso/tests/steering_knuckle_kratos/KratosParameters.json")
 
-        analysis = pytibra.GetAnalysis()
+        analysis = pyqueso.GetAnalysis()
         model_part = analysis.GetModelPart()
         strain_energy = 0.0
 
@@ -21,16 +21,16 @@ class TestStrainEnergySteeringKnuckleKratos(unittest.TestCase):
         self.assertAlmostEqual(strain_energy, 21.788415916271443, tolerance)
 
     def test_1(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/TIBRAParameters1.json", 10)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters1.json", 10)
 
     def test_2(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/TIBRAParameters2.json", 10)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters2.json", 10)
 
     def test_3(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/TIBRAParameters3.json", 2)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters3.json", 2)
 
     def test_4(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/TIBRAParameters4.json", 3)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters4.json", 3)
 
 if __name__ == "__main__":
     unittest.main()

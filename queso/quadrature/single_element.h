@@ -12,9 +12,9 @@
 #include "containers/integration_point.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ////
@@ -56,6 +56,6 @@ public:
 
 ///@}
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // SINGLE_ELEMENT_H

@@ -17,9 +17,9 @@
 #include "containers/triangle_gauss_legendre_integration_points.hpp"
 #include "containers/boundary_integration_point.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 /**
  * @class  TriangleMesh
@@ -304,7 +304,7 @@ private:
         case 2:
             return( rPoint[1] );
         default:
-            TIBRA_ERROR("TriangleMesh::ShapeFunctionValue") << "Wrong Index of Shape Function.\n";
+            QuESo_ERROR("TriangleMesh::ShapeFunctionValue") << "Wrong Index of Shape Function.\n";
             break;
         }
 
@@ -327,7 +327,7 @@ private:
 
     ///@brief Get triangle Gauss Legendre points by Method - options (0,1,2,3)
     static const IpVectorType& GetIntegrationPoints( IndexType Method ){
-        TIBRA_ERROR_IF("TriangleMesh::GetIntegrationPoints", Method > 3) << "IntegrationPoint Index exceeds default.\n";
+        QuESo_ERROR_IF("TriangleMesh::GetIntegrationPoints", Method > 3) << "IntegrationPoint Index exceeds default.\n";
 
         return AllIntegrationPoints()[Method];
     }
@@ -343,8 +343,8 @@ private:
     ///@}
 
 }; // End of class TriangleMesh
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // TRIANGLE_MESH_INCLUDE_H

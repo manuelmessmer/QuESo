@@ -12,7 +12,7 @@
 //// Project includes
 #include "nnls.h"
 
-namespace tibra {
+namespace queso {
 
 double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     typedef boost::numeric::ublas::matrix<double> MatrixType;
@@ -75,5 +75,5 @@ double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     return Rnorm;
 }
 
-} // End namespace tibra
+} // End namespace queso
 

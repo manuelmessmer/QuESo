@@ -7,7 +7,7 @@
 // Project includes
 #include "utilities/mapping_utilities.h"
 
-namespace tibra {
+namespace queso {
 
 // Static member operations for Mapping
 PointType Mapping::PointFromGlobalToParam( const PointType& rGlobalCoord, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW){
@@ -112,4 +112,4 @@ std::pair<PointType, PointType> Mapper::GetBoundingBoxUVWFromIndex(IndexType i, 
     return mBoundUVW;
 }
 
-} // End namespace tibra
+} // End namespace queso

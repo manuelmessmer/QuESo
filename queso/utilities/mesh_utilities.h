@@ -7,9 +7,9 @@
 //// Project includes
 #include "containers/triangle_mesh.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ///
@@ -100,7 +100,7 @@ public:
 
     ///@}
 }; // End class MeshUtilities
-///@} // End TIBRA Classes
-} // End namespace tibra
+///@} // End QuESo Classes
+} // End namespace queso
 
 #endif // MESH_UTILITIES_INCLUDE_H

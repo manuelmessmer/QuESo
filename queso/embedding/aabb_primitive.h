@@ -9,12 +9,12 @@
 //// Project includes
 #include "embedding/aabb_primitive_base.h"
 
-namespace tibra {
+namespace queso {
 
 // Alias to external base class.
 typedef aabb_base::AABB_base AABB_lohedges;
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -79,8 +79,8 @@ private:
 
     ///@}
 }; // End AABB_primitive class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // AABB_PRIMITIVE_INCLUDE_H

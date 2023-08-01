@@ -7,9 +7,9 @@
 //// STL includes
 #include <chrono>
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ///
@@ -52,8 +52,8 @@ private:
     ///@}
 
 }; // End class Timer
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // TIMER_INCLUDE_H

@@ -11,9 +11,9 @@
 #include "utilities/logger.hpp"
 #include "containers/vector3.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA GLOBAL TYPE DEFINITIONS
+///@name QuESo GLOBAL TYPE DEFINITIONS
 ///@{
 
 typedef std::size_t  SizeType;
@@ -25,7 +25,7 @@ typedef Vector3<IndexType> Vector3i;
 typedef std::pair<PointType, PointType> BoundingBoxType;
 
 ///@}
-///@name TIBRA GLOBAL VARIABLES
+///@name QuESo GLOBAL VARIABLES
 ///@{
 
 // Large negative number
@@ -69,7 +69,7 @@ inline BoundingBoxType MakeBox( std::array<double, 3> rL, std::array<double, 3> 
 }
 
 ///@}
-///@name TIBRA POINTER DEFINITIONS
+///@name QuESo POINTER DEFINITIONS
 ///@{
 
 // Shared Ptr
@@ -105,6 +105,6 @@ namespace Ptr {
 
 ///@}
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // DEFINE_INCLUDE_HPP

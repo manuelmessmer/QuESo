@@ -7,7 +7,7 @@
 //// STL includes
 #include <fstream>
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
 class IO{
@@ -37,6 +37,6 @@ private:
 };
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso
 
 #endif // CGAL_IO_UTILTIES_H

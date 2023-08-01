@@ -1,7 +1,7 @@
 # Created by the script cgal_create_CMakeLists
 # This is the CMake script for compiling CGAL Python Module.
 cmake_minimum_required(VERSION 3.1...3.15)
-project( TIBRA_Application )
+project( QuESo_Application )
 
 # Set build type to Release
 set(CMAKE_BUILD_TYPE Release)
@@ -44,13 +44,13 @@ set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
 
 ################### PYBIND11
-# Set TIBRA specific module path
+# Set QuESo specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(pybind11Tools)
 
 #include source directories
-file(GLOB TIBRA_ApplicationSource
-  ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_main.cpp
+file(GLOB QuESo_ApplicationSource
+  ${CMAKE_CURRENT_SOURCE_DIR}/QuESo_main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/embedding/*.cpp
@@ -63,16 +63,16 @@ file(GLOB TIBRA_ApplicationSource
   ${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries/aabb_tree/*.cc
 )
 
-## TIBRA python interface sources
-file(GLOB_RECURSE TIBRA_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
+## QuESo python interface sources
+file(GLOB_RECURSE QuESo_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
-add_library(TIBRA_ApplicationCore SHARED ${TIBRA_ApplicationSource} )
-target_link_libraries(TIBRA_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
-set_target_properties(TIBRA_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "TIBRA_Application=EXPORT,API")
+add_library(QuESo_ApplicationCore SHARED ${QuESo_ApplicationSource} )
+target_link_libraries(QuESo_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
+set_target_properties(QuESo_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "QuESo_Application=EXPORT,API")
 
-pybind11_add_module(TIBRA_Application MODULE THIN_LTO ${TIBRA_PYTHON_INTERFACE})
-target_link_libraries( TIBRA_Application PRIVATE TIBRA_ApplicationCore )
-set_target_properties( TIBRA_Application PROPERTIES PREFIX "")
+pybind11_add_module(QuESo_Application MODULE THIN_LTO ${QuESo_PYTHON_INTERFACE})
+target_link_libraries( QuESo_Application PRIVATE QuESo_ApplicationCore )
+set_target_properties( QuESo_Application PROPERTIES PREFIX "")
 
 if(DEFINED ENV{BOOST_ROOT})
   set(BOOST_ROOT $ENV{BOOST_ROOT})
@@ -89,15 +89,15 @@ file(GLOB TEST_THINGI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/thingi10k_tests/*.c
 #file(GLOB TEST_SRCS2 ${CMAKE_CURRENT_SOURCE_DIR}/tests/thingi10k_tests/*.cpp)
 # Run compile cpp tests
 # Extract the filename without an extension (NAME_WE)
-get_filename_component(testName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra.cpp NAME_WE)
-get_filename_component(testThingiName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra_thingi10k.cpp NAME_WE)
+get_filename_component(testName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso.cpp NAME_WE)
+get_filename_component(testThingiName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso_thingi10k.cpp NAME_WE)
 # Add compile target
-add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra.cpp ${TEST_SRCS})
-add_executable(${testThingiName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_tibra_thingi10k.cpp ${TEST_THINGI_SRCS})
+add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso.cpp ${TEST_SRCS})
+add_executable(${testThingiName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso_thingi10k.cpp ${TEST_THINGI_SRCS})
 
-# Link to Boost libraries and TIBRA
-target_link_libraries(${testName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
-target_link_libraries(${testThingiName} ${Boost_LIBRARIES} TIBRA_ApplicationCore)
+# Link to Boost libraries and QuESo
+target_link_libraries(${testName} ${Boost_LIBRARIES} QuESo_ApplicationCore)
+target_link_libraries(${testThingiName} ${Boost_LIBRARIES} QuESo_ApplicationCore)
 
 # Move to TestExecutables
 set_target_properties(${testName} PROPERTIES
@@ -114,9 +114,9 @@ add_test(NAME ${testThingiName}
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testThingiName} )
 
 # Setting the libs folder for the shared objects built in kratos
-install(TARGETS TIBRA_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
-install(TARGETS TIBRA_ApplicationCore DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
+install(TARGETS QuESo_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
+install(TARGETS QuESo_ApplicationCore DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
 
 # Install Python module
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/TIBRA_Application.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TIBRA_PythonApplication RENAME __init__.py)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/PyTIBRA.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../TIBRA_PythonApplication)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/QuESo_Application.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../QuESo_PythonApplication RENAME __init__.py)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/PyQuESo.py DESTINATION  ${CMAKE_CURRENT_SOURCE_DIR}/../QuESo_PythonApplication)

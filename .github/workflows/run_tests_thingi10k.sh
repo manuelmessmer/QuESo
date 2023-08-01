@@ -12,8 +12,8 @@ do
   if [ "$found" == "1" ]; then
     echo "File: $id"
     let "count+=1"
-    ./TestExecutables/test_tibra_thingi10k -- single TestExecutables/test.stl 2 10 || exit 1
-    ./TestExecutables/test_tibra_thingi10k -- single TestExecutables/test.stl 3 30 || exit 1
+    ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.stl 2 10 || exit 1
+    ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.stl 3 30 || exit 1
   else
     echo File: $id is no longer available on Thingiverse.
   fi

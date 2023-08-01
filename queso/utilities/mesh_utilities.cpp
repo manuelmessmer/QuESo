@@ -10,7 +10,7 @@
 #include "utilities/mesh_utilities.h"
 #include "utilities/math_utilities.hpp"
 
-namespace tibra {
+namespace queso {
 
 typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
 
@@ -229,7 +229,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
 
-    TIBRA_ERROR_IF("MeshUtilities::Volume", Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
+    QuESo_ERROR_IF("MeshUtilities::Volume", Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
 
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
@@ -328,4 +328,4 @@ std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMesh& r
     return std::make_pair(lower_bound, upper_bound);
 }
 
-} // End namespace tibra
+} // End namespace queso

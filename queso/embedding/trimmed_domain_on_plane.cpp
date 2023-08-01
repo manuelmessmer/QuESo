@@ -7,7 +7,7 @@
 #include "embedding/trimmed_domain_on_plane.h"
 #include "embedding/polygon.h"
 
-namespace tibra
+namespace queso
 {
 
 typedef TrimmedDomainOnPlane::Point2DType Point2DType;
@@ -693,10 +693,10 @@ void TrimmedDomainOnPlane::InsertVertex(const Point2DType &rPoint, IndexType New
     if (NewIndex == index) {
         r_vertices.push_back(rPoint);
         r_vertices_set.insert(--r_vertices.end());
-        //TIBRA_ERROR_IF("TrimmedDomainOnPlane::InsertVertex", !res.second) << "Vetrex already exists.\n";
+        //QuESo_ERROR_IF("TrimmedDomainOnPlane::InsertVertex", !res.second) << "Vetrex already exists.\n";
     }
     else if(NewIndex > index) {
-        TIBRA_ERROR("TrimmedDomainOnPlane::InsertVertex") << "Given index out of range.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::InsertVertex") << "Given index out of range.\n";
     }
 }
 
@@ -839,7 +839,7 @@ const Point2DType& TrimmedDomainOnPlane::V1byEdgeId(IndexType EdgeId, Orientatio
     case Orientation::Vertical:
         return mVerticesVertical[mEdgesVertical[EdgeId].V1()];
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::V1byEdgeId") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::V1byEdgeId") << "Given Orientation not available.\n";
     }
 }
 
@@ -853,7 +853,7 @@ const Point2DType& TrimmedDomainOnPlane::V2byEdgeId(IndexType EdgeId, Orientatio
     case Orientation::Vertical:
         return mVerticesVertical[mEdgesVertical[EdgeId].V2()];
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::V2byEdgeId") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::V2byEdgeId") << "Given Orientation not available.\n";
     }
 }
 
@@ -867,7 +867,7 @@ const std::vector<Edge2D>& TrimmedDomainOnPlane::GetEdges(OrientationType Orient
     case Orientation::Vertical:
         return mEdgesVertical;
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetEdges") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetEdges") << "Given Orientation not available.\n";
     }
 }
 
@@ -881,7 +881,7 @@ std::vector<Edge2D>& TrimmedDomainOnPlane::GetEdges(OrientationType Orientation)
     case Orientation::Vertical:
         return mEdgesVertical;
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetEdges") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetEdges") << "Given Orientation not available.\n";
     }
 }
 
@@ -896,7 +896,7 @@ const std::vector<Point2DType>& TrimmedDomainOnPlane::GetVertices(OrientationTyp
     case Orientation::Vertical:
         return mVerticesVertical;
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetVertices") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetVertices") << "Given Orientation not available.\n";
     }
 }
 
@@ -911,7 +911,7 @@ std::vector<Point2DType>& TrimmedDomainOnPlane::GetVertices(OrientationType Orie
     case Orientation::Vertical:
         return mVerticesVertical;
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetVertices") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetVertices") << "Given Orientation not available.\n";
     }
 }
 
@@ -925,7 +925,7 @@ Point2DSetType& TrimmedDomainOnPlane::GetVerticesSet(OrientationType Orientation
     case Orientation::Vertical:
         return *mVerticesSetVertical.get();
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetVerticesSet") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetVerticesSet") << "Given Orientation not available.\n";
         break;
     }
 }
@@ -940,7 +940,7 @@ const Point2DSetType& TrimmedDomainOnPlane::GetVerticesSet(OrientationType Orien
     case Orientation::Vertical:
         return *mVerticesSetVertical.get();
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetVerticesSet") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetVerticesSet") << "Given Orientation not available.\n";
         break;
     }
 }
@@ -955,7 +955,7 @@ IndexType TrimmedDomainOnPlane::GetNumberEdges(OrientationType Orientation) cons
     case Orientation::Vertical:
         return mEdgesVertical.size();
     default:
-        TIBRA_ERROR("TrimmedDomainOnPlane::GetNumberEdges") << "Given Orientation not available.\n";
+        QuESo_ERROR("TrimmedDomainOnPlane::GetNumberEdges") << "Given Orientation not available.\n";
         break;
     }
 }
@@ -981,4 +981,4 @@ bool TrimmedDomainOnPlane::PointExists(const Point2DType& rPoint , const Point2D
 }
 
 
-} // End namespace tibra
+} // End namespace queso

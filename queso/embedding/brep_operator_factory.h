@@ -10,9 +10,9 @@
 #include "embedding/brep_operator.h"
 #endif
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -43,8 +43,8 @@ public:
 
     ///@}
 }; // End BRepOperatorFactory class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif

@@ -6,7 +6,7 @@
 
 #include "embedding/flood_fill.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 // Make protected funtions public for testing.
@@ -22,6 +22,6 @@ public:
 };
 
 } // End namespace Tester
-} // End namespace tibra
+} // End namespace queso
 
 #endif // FLOOD_FILL_TESTER_INCLUDE_HPP

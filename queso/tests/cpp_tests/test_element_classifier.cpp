@@ -10,13 +10,13 @@
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ElementClassifierTestSuite )
 
 BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
-    TIBRA_INFO << "Testing :: Test Classify Elements :: Touch Cube" << std::endl;
+    QuESo_INFO << "Testing :: Test Classify Elements :: Touch Cube" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
-    TIBRA_INFO << "Testing :: Test Classify Elements :: Cylinder" << std::endl;
+    QuESo_INFO << "Testing :: Test Classify Elements :: Cylinder" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
-    TIBRA_INFO << "Testing :: Test Classify Elements :: Cube with cavity" << std::endl;
+    QuESo_INFO << "Testing :: Test Classify Elements :: Cube with cavity" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
-    TIBRA_INFO << "Testing :: Test Classify Elements :: Elephant" << std::endl;
+    QuESo_INFO << "Testing :: Test Classify Elements :: Elephant" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 }
 
 BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
-    TIBRA_INFO << "Testing :: Test Classify Elements :: Bunny" << std::endl;
+    QuESo_INFO << "Testing :: Test Classify Elements :: Bunny" << std::endl;
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -207,4 +207,4 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

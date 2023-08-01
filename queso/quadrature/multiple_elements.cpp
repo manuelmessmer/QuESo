@@ -6,7 +6,7 @@
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
-namespace tibra {
+namespace queso {
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
@@ -245,7 +245,7 @@ ElementContainer::ElementPtrType QuadratureMultipleElements::NextElement(Element
     case 5:
         return rElements.pGetPreviousElementInZ(id, dummy_next_id, found, dummy_local_end);
     default:
-        TIBRA_ERROR("QuadratureMultipleElements::NextElement") << "There are only 6 different directions.\n";
+        QuESo_ERROR("QuadratureMultipleElements::NextElement") << "There are only 6 different directions.\n";
     }
 }
 
@@ -255,7 +255,7 @@ double linear_function(int x, int number_neighbours){
 
     double value = (1.0 - 0.9/center*delta)* (double)number_neighbours;
 
-    TIBRA_ERROR_IF("QuadratureMultipleElements::linear_function", value < ZEROTOL) << "Value too low\n";
+    QuESo_ERROR_IF("QuadratureMultipleElements::linear_function", value < ZEROTOL) << "Value too low\n";
 
     return value;
 }
@@ -352,4 +352,4 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
 
 }
 
-} // namespace tibra
+} // namespace queso

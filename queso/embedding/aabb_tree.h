@@ -10,9 +10,9 @@
 #include "embedding/aabb_primitive.h"
 #include "containers/triangle_mesh.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -94,8 +94,8 @@ private:
     PointType mUpperBound{};
     ///@}
 }; // End AABB_tree class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif //AABB_tree_INCLUDE_H

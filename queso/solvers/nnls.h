@@ -7,7 +7,7 @@
 //// External includes
 #include <boost/numeric/ublas/matrix.hpp>
 
-namespace tibra {
+namespace queso {
 namespace nnls {
 
 typedef boost::numeric::ublas::matrix<double> MatrixType;
@@ -17,6 +17,6 @@ typedef boost::numeric::ublas::vector<double> VectorType;
 double nnls(MatrixType& A, const VectorType& b, VectorType& x);
 
 } // End Namespace nnls
-} // End namespace tibra
+} // End namespace queso
 
 #endif // NNLS_INCLUDE_H

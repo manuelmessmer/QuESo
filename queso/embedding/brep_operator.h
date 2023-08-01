@@ -17,9 +17,9 @@
 #include "embedding/brep_operator_base.h"
 #include "io/io_utilities.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -47,7 +47,7 @@ public:
     /// Constructor
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
-    ///@param rParameters TIBRA parameters.
+    ///@param rParameters QuESo parameters.
     BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters, bool Closed=true)
         : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed), mFloodFill(this, rParameters)
     {
@@ -133,8 +133,8 @@ private:
     ///@}
 }; // End BRepOperator class
 
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // BREP_OPERATOR_INCLUDE_H

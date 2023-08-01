@@ -7,7 +7,7 @@
 //// Project includes
 #include "cgal_wrapper/cgal_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
 bool CGALUtilities::CopyMesh(const CGALMeshType& rInputMesh, TriangleMesh& rOutputMesh ){
@@ -72,4 +72,4 @@ bool CGALUtilities::CopyMesh(const TriangleMesh& rInputMesh, CGALMeshType& rOutp
 }
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso

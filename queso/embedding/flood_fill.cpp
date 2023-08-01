@@ -9,7 +9,7 @@
 #include "embedding/flood_fill.h"
 
 
-namespace tibra {
+namespace queso {
 
 typedef FloodFill::StatusVectorType StatusVectorType;
 typedef FloodFill::StatusVectorType StatusVectorType;
@@ -410,10 +410,10 @@ int FloodFill::GetNextIndex(IndexType Direction, IndexType Index, const Partitio
             rUpperBoundOffset = {0.0, 0.0, tolerance};
             break;
         default:
-            TIBRA_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
+            QuESo_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
     }
 
     return mMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
 }
 
-} // End namespace tibra
+} // End namespace queso

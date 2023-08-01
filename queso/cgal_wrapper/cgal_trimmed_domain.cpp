@@ -6,7 +6,7 @@
 #include "cgal_wrapper/cgal_trimmed_domain.h"
 #include "utilities/mesh_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
 typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
@@ -61,4 +61,4 @@ BoundaryIPVectorPtrType CGALTrimmedDomain::pGetBoundaryIps() const {
 }
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso

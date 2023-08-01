@@ -5,7 +5,7 @@
 #include "embedding/octree.h"
 #include "embedding/trimmed_domain_base.h"
 
-namespace tibra {
+namespace queso {
 
 ///
 /// Function Definition of Octree<TOperator>::Node
@@ -146,7 +146,7 @@ bool Octree<TOperator>::Node::IsLeaf() const {
 
 template<typename TOperator>
 void Octree<TOperator>::Refine(IndexType MinLevel, IndexType MaxLevel){
-    TIBRA_ERROR_IF("Octree :: Constructor", MinLevel > MaxLevel ) << "MinLevel must be smaller/equal than MaxLevel. "
+    QuESo_ERROR_IF("Octree :: Constructor", MinLevel > MaxLevel ) << "MinLevel must be smaller/equal than MaxLevel. "
         << "Given MinLevel: " << MinLevel << ", MaxLevel: " << MaxLevel << ".\n";
     mMinLevel = MinLevel;
     mMaxLevel = MaxLevel;
@@ -185,4 +185,4 @@ void Octree<TOperator>::AddIntegrationPoints(IntegrationPointVectorType& rPoints
 // Explicit instantiation Octree
 template class Octree<TrimmedDomainBase>;
 
-} // End namespace tibra
+} // End namespace queso

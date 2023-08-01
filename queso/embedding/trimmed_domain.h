@@ -12,9 +12,9 @@
 #include "utilities/mesh_utilities.h"
 #include "embedding/trimmed_domain_on_plane.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -38,7 +38,7 @@ public:
     /// @param rLowerBound Lower bound of trimmed domain.
     /// @param rUpperBound Upper bound of trimmed domain.
     /// @param pOperator Pointer to BrepOperator to perform IsInside()-check. Only used as safety procedure, if IsInsideTrimmedDomain() failes.
-    /// @param rParameters TIBRA Parameters.
+    /// @param rParameters QuESo Parameters.
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperatorBase* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
@@ -129,6 +129,6 @@ private:
 
 ///@}
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // TRIMMED_DOMAIN_INCLUDE_H

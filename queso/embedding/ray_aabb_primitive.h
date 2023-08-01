@@ -8,9 +8,9 @@
 //// Project includes
 #include "embedding/aabb_primitive.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -104,8 +104,8 @@ private:
     bool mPositiveDir;
     ///@}
 }; // End Ray_AABB_primitive
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif

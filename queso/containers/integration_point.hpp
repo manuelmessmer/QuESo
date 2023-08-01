@@ -7,9 +7,9 @@
 //// Project includes
 #include "define.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -95,8 +95,8 @@ private:
     bool mActiveFlag;
     ///@}
 }; // End class IntegrationPoint
-///@} End TIBRA classes
+///@} End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // INTEGRATION_POINT_INCLUDE_H

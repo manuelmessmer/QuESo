@@ -9,9 +9,9 @@
 #include <cmath>
 #include <iostream>
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -173,7 +173,7 @@ public:
     }
     ///@}
 }; // End Vector3 class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
 template<typename type>
 std::ostream& operator<<(std::ostream& rOStream, const Vector3<type>& rThis)  {
@@ -181,6 +181,6 @@ std::ostream& operator<<(std::ostream& rOStream, const Vector3<type>& rThis)  {
     return rOStream;
 }
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // VECTOR3_INCLUDE_H

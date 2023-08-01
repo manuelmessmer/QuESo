@@ -10,9 +10,9 @@
 #include <sstream>
 #include <iomanip>
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ///
@@ -84,8 +84,8 @@ private:
     ///@}
 };
 
-#define TIBRA_INFO Logger()
-#define TIBRA_INFO_IF(Conditional) if(Conditional) Logger()
+#define QuESo_INFO Logger()
+#define QuESo_INFO_IF(Conditional) if(Conditional) Logger()
 
 ///
 /**
@@ -150,10 +150,10 @@ private:
     ///@}
 };
 
-#define TIBRA_ERROR(Where) throw Exception(Where)
-#define TIBRA_ERROR_IF(Where, Conditional) if(Conditional) throw Exception(Where)
+#define QuESo_ERROR(Where) throw Exception(Where)
+#define QuESo_ERROR_IF(Where, Conditional) if(Conditional) throw Exception(Where)
 
-///@} // End TIBRA Classes
-} // End namespace tibra
+///@} // End QuESo Classes
+} // End namespace queso
 
 #endif // LOGGER_INCLUDE_HPP

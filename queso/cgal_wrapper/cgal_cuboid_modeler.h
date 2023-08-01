@@ -13,10 +13,10 @@
 //// Project includes
 #include "define.hpp"
 
-namespace tibra {
+namespace queso {
 namespace cgal {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -49,6 +49,6 @@ public:
 ///@} // End CGALCuboidModeler class
 
 } // End namespace cgal
-} // End namespace tibra
+} // End namespace queso
 
 #endif // CUBE_MODELER_INCLUDE_H

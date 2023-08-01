@@ -1,5 +1,5 @@
 # Project imports
-import TIBRA_PythonApplication as TIBRA_APP
+import QuESo_PythonApplication as QuESo_APP
 from queso.python_scripts.helper import *
 
 try:
@@ -21,7 +21,7 @@ import numpy as np
 
 def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
-        parameters = ReadParameters("queso/tests/ggq_cantilever_kratos/TIBRAParameters.json")
+        parameters = ReadParameters("queso/tests/ggq_cantilever_kratos/QuESoParameters.json")
 
         parameters.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
         parameters.Set("polynomial_order", polynomial_degree)
@@ -30,7 +30,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
         else:
             parameters.Set("integration_method", "GGQ_Optimal")
 
-        embedder = TIBRA_APP.TIBRA(parameters)
+        embedder = QuESo_APP.QuESo(parameters)
         embedder.Run()
 
         elements = embedder.GetElements()

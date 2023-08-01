@@ -14,7 +14,7 @@ if kratos_available:
 import unittest
 import sys
 
-def PyTIBRATestSuite():
+def PyQuESoTestSuite():
     test_suite = unittest.TestSuite()
     if kratos_available:
         test_suite.addTest(unittest.makeSuite(TestGGQCantileverKratos))
@@ -32,7 +32,7 @@ def PyTIBRATestSuite():
 
 def main():
 
-    test_suite = PyTIBRATestSuite()
+    test_suite = PyQuESoTestSuite()
     runner = unittest.TextTestRunner()
     result = runner.run(test_suite)
 

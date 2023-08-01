@@ -14,7 +14,7 @@
 #include "solvers/nnls.h"
 #include "io/io_utilities.h"
 
-namespace tibra {
+namespace queso {
 
 typedef boost::numeric::ublas::matrix<double> MatrixType;
 typedef boost::numeric::ublas::vector<double> VectorType;
@@ -213,7 +213,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
     }
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
-        TIBRA_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
+        QuESo_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
     }
 
     return residual;
@@ -380,7 +380,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
     }
 }
 
-} // End namespace tibra
+} // End namespace queso
 
 // double QuadratureTrimmedElement::f_x(double x, int order, double a, double b){
 //     double tmp_x = (2*x - a - b)/(b-a);

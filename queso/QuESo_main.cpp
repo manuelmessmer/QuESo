@@ -7,7 +7,7 @@
 #include <omp.h>
 
 //// Project includes
-#include "TIBRA_main.h"
+#include "QuESo_main.h"
 #include "io/io_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "utilities/timer.hpp"
@@ -18,12 +18,12 @@
 #include "quadrature/multiple_elements.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
-namespace tibra {
+namespace queso {
 
-void TIBRA::Run()
+void QuESo::Run()
 {
     Timer timer{};
-    TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "\nTIBRA ------------------------------------------ START" << std::endl;
+    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "\nQuESo ------------------------------------------ START" << std::endl;
 
     // Allocate element/knotspans container
     mpElementContainer = MakeUnique<ElementContainer>(mParameters);
@@ -54,8 +54,8 @@ void TIBRA::Run()
         // Compute volume
         volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
 
-        TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
-        TIBRA_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
+        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
+        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
     }
 
     // Start computation
@@ -77,21 +77,21 @@ void TIBRA::Run()
             IO::WriteMeshToSTL(r_condition->GetConformingMesh(), bc_filename.c_str(), true);
         }
 
-        TIBRA_INFO << "Number of active knotspans: " << mpElementContainer->size() << std::endl;
-        TIBRA_INFO << "Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
+        QuESo_INFO << "Number of active knotspans: " << mpElementContainer->size() << std::endl;
+        QuESo_INFO << "Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
 
         if( mParameters.EchoLevel() > 1 ) {
             const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
-            TIBRA_INFO << "The computed quadrature represents " << volume_ips/volume_brep * 100
+            QuESo_INFO << "The computed quadrature represents " << volume_ips/volume_brep * 100
                 << "% of the volume of the BRep model.\n";
         }
 
-        TIBRA_INFO << "Elapsed time: " << timer.Measure() << std::endl;
-        TIBRA_INFO << "TIBRA ------------------------------------------- END\n" << std::endl;
+        QuESo_INFO << "Elapsed time: " << timer.Measure() << std::endl;
+        QuESo_INFO << "QuESo ------------------------------------------- END\n" << std::endl;
     }
 }
 
-void TIBRA::Compute(){
+void QuESo::Compute(){
     // Get extreme points of bounding box
     const IndexType number_elements_x = mParameters.NumberOfElements()[0];
     const IndexType number_elements_y = mParameters.NumberOfElements()[1];
@@ -192,13 +192,13 @@ void TIBRA::Compute(){
     // Average time spent for each task
     if( mParameters.EchoLevel() > 1 ){
         const IndexType num_procs = std::thread::hardware_concurrency();
-        TIBRA_INFO << "Elapsed times of individual tasks -------------- \n";
-        TIBRA_INFO << "Detection of trimmed elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
-        TIBRA_INFO << "Compute intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
-        TIBRA_INFO << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
-        TIBRA_INFO << "------------------------------------------------ \n";
+        QuESo_INFO << "Elapsed times of individual tasks -------------- \n";
+        QuESo_INFO << "Detection of trimmed elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
+        QuESo_INFO << "Compute intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
+        QuESo_INFO << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
+        QuESo_INFO << "------------------------------------------------ \n";
     }
 
 }
 
-} // End namespace tibra
+} // End namespace queso

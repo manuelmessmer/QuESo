@@ -13,9 +13,9 @@
 #include "embedding/polygon.h"
 #include "containers/triangle_mesh.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -116,8 +116,8 @@ private:
 
 
 }; // End Clipper class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif

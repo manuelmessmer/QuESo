@@ -9,13 +9,13 @@
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/polynomial_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing{
 
 BOOST_AUTO_TEST_SUITE( PolynomialTestSuite )
 
 BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
-    TIBRA_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 1" << std::endl;
+    QuESo_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 1" << std::endl;
     for(int order = 1; order <= 9; ++order){
         for( int order2 = 1; order2 <= 9; ++order2){
             if( order != order2){
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
 }
 
 BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
-    TIBRA_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
+    QuESo_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
     for(int order = 1; order <= 9; ++order){
 
         const auto ips = IntegrationPointFactory1D::GetGauss(order, IntegrationMethod::Gauss);
@@ -54,4 +54,4 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

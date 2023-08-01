@@ -14,9 +14,9 @@
 #include "define.hpp"
 #include "embedding/brep_operator_base.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -192,7 +192,7 @@ private:
 
 }; // End class FloodFill
 ///@}
-///@} TIBRA Classes
-} // End tibra namespace
+///@} QuESo Classes
+} // End queso namespace
 
 #endif // FLOOD_FILL_INCLUDE_H

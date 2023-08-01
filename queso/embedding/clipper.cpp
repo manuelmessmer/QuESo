@@ -7,7 +7,7 @@
 #include "io/io_utilities.h"
 #include <cstdlib>
 
-namespace tibra {
+namespace queso {
 
 typedef Clipper::PolygonType PolygonType;
 
@@ -185,7 +185,7 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
     double t = (rPlane.mPosition - rA[index]) / (rB[index] - rA[index]);
 
     if( !(0.0 <= t && t <= 1.0) ){
-        TIBRA_ERROR("Clipper::FindIntersectionPointOnPlane") << "No valid intersection.\n";
+        QuESo_ERROR("Clipper::FindIntersectionPointOnPlane") << "No valid intersection.\n";
     }
 
     PointType ret = {rA[0] + t*(rB[0] - rA[0]),
@@ -196,9 +196,9 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
     if( status != ON_PLANE){
         ret[index] = rPlane.mPosition;
     }
-    //TIBRA_ERROR_IF("Clipper::FindIntersectionPointOnPlane", status != ON_PLANE) << "Intersection Point is not on Boundary\n.";
+    //QuESo_ERROR_IF("Clipper::FindIntersectionPointOnPlane", status != ON_PLANE) << "Intersection Point is not on Boundary\n.";
 
     return ret;
 }
 
-} // End namespace tibra
+} // End namespace queso

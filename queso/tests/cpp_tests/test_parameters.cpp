@@ -8,13 +8,13 @@
 //// Project includes
 #include "utilities/parameters.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ParamtersTestSuite )
 
 BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
-    TIBRA_INFO << "Testing :: Test Parameter :: Test Wrong Types" << std::endl;
+    QuESo_INFO << "Testing :: Test Parameter :: Test Wrong Types" << std::endl;
     /// Constructor Tests
     // Check if wrong types are actually detected.
     BOOST_CHECK_THROW( Parameters parameters( {Component("lower_bound_xyz", Vector3i(1, 2, 3))} ), std::exception );
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
-    TIBRA_INFO << "Testing :: Test Parameter :: Test Defaults" << std::endl;
+    QuESo_INFO << "Testing :: Test Parameter :: Test Defaults" << std::endl;
 
     Parameters parameters{};
 
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
-    TIBRA_INFO << "Testing :: Test Parameter :: Test Custom Constructor" << std::endl;
+    QuESo_INFO << "Testing :: Test Parameter :: Test Custom Constructor" << std::endl;
 
     Parameters parameters( {Component("input_filename", std::string("date/test.stl")),
                                Component("postprocess_filename", std::string("date/test2.stl")),
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
-    TIBRA_INFO << "Testing :: Test Parameter :: Test Custom Set" << std::endl;
+    QuESo_INFO << "Testing :: Test Parameter :: Test Custom Set" << std::endl;
 
     Parameters parameters{};
     parameters.Set("input_filename", std::string("date/test.stl") );
@@ -250,5 +250,5 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso
 

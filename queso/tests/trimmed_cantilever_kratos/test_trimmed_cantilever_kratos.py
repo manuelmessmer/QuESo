@@ -1,7 +1,7 @@
 # Project imports
 from platform import release
 import re
-from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
+from QuESo_PythonApplication.PyQuESo import PyQuESo
 
 try:
     import KratosMultiphysics as KM
@@ -25,22 +25,22 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=2
         #"number_of_elements" : [2,2,10]
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters1.json", 0.002)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters1.json", 0.002)
 
     def test_2(self):
         #p=2
         #"number_of_elements" : [2,2,4]
         #el=3000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters2.json", 0.015)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters2.json", 0.015)
 
     def test_3(self):
         #p=2
         #"number_of_elements" : [8,8,10]
         #"integration_method" : "Gauss"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters3.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters3.json", 0.0005)
         ips_inside = 0
-        for element in self.pytibra.GetElements():
+        for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -53,10 +53,10 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [8,8,10]
         #"integration_method : "GGQ_Optimal"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters4.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters4.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pytibra.GetElements():
+        for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -68,10 +68,10 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [8,8,10]
         #"integration_method : "GGQ_Reduced1"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters5.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters5.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pytibra.GetElements():
+        for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -83,10 +83,10 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [8,8,10]
         #"integration_method : "GGQ_Reduced2"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters6.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters6.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pytibra.GetElements():
+        for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -97,8 +97,8 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=3
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters7.json", 0.0008)
-        for element in self.pytibra.GetElements():
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters7.json", 0.0008)
+        for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 4*4*4)
 
@@ -106,23 +106,23 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=3
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/TIBRAParameters8.json", 0.0008)
-        for element in self.pytibra.GetElements():
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters8.json", 0.0008)
+        for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 5*5*5)
 
     def RunTest(self,filename, tolerance):
         if kratos_available:
-            self.pytibra = PyTIBRA(filename)
-            self.pytibra.Run()
+            self.pyqueso = PyQuESo(filename)
+            self.pyqueso.Run()
 
             # Direct Analysis with kratos
-            self.pytibra.RunKratosAnalysis("queso/tests/trimmed_cantilever_kratos/KratosParameters.json")
+            self.pyqueso.RunKratosAnalysis("queso/tests/trimmed_cantilever_kratos/KratosParameters.json")
 
-            model_part = self.pytibra.GetAnalysis().GetModelPart()
+            model_part = self.pyqueso.GetAnalysis().GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-            self.CheckErrorInDisplacement(self.pytibra.GetLowerBoundDomainXYZ(), self.pytibra.GetUpperBoundDomainXYZ(), nurbs_volume, tolerance)
+            self.CheckErrorInDisplacement(self.pyqueso.GetLowerBoundDomainXYZ(), self.pyqueso.GetUpperBoundDomainXYZ(), nurbs_volume, tolerance)
 
     def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):
         # Compare to analytical solution (Timoshenko Beam)

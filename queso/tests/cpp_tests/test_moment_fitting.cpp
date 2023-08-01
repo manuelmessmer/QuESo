@@ -18,13 +18,13 @@
 #include "io/io_utilities.h"
 #include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
-    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
 
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
-    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
@@ -140,13 +140,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);
     }
-    //TIBRA_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
+    //QuESo_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
 
     BOOST_CHECK_LT(1.0/64.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase
 
 BOOST_AUTO_TEST_CASE(MomentFittingP4) {
-    TIBRA_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
     typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
         error_norm += std::pow(error,2);
         BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);
     }
-    //TIBRA_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
+    //QuESo_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
 
     BOOST_CHECK_LT(1.0/125.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase
@@ -210,4 +210,4 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

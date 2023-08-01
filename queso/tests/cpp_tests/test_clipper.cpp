@@ -10,13 +10,13 @@
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ClipperTestSuite )
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
-    TIBRA_INFO << "Testing :: Test Clipper :: Clip Cylinder Test 1" << std::endl;
+    QuESo_INFO << "Testing :: Test Clipper :: Clip Cylinder Test 1" << std::endl;
 
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
-    TIBRA_INFO << "Testing :: Test Clipper :: Clip Cylinder Test 2" << std::endl;
+    QuESo_INFO << "Testing :: Test Clipper :: Clip Cylinder Test 2" << std::endl;
 
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
-    TIBRA_INFO << "Testing :: Test Clipper :: Clip Cube With Cavity Test" << std::endl;
+    QuESo_INFO << "Testing :: Test Clipper :: Clip Cube With Cavity Test" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ClipElephantTest) {
-    TIBRA_INFO << "Testing :: Test Clipper :: Clip Elephant Test" << std::endl;
+    QuESo_INFO << "Testing :: Test Clipper :: Clip Elephant Test" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
 
 
 BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
-    TIBRA_INFO << "Testing :: Test Clipper :: Clip Bunny Test" << std::endl;
+    QuESo_INFO << "Testing :: Test Clipper :: Clip Bunny Test" << std::endl;
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
@@ -243,4 +243,4 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

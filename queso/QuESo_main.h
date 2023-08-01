@@ -1,8 +1,8 @@
 // Author: Manuel Meßmer
 // Email: manuel.messmer@tum.de
 
-#ifndef TIBRA_INCLUDE_H
-#define TIBRA_INCLUDE_H
+#ifndef QuESo_INCLUDE_H
+#define QuESo_INCLUDE_H
 
 /// STL includes
 #include <iostream>
@@ -19,18 +19,18 @@
 #include "utilities/parameters.h"
 #include "embedding/brep_operator.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ////
 /**
- * @class  TIBRA
+ * @class  QuESo
  * @author Manuel Messmer
- * @brief  Main class of TIBRA.
+ * @brief  Main class of QuESo.
 */
-class TIBRA
+class QuESo
 {
 public:
     ///@name Type Definitions
@@ -45,21 +45,21 @@ public:
     ///@{
 
     /// @brief Constructor. Initializes Parameters and Mapper.
-    TIBRA(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters)
+    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters)
     {
     }
 
     /// Copy Constructor
-    TIBRA(const TIBRA &m) = delete;
+    QuESo(const QuESo &m) = delete;
 
     /// Copy Assignement
-    TIBRA & operator= (const TIBRA &) = delete;
+    QuESo & operator= (const QuESo &) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// @brief Run TIBRA.
+    /// @brief Run QuESo.
     void Run();
 
     /// @brief Get all active elements.
@@ -98,7 +98,7 @@ public:
     /// @brief Reads Filename and writes mesh to output/results.vtk
     /// @param Filename
     void ReadWritePostMesh() {
-        TIBRA_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
+        QuESo_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
         const auto& r_filename = mParameters.Get<std::string>("postprocess_filename");
         IO::ReadMeshFromSTL(mTriangleMeshPost, r_filename.c_str());
         IO::WriteMeshToVTK(mTriangleMeshPost, "output/results.vtk", true);
@@ -107,7 +107,7 @@ public:
     /// @brief  Get mesh for prosptrocessing
     /// @return const Reference to TriangleMesh
     const TriangleMesh& GetPostMesh() const {
-        TIBRA_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
+        QuESo_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
         return mTriangleMeshPost;
     }
     ///@}
@@ -130,13 +130,13 @@ private:
     ///@name Private Member Operations
     ///@{
 
-    /// @brief Run TIBRA
+    /// @brief Run QuESo
     void Compute();
     ///@}
 };
 
 ///@}
 
-} // End namespace tibra
+} // End namespace queso
 
-#endif // TIBRA_INCLUDE_H
+#endif // QuESo_INCLUDE_H

@@ -1,5 +1,5 @@
 # Project imports
-from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
+from QuESo_PythonApplication.PyQuESo import PyQuESo
 
 import unittest
 import json
@@ -7,30 +7,30 @@ import json
 class TestGGQTube(unittest.TestCase):
     #p=2
     def test_1(self):
-        self.RunTest("queso/tests/ggq_tube/TIBRAParameters1.json", "queso/tests/ggq_tube/result_ips_gauss.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoParameters1.json", "queso/tests/ggq_tube/result_ips_gauss.json")
 
     def test_2(self):
-        self.RunTest("queso/tests/ggq_tube/TIBRAParameters2.json", "queso/tests/ggq_tube/result_ips_gauss_reduced1.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoParameters2.json", "queso/tests/ggq_tube/result_ips_gauss_reduced1.json")
 
     def test_3(self):
-        self.RunTest("queso/tests/ggq_tube/TIBRAParameters3.json", "queso/tests/ggq_tube/result_ips_gauss_reduced2.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoParameters3.json", "queso/tests/ggq_tube/result_ips_gauss_reduced2.json")
 
     def test_4(self):
-        self.RunTest("queso/tests/ggq_tube/TIBRAParameters4.json", "queso/tests/ggq_tube/result_ips_reduced_exact.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoParameters4.json", "queso/tests/ggq_tube/result_ips_reduced_exact.json")
 
     def test_5(self):
-        self.RunTest("queso/tests/ggq_tube/TIBRAParameters5.json", "queso/tests/ggq_tube/result_ips_reduced_order1.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoParameters5.json", "queso/tests/ggq_tube/result_ips_reduced_order1.json")
 
     def test_6(self):
-        self.RunTest("queso/tests/ggq_tube/TIBRAParameters6.json", "queso/tests/ggq_tube/result_ips_reduced_order2.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoParameters6.json", "queso/tests/ggq_tube/result_ips_reduced_order2.json")
 
     def RunTest(self,filename, filename_result):
-        self.pytibra = PyTIBRA(filename)
-        self.pytibra.Run()
+        self.pyqueso = PyQuESo(filename)
+        self.pyqueso.Run()
 
         ips = {}
         num_el_inside = 0
-        for i, element in enumerate(self.pytibra.GetElements()):
+        for i, element in enumerate(self.pyqueso.GetElements()):
             if not element.IsTrimmed():
                 num_el_inside += 1
                 tmp_list = []

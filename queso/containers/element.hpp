@@ -13,9 +13,9 @@
 #include "utilities/parameters.h"
 #include "utilities/mapping_utilities.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -44,7 +44,7 @@ public:
     ///@param ElementId UniqueID
     ///@param rBoundXYZ Bounds of Element in physical space.
     ///@param rBoundUVW Bounds of Element in parametric space.
-    ///@param rParam TIBRA Parameters.
+    ///@param rParam QuESo Parameters.
     Element(IndexType ElementId, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW, const Parameters& rParam) :
         mElementId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW), mParameters(rParam)
     {
@@ -82,7 +82,7 @@ public:
         return mIsTrimmed;
     }
 
-    /// @brief Returns TIBRA parameters
+    /// @brief Returns QuESo parameters
     /// @return const Parameters&
     const Parameters& GetParameters() const {
         return mParameters;
@@ -158,10 +158,10 @@ public:
     /// @return const TrimmedDomainBase*
     const TrimmedDomainBase* const pGetTrimmedDomain() const {
         if( !IsTrimmed() ){
-            TIBRA_ERROR("Element::pGetTrimmedDomain") << "Element is not Trimmed.\n";
+            QuESo_ERROR("Element::pGetTrimmedDomain") << "Element is not Trimmed.\n";
         }
         if( !mpTrimmedDomain ){
-            TIBRA_ERROR("Element::pGetTrimmedDomain") << "Trimmed Domain Pointer has not been set.\n";
+            QuESo_ERROR("Element::pGetTrimmedDomain") << "Trimmed Domain Pointer has not been set.\n";
         }
         return mpTrimmedDomain.get();
     }
@@ -219,8 +219,8 @@ private:
     PointType mNumberOfNeighbours{};
     ///@}
 }; // End class Element
-///@} // TIBRA classes
+///@} // QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // ELEMENT_INCLUDE_H

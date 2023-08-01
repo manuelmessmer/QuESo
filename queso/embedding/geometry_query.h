@@ -10,9 +10,9 @@
 #include "embedding/aabb_primitive.h"
 #include "embedding/aabb_tree.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -91,8 +91,8 @@ private:
     ///@}
 
 }; // End GeometryQuery class
-///@} End TIBRA classes
+///@} End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // GEOMETRY_QUERY_INCLUDE_H

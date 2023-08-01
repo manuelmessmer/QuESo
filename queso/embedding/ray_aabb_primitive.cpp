@@ -5,7 +5,7 @@
 #include "embedding/ray_aabb_primitive.h"
 #include "utilities/math_utilities.hpp"
 
-namespace tibra {
+namespace queso {
 
 // bool Ray_AABB_primitive::inside(const AABB_primitive &aabb) const {
 //     if(    mOrigin[0] >= aabb.lowerBound[0]
@@ -237,4 +237,4 @@ bool Ray_AABB_primitive::is_parallel( const Vector3d &v0, const Vector3d &v1, co
     return false;
 }
 
-} // End namespace tibra
+} // End namespace queso

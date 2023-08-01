@@ -11,9 +11,9 @@
 #include "define.hpp"
 #include "quadrature/single_element.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -108,7 +108,7 @@ private:
         SizeType mNumChildren;
         ///@}
     }; ///@} End Node Class
-    ///@} End TIBRA Classes
+    ///@} End QuESo Classes
 
 public:
     ///@}
@@ -119,7 +119,7 @@ public:
     /// @param pOperator Operator to perform GetIntersectionState() and IsInsideTrimmedDomain().
     /// @param rBoundsXYZ Bounds of AABB of Root Node in physical space.
     /// @param rBoundsUVW Bounds of AABB of Root Node in parametric space.
-    /// @param rParameters TIBRA Parameters.
+    /// @param rParameters QuESo Parameters.
     Octree(const TOperator* pOperator, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW)
         : mpOperator(pOperator) {
 
@@ -183,7 +183,7 @@ private:
     ///@}
 
 }; // End class Octree
-///@} TIBRA Classes
-} // End tibra namespace
+///@} QuESo Classes
+} // End queso namespace
 
 #endif // OCTREE_INCLUDE_H

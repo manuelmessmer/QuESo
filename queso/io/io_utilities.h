@@ -11,9 +11,9 @@
 #include "containers/triangle_mesh.hpp"
 #include "containers/boundary_integration_point.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -121,8 +121,8 @@ private:
 
   ///@}
 }; // End class IO
-///@} End TIBRA Classes
+///@} End QuESo Classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // IO_UTILTIES_H

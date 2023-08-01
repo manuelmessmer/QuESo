@@ -9,9 +9,9 @@
 #include <variant>
 #include <cmath>
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ///
@@ -184,6 +184,6 @@ private:
 
 ///@}
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif

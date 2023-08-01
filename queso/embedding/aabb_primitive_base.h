@@ -10,9 +10,9 @@
 //// Project includes
 #include "define.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /// Forward declaration
@@ -34,8 +34,8 @@ public:
 
     ///@}
 }; // End AABB_primitive_base class
-///@} // End TIBRA classes
+///@} // End QuESo classes
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif // AABB_PRIMITIVE_BASE_INCLUDE_H

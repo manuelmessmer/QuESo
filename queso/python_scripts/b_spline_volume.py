@@ -4,7 +4,7 @@ import scipy.interpolate as si
 class BSplineVolume:
     def __init__(self, Parameters):
         ''' Constructor of BSplineVolume \n
-        Takes TIBRA::Parameters as input.
+        Takes QuESo::Parameters as input.
         '''
         self.Order = Parameters.Order()
         NumElements = Parameters.NumberOfElements()

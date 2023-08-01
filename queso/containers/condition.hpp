@@ -8,9 +8,9 @@
 #include "utilities/parameters.h"
 #include "containers/triangle_mesh.hpp"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 /**
@@ -143,14 +143,14 @@ public:
         } else if ( pCondition->Type() == ConditionType::Dirichlet ) {
             return MakeShared<ConditionDirichlet>(pCondition, pTriangleMesh);
         } else {
-            TIBRA_ERROR("ConditionFactory::New") << "Conditition type does not exist.\n";
+            QuESo_ERROR("ConditionFactory::New") << "Conditition type does not exist.\n";
         }
         return nullptr;
 
     }
 };
 
-} // End tibra namespace.
+} // End queso namespace.
 
 
 #endif // End CONDITION_INCLUDE_HPP

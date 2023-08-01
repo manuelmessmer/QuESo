@@ -8,13 +8,13 @@
 //// Project includes
 #include "utilities/mapping_utilities.h"
 
-namespace tibra {
+namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( MapperTestSuite )
 
 BOOST_AUTO_TEST_CASE(MapperTest) {
-    TIBRA_INFO << "Testing :: Test Mapping Utilities :: Mapper" << std::endl;
+    QuESo_INFO << "Testing :: Test Mapping Utilities :: Mapper" << std::endl;
 
     const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
     const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  5.0, 2.0}, {-2.0, 7.0, 100.0} );
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
 }
 
 BOOST_AUTO_TEST_CASE(MappingTest) {
-    TIBRA_INFO << "Testing :: Test Mapping Utilities :: Mapping" << std::endl;
+    QuESo_INFO << "Testing :: Test Mapping Utilities :: Mapping" << std::endl;
 
     const BoundingBoxType bounds_xyz = MakeBox( {-25, -111.44, 7.89}, {78.67, -35.68, 18.99} );
     const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  -2.2, 2.0}, {2.0, 10.0, 17.0} );
@@ -130,4 +130,4 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
-} // End namespace tibra
+} // End namespace queso

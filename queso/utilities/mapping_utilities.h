@@ -8,9 +8,9 @@
 #include "define.hpp"
 #include "utilities/parameters.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ///
@@ -183,8 +183,8 @@ private:
     const bool mBSplineMesh;
     ///@}
 }; // End class Mapper.
-///@} End tibra classes.
+///@} End queso classes.
 
-} // End namespace tibra
+} // End namespace queso
 
 #endif

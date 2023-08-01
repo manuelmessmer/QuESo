@@ -11,9 +11,9 @@
 //// Project includes
 #include "utilities/parameters.h"
 
-namespace tibra {
+namespace queso {
 
-///@name TIBRA Classes
+///@name QuESo Classes
 ///@{
 
 ////
@@ -23,7 +23,7 @@ namespace tibra {
  * @brief  Factory for 1D Integration points for single and multiple knot spans.
  * @details Available Quadrature rules:
  *          {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
- * @todo Wrap TIBRA in namespace and put enum outside the class.
+ * @todo Wrap QuESo in namespace and put enum outside the class.
 */
 class IntegrationPointFactory1D {
 public:
@@ -148,6 +148,6 @@ private:
 
 }; // End IntegrationPointFactory1D class
 ///@} // End classes
-} // End namespace tibra
+} // End namespace queso
 
 #endif // INTEGRATION_POINTS_FACTORY_1D_H
