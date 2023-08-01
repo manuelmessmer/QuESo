@@ -2,7 +2,7 @@
 # Please do not modify this script
 
 # Change directory to tibra/
-cd "tibra/"
+cd "queso/"
 
 export APP_SOURCE="${APP_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"}"
 export APP_BUILD="${APP_SOURCE}/../build/"

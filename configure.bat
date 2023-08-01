@@ -5,7 +5,7 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set APP_SOURCE=%~dp0\tibra
+set APP_SOURCE=%~dp0\queso
 set APP_BUILD=%APP_SOURCE%\..\build
 
 rem Set basic configuration

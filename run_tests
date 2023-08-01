@@ -2,7 +2,7 @@
 
 if ( [ $1 == "py" ] )
 then
-  python3 tibra/tests/test_tibra.py
+  python3 queso/tests/test_tibra.py
 fi
 
 
