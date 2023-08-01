@@ -5,12 +5,10 @@ then
   python3 queso/tests/test_tibra.py
 fi
 
-
 if ( [ $1 == "cpp" ] )
 then
   ./TestExecutables/test_tibra
 fi
-
 
 if ( [ $1 == "thingi10k" ] )
 then
