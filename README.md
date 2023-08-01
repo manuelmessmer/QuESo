@@ -11,7 +11,7 @@ QuESo is an embedding preprocessor to generate analysis-ready FE models from arb
 
 If you want to learn how to use QuESo, check out the [Wiki](https://github.com/manuelmessmer/QuESo/wiki/Getting-Started). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples).
 
-Input: Solid B-Rep Model (STL)             |  Output: Quadrature Rules ready for FE Analysis
+Input: Solid B-Rep Model (STL)             |  Output: Quadrature Rules
 :-------------------------:|:-------------------------:
 ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/brep.png)  |  ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/iga_model.png)
 
