@@ -16,8 +16,7 @@
 
 namespace queso {
 
-typedef boost::numeric::ublas::matrix<double> MatrixType;
-typedef boost::numeric::ublas::vector<double> VectorType;
+typedef std::vector<double> VectorType;
 
 void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree,
                                                            SizeType MinNumPoints, const Vector3i& rIntegrationOrder){
@@ -236,7 +235,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     const IndexType number_reduced_points = rIntegrationPoint.size();
 
     /// Assemble moment fitting matrix.
-    MatrixType fitting_matrix(number_of_functions, number_reduced_points);
+    nnls::MatrixType fitting_matrix(number_of_functions, nnls::VectorType(number_reduced_points, 0.0));
     IndexType row_index = 0;
     for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
         for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
@@ -250,7 +249,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
                                        * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
                                        * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
 
-                    fitting_matrix(row_index,column_index) = value;
+                    fitting_matrix[row_index][column_index] = value;
                 }
                 row_index++;
             }

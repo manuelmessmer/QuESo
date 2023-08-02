@@ -5,7 +5,6 @@
 #define MOMENT_FITTING_UTILITIES_INCLUDE_H
 
 //// STL includes
-#include <boost/numeric/ublas/matrix.hpp>
 #include <vector>
 #include <array>
 #include <variant>
@@ -33,7 +32,7 @@ public:
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::vector<BoundaryIntegrationPoint> BoundaryIPsVectorType;
     typedef Unique<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
-    typedef boost::numeric::ublas::vector<double> VectorType;
+    typedef std::vector<double> VectorType;
 
     ///@}
     ///@name Operations
