@@ -7,7 +7,12 @@
 
 :exclamation::exclamation::exclamation: **I am currently in the process of renaming this repository. You might find some info that needs to be updated.** :exclamation::exclamation::exclamation:
 
-QuESo is an embedding preprocessor to generate analysis-ready FE models from arbitrarily complex B-Reps, given as an STL file. The STL is embedded into the background mesh defined by a simple bounding box. The user can specify the polynomial degree and the number of elements in each spatial direction. QuESo reads the STL file and computes the integration points required for an FE analysis. Both classical $C^0$ finite elements and isogeometric elements defined on trivariate B-Spline domains are supported. An interface to the FE framework [Kratos Multiphysics](https://github.com/KratosMultiphysics/Kratos) is provided. QuESo is written in C++ and has a user-friendly Python interface. More information about the theoretical background of QuESo can be found in [1]. Please do not hesitate to contact me with questions about QuESo.
+QuESo is a preprocessor to generate analysis-ready embedded finite element models from arbitrarily complex solids described in boundary representation (B-Rep). The solid geometry is processed as a standard STL file. QuESo is designed to provide highly efficient quadrature rules that can be used in any embedded or immersed boundary method. To this end, the STL model is embedded into the background mesh defined by a regular grid, i.e., with hexahedral integration domains (finite elements). The user can specify the polynomial degree and the number of elements in each spatial direction. QuESo reads the STL file and computes the integration points required for an FE analysis. The integration points have the following characteristics:
+* All integration weights are positive.
+* Point locations are restricted to the material domain.
+* The number of points per cut element is always $n \leq (p+1)^3$.
+  
+Both classical $C^0$ finite elements and isogeometric elements defined on trivariate B-Spline domains are supported. An interface to the FE framework [Kratos Multiphysics](https://github.com/KratosMultiphysics/Kratos) is provided. QuESo is written in C++ and has a user-friendly Python interface. More information about the theoretical background of QuESo can be found in [1]. Please do not hesitate to contact me with questions about QuESo.
 
 If you want to learn how to use QuESo, check out the [Wiki](https://github.com/manuelmessmer/QuESo/wiki/Getting-Started). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples).
 
