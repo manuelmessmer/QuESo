@@ -4,14 +4,14 @@
 #ifndef NNLS_INCLUDE_H
 #define NNLS_INCLUDE_H
 
-//// External includes
-#include <boost/numeric/ublas/matrix.hpp>
+//// STL includes
+#include <vector>
 
 namespace queso {
 namespace nnls {
 
-typedef boost::numeric::ublas::matrix<double> MatrixType;
-typedef boost::numeric::ublas::vector<double> VectorType;
+typedef std::vector<std::vector<double>> MatrixType;
+typedef std::vector<double> VectorType;
 
 // Wrapper for nnls solver
 double nnls(MatrixType& A, const VectorType& b, VectorType& x);
