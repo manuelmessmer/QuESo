@@ -25,7 +25,6 @@ BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound_xyz", PointType(2.0, 2.0, 3.0)),
@@ -59,7 +58,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     }
 
     // Run Moment Fitting
-    VectorType constant_terms{};
+    std::vector<double> constant_terms{};
     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
     QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, parameters);
     auto& points_moment_fitting = element.GetIntegrationPoints();
@@ -85,7 +84,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
@@ -121,7 +119,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     }
 
     // Run Moment Fitting
-    VectorType constant_terms{};
+    std::vector<double> constant_terms{};
     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
     QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, parameters);
     auto& points_moment_fitting = element.GetIntegrationPoints();
@@ -147,7 +145,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
 BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
@@ -183,7 +180,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     }
 
     // Run Moment Fitting
-    VectorType constant_terms{};
+    std::vector<double> constant_terms{};
     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
     QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, parameters);
     auto& points_moment_fitting = element.GetIntegrationPoints();
