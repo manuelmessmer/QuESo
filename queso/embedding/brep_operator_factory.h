@@ -4,11 +4,7 @@
 #ifndef BREP_OPERATOR_FACTORY_INCLUDE_H
 #define BREP_OPERATOR_FACTORY_INCLUDE_H
 
-#if defined USE_CGAL
-#include "cgal_wrapper/cgal_brep_operator.h"
-#else
 #include "embedding/brep_operator.h"
-#endif
 
 namespace queso {
 
@@ -18,19 +14,14 @@ namespace queso {
 /**
  * @class  BRepOperatorFactory
  * @author Manuel Messmer
- * @brief  Provides Functions to Instantiate BRepOperator
- * @details Used to choose between BRepOperator and cgal::CGALBRepOperator.
+ * @brief  Provides Functions to Instantiate BRepOperator.
 */
 class BRepOperatorFactory {
 public:
     ///@name Type Definition
     ///@{
 
-    #if defined USE_CGAL
-    typedef cgal::CGALBRepOperator CurrentBRepOperator;
-    #else
     typedef BRepOperator CurrentBRepOperator;
-    #endif
 
     ///@}
     ///@name Operations

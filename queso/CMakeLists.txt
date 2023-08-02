@@ -1,5 +1,4 @@
-# Created by the script cgal_create_CMakeLists
-# This is the CMake script for compiling CGAL Python Module.
+# This is the CMake script for compiling QuESo Python Module.
 cmake_minimum_required(VERSION 3.1...3.15)
 project( QuESo_Application )
 
