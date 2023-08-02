@@ -18,6 +18,7 @@ rm -rf "${APP_BUILD}/${CMAKE_BUILD_TYPE}/CMakeCache.txt"
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
+-DQUESO_BUILD_TESTING=OFF                                    \
 
 # Buid
 cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j$(nproc)

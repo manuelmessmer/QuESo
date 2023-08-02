@@ -20,7 +20,7 @@ rem Configure
 @echo on
 cmake -G"Visual Studio 17 2022" -A x64 -H"%APP_SOURCE%" -B"%APP_BUILD%\%CMAKE_BUILD_TYPE%"  ^
 -DBOOST_ROOT="%RUNNER_TEMP%\boost\boost_1_81_0"                                             ^
-
+-DQUESO_BUILD_TESTING=ON
 
 rem Build
 cmake --build "%APP_BUILD%\%CMAKE_BUILD_TYPE%" --target install -- /property:configuration=%CMAKE_BUILD_TYPE% /p:Platform=x64

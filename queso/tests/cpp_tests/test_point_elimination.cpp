@@ -19,7 +19,6 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( PointEliminationTestSuite )
 
 void RunCylinder(const Vector3i& rOrder, double Residual){
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-1.5, -1.5, -1.0 };
@@ -84,7 +83,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                         Element::IntegrationPointVectorType copy_points(r_points);
 
                         // Compute constant terms.
-                        VectorType constant_terms{};
+                        std::vector<double> constant_terms{};
                         auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
                         QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
@@ -133,8 +132,6 @@ BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test) {
 
 BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     QuESo_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
-
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-130.0, -110.0, -110.0 };
@@ -199,7 +196,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                         Element::IntegrationPointVectorType copy_points(r_points);
 
                         // Compute constant terms.
-                        VectorType constant_terms{};
+                        std::vector<double> constant_terms{};
                         auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
                         QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
@@ -233,8 +230,6 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
 BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     QuESo_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
-
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-0.4, -0.6, -0.35 };
@@ -298,7 +293,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                         Element::IntegrationPointVectorType copy_points(r_points);
 
                         // Compute constant terms.
-                        VectorType constant_terms{};
+                        std::vector<double> constant_terms{};
                         auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
                         QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 

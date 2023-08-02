@@ -19,8 +19,6 @@ BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
 BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
-    typedef boost::numeric::ublas::vector<double> VectorType;
-
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-0.4, -0.6, -0.35 };
     Vector3d upper_bound = {0.4, 0.6, 0.35 };
@@ -79,7 +77,7 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                     // Get boundary integration points
                     auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
-                    VectorType constant_terms{};
+                    std::vector<double> constant_terms{};
                     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     // // Read and ignore header
@@ -127,8 +125,6 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
 
 BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
-
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
     Vector3d lower_bound = {-24.0, -43.0, 5.0 };
@@ -197,7 +193,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                     const double ref_area = stod(line);
                     BOOST_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
 
-                    VectorType constant_terms{};
+                    std::vector<double> constant_terms{};
                     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     double error = 0.0;
@@ -226,8 +222,6 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
 
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
-
-    typedef boost::numeric::ublas::vector<double> VectorType;
 
     Vector3i number_of_elements = {1, 1, 1};
 
@@ -296,7 +290,7 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                     const double ref_area = stod(line);
                     BOOST_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
 
-                    VectorType constant_terms{};
+                    std::vector<double> constant_terms{};
                     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
 
                     double error = 0.0;

@@ -2,9 +2,6 @@
 // Email: manuel.messmer@tum.de
 
 //// External includes
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include "nnls/nnls_impl.h"
 //// STL includes
 #include <iostream>
@@ -15,11 +12,10 @@
 namespace queso {
 
 double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
-    typedef boost::numeric::ublas::matrix<double> MatrixType;
 
     // Get Dimension
-    int m = A.size1();
-    int n = A.size2();
+    int m = A.size();
+    int n = (m > 0) ? A[0].size() : 0;
 
     // Pointer to doubles
     double *A_doubles = 0;
@@ -30,8 +26,9 @@ double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     B_doubles = new double[m];
     std::vector<double> tmp_vector(m*n);
     for( int i = 0; i < n; ++i){
-        boost::numeric::ublas::matrix_column<MatrixType> mr(A, i);
-        std::copy(mr.begin(), mr.end(), A_doubles + i*m);
+        for( int j = 0; j < m; ++j){
+            A_doubles[i*m+j] = A[j][i];
+        }
     }
 
     std::copy(b.begin(), b.end(), B_doubles);
@@ -55,8 +52,6 @@ double nnls::nnls(MatrixType& A, const VectorType& b, VectorType& x){
     }
     else if( mode == 3){
         std::cerr << "ITERATION COUNT EXCEEDED.  MORE THAN 3*N ITERATIONS." << std::endl;
-        std::cerr << A << std::endl;
-        std::cerr << b << std::endl;
     }
 
     if( x.size() != static_cast<std::size_t>(n) ){

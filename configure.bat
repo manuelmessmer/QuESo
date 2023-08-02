@@ -24,7 +24,8 @@ rem set QuESo_PARALLEL_BUILD_FLAG=/MP4
 rem Configure
 @echo on
 cmake -G"Visual Studio 17 2022" -A x64 -H"%APP_SOURCE%" -B"%APP_BUILD%\%CMAKE_BUILD_TYPE%"  ^
--DCMAKE_CXX_FLAGS="%QuESo_PARALLEL_BUILD_FLAG%"
+-DCMAKE_CXX_FLAGS="%QuESo_PARALLEL_BUILD_FLAG%"                                             ^
+-DQUESO_BUILD_TESTING=OFF
 
 rem Build
 cmake --build "%APP_BUILD%/%CMAKE_BUILD_TYPE%" --target install -- /property:configuration=%CMAKE_BUILD_TYPE% /p:Platform=x64
