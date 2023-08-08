@@ -2,21 +2,19 @@
 
 if ( [ $1 == "py" ] )
 then
-  python3 tibra/tests/test_tibra.py
+  python3 queso/tests/test_queso.py
 fi
-
 
 if ( [ $1 == "cpp" ] )
 then
-  ./TestExecutables/test_tibra
+  ./TestExecutables/test_queso
 fi
-
 
 if ( [ $1 == "thingi10k" ] )
 then
-  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 5 50
-  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 2 10
-  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 5 50
-  ./TestExecutables/test_tibra_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 2 10
+  ./TestExecutables/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 5 50
+  ./TestExecutables/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 2 10
+  ./TestExecutables/test_queso_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 5 50
+  ./TestExecutables/test_queso_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 2 10
 fi
 

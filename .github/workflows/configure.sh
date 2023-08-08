@@ -1,8 +1,8 @@
 #!/bin/bash
 # Please do not modify this script
 
-# Change directory to tibra/
-cd "tibra/"
+# Change directory to queso/
+cd "queso/"
 
 export APP_SOURCE="${APP_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"}"
 export APP_BUILD="${APP_SOURCE}/../build/"
@@ -19,6 +19,7 @@ rm -rf "${APP_BUILD}/${CMAKE_BUILD_TYPE}/CMakeFiles"
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${CMAKE_BUILD_TYPE}" \
+-DQUESO_BUILD_TESTING=ON
 
 # Buid
 cmake --build "${APP_BUILD}/${CMAKE_BUILD_TYPE}" --target install -- -j2

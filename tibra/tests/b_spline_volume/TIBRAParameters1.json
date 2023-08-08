@@ -1,9 +1,0 @@
-{
-    "general_settings"  : {},
-    "mesh_settings"     : {
-        "lower_bound": [-1.5, -1.5, -1.00],
-        "upper_bound": [1.5, 1.5, 11.00],
-        "polynomial_order" : [2, 2, 2],
-        "number_of_elements" : [2,2,10]
-    }
-}
