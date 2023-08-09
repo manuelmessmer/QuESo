@@ -158,10 +158,10 @@ public:
     /// @return const TrimmedDomainBase*
     const TrimmedDomainBase* const pGetTrimmedDomain() const {
         if( !IsTrimmed() ){
-            QuESo_ERROR("Element::pGetTrimmedDomain") << "Element is not Trimmed.\n";
+            QuESo_ERROR << "Element is not Trimmed.\n";
         }
         if( !mpTrimmedDomain ){
-            QuESo_ERROR("Element::pGetTrimmedDomain") << "Trimmed Domain Pointer has not been set.\n";
+            QuESo_ERROR << "Trimmed Domain Pointer has not been set.\n";
         }
         return mpTrimmedDomain.get();
     }

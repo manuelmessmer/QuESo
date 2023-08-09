@@ -7,7 +7,7 @@
 //// STL includes
 #include <set>
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "embedding/brep_operator_base.h"
 #include "embedding/trimmed_domain_base.h"
 
@@ -148,7 +148,7 @@ public:
             DIRINDEX3 = 0;
         }
         else {
-            QuESo_ERROR("TrimmedDomainOnPlane::Constructor") << "Wrong PlaneIndex.\n";
+            QuESo_ERROR << "Wrong PlaneIndex.\n";
         }
 
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);

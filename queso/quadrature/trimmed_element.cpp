@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <cmath>
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "quadrature/trimmed_element.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/math_utilities.hpp"

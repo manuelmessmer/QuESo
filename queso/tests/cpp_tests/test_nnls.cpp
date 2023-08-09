@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "solvers/nnls.h"
-#include "utilities/logger.hpp"
+#include "includes/logger.hpp"
 
 namespace queso {
 namespace Testing {

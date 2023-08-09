@@ -143,7 +143,7 @@ public:
         } else if ( pCondition->Type() == ConditionType::Dirichlet ) {
             return MakeShared<ConditionDirichlet>(pCondition, pTriangleMesh);
         } else {
-            QuESo_ERROR("ConditionFactory::New") << "Conditition type does not exist.\n";
+            QuESo_ERROR << "Conditition type does not exist.\n";
         }
         return nullptr;
 

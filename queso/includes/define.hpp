@@ -8,7 +8,9 @@
 #include <limits>
 #include <memory>
 //// Project includes
-#include "utilities/logger.hpp"
+#include "includes/logger.hpp"
+#include "includes/exception.hpp"
+#include "includes/timer.hpp"
 #include "containers/vector3.hpp"
 
 namespace queso {

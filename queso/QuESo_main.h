@@ -12,6 +12,7 @@
 #include <array>
 
 /// Project includes
+#include "includes/define.hpp"
 #include "containers/element_container.hpp"
 #include "containers/element.hpp"
 #include "containers/condition.hpp"

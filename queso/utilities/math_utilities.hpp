@@ -5,7 +5,7 @@
 #define MATH_UTILITIES_HPP
 
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 
 namespace queso {
 

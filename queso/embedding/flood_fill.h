@@ -11,7 +11,7 @@
 #include <set>
 
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "embedding/brep_operator_base.h"
 
 namespace queso {

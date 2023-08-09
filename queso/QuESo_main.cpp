@@ -10,8 +10,6 @@
 #include "QuESo_main.h"
 #include "io/io_utilities.h"
 #include "utilities/mesh_utilities.h"
-#include "utilities/timer.hpp"
-#include "utilities/logger.hpp"
 #include "embedding/brep_operator_factory.h"
 #include "quadrature/single_element.h"
 #include "quadrature/trimmed_element.h"

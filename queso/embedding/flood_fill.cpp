@@ -410,7 +410,7 @@ int FloodFill::GetNextIndex(IndexType Direction, IndexType Index, const Partitio
             rUpperBoundOffset = {0.0, 0.0, tolerance};
             break;
         default:
-            QuESo_ERROR("FloodFill::FillDirection") << " Direction is out-of-range.\n";
+            QuESo_ERROR << " Direction is out-of-range.\n";
     }
 
     return mMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
