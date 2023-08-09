@@ -19,7 +19,7 @@ typedef BRepOperator::StatusVectorType StatusVectorType;
 
 Unique<std::vector<double>> BRepOperator::ClosestDistances(std::vector<PointType>& rPoints,
                                                            std::vector<PointType>& rDirections) const{
-    TIBRA_ERROR_IF("BRepOperator::ClosestDistance", rPoints.size() != rDirections.size() ) << "Sizes do not match. \n";
+    QuESo_ERROR_IF("BRepOperator::ClosestDistance", rPoints.size() != rDirections.size() ) << "Sizes do not match. \n";
 
     Unique<std::vector<double>> distances = MakeUnique<std::vector<double>>();
     auto& r_distances = *distances;
