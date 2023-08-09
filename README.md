@@ -19,6 +19,12 @@ Input: Solid B-Rep Model (STL)             |  Output: Quadrature Rules
 :-------------------------:|:-------------------------:
 ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/brep.png)  |  ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/iga_model.png)
 
+## Special Thanks To
+* Lester Hedges for the [AABB tree](https://github.com/lohedges/aabbcc)
+* Mike Lapshin for the [NNLS solver](https://github.com/mlapshin/nnls)
+* [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
+* [Boost](https://www.boost.org/users/download/) for the C++ unit test framework
+  
 ## How to cite QuESo?
 Please use the following references when citing QuESo in your work.
 - [1] Manuel Meßmer, Tobias Teschemacher, Lukas F. Leidinger, Roland Wüchner, Kai-Uwe Bletzinger, Efficient CAD-integrated isogeometric analysis of trimmed solids, Comput. Methods Appl. Mech. Engrg. 400 (2022) 115584, https://doi.org/10.1016/j.cma.2022.115584.
