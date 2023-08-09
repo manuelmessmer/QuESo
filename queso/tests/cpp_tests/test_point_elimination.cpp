@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/element_container.hpp"
 #include "quadrature/trimmed_element.h"
 #include "containers/triangle_mesh.hpp"
@@ -71,13 +72,13 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                         const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
 
                         // Check if residual is smaller than targeted.
-                        BOOST_CHECK_LT(residual, 1e-6);
+                        QuESo_CHECK_LT(residual, 1e-6);
 
                         // Must be more points than p*p*p.
                         auto& r_points = element.GetIntegrationPoints();
 
-                        BOOST_CHECK_LT(r_points.size(), (rOrder[0]+1)*(rOrder[1]+1)*(rOrder[2]+1)+1);
-                        BOOST_CHECK_GT(r_points.size(), rOrder[0]*rOrder[1]*rOrder[2]);
+                        QuESo_CHECK_LT(r_points.size(), (rOrder[0]+1)*(rOrder[1]+1)*(rOrder[2]+1)+1);
+                        QuESo_CHECK_GT(r_points.size(), rOrder[0]*rOrder[1]*rOrder[2]);
 
                         // Get copy of points.
                         Element::IntegrationPointVectorType copy_points(r_points);
@@ -91,28 +92,28 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                         const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
 
                         // Check if residual and weights are the same.
-                        BOOST_CHECK_LT( residual, residual_2+EPS4 );
-                        BOOST_CHECK_LT( residual_2, residual+EPS4 );
+                        QuESo_CHECK_LT( residual, residual_2+EPS4 );
+                        QuESo_CHECK_LT( residual_2, residual+EPS4 );
                         double volume = 0.0;
                         for( IndexType i = 0; i < r_points.size(); ++i){
                             const double weight1 = r_points[i].GetWeight();
-                            BOOST_CHECK_GT(weight1, EPS4);
+                            QuESo_CHECK_GT(weight1, EPS4);
                             const double weight2 = copy_points[i].GetWeight();
                             const double error = std::abs(weight1 - weight2)/ weight1;
-                            BOOST_CHECK_LT( error , EPS2 );
+                            QuESo_CHECK_LT( error , EPS2 );
                             volume += weight1*element.DetJ(); // Multiplied with det(J).
                         }
                         // Check if integration points contain correct volume;
                         const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
                         const double ref_volume = MeshUtilities::Volume(r_mesh);
                         const double volume_error = std::abs(volume - ref_volume)/ ref_volume;
-                        BOOST_CHECK_LT(volume_error, Residual*100.0); // Note can not be better as moment fitting residual.
+                        QuESo_CHECK_LT(volume_error, Residual*100.0); // Note can not be better as moment fitting residual.
                     }
                 }
             }
         }
     }
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 120);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 120);
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationCylinder1Test) {
@@ -185,12 +186,12 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                         const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
 
                         // Check if residual is smaller than targeted.
-                        BOOST_CHECK_LT(residual, 1e-8);
+                        QuESo_CHECK_LT(residual, 1e-8);
 
                         // Must be more points than p*p*p.
                         auto& r_points = element.GetIntegrationPoints();
-                        BOOST_CHECK_LT(r_points.size(), 28);
-                        BOOST_CHECK_GT(r_points.size(), 7);
+                        QuESo_CHECK_LT(r_points.size(), 28);
+                        QuESo_CHECK_GT(r_points.size(), 7);
 
                         // Get copy of points.
                         Element::IntegrationPointVectorType copy_points(r_points);
@@ -204,28 +205,28 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                         const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
 
                         // Check if residual and weights are the same.
-                        BOOST_CHECK_LT( residual, residual_2+EPS4 );
-                        BOOST_CHECK_LT( residual_2, residual+EPS4 );
+                        QuESo_CHECK_LT( residual, residual_2+EPS4 );
+                        QuESo_CHECK_LT( residual_2, residual+EPS4 );
                         double volume = 0.0;
                         for( IndexType i = 0; i < r_points.size(); ++i){
                             const double weight1 = r_points[i].GetWeight();
-                            BOOST_CHECK_GT(weight1, EPS4);
+                            QuESo_CHECK_GT(weight1, EPS4);
                             const double weight2 = copy_points[i].GetWeight();
                             const double error = std::abs(weight1 - weight2)/ weight1;
-                            BOOST_CHECK_LT( error , EPS2 );
+                            QuESo_CHECK_LT( error , EPS2 );
                             volume += weight1*element.DetJ(); // Multiplied with det(J).
                         }
                         // Check if integration points contain correct volume;
                         const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
                         const double ref_volume = MeshUtilities::Volume(r_mesh);
                         const double volume_error = std::abs(volume - ref_volume)/ ref_volume;
-                        BOOST_CHECK_LT(volume_error, 1e-6); // Note can not be better as moment fitting residual.
+                        QuESo_CHECK_LT(volume_error, 1e-6); // Note can not be better as moment fitting residual.
                     }
                 }
             }
         }
     }
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 80);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 80);
 }
 
 BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
@@ -282,12 +283,12 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                         const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
 
                         // Check if residual is smaller than targeted.
-                        BOOST_CHECK_LT(residual, 1e-8);
+                        QuESo_CHECK_LT(residual, 1e-8);
 
                         // Must be more points than p*p*p.
                         auto& r_points = element.GetIntegrationPoints();
-                        BOOST_CHECK_LT(r_points.size(), 28);
-                        BOOST_CHECK_GT(r_points.size(), 7);
+                        QuESo_CHECK_LT(r_points.size(), 28);
+                        QuESo_CHECK_GT(r_points.size(), 7);
 
                         // Get copy of points.
                         Element::IntegrationPointVectorType copy_points(r_points);
@@ -301,28 +302,28 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                         const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
 
                         // Check if residual and weights are the same.
-                        BOOST_CHECK_LT( residual, residual_2+EPS4 );
-                        BOOST_CHECK_LT( residual_2, residual+EPS4 );
+                        QuESo_CHECK_LT( residual, residual_2+EPS4 );
+                        QuESo_CHECK_LT( residual_2, residual+EPS4 );
                         double volume = 0.0;
                         for( IndexType i = 0; i < r_points.size(); ++i){
                             const double weight1 = r_points[i].GetWeight();
-                            BOOST_CHECK_GT(weight1, EPS4);
+                            QuESo_CHECK_GT(weight1, EPS4);
                             const double weight2 = copy_points[i].GetWeight();
                             const double error = std::abs(weight1 - weight2)/ weight1;
-                            BOOST_CHECK_LT( error , EPS2 );
+                            QuESo_CHECK_LT( error , EPS2 );
                             volume += weight1*element.DetJ(); // Multiplied with det(J).
                         }
                         // Check if integration points contain correct volume;
                         const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
                         const double ref_volume = MeshUtilities::Volume(r_mesh);
                         const double volume_error = std::abs(volume - ref_volume);
-                        BOOST_CHECK_LT(volume_error, 1e-7);
+                        QuESo_CHECK_LT(volume_error, 1e-7);
                     }
                 }
             }
         }
     }
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 153);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 153);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

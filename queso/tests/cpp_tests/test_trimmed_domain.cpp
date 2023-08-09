@@ -3,8 +3,10 @@
 
 #define BOOST_TEST_DYN_LINK
 
+//// External includes
 #include <boost/test/unit_test.hpp>
-
+//// Project includes
+#include "includes/checks.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
@@ -90,7 +92,7 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                     // Read ref surface area
                     getline(file, line);
                     double ref_surface_area = std::stod(line);
-                    BOOST_CHECK_LT(  std::abs(surface_area-ref_surface_area)/std::abs(ref_surface_area), 1e-10);
+                    QuESo_CHECK_LT(  std::abs(surface_area-ref_surface_area)/std::abs(ref_surface_area), 1e-10);
 
                     double error = 0.0;
                     double norm = 0.0;
@@ -104,9 +106,9 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
                     }
 
                     if( norm_ref/constant_terms.size() > 1e-12 ){
-                        BOOST_CHECK_LT( error/norm_ref, 1e-6);
+                        QuESo_CHECK_LT( error/norm_ref, 1e-6);
                     } else {
-                        BOOST_CHECK_LT( norm/constant_terms.size(), 1e-12);
+                        QuESo_CHECK_LT( norm/constant_terms.size(), 1e-12);
                     }
                     number_trimmed_elements++;
                 }
@@ -117,9 +119,9 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
         }
     }
     file.close();
-    BOOST_CHECK_LT( std::abs(area_test-area_ref)/area_ref, 1e-12);
-    BOOST_CHECK_LT( std::abs(volume_test-volume_ref)/volume_ref, 1e-12);
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 166);
+    QuESo_CHECK_LT( std::abs(area_test-area_ref)/area_ref, 1e-12);
+    QuESo_CHECK_LT( std::abs(volume_test-volume_ref)/volume_ref, 1e-12);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 166);
 
 }
 
@@ -191,7 +193,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
 
                     getline(file, line);
                     const double ref_area = stod(line);
-                    BOOST_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
+                    QuESo_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
 
                     std::vector<double> constant_terms{};
                     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
@@ -205,7 +207,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
                         norm += std::abs(ref_value);
                     }
 
-                    BOOST_CHECK_LT( error/norm, 1e-6);
+                    QuESo_CHECK_LT( error/norm, 1e-6);
                     number_trimmed_elements++;
                 } else if( status == IntersectionStatus::Inside ){
                     volume_test += (local_upper_bound[0]-local_lower_bound[0])*(local_upper_bound[1]-local_lower_bound[1])*(local_upper_bound[2]-local_lower_bound[2]);
@@ -215,9 +217,9 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     }
     file.close();
 
-    BOOST_CHECK_LT( std::abs(area_test-area_ref)/area_ref, 1e-12);
-    BOOST_CHECK_LT( std::abs(volume_test-volume_ref)/volume_ref, 1e-12);
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 171);
+    QuESo_CHECK_LT( std::abs(area_test-area_ref)/area_ref, 1e-12);
+    QuESo_CHECK_LT( std::abs(volume_test-volume_ref)/volume_ref, 1e-12);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 171);
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
@@ -288,7 +290,7 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                     }
                     getline(file, line);
                     const double ref_area = stod(line);
-                    BOOST_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
+                    QuESo_CHECK_LT( std::abs(area-ref_area)/std::abs(ref_area), 1e-10);
 
                     std::vector<double> constant_terms{};
                     QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
@@ -303,7 +305,7 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
                         norm += std::abs(ref_value);
                     }
 
-                    BOOST_CHECK_LT( error/norm, 1e-6);
+                    QuESo_CHECK_LT( error/norm, 1e-6);
                     number_trimmed_elements++;
                 } else if( status == IntersectionStatus::Inside ){
                     volume_test += (local_upper_bound[0]-local_lower_bound[0])*(local_upper_bound[1]-local_lower_bound[1])*(local_upper_bound[2]-local_lower_bound[2]);
@@ -313,9 +315,9 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     }
     file.close();
 
-    BOOST_CHECK_LT( std::abs(area_test-area_ref)/area_ref, 1e-12);
-    BOOST_CHECK_LT( std::abs(volume_test-volume_ref)/volume_ref, 1e-12);
-    BOOST_CHECK_EQUAL( number_trimmed_elements, 80);
+    QuESo_CHECK_LT( std::abs(area_test-area_ref)/area_ref, 1e-12);
+    QuESo_CHECK_LT( std::abs(volume_test-volume_ref)/volume_ref, 1e-12);
+    QuESo_CHECK_EQUAL( number_trimmed_elements, 80);
 }
 
 
@@ -374,8 +376,8 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         }
     }
 
-    BOOST_CHECK_LT( std::abs(area-area_ref)/area_ref, 1e-10 );
-    BOOST_CHECK_LT( std::abs(volume-volume_ref)/volume_ref, 1e-9 );
+    QuESo_CHECK_LT( std::abs(area-area_ref)/area_ref, 1e-10 );
+    QuESo_CHECK_LT( std::abs(volume-volume_ref)/volume_ref, 1e-9 );
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test) {
