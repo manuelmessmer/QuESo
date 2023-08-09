@@ -14,10 +14,7 @@ Both classical $C^0$ finite elements and isogeometric elements defined on trivar
 
 If you want to learn how to use QuESo, check out the [Wiki](https://github.com/manuelmessmer/QuESo/wiki/Getting-Started). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples).
 
-
-Input: Solid B-Rep Model (STL)             |  Output: Quadrature Rules
-:-------------------------:|:-------------------------:
-![](https://github.com/manuelmessmer/QuESo/blob/main/docs/brep.png)  |  ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/iga_model.png)
+![](https://github.com/manuelmessmer/QuESo/blob/main/docs/input_output.png) 
 
 ## Special Thanks To
 * Lester Hedges for the [AABB tree](https://github.com/lohedges/aabbcc)
