@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
@@ -54,10 +55,10 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
     for( IndexType i = 0; i < result.size(); ++i){
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] );
         if( radius < 1.0 && rPoints[i][2] > 0.0 && rPoints[i][2] < 10.0){
-            BOOST_CHECK((result)[i]);
+            QuESo_CHECK((result)[i]);
         }
         else {
-            BOOST_CHECK(!(result)[i]);
+            QuESo_CHECK_IS_FALSE((result)[i]);
         }
     }
 }
@@ -100,24 +101,24 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
     for( IndexType i = 0; i < result.size(); ++i){
         double radius = std::sqrt( rPoints[i][0]*rPoints[i][0] + rPoints[i][1]*rPoints[i][1] + rPoints[i][2]*rPoints[i][2] );
         if( radius <= 1.0 ){
-            BOOST_CHECK(!(result)[i]);
+            QuESo_CHECK_IS_FALSE((result)[i]);
         }
         else {
             if(    rPoints[i][0] <= -1.5+1e-14 || rPoints[i][0] >= 1.5-1e-14
                 || rPoints[i][1] <= -1.5+1e-14 || rPoints[i][1] >= 1.5-1e-14
                 || rPoints[i][2] <= -1.5+1e-14 || rPoints[i][2] >= 1.5-1e-14 ){
 
-                BOOST_CHECK(!(result)[i]);
+                QuESo_CHECK_IS_FALSE((result)[i]);
             }
             else {
-                BOOST_CHECK((result)[i]);
+                QuESo_CHECK((result)[i]);
             }
         }
     }
 
     // Check if point on boundary is not inside.
     // Note the stl has a mesh at (1.0, 0.0, 0.0)
-    BOOST_CHECK( !classifier.IsInside({1.0, 0.0, 0.0}) );
+    QuESo_CHECK_IS_FALSE( classifier.IsInside({1.0, 0.0, 0.0}) );
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
@@ -172,7 +173,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     // myfile.open ("test.txt");
     // Compare results
     for( IndexType i = 0; i < result.size(); ++i){
-        BOOST_CHECK_EQUAL(result[i], result_ref[i]);
+        QuESo_CHECK_EQUAL(result[i], result_ref[i]);
     }
     // myfile.close();
 }
@@ -230,7 +231,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
     // myfile.open ("test.txt");
     // Compare results
     for( IndexType i = 0; i < result.size(); ++i){
-        BOOST_CHECK_EQUAL(result[i], result_ref[i]);
+        QuESo_CHECK_EQUAL(result[i], result_ref[i]);
     }
     // myfile.close();
 }

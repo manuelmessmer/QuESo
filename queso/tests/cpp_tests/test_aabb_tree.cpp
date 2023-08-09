@@ -8,6 +8,7 @@
 //// STL includes
 #include <set>
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/aabb_tree.h"
@@ -41,12 +42,12 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
         const auto& p3 = triangle_mesh.P3(r);
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
-        BOOST_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
+        QuESo_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
         // If tolerance=0 intersection is detected.
         const double tolerance_2 = 0.0;
-        BOOST_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
+        QuESo_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
     }
-    BOOST_CHECK_EQUAL(intersected_triangles.size(), 0);
+    QuESo_CHECK_EQUAL(intersected_triangles.size(), 0);
 
 } // End TouchingCubeTest1
 
@@ -75,12 +76,12 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
         const auto& p3 = triangle_mesh.P3(r);
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
-        BOOST_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
+        QuESo_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
         // If tolerance=0 intersection is detected.
         const double tolerance_2 = 0.0;
-        BOOST_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
+        QuESo_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
     }
-    BOOST_CHECK_EQUAL(intersected_triangles.size(), 0);
+    QuESo_CHECK_EQUAL(intersected_triangles.size(), 0);
 
 } // End TouchingCubeTest2
 
@@ -117,11 +118,11 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
 
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
-        BOOST_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
+        QuESo_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
 
         // If tolerance=0 intersection is detected.
         const double tolerance_2 = 0.0;
-        BOOST_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
+        QuESo_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
     }
 } // End TouchingTriangleTest
 
@@ -173,14 +174,14 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
                     for( auto& rr : intersected_triangles ){
                         getline (myfile,line);
                         const int triangle_id_ref = std::stoi(line);
-                        BOOST_CHECK_EQUAL(triangle_id_ref, rr);
+                        QuESo_CHECK_EQUAL(triangle_id_ref, static_cast<int>(rr));
                     }
                     number_trimmed_elements++;
                 }
             }
         }
     }
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 8212);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 8212);
 
     myfile.close();
 } // End CylinderFindIntersectedTrianglesTest
@@ -226,7 +227,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
                     for( auto& rr : intersected_triangles ){
                         getline (myfile,line);
                         const int triangle_id_ref = std::stoi(line);
-                        BOOST_CHECK_EQUAL(triangle_id_ref, rr);
+                        QuESo_CHECK_EQUAL(triangle_id_ref, static_cast<int>(rr));
                     }
                     number_trimmed_elements++;
                 }
@@ -234,7 +235,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
         }
     }
 
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 4641);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 4641);
     myfile.close();
 
 } // End ElephantFindIntersectedTrianglesTest
@@ -281,14 +282,14 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
                     for( auto& rr : intersected_triangles ){
                         getline (myfile,line);
                         const int triangle_id_ref = std::stoi(line);
-                        BOOST_CHECK_EQUAL(triangle_id_ref, rr);
+                        QuESo_CHECK_EQUAL(triangle_id_ref, static_cast<int>(rr));
                     }
                     number_trimmed_elements++;
                 }
             }
         }
     }
-    BOOST_CHECK_EQUAL(number_trimmed_elements, 10531);
+    QuESo_CHECK_EQUAL(number_trimmed_elements, 10531);
     myfile.close();
 
 } // End BunnyFindIntersectedTrianglesTest

@@ -8,6 +8,7 @@
 //// STL includes
 #include "math.h"
 // Project includes
+#include "includes/checks.hpp"
 #include "embedding/brep_operator_factory.h"
 #include "quadrature/trimmed_element.h"
 #include "quadrature/single_element.h"
@@ -75,10 +76,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
         double weight_gl = points_gauss_legendre[i].GetWeight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
-        BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-12);
+        QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-12);
     }
 
-    BOOST_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 1e-10);
+    QuESo_CHECK_LT(1.0/27.0*std::sqrt(error_norm), 1e-10);
 } // End Testcase
 
 
@@ -136,11 +137,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
         double weight_gl = points_gauss_legendre[i].GetWeight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
-        BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);
+        QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-6);
     }
     //QuESo_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
 
-    BOOST_CHECK_LT(1.0/64.0*std::sqrt(error_norm), 1e-7);
+    QuESo_CHECK_LT(1.0/64.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase
 
 BOOST_AUTO_TEST_CASE(MomentFittingP4) {
@@ -197,11 +198,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
         double weight_gl = points_gauss_legendre[i].GetWeight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
-        BOOST_CHECK_CLOSE_FRACTION(weight_mf, weight_gl, 1e-6);
+        QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-6);
     }
     //QuESo_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
 
-    BOOST_CHECK_LT(1.0/125.0*std::sqrt(error_norm), 1e-7);
+    QuESo_CHECK_LT(1.0/125.0*std::sqrt(error_norm), 1e-7);
 } // End Testcase
 
 BOOST_AUTO_TEST_SUITE_END()

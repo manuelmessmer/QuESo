@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "utilities/mapping_utilities.h"
 #include "io/io_utilities.h"
 #include "QuESo_main.h"
@@ -35,35 +36,35 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 
     const auto& elements = queso.GetElements();
 
-    BOOST_CHECK_EQUAL(elements.size(), 1);
+    QuESo_CHECK_EQUAL(elements.size(), 1);
 
     const auto& points_reduced = (*elements.begin())->GetIntegrationPoints();
-    BOOST_CHECK_LT(points_reduced.size(), 28);
+    QuESo_CHECK_LT(points_reduced.size(), 28);
 
     const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
     const std::size_t num_triangles = r_triangle_mesh.NumOfTriangles();
 
-    BOOST_CHECK_GT(num_triangles, parameters.MinimumNumberOfTriangles());
+    QuESo_CHECK_GT(num_triangles, parameters.MinimumNumberOfTriangles());
 
     double area = 0.0;
     for( std::size_t triangle_id = 0; triangle_id < num_triangles; ++triangle_id){
         const PointType coordinates = r_triangle_mesh.Center(triangle_id);
 
-        BOOST_CHECK_GT(coordinates[2], -1e-6);
-        BOOST_CHECK_LT(coordinates[2], 1.0+1e-6);
+        QuESo_CHECK_GT(coordinates[2], -1e-6);
+        QuESo_CHECK_LT(coordinates[2], 1.0+1e-6);
 
-        BOOST_CHECK_GT(coordinates[0], -1e-6);
-        BOOST_CHECK_GT(coordinates[1], -1e-6);
+        QuESo_CHECK_GT(coordinates[0], -1e-6);
+        QuESo_CHECK_GT(coordinates[1], -1e-6);
 
         if( coordinates[0] > 1e-6 && coordinates[1] > 1e-6
             && coordinates[2] > 1e-6 && coordinates[2] < 1-1e-6){ // check in z richtung fehlt noch
             double radius = std::sqrt( std::pow(coordinates[0],2) + std::pow(coordinates[1], 2) );
-            BOOST_CHECK_GT(radius, 0.998);
+            QuESo_CHECK_GT(radius, 0.998);
         }
         area += r_triangle_mesh.Area(triangle_id);
     }
-    BOOST_CHECK_LT(area, 5.141592654);
-    BOOST_CHECK_GT(area, 5.135);
+    QuESo_CHECK_LT(area, 5.141592654);
+    QuESo_CHECK_GT(area, 5.135);
 }
 
 void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance,
@@ -97,15 +98,15 @@ void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, In
         const double det_j = el_it->DetJ();
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPoints();
-            BOOST_CHECK_GT(points_trimmed.size(), 0);
-            BOOST_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
+            QuESo_CHECK_GT(points_trimmed.size(), 0);
+            QuESo_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( auto point : points_trimmed ){
                 weigth_trimmed += point.GetWeight()*det_j;
             }
             num_elements_trimmed++;
         } else {
             const auto& points_inside = el_it->GetIntegrationPoints();
-            //BOOST_CHECK_GT(points_inside.size(), 0);
+            //QuESo_CHECK_GT(points_inside.size(), 0);
             for( auto point : points_inside ){
                 weigth_inside += point.GetWeight()*det_j;
                 num_points_inside++;
@@ -113,22 +114,22 @@ void TestElephantLarge( IntegrationMethodType IntegrationMethod, IndexType p, In
             num_elements_inside++;
         }
     }
-    BOOST_REQUIRE_EQUAL(num_elements_inside, 108);
+    QuESo_CHECK_EQUAL(num_elements_inside, 108);
     //BOOST_CHECK_EQUAL(num_elements_trimmed, 604);
-    BOOST_CHECK_EQUAL(num_points_inside, NumPointsInside);
+    QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
     const double jacobian = 0.74*1.1*0.62;
     const double ref_volume_inside = jacobian/(14*22*12)*num_elements_inside;
     const double volume_inside = weigth_inside;
     const double rel_error_volume_inside = std::abs(volume_inside-ref_volume_inside)/ref_volume_inside;
-    BOOST_CHECK_LT(rel_error_volume_inside, 1e-13);
+    QuESo_CHECK_LT(rel_error_volume_inside, 1e-13);
 
     // Check volume inside + trimmed
     const double volume_tot = (weigth_trimmed+weigth_inside);
     const double ref_volume_tot = 0.0462012;
     const double rel_error_tot = std::abs(volume_tot-ref_volume_tot)/ref_volume_tot;
-    BOOST_CHECK_LT(rel_error_tot, Tolerance);
+    QuESo_CHECK_LT(rel_error_tot, Tolerance);
 }
 
 void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance,
@@ -162,15 +163,15 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
         const double det_j = el_it->DetJ();
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPoints();
-            BOOST_CHECK_GT(points_trimmed.size(), 0);
-            BOOST_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
+            QuESo_CHECK_GT(points_trimmed.size(), 0);
+            QuESo_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( auto point : points_trimmed ){
                 weigth_trimmed += point.GetWeight()*det_j;
             }
             num_elements_trimmed++;
         } else {
             const auto& points_inside = el_it->GetIntegrationPoints();
-            //BOOST_CHECK_GT(points_inside.size(), 0);
+            //QuESo_CHECK_GT(points_inside.size(), 0);
             for( auto point : points_inside ){
                 weigth_inside += point.GetWeight()*det_j;
                 num_points_inside++;
@@ -178,22 +179,22 @@ void TestElephantSmall( IntegrationMethodType IntegrationMethod, IndexType p, In
             num_elements_inside++;
         }
     }
-    BOOST_CHECK_EQUAL(num_elements_inside, 5);
+    QuESo_CHECK_EQUAL(num_elements_inside, 5);
     // BOOST_CHECK_EQUAL(num_elements_trimmed, 143);
-    BOOST_CHECK_EQUAL(num_points_inside, NumPointsInside);
+    QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside) );
 
     // Check volume inside
     const double jacobian = 0.74*1.1*0.62;
     const double ref_volume_inside = jacobian/(7*11*6)*num_elements_inside;
     const double volume_inside = weigth_inside;
     const double rel_error_volume_inside = std::abs(volume_inside-ref_volume_inside)/ref_volume_inside;
-    BOOST_CHECK_LT(rel_error_volume_inside, 1e-13);
+    QuESo_CHECK_LT(rel_error_volume_inside, 1e-13);
 
     // Check volume inside + trimmed
     const double volume_tot = (weigth_trimmed+weigth_inside);
     const double ref_volume_tot = 0.0462012;
     const double rel_error_tot = std::abs(volume_tot-ref_volume_tot)/ref_volume_tot;
-    BOOST_CHECK_LT(rel_error_tot, Tolerance);
+    QuESo_CHECK_LT(rel_error_tot, Tolerance);
 
 }
 

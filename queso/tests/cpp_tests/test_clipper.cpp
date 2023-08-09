@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
@@ -44,7 +45,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
 
     // Check surface area of clipped mesh.
     const double ref = 2.35619449;  // pi/2+pi/4 -> One quarte of the lateral surface + a quarter of the head face.
-    BOOST_CHECK_SMALL( area-ref, 5e-4);
+    QuESo_CHECK_NEAR( area, ref, 5e-4);
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
@@ -77,7 +78,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
 
     // Check surface area of clipped mesh.
     const double ref = 1.570796327;  // pi/2 -> One quarte of the lateral surface.
-    BOOST_CHECK_SMALL( area-ref, 5e-4);
+    QuESo_CHECK_NEAR( area, ref, 5e-4);
 }
 
 BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
@@ -119,14 +120,14 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
     }
 
     // Compare size
-    BOOST_CHECK_EQUAL(results_area.size(), 9261 );
+    QuESo_CHECK_EQUAL(results_area.size(), 9261 );
 
     // Compare reference areas of each clipped domain.
     std::ifstream file("queso/tests/cpp_tests/results/clipper_cube.txt");
     std::string line{};
     for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
-        BOOST_CHECK_SMALL( std::stod(line) - results_area[i], 1e-10 );
+        QuESo_CHECK_NEAR( std::stod(line), results_area[i], 1e-10);
     }
     file.close();
 }
@@ -174,14 +175,14 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
     }
 
     // Compare size
-    BOOST_CHECK_EQUAL(results_area.size(), 6375 );
+    QuESo_CHECK_EQUAL(results_area.size(), 6375 );
 
     // Compare reference areas of each clipped domain.
     std::ifstream file("queso/tests/cpp_tests/results/clipper_elephant.txt");
     std::string line{};
     for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
-        BOOST_CHECK_SMALL( std::stod(line) - results_area[i], 1e-10 );
+        QuESo_CHECK_NEAR( std::stod(line), results_area[i], 1e-10 );
     }
     file.close();
 }
@@ -228,14 +229,14 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     }
 
     // Compare size
-    BOOST_CHECK_EQUAL(results_area.size(), 9108 );
+    QuESo_CHECK_EQUAL(results_area.size(), 9108 );
 
     // Compare reference areas of each clipped domain.
     std::ifstream file("queso/tests/cpp_tests/results/clipper_bunny.txt");
     std::string line{};
     for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
-        BOOST_CHECK_SMALL( std::stod(line) - results_area[i], 1e-10 );
+        QuESo_CHECK_NEAR( std::stod(line), results_area[i], 1e-10 );
     }
     file.close();
 }

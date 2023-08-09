@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "utilities/parameters.h"
 
 namespace queso {
@@ -52,42 +53,38 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     Parameters parameters{};
 
     IndexType eche_level = parameters.Get<unsigned long>("echo_level");
-    BOOST_CHECK_EQUAL(eche_level, 0UL);
-    BOOST_CHECK_EQUAL(eche_level, parameters.EchoLevel());
+    QuESo_CHECK_EQUAL(eche_level, 0UL);
+    QuESo_CHECK_EQUAL(eche_level, parameters.EchoLevel());
 
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
-    BOOST_CHECK(embedding_flag);
+    QuESo_CHECK(embedding_flag);
 
     double initial_triangle_edge_length = parameters.Get<double>("initial_triangle_edge_length");
-    BOOST_CHECK_LT(std::abs(initial_triangle_edge_length-1.0),1e-10);
-    BOOST_CHECK_LT(std::abs(parameters.InitialTriangleEdgeLength()-1.0),1e-10);
+    QuESo_CHECK_LT(std::abs(initial_triangle_edge_length-1.0),1e-10);
+    QuESo_CHECK_LT(std::abs(parameters.InitialTriangleEdgeLength()-1.0),1e-10);
 
     IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
-    BOOST_CHECK_EQUAL(min_num_boundary_triangles, 500UL);
-    BOOST_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 500UL);
+    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 500UL);
+    QuESo_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 500UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
-    BOOST_CHECK_LT( std::abs(1.0e-10-moment_fitting_residual)/1.0e-10, 1.0e-10);
-    BOOST_CHECK_LT( std::abs(1.0e-10-parameters.MomentFittingResidual())/1.0e-10, 1.0e-10);
+    QuESo_CHECK_LT( std::abs(1.0e-10-moment_fitting_residual)/1.0e-10, 1.0e-10);
+    QuESo_CHECK_LT( std::abs(1.0e-10-parameters.MomentFittingResidual())/1.0e-10, 1.0e-10);
 
     IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
-    BOOST_CHECK_EQUAL( init_point_distribution_factor, 1UL);
-    BOOST_CHECK_EQUAL( parameters.GetPointDistributionFactor(), 1UL);
+    QuESo_CHECK_EQUAL( init_point_distribution_factor, 1UL);
+    QuESo_CHECK_EQUAL( parameters.GetPointDistributionFactor(), 1UL);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    BOOST_CHECK_EQUAL( polynomial_order[0], 2UL);
-    BOOST_CHECK_EQUAL( polynomial_order[1], 2UL);
-    BOOST_CHECK_EQUAL( polynomial_order[2], 2UL);
-    BOOST_CHECK_EQUAL( parameters.Order()[0], 2UL);
-    BOOST_CHECK_EQUAL( parameters.Order()[1], 2UL);
-    BOOST_CHECK_EQUAL( parameters.Order()[2], 2UL);
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(2, 2, 2));
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, parameters.Order());
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::Gauss);
-    BOOST_CHECK_EQUAL( parameters.IntegrationMethod(), IntegrationMethod::Gauss);
+    QuESo_CHECK_EQUAL( integration_method, IntegrationMethod::Gauss);
+    QuESo_CHECK_EQUAL( parameters.IntegrationMethod(), IntegrationMethod::Gauss);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
-    BOOST_CHECK( !use_customized_trimmed_points );
+    QuESo_CHECK_IS_FALSE( use_customized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
@@ -110,64 +107,52 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
                                Component("integration_method", IntegrationMethod::GGQ_Optimal) });
 
     std::string input_filename = parameters.Get<std::string>("input_filename");
-    BOOST_CHECK_EQUAL(input_filename, std::string("date/test.stl"));
+    QuESo_CHECK_EQUAL(input_filename, std::string("date/test.stl"));
 
     std::string postprocess_filename = parameters.Get<std::string>("postprocess_filename");
-    BOOST_CHECK_EQUAL(postprocess_filename, std::string("date/test2.stl"));
+    QuESo_CHECK_EQUAL(postprocess_filename, std::string("date/test2.stl"));
 
     IndexType eche_level = parameters.Get<unsigned long>("echo_level");
-    BOOST_CHECK_EQUAL(eche_level, 2UL);
+    QuESo_CHECK_EQUAL(eche_level, 2UL);
 
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
-    BOOST_CHECK(!embedding_flag);
+    QuESo_CHECK_IS_FALSE(embedding_flag);
 
     PointType lower_bound = parameters.Get<PointType>("lower_bound_xyz");
-    BOOST_CHECK_LT(std::abs(lower_bound[0]+1.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound[1]+0.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound[2]-1.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound, PointType(-1.0, 0.0, 1.22), 1e-10);
 
     PointType upper_bound = parameters.Get<PointType>("upper_bound_xyz");
-    BOOST_CHECK_LT(std::abs(upper_bound[0]-1.1), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound[1]-3.3), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound[2]-4.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound, PointType(1.1, 3.3, 4.4), 1e-10);
 
     PointType lower_bound_uvw = parameters.Get<PointType>("lower_bound_uvw");
-    BOOST_CHECK_LT(std::abs(lower_bound_uvw[0]+1.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound_uvw[1]+0.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound_uvw[2]-1.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound_uvw, PointType(-1.0, 0.0, 1.22), 1e-10);
 
     PointType upper_bound_uvw = parameters.Get<PointType>("upper_bound_uvw");
-    BOOST_CHECK_LT(std::abs(upper_bound_uvw[0]-1.1), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound_uvw[1]-3.3), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound_uvw[2]-4.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound_uvw, PointType(1.1, 3.3, 4.4), 1e-10);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    BOOST_CHECK_EQUAL(polynomial_order[0], 3Ul);
-    BOOST_CHECK_EQUAL(polynomial_order[1], 2Ul);
-    BOOST_CHECK_EQUAL(polynomial_order[2], 4Ul);
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(3, 2, 4));
 
     Vector3i number_elements = parameters.Get<Vector3i>("number_of_elements");
-    BOOST_CHECK_EQUAL(number_elements[0], 10Ul);
-    BOOST_CHECK_EQUAL(number_elements[1], 12Ul);
-    BOOST_CHECK_EQUAL(number_elements[2], 14Ul);
+    QuESo_CHECK_Vector3i_EQUAL(number_elements, Vector3i(10, 12, 14));
 
     double initial_triangle_edge_length = parameters.Get<double>("initial_triangle_edge_length");
-    BOOST_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
+    QuESo_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
 
     IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
-    BOOST_CHECK_EQUAL(min_num_boundary_triangles, 2000UL);
+    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 2000UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
-    BOOST_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
+    QuESo_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
 
     IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
-    BOOST_CHECK_EQUAL(init_point_distribution_factor, 5UL);
+    QuESo_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
+    QuESo_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
-    BOOST_CHECK( !use_customized_trimmed_points );
+    QuESo_CHECK_IS_FALSE( use_customized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
@@ -192,59 +177,49 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     parameters.Set("use_customized_trimmed_points", true);
 
     std::string input_filename = parameters.Get<std::string>("input_filename");
-    BOOST_CHECK_EQUAL(input_filename, std::string("date/test.stl"));
+    QuESo_CHECK_EQUAL(input_filename, std::string("date/test.stl"));
 
     std::string postprocess_filename = parameters.Get<std::string>("postprocess_filename");
-    BOOST_CHECK_EQUAL(postprocess_filename, std::string("date/test2.stl"));
+    QuESo_CHECK_EQUAL(postprocess_filename, std::string("date/test2.stl"));
 
     IndexType eche_level = parameters.Get<unsigned long>("echo_level");
-    BOOST_CHECK_EQUAL(eche_level, 2UL);
+    QuESo_CHECK_EQUAL(eche_level, 2UL);
 
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
-    BOOST_CHECK(!embedding_flag);
+    QuESo_CHECK_IS_FALSE(embedding_flag);
 
     PointType lower_bound = parameters.Get<PointType>("lower_bound_xyz");
-    BOOST_CHECK_LT(std::abs(lower_bound[0]+1.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound[1]+0.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound[2]-1.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound, PointType(-1.0, 0.0, 1.22), 1e-10);
 
     PointType upper_bound = parameters.Get<PointType>("upper_bound_xyz");
-    BOOST_CHECK_LT(std::abs(upper_bound[0]-1.1), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound[1]-3.3), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound[2]-4.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound, PointType(1.1, 3.3, 4.4), 1e-10);
 
-    PointType lower_bound_uvw = parameters.LowerBoundUVW();
-    BOOST_CHECK_LT(std::abs(lower_bound_uvw[0]+2.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound_uvw[1]-1.0), 1e-10);
-    BOOST_CHECK_LT(std::abs(lower_bound_uvw[2]-2.22), 1e-10);
+    PointType lower_bound_uvw = parameters.Get<PointType>("lower_bound_uvw");
+    QuESo_CHECK_POINT_NEAR(lower_bound_uvw, PointType(-2.0, 1.0, 2.22), 1e-10);
 
-    PointType upper_bound_uvw = parameters.UpperBoundUVW();
-    BOOST_CHECK_LT(std::abs(upper_bound_uvw[0]-2.1), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound_uvw[1]-6.3), 1e-10);
-    BOOST_CHECK_LT(std::abs(upper_bound_uvw[2]-6.4), 1e-10);
+    PointType upper_bound_uvw = parameters.Get<PointType>("upper_bound_uvw");
+    QuESo_CHECK_POINT_NEAR(upper_bound_uvw, PointType(2.1, 6.3, 6.4), 1e-10);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    BOOST_CHECK_EQUAL(polynomial_order[0], 3Ul);
-    BOOST_CHECK_EQUAL(polynomial_order[1], 2Ul);
-    BOOST_CHECK_EQUAL(polynomial_order[2], 4Ul);
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(3, 2, 4));
 
     double initial_triangle_edge_length = parameters.Get<double>("initial_triangle_edge_length");
-    BOOST_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
+    QuESo_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
 
     IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
-    BOOST_CHECK_EQUAL(min_num_boundary_triangles, 2000UL);
+    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 2000UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
-    BOOST_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
+    QuESo_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
 
     IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
-    BOOST_CHECK_EQUAL(init_point_distribution_factor, 5UL);
+    QuESo_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
-    BOOST_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
+    QuESo_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
 
     bool use_customized_trimmed_points = parameters.Get<bool>("use_customized_trimmed_points");
-    BOOST_CHECK( use_customized_trimmed_points );
+    QuESo_CHECK( use_customized_trimmed_points );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

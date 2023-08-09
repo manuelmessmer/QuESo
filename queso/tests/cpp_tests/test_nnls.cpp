@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "solvers/nnls.h"
 #include "includes/logger.hpp"
 
@@ -37,9 +38,9 @@ BOOST_AUTO_TEST_CASE(NNLS_Rectangle_Matrix) {
     x_reference[1] = 0.39411741902728925;
     x_reference[2] = 0.032491624806329486;
 
-    BOOST_CHECK_CLOSE(Rnorm, 0.5080235032184826, 1e-10);
+    QuESo_CHECK_NEAR(Rnorm, 0.5080235032184826, 1e-10);
     for( int i = 0; i < 3; ++i)
-        BOOST_CHECK_CLOSE(x[i], x_reference[i], 1e-10);
+        QuESo_CHECK_NEAR(x[i], x_reference[i], 1e-10);
 }
 
 BOOST_AUTO_TEST_CASE(NNLS_Square_Matrix) {
@@ -66,9 +67,9 @@ BOOST_AUTO_TEST_CASE(NNLS_Square_Matrix) {
     x_reference[2] = 0.0404670415359823;
     x_reference[3] = 0.22225779341177274;
 
-    BOOST_CHECK_CLOSE(Rnorm, 0.0, 1e-10);
+    QuESo_CHECK_NEAR(Rnorm, 0.0, 1e-10);
     for( int i = 0; i < 4; ++i)
-        BOOST_CHECK_CLOSE(x[i], x_reference[i], 1e-10);
+        QuESo_CHECK_NEAR(x[i], x_reference[i], 1e-10);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -8,6 +8,7 @@
 //// STL includes
 
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
 #include "embedding/octree.h"
@@ -46,22 +47,22 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 
     // Refine octree to level 5.
     octree.Refine(4, 4);
-    BOOST_CHECK_EQUAL(octree.NumberOfNodes(), 4681UL); // 8^0+8^1+8^2+8^3..+8^4
-    BOOST_CHECK_EQUAL(octree.NumberOfLeafs(), 4096UL); // 8^4
+    QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 4681UL); // 8^0+8^1+8^2+8^3..+8^4
+    QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 4096UL); // 8^4
 
     // Refine octree to level 6.
     octree.Refine(5, 5);
-    BOOST_CHECK_EQUAL(octree.NumberOfNodes(), 37449UL); // 8^0+8^1+8^2+8^3..+8^5
-    BOOST_CHECK_EQUAL(octree.NumberOfLeafs(), 32768UL); // 8^5
+    QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 37449UL); // 8^0+8^1+8^2+8^3..+8^5
+    QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 32768UL); // 8^5
 
     Vector3i r_order(2, 3, 1);
     auto p_points = octree.pGetIntegrationPoints(r_order);
-    BOOST_CHECK_EQUAL( p_points->size(), 786432 );
+    QuESo_CHECK_EQUAL( p_points->size(), 786432 );
     double volume = 0.0;
     for( auto point : (*p_points)){
         volume += point.GetWeight();
     }
-    BOOST_CHECK_LT( std::abs(volume-8.0)/8.0, 1e-10);
+    QuESo_CHECK_LT( std::abs(volume-8.0)/8.0, 1e-10);
 } // End TouchingCubeTest1
 
 BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
@@ -91,18 +92,18 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
     // Refine octree to level 5.
     octree.Refine(0, 4);
-    BOOST_CHECK_EQUAL(octree.NumberOfNodes(), 681UL);   // 1+4+4*4+4*4*4 + 4^1+4^2+4^3+4^4*2
-    BOOST_CHECK_EQUAL(octree.NumberOfLeafs(), 596UL);   // 4^1+4^2+4^3+4^4*2
+    QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 681UL);   // 1+4+4*4+4*4*4 + 4^1+4^2+4^3+4^4*2
+    QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 596UL);   // 4^1+4^2+4^3+4^4*2
 
     Vector3i r_order(0, 0, 0);
     auto p_points = octree.pGetIntegrationPoints(r_order);
 
-    BOOST_CHECK_EQUAL( p_points->size(), 596 );
+    QuESo_CHECK_EQUAL( p_points->size(), 596 );
     double volume = 0.0;
     for( auto point : (*p_points)){
         volume += point.GetWeight();
     }
-    BOOST_CHECK_LT( std::abs(volume-1.0)/1.0, 1e-4);
+    QuESo_CHECK_LT( std::abs(volume-1.0)/1.0, 1e-4);
 } // End OctreeCubeTest2
 
 BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
@@ -138,23 +139,23 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     Vector3i r_order(2, 2, 2);
     auto p_points = octree.pGetIntegrationPoints(r_order);
 
-    BOOST_CHECK_EQUAL( octree.NumberOfNodes(), 3887 );
-    BOOST_CHECK_EQUAL( p_points->size(), 45186 );
+    QuESo_CHECK_EQUAL( octree.NumberOfNodes(), 3887 );
+    QuESo_CHECK_EQUAL( p_points->size(), 45186 );
     double volume = 0.0;
     for( auto point : (*p_points)){
         volume += point.GetWeight()*(0.8*1.2*0.7) / 8.0;;
     }
-    BOOST_CHECK_LT( std::abs(volume - ref_volume) / ref_volume, 2e-4);
+    QuESo_CHECK_LT( std::abs(volume - ref_volume) / ref_volume, 2e-4);
 
     // Refine inner levels -> volume must the same as before.
     octree.Refine(5, 5);
     auto p_points_2 = octree.pGetIntegrationPoints(r_order);
-    BOOST_CHECK_EQUAL( p_points_2->size(), 60873);
+    QuESo_CHECK_EQUAL( p_points_2->size(), 60873);
     double volume_2 = 0.0;
     for( auto point : (*p_points_2)){
         volume_2 += point.GetWeight()*(0.8*1.2*0.7) / 8.0;
     }
-    BOOST_CHECK_LT( std::abs(volume - volume_2) / volume, 1e-10);
+    QuESo_CHECK_LT( std::abs(volume - volume_2) / volume, 1e-10);
 } // End OctreeBunny
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/polynomial_utilities.h"
 
@@ -30,7 +31,7 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
                             *Polynomial::f_x(position2, order2-1, 0.1, 0.3)*point2[1];
                     }
                 }
-                BOOST_CHECK_LT(std::abs(numerical_integral), 1e-12);
+                QuESo_CHECK_LT(std::abs(numerical_integral), 1e-12);
             }
         }
     }
@@ -47,7 +48,7 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
             numerical_integral += Polynomial::f_x(position, order-1, 0.1, 0.3)*point[1]*0.2;
         }
         double analytical_int = Polynomial::f_x_int(0.3,order-1, 0.1, 0.3) - Polynomial::f_x_int(0.1,order-1, 0.1, 0.3);
-        BOOST_CHECK_LT(std::abs(analytical_int-numerical_integral), 1e-12);
+        QuESo_CHECK_LT(std::abs(analytical_int-numerical_integral), 1e-12);
     }
 }
 

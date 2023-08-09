@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/element_container.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
                                 PointType test_point = {p_x, p_y, p_z};
                                 bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
                                 bool res2 = brep_operator.IsInside(test_point);
-                                BOOST_CHECK_EQUAL(res1, res2);
+                                QuESo_CHECK_EQUAL(res1, res2);
                             }
                         }
                     }
@@ -65,7 +66,7 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierOnTrimmedDomainTest) {
             }
         }
     }
-    BOOST_CHECK_EQUAL(num_of_trimmed_elements, 240);
+    QuESo_CHECK_EQUAL(num_of_trimmed_elements, 240);
 }
 
 BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
                                 PointType test_point = {p_x, p_y, p_z};
                                 bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
                                 bool res2 = brep_operator.IsInside(test_point);
-                                BOOST_CHECK_EQUAL(res1, res2);
+                                QuESo_CHECK_EQUAL(res1, res2);
                             }
                         }
                     }
@@ -116,7 +117,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
             }
         }
     }
-    BOOST_CHECK_EQUAL(num_of_trimmed_elements, 3226);
+    QuESo_CHECK_EQUAL(num_of_trimmed_elements, 3226);
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
@@ -158,7 +159,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
                                 PointType test_point = {p_x, p_y, p_z};
                                 bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
                                 bool res2 = brep_operator.IsInside(test_point);
-                                BOOST_CHECK_EQUAL(res1, res2);
+                                QuESo_CHECK_EQUAL(res1, res2);
                             }
                         }
                     }
@@ -167,7 +168,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
             }
         }
     }
-    BOOST_CHECK_EQUAL(num_of_trimmed_elements, 701);
+    QuESo_CHECK_EQUAL(num_of_trimmed_elements, 701);
 }
 
 BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
@@ -209,7 +210,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
                                 PointType test_point = {p_x, p_y, p_z};
                                 bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
                                 bool res2 = brep_operator.IsInside(test_point);
-                                BOOST_CHECK_EQUAL(res1, res2);
+                                QuESo_CHECK_EQUAL(res1, res2);
                             }
                         }
                     }
@@ -218,7 +219,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
             }
         }
     }
-    BOOST_CHECK_EQUAL(num_of_trimmed_elements, 381);
+    QuESo_CHECK_EQUAL(num_of_trimmed_elements, 381);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
