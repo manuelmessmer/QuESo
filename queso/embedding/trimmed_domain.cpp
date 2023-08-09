@@ -4,7 +4,7 @@
 //// STL includes
 #include <random>
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "embedding/trimmed_domain.h"
 #include "embedding/ray_aabb_primitive.h"
 #include "utilities/mesh_utilities.h"

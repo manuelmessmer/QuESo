@@ -217,7 +217,6 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
                     if( aabb.intersect(p1, p2, p3, tolerance) ){
                         intersected_triangles.push_back(r);
                     }
-
                 }
 
                 if( intersected_triangles.size() > 0 ){
@@ -262,7 +261,6 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
 
                 AABB_primitive aabb(lower_bound, upper_bound);
                 auto results = tree.Query(aabb);
-
 
                 std::vector<IndexType> intersected_triangles{};
                 for( auto r : results){

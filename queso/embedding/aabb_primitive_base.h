@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <array>
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 
 namespace queso {
 

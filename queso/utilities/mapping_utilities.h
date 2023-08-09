@@ -5,7 +5,7 @@
 #define MAPPING_UTILITIES_INCLUDE_H
 
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "utilities/parameters.h"
 
 namespace queso {
@@ -172,6 +172,10 @@ public:
     /// @param k
     /// @return BoundingBoxType
     BoundingBoxType GetBoundingBoxUVWFromIndex(IndexType i, IndexType j, IndexType k) const;
+
+    /// @brief Returns global number of elements (including inactive elements).
+    /// @return IndexType.
+    IndexType NumberOfElements() const;
 
     ///@}
 private:

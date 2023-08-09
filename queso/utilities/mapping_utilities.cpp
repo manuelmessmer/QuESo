@@ -112,4 +112,8 @@ std::pair<PointType, PointType> Mapper::GetBoundingBoxUVWFromIndex(IndexType i, 
     return mBoundUVW;
 }
 
+IndexType Mapper::NumberOfElements() const {
+    return mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
+}
+
 } // End namespace queso

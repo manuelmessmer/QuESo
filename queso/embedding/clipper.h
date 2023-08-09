@@ -9,7 +9,7 @@
 #include <array>
 #include <algorithm>
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "embedding/polygon.h"
 #include "containers/triangle_mesh.hpp"
 

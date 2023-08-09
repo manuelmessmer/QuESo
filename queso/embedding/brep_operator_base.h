@@ -10,7 +10,7 @@
 #include "containers/element.hpp"
 #include "embedding/trimmed_domain_base.h"
 #include "utilities/parameters.h"
-#include "define.hpp"
+#include "includes/define.hpp"
 
 namespace queso {
 
@@ -36,11 +36,11 @@ public:
     /// Constructor
     BRepOperatorBase(const Parameters& rParameters) : mParameters(rParameters)
     {
-        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_xyz") ) << "Parameter does not contain 'lower_bound_xyz'.\n";
-        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_xyz") ) << "Parameter does not contain 'upper_bound_xyz'.\n";
-        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("lower_bound_uvw") ) << "Parameter does not contain 'lower_bound_uvw'.\n";
-        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<PointType>("upper_bound_uvw") ) << "Parameter does not contain 'upper_bound_uvw'.\n";
-        QuESo_ERROR_IF("BRepOperatorBase::Constructor", !rParameters.Has<Vector3i>("number_of_elements") ) << "Parameter does not contain 'number_of_elements'.\n";
+        QuESo_ERROR_IF( !rParameters.Has<PointType>("lower_bound_xyz") ) << "Parameter does not contain 'lower_bound_xyz'.\n";
+        QuESo_ERROR_IF( !rParameters.Has<PointType>("upper_bound_xyz") ) << "Parameter does not contain 'upper_bound_xyz'.\n";
+        QuESo_ERROR_IF( !rParameters.Has<PointType>("lower_bound_uvw") ) << "Parameter does not contain 'lower_bound_uvw'.\n";
+        QuESo_ERROR_IF( !rParameters.Has<PointType>("upper_bound_uvw") ) << "Parameter does not contain 'upper_bound_uvw'.\n";
+        QuESo_ERROR_IF( !rParameters.Has<Vector3i>("number_of_elements") ) << "Parameter does not contain 'number_of_elements'.\n";
     }
 
     /// Destructor

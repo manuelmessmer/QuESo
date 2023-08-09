@@ -28,8 +28,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
 
-    QuESo_ERROR_IF("Thingi10KTestSuite::Thingi10KSTLEmbeddingTest", argc_ != 5 )
-        << "Please provide following arguments: -- single/all Filename/Directory n_min n_max\n";
+    QuESo_ERROR_IF(argc_ != 5 ) << "Please provide following arguments: -- single/all Filename/Directory n_min n_max\n";
 
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
     const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
@@ -52,8 +51,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         QuESo_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
             << ", n_max: " << std::to_string(n_max) << ".\n";
     } else {
-        QuESo_ERROR("Thingi10KSTLEmbeddingTest :: Thingi10KTestSuite::Thingi10KSTLEmbeddingTest")
-            << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
+        QuESo_ERROR << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
     }
 
     IndexType count = 0;
@@ -159,8 +157,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
 
-    QuESo_ERROR_IF("Thingi10KTestSuite::ElementClassificationTest", argc_ != 5 )
-        << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
+    QuESo_ERROR_IF(argc_ != 5 ) << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
 
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
     const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
@@ -183,8 +180,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         QuESo_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
             << ", n_max : " << std::to_string(n_max) << ".\n";
     } else {
-        QuESo_ERROR("Thingi10KTestSuite::ElementClassificationTest")
-            << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
+        QuESo_ERROR << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
     }
 
 
