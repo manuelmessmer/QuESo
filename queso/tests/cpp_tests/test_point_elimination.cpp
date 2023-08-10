@@ -99,7 +99,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 // Check if integration points contain correct volume;
                 const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
                 const double ref_volume = MeshUtilities::Volume(r_mesh);
-                QuESo_CHECK_RELATIVE_NEAR(volume, ref_volume, 100.0*Residual);
+                QuESo_CHECK_RELATIVE_NEAR(volume+1, ref_volume, 100.0*Residual);
             }
         }
     }
