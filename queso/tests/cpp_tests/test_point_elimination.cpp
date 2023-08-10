@@ -295,6 +295,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                     QuESo_CHECK_LT( error , EPS2 );
                     volume += weight1*element.DetJ(); // Multiplied with det(J).
                 }
+
                 // Check if integration points contain correct volume;
                 const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
                 const double ref_volume = MeshUtilities::Volume(r_mesh);
