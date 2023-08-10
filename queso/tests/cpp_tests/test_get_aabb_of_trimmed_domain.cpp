@@ -33,8 +33,6 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 
     Parameters params( {Component("lower_bound_xyz", point_A),
                         Component("upper_bound_xyz", point_B),
-                        Component("lower_bound_uvw", point_A),
-                        Component("upper_bound_uvw", point_B),
                         Component("number_of_elements", number_of_elements),
                         Component("min_element_volume_ratio", 0.0) });
 
@@ -83,8 +81,6 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 
     Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                         Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
                         Component("number_of_elements", Vector3i(1, 1, 1)),
                         Component("min_element_volume_ratio", 0.0) });
 
@@ -141,8 +137,6 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 
     Parameters params( {Component("lower_bound_xyz", point_A),
                         Component("upper_bound_xyz", point_B),
-                        Component("lower_bound_uvw", point_A),
-                        Component("upper_bound_uvw", point_B),
                         Component("number_of_elements", number_of_elements),
                         Component("min_element_volume_ratio", 0.0) });
 
@@ -193,8 +187,6 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
 
     Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                         Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
                         Component("number_of_elements", Vector3i(1, 1, 1)),
                         Component("min_element_volume_ratio", 0.0) });
 
