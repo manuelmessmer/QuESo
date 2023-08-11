@@ -29,5 +29,7 @@ Please use the following references when citing QuESo in your work.
 
 * Manuel Meßmer, QuESo, https://github.com/manuelmessmer/QuESo.
 
+It would be great to hear from you if QuESo was of use in your project.
+
 
 
