@@ -26,6 +26,12 @@ class AABB_primitive;
 class AABB_primitive_base
 {
 public:
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    // Destructor
+    virtual ~AABB_primitive_base() = default;
 
     ///@}
     ///@name Operations
