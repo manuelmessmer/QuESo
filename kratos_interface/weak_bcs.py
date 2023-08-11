@@ -63,8 +63,8 @@ class PenaltySupport(WeakBcsBase):
             surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
             cond = model_part.CreateNewCondition('SupportPenaltyCondition', id_counter, quadrature_point_geometries[0], properties)
-            displacement = [KM.Vector([0.0, 0.0, 0.0])]
-            cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT,displacement,process_info)
+            cond.SetValue(KM.DISPLACEMENT, [self.prescribed[0], self.prescribed[1], self.prescribed[2]])
+
             id_counter += 1
 
 class SurfaceLoad(WeakBcsBase):
