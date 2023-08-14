@@ -30,14 +30,18 @@ Unique<std::vector<double>> BRepOperator::ClosestDistances(std::vector<PointType
         Vector3d direction(rDirections[i]);
         // Normalize
         const double norm_direction = direction.Norm();
-        direction /= norm_direction;
+        if( norm_direction > 1e-6 ){
+            direction /= norm_direction;
 
-        Vector3d point(rPoints[i]);
+            Vector3d point(rPoints[i]);
 
-        // Construct ray
-        Ray_AABB_primitive ray(point, direction);
+            // Construct ray
+            Ray_AABB_primitive ray(point, direction);
 
-        r_distances[i] = mGeometryQuery.DistanceToClosestTriangle(ray);
+            r_distances[i] = mGeometryQuery.DistanceToClosestTriangle(ray);
+        } else {
+            r_distances[i] = 1e12;
+        }
     }
 
     return distances;
