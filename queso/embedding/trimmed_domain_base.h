@@ -54,7 +54,7 @@ public:
     }
 
     /// Destructor
-    virtual ~TrimmedDomainBase() {};
+    virtual ~TrimmedDomainBase() = default;
 
     ///@}
     ///@name Operations

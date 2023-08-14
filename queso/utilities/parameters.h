@@ -47,7 +47,7 @@ public:
     {
     }
     /// Destructor
-    virtual ~ParamCondition(){};
+    virtual ~ParamCondition() = default;
 
     ///@}
     ///@name Operations
