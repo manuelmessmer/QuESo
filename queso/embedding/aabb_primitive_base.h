@@ -36,6 +36,10 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /// @brief Returns true, if AABB intersect with this object. Interface for AABB tree.
+    /// @param aabb
+    /// @return bool
     virtual bool intersect(const AABB_primitive &aabb) const = 0;
 
     ///@}
