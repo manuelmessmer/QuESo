@@ -86,7 +86,7 @@ class PyQuESo:
         return self.analysis
 
     def ClosestDistances(self, points, directions):
-        return self.tibra.ClosestDistances(points, directions)
+        return self.queso.ClosestDistances(points, directions)
 
     #########################################
     #### Kratos related member functions ####
