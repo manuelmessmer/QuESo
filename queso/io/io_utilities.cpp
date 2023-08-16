@@ -332,6 +332,8 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
                           const char* Filename,
                           const bool Binary){
 
+    QuESo_ERROR_IF( std::string(type) != "All") << "Only integration points option 'All' is available. \n";
+
     auto p_points = rElementContainer.pGetPoints(type);
     const IndexType num_points = p_points->size();
     const IndexType num_elements = p_points->size();
