@@ -68,7 +68,6 @@ void QuESo::Run()
         // Write vtk files (binary = true)
         IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
         IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points_all.vtk", true);
-        IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/integration_points_trimmed.vtk", true);
 
         for( const auto& r_condition : mConditions ){
             std::string bc_filename = "output/BC_" + std::to_string(r_condition->GetId()) + ".stl";
