@@ -124,9 +124,9 @@ namespace queso {
 
 
     bool AreSame(const PointType& rLhs, const PointType& rRhs)  {
-        return( std::abs( rLhs[0] - rRhs[0] ) < 1e-6
-             && std::abs( rLhs[1] - rRhs[1] ) < 1e-6
-             && std::abs( rLhs[2] - rRhs[2] ) < 1e-6 );
+        return( std::abs( rLhs[0] - rRhs[0] ) < 1e-3
+             && std::abs( rLhs[1] - rRhs[1] ) < 1e-3
+             && std::abs( rLhs[2] - rRhs[2] ) < 1e-3 );
     };
 
     double GeometryQuery::DistanceToClosestTriangle( const Ray_AABB_primitive& rRay ) const {
