@@ -4,14 +4,14 @@ from queso.python_scripts.helper import *
 import os
 import shutil
 
-try:
-    # TODO: Move to analysis
-    import KratosMultiphysics as KM
-    kratos_available = True
-except:
-    kratos_available = False
+# try:
+#     # TODO: Move to analysis
+#     import KratosMultiphysics as KM
+#     kratos_available = True
+# except:
+#     kratos_available = False
 
-if kratos_available:
+if True:
     from kratos_interface.kratos_analysis import Analysis
     from kratos_interface.model_part_utilities import ModelPartUtilities
 
