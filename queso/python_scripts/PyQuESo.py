@@ -26,7 +26,7 @@ class PyQuESo:
         self.b_spline_volume = BSplineVolume(self.parameters)
         if self.parameters.EchoLevel() > 0:
             folder_path = "./output/"
-            if os.path.exists(folder_path):
+            if not os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
 

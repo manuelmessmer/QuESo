@@ -185,7 +185,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         }, py::return_value_policy::reference_internal)
         .def("GetBCTriangleMesh", [](const Element& rElement, std::function<bool(double, double,double)> &IsInDomain){
             return rElement.pGetTrimmedDomain()->pGetTriangleMesh(IsInDomain);
-        })
+        }, py::return_value_policy::reference_internal )
         .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first.Coordinates(); })
         .def("UpperBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().second.Coordinates(); })
         .def("LowerBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().first.Coordinates(); })

@@ -25,6 +25,7 @@ void QuESo::Run()
     Timer timer{};
     QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "\nQuESo ------------------------------------------ START" << std::endl;
 
+    Clear();
     // Allocate element/knotspans container
     mpElementContainer = MakeUnique<ElementContainer>(mParameters);
 

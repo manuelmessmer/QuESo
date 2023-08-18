@@ -33,7 +33,7 @@ public:
     }
 
     /// Destructor
-    virtual ~Condition(){};
+    virtual ~Condition() = default;
 
     virtual const TriangleMesh& GetTriangleMesh() const {
         return *mpInitialTriangleMesh;

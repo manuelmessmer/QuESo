@@ -27,6 +27,8 @@ class AABB_primitive_base
 {
 public:
 
+    virtual ~AABB_primitive_base() = default;
+
     ///@}
     ///@name Operations
     ///@{

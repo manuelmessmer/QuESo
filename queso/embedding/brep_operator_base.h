@@ -44,7 +44,7 @@ public:
     }
 
     /// Destructor
-    virtual ~BRepOperatorBase() {}
+    virtual ~BRepOperatorBase() = default;
 
     ///@}
     ///@name Operations
