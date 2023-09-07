@@ -33,8 +33,6 @@ public:
     // Destructor
     virtual ~AABB_primitive_base() = default;
 
-    virtual ~AABB_primitive_base() = default;
-
     ///@}
     ///@name Operations
     ///@{
