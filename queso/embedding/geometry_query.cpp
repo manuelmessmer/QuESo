@@ -138,8 +138,9 @@ namespace queso {
             const auto& p3 = mTriangleMesh.P3(r);
             double t, u, v;
             bool back_facing, parallel;
+            const double area = mTriangleMesh.Area(r);
 
-            if( !AreSame(rRay.GetOrigin(), p1) && !AreSame(rRay.GetOrigin(), p2) && !AreSame(rRay.GetOrigin(), p3) ){
+            if( area > 1e-10 && !AreSame(rRay.GetOrigin(), p1) && !AreSame(rRay.GetOrigin(), p2) && !AreSame(rRay.GetOrigin(), p3) ){
                 if( rRay.intersect(p1, p2, p3, t, u, v, back_facing, parallel) ) {
                     if( !parallel ){;
                         if( std::abs(t) < ZEROTOL ){ // origin lies on boundary

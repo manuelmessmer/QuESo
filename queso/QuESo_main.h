@@ -97,6 +97,10 @@ public:
         return mpBRepOperator->ClosestDistances(rPoints, rDirections);
     }
 
+    Unique<std::vector<bool>> IsInside(std::vector<PointType>& rPoints) const {
+        return mpBRepOperator->IsInside(rPoints);
+    }
+
     ///@}
     ///@name Temporary operations to perform PosProcessing after Kratos Analysis
     ///      This will be moved to TriangleMesh.

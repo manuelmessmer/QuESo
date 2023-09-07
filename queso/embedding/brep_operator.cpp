@@ -47,6 +47,21 @@ Unique<std::vector<double>> BRepOperator::ClosestDistances(std::vector<PointType
     return distances;
 }
 
+Unique<std::vector<bool>> BRepOperator::IsInside(std::vector<PointType>& rPoints) const {
+
+    Unique<std::vector<bool>> p_is_inside = MakeUnique<std::vector<bool>>();
+    auto& r_is_inside = *p_is_inside;
+    r_is_inside.resize(rPoints.size());
+
+    #pragma omp parallel for
+    for( int i = 0; i < static_cast<int>(rPoints.size()); ++i ){
+        r_is_inside[i] = IsInside(rPoints[i]);
+    }
+
+    return p_is_inside;
+}
+
+
 bool BRepOperator::IsInside(const PointType& rPoint) const {
     std::random_device rd;
     std::mt19937 gen(rd());

@@ -121,6 +121,8 @@ public:
     Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
     Unique<std::vector<double>> ClosestDistances(std::vector<PointType>& rPoints, std::vector<PointType>& rDirections) const;
+
+    Unique<std::vector<bool>> IsInside(std::vector<PointType>& rPoints) const;
     ///@}
 
 
