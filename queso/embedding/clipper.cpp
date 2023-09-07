@@ -185,7 +185,7 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
     double t = (rPlane.mPosition - rA[index]) / (rB[index] - rA[index]);
 
     if( !(0.0 <= t && t <= 1.0) ){
-        QuESo_ERROR("Clipper::FindIntersectionPointOnPlane") << "No valid intersection.\n";
+        QuESo_ERROR << "No valid intersection.\n";
     }
 
     PointType ret = {rA[0] + t*(rB[0] - rA[0]),

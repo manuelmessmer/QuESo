@@ -5,7 +5,7 @@
 #define INTEGRATION_POINT_INCLUDE_H
 
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 
 namespace queso {
 

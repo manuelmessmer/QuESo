@@ -10,8 +10,6 @@
 #include "QuESo_main.h"
 #include "io/io_utilities.h"
 #include "utilities/mesh_utilities.h"
-#include "utilities/timer.hpp"
-#include "utilities/logger.hpp"
 #include "embedding/brep_operator_factory.h"
 #include "quadrature/single_element.h"
 #include "quadrature/trimmed_element.h"
@@ -69,17 +67,16 @@ void QuESo::Run()
 
     if( mParameters.EchoLevel() > 0) {
         // Write vtk files (binary = true)
-        IO::WriteElementsToVTK(*mpElementContainer, "output/knotspans.vtk", true);
-        IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points_all.vtk", true);
-        IO::WritePointsToVTK(*mpElementContainer, "Trimmed", "output/integration_points_trimmed.vtk", true);
+        IO::WriteElementsToVTK(*mpElementContainer, "output/elements.vtk", true);
+        IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
 
         for( const auto& r_condition : mConditions ){
             std::string bc_filename = "output/BC_" + std::to_string(r_condition->GetId()) + ".stl";
             IO::WriteMeshToSTL(r_condition->GetConformingMesh(), bc_filename.c_str(), true);
         }
 
-        QuESo_INFO << "Number of active knotspans: " << mpElementContainer->size() << std::endl;
-        QuESo_INFO << "Number of trimmed knotspans: " << number_of_trimmed_elements << std::endl;
+        QuESo_INFO << "Number of active elements: " << mpElementContainer->size() << std::endl;
+        QuESo_INFO << "Number of trimmed elements: " << number_of_trimmed_elements << std::endl;
 
         if( mParameters.EchoLevel() > 1 ) {
             const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();

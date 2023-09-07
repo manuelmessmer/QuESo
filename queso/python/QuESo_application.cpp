@@ -74,7 +74,7 @@ IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
     else if( rValue == "GGQ_Reduced2")
         return IntegrationMethod::GGQ_Reduced2;
     else
-        QuESo_ERROR("Parameters::GetIntegrationMethodFromString") << "Integration Method: " + rValue + " not available! \n";
+        QuESo_ERROR << "Integration Method: " + rValue + " not available! \n";
 }
 
 PYBIND11_MODULE(QuESo_Application,m) {
@@ -174,6 +174,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
             , py::return_value_policy::reference_internal ) // Export const version
         .def("GetTriangles",  static_cast< const std::vector<Vector3i>& (TriangleMesh::*)() const>(&TriangleMesh::GetTriangles)
             , py::return_value_policy::reference_internal ) // Export const version
+        .def_static("AspectRatioStatic", static_cast<double (*)(const PointType&, const PointType&, const PointType&)>(&TriangleMesh::AspectRatio) )
     ;
 
     /// Export MeshUtilities
@@ -220,7 +221,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("Type", [](const Condition& rCondition){
             if( rCondition.Type() == ConditionType::Neumann ){ return "neumann";}
             else if (rCondition.Type() == ConditionType::Dirichlet){ return "dirichlet"; }
-            else { QuESo_ERROR("Pybind::Condition") << "ConditionType no available.\n"; }
+            else { QuESo_ERROR << "ConditionType no available.\n"; }
 
         })
         .def("GetPrescribed", &Condition::GetPrescribed)

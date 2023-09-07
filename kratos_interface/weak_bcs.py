@@ -2,6 +2,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from queso.python_scripts.helper import *
+from QuESo_PythonApplication import TriangleMesh as TriangleUtilities
 
 class WeakBcsBase():
     """Base Class to provide interface for the application of boundary conditions.
@@ -54,18 +55,21 @@ class PenaltySupport(WeakBcsBase):
             param3 = PointFromGlobalToParamSpace( self.bcs_triangles.P3(id), self.bounds_xyz, self.bounds_uvw)
             node3 = KM.Node(3, param3[0], param3[1], param3[2])
 
-            # Create kratos triangles
-            geom = KM.Triangle3D3(node1, node2, node3)
-            quadrature_point_geometries = KM.GeometriesVector()
+            if TriangleUtilities.AspectRatioStatic(param1, param2, param3) < 1e8:
+                # Create kratos triangles
+                geom = KM.Triangle3D3(node1, node2, node3)
+                quadrature_point_geometries = KM.GeometriesVector()
 
-            # Create conditions
-            surface_in_nurbs_volume = KM.SurfaceInNurbsVolumeGeometry(nurbs_volume, geom)
-            surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
+                # Create conditions
+                surface_in_nurbs_volume = KM.SurfaceInNurbsVolumeGeometry(nurbs_volume, geom)
+                surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
-            cond = model_part.CreateNewCondition('SupportPenaltyCondition', id_counter, quadrature_point_geometries[0], properties)
-            displacement = [KM.Vector([0.0, 0.0, 0.0])]
-            cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT,displacement,process_info)
-            id_counter += 1
+                surface_area = surface_in_nurbs_volume.Area()
+                if( surface_area > 1e-14):
+                    cond = model_part.CreateNewCondition('SupportPenaltyCondition', id_counter, quadrature_point_geometries[0], properties)
+                    displacement = [KM.Vector([0.0, 0.0, 0.0])]
+                    cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT, displacement,process_info)
+                    id_counter += 1
 
 class SurfaceLoad(WeakBcsBase):
     """SurfaceLoad.
@@ -101,23 +105,24 @@ class SurfaceLoad(WeakBcsBase):
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
-                condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
                 weight = point.GetWeight() # Weight contains all mapping terms.
-                if self.normal_flag:
-                    normal = point.Normal()
-                    force_x = normal[0] * weight * self.force
-                    force_y = normal[1] * weight * self.force
-                    force_z = normal[2] * weight * self.force
-                else:
-                    force_x = weight * self.force[0]
-                    force_y = weight * self.force[1]
-                    force_z = weight * self.force[2]
+                if weight > 1e-14:
+                    condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
+                    if self.normal_flag:
+                        normal = point.Normal()
+                        force_x = normal[0] * weight * self.force
+                        force_y = normal[1] * weight * self.force
+                        force_z = normal[2] * weight * self.force
+                    else:
+                        force_x = weight * self.force[0]
+                        force_y = weight * self.force[1]
+                        force_z = weight * self.force[2]
 
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force_x)
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force_y)
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force_z)
-                self.conditions.append(condition)
-                id_counter += 1
+                    condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force_x)
+                    condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force_y)
+                    condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force_z)
+                    self.conditions.append(condition)
+                    id_counter += 1
 
 
 

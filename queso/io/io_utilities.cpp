@@ -332,6 +332,8 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
                           const char* Filename,
                           const bool Binary){
 
+    QuESo_ERROR_IF( std::string(type) != "All") << "Only integration points option 'All' is available. \n";
+
     auto p_points = rElementContainer.pGetPoints(type);
     const IndexType num_points = p_points->size();
     const IndexType num_elements = p_points->size();
@@ -528,7 +530,7 @@ bool IO::STLIsInASCIIFormat(const char* Filename) {
     std::ifstream file(Filename, std::ios::in);
 
     if( !file.good() ){
-        QuESo_ERROR("IO::STLIsInASCIIFormat") << "Couldnt parse file: " << Filename << std::endl;
+        QuESo_ERROR << "Couldnt parse file: " << Filename << std::endl;
     }
 
     char chars [256];
@@ -547,7 +549,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
     // Open file
     std::ifstream file(Filename);
     if( !file.good() ) {
-        QuESo_ERROR("IO::ReadMeshFromSTL_Ascii") << "Couldnt parse file: " << Filename << ".\n";
+        QuESo_ERROR << "Couldnt parse file: " << Filename << ".\n";
         return false;
     }
 
@@ -653,7 +655,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
     std::ifstream file(Filename, std::ios::binary);
 
     if( !file.good() ) {
-        QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "Couldnt parse file: " << Filename << ".\n";
+        QuESo_ERROR << "Couldnt parse file: " << Filename << ".\n";
         return false;
     }
 
@@ -669,12 +671,12 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
     }
 
     if( test_binary_ascii == "solid" ) { // If the first 5 characters are "solid"
-        QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "Warning :: File seems to be in Ascii format :: Please use IO::ReadMeshFromSTL_Binary.\n";
+        QuESo_ERROR << "Warning :: File seems to be in Ascii format :: Please use IO::ReadMeshFromSTL_Binary.\n";
         return false;
     }
 
     if(position != 80) {
-        QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "File " << Filename << " is empty.\n";
+        QuESo_ERROR << "File " << Filename << " is empty.\n";
         return false;
     }
 
@@ -684,7 +686,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
     // Read number of triangles
     unsigned int num_triangles;
     if(!(file.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles)))) {
-        QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "Couldnt read number of triangles. \n";
+        QuESo_ERROR << "Couldnt read number of triangles. \n";
         return false;
     }
     rTriangleMesh.Clear();
@@ -697,7 +699,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
         if(!(file.read((char*)(&normal_tmp[0]), sizeof(normal_tmp[0]))) ||
                 !(file.read((char*)(&normal_tmp[1]), sizeof(normal_tmp[1]))) ||
                 !(file.read((char*)(&normal_tmp[2]), sizeof(normal_tmp[2])))) {
-            QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "Couldnt read normals. \n";
+            QuESo_ERROR << "Couldnt read normals. \n";
             return false;
         }
 
@@ -709,7 +711,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
             if(!(file.read((char*)(&x), sizeof(x))) ||
                     !(file.read((char*)(&y), sizeof(y))) ||
                     !(file.read((char*)(&z), sizeof(z)))) {
-                QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "Couldnt read coordinates. \n";
+                QuESo_ERROR << "Couldnt read coordinates. \n";
                 return false;
             }
             Vector3d vertex = {x,y,z};
@@ -761,7 +763,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
         if(!(file.read((char*)(&c), sizeof(c))) ||
             !(file.read((char*)(&c), sizeof(c)))) {
 
-            QuESo_ERROR("IO::ReadMeshFromSTL_Binary") << "Couldnt read attribute byte count.\n";
+            QuESo_ERROR << "Couldnt read attribute byte count.\n";
             return false;
         }
     }

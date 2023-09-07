@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <vector>
 ////Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 
 namespace queso {
 
@@ -47,7 +47,7 @@ public:
     {
     }
     /// Destructor
-    virtual ~ParamCondition()= default;
+    virtual ~ParamCondition() = default;
 
     ///@}
     ///@name Operations
@@ -73,7 +73,7 @@ public:
 
     /// Returns penalty factor.
     virtual double GetPenaltyFactor() const {
-        QuESo_ERROR("ParamCondition::GetPenaltyFactor") << "Calling base class. Penalty factor is only available for 'ParamConditionDirichlet'.\n";
+        QuESo_ERROR<< "Calling base class. Penalty factor is only available for 'ParamConditionDirichlet'.\n";
     }
 
 private:
@@ -366,7 +366,7 @@ public:
             return *p_value;
         }
 
-        QuESo_ERROR("Parameters::Get") << "Component: '" + rName + "' not found.\n";
+        QuESo_ERROR << "Component: '" + rName + "' not found.\n";
     }
 
     /// @brief Adds neumann condition to parameters.
@@ -396,7 +396,7 @@ public:
     /// @param Id of condition.
     /// @return const std::string&
     const std::string& GetFilenameOfCondition(IndexType Id) {
-        QuESo_ERROR_IF( "Parameters::GetFilenameOfCondition", mConditions[Id]->GetId() != Id ) << "Id does not match index.\n";
+        QuESo_ERROR_IF( mConditions[Id]->GetId() != Id ) << "Id does not match index.\n";
         return mConditions[Id]->GetFilename();
     }
 
@@ -472,12 +472,12 @@ private:
                 const auto p_current_type_info = std::visit(TypeVisit{}, r_components.Get());
                 const auto p_ref_type_info = p_pair_found->second;
                 if( !(*p_current_type_info ==  *p_ref_type_info) ){ // If type is wrong.
-                    QuESo_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
+                    QuESo_ERROR << "Name: '" + current_name +
                         "' is not provided with correct Type.\n";
                 }
             }
             else { // If name is part of mAllAvailableComponents.
-                QuESo_ERROR("Parameters::CheckComponents") << "Name: '" + current_name +
+                QuESo_ERROR << "Name: '" + current_name +
                     "' is not a valid Parameter.\n";
             }
         }
@@ -532,6 +532,8 @@ private:
         Component("moment_fitting_residual", 1.0e-10),
         Component("min_element_volume_ratio", 1.0e-3),
         Component("b_spline_mesh", true),
+        Component("lower_bound_uvw", PointType(-1.0, -1.0, -1.0)),
+        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
         Component("init_point_distribution_factor", 1UL),
         Component("polynomial_order", Vector3i(2UL, 2UL, 2UL) ),
         Component("integration_method", IntegrationMethod::Gauss),

@@ -201,7 +201,10 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             const double integrand = Math::Dot(normal, point);
-            volume += integrand * point.GetWeight();
+            const double integral = integrand * point.GetWeight();
+            if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
+                volume += integral;
+            }
         }
     }
     return std::abs(1.0/3.0*volume);
@@ -219,7 +222,10 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             const double integrand = Math::Dot(normal, point);
-            volume += integrand * point.GetWeight();
+            const double integral = integrand * point.GetWeight();
+            if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
+                volume += integral;
+            }
         }
     }
     return std::abs(1.0/3.0*volume);
@@ -229,7 +235,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
 
-    QuESo_ERROR_IF("MeshUtilities::Volume", Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
+    QuESo_ERROR_IF(Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
 
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
@@ -239,7 +245,10 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             const double integrand = normal[Dir]*point[Dir];
-            volume += integrand * point.GetWeight();
+            const double integral = integrand * point.GetWeight();
+            if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
+                volume += integral;
+            }
         }
     }
     return std::abs(volume);

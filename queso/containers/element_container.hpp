@@ -55,7 +55,7 @@ public:
     const ElementPtrType pGetElement(std::size_t id) const {
         auto found_key = mElementIdMap.find(id);
         if( found_key == mElementIdMap.end() )
-            QuESo_ERROR("ElementContainer::pGetElement") << "ID does not exist.\n";
+            QuESo_ERROR << "ID does not exist.\n";
         return mElements[found_key->second];
     }
 
@@ -101,7 +101,7 @@ public:
             mElements.push_back(std::move(rElement));
         }
         else {
-            QuESo_ERROR("ElementContainer::AddElement") << "ID already exists.\n";
+            QuESo_ERROR << "ID already exists.\n";
         }
     }
 
@@ -241,7 +241,7 @@ public:
         case 5: // Backward Z
             return (indices[2] == 0);
         default:
-            QuESo_ERROR("ElementContainer::IsLast") << "There are only 6 different directions! \n";
+            QuESo_ERROR << "There are only 6 different directions! \n";
         }
     }
 
@@ -263,7 +263,7 @@ public:
                 points_tmp = el_itr->GetIntegrationPoints();
             }
             else {
-                QuESo_ERROR("ElementContainer::pGetPoints") << "Given type '" << type << "' not available.\n";
+                QuESo_ERROR << "Given type '" << type << "' not available.\n";
             }
             points->insert(points->end(), points_tmp.begin(), points_tmp.end());
         }

@@ -6,6 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
+#include "includes/checks.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
 #include "utilities/mesh_utilities.h"
@@ -23,13 +24,13 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOBindaryTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
     // Make basic check
-    BOOST_CHECK(triangle_mesh.Check());
+    QuESo_CHECK(triangle_mesh.Check());
 
-    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
+    QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
     double surface_area = MeshUtilities::Area(triangle_mesh);
 
-    BOOST_CHECK_CLOSE(surface_area, 69.11212872984862, 1e-10);
+    QuESo_CHECK_NEAR(surface_area, 69.11212872984862, 1e-10);
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
@@ -39,13 +40,13 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder_ascii.stl");
 
     // Make basic check
-    BOOST_CHECK(triangle_mesh.Check());
+    QuESo_CHECK(triangle_mesh.Check());
 
-    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
+    QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
     double surface_area = MeshUtilities::Area(triangle_mesh);
 
-    BOOST_CHECK_CLOSE(surface_area, 69.11212872984862, 1e-10);
+    QuESo_CHECK_NEAR(surface_area, 69.11212872984862, 1e-10);
 }
 
 std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTriangleMesh){
@@ -69,18 +70,18 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
     // Make basic check
-    BOOST_CHECK(triangle_mesh.Check());
-    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 5558);
+    QuESo_CHECK(triangle_mesh.Check());
+    QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 5558);
     auto init_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
     MeshUtilities::Refine(triangle_mesh, 20000);
-    BOOST_CHECK(triangle_mesh.Check());
-    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 27911);
+    QuESo_CHECK(triangle_mesh.Check());
+    QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 27911);
     auto new_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
     double weighted_normal_error = (init_values.second - new_values.second).Norm();
-    BOOST_CHECK_LT( weighted_normal_error, 1e-14);
-    BOOST_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
+    QuESo_CHECK_LT( weighted_normal_error, 1e-14);
+    QuESo_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
@@ -90,19 +91,19 @@ BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
     // Make basic check
-    BOOST_CHECK(triangle_mesh.Check());
-    BOOST_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 112402);
+    QuESo_CHECK(triangle_mesh.Check());
+    QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 112402);
     auto init_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
     TriangleMesh new_mesh{};
     MeshUtilities::Append(new_mesh, triangle_mesh);
-    BOOST_CHECK(new_mesh.Check());
-    BOOST_CHECK_EQUAL(new_mesh.NumOfTriangles(), 112402);
+    QuESo_CHECK(new_mesh.Check());
+    QuESo_CHECK_EQUAL(new_mesh.NumOfTriangles(), 112402);
     auto new_values = ComputeAreaAndWeightedNormal(new_mesh);
 
     double weighted_normal_error = (init_values.second - new_values.second).Norm();
-    BOOST_CHECK_LT( weighted_normal_error, 1e-14);
-    BOOST_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
+    QuESo_CHECK_LT( weighted_normal_error, 1e-14);
+    QuESo_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
@@ -114,8 +115,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
 
     const double volume_ref = 279628.2991519215;
-    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
-    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
+    QuESo_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
+    QuESo_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
@@ -128,8 +129,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
 
     const double volume_ref = 31.41176999044123;
-    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
-    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
+    QuESo_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
+    QuESo_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
@@ -142,8 +143,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
 
     const double volume_ref = 0.04620123478735502;
-    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-8);
-    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-8);
+    QuESo_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-8);
+    QuESo_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-8);
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
@@ -154,8 +155,6 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
 
     Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                         Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
                         Component("number_of_elements", Vector3i(1, 1, 1)),
                         Component("min_element_volume_ratio", 0.0) });
 
@@ -190,7 +189,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
         }
     }
     const double volume_ref = 0.04620123478735502;
-    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-8);
+    QuESo_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-8);
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshComputeCubeTest) {
@@ -203,8 +202,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeCubeTest) {
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
 
     const double volume_ref = 22.81560787501277;
-    BOOST_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
-    BOOST_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
+    QuESo_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-9);
+    QuESo_CHECK_LT( std::abs(volume_omp - volume_ref) / volume_ref, 1e-9);
 }
 BOOST_AUTO_TEST_SUITE_END()
 

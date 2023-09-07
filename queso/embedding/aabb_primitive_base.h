@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <array>
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 
 namespace queso {
 
@@ -26,12 +26,22 @@ class AABB_primitive;
 class AABB_primitive_base
 {
 public:
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    // Destructor
+    virtual ~AABB_primitive_base() = default;
 
     virtual ~AABB_primitive_base() = default;
 
     ///@}
     ///@name Operations
     ///@{
+
+    /// @brief Returns true, if AABB intersect with this object. Interface for AABB tree.
+    /// @param aabb
+    /// @return bool
     virtual bool intersect(const AABB_primitive &aabb) const = 0;
 
     ///@}

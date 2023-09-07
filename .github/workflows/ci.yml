@@ -70,7 +70,7 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.tar.gz/download"
+        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:RUNNER_TEMP\boost.tar.gz")
         7z.exe x "$env:RUNNER_TEMP\boost.tar.gz" -o"$env:RUNNER_TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:RUNNER_TEMP\boostArchive" -o"$env:RUNNER_TEMP\boost" -y | Out-Null

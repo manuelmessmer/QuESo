@@ -8,7 +8,7 @@
 #include <array>
 
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "quadrature/single_element.h"
 
 namespace queso {

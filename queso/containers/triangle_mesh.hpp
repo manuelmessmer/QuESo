@@ -12,7 +12,7 @@
 #include <iostream>
 
 //// Project includes
-#include "define.hpp"
+#include "includes/define.hpp"
 #include "utilities/math_utilities.hpp"
 #include "containers/triangle_gauss_legendre_integration_points.hpp"
 #include "containers/boundary_integration_point.hpp"
@@ -49,14 +49,11 @@ public:
     /// @param TriangleId
     /// @return double.
     double Area(IndexType TriangleId) const {
-        const auto& p1 = this->P1(TriangleId);
-        const auto& p2 = this->P2(TriangleId);
-        const auto& p3 = this->P3(TriangleId);
+        const Vector3d& p1 = this->P1(TriangleId);
+        const Vector3d& p2 = this->P2(TriangleId);
+        const Vector3d& p3 = this->P3(TriangleId);
 
-        const auto A = p2-p1;
-        const auto B = p3-p1;
-
-        return 0.5*Math::Cross(A,B).Norm();
+        return Area(p1, p2, p3);
     }
 
     /// @brief Outward pointing normal.
@@ -85,16 +82,7 @@ public:
         const auto P2 = this->P2(TriangleId);
         const auto P3 = this->P3(TriangleId);
 
-        const auto area = this->Area(TriangleId);
-
-        const double a = (P2-P1).Norm(); // length a
-        const double b = (P3-P2).Norm(); // length b
-        const double c = (P1-P3).Norm(); // length c
-
-        const double max_edge = std::max(std::max(a, b), c);
-
-        const double square_root_3 = 1.73205080756887729;
-        return max_edge*(a+b+c)/(4.0*square_root_3 * area);
+        return AspectRatio(P1, P2, P3);
     }
 
     /// @brief Get boundary integration points in global space.
@@ -284,6 +272,45 @@ public:
         }
         return true;
     }
+
+    ///@}
+    ///@name Static public members
+    ///@{
+
+    /// @brief Returns Area of triangle
+    /// @param rP1 Vertex 1
+    /// @param rP2 Vertex 2
+    /// @param rP3 Vertex 3
+    /// @return double
+    static double Area(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
+        const auto A = rP2-rP1;
+        const auto B = rP3-rP1;
+
+        return 0.5*Math::Cross(A,B).Norm();
+    }
+
+    /// @brief Returns AspectRatio of triangle
+    /// @param rP1 Vertex 1
+    /// @param rP2 Vertex 2
+    /// @param rP3 Vertex 3
+    /// @return double
+    static double AspectRatio(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
+        const auto area = Area(rP1, rP2, rP3);
+
+        const double a = (rP2-rP1).Norm(); // length a
+        const double b = (rP3-rP2).Norm(); // length b
+        const double c = (rP1-rP3).Norm(); // length c
+
+        const double max_edge = std::max(std::max(a, b), c);
+
+        const double square_root_3 = 1.73205080756887729;
+        if(area > EPS4){
+            return max_edge*(a+b+c)/(4.0*square_root_3 * area);
+        } else {
+            return 1e10;
+        }
+    }
+
     ///@}
 private:
 
@@ -304,7 +331,7 @@ private:
         case 2:
             return( rPoint[1] );
         default:
-            QuESo_ERROR("TriangleMesh::ShapeFunctionValue") << "Wrong Index of Shape Function.\n";
+            QuESo_ERROR << "Wrong Index of Shape Function.\n";
             break;
         }
 
@@ -327,7 +354,7 @@ private:
 
     ///@brief Get triangle Gauss Legendre points by Method - options (0,1,2,3)
     static const IpVectorType& GetIntegrationPoints( IndexType Method ){
-        QuESo_ERROR_IF("TriangleMesh::GetIntegrationPoints", Method > 3) << "IntegrationPoint Index exceeds default.\n";
+        QuESo_ERROR_IF(Method > 3) << "IntegrationPoint Index exceeds default.\n";
 
         return AllIntegrationPoints()[Method];
     }
