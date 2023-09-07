@@ -160,6 +160,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
             , py::return_value_policy::reference_internal ) // Export const version
         .def("GetTriangles",  static_cast< const std::vector<Vector3i>& (TriangleMesh::*)() const>(&TriangleMesh::GetTriangles)
             , py::return_value_policy::reference_internal ) // Export const version
+        .def_static("AspectRatioStatic", static_cast<double (*)(const PointType&, const PointType&, const PointType&)>(&TriangleMesh::AspectRatio) )
     ;
 
     /// Export MeshUtilities
