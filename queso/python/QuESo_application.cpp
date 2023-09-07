@@ -24,6 +24,7 @@
 typedef std::vector<queso::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<double> DoubleVectorType;
+typedef std::vector<bool> BoolVectorType;
 typedef std::vector<queso::IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<queso::Shared<queso::Element>> ElementVectorPtrType;
 typedef std::vector<queso::Shared<queso::Condition>> ConditionVectorPtrType;
@@ -33,6 +34,7 @@ PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(DoubleVectorType);
+PYBIND11_MAKE_OPAQUE(BoolVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
@@ -114,9 +116,14 @@ PYBIND11_MODULE(QuESo_Application,m) {
         (m, "PointVector")
     ;
 
-    /// Export PointVector
+    /// Export DoubleVector
     py::bind_vector<DoubleVectorType, Unique<DoubleVectorType>>
         (m, "DoubleVector")
+    ;
+
+    /// Export BoolVectorType
+    py::bind_vector<BoolVectorType, Unique<BoolVectorType>>
+        (m, "BoolVectorType")
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
@@ -294,6 +301,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("GetTriangleMesh", &QuESo::GetTriangleMesh, py::return_value_policy::reference_internal)
         .def("GetConditions", &QuESo::GetConditions, py::return_value_policy::reference_internal )
         .def("ClosestDistances", &QuESo::ClosestDistances, py::return_value_policy::move )
+        .def("IsInside", &QuESo::IsInside, py::return_value_policy::move )
         .def("ReadWritePostMesh", &QuESo::ReadWritePostMesh )
         .def("GetPostMeshPoints", [](const QuESo& v){
             auto& mesh = v.GetPostMesh();

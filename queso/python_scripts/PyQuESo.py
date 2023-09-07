@@ -88,6 +88,9 @@ class PyQuESo:
     def ClosestDistances(self, points, directions):
         return self.queso.ClosestDistances(points, directions)
 
+    def IsInside(self, points):
+        return self.queso.IsInside(points)
+
     #########################################
     #### Kratos related member functions ####
     #########################################
