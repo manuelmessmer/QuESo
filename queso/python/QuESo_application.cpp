@@ -25,7 +25,8 @@ typedef std::vector<queso::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<queso::IntegrationPoint> IntegrationPointVectorType;
 typedef std::vector<queso::Shared<queso::Element>> ElementVectorPtrType;
-typedef std::vector<queso::Shared<queso::Condition>> ConditionVectorPtrType;
+typedef std::vector<queso::Condition> ConditionVectorType;
+typedef std::vector<queso::ConditionParameters> ConditionParametersVectorType;
 typedef std::vector<queso::BoundaryIntegrationPoint> BoundaryIpVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
@@ -33,7 +34,8 @@ PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
-PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
+PYBIND11_MAKE_OPAQUE(ConditionVectorType);
+PYBIND11_MAKE_OPAQUE(ConditionParametersVectorType);
 
 namespace queso {
 namespace Python {
@@ -204,21 +206,14 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<Condition, std::shared_ptr<Condition>>(m,"Condition")
         .def("IsWeakCondition", [](const Condition& rCondition)->bool { return true; } )
         .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
-        .def("Type", [](const Condition& rCondition){
-            if( rCondition.Type() == ConditionType::Neumann ){ return "neumann";}
-            else if (rCondition.Type() == ConditionType::Dirichlet){ return "dirichlet"; }
-            else { QuESo_ERROR << "ConditionType no available.\n"; }
-
-        })
-        .def("GetPrescribed", &Condition::GetPrescribed)
-        .def("GetPenaltyFactor", &Condition::GetPenaltyFactor)
+        .def("GetParameters", &Condition::GetParameters)
     ;
 
     /// Export Condition Vector
-    py::class_<ConditionVectorPtrType>(m, "ConditionVector")
+    py::class_<ConditionVectorType>(m, "ConditionVector")
         .def(py::init<>())
-        .def("__len__", [](const ConditionVectorPtrType &v) { return v.size(); })
-        .def("__iter__", [](ConditionVectorPtrType &v) {
+        .def("__len__", [](const ConditionVectorType &v) { return v.size(); })
+        .def("__iter__", [](ConditionVectorType &v) {
             return py::make_iterator( v.begin(), v.end() );
         }, py::keep_alive<0, 1>())
     ;
@@ -239,33 +234,67 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
 
+    py::class_<VariantDataContainer,std::shared_ptr<VariantDataContainer>>(m,"VariantDataContainer")
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const PointType& rValue){
+            rContainer.Set(rName, rValue); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::array<double,3>& rValue){
+            rContainer.Set(rName, PointType(rValue)); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const Vector3i& rValue){
+            rContainer.Set(rName, rValue); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::array<IndexType,3>& rValue){
+            rContainer.Set(rName, Vector3i(rValue)); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const bool rValue){
+            rContainer.Set(rName, rValue); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const unsigned long rValue){
+            rContainer.Set(rName, rValue); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const double rValue){
+            rContainer.Set(rName, rValue); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const IntegrationMethodType& rValue){
+            rContainer.Set(rName, rValue); })
+        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::string& rValue){
+            // Allow integration method to be string. JSON is parsed as string.
+            if( rName == "integration_method" ){
+                rContainer.Set(rName, GetIntegrationMethodFromString(rValue)); }
+            else {
+                rContainer.Set(rName, rValue); } })
+        .def("GetBool", [](VariantDataContainer& rContainer, const std::string& rName){
+            return rContainer.Get<bool>(rName); })
+        .def("GetInteger", [](VariantDataContainer& rContainer, const std::string& rName){
+            return rContainer.Get<unsigned long>(rName); })
+        .def("GetDouble", [](VariantDataContainer& rContainer, const std::string& rName){
+            return rContainer.Get<double>(rName); })
+        .def("GetString", [](VariantDataContainer& rContainer, const std::string& rName){
+            return rContainer.Get<std::string>(rName); })
+        .def("GetDoubleVector", [](VariantDataContainer& rContainer, const std::string& rName){
+            return rContainer.Get<PointType>(rName).Coordinates(); })
+        .def("GetIntVector", [](VariantDataContainer& rContainer, const std::string& rName){
+            return rContainer.Get<Vector3i>(rName).Coordinates(); })
+        ;
+
+    py::class_<GlobalParameters,std::shared_ptr<GlobalParameters>, VariantDataContainer>(m,"GlobalParameters")
+        .def(py::init<>())
+        ;
+
+    py::class_<ConditionParameters,std::shared_ptr<ConditionParameters>, VariantDataContainer>(m,"ConditionParameters")
+        .def(py::init<std::string>())
+        ;
+
+    /// Export Condition Vector
+    py::class_<ConditionParametersVectorType>(m, "ConditionParametersVector")
+        .def(py::init<>())
+        .def("__len__", [](const ConditionParametersVectorType &v) { return v.size(); })
+        .def("__iter__", [](ConditionParametersVectorType &v) {
+            return py::make_iterator( v.begin(), v.end() );
+        }, py::keep_alive<0, 1>())
+    ;
+
     /// Export Parameters
     py::class_<Parameters,std::shared_ptr<Parameters>>(m,"Parameters")
         .def(py::init<>())
-        .def("Set",[](Parameters& rParams, const std::string& rName, const PointType& rValue){
-            rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const std::array<double,3>& rValue){
-            rParams.Set(rName, PointType(rValue)); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const Vector3i& rValue){
-            rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const std::array<IndexType,3>& rValue){
-            rParams.Set(rName, Vector3i(rValue)); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const bool rValue){
-            rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const unsigned long rValue){
-            rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const double rValue){
-            rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const IntegrationMethodType& rValue){
-            rParams.Set(rName, rValue); })
-        .def("Set",[](Parameters& rParams, const std::string& rName, const std::string& rValue){
-            // Allow integration method to be string. JSON is parsed as string.
-            if( rName == "integration_method" ){
-                rParams.Set(rName, GetIntegrationMethodFromString(rValue)); }
-            else {
-                rParams.Set(rName, rValue); } })
-        .def("AddDirichletBC", &Parameters::AddDirichletCondition)
-        .def("AddNeumannBC", &Parameters::AddNeumannCondition)
+        .def("AddGlobalSettings", &Parameters::AddGlobalSettings)
+        .def("AddConditionSettings", &Parameters::AddConditionSettings)
+        .def("GetConditionsSettingsVector", &Parameters::GetConditionsSettingsVector, py::return_value_policy::reference_internal )
+        .def("GetGlobalSettings", &Parameters::GetGlobalSettings, py::return_value_policy::reference_internal )
         .def("EchoLevel", &Parameters::EchoLevel)
         // Return std::array<type,3> types. Easier to handle in python.
         .def("LowerBoundXYZ", []( const Parameters& rParams ) { return rParams.LowerBoundXYZ().Coordinates(); })
@@ -273,10 +302,10 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("LowerBoundUVW", []( const Parameters& rParams ) { return rParams.LowerBoundUVW().Coordinates(); })
         .def("UpperBoundUVW", []( const Parameters& rParams ) { return rParams.UpperBoundUVW().Coordinates(); })
         .def("Order", []( const Parameters& rParams ) { return rParams.Order().Coordinates(); })
+        .def("IntegrationMethod", &Parameters::IntegrationMethod )
         .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements().Coordinates(); })
         .def("NumberOfConditions", &Parameters::NumberOfConditions)
         .def("GetInputFilename", []( const Parameters& rParams ) { return rParams.Get<std::string>("input_filename"); } )
-        .def("GetFilenameOfCondition", &Parameters::GetFilenameOfCondition)
         ;
 
     /// Export QuESo
