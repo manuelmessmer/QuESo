@@ -23,12 +23,14 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
     if kratos_available:
         parameters = ReadParameters("queso/tests/ggq_cantilever_kratos/QuESoParameters.json")
 
-        parameters.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
-        parameters.Set("polynomial_order", polynomial_degree)
+        global_settings = parameters.GetGlobalParameters()
+
+        global_settings.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
+        global_settings.Set("polynomial_order", polynomial_degree)
         if reduction_flag == False:
-            parameters.Set("integration_method", "Gauss")
+            global_settings.Set("integration_method", "Gauss")
         else:
-            parameters.Set("integration_method", "GGQ_Optimal")
+            global_settings.Set("integration_method", "GGQ_Optimal")
 
         embedder = QuESo_APP.QuESo(parameters)
         embedder.Run()

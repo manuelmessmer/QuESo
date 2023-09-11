@@ -1,6 +1,7 @@
 from queso.tests.ggq_tube.test_ggq_tube import TestGGQTube
 from queso.tests.ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
 from queso.tests.b_spline_volume.test_b_spline_volume import TestBSplineVolume
+from queso.tests.parameter_container.test_parameters import TestParametersContainer
 try:
     import KratosMultiphysics as KM
     kratos_available = True
@@ -26,6 +27,7 @@ def PyQuESoTestSuite():
     test_suite.addTest(unittest.makeSuite(TestGGQTube))
     test_suite.addTest(unittest.makeSuite(TestGGQ1d))
     test_suite.addTest(unittest.makeSuite(TestBSplineVolume))
+    test_suite.addTest(unittest.makeSuite(TestParametersContainer))
 
     return test_suite
 
