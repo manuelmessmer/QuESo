@@ -27,13 +27,13 @@ void QuESo::Run()
     mpElementContainer = MakeUnique<ElementContainer>(mParameters);
 
     // Loop over all conditions
-    for( const auto& p_condition :  mParameters.GetConditions() ){
-        const std::string& r_filename = p_condition->GetFilename();
+    for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
+        const std::string& r_filename = r_condition_settings.Get<std::string>("input_filename");
         Unique<TriangleMesh> p_new_mesh = MakeUnique<TriangleMesh>();
         IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
         // Condition owns triangle mesh.
-        mConditions.push_back( ConditionFactory::New(p_condition, p_new_mesh) );
-        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(mConditions.back()->GetTriangleMesh(), mParameters) );
+        mConditions.push_back( Condition(p_new_mesh, r_condition_settings) );
+        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(mConditions.back().GetTriangleMesh(), mParameters) );
     }
 
     // Read geometry
@@ -68,10 +68,11 @@ void QuESo::Run()
         // Write vtk files (binary = true)
         IO::WriteElementsToVTK(*mpElementContainer, "output/elements.vtk", true);
         IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
-
+        IndexType cond_index = 0;
         for( const auto& r_condition : mConditions ){
-            std::string bc_filename = "output/BC_" + std::to_string(r_condition->GetId()) + ".stl";
-            IO::WriteMeshToSTL(r_condition->GetConformingMesh(), bc_filename.c_str(), true);
+            std::string bc_filename = "output/" + r_condition.GetParameters().Get<std::string>("type")
+                + '_' + std::to_string(++cond_index) + ".stl";
+            IO::WriteMeshToSTL(r_condition.GetConformingMesh(), bc_filename.c_str(), true);
         }
 
         QuESo_INFO << "Number of active elements: " << mpElementContainer->size() << std::endl;
@@ -176,7 +177,7 @@ void QuESo::Compute(){
             const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
             if( p_new_mesh->NumOfTriangles() > 0 ){
                 #pragma omp critical
-                mConditions[i]->AddToConformingMesh(*p_new_mesh);
+                mConditions[i].AddToConformingMesh(*p_new_mesh);
             }
         }
     }

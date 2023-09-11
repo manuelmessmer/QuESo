@@ -211,14 +211,6 @@ public:
     ///@name Operations
     ///@{
 
-    void AddGlobalParameters(const GlobalParameters& rGlobalParameters) {
-        mGlobalParameters = rGlobalParameters;
-    }
-
-    void AddConditionParameters(const ConditionParameters& rConditionParameters) {
-        mConditionParameters.push_back(rConditionParameters);
-    }
-
     template<typename type>
     const type& Get( const std::string& rName ) const {
         return mGlobalParameters.Get<type>(rName);
@@ -293,7 +285,15 @@ public:
         return IntegrationMethod() >= 3;
     }
 
-    void AddCondition( const ConditionParameters rConditionParameter ){
+    /// @brief Adds global settings to parameter container.
+    /// @param rGlobalParameters
+    void AddGlobalSettings(const GlobalParameters& rGlobalParameters) {
+        mGlobalParameters = rGlobalParameters;
+    }
+
+    /// @brief Ad condition settings to Parameters.
+    /// @param rConditionParameter
+    void AddConditionSettings( const ConditionParameters rConditionParameter ){
         mConditionParameters.push_back(rConditionParameter);
     }
 
@@ -303,10 +303,16 @@ public:
         return mConditionParameters.size();
     }
 
-    /// @brief Returns vector of ptr to conditions.
+    /// @brief Returns vector of conditions parameter settings.
     /// @return std::vector<ConditionParameters>&
-    const std::vector<ConditionParameters> & GetConditions() const {
+    const std::vector<ConditionParameters> & GetConditionsSettingsVector() const {
         return mConditionParameters;
+    }
+
+    /// @brief returns global parameters container.
+    /// @return const GlobalParameters&
+    const GlobalParameters& GetGlobalSettings() const {
+        return mGlobalParameters;
     }
 
     /// @brief Print all paramters (Name, Value).

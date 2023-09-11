@@ -26,6 +26,12 @@ typedef Vector3<double> Vector3d;
 typedef Vector3<IndexType> Vector3i;
 typedef std::pair<PointType, PointType> BoundingBoxType;
 
+enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
+typedef enum IntegrationMethod IntegrationMethodType;
+
+enum ConditionType {Neumann, Dirichlet};
+typedef enum ConditionType ConditionTypeType;
+
 ///@}
 ///@name QuESo GLOBAL VARIABLES
 ///@{
