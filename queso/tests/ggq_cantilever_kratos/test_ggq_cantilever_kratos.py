@@ -23,7 +23,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
     if kratos_available:
         parameters = ReadParameters("queso/tests/ggq_cantilever_kratos/QuESoParameters.json")
 
-        global_settings = parameters.GetGlobalParameters()
+        global_settings = parameters.GetGlobalSettings()
 
         global_settings.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
         global_settings.Set("polynomial_order", polynomial_degree)

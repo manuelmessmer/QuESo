@@ -21,7 +21,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         self.queso_parameters = queso_parameters
 
         self.lagrange_dofs_required = False
-        for condition_param in self.queso_parameters.GetConditionsParameters():
+        for condition_param in self.queso_parameters.GetConditionsSettingsVector():
             if( condition_param.GetString("type") == "LagrangeSupportCondition" ):
                 self.lagrange_dofs_required = True
 

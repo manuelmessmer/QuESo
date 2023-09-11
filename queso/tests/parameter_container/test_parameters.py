@@ -29,7 +29,7 @@ class TestParametersContainer(unittest.TestCase):
         integration_method = parameters.IntegrationMethod()
         self.assertEqual(integration_method, QuESo_PythonApplication.IntegrationMethod.Gauss)
 
-        global_parameters = parameters.GetGlobalParameters()
+        global_parameters = parameters.GetGlobalSettings()
 
         input_filename = global_parameters.GetString("input_filename")
         self.assertEqual(input_filename, "dummy.stl")
@@ -43,30 +43,30 @@ class TestParametersContainer(unittest.TestCase):
         b_slpine_mesh = global_parameters.GetBool("b_spline_mesh")
         self.assertEqual(b_slpine_mesh, True)
 
-        for condition_param in parameters.GetConditionsParameters():
-            if condition_param.GetString("type") == "SurfaceLoadCondition":
-                input_filename = condition_param.GetString("input_filename")
+        for condition_settings in parameters.GetConditionsSettingsVector():
+            if condition_settings.GetString("type") == "SurfaceLoadCondition":
+                input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, "SurfaceLoadCondition.stl")
-                modulus = condition_param.GetDouble("modulus")
+                modulus = condition_settings.GetDouble("modulus")
                 self.assertAlmostEqual(modulus, 5.0, 1e-10)
-                direction = condition_param.GetDoubleVector("direction")
+                direction = condition_settings.GetDoubleVector("direction")
                 self.assertAlmostEqual(direction, [-1.0, 2.0, 3.0], 1e-10)
-            elif condition_param.GetString("type") == "PressureLoadCondition":
-                input_filename = condition_param.GetString("input_filename")
+            elif condition_settings.GetString("type") == "PressureLoadCondition":
+                input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, "PressureLoadCondition.stl")
-                modulus = condition_param.GetDouble("modulus")
+                modulus = condition_settings.GetDouble("modulus")
                 self.assertAlmostEqual(modulus, 2.0, 1e-10)
-            elif condition_param.GetString("type") == "LagrangeSupportCondition":
-                input_filename = condition_param.GetString("input_filename")
+            elif condition_settings.GetString("type") == "LagrangeSupportCondition":
+                input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, "LagrangeSupportCondition.stl")
-                value = condition_param.GetDoubleVector("value")
+                value = condition_settings.GetDoubleVector("value")
                 self.assertAlmostEqual(value, [0.0, 0.3, 0.0], 1e-10)
-            elif condition_param.GetString("type") == "PenaltySupportCondition":
-                input_filename = condition_param.GetString("input_filename")
+            elif condition_settings.GetString("type") == "PenaltySupportCondition":
+                input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, "PenaltySupportCondition.stl")
-                value = condition_param.GetDoubleVector("value")
+                value = condition_settings.GetDoubleVector("value")
                 self.assertAlmostEqual(value, [0.0, 0.0, 0.0], 1e-10)
-                penalty_factor = condition_param.GetDouble("penalty_factor")
+                penalty_factor = condition_settings.GetDouble("penalty_factor")
                 self.assertAlmostEqual(penalty_factor, 1e10, 1e-10)
 
     def test_1(self):

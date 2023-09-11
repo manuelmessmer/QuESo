@@ -84,7 +84,7 @@ def ReadParameters(json_filename):
     for key, value in GetComponents(settings).items():
         general_setting.Set(key, value)
 
-    parameters.AddGlobalParameters(general_setting)
+    parameters.AddGlobalSettings(general_setting)
 
     # Read general settings
     for condition in GetConditions(settings):
@@ -93,6 +93,6 @@ def ReadParameters(json_filename):
         for key, value in condition[type].items():
             condition_settings.Set(key, value)
 
-        parameters.AddConditionParameters(condition_settings)
+        parameters.AddConditionSettings(condition_settings)
 
     return parameters

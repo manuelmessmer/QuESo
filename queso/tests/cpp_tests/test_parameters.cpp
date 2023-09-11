@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE(ParameterCastWrongTypesTest) {
 
 void CheckValuesConditionParameteters(const Parameters& rParameters){
 
-    for( const auto& r_cond : rParameters.GetConditions() ){
+    for( const auto& r_cond : rParameters.GetConditionsSettingsVector() ){
         if( r_cond.Get<std::string>("type") == "PenaltySupportCondition" ){
             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
             QuESo_CHECK_RELATIVE_NEAR(r_cond.Get<double>("penalty_factor"), 5.0, 1e-14 );
@@ -313,23 +313,23 @@ BOOST_AUTO_TEST_CASE(ConditionParametetersCustomSetTest) {
     penalty_support_params.Set("input_filename", std::string("test.stl"));
     penalty_support_params.Set("penalty_factor", 5.0);
     penalty_support_params.Set("value", PointType(5.0, 3.0, 4.0));
-    parameters.AddCondition(penalty_support_params);
+    parameters.AddConditionSettings(penalty_support_params);
 
     ConditionParameters langrange_support_params("LagrangeSupportCondition");
     langrange_support_params.Set("input_filename", std::string("test.stl"));
     langrange_support_params.Set("value", PointType(5.0, 3.0, 4.0));
-    parameters.AddCondition(langrange_support_params);
+    parameters.AddConditionSettings(langrange_support_params);
 
     ConditionParameters surface_load_params("SurfaceLoadCondition");
     surface_load_params.Set("input_filename", std::string("test.stl"));
     surface_load_params.Set("modulus", 10.0);
     surface_load_params.Set("direction", PointType(5.0, 3.0, 4.0));
-    parameters.AddCondition(surface_load_params);
+    parameters.AddConditionSettings(surface_load_params);
 
     ConditionParameters surface_pressure_params("PressureLoadCondition");
     surface_pressure_params.Set("input_filename", std::string("test.stl"));
     surface_pressure_params.Set("modulus", 15.0);
-    parameters.AddCondition(surface_pressure_params);
+    parameters.AddConditionSettings(surface_pressure_params);
 
     CheckValuesConditionParameteters(parameters);
     Parameters parameters_copy_const(parameters);
@@ -346,23 +346,23 @@ BOOST_AUTO_TEST_CASE(ConditionParametetersCustomConstructorTest) {
                                                 Component("input_filename", std::string("test.stl")),
                                                 Component("penalty_factor", 5.0),
                                                 Component("value", PointType(5.0, 3.0, 4.0)) });
-    parameters.AddCondition(penalty_support_params);
+    parameters.AddConditionSettings(penalty_support_params);
 
     ConditionParameters langrange_support_params({Component("type", std::string("LagrangeSupportCondition")),
                                                   Component("input_filename", std::string("test.stl")),
                                                   Component("value", PointType(5.0, 3.0, 4.0)) });
-    parameters.AddCondition(langrange_support_params);
+    parameters.AddConditionSettings(langrange_support_params);
 
     ConditionParameters surface_load_params({Component("type", std::string("SurfaceLoadCondition")),
                                              Component("input_filename", std::string("test.stl")),
                                              Component("direction", PointType(5.0, 3.0, 4.0)),
                                              Component("modulus", 10.0) });
-    parameters.AddCondition(surface_load_params);
+    parameters.AddConditionSettings(surface_load_params);
 
     ConditionParameters surface_pressure_params({Component("type", std::string("PressureLoadCondition")),
                                                  Component("input_filename", std::string("test.stl")),
                                                  Component("modulus", 15.0) });
-    parameters.AddCondition(surface_pressure_params);
+    parameters.AddConditionSettings(surface_pressure_params);
 
     CheckValuesConditionParameteters(parameters);
     Parameters parameters_copy_const(parameters);
