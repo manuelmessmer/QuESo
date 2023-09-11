@@ -78,20 +78,21 @@ def ReadParameters(json_filename):
         settings = json.load(file)
 
     parameters = QuESo_Application.Parameters()
-    components = GetComponents(settings)
 
-    for key, value in components.items():
-        parameters.Set(key, value)
+    # Read general settings
+    general_setting = QuESo_Application.GlobalParameters()
+    for key, value in GetComponents(settings).items():
+        general_setting.Set(key, value)
 
-    for condition_id, condition in enumerate(GetConditions(settings)):
-        if "dirichlet" in condition:
-            value = condition["dirichlet"]
-            parameters.AddDirichletBC(condition_id, value["filename"], QuESo_Application.Point(0.0, 0.0, 0.0), value["penalty_factor"])
-        elif "neumann" in condition:
-            value = condition["neumann"]
-            point = QuESo_Application.Point(value["force"])
-            parameters.AddNeumannBC(condition_id, value["filename"], point )
-        else:
-            raise Exception("Helper::ReadParameters :: Condition type does not exits.")
+    parameters.AddGlobalParameters(general_setting)
+
+    # Read general settings
+    for condition in GetConditions(settings):
+        type = list(condition.keys())[0]
+        condition_settings = QuESo_Application.ConditionParameters(str(type))
+        for key, value in condition[type].items():
+            condition_settings.Set(key, value)
+
+        parameters.AddConditionParameters(condition_settings)
 
     return parameters
