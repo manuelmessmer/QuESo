@@ -5,7 +5,7 @@
 #define CONDITION_INCLUDE_HPP
 
 //// STL includes
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 #include "containers/triangle_mesh.hpp"
 
 namespace queso {
@@ -14,37 +14,50 @@ namespace queso {
 ///@{
 
 /**
- * @class  Condition (Base class)
+ * @class  Condition
  * @author Manuel Messmer
- * @brief  Interface for NeumannCondition and DirichletCondition.
+ * @brief  Interface for conditions. Stores condition settings and triangle mesh.
 **/
-class Condition : public ParamCondition {
+class Condition {
 public:
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    Condition(IndexType Id, const std::string& rFilename, const Vector3d& rPrescribed, Unique<TriangleMesh>& pTriangleMesh )
-        : ParamCondition(Id, rFilename, rPrescribed ), mpInitialTriangleMesh(std::move(pTriangleMesh))
+    Condition(Unique<TriangleMesh>& pTriangleMesh, const ConditionParameters& rConditionParameters )
+        : mpInitialTriangleMesh(std::move(pTriangleMesh)), mConditionParameters(rConditionParameters)
     {
         mConformingTriangleMesh.Reserve(10*mpInitialTriangleMesh->NumOfTriangles());
         mConformingTriangleMesh.ReserveEdgesOnPlane(10);
     }
 
-    /// Destructor
-    virtual ~Condition() = default;
+    ///@}
+    ///@name Operations
+    ///@{
 
-    virtual const TriangleMesh& GetTriangleMesh() const {
+    /// @brief Returns initial / non-conforming triangle mesh.
+    /// @return const TriangleMesh&
+    const TriangleMesh& GetTriangleMesh() const {
         return *mpInitialTriangleMesh;
     }
 
-    virtual void AddToConformingMesh(const TriangleMesh& rNewMesh){
+    /// @brief Adds mesh section to the conforming triangle mesh.
+    /// @param rNewMesh
+    void AddToConformingMesh(const TriangleMesh& rNewMesh){
         MeshUtilities::Append(mConformingTriangleMesh, rNewMesh);
     }
 
-    virtual const TriangleMesh& GetConformingMesh() const {
+    /// @brief Returns the conforming triangle mesh.
+    /// @return
+    const TriangleMesh& GetConformingMesh() const {
         return mConformingTriangleMesh;
+    }
+
+    /// @brief Returns setting of condtiion
+    /// @return const ConditionParameters&
+    const ConditionParameters& GetSettings() const {
+        return mConditionParameters;
     }
 
 private:
@@ -54,101 +67,10 @@ private:
 
     Unique<TriangleMesh> mpInitialTriangleMesh;
     TriangleMesh mConformingTriangleMesh;
+    const ConditionParameters& mConditionParameters;
 
     ///@}
-}; // End class ParamCondition
-
-/**
- * @class  ConditionNeumann
- * @author Manuel Messmer
- * @brief  Container for neumann condition.
-**/
-class ConditionNeumann : public Condition {
-public:
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Constructor
-    ConditionNeumann(IndexType Id, const std::string& rFilename, const Vector3d& rPrescribed, Unique<TriangleMesh>& pTriangleMesh )
-        : Condition(Id, rFilename, rPrescribed, pTriangleMesh )
-    {
-    }
-
-    ConditionNeumann(const Shared<ParamCondition>& pCondition, Unique<TriangleMesh>& pTriangleMesh )
-        : Condition(pCondition->GetId(), pCondition->GetFilename(), pCondition->GetPrescribed(), pTriangleMesh )
-    {
-    }
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /// Returns type of condition.
-    ConditionTypeType Type() const override {
-        return ConditionType::Neumann;
-    }
-    ///@}
-
-}; /// End of class ConditionNeumann
-
-/**
- * @class  ConditionDirichlet
- * @author Manuel Messmer
- * @brief  Container for dirichlet condition related parameters.
-**/
-class ConditionDirichlet : public Condition {
-public:
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Constructor
-    ConditionDirichlet(IndexType Id, const std::string& rFilename, const Vector3d& rPrescribed, double PenaltyFactor, Unique<TriangleMesh>& pTriangleMesh )
-        : Condition(Id, rFilename, rPrescribed, pTriangleMesh ), mPenaltyFactor(PenaltyFactor)
-    {
-    }
-
-    ConditionDirichlet(const Shared<ParamCondition>& pCondition, Unique<TriangleMesh>& pTriangleMesh )
-        : Condition(pCondition->GetId(), pCondition->GetFilename(), pCondition->GetPrescribed(), pTriangleMesh ), mPenaltyFactor(pCondition->GetPenaltyFactor())
-    {
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /// Returns type of condition.
-    ConditionTypeType Type() const override {
-        return ConditionType::Dirichlet;
-    }
-
-    /// Returns penalty factor.
-    double GetPenaltyFactor() const override {
-        return mPenaltyFactor;
-    }
-
-private:
-    ///@}
-    ///@name Private members
-    ///@{
-    double mPenaltyFactor;
-    ///@}
-}; // End of ConditionDirichlet class.
-
-class ConditionFactory {
-public:
-    static Shared<Condition> New( const Shared<ParamCondition>& pCondition, Unique<TriangleMesh>& pTriangleMesh ){
-        if( pCondition->Type() == ConditionType::Neumann ){
-            return MakeShared<ConditionNeumann>(pCondition, pTriangleMesh);
-        } else if ( pCondition->Type() == ConditionType::Dirichlet ) {
-            return MakeShared<ConditionDirichlet>(pCondition, pTriangleMesh);
-        } else {
-            QuESo_ERROR << "Conditition type does not exist.\n";
-        }
-        return nullptr;
-
-    }
-};
+}; // End class Condition
 
 } // End queso namespace.
 

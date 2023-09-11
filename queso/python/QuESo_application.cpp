@@ -206,7 +206,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<Condition, std::shared_ptr<Condition>>(m,"Condition")
         .def("IsWeakCondition", [](const Condition& rCondition)->bool { return true; } )
         .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
-        .def("GetParameters", &Condition::GetParameters)
+        .def("GetSettings", &Condition::GetSettings)
     ;
 
     /// Export Condition Vector

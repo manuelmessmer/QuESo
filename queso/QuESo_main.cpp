@@ -70,7 +70,7 @@ void QuESo::Run()
         IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
         IndexType cond_index = 0;
         for( const auto& r_condition : mConditions ){
-            std::string bc_filename = "output/" + r_condition.GetParameters().Get<std::string>("type")
+            std::string bc_filename = "output/" + r_condition.GetSettings().Get<std::string>("type")
                 + '_' + std::to_string(++cond_index) + ".stl";
             IO::WriteMeshToSTL(r_condition.GetConformingMesh(), bc_filename.c_str(), true);
         }
