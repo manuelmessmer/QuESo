@@ -1,7 +1,6 @@
 {
     "general_settings"   : {
         "input_filename"  : "queso/tests/trimmed_cantilever_kratos/cylinder.stl",
-        "postprocess_filename" : "queso/tests/trimmed_cantilever_kratos/cylinder.stl",
         "echo_level"      : 0,
         "embedding_flag"  : true
     },
@@ -23,12 +22,14 @@
         "integration_method" : "GGQ_Optimal"
     },
     "conditions"    :  [{
-        "neumann": {
-            "filename" : "queso/tests/trimmed_cantilever_kratos/tip.stl",
-            "force" : [0.0, 0.1, 0.0]
+        "SurfaceLoadCondition": {
+            "input_filename" : "queso/tests/trimmed_cantilever_kratos/tip.stl",
+            "modulus" : 0.1,
+            "direction" : [0.0, 1, 0.0]
         }},{
-        "dirichlet": {
-            "filename" : "queso/tests/trimmed_cantilever_kratos/base.stl",
+        "PenaltySupportCondition": {
+            "input_filename" : "queso/tests/trimmed_cantilever_kratos/base.stl",
+            "value" : [0, 0, 0],
             "penalty_factor" : 1e10
         }}
     ]

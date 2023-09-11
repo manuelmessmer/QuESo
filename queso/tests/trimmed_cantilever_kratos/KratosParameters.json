@@ -21,10 +21,7 @@
             "time_step" : 1.1
         },
         "linear_solver_settings":{
-            "preconditioner_type" : "additive_schwarz",
-            "solver_type": "bicgstab",
-            "max_iteration" : 5000,
-            "tolerance" : 1e-6
+            "solver_type": "sparse_lu"
         },
         "rotation_dofs"            : false,
         "builder_and_solver_settings" : {
