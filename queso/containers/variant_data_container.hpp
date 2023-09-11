@@ -67,8 +67,17 @@ private:
 
 }; // End class Component
 
+
+/**
+ * @class  VariantDataContainer
+ * @author Manuel Messmer
+ * @brief  Base class for Parameters.
+**/
 class VariantDataContainer {
 public:
+
+    typedef std::vector<Component> ComponentVectorType;
+    typedef std::vector<std::pair<std::string, const std::type_info*>> AvailableComponentVectorType;
 
     ///@name std::visit Structs
     ///@{
@@ -106,13 +115,19 @@ public:
     }
 
     /// Constructor
-    VariantDataContainer(std::vector<Component> Component) : mComponents(Component) {
+    VariantDataContainer(ComponentVectorType Component) : mComponents(Component) {
     }
 
     /// Destructor
     virtual ~VariantDataContainer() = default;
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /// @brief Set values to given component. If component is not stored yet, component is added.
+    ///        Values that are supposed to be 'Double' or 'Vector3d' but are falsely given as 'int' or 'Vector3i'
+    ///        are casted to their correct types.
     /// @tparam type
     /// @param rName Name (Key) of parameter.
     /// @param rValue New value of parameter.
@@ -131,83 +146,6 @@ public:
 
         EnsureValidValues();
         CheckComponents();
-    }
-
-    /// @brief Set values to given component. If component is not stored yet, component is added.
-    /// @param rName Name (Key) of parameter.
-    /// @param rValue New value of parameter.
-    /// @param return bool. True id types were succesfully cast.
-    bool CastAmbiguousTypesAndSet(const std::string& rName, const Component::ComponentType& rValue){
-        const auto& r_available_components = GetAvailableComponents();
-        const auto p_pair_found = std::find_if( r_available_components.begin(), r_available_components.end(),
-                [&rName](const auto& rPair) { return rPair.first == rName; } );
-
-        if( p_pair_found != r_available_components.end() ){
-            const auto p_current_type_info = std::visit(TypeVisit{}, rValue);
-            const auto p_ref_type_info = p_pair_found->second;
-
-            if( *p_current_type_info == typeid(unsigned long) && *p_ref_type_info == typeid(double)) {
-                auto p_value = const_cast<unsigned long*>(std::get_if<unsigned long>(&rValue));
-                Set<double>(rName, static_cast<double>(*p_value));
-                return true;
-            }
-            else if( *p_current_type_info == typeid(Vector3i) && *p_ref_type_info == typeid(Vector3d)) {
-                auto p_value = const_cast<Vector3i*>(std::get_if<Vector3i>(&rValue));
-                Set<Vector3d>(rName, Vector3d((*p_value)[0], (*p_value)[1], (*p_value)[2]) );
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
-    /// @brief Returns Value of component if it exists. Returns nullptr otherwise. Const version.
-    /// @tparam type
-    /// @param rName Name (Key) of parameter.
-    /// @return const type*
-    template<class type>
-    const type* pFind( const std::string& rName ) const {
-        for( auto& r_component : mComponents){
-            const auto p_value = std::get_if<type>(&r_component.Get());
-            if( p_value ){
-                if( r_component.Name() == rName ){
-                    return p_value;
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    /// @brief Returns Value of component if it exists. Returns nullptr otherwise. Non-Const version.
-    /// @tparam type
-    /// @param rName Name (Key) of parameter.
-    /// @return const type*
-    template<class type>
-    type* pFind( const std::string& rName ) {
-        for( auto& r_component : mComponents){
-            auto p_value = const_cast<type*>(std::get_if<type>(&r_component.Get()));
-            if( p_value ){
-                if( r_component.Name() == rName ){
-                    return p_value;
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    /// @brief Adds Value to mComponents if Types of 'type' and 'rValues' match.
-    /// @tparam type
-    /// @param rValues New Component.
-    template<typename type>
-    void AddValueIfTypesMatch(const Component& rValues){
-        auto p_type_id = std::visit(TypeVisit{}, rValues.Get());
-        if( *p_type_id == typeid(type) ){
-            auto p_value = pFind<type>(rValues.Name());
-            if( !p_value ){
-                mComponents.push_back( rValues );
-            }
-        }
     }
 
     /// @brief Returns true if parameter component exists.
@@ -286,15 +224,106 @@ public:
         }
     }
 
+    /// @brief Interface to set limits of certain parameters.
     virtual void EnsureValidValues() {};
 
-    virtual const std::vector<Component> GetDefaults() const = 0;
+    /// @brief Interface to define default parameters in derived class.
+    /// @return ComponentVectorType
+    virtual const ComponentVectorType& GetDefaults() const = 0;
 
-    virtual const std::vector<std::pair<std::string, const std::type_info*>>& GetAvailableComponents() const = 0;
+    /// @brief Interface to define available parameters in derived class.
+    /// @return AvailableComponentVectorType
+    virtual const AvailableComponentVectorType& GetAvailableComponents() const = 0;
 
 private:
-    std::vector<Component> mComponents;
-};
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    /// @brief Adds Value to mComponents if Types of 'type' and 'rValues' match.
+    /// @tparam type
+    /// @param rValues New Component.
+    template<typename type>
+    void AddValueIfTypesMatch(const Component& rValues){
+        auto p_type_id = std::visit(TypeVisit{}, rValues.Get());
+        if( *p_type_id == typeid(type) ){
+            auto p_value = pFind<type>(rValues.Name());
+            if( !p_value ){
+                mComponents.push_back( rValues );
+            }
+        }
+    }
+
+    /// @brief Casts values that are supposed to be 'Double' or 'Vector3d' but are falsely given as 'int' or 'Vector3i' to their correct types
+    ///        and calls Set() again.
+    /// @param rName Name (Key) of parameter.
+    /// @param rValue New value of parameter.
+    /// @param return bool. True if types were succesfully cast.
+    bool CastAmbiguousTypesAndSet(const std::string& rName, const Component::ComponentType& rValue){
+        const auto& r_available_components = GetAvailableComponents();
+        const auto p_pair_found = std::find_if( r_available_components.begin(), r_available_components.end(),
+                [&rName](const auto& rPair) { return rPair.first == rName; } );
+
+        if( p_pair_found != r_available_components.end() ){
+            const auto p_current_type_info = std::visit(TypeVisit{}, rValue);
+            const auto p_ref_type_info = p_pair_found->second;
+
+            if( *p_current_type_info == typeid(unsigned long) && *p_ref_type_info == typeid(double)) {
+                auto p_value = const_cast<unsigned long*>(std::get_if<unsigned long>(&rValue));
+                Set<double>(rName, static_cast<double>(*p_value));
+                return true;
+            }
+            else if( *p_current_type_info == typeid(Vector3i) && *p_ref_type_info == typeid(Vector3d)) {
+                auto p_value = const_cast<Vector3i*>(std::get_if<Vector3i>(&rValue));
+                Set<Vector3d>(rName, Vector3d((*p_value)[0], (*p_value)[1], (*p_value)[2]) );
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// @brief Returns Value of component if it exists. Returns nullptr otherwise. Const version.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @return const type*
+    template<class type>
+    const type* pFind( const std::string& rName ) const {
+        for( auto& r_component : mComponents){
+            const auto p_value = std::get_if<type>(&r_component.Get());
+            if( p_value ){
+                if( r_component.Name() == rName ){
+                    return p_value;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    /// @brief Returns Value of component if it exists. Returns nullptr otherwise. Non-Const version.
+    /// @tparam type
+    /// @param rName Name (Key) of parameter.
+    /// @return const type*
+    template<class type>
+    type* pFind( const std::string& rName ) {
+        for( auto& r_component : mComponents){
+            auto p_value = const_cast<type*>(std::get_if<type>(&r_component.Get()));
+            if( p_value ){
+                if( r_component.Name() == rName ){
+                    return p_value;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    ///@}
+    ///@name Private member variables
+    ///@{
+
+    ComponentVectorType mComponents;
+}; // End of class VariantDataContainer
 
 } // End Namespace queso
 #endif // VARIANT_DATA_CONTAINER_INCLUDE_HPP

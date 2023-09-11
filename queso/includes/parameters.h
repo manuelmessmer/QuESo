@@ -15,6 +15,10 @@ namespace queso {
 ///@name  QuESo Classes
 ///@{
 
+/**
+ * @class  Container to store all global parameters.
+ * @author Manuel Messmer
+**/
 class GlobalParameters : public VariantDataContainer {
 public:
     typedef VariantDataContainer BaseType;
@@ -28,18 +32,22 @@ public:
     }
 
     /// Constructor
-    GlobalParameters(std::vector<Component> Component) : VariantDataContainer(Component)
+    GlobalParameters(BaseType::ComponentVectorType Component) : VariantDataContainer(Component)
     {
         AddDefaults();
         EnsureValidValues();
         CheckComponents();
     }
 
-    const std::vector<Component> GetDefaults() const override {
+    /// @brief Provides default parameters to base class.
+    /// @return const BaseType::ComponentVectorType&
+    const BaseType::ComponentVectorType& GetDefaults() const override {
         return mDefaultComponents;
     }
 
-    const std::vector<std::pair<std::string, const std::type_info*>>& GetAvailableComponents() const override {
+    /// @brief Provides aivalable parameteters to base class.
+    /// @return const BaseType::AvailableComponentVectorType&
+    const BaseType::AvailableComponentVectorType& GetAvailableComponents() const override {
         return mAllAvailableComponents;
     }
 
@@ -57,7 +65,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    inline static const std::vector<Component> mDefaultComponents = {
+    inline static const BaseType::ComponentVectorType mDefaultComponents = {
         Component("echo_level", 0UL),
         Component("embedding_flag", true),
         Component("initial_triangle_edge_length", 1.0),
@@ -72,7 +80,7 @@ private:
         Component("integration_method", IntegrationMethod::Gauss),
         Component("use_customized_trimmed_points", false) };
 
-    inline static const std::vector<std::pair<std::string, const std::type_info*>> mAllAvailableComponents = {
+    inline static const BaseType::AvailableComponentVectorType mAllAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("echo_level", &typeid(unsigned long) ),
@@ -91,8 +99,12 @@ private:
         std::make_pair<std::string, const std::type_info*>("init_point_distribution_factor", &typeid(unsigned long) ),
         std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
         std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ) };
-};
+}; // End class GlobalParameters
 
+/**
+ * @class  Container to store all condition parameters.
+ * @author Manuel Messmer
+**/
 class ConditionParameters : public VariantDataContainer {
 public:
     typedef VariantDataContainer BaseType;
@@ -108,7 +120,7 @@ public:
     }
 
     /// Constructor
-    ConditionParameters(std::vector<Component> Component) : VariantDataContainer(Component)
+    ConditionParameters(BaseType::ComponentVectorType Component) : VariantDataContainer(Component)
     {
         CreateAvailableComponentList();
         AddDefaults();
@@ -131,11 +143,11 @@ public:
         }
     }
 
-    const std::vector<Component> GetDefaults() const override {
+    const BaseType::ComponentVectorType& GetDefaults() const override {
         return mDefaultComponents;
     }
 
-    const std::vector<std::pair<std::string, const std::type_info*>>& GetAvailableComponents() const override {
+    const BaseType::AvailableComponentVectorType& GetAvailableComponents() const override {
         return mAvailableComponents;
     }
 
@@ -147,24 +159,24 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    inline static const std::vector<Component> mDefaultComponents = { };
+    inline static const BaseType::ComponentVectorType mDefaultComponents = { };
 
-    std::vector<std::pair<std::string, const std::type_info*>> mAvailableComponents = {
+    BaseType::AvailableComponentVectorType mAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("type", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ) };
 
-    inline static const std::vector<std::pair<std::string, const std::type_info*>> mAvailableComponentsPenalty = {
+    inline static const BaseType::AvailableComponentVectorType mAvailableComponentsPenalty = {
         std::make_pair<std::string, const std::type_info*>("penalty_factor", &typeid(double) ),
         std::make_pair<std::string, const std::type_info*>("value", &typeid(PointType) ) };
 
-    inline static const std::vector<std::pair<std::string, const std::type_info*>> mAvailableComponentsLagrange = {
+    inline static const BaseType::AvailableComponentVectorType mAvailableComponentsLagrange = {
         std::make_pair<std::string, const std::type_info*>("value", &typeid(PointType) ) };
 
-    inline static const std::vector<std::pair<std::string, const std::type_info*>> mAvailableComponentsSurfaceLoad = {
+    inline static const BaseType::AvailableComponentVectorType mAvailableComponentsSurfaceLoad = {
         std::make_pair<std::string, const std::type_info*>("modulus", &typeid(double) ),
         std::make_pair<std::string, const std::type_info*>("direction", &typeid(PointType) ) };
 
-    inline static const std::vector<std::pair<std::string, const std::type_info*>> mAvailableComponentsPressureLoad = {
+    inline static const BaseType::AvailableComponentVectorType mAvailableComponentsPressureLoad = {
         std::make_pair<std::string, const std::type_info*>("modulus", &typeid(double) ) };
 };
 
@@ -172,7 +184,8 @@ private:
 /**
  * @class  Parameters
  * @author Manuel Messmer
- * @brief  Dynamic container for all available parameters.
+ * @brief  Dynamic container for all available parameters. Parameters are split into global parameters and a vector of condition parameters:
+ *         one for each condition.
 **/
 class Parameters {
 public:
