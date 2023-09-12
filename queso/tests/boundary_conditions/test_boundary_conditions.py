@@ -1,7 +1,7 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
-from python_scripts.QuESoUnittest import QuESoTestCase
+from queso.python_scripts.QuESoUnittest import QuESoTestCase
 # Unittest import
 import unittest
 
@@ -11,7 +11,6 @@ class TestBoundaryConditions(QuESoTestCase):
         area = 0.0
         for id in range(num_triangles):
             area += triangle_mesh.Area(id)
-
         self.assertAlmostEqual(area, ref_area, 5)
 
     def check_values(self, pyqueso):
@@ -54,15 +53,16 @@ class TestBoundaryConditions(QuESoTestCase):
 
                 triangle_mesh = condition.GetTriangleMesh()
                 self.check_triangle_mesh(triangle_mesh, 1183.54304)
+            else:
+                raise Exception("TestBoundaryConditions :: Given condition type does not exist.")
 
     def test_1(self):
         pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoParameters1.json")
         pyqueso.Run()
-
         self.check_values(pyqueso)
 
     def test_2(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoParameters1.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoParameters2.json")
         pyqueso.Run()
         self.check_values(pyqueso)
 

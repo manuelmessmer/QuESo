@@ -10,31 +10,30 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 # Unittest imports
 import unittest
 
-def run_modelers(current_model, modelers_list):
-    from KratosMultiphysics.modeler_factory import KratosModelerFactory
-    factory = KratosModelerFactory()
-    list_of_modelers = factory.ConstructListOfModelers(current_model, modelers_list)
-
-    for modeler in list_of_modelers:
-        modeler.SetupGeometryModel()
-
-    for modeler in list_of_modelers:
-        modeler.PrepareGeometryModel()
-
-    for modeler in list_of_modelers:
-        modeler.SetupModelPart()
-
 class TestBoundaryConditionsKratos(QuESoTestCase):
+    def run_modelers(self, current_model, modelers_list):
+        from KratosMultiphysics.modeler_factory import KratosModelerFactory
+        factory = KratosModelerFactory()
+        list_of_modelers = factory.ConstructListOfModelers(current_model, modelers_list)
+
+        for modeler in list_of_modelers:
+            modeler.SetupGeometryModel()
+
+        for modeler in list_of_modelers:
+            modeler.PrepareGeometryModel()
+
+        for modeler in list_of_modelers:
+            modeler.SetupModelPart()
+
     def check_surface_area(self, model_part, ref_value):
         area = 0.0
         for condition in model_part.Conditions:
             det_J = condition.GetGeometry().DeterminantOfJacobian()[0]
-            weight = 0.5 #fOR triangles
+            weight = 0.5 # For triangles
             area += weight*det_J
         self.assertAlmostEqual(area,ref_value, 5)
 
     def construct_b_spline_volume(self, model, queso_params):
-        # Read nurbs_volume_model_part
         modeler_settings = KM.Parameters("""
             [{
                 "modeler_name": "NurbsGeometryModeler",
@@ -59,7 +58,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         tmp_parameters["number_of_knot_spans"].SetVector(queso_params.NumberOfElements())
         tmp_parameters["model_part_name"].SetString("NurbsMesh")
 
-        run_modelers(model, modeler_settings)
+        self.run_modelers(model, modeler_settings)
 
     def test_penalty_support(self):
         pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Penalty.json")

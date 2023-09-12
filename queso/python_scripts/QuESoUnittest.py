@@ -2,7 +2,7 @@
 import unittest
 
 class QuESoTestCase(unittest.TestCase):
-    ''' QuESoTestCase interface to derives from  unittest.TestCase in order
+    ''' QuESoTestCase interface to derive from  unittest.TestCase in order
         to allow to add customized assert-Functions. '''
 
     def assertListsAlmostEqual(self, ListA, ListB, Places):

@@ -1,7 +1,7 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
-from python_scripts.QuESoUnittest import QuESoTestCase
+from queso.python_scripts.QuESoUnittest import QuESoTestCase
 # External imports
 import unittest
 import json
