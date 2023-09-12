@@ -18,6 +18,25 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
 
+void CheckTriangleOrientation(const TriangleMesh& rTriangleMesh){
+    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
+        if( rTriangleMesh.Area(i) > EPS3 ){
+            const auto& p0 = rTriangleMesh.P1(i);
+            const auto& p1 = rTriangleMesh.P2(i);
+            const auto& p2 = rTriangleMesh.P3(i);
+            const auto A = p1 - p0;
+            const auto B = p2 - p1;
+
+            PointType normal_cross = Math::Cross(A, B);
+            normal_cross /= normal_cross.Norm();
+
+            PointType normal_stored = rTriangleMesh.Normal(i);
+
+            QuESo_CHECK_POINT_NEAR(normal_cross, normal_stored, EPS2);
+        }
+    }
+}
+
 void RunTest(const std::string& rFilename, const Parameters& rParameters,
             const std::string& rResultsFilename, IndexType NumTrimmedElements){
 
@@ -62,8 +81,13 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
 
-            // Get volume
+            // Get triangle mesh
             const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+
+            // Check orientation
+            CheckTriangleOrientation(r_mesh);
+
+            // Get volume
             volume_test += MeshUtilities::Volume(r_mesh);
 
             // Get boundary integration points
@@ -210,6 +234,9 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
         if( p_trimmed_domain ){
             auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+            // Check triangle orientations.
+            CheckTriangleOrientation(r_mesh);
+
             volume += MeshUtilities::Volume(r_mesh);
             number_trimmed_elements++;
         }
