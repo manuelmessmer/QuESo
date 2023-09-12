@@ -341,7 +341,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 tmp_point[DIRINDEX1] = v2_up[0];
                 tmp_point[DIRINDEX2] = v2_up[1];
                 IndexType v3 = p_new_mesh->AddVertex(tmp_point);
-                if (mUpperBoundary)
+                if (mUpperBoundary ^ mSwitchOrientation)
                     p_new_mesh->AddTriangle(Vector3i(v1, v2, v3));
                 else
                     p_new_mesh->AddTriangle(Vector3i(v2, v1, v3));
@@ -366,7 +366,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 tmp_point[DIRINDEX1] = v1_up[0];
                 tmp_point[DIRINDEX2] = v1_up[1];
                 IndexType v3 = p_new_mesh->AddVertex(tmp_point);
-                if (mUpperBoundary)
+                if (mUpperBoundary ^ mSwitchOrientation)
                     p_new_mesh->AddTriangle(Vector3i(v1, v2, v3));
                 else
                     p_new_mesh->AddTriangle(Vector3i(v2, v1, v3));
@@ -413,7 +413,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
             // Instantiate new polygon.
             Polygon<4> polygon(normal);
             // Orientation of triangle depends whether we are on upper or lower bound of AABB.
-            if (mUpperBoundary) {
+            if (mUpperBoundary ^ mSwitchOrientation) {
                 polygon.AddVertex(corner_points[0]);
                 polygon.AddVertex(corner_points[1]);
                 polygon.AddVertex(corner_points[2]);
