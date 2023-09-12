@@ -4,7 +4,6 @@
 #ifndef VARIANT_DATA_CONTAINER_INCLUDE_HPP
 #define VARIANT_DATA_CONTAINER_INCLUDE_HPP
 
-
 //// STL includes
 #include <variant>
 #include <iostream>
@@ -16,14 +15,13 @@
 ////Project includes
 #include "includes/define.hpp"
 
-
 namespace queso {
 
 /**
  * @class  Component
  * @author Manuel Messmer
  * @brief  Container for all available Types of variant data container. Available Types are:
- *         PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType
+ *         PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType.
  * @details Stores Name (Key) and Value of Parameter.
 **/
 class Component {
@@ -54,7 +52,6 @@ public:
         return mName;
     }
 
-
 private:
     ///@}
     ///@name Private Member variables
@@ -71,7 +68,10 @@ private:
 /**
  * @class  VariantDataContainer
  * @author Manuel Messmer
- * @brief  Base class for Parameters.
+ * @brief  Pure base class for containers to store parameters of different types. Derived class must override
+ *         GetDefaultComponents() and GetAvailableComponents().
+ *         EnsureValidValues() may be overriden to set e.g. limits on certain parameters.
+ * @see Component
 **/
 class VariantDataContainer {
 public:
@@ -111,10 +111,9 @@ public:
 
     /// Default constructor
     VariantDataContainer() {
-
     }
 
-    /// Constructor
+    /// Constructor with list of components
     VariantDataContainer(ComponentVectorType Component) : mComponents(Component) {
     }
 
@@ -127,7 +126,8 @@ public:
 
     /// @brief Set values to given component. If component is not stored yet, component is added.
     ///        Values that are supposed to be 'Double' or 'Vector3d' but are falsely given as 'int' or 'Vector3i'
-    ///        are casted to their correct types.
+    ///        are casted to their correct types. This allows the values in the 'QuESoParameters.json' to be provided as '0', '[0, 0, 0]',
+    ///        which are supposed to be '0.0', '[0.0, 0.0, 0.0]'.
     /// @tparam type
     /// @param rName Name (Key) of parameter.
     /// @param rValue New value of parameter.
@@ -138,12 +138,12 @@ public:
             *p_value = rValue;
         }
         else {
+            // Try to cast 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] when applicable.
             if( !CastAmbiguousTypesAndSet(rName, rValue) ) {
                // Component does not exist -> Add new one.
                mComponents.push_back(Component(rName, rValue));
             }
         }
-
         EnsureValidValues();
         CheckComponents();
     }
@@ -175,7 +175,7 @@ public:
         QuESo_ERROR << "Component: '" + rName + "' not found.\n";
     }
 
-    /// @brief Print all paramters (Name, Value).
+    /// @brief Print all components (Name, Value).
     /// @param rOStream
     void PrintInfo(std::ostream& rOStream) const {
         for( auto& value : mComponents ){
@@ -185,9 +185,11 @@ public:
         }
     }
 
-    /// @brief Adds all defaults values (mDefaultComponents) to current set of parameters.
+    /// @brief Adds all default values (GetDefaultComponents()) to current set of parameters.
+    ///        GetDefaultComponents() must be overriden in derived class.
+    /// @see GetDefaultComponents()
     void AddDefaults(){
-        const auto& r_default_components = GetDefaults();
+        const auto& r_default_components = GetDefaultComponents();
         for( auto& value : r_default_components){
             AddValueIfTypesMatch<PointType>(value);
             AddValueIfTypesMatch<Vector3i>(value);
@@ -199,8 +201,10 @@ public:
         }
     }
 
-    /// @brief Checks if all components are part of r_available_components. Also checks if all
+    /// @brief Checks if all components are part of GetAvailableComponents(). Also checks if all
     ///        components have the correct Types.
+    ///        GetAvailableComponents() must be overriden in derived class.
+    /// @see GetAvailableComponents()
     void CheckComponents() const {
         const auto& r_available_components = GetAvailableComponents();
         for( auto& r_components : mComponents ){
@@ -225,13 +229,16 @@ public:
     }
 
     /// @brief Interface to set limits of certain parameters.
+    ///        May be overriden in derived class.
     virtual void EnsureValidValues() {};
 
     /// @brief Interface to define default parameters in derived class.
+    ///        Must be overriden in derived class.
     /// @return ComponentVectorType
-    virtual const ComponentVectorType& GetDefaults() const = 0;
+    virtual const ComponentVectorType& GetDefaultComponents() const = 0;
 
     /// @brief Interface to define available parameters in derived class.
+    ///        Must be overriden in derived class.
     /// @return AvailableComponentVectorType
     virtual const AvailableComponentVectorType& GetAvailableComponents() const = 0;
 
@@ -241,7 +248,8 @@ private:
     ///@name Private operations
     ///@{
 
-    /// @brief Adds Value to mComponents if Types of 'type' and 'rValues' match.
+    /// @brief Adds Value to mComponents if Types of 'type' and 'rValues' match
+    ///        and 'rValues' does not yet exist.
     /// @tparam type
     /// @param rValues New Component.
     template<typename type>
@@ -256,7 +264,7 @@ private:
     }
 
     /// @brief Casts values that are supposed to be 'Double' or 'Vector3d' but are falsely given as 'int' or 'Vector3i' to their correct types
-    ///        and calls Set() again.
+    ///        and calls Set() again. Correct type is taken from GetAvailableComponents().
     /// @param rName Name (Key) of parameter.
     /// @param rValue New value of parameter.
     /// @param return bool. True if types were succesfully cast.
@@ -268,12 +276,13 @@ private:
         if( p_pair_found != r_available_components.end() ){
             const auto p_current_type_info = std::visit(TypeVisit{}, rValue);
             const auto p_ref_type_info = p_pair_found->second;
-
+            // 0 -> 0.0 when required.
             if( *p_current_type_info == typeid(unsigned long) && *p_ref_type_info == typeid(double)) {
                 auto p_value = const_cast<unsigned long*>(std::get_if<unsigned long>(&rValue));
                 Set<double>(rName, static_cast<double>(*p_value));
                 return true;
             }
+            // [0, 0, 0] -> [0.0, 0.0, 0.0] when required.
             else if( *p_current_type_info == typeid(Vector3i) && *p_ref_type_info == typeid(Vector3d)) {
                 auto p_value = const_cast<Vector3i*>(std::get_if<Vector3i>(&rValue));
                 Set<Vector3d>(rName, Vector3d((*p_value)[0], (*p_value)[1], (*p_value)[2]) );
@@ -322,8 +331,10 @@ private:
     ///@name Private member variables
     ///@{
 
+    // List of components.
     ComponentVectorType mComponents;
-}; // End of class VariantDataContainer
 
+}; // End of class VariantDataContainer
+///@}
 } // End Namespace queso
 #endif // VARIANT_DATA_CONTAINER_INCLUDE_HPP

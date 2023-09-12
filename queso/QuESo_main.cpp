@@ -80,7 +80,7 @@ void QuESo::Run()
 
         if( mParameters.EchoLevel() > 1 ) {
             const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
-            QuESo_INFO << "The computed quadrature represents " << volume_ips/volume_brep * 100
+            QuESo_INFO << "The computed quadrature represents " << volume_ips/volume_brep * 100.0
                 << "% of the volume of the BRep model.\n";
         }
 

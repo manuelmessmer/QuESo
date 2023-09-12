@@ -26,12 +26,6 @@ typedef Vector3<double> Vector3d;
 typedef Vector3<IndexType> Vector3i;
 typedef std::pair<PointType, PointType> BoundingBoxType;
 
-enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
-typedef enum IntegrationMethod IntegrationMethodType;
-
-enum ConditionType {Neumann, Dirichlet};
-typedef enum ConditionType ConditionTypeType;
-
 ///@}
 ///@name QuESo GLOBAL VARIABLES
 ///@{
@@ -68,10 +62,13 @@ constexpr double EPS3 = 1e-12;
 constexpr double EPS4 = 1e-14;
 
 // Enum's
+enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
+typedef enum IntegrationMethod IntegrationMethodType;
+
 enum IntersectionStatus {Inside, Outside, Trimmed};
 typedef IntersectionStatus IntersectionStatusType;
 
-// Factories
+// QuESo Factories
 inline BoundingBoxType MakeBox( std::array<double, 3> rL, std::array<double, 3> rR ){
     return std::make_pair(PointType(rL), PointType(rR));
 }

@@ -234,6 +234,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
 
+    /// Export VariantDataContainer
     py::class_<VariantDataContainer,std::shared_ptr<VariantDataContainer>>(m,"VariantDataContainer")
         .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const PointType& rValue){
             rContainer.Set(rName, rValue); })
@@ -271,15 +272,17 @@ PYBIND11_MODULE(QuESo_Application,m) {
             return rContainer.Get<Vector3i>(rName).Coordinates(); })
         ;
 
+    /// Export GlobalParameters
     py::class_<GlobalParameters,std::shared_ptr<GlobalParameters>, VariantDataContainer>(m,"GlobalParameters")
         .def(py::init<>())
         ;
 
+    /// Export ConditionParameters
     py::class_<ConditionParameters,std::shared_ptr<ConditionParameters>, VariantDataContainer>(m,"ConditionParameters")
         .def(py::init<std::string>())
         ;
 
-    /// Export Condition Vector
+    /// Export ConditionParameters Vector
     py::class_<ConditionParametersVectorType>(m, "ConditionParametersVector")
         .def(py::init<>())
         .def("__len__", [](const ConditionParametersVectorType &v) { return v.size(); })
@@ -322,10 +325,6 @@ PYBIND11_MODULE(QuESo_Application,m) {
             return  mesh.GetVertices();
         });
     ;
-
-    /// Export free floating function
-    /// @todo wrap this in class
-    m.def("WriteDisplacementToVTK", &IO::WriteDisplacementToVTK);
 }
 
 }// End namespace Python

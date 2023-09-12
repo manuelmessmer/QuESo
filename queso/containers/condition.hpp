@@ -24,7 +24,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
+    /// @brief Constructor
+    /// @param pTriangleMesh Ptr is moved. Ownership is passed to Condition.
+    /// @param rConditionParameters
     Condition(Unique<TriangleMesh>& pTriangleMesh, const ConditionParameters& rConditionParameters )
         : mpInitialTriangleMesh(std::move(pTriangleMesh)), mConditionParameters(rConditionParameters)
     {
@@ -49,7 +51,7 @@ public:
     }
 
     /// @brief Returns the conforming triangle mesh.
-    /// @return
+    /// @return const TriangleMesh&
     const TriangleMesh& GetConformingMesh() const {
         return mConformingTriangleMesh;
     }
@@ -71,8 +73,7 @@ private:
 
     ///@}
 }; // End class Condition
-
+///@}
 } // End queso namespace.
-
 
 #endif // End CONDITION_INCLUDE_HPP

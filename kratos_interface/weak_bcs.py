@@ -173,7 +173,7 @@ class SurfaceLoad(WeakBcsBase):
                     id_counter += 1
 
 class PressureLoad(WeakBcsBase):
-    """SurfaceLoad.
+    """PressureLoad.
 
     Derived from WeakBcsBase.
     """
@@ -184,7 +184,7 @@ class PressureLoad(WeakBcsBase):
         self.conditions = []
 
     def apply(self, model_part ):
-        """Overrides base class."""
+        """Overrides from base class."""
         id_counter = model_part.NumberOfConditions() + 1
         properties = model_part.GetProperties()[1]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")

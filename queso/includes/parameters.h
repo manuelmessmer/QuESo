@@ -21,9 +21,17 @@ namespace queso {
 **/
 class GlobalParameters : public VariantDataContainer {
 public:
+    ///@}
+    ///@name Typedef's
+    ///@{
+
     typedef VariantDataContainer BaseType;
     using BaseType::Get;
     using BaseType::Set;
+
+    ///@}
+    ///@name Life cycle
+    ///@{
 
     /// Default constructor
     GlobalParameters() : VariantDataContainer() {
@@ -31,7 +39,7 @@ public:
         CheckComponents();
     }
 
-    /// Constructor
+    /// Constructor for list of components.
     GlobalParameters(BaseType::ComponentVectorType Component) : VariantDataContainer(Component)
     {
         AddDefaults();
@@ -39,13 +47,17 @@ public:
         CheckComponents();
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /// @brief Provides default parameters to base class.
     /// @return const BaseType::ComponentVectorType&
-    const BaseType::ComponentVectorType& GetDefaults() const override {
+    const BaseType::ComponentVectorType& GetDefaultComponents() const override {
         return mDefaultComponents;
     }
 
-    /// @brief Provides aivalable parameteters to base class.
+    /// @brief Provides aivailable parameteters to base class.
     /// @return const BaseType::AvailableComponentVectorType&
     const BaseType::AvailableComponentVectorType& GetAvailableComponents() const override {
         return mAllAvailableComponents;
@@ -65,6 +77,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
+    /// Default components
     inline static const BaseType::ComponentVectorType mDefaultComponents = {
         Component("echo_level", 0UL),
         Component("embedding_flag", true),
@@ -80,6 +93,7 @@ private:
         Component("integration_method", IntegrationMethod::Gauss),
         Component("use_customized_trimmed_points", false) };
 
+    /// All available components
     inline static const BaseType::AvailableComponentVectorType mAllAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
@@ -99,6 +113,7 @@ private:
         std::make_pair<std::string, const std::type_info*>("init_point_distribution_factor", &typeid(unsigned long) ),
         std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
         std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ) };
+    ///@}
 }; // End class GlobalParameters
 
 /**
@@ -107,6 +122,10 @@ private:
 **/
 class ConditionParameters : public VariantDataContainer {
 public:
+    ///@}
+    ///@name Typedef's
+    ///@{
+
     typedef VariantDataContainer BaseType;
     using BaseType::Get;
     using BaseType::Set;
@@ -119,6 +138,10 @@ public:
         CheckComponents();
     }
 
+    ///@}
+    ///@name Life cycle
+    ///@{
+
     /// Constructor
     ConditionParameters(BaseType::ComponentVectorType Component) : VariantDataContainer(Component)
     {
@@ -128,6 +151,11 @@ public:
         CheckComponents();
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// @brief Creates list of available components for all types of Conditions. Must be called in Constructor.
     void CreateAvailableComponentList() {
         if( Get<std::string>("type") == "PenaltySupportCondition" ) {
             mAvailableComponents.insert(mAvailableComponents.end(), mAvailableComponentsPenalty.begin(), mAvailableComponentsPenalty.end());
@@ -143,49 +171,56 @@ public:
         }
     }
 
-    const BaseType::ComponentVectorType& GetDefaults() const override {
+    /// @brief Provides default parameters to base class.
+    /// @return const BaseType::ComponentVectorType&
+    const BaseType::ComponentVectorType& GetDefaultComponents() const override {
         return mDefaultComponents;
     }
 
+    /// @brief Provides aivailable parameteters to base class.
+    /// @return const BaseType::AvailableComponentVectorType&
     const BaseType::AvailableComponentVectorType& GetAvailableComponents() const override {
         return mAvailableComponents;
     }
-
-    /// @brief Adjust values that are not feasible.
-    void EnsureValidValues() override {}
 
 private:
     ///@}
     ///@name Private Member Variables
     ///@{
 
+    /// Default components.
     inline static const BaseType::ComponentVectorType mDefaultComponents = { };
 
+    /// Components available in all conditions.
     BaseType::AvailableComponentVectorType mAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("type", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ) };
 
+    /// Components available in penalty support conditions.
     inline static const BaseType::AvailableComponentVectorType mAvailableComponentsPenalty = {
         std::make_pair<std::string, const std::type_info*>("penalty_factor", &typeid(double) ),
         std::make_pair<std::string, const std::type_info*>("value", &typeid(PointType) ) };
 
+    /// Components available in lagrange support conditions.
     inline static const BaseType::AvailableComponentVectorType mAvailableComponentsLagrange = {
         std::make_pair<std::string, const std::type_info*>("value", &typeid(PointType) ) };
 
+    /// Components available in surface load conditions.
     inline static const BaseType::AvailableComponentVectorType mAvailableComponentsSurfaceLoad = {
         std::make_pair<std::string, const std::type_info*>("modulus", &typeid(double) ),
         std::make_pair<std::string, const std::type_info*>("direction", &typeid(PointType) ) };
 
+    /// Components available in pressure load conditions.
     inline static const BaseType::AvailableComponentVectorType mAvailableComponentsPressureLoad = {
         std::make_pair<std::string, const std::type_info*>("modulus", &typeid(double) ) };
 };
-
 
 /**
  * @class  Parameters
  * @author Manuel Messmer
  * @brief  Dynamic container for all available parameters. Parameters are split into global parameters and a vector of condition parameters:
  *         one for each condition.
+ * @see GlobalParameters and ConditionParameters.
 **/
 class Parameters {
 public:
@@ -197,12 +232,12 @@ public:
     Parameters() {
     }
 
-    /// Constructor
+    /// Constructor for GlobalParameters
     Parameters(const GlobalParameters& rGlobalParameters) : mGlobalParameters(rGlobalParameters)
     {
     }
 
-    /// Constructor
+    /// Constructor for list of Components
     Parameters(std::vector<Component> Components) : mGlobalParameters(Components)
     {
     }
@@ -211,20 +246,78 @@ public:
     ///@name Operations
     ///@{
 
+    /// @brief Interface to mGlobalParameters.Get<>()
+    /// @tparam type
+    /// @param rName
+    /// @return onst type&
     template<typename type>
     const type& Get( const std::string& rName ) const {
         return mGlobalParameters.Get<type>(rName);
     }
 
+    /// @brief Interface to mGlobalParameters.Set<>()
+    /// @tparam type
+    /// @param rName
+    /// @param rValue
     template<typename type>
     void Set(const std::string& rName, const type& rValue) {
         mGlobalParameters.Set(rName, rValue);
     }
 
+    /// @brief Interface to mGlobalParameters.Has<>()
+    /// @tparam type
+    /// @param rName
+    /// @return bool
     template<typename type>
     bool Has( const std::string& rName ) const {
         return mGlobalParameters.Has<type>(rName);
     }
+
+/// @brief Adds global settings to parameter container.
+    /// @param rGlobalParameters
+    void AddGlobalSettings(const GlobalParameters& rGlobalParameters) {
+        mGlobalParameters = rGlobalParameters;
+    }
+
+    /// @brief Ad condition settings to Parameters.
+    /// @param rConditionParameter
+    void AddConditionSettings( const ConditionParameters rConditionParameter ){
+        mConditionParameters.push_back(rConditionParameter);
+    }
+
+    /// @brief Returns number of conditions. Including Neumann and Dirichlet.
+    /// @return IndexType
+    IndexType NumberOfConditions(){
+        return mConditionParameters.size();
+    }
+
+    /// @brief Returns vector of conditions parameter settings.
+    /// @return std::vector<ConditionParameters>&
+    const std::vector<ConditionParameters> & GetConditionsSettingsVector() const {
+        return mConditionParameters;
+    }
+
+    /// @brief returns global parameters container.
+    /// @return const GlobalParameters&
+    const GlobalParameters& GetGlobalSettings() const {
+        return mGlobalParameters;
+    }
+
+    /// @brief Print all paramters from mGLobalParameters and mConditionParameters: (Name, Value).
+    /// @param rOStream
+    void PrintInfo(std::ostream& rOStream) const {
+        rOStream << "\n----------------- Global Settings -----------------\n";
+        mGlobalParameters.PrintInfo(rOStream);
+        for( const auto& r_condition_settings : mConditionParameters ){
+            rOStream << "--------------- Condition Settings ----------------\n";
+            r_condition_settings.PrintInfo(rOStream);
+        }
+        rOStream << "---------------------------------------------------\n\n";
+    }
+
+    ///////////////////////////////////////////////////
+    // Direct Getter Functions for mGlobalParameters //
+    ///////////////////////////////////////////////////
 
     const PointType& LowerBoundXYZ() const {
         return Get<PointType>("lower_bound_xyz");
@@ -285,43 +378,6 @@ public:
         return IntegrationMethod() >= 3;
     }
 
-    /// @brief Adds global settings to parameter container.
-    /// @param rGlobalParameters
-    void AddGlobalSettings(const GlobalParameters& rGlobalParameters) {
-        mGlobalParameters = rGlobalParameters;
-    }
-
-    /// @brief Ad condition settings to Parameters.
-    /// @param rConditionParameter
-    void AddConditionSettings( const ConditionParameters rConditionParameter ){
-        mConditionParameters.push_back(rConditionParameter);
-    }
-
-    /// @brief Returns number of conditions. Including Neumann and Dirichlet.
-    /// @return IndexType
-    IndexType NumberOfConditions(){
-        return mConditionParameters.size();
-    }
-
-    /// @brief Returns vector of conditions parameter settings.
-    /// @return std::vector<ConditionParameters>&
-    const std::vector<ConditionParameters> & GetConditionsSettingsVector() const {
-        return mConditionParameters;
-    }
-
-    /// @brief returns global parameters container.
-    /// @return const GlobalParameters&
-    const GlobalParameters& GetGlobalSettings() const {
-        return mGlobalParameters;
-    }
-
-    /// @brief Print all paramters (Name, Value).
-    /// @param rOStream
-    void PrintInfo(std::ostream& rOStream) const {
-        rOStream << "Parameters: \n";
-        mGlobalParameters.PrintInfo(rOStream);
-    }
-
 private:
 
     ///@}
@@ -336,8 +392,9 @@ private:
 }; // End class Parameters
 ///@} End QuESo classes
 
-std::ostream& operator<< (std::ostream& rOStream, const Parameters& rThis);
+///@}
 
+std::ostream& operator<< (std::ostream& rOStream, const Parameters& rThis);
 } // End namespace queso
 
 #endif // PARAMETERS_INCLUDE_H

@@ -86,7 +86,7 @@ def ReadParameters(json_filename):
 
     parameters.AddGlobalSettings(general_setting)
 
-    # Read general settings
+    # Read condition settings
     for condition in GetConditions(settings):
         type = list(condition.keys())[0]
         condition_settings = QuESo_Application.ConditionParameters(str(type))

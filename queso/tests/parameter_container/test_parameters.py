@@ -7,7 +7,7 @@ import unittest
 
 class TestParametersContainer(QuESoTestCase):
     def check_values(self, parameters):
-
+        # Check global settings
         echo_level = parameters.EchoLevel()
         self.assertEqual(echo_level, 1)
 
@@ -44,6 +44,7 @@ class TestParametersContainer(QuESoTestCase):
         b_slpine_mesh = global_parameters.GetBool("b_spline_mesh")
         self.assertEqual(b_slpine_mesh, True)
 
+        # Check condition settings
         for condition_settings in parameters.GetConditionsSettingsVector():
             if condition_settings.GetString("type") == "SurfaceLoadCondition":
                 input_filename = condition_settings.GetString("input_filename")
