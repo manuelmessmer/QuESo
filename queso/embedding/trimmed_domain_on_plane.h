@@ -117,7 +117,6 @@ public:
         //    |_____|/
         //
         mPlaneIndex = PlaneIndex;
-        mSwitchOrientation = false;
         if (PlaneIndex == 2) {
             if( mSwitchOrientation ){
                 DIRINDEX1 = 1;
