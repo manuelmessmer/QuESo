@@ -67,9 +67,9 @@ class PenaltySupport(WeakBcsBase):
 
                 surface_area = surface_in_nurbs_volume.Area()
                 if( surface_area > 1e-14):
-                    cond = model_part.CreateNewCondition('SupportPenaltyCondition', id_counter, quadrature_point_geometries[0], properties)
-                    displacement = [KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])]
-                    cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT, displacement, process_info)
+                    condition = model_part.CreateNewCondition('SupportPenaltyCondition', id_counter, quadrature_point_geometries[0], properties)
+                    kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
+                    condition.SetValue(KM.DISPLACEMENT, kratos_prescribed)
                     id_counter += 1
 
 class LagrangeSupport(WeakBcsBase):
@@ -115,9 +115,9 @@ class LagrangeSupport(WeakBcsBase):
 
                 surface_area = surface_in_nurbs_volume.Area()
                 if( surface_area > 1e-14):
-                    cond = model_part.CreateNewCondition('SupportLagrangeCondition', id_counter, quadrature_point_geometries[0], properties)
-                    displacement = [KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])]
-                    cond.SetValuesOnIntegrationPoints(KM.DISPLACEMENT, displacement, process_info)
+                    condition = model_part.CreateNewCondition('SupportLagrangeCondition', id_counter, quadrature_point_geometries[0], properties)
+                    kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
+                    condition.SetValue(KM.DISPLACEMENT, kratos_prescribed)
                     id_counter += 1
 
 class SurfaceLoad(WeakBcsBase):
@@ -171,8 +171,6 @@ class SurfaceLoad(WeakBcsBase):
                     condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force_z)
                     self.conditions.append(condition)
                     id_counter += 1
-
-
 
 class PressureLoad(WeakBcsBase):
     """SurfaceLoad.
