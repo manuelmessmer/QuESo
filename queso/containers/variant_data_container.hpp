@@ -285,7 +285,10 @@ private:
             // [0, 0, 0] -> [0.0, 0.0, 0.0] when required.
             else if( *p_current_type_info == typeid(Vector3i) && *p_ref_type_info == typeid(Vector3d)) {
                 auto p_value = const_cast<Vector3i*>(std::get_if<Vector3i>(&rValue));
-                Set<Vector3d>(rName, Vector3d((*p_value)[0], (*p_value)[1], (*p_value)[2]) );
+                const auto& r_value = *p_value;
+                Set<Vector3d>(rName, Vector3d(static_cast<double>(r_value[0]),
+                                              static_cast<double>(r_value[1]),
+                                              static_cast<double>(r_value[2])) );
                 return true;
             }
         }
