@@ -6,7 +6,7 @@
 
 //// Project includes
 #include "containers/element_container.hpp"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 
 namespace queso {
 

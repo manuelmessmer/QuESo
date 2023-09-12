@@ -1,6 +1,9 @@
 from queso.tests.ggq_tube.test_ggq_tube import TestGGQTube
 from queso.tests.ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
 from queso.tests.b_spline_volume.test_b_spline_volume import TestBSplineVolume
+from queso.tests.parameter_container.test_parameters import TestParametersContainer
+from queso.tests.boundary_conditions.test_boundary_conditions import TestBoundaryConditions
+
 try:
     import KratosMultiphysics as KM
     kratos_available = True
@@ -11,6 +14,7 @@ if kratos_available:
     from queso.tests.ggq_cantilever_kratos.test_ggq_cantilever_kratos import TestGGQCantileverKratos
     from queso.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
     from queso.tests.steering_knuckle_kratos.test_strain_energy_steering_knuckle import TestStrainEnergySteeringKnuckleKratos
+    from queso.tests.boundary_conditions_kratos.test_boundary_conditions_kratos import TestBoundaryConditionsKratos
 import unittest
 import sys
 
@@ -20,12 +24,15 @@ def PyQuESoTestSuite():
         test_suite.addTest(unittest.makeSuite(TestGGQCantileverKratos))
         test_suite.addTest(unittest.makeSuite(TestTrimmedCantileverKratos))
         test_suite.addTest(unittest.makeSuite(TestStrainEnergySteeringKnuckleKratos))
+        test_suite.addTest(unittest.makeSuite(TestBoundaryConditionsKratos))
     else:
         print("Warning :: Tests with KratosMultiphysics dependencies are skipped.")
 
     test_suite.addTest(unittest.makeSuite(TestGGQTube))
     test_suite.addTest(unittest.makeSuite(TestGGQ1d))
     test_suite.addTest(unittest.makeSuite(TestBSplineVolume))
+    test_suite.addTest(unittest.makeSuite(TestParametersContainer))
+    test_suite.addTest(unittest.makeSuite(TestBoundaryConditions))
 
     return test_suite
 

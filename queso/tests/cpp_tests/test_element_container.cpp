@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 // Project includes
 #include "includes/checks.hpp"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 #include "containers/element.hpp"
 #include "containers/element_container.hpp"
 

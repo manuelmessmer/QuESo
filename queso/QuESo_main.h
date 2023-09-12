@@ -17,7 +17,7 @@
 #include "containers/element.hpp"
 #include "containers/condition.hpp"
 #include "utilities/mapping_utilities.h"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 #include "embedding/brep_operator.h"
 
 namespace queso {
@@ -38,7 +38,7 @@ public:
     ///@{
 
     typedef std::vector<Element> ElementVectorType;
-    typedef std::vector<Shared<Condition>> ConditionPtrVectorType;
+    typedef std::vector<Condition> ConditionVectorType;
     typedef std::vector<Unique<BRepOperator>> BRepOperatorPtrVectorType;
 
     ///@}
@@ -71,7 +71,7 @@ public:
 
     /// @brief Get all conditions.
     /// @return const Reference to ElementVectorPtrType
-    const ConditionPtrVectorType& GetConditions() const {
+    const ConditionVectorType& GetConditions() const {
         return mConditions;
     }
 
@@ -122,7 +122,7 @@ private:
     Unique<BRepOperatorBase> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainer> mpElementContainer;
-    ConditionPtrVectorType mConditions;
+    ConditionVectorType mConditions;
     const Parameters mParameters;
 
     Mapper mMapper;

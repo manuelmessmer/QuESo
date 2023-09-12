@@ -12,7 +12,7 @@
 #include "embedding/octree.h"
 #include "containers/element.hpp"
 #include "containers/boundary_integration_point.hpp"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 
 namespace queso {
 

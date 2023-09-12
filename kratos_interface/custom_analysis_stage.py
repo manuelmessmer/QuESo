@@ -1,6 +1,6 @@
 # Import Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.IgaApplication as IgaApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 from kratos_interface.model_part_utilities import ModelPartUtilities
 
@@ -19,6 +19,20 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         self.triangle_mesh = triangle_mesh
         self.elements = elements
         self.queso_parameters = queso_parameters
+
+        self.lagrange_dofs_required = False
+        for condition_param in self.queso_parameters.GetConditionsSettingsVector():
+            if( condition_param.GetString("type") == "LagrangeSupportCondition" ):
+                self.lagrange_dofs_required = True
+
+        nurbs_model_part = model.CreateModelPart("NurbsMesh")
+        nurbs_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        nurbs_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+
+        if self.lagrange_dofs_required:
+            nurbs_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
+            nurbs_model_part.AddNodalSolutionStepVariable(IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION)
+
         #Override the NurbsGeometryModeler input parameters
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
@@ -44,13 +58,6 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
     def _ModelersSetupModelPart(self):
         """Override BaseClass to run NURBS modelers."""
-        model_part = self.model.GetModelPart('NurbsMesh')
-        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KM.REACTION)
-
-        model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-
         embedded_model_part = self.model.CreateModelPart('EmbeddedModelPart')
         embedded_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
@@ -80,5 +87,10 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
+
+        if self.lagrange_dofs_required:
+            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION_X, model_part)
+            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION_Y, model_part)
+            KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION_Z, model_part)
 
 

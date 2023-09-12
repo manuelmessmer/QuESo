@@ -61,6 +61,7 @@ file(GLOB QuESo_ApplicationSource
     ${CMAKE_CURRENT_SOURCE_DIR}/solvers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/includes/*.cpp
 
     # Add external libraries
     ${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries/aabb_tree/*.cc

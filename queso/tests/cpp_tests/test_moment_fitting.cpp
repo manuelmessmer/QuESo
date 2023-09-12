@@ -13,7 +13,7 @@
 #include "quadrature/trimmed_element.h"
 #include "quadrature/single_element.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 #include "utilities/mapping_utilities.h"
 #include "utilities/mesh_utilities.h"
 #include "io/io_utilities.h"

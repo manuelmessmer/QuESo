@@ -6,7 +6,7 @@
 
 //// Project includes
 #include "includes/define.hpp"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 
 namespace queso {
 

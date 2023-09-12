@@ -1,6 +1,8 @@
 import KratosMultiphysics
 from kratos_interface.weak_bcs import PenaltySupport
+from kratos_interface.weak_bcs import LagrangeSupport
 from kratos_interface.weak_bcs import SurfaceLoad
+from kratos_interface.weak_bcs import PressureLoad
 import re
 
 class ModelPartUtilities:
@@ -94,14 +96,29 @@ class ModelPartUtilities:
         boundary_conditions = []
         for bc in Conditions:
             if bc.IsWeakCondition():
-                if( bc.Type() == "dirichlet" ):
+                condition_settings = bc.GetSettings()
+                type_name = condition_settings.GetString("type")
+                if( type_name == "PenaltySupportCondition" ):
                     dirichlet_triangles = bc.GetTriangleMesh()
-                    boundary_conditions.append(
-                        PenaltySupport(dirichlet_triangles, BoundsXYZ, BoundsUVW, bc.GetPrescribed(), bc.GetPenaltyFactor()) )
-                elif( bc.Type() == "neumann" ):
+                    prescribed_displacement = condition_settings.GetDoubleVector("value")
+                    penalty_factor = condition_settings.GetDouble("penalty_factor")
+                    boundary_conditions.append(PenaltySupport(dirichlet_triangles, BoundsXYZ, BoundsUVW, prescribed_displacement, penalty_factor) )
+                elif( type_name == "LagrangeSupportCondition" ):
+                    dirichlet_triangles = bc.GetTriangleMesh()
+                    prescribed_displacement = condition_settings.GetDoubleVector("value")
+                    boundary_conditions.append(LagrangeSupport(dirichlet_triangles, BoundsXYZ, BoundsUVW, prescribed_displacement) )
+                elif( type_name == "SurfaceLoadCondition" ):
                     neumann_triangles = bc.GetTriangleMesh()
-                    boundary_conditions.append(
-                        SurfaceLoad(neumann_triangles, BoundsXYZ, BoundsUVW, bc.GetPrescribed(), False) )
+                    modulus = condition_settings.GetDouble("modulus")
+                    direction = condition_settings.GetDoubleVector("direction")
+                    boundary_conditions.append(SurfaceLoad(neumann_triangles, BoundsXYZ, BoundsUVW, modulus, direction) )
+                elif( type_name == "PressureLoadCondition" ):
+                    neumann_triangles = bc.GetTriangleMesh()
+                    modulus = condition_settings.GetDouble("modulus")
+                    boundary_conditions.append(PressureLoad(neumann_triangles, BoundsXYZ, BoundsUVW, modulus) )
+                else:
+                    message = "Given condition type '" + type_name + "' is not available.\n"
+                    raise Exception(message)
             else:
                 boundary_conditions.append(bc)
 

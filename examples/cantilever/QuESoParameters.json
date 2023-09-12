@@ -18,12 +18,14 @@
         "integration_method" : "Gauss"
     },
     "conditions"    :  [{
-        "neumann": {
-            "filename" : "data/tip.stl",
-            "force" : [0.0, 0.1, 0.0]
+        "SurfaceLoadCondition": {
+            "input_filename" : "data/tip.stl",
+            "modulus": 0.1,
+            "direction" : [0, 1, 0]
         }},{
-        "dirichlet": {
-            "filename" : "data/base.stl",
+        "PenaltySupportCondition": {
+            "input_filename" : "data/base.stl",
+            "value" : [0.0, 0.0, 0.0],
             "penalty_factor" : 1e10
         }}
     ]

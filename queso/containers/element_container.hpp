@@ -10,7 +10,7 @@
 #include <stdexcept>
 //// Project includes
 #include "containers/element.hpp"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 
 namespace queso {
 

@@ -9,7 +9,7 @@
 //// Project includes
 #include "containers/element.hpp"
 #include "embedding/trimmed_domain_base.h"
-#include "utilities/parameters.h"
+#include "includes/parameters.h"
 #include "includes/define.hpp"
 
 namespace queso {
