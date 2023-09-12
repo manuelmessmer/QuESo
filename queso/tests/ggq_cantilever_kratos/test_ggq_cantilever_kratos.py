@@ -1,6 +1,7 @@
 # Project imports
 import QuESo_PythonApplication as QuESo_APP
 from queso.python_scripts.helper import *
+from queso.python_scripts.QuESoUnittest import QuESoTestCase
 
 try:
     import KratosMultiphysics as KM
@@ -15,7 +16,7 @@ if kratos_available:
     from kratos_interface.bounding_box_bcs import DirichletCondition
     from kratos_interface.bounding_box_bcs import NeumannCondition
 
-# STL imports
+# External imports
 import unittest
 import numpy as np
 
@@ -61,7 +62,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
 
         return [disp_simulation, number_of_quad_points]
 
-class TestGGQCantileverKratos(unittest.TestCase):
+class TestGGQCantileverKratos(QuESoTestCase):
     def compare_full_vs_reduced_p_2(self, number_knotspans):
         number_knot_spans_cross = 2
         [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[2,2,2])

@@ -1,7 +1,7 @@
 {
     "general_settings"   : {
         "input_filename"  : "dummy.stl",
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "mesh_settings"     : {
         "lower_bound_xyz": [-130, -110, -110],

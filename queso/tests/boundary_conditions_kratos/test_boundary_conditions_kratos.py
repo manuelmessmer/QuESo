@@ -1,15 +1,13 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
-from kratos_interface.weak_bcs import PenaltySupport
-from kratos_interface.weak_bcs import LagrangeSupport
-from kratos_interface.weak_bcs import SurfaceLoad
-from kratos_interface.weak_bcs import PressureLoad
 from kratos_interface.model_part_utilities import ModelPartUtilities
+from queso.python_scripts.QuESoUnittest import QuESoTestCase
+# Kratos imports
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IGA
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
-from queso.python_scripts.QuESoUnittest import QuESoTestCase
+# Unittest imports
 import unittest
 
 def run_modelers(current_model, modelers_list):
@@ -82,7 +80,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
 
         for condition in model_part.Conditions:
             value = condition.GetValue(KM.DISPLACEMENT)
-            self.assertListAlmostEqual(value, [0.0, 0.0, 1.0], 10)
+            self.assertListsAlmostEqual(value, [0.0, 0.0, 1.0], 10)
 
         self.check_surface_area(model_part, 1183.54304)
 
@@ -100,7 +98,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
 
         for condition in model_part.Conditions:
             value = condition.GetValue(KM.DISPLACEMENT)
-            self.assertListAlmostEqual(value, [0.0, 0.3, 0.0], 10)
+            self.assertListsAlmostEqual(value, [0.0, 0.3, 0.0], 10)
 
         self.check_surface_area(model_part, 921.163635)
 
@@ -123,7 +121,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
             force[1] += value[1]
             force[2] += value[2]
         ref_value = 959.49131
-        self.assertListAlmostEqual(force, [ref_value]*3, 5)
+        self.assertListsAlmostEqual(force, [ref_value]*3, 5)
 
     def test_pressure_load(self):
         pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Pressure.json")
@@ -144,7 +142,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
             force[1] += value[1]
             force[2] += value[2]
         ref_value = -577.978141*2
-        self.assertListAlmostEqual(force, [0.0, 0.0, ref_value], 5)
+        self.assertListsAlmostEqual(force, [0.0, 0.0, ref_value], 5)
 
 if __name__ == "__main__":
     unittest.main()

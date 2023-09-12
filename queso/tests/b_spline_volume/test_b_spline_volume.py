@@ -1,11 +1,12 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
-
+from python_scripts.QuESoUnittest import QuESoTestCase
+# External imports
 import unittest
 import json
 
-class TestBSplineVolume(unittest.TestCase):
+class TestBSplineVolume(QuESoTestCase):
     def test1(self):
         input_filename = "queso/tests/b_spline_volume/QuESoParameters1.json"
         results_filename = "queso/tests/b_spline_volume/results_1.json"

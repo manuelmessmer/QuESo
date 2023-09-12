@@ -1,9 +1,12 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
+from queso.python_scripts.QuESoUnittest import QuESoTestCase
+# Kratos imports
 import KratosMultiphysics
+# External imports
 import unittest
 
-class TestStrainEnergySteeringKnuckleKratos(unittest.TestCase):
+class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
     def run_test(self, filename, tolerance):
         pyqueso = PyQuESo(filename)
         pyqueso.Run()

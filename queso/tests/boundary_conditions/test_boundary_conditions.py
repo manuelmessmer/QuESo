@@ -1,10 +1,11 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
-
+from python_scripts.QuESoUnittest import QuESoTestCase
+# Unittest import
 import unittest
 
-class TestBoundaryConditions(unittest.TestCase):
+class TestBoundaryConditions(QuESoTestCase):
     def check_triangle_mesh(self, triangle_mesh, ref_area):
         num_triangles = triangle_mesh.NumOfTriangles()
         area = 0.0
@@ -23,7 +24,7 @@ class TestBoundaryConditions(unittest.TestCase):
                 modulus = condition_settings.GetDouble("modulus")
                 self.assertAlmostEqual(modulus, 5.0, 10)
                 direction = condition_settings.GetDoubleVector("direction")
-                self.assertAlmostEqual(direction, [-1.0, 2.0, 3.0], 10)
+                self.assertListsAlmostEqual(direction, [-1.0, 2.0, 3.0], 10)
 
                 triangle_mesh = condition.GetTriangleMesh()
                 self.check_triangle_mesh(triangle_mesh,  332.37754)
@@ -39,7 +40,7 @@ class TestBoundaryConditions(unittest.TestCase):
                 input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, "queso/tests/steering_knuckle_kratos/data/N3.stl")
                 value = condition_settings.GetDoubleVector("value")
-                self.assertAlmostEqual(value, [0.0, 0.3, 0.0], 10)
+                self.assertListsAlmostEqual(value, [0.0, 0.3, 0.0], 10)
 
                 triangle_mesh = condition.GetTriangleMesh()
                 self.check_triangle_mesh(triangle_mesh, 921.163635)
@@ -47,7 +48,7 @@ class TestBoundaryConditions(unittest.TestCase):
                 input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, "queso/tests/steering_knuckle_kratos/data/D1.stl")
                 value = condition_settings.GetDoubleVector("value")
-                self.assertAlmostEqual(value, [0.0, 0.0, 0.0], 10)
+                self.assertListsAlmostEqual(value, [0.0, 0.0, 0.0], 10)
                 penalty_factor = condition_settings.GetDouble("penalty_factor")
                 self.assertAlmostEqual(penalty_factor, 1e10, 10)
 
