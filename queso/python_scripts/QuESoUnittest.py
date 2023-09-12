@@ -3,9 +3,11 @@ import unittest
 
 class QuESoTestCase(unittest.TestCase):
     ''' QuESoTestCase interface to derives from  unittest.TestCase in order
-        to allow to add customized assert-Function '''
+        to allow to add customized assert-Functions. '''
 
     def assertListsAlmostEqual(self, ListA, ListB, Places):
+        ''' Check if ListA and ListB are almost equal.
+        '''
         error_msg_size = "Test failed since the sizes of: " + str(ListA) + " and " + str(ListB) + " do not match."
         self.assertEqual(len(ListA), len(ListB), error_msg_size)
         for i, (a,b) in enumerate(zip(ListA, ListB)):
@@ -14,6 +16,8 @@ class QuESoTestCase(unittest.TestCase):
             self.assertAlmostEqual(a, b, Places, error_msg_not_equal)
 
     def assertListsEqual(self, ListA, ListB):
+        ''' Check if ListA and ListB are equal.
+        '''
         error_msg_size = "Test failed since the sizes of: " + str(ListA) + " and " + str(ListB) + " do not match."
         self.assertEqual(len(ListA), len(ListB), error_msg_size)
         for a,b in zip(ListA, ListB):
@@ -22,6 +26,8 @@ class QuESoTestCase(unittest.TestCase):
             self.assertEqual(a, b, error_msg_not_equal)
 
     def assertListsSize(self, ListA, ListB):
+        ''' Check if ListA and ListB have the same size.
+        '''
         error_msg_size = "Test failed since the sizes of: " + str(ListA) + " and " + str(ListB) + " do not match."
         self.assertEqual(len(ListA), len(ListB), error_msg_size)
 
