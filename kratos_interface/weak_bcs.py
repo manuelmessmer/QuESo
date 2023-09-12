@@ -210,9 +210,9 @@ class PressureLoad(WeakBcsBase):
                     condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
 
                     normal = point.Normal()
-                    force_x = normal[0] * weight * self.modulus
-                    force_y = normal[1] * weight * self.modulus
-                    force_z = normal[2] * weight * self.modulus
+                    force_x = -1.0*normal[0] * weight * self.modulus
+                    force_y = -1.0*normal[1] * weight * self.modulus
+                    force_z = -1.0*normal[2] * weight * self.modulus
 
                     condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force_x)
                     condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force_y)
