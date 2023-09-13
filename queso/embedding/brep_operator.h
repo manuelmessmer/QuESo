@@ -14,7 +14,6 @@
 #include "embedding/trimmed_domain.h"
 #include "embedding/geometry_query.h"
 #include "embedding/clipper.h"
-#include "embedding/brep_operator_base.h"
 #include "io/io_utilities.h"
 
 namespace queso {
@@ -28,17 +27,14 @@ namespace queso {
  * @brief  Provides geometrical operations for Brep models.
  * @details Uses AABB Tree for fast search.
 */
-class BRepOperator : public BRepOperatorBase {
+class BRepOperator  {
 
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef BRepOperatorBase BaseType;
-    typedef BaseType::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
-
-    // Declare BaseType functions.
-    using BaseType::GetIntersectionState;
+    typedef Unique<TrimmedDomainBase> TrimmedDomainBasePtrType;
+    typedef std::vector<IntersectionStatusType> StatusVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -48,8 +44,8 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
     ///@param rParameters QuESo parameters.
-    BRepOperator(const TriangleMesh& rTriangleMesh, const Parameters& rParameters, bool Closed=true)
-        : BaseType(rParameters), mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed), mFloodFill(this, rParameters)
+    BRepOperator(const TriangleMesh& rTriangleMesh, bool Closed=true)
+        : mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed)
     {
     }
 
@@ -60,7 +56,17 @@ public:
     ///@brief Returns true if point is inside TriangleMesh.
     ///@param rPoint
     ///@return bool
-    bool IsInside(const PointType& rPoint) const override;
+    bool IsInside(const PointType& rPoint) const;
+
+    ///@brief Returns intersections state of element.
+    ///@note Calls: GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL)
+    ///@param rElement
+    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
+    IntersectionStatus GetIntersectionState(const Element& rElement) const {
+        const auto& lower_bound = rElement.GetBoundsXYZ().first;
+        const auto& upper_bound = rElement.GetBoundsXYZ().second;
+        return GetIntersectionState(lower_bound, upper_bound);
+    }
 
     ///@brief Returns intersections state of element.
     ///       Only use this function, if a single element has to be classified.
@@ -70,19 +76,19 @@ public:
     ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
+    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
 
     /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.
-    Unique<StatusVectorType> pGetElementClassifications() const override;
+    Unique<StatusVectorType> pGetElementClassifications(const Parameters& rParameters) const;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
     /// @param rLowerBound Lower bound of AABB.
     /// @param rUpperBound Upper bound of AABB.
     /// @return TrimmedDomainBasePtrType (Unique)
-    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const override;
+    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters ) const;
 
     ///@brief Clips triangle mesh by AABB.
     ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.
@@ -98,7 +104,7 @@ public:
     /// @param rUpperBound of AABB.
     /// @param Tolerance Reduces size of AABB.
     /// @return bool.
-    bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const override;
+    bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
 
     /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
     ///        Ray tracing through the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
@@ -108,7 +114,7 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @return bool
-    bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const override;
+    bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
     ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
@@ -128,7 +134,6 @@ private:
 
     const TriangleMesh& mTriangleMesh;
     GeometryQuery mGeometryQuery;
-    FloodFill mFloodFill;
 
     ///@}
 }; // End BRepOperator class
