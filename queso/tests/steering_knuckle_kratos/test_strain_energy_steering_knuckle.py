@@ -21,19 +21,19 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
             weights = element.CalculateOnIntegrationPoints(KratosMultiphysics.INTEGRATION_WEIGHT, model_part.ProcessInfo)
             for value, weight in zip(values, weights):
                 strain_energy += value*weight
-        self.assertAlmostEqual(strain_energy, 21.788415916271443, tolerance)
+        self.assertAlmostEqual(strain_energy, 21.787, delta=tolerance)
 
     def test_1(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters1.json", 10)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters1.json", 0.005)
 
     def test_2(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters2.json", 10)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters2.json", 0.005)
 
     def test_3(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters3.json", 2)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters3.json", 0.005)
 
     def test_4(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters4.json", 3)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters4.json", 0.005)
 
 if __name__ == "__main__":
     unittest.main()

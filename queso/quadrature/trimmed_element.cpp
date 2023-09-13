@@ -169,7 +169,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
     BoundingBoxType bounding_box_uvw = MakeBox( rElement.PointFromGlobalToParam(bounding_box.first),
                                                 rElement.PointFromGlobalToParam(bounding_box.second));
 
-    Octree octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
+    Octree<TrimmedDomainBase> octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
 
     // Start point elimination.
     double residual = MAXD;
