@@ -9,7 +9,7 @@
 #include "math.h"
 // Project includes
 #include "includes/checks.hpp"
-#include "embedding/brep_operator_factory.h"
+#include "embedding/brep_operator.h"
 #include "quadrature/trimmed_element.h"
 #include "quadrature/single_element.h"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"

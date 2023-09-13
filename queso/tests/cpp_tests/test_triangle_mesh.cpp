@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
                     const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
                     auto mesh = p_trimmed_domain->GetTriangleMesh();
                     volume += MeshUtilities::Volume(mesh);

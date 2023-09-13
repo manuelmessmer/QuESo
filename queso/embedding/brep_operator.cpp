@@ -133,11 +133,12 @@ IntersectionStatus BRepOperator::GetIntersectionState(
 }
 
 
-Unique<StatusVectorType> BRepOperator::pGetElementClassifications() const {
-    return mFloodFill.ClassifyElements();
+Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const Parameters& rParameters) const {
+    FloodFill flood_fill(this, rParameters);
+    return flood_fill.ClassifyElements();
 }
 
-TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters ) const {
     // Instantiate random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -148,7 +149,7 @@ TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLower
     auto upper_bound = rUpperBound;
 
     const double snap_tolerance = RelativeSnapTolerance(lower_bound, upper_bound);
-    const double min_volume_ratio = mParameters.Get<double>("min_element_volume_ratio");
+    const double min_volume_ratio = rParameters.Get<double>("min_element_volume_ratio");
     const auto delta = (upper_bound - lower_bound);
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
@@ -159,7 +160,7 @@ TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLower
     while( iteration < 15){
         auto p_new_mesh = pClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
-            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, mParameters, switch_plane_orientation);
+            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, rParameters, switch_plane_orientation);
             const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
 
             double volume = MeshUtilities::Volume( r_trimmed_domain_mesh);

@@ -44,7 +44,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
     IO::ReadMeshFromSTL(triangle_mesh, rFilename.c_str());
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, rParameters);
+    BRepOperator brep_operator(triangle_mesh);
 
     //std::ofstream file_out{};
     std::ifstream file(rResultsFilename);
@@ -79,7 +79,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
         const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz );
         if( status == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, rParameters);
 
             // Get triangle mesh
             const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
@@ -214,7 +214,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     }
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, parameters);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double volume_ref = MeshUtilities::Volume(triangle_mesh);
     const double area_ref = MeshUtilities::Area(triangle_mesh);
@@ -231,7 +231,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area += MeshUtilities::Area(*p_clipped_mesh);
         // Get Trimmed domain
-        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
+        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
         if( p_trimmed_domain ){
             auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
             // Check triangle orientations.

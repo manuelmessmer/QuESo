@@ -10,7 +10,7 @@
 #include "QuESo_main.h"
 #include "io/io_utilities.h"
 #include "utilities/mesh_utilities.h"
-#include "embedding/brep_operator_factory.h"
+#include "embedding/brep_operator.h"
 #include "quadrature/single_element.h"
 #include "quadrature/trimmed_element.h"
 #include "quadrature/multiple_elements.h"
@@ -33,7 +33,7 @@ void QuESo::Run()
         IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
         // Condition owns triangle mesh.
         mConditions.push_back( Condition(p_new_mesh, r_condition_settings) );
-        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(mConditions.back().GetTriangleMesh(), mParameters) );
+        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(mConditions.back().GetTriangleMesh() ) );
     }
 
     // Read geometry
@@ -47,7 +47,7 @@ void QuESo::Run()
             IO::WriteMeshToVTK(mTriangleMesh, "output/geometry.vtk", true);
         }
         // Construct BRepOperator
-        mpBRepOperator = BRepOperatorFactory::New(mTriangleMesh, mParameters);
+        mpBRepOperator = MakeUnique<BRepOperator>(mTriangleMesh);
 
         // Compute volume
         volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
@@ -90,12 +90,9 @@ void QuESo::Run()
 }
 
 void QuESo::Compute(){
-    // Get extreme points of bounding box
-    const IndexType number_elements_x = mParameters.NumberOfElements()[0];
-    const IndexType number_elements_y = mParameters.NumberOfElements()[1];
-    const IndexType number_elements_z = mParameters.NumberOfElements()[2];
 
-    const IndexType global_number_of_elements = number_elements_x * number_elements_y * number_elements_z;
+    // Reserve element container
+    const IndexType global_number_of_elements = mMapper.NumberOfElements();
     mpElementContainer->reserve(global_number_of_elements);
 
     // Time Variables
@@ -104,10 +101,10 @@ void QuESo::Compute(){
     double et_moment_fitting = 0.0;
 
     // Classify all elements.
-    Unique<BRepOperatorBase::StatusVectorType> p_classifications = nullptr;
+    Unique<BRepOperator::StatusVectorType> p_classifications = nullptr;
     if( mParameters.Get<bool>("embedding_flag") ){
         Timer timer_check_intersect{};
-        p_classifications = mpBRepOperator->pGetElementClassifications();
+        p_classifications = mpBRepOperator->pGetElementClassifications(mParameters);
         et_check_intersect += timer_check_intersect.Measure();
     }
 
@@ -135,7 +132,7 @@ void QuESo::Compute(){
             if( status == IntersectionStatus::Trimmed) {
                 new_element->SetIsTrimmed(true);
                 Timer timer_compute_intersection{};
-                auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second);
+                auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second, mParameters);
                 if( p_trimmed_domain ){
                     new_element->pSetTrimmedDomain(p_trimmed_domain);
                     valid_element = true;

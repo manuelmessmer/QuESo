@@ -119,7 +119,7 @@ private:
     ///@{
     TriangleMesh mTriangleMesh;
     TriangleMesh mTriangleMeshPost; // Deprecated. Will be removed soon.
-    Unique<BRepOperatorBase> mpBRepOperator;
+    Unique<BRepOperator> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainer> mpElementContainer;
     ConditionVectorType mConditions;

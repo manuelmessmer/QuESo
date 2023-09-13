@@ -8,13 +8,15 @@
 #include <set>
 //// Project includes
 #include "includes/define.hpp"
-#include "embedding/brep_operator_base.h"
 #include "embedding/trimmed_domain_base.h"
+
 
 namespace queso
 {
 ///@name QuESo Classes
 ///@{
+
+class BRepOperator;
 
 /**
  * @class  TrimmedDomainOnPlane
@@ -175,7 +177,7 @@ public:
     //    |     |</-- plane upper  Z
     //    |_____|/
     //
-    TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh, const BRepOperatorBase* pOperator) {
+    TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh, const BRepOperator* pOperator) {
         CollectEdgesOnPlane(rTriangleMesh);
         CloseContourEdges(pOperator);
         return TriangulateDomain();
@@ -230,7 +232,7 @@ private:
     ///                 |  |     |   |                                     DIRINDEX2
     ///                 |  |     |   |                                         ^
     ///            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
-    void CloseContourEdges(const BRepOperatorBase* pOperator);
+    void CloseContourEdges(const BRepOperator* pOperator);
 
     ///@brief Triangulates the trimmed domain on plane (see @details for more information).
     ///@details Assumes that the vertices of positive and negative oriented edges coincide along DIRINDEX1. See RefineEdges().

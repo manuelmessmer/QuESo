@@ -36,7 +36,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(triangle_mesh);
 
     Mapper mapper(parameters);
     IndexType number_trimmed_elements = 0;
@@ -55,7 +55,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
 
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/steering_knuckle.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(triangle_mesh);
 
     Mapper mapper(parameters);
     IndexType number_trimmed_elements = 0;
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
 
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh,parameters);
+    BRepOperator brep_operator(triangle_mesh);
 
     Mapper mapper(parameters);
     IndexType number_trimmed_elements = 0;
@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
 
