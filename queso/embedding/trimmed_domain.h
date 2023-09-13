@@ -41,7 +41,7 @@ public:
     /// @param rParameters QuESo Parameters.
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
-            const BRepOperatorBase* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
+            const BRepOperator* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
         : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters),
           mClippedMesh(GetTriangleMesh()), mGeometryQuery(mClippedMesh, false)
     {

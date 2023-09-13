@@ -25,6 +25,7 @@ class Element;
  * @class  TrimmedDomainBase
  * @author Manuel Messmer
  * @brief  Base class for TrimmedDomain. Stores boundary mesh of trimmed domain.
+ * @todo Remove trimmed domain base.
 */
 class TrimmedDomainBase {
 

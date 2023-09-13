@@ -5,6 +5,7 @@
 
 //// Project includes
 #include "embedding/trimmed_domain_on_plane.h"
+#include "embedding/brep_operator.h"
 #include "embedding/polygon.h"
 
 namespace queso
@@ -38,7 +39,7 @@ void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh
     }
 }
 
-void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperatorBase* pOperator) {
+void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
     // 1. Insert edges such that positive oriented edges span the entire AABB.
     // Find all intersections of Edges with upper bound of AABB.
     //     UP2 x1-------x2---x3

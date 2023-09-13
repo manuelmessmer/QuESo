@@ -12,12 +12,14 @@
 
 //// Project includes
 #include "includes/define.hpp"
-#include "embedding/brep_operator_base.h"
+#include "utilities/mapping_utilities.h"
 
 namespace queso {
 
 ///@name QuESo Classes
 ///@{
+
+class BRepOperator;
 
 /**
  * @class  FloodFill
@@ -47,7 +49,7 @@ public:
     /// @brief Constructor of FloodFill.
     /// @param pBrepOperator
     /// @param Parameters
-    FloodFill(BRepOperatorBase* pBrepOperator, const Parameters& Parameters) :
+    FloodFill(const BRepOperator* pBrepOperator, const Parameters& Parameters) :
         mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBoundXYZ()),
         mUpperBound(Parameters.UpperBoundXYZ()), mNumberOfElements( Parameters.NumberOfElements() )
     {
@@ -181,7 +183,7 @@ private:
     ///@name Members
     ///@{
 
-    const BRepOperatorBase* mpBrepOperator;
+    const BRepOperator* mpBrepOperator;
     Mapper mMapper;
 
     // The following parameters are global values, w.r.t. to the background mesh.
