@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         double test_volume = 0.0;
         double test_area = 0.0;
 
-        BRepOperator brep_operator(triangle_mesh, parameters);
+        BRepOperator brep_operator(triangle_mesh);
         FloodFill filler(&brep_operator, parameters);
         auto p_states = filler.ClassifyElements();
         Mapper mapper(parameters);
@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     }
                     if( status == IntersectionStatus::Trimmed){
                         // Get trimmed domain
-                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second);
+                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second, parameters);
                         if( p_trimmed_domain ){
                             auto mesh = p_trimmed_domain->GetTriangleMesh();
                             test_volume += MeshUtilities::Volume(mesh);
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
                                 Component("number_of_elements", num_elements),
                                 Component("min_element_volume_ratio", 0.0) } );
 
-        BRepOperator brep_operator(triangle_mesh, parameters);
+        BRepOperator brep_operator(triangle_mesh);
         FloodFillTester filler(&brep_operator, parameters);
         auto result = filler.ClassifyElementsForTest();
 

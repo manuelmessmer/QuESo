@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.50;
     const double delta_y = 0.50;
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
                 }
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.3;
     const double delta_y = 0.3;
@@ -99,10 +99,9 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
                 Vector3d lower_bound = {x, y, z};
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
-
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
                 }
@@ -141,7 +140,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
@@ -157,7 +156,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
                 }
@@ -191,7 +190,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
-    BRepOperator brep_operator(triangle_mesh, params);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 10;
     const double delta_y = 10;
@@ -207,7 +206,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
                 }

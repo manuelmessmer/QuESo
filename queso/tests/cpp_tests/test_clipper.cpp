@@ -27,11 +27,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     Vector3d lower_bound = {0.0, 0.0, -0.1};
     Vector3d upper_bound = {2, 2, 1};
 
-    Parameters param( { Component("lower_bound_xyz", lower_bound),
-                        Component("upper_bound_xyz", upper_bound),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(triangle_mesh);
 
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
@@ -57,12 +54,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2, 2, 1};
 
-    Parameters param( { Component("lower_bound_xyz", lower_bound),
-                        Component("upper_bound_xyz", upper_bound),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
-
     // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(triangle_mesh);
 
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
@@ -84,11 +77,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters param( { Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
     // Construct BRep_Operator
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.15;
     const double delta_y = 0.15;
@@ -133,13 +123,8 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-
-    Parameters param( { Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
-
     // Construct BRep_operator.
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.05;
     const double delta_y = 0.05;
@@ -187,13 +172,8 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-
-    Parameters param( { Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
-
     // Construct BRep operator.
-    BRepOperator brep_operator(triangle_mesh, param);
+    BRepOperator brep_operator(triangle_mesh);
     const double delta_x = 5;
     const double delta_y = 5;
     const double delta_z = 5;

@@ -34,13 +34,9 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
             }
         }
     }
-    // Dummy Parameters
-    Parameters params({ Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
 
     // Instantiate brep_operator
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(triangle_mesh);
 
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
@@ -79,13 +75,8 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
         }
     }
 
-    // Dummy Parameters
-    Parameters params({ Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
-
     // Instantiate brep_operator
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(triangle_mesh);
 
     std::vector<bool> result(rPoints.size(), false);
     int count = 0;
@@ -126,13 +117,8 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    // Dummy Parameters
-    Parameters params({ Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
-
     // Instantiate brep_operator
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(triangle_mesh);
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(84000);
@@ -183,13 +169,8 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    // Dummy Parameters
-    Parameters params({ Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) } );
-
     // Instantiate brep_operator
-    BRepOperator classifier(triangle_mesh, params);
+    BRepOperator classifier(triangle_mesh);
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(138600);
