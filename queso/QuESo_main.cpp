@@ -90,12 +90,9 @@ void QuESo::Run()
 }
 
 void QuESo::Compute(){
-    // Get extreme points of bounding box
-    const IndexType number_elements_x = mParameters.NumberOfElements()[0];
-    const IndexType number_elements_y = mParameters.NumberOfElements()[1];
-    const IndexType number_elements_z = mParameters.NumberOfElements()[2];
 
-    const IndexType global_number_of_elements = number_elements_x * number_elements_y * number_elements_z;
+    // Reserve element container
+    const IndexType global_number_of_elements = mMapper.NumberOfElements();
     mpElementContainer->reserve(global_number_of_elements);
 
     // Time Variables
