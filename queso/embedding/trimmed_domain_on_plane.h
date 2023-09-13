@@ -105,7 +105,7 @@ public:
 
     /// Constructor.
     TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain, bool SwitchOrientation = false)
-        : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain)
+        : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain), mSwitchOrientation(SwitchOrientation)
     {
         // Orientation
         //
@@ -118,7 +118,7 @@ public:
         //
         mPlaneIndex = PlaneIndex;
         if (PlaneIndex == 2) {
-            if( SwitchOrientation ){
+            if( mSwitchOrientation ){
                 DIRINDEX1 = 1;
                 DIRINDEX2 = 0;
             } else {
@@ -128,17 +128,17 @@ public:
             DIRINDEX3 = 2;
         }
         else if (PlaneIndex == 1) {
-            if( SwitchOrientation ){
-                DIRINDEX1 = 2;
-                DIRINDEX2 = 0;
-            } else {
+            if( mSwitchOrientation ){
                 DIRINDEX1 = 0;
                 DIRINDEX2 = 2;
+            } else {
+                DIRINDEX1 = 2;
+                DIRINDEX2 = 0;
             }
             DIRINDEX3 = 1;
         }
         else if (PlaneIndex == 0) {
-            if( SwitchOrientation ){
+            if( mSwitchOrientation ){
                 DIRINDEX1 = 2;
                 DIRINDEX2 = 1;
             } else {
@@ -448,6 +448,8 @@ private:
     Point3DType mUpperBound; // Upper bound AABB
 
     const TrimmedDomainBase *mpTrimmedDomain; // Reuiqred for IsInside()-Test.
+
+    bool mSwitchOrientation; // Switch orientation of plane indices.
 
     double mSnapTolerance;
     ///@}

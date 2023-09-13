@@ -178,7 +178,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
     IntegrationPointVectorType integration_points{};
 
     const auto order = rParam.Order();
-    const IndexType max_iteration = (Math::Max(order) == 2) ? 3UL : 2UL;
+    const IndexType max_iteration = (Math::Max(order) == 2) ? 4UL : 3UL;
     // If residual can not be statisfied, try with more points in initial set.
     while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
 
@@ -213,6 +213,10 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
 
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
         QuESo_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
+        if( rParam.EchoLevel() > 3 ) {
+            std::string filename = "output/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
+            IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
+        }
     }
 
     return residual;
