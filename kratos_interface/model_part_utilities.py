@@ -3,12 +3,14 @@ from kratos_interface.weak_bcs import PenaltySupport
 from kratos_interface.weak_bcs import LagrangeSupport
 from kratos_interface.weak_bcs import SurfaceLoad
 from kratos_interface.weak_bcs import PressureLoad
-import re
+from QuESo_PythonApplication import TriangleMesh as TriangleUtilities
 
 class ModelPartUtilities:
     @staticmethod
     def _WriteModelPartToSTL(KratosModelPart, Filename):
-        ''' Writes KratosModelPart to STL. '''
+        ''' Deprectaed method.
+        Writes KratosModelPart to STL.
+        '''
         io_settings = KratosMultiphysics.Parameters(
             """{
                 "open_mode" : "write",
@@ -20,7 +22,8 @@ class ModelPartUtilities:
 
     @staticmethod
     def ReadModelPartFromTriangleMesh(KratosModelPart, TriangleMesh):
-        ''' Reads Kratos ModelPart from the QuESo triangle mesh. '''
+        ''' Reads Kratos ModelPart from the QuESo triangle mesh.
+        '''
         vertices = TriangleMesh.GetVertices()
         for v_id, vertex in enumerate(vertices):
             KratosModelPart.CreateNewNode(v_id+1, vertex[0], vertex[1], vertex[2])
@@ -30,44 +33,40 @@ class ModelPartUtilities:
             KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, [triangle[0]+1, triangle[1]+1, triangle[2]+1], KratosModelPart.GetProperties()[1])
 
     @staticmethod
-    def CreateQuESoInput(KratosEmbeddedModelPart, QuESoParameters):
-        ''' Writes the KratosEmbeddedModelPart (including submodelpart for conditions) to STL files, which can be read by TIRBA. '''
+    def ReadTriangleMeshFromModelPart(TriangleMesh, KratosModelPart, type="Elements"):
+        ''' Reads QuESo triangle mesh from Kratos ModelPart
+        '''
+        id_map = {}
+        for queso_id, node in enumerate(KratosModelPart.Nodes):
+            kratos_id = node.Id
+            id_map[kratos_id] = queso_id
+            TriangleMesh.AddVertex([node.X, node.Y, node.Z])
 
-        # Write main model part
-        input_filename = QuESoParameters.GetInputFilename()
-        m_lower_case = re.search('/(.*).stl', input_filename)
-        m_upper_case = re.search('/(.*).STL', input_filename)
-        if m_lower_case:
-            model_part_name = m_lower_case.group(1)
-        elif m_upper_case:
-            model_part_name = m_lower_case.group(1)
+        if( type == "Elements"):
+            entity_list = KratosModelPart.Elements
+        elif(type == "Conditions"):
+            entity_list = KratosModelPart.Conditions
         else:
-            raise Exception("CreateQuESoInput::Filename is not valid.")
+            message = "ModelPartUtilities :: ReadTriangleMeshFromModelPart :: Given type: '" + str(type)
+            message += "' not valid. Available options are: 'Elements' and 'Conditions'."
+            raise Exception(message)
 
-        ModelPartUtilities._WriteModelPartToSTL(KratosEmbeddedModelPart.GetSubModelPart(model_part_name), input_filename)
-
-        # Write condition model part
-        condition_filenames = {}
-        for cond_id in range(QuESoParameters.NumberOfConditions()):
-            tmp_filename = QuESoParameters.GetFilenameOfCondition(cond_id)
-            m_lower_case = re.search('/(.*).stl', tmp_filename)
-            m_upper_case = re.search('/(.*).STL', tmp_filename)
-            if m_lower_case:
-                condition_filenames[m_lower_case.group(1)] = cond_id
-            elif m_upper_case:
-                condition_filenames[m_lower_case.group(1)] = cond_id
-            else:
-                raise Exception("CreateQuESoInput::Filename is not valid.")
-
-        for sub_model_part in KratosEmbeddedModelPart.SubModelParts:
-            sub_model_part_name = sub_model_part.Name
-            if( sub_model_part_name in condition_filenames.keys()):
-                cond_id = condition_filenames[sub_model_part_name]
-                ModelPartUtilities._WriteModelPartToSTL(sub_model_part, QuESoParameters.GetFilenameOfCondition(cond_id))
+        for entity in entity_list:
+            geometry = entity.GetGeometry()
+            if( len(geometry) != 3 ):
+                raise Exception("ModelPartUtilities :: ReadTriangleMeshFromModelPart :: Queso only allows triangles.")
+            node1 = geometry[0]
+            node2 = geometry[1]
+            node3 = geometry[2]
+            triangle = [id_map[node1.Id], id_map[node2.Id], id_map[node3.Id] ]
+            TriangleMesh.AddTriangle(triangle)
+            normal = TriangleUtilities.NormalStatic( [node1.X, node1.Y, node1.Z], [node2.X, node2.Y, node2.Z], [node3.X, node3.Y, node3.Z] )
+            TriangleMesh.AddNormal(normal)
 
     @staticmethod
     def AddElementsToModelPart(KratosNurbsVolumeModelPart, Elements):
-        ''' Adds the QuESo elements to the KratosNurbsVolumeModelPart. '''
+        ''' Adds the QuESo elements to the KratosNurbsVolumeModelPart.
+        '''
         nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry("NurbsVolume")
         volume_properties = KratosNurbsVolumeModelPart.GetProperties()[1]
 
@@ -127,14 +126,16 @@ class ModelPartUtilities:
 
     @staticmethod
     def RemoveAllElements(KratosModelPart):
-        ''' Removes all elements from the KratosModelPart. '''
+        ''' Removes all elements from the KratosModelPart.
+        '''
         for element in KratosModelPart.Elements:
             element.Set(KratosMultiphysics.TO_ERASE, True)
         KratosModelPart.RemoveElements(KratosMultiphysics.TO_ERASE)
 
     @staticmethod
     def RemoveAllConditions(KratosModelPart):
-        ''' Removes all conditions from the KratosModelPart. '''
+        ''' Removes all conditions from the KratosModelPart.
+        '''
         for condition in KratosModelPart.Conditions:
             condition.Set(KratosMultiphysics.TO_ERASE, True)
         KratosModelPart.RemoveConditions(KratosMultiphysics.TO_ERASE)
