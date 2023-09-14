@@ -311,6 +311,36 @@ public:
         }
     }
 
+    /// @brief Returns normal computed via vertices.
+    /// @param rP1 Vertex 1
+    /// @param rP2 Vertex 2
+    /// @param rP3 Vertex 3
+    /// @return double
+    static Vector3d Normal(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
+        const auto A = rP2 - rP1;
+        const auto B = rP3 - rP2;
+        const auto C = rP1 - rP3;
+
+        const double lenght_A = A.Norm();
+        const double lenght_B = B.Norm();
+        const double lenght_C = C.Norm();
+
+        PointType normal{};
+        if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
+            normal = Math::Cross(A, B);
+        }
+        else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
+            normal = Math::Cross(C, A);
+        }
+        else {
+            normal = Math::Cross(B, C);
+        }
+
+        normal *= 1.0/Math::Norm(normal);
+        return normal;
+    }
+
+
     ///@}
 private:
 
@@ -366,7 +396,6 @@ private:
     std::vector<Vector3i> mTriangles;
     std::vector<Vector3d> mNormals;
     EdgesOnPlanesVectorType mEdgesOnPlanes{};
-
     ///@}
 
 }; // End of class TriangleMesh
