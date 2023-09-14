@@ -1,0 +1,50 @@
+{
+    "general_settings"   : {
+        "input_type" : "kratos_modelpart",
+        "input_kratos_modelpart_name" : "hook",
+        "echo_level"      : 0
+    },
+    "mesh_settings"     : {
+        "lower_bound_xyz": [-70.0, -30.0, -145.0],
+        "upper_bound_xyz": [150.0, 30.0, 195.0],
+        "lower_bound_uvw": [-70.0, -30.0, -145.0],
+        "upper_bound_uvw": [150.0, 30.0, 195.0],
+        "polynomial_order" : [2, 2, 2],
+        "number_of_elements" : [20, 6, 10]
+    },
+    "trimmed_quadrature_rule_settings"     : {
+        "moment_fitting_residual": 1e-8,
+        "min_element_volume_ratio": 0.0
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+        "integration_method" : "Gauss"
+    },
+    "conditions"    :  [
+        {
+        "SurfaceLoadCondition": {
+            "input_type" : "kratos_modelpart",
+            "input_kratos_modelpart_name" : "main_load",
+            "modulus" : 3000.0,
+            "direction" : [0.0, 0.0, -1]
+        }},{
+         "SurfaceLoadCondition": {
+            "input_type" : "kratos_modelpart",
+            "input_kratos_modelpart_name" : "tip_load",
+            "modulus" : 1000.0,
+            "direction" : [-1.0, 0.0, -1.0]
+        }},{
+        "PenaltySupportCondition": {
+            "input_type" : "kratos_modelpart",
+            "input_kratos_modelpart_name" : "support_vertical",
+            "value" : [0.0, 0.0, 0.0],
+            "penalty_factor" : 1e10
+        }},{
+        "PenaltySupportCondition": {
+            "input_type" : "kratos_modelpart",
+            "input_kratos_modelpart_name" : "support_horizontal",
+            "value" : [0.0, 0.0, 0.0],
+            "penalty_factor" : 1e10
+        }}
+    ]
+}
+

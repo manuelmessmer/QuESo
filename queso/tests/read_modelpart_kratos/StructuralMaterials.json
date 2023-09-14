@@ -1,0 +1,17 @@
+{
+    "properties" : [{
+        "model_part_name" : "NurbsMesh",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                            "DENSITY": 7.85E-05,
+                            "YOUNG_MODULUS": 210E+05,
+                            "POISSON_RATIO": 2.9E-01
+            },
+            "Tables"           : {}
+        }
+    }]
+}
