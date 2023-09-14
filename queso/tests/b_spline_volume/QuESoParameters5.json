@@ -1,5 +1,7 @@
 {
-    "general_settings"  : {},
+    "general_settings"  : {
+        "embedding_flag" : false
+    },
     "mesh_settings"     : {
         "lower_bound_xyz": [-1.5, -1.5, -1.00],
         "upper_bound_xyz": [1.5, 1.5, 11.00],
