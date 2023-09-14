@@ -315,7 +315,7 @@ public:
     /// @param rP1 Vertex 1
     /// @param rP2 Vertex 2
     /// @param rP3 Vertex 3
-    /// @return double
+    /// @return Vector3d
     static Vector3d Normal(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
         const auto A = rP2 - rP1;
         const auto B = rP3 - rP2;
@@ -339,7 +339,6 @@ public:
         normal *= 1.0/Math::Norm(normal);
         return normal;
     }
-
 
     ///@}
 private:

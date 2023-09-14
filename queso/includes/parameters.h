@@ -73,8 +73,8 @@ public:
 
         std::string input_type = Get<std::string>("input_type");
         if( !(input_type == "stl_file") && !(input_type == "kratos_modelpart") ){
-            QuESo_ERROR << "Parameter 'input_type': " << input_type << " is not valid. Available options are "
-                << "'stl_file' and 'kratos_modelpart'" << std::endl;
+            QuESo_ERROR << "Parameter 'input_type': '" << input_type << "' is not valid. Available options are "
+                << "'stl_file' and 'kratos_modelpart'." << std::endl;
         }
     }
 
