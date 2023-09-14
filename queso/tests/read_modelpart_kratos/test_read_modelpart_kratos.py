@@ -5,7 +5,7 @@ from queso.python_scripts.QuESoUnittest import QuESoTestCase
 # External imports
 import unittest
 
-class TestParametersContainer(QuESoTestCase):
+class TestReadModelPartKratos(QuESoTestCase):
     def test_kratos_input(self):
         pyqueso = PyQuESo("queso/tests/read_modelpart_kratos/QuESoParameters.json")
 
