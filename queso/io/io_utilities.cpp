@@ -616,29 +616,10 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
         // Add Triangle
         rTriangleMesh.AddTriangle(triangle);
 
-        // Uses largest two edges to compute normal. We need normal in machine precesion.
         // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
         // the given vertices.
-        const auto A = vertices[1] - vertices[0];
-        const auto B = vertices[2] - vertices[1];
-        const auto C = vertices[0] - vertices[2];
+        const PointType normal = TriangleMesh::Normal(vertices[0], vertices[1], vertices[2]);
 
-        const double lenght_A = A.Norm();
-        const double lenght_B = B.Norm();
-        const double lenght_C = C.Norm();
-
-        PointType normal{};
-        if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
-            normal = Math::Cross(A, B);
-        }
-        else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
-            normal = Math::Cross(C, A);
-        }
-        else {
-            normal = Math::Cross(B, C);
-        }
-
-        normal *= 1.0/Math::Norm(normal);
         rTriangleMesh.AddNormal( normal );
 
         std::getline(file, message); // Ignore endloop
@@ -733,30 +714,11 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
         // Add triangle
         rTriangleMesh.AddTriangle(triangle);
 
-        // Uses largest two edges to compute normal. We need normal in machine precesion.
         // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
         // the given vertices.
-        const auto A = vertices[1] - vertices[0];
-        const auto B = vertices[2] - vertices[1];
-        const auto C = vertices[0] - vertices[2];
+        const PointType normal = TriangleMesh::Normal(vertices[0], vertices[1], vertices[2]);
 
-        const double lenght_A = A.Norm();
-        const double lenght_B = B.Norm();
-        const double lenght_C = C.Norm();
-
-        PointType normal{};
-        if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
-            normal = Math::Cross(A, B);
-        }
-        else if( lenght_A >= lenght_B-ZEROTOL && lenght_C >= lenght_B-ZEROTOL ){
-            normal = Math::Cross(C, A);
-        }
-        else {
-            normal = Math::Cross(B, C);
-        }
-
-        normal *= 1.0/Math::Norm(normal);
-        rTriangleMesh.AddNormal( normal );
+        rTriangleMesh.AddNormal(normal);
 
         // Read so-called attribute byte count and ignore it
         char c;
