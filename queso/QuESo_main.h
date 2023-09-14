@@ -45,19 +45,20 @@ public:
     ///@name  Life Cycle
     ///@{
 
-    /// @brief Constructor. Initializes Parameters and Mapper.
-    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters)
-    {
+    /// @brief Constructor
+    /// @param rParameters
+    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
         if( mParameters.Get<bool>("embedding_flag") ) {
-            for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
-                CreateNewCondition(r_condition_settings);
-            }
-
+            // Read main mesh
             if( mParameters.Get<std::string>("input_type") == "stl_file" ){
                 // Read mesh
                 const auto& r_filename = mParameters.Get<std::string>("input_filename");
                 IO::ReadMeshFromSTL(mTriangleMesh, r_filename.c_str());
                 QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
+            }
+            // Read conditions
+            for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
+                CreateNewCondition(r_condition_settings);
             }
         }
     }
@@ -119,14 +120,13 @@ private:
     Unique<ElementContainer> mpElementContainer;
     ConditionVectorType mConditions;
     const Parameters mParameters;
-
     Mapper mMapper;
     ///@}
 
     ///@name Private Member Operations
     ///@{
 
-    /// @brief Run QuESo
+    /// @brief Compute
     void Compute();
     ///@}
 };
