@@ -23,38 +23,25 @@ void QuESo::Run()
     Timer timer{};
     QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "\nQuESo ------------------------------------------ START" << std::endl;
 
-    // Allocate element/knotspans container
-    mpElementContainer = MakeUnique<ElementContainer>(mParameters);
-
-    // Loop over all conditions
-    for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
-        const std::string& r_filename = r_condition_settings.Get<std::string>("input_filename");
-        Unique<TriangleMesh> p_new_mesh = MakeUnique<TriangleMesh>();
-        IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
-        // Condition owns triangle mesh.
-        mConditions.push_back( Condition(p_new_mesh, r_condition_settings) );
-        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(mConditions.back().GetTriangleMesh() ) );
-    }
-
-    // Read geometry
     double volume_brep = 0.0;
     if( mParameters.Get<bool>("embedding_flag") ) {
-        // Read mesh
-        const auto& r_filename = mParameters.Get<std::string>("input_filename");
-        IO::ReadMeshFromSTL(mTriangleMesh, r_filename.c_str());
+        // Compute volume
+        volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
+        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
+
         // Write Surface Mesh to vtk file if eco_level > 0
         if( mParameters.EchoLevel() > 0){
             IO::WriteMeshToVTK(mTriangleMesh, "output/geometry.vtk", true);
         }
-        // Construct BRepOperator
-        mpBRepOperator = MakeUnique<BRepOperator>(mTriangleMesh);
-
-        // Compute volume
-        volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
-
-        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
-        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
     }
+
+    // Construct BRepOperator
+    mpBRepOperator = MakeUnique<BRepOperator>(mTriangleMesh);
+    for( const auto& r_condition : mConditions ){
+        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(r_condition.GetTriangleMesh() ) );
+    }
+    // Allocate element/knotspans container
+    mpElementContainer = MakeUnique<ElementContainer>(mParameters);
 
     // Start computation
     Compute();
@@ -194,6 +181,18 @@ void QuESo::Compute(){
         QuESo_INFO << "------------------------------------------------ \n";
     }
 
+}
+
+Condition& QuESo::CreateNewCondition(const ConditionParameters& rConditionParameters){
+    Unique<TriangleMesh> p_new_mesh = MakeUnique<TriangleMesh>();
+    if( rConditionParameters.Get<std::string>("input_type") == "stl_file" ) {
+        const std::string& r_filename = rConditionParameters.Get<std::string>("input_filename");
+        IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
+    }
+
+    // Condition owns triangle mesh.
+    mConditions.push_back( Condition(p_new_mesh, rConditionParameters) );
+    return mConditions.back();
 }
 
 } // End namespace queso

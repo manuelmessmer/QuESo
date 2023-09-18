@@ -146,23 +146,31 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<TriangleMesh, Unique<TriangleMesh>>(m,"TriangleMesh")
         .def(py::init<>())
         .def("Center", &TriangleMesh::Center)
-        .def("Normal", &TriangleMesh::Normal)
+        .def("Normal", [](TriangleMesh& self, IndexType Id){
+            return self.Normal(Id); })
         .def("Area", [](TriangleMesh& self, IndexType Id){
-            return self.Area(Id);
-        })
+            return self.Area(Id); })
         .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
-            return self.pGetIPsGlobal(Id, Method);
-        })
+            return self.pGetIPsGlobal(Id, Method); })
         .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
         .def("P1", &TriangleMesh::P1)
         .def("P2", &TriangleMesh::P2)
         .def("P3", &TriangleMesh::P3)
         .def("Reserve", &TriangleMesh::Reserve)
+        .def("AddVertex", [](TriangleMesh& self, const std::array<double,3>& rVertex){
+            return self.AddVertex( PointType(rVertex) ); })
+        .def("AddTriangle", [](TriangleMesh& self, const std::array<IndexType,3>& rTriangle){
+            return self.AddTriangle( Vector3i(rTriangle) ); })
+        .def("AddNormal", [](TriangleMesh& self, const PointType& rNormal){
+            return self.AddNormal( rNormal ); })
         .def("GetVertices",  static_cast< const std::vector<PointType>& (TriangleMesh::*)() const>(&TriangleMesh::GetVertices)
             , py::return_value_policy::reference_internal ) // Export const version
         .def("GetTriangles",  static_cast< const std::vector<Vector3i>& (TriangleMesh::*)() const>(&TriangleMesh::GetTriangles)
             , py::return_value_policy::reference_internal ) // Export const version
-        .def_static("AspectRatioStatic", static_cast<double (*)(const PointType&, const PointType&, const PointType&)>(&TriangleMesh::AspectRatio) )
+        .def_static("AspectRatioStatic", [](const std::array<double,3>& rV1, const std::array<double,3>& rV2, const std::array<double,3>& rV3){
+            return TriangleMesh::AspectRatio( PointType(rV1), PointType(rV2), PointType(rV3) ); })
+        .def_static("NormalStatic", [](const std::array<double,3>& rV1, const std::array<double,3>& rV2, const std::array<double,3>& rV3){
+            return TriangleMesh::Normal( PointType(rV1), PointType(rV2), PointType(rV3)); })
     ;
 
     /// Export MeshUtilities
@@ -176,12 +184,6 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<Element, std::shared_ptr<Element>>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (Element::*)() const>(&Element::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
-        .def("GetTriangleMesh", [](const Element& rElement){
-            return rElement.pGetTrimmedDomain()->GetTriangleMesh();
-        }, py::return_value_policy::reference_internal)
-        .def("GetBCTriangleMesh", [](const Element& rElement, std::function<bool(double, double,double)> &IsInDomain){
-            return rElement.pGetTrimmedDomain()->pGetTriangleMesh(IsInDomain);
-        })
         .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first.Coordinates(); })
         .def("UpperBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().second.Coordinates(); })
         .def("LowerBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().first.Coordinates(); })
@@ -317,13 +319,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("Run", &QuESo::Run)
         .def("Clear", &QuESo::Clear)
         .def("GetElements",  &QuESo::GetElements, py::return_value_policy::reference_internal )
+        .def("CreateNewCondition",  &QuESo::CreateNewCondition, py::return_value_policy::reference_internal )
         .def("GetTriangleMesh", &QuESo::GetTriangleMesh, py::return_value_policy::reference_internal)
         .def("GetConditions", &QuESo::GetConditions, py::return_value_policy::reference_internal )
-        .def("ReadWritePostMesh", &QuESo::ReadWritePostMesh )
-        .def("GetPostMeshPoints", [](const QuESo& v){
-            auto& mesh = v.GetPostMesh();
-            return  mesh.GetVertices();
-        });
     ;
 }
 

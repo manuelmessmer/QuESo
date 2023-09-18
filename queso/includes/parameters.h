@@ -70,6 +70,12 @@ public:
         if( value < 0.9e-10 ){
             BaseType::Set<double>("min_element_volume_ratio", 1e-10);
         }
+
+        std::string input_type = Get<std::string>("input_type");
+        if( !(input_type == "stl_file") && !(input_type == "kratos_modelpart") ){
+            QuESo_ERROR << "Parameter 'input_type': '" << input_type << "' is not valid. Available options are "
+                << "'stl_file' and 'kratos_modelpart'." << std::endl;
+        }
     }
 
 private:
@@ -81,6 +87,7 @@ private:
     inline static const BaseType::ComponentVectorType mDefaultComponents = {
         Component("echo_level", 0UL),
         Component("embedding_flag", true),
+        Component("input_type", std::string("stl_file")),
         Component("initial_triangle_edge_length", 1.0),
         Component("min_num_boundary_triangles", 500UL),
         Component("moment_fitting_residual", 1.0e-10),
@@ -96,6 +103,8 @@ private:
     /// All available components
     inline static const BaseType::AvailableComponentVectorType mAllAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("input_type", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("input_kratos_modelpart_name", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("echo_level", &typeid(unsigned long) ),
         std::make_pair<std::string, const std::type_info*>("embedding_flag", &typeid(bool) ),
@@ -132,9 +141,9 @@ public:
 
     /// Default constructor
     ConditionParameters(std::string type) : VariantDataContainer() {
+        AddDefaults();
         Set<std::string>("type", type);
         CreateAvailableComponentList();
-        AddDefaults();
         CheckComponents();
     }
 
@@ -145,8 +154,8 @@ public:
     /// Constructor
     ConditionParameters(BaseType::ComponentVectorType Component) : VariantDataContainer(Component)
     {
-        CreateAvailableComponentList();
         AddDefaults();
+        CreateAvailableComponentList();
         EnsureValidValues();
         CheckComponents();
     }
@@ -183,18 +192,30 @@ public:
         return mAvailableComponents;
     }
 
+    /// @brief Adjust values that are not feasible.
+    void EnsureValidValues() override {
+        std::string input_type = Get<std::string>("input_type");
+        if( !(input_type == "stl_file") && !(input_type == "kratos_modelpart") ){
+            QuESo_ERROR << "Parameter 'input_type': " << input_type << " is not valid. Available options are "
+                << "'stl_file' and 'kratos_modelpart'" << std::endl;
+        }
+    }
+
 private:
     ///@}
     ///@name Private Member Variables
     ///@{
 
     /// Default components.
-    inline static const BaseType::ComponentVectorType mDefaultComponents = { };
+    inline static const BaseType::ComponentVectorType mDefaultComponents = {
+        Component("input_type", std::string("stl_file")) };
 
     /// Components available in all conditions.
     BaseType::AvailableComponentVectorType mAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("type", &typeid(std::string) ),
-        std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ) };
+        std::make_pair<std::string, const std::type_info*>("input_type", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("input_kratos_modelpart_name", &typeid(std::string) ) };
 
     /// Components available in penalty support conditions.
     inline static const BaseType::AvailableComponentVectorType mAvailableComponentsPenalty = {

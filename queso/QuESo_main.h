@@ -45,9 +45,22 @@ public:
     ///@name  Life Cycle
     ///@{
 
-    /// @brief Constructor. Initializes Parameters and Mapper.
-    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters)
-    {
+    /// @brief Constructor
+    /// @param rParameters
+    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
+        if( mParameters.Get<bool>("embedding_flag") ) {
+            // Read main mesh
+            if( mParameters.Get<std::string>("input_type") == "stl_file" ){
+                // Read mesh
+                const auto& r_filename = mParameters.Get<std::string>("input_filename");
+                IO::ReadMeshFromSTL(mTriangleMesh, r_filename.c_str());
+                QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
+            }
+            // Read conditions
+            for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
+                CreateNewCondition(r_condition_settings);
+            }
+        }
     }
 
     /// Copy Constructor
@@ -75,10 +88,14 @@ public:
         return mConditions;
     }
 
+    /// @brief Creates a new condition and adds to mConditions-Vector.
+    /// @param rConditionParameters
+    /// @return Condition&
+    Condition& CreateNewCondition(const ConditionParameters& rConditionParameters);
+
     /// @brief Clear all containers.
     void Clear() {
         mTriangleMesh.Clear();
-        mTriangleMeshPost.Clear();
         mpBRepOperator = nullptr;
         mpBrepOperatorsBC.clear();
         mpElementContainer = nullptr;
@@ -92,46 +109,24 @@ public:
     }
 
     ///@}
-    ///@name Temporary operations to perform PosProcessing after Kratos Analysis
-    ///      This will be moved to TriangleMesh.
-    ///@{
-
-    /// @brief Reads Filename and writes mesh to output/results.vtk
-    /// @param Filename
-    void ReadWritePostMesh() {
-        QuESo_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
-        const auto& r_filename = mParameters.Get<std::string>("postprocess_filename");
-        IO::ReadMeshFromSTL(mTriangleMeshPost, r_filename.c_str());
-        IO::WriteMeshToVTK(mTriangleMeshPost, "output/results.vtk", true);
-    }
-
-    /// @brief  Get mesh for prosptrocessing
-    /// @return const Reference to TriangleMesh
-    const TriangleMesh& GetPostMesh() const {
-        QuESo_INFO << "Warning :: Postprocessing mesh is deprecated. Use VtkEmbeddedGeometryOutputProcess from Kratos. \n";
-        return mTriangleMeshPost;
-    }
-    ///@}
 
 private:
 
     ///@name Private Members Variables
     ///@{
     TriangleMesh mTriangleMesh;
-    TriangleMesh mTriangleMeshPost; // Deprecated. Will be removed soon.
     Unique<BRepOperator> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainer> mpElementContainer;
     ConditionVectorType mConditions;
     const Parameters mParameters;
-
     Mapper mMapper;
     ///@}
 
     ///@name Private Member Operations
     ///@{
 
-    /// @brief Run QuESo
+    /// @brief Compute
     void Compute();
     ///@}
 };
