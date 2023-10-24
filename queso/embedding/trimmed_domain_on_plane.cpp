@@ -672,7 +672,7 @@ void TrimmedDomainOnPlane::AddIntersectedVertexPositive(Edge2D* pEdge, std::vect
             rVertices.push_back( std::make_pair(v1[0], false)  );
         }
     }
-    else if( status.second ){
+    if( status.second ){
         auto normal = pEdge->Normal();
         auto v2 = mVerticesPositive[pEdge->V2()];
         if ( normal[0] < ZEROTOL ){ // Just additional check. Actually not required.
@@ -690,7 +690,7 @@ void TrimmedDomainOnPlane::AddIntersectedVertexNegative(Edge2D* pEdge, std::vect
             rVertices.push_back( std::make_pair(v1[0], true)  );
         }
     }
-    else if( status.second ){
+    if( status.second ){
         auto normal = pEdge->Normal();
         auto v2 = mVerticesNegative[pEdge->V2()];
         if(normal[0] > -ZEROTOL) { // Just additional check. Actually not required.
