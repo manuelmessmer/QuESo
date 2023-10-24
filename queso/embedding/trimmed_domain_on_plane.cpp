@@ -143,10 +143,39 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
                 distance_ver = mVerticesVertical[edge_vertical->V2()][0] - left_bound;
         }
 
-        // If distance pos < 0.
-        if( std::abs(distance_pos) < mSnapTolerance ){
+        const double min_distance = std::min( {distance_pos, distance_neg, distance_ver} );
+        const bool pos_found = std::abs(distance_pos) < (min_distance + mSnapTolerance);
+        const bool neg_found = std::abs(distance_neg) < (min_distance + mSnapTolerance);
+        const bool vert_found = std::abs(distance_ver) < (min_distance + mSnapTolerance);
+
+        const IndexType found_count = pos_found + neg_found + vert_found;
+        //const IndexType k = ( std::abs(min_distance) < mSnapTolerance ) ? 0 : 1;
+
+        // Ignore if double vertex.
+        if( found_count > 1 ) {
+            if( pos_found ){
+                // Increment ++positive.
+                if( double_vertex_edge ){
+                    auto status = edge_positive->IsVertexOnUpperBoundary();
+                    edge_positive->SetVerticesOnUpperBoundary(false, status.second);
+                }
+                else {
+                    ++pos_positive;
+                }
+            }
+            if( neg_found ) {
+                // Increment ++negative.
+                ++pos_negative;
+            }
+            if( vert_found ){
+                // Increment ++vertical.
+                ++pos_vertical;
+            }
+        }
+        // If distance_pos < 0 -> double vertex between two positive edges
+        else if( std::abs(distance_pos) < mSnapTolerance ){
             const IndexType size = intersected_vertices.size();
-            // Make invalid. This is continous edge.
+            // Add double vertex
             if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
                 intersected_vertices[size-1].second = true;
                 double val = intersected_vertices[size-1].first;
@@ -161,43 +190,24 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
                 ++pos_positive;
             }
         }
+        // If distance_neg < 0 -> double vertex between two negative edges
+        else if( std::abs(distance_neg) < mSnapTolerance ){
+            const IndexType size = intersected_vertices.size();
+            // Add double vertex
+            if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
+                intersected_vertices[size-1].second = false;
+                double val = intersected_vertices[size-1].first;
+                intersected_vertices.push_back( std::make_pair(val, true)  );
+            }
+            // Increment ++negative.
+            ++pos_negative;
+        }
         else if( std::abs(distance_ver) < mSnapTolerance ){
             // Increment ++vertical.
             ++pos_vertical;
-        }
-        else if( std::abs(distance_neg) < mSnapTolerance ){
-            // Increment ++negative.
-            ++pos_negative;
-        } // Positive and vertical have the same distance.
-        else if( (distance_pos+distance_ver) < 0.1*MAXD && std::abs(distance_pos-distance_ver) <= mSnapTolerance ){
-            // Increment positive
-            if( double_vertex_edge ){
-                auto status = edge_positive->IsVertexOnUpperBoundary();
-                edge_positive->SetVerticesOnUpperBoundary(false, status.second);
-            }
-            else {
-                ++pos_positive;
-            }
-            ++pos_vertical;
-        // Positive and negative have the same distance.
-        } else if ( (distance_pos+distance_neg) < 0.1*MAXD &&  std::abs(distance_pos-distance_neg) <= mSnapTolerance ) {
-            // Increment positive
-            if( double_vertex_edge ){
-                auto status = edge_positive->IsVertexOnUpperBoundary();
-                edge_positive->SetVerticesOnUpperBoundary(false, status.second);
-            }
-            else {
-                ++pos_positive;
-            }
-            ++pos_negative;
-        // Negative and vertical have the same distance.
-        } else if ( (distance_ver+distance_neg) < 0.1*MAXD && std::abs(distance_ver-distance_neg) <= mSnapTolerance ) {
-            // Increment vertical and negative
-            ++pos_vertical;
-            ++pos_negative;
         } else {
             // ADD POSITIVE
-            if( distance_pos < distance_neg && distance_pos < distance_ver ){
+            if( pos_found ){
                 // Add and increment positive
                 AddIntersectedVertexPositive(edge_positive, intersected_vertices);
                 if( double_vertex_edge ){
@@ -208,12 +218,12 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
                     ++pos_positive;
                 }
             } // ADD Negative
-            else if( distance_neg < distance_pos && distance_neg < distance_ver ){
+            else if( neg_found ){
                 // Add and increment negative
                 AddIntersectedVertexNegative(edge_negative, intersected_vertices);
                 ++pos_negative;
             } // ADD VERTICAL
-            else if( distance_ver < distance_neg && distance_ver < distance_pos ){
+            else if( vert_found ){
                 // Add and increment vertical
                 AddIntersectedVertexVertical(edge_vertical, intersected_vertices);
                 ++pos_vertical;
