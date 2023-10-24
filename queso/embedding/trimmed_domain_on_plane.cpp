@@ -411,6 +411,7 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
         double value_left = r_vertices[index_v_left][0];
         double value_right = r_vertices[index_v_right][0];
 
+        // If two edges share a vertex, sort by center of edges.
         const bool same_vertices = (index_v_left == index_v_right);
         if( same_vertices) {
             value_left = 0.5*(r_vertices[rLHs.V1()][0] + r_vertices[rLHs.V2()][0]);
