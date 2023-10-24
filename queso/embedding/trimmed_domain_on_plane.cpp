@@ -114,11 +114,11 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
                 double_vertex_edge = true;
             }
             if( status.first ){
-                distance_pos = mVerticesPositive[edge_positive->V1()][0] - left_bound;
+                distance_pos = std::abs(mVerticesPositive[edge_positive->V1()][0] - left_bound);
             }
             else {
                 double_vertex_edge = false;
-                distance_pos = mVerticesPositive[edge_positive->V2()][0] - left_bound;
+                distance_pos = std::abs(mVerticesPositive[edge_positive->V2()][0] - left_bound);
             }
 
         }
@@ -128,9 +128,9 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         if( edge_negative ){
             auto status = edge_negative->IsVertexOnUpperBoundary();
             if( status.first )
-                distance_neg = mVerticesNegative[edge_negative->V1()][0] - left_bound;
+                distance_neg = std::abs(mVerticesNegative[edge_negative->V1()][0] - left_bound);
             else
-                distance_neg = mVerticesNegative[edge_negative->V2()][0] - left_bound;
+                distance_neg = std::abs(mVerticesNegative[edge_negative->V2()][0] - left_bound);
         }
 
         // Get distance to current vertical edge.
@@ -144,9 +144,9 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         }
 
         const double min_distance = std::min( {distance_pos, distance_neg, distance_ver} );
-        const bool pos_found = std::abs(distance_pos) < (min_distance + mSnapTolerance);
-        const bool neg_found = std::abs(distance_neg) < (min_distance + mSnapTolerance);
-        const bool vert_found = std::abs(distance_ver) < (min_distance + mSnapTolerance);
+        const bool pos_found = distance_pos < (min_distance + mSnapTolerance);
+        const bool neg_found = distance_neg < (min_distance + mSnapTolerance);
+        const bool vert_found = distance_ver < (min_distance + mSnapTolerance);
 
         const IndexType found_count = pos_found + neg_found + vert_found;
         //const IndexType k = ( std::abs(min_distance) < mSnapTolerance ) ? 0 : 1;
@@ -173,7 +173,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
             }
         }
         // If distance_pos < 0 -> double vertex between two positive edges
-        else if( std::abs(distance_pos) < mSnapTolerance ){
+        else if( distance_pos < mSnapTolerance ){
             const IndexType size = intersected_vertices.size();
             // Add double vertex
             if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
@@ -191,7 +191,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
             }
         }
         // If distance_neg < 0 -> double vertex between two negative edges
-        else if( std::abs(distance_neg) < mSnapTolerance ){
+        else if( distance_neg < mSnapTolerance ){
             const IndexType size = intersected_vertices.size();
             // Add double vertex
             if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
@@ -202,7 +202,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
             // Increment ++negative.
             ++pos_negative;
         }
-        else if( std::abs(distance_ver) < mSnapTolerance ){
+        else if( distance_ver < mSnapTolerance ){
             // Increment ++vertical.
             ++pos_vertical;
         } else {
