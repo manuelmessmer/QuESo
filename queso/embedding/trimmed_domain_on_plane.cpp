@@ -400,20 +400,20 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
 
     const auto& r_vertices = GetVertices(Orientation);
     // Sort Edges from left to right (DIRINDEX1)
-    const IndexType dir_index_1 = DIRINDEX1;
-    std::sort( rEdges.begin(), rEdges.end(), [&r_vertices, dir_index_1](const auto& rLHs, const auto& rRHs){
+    std::sort( rEdges.begin(), rEdges.end(), [&r_vertices](const auto& rLHs, const auto& rRHs){
         const auto status_1 = rLHs.IsVertexOnUpperBoundary();
         const auto status_2 = rRHs.IsVertexOnUpperBoundary();
 
         // Sort by vertex on upper boundary from left to right.
-        double value_left = status_1.first ? r_vertices[rLHs.V1()][0] : r_vertices[rLHs.V2()][0];
-        double value_right = status_2.first ? r_vertices[rRHs.V1()][0] : r_vertices[rRHs.V2()][0];
+        const IndexType index_v_left = status_1.first ? rLHs.V1() : rLHs.V2();
+        const IndexType index_v_right = status_2.first ? rRHs.V1() : rRHs.V2();
 
-        // If both vertices are on upper boundary, sort by center.
-        if( status_1.first && status_1.second ){
+        double value_left = r_vertices[index_v_left][0];
+        double value_right = r_vertices[index_v_right][0];
+
+        const bool same_vertices = (index_v_left == index_v_right);
+        if( same_vertices) {
             value_left = 0.5*(r_vertices[rLHs.V1()][0] + r_vertices[rLHs.V2()][0]);
-        }
-        if( status_2.first && status_2.second ){
             value_right = 0.5*(r_vertices[rRHs.V1()][0] + r_vertices[rRHs.V2()][0]);
         }
 
