@@ -74,8 +74,10 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
     // Check if corner points need to be inserted.
     Point2DType corner_left = { mLowerBound[DIRINDEX1], mUpperBound[DIRINDEX2] };
     Point2DType corner_right = { mUpperBound[DIRINDEX1], mUpperBound[DIRINDEX2] };
-    bool add_corner_left = !PointExists(corner_left, *mVerticesSetPositive);
-    bool add_corner_right = !PointExists(corner_right, *mVerticesSetPositive);
+    bool add_corner_left = !PointExists(corner_left, *mVerticesSetPositive)
+        && !PointExists(corner_left, *mVerticesSetNegative) && !PointExists(corner_left, *mVerticesSetVertical);
+    bool add_corner_right = !PointExists(corner_right, *mVerticesSetPositive)
+        && !PointExists(corner_right, *mVerticesSetNegative) && !PointExists(corner_right, *mVerticesSetVertical);
 
     // Add corner point left if neccesary.
     if( add_corner_left ){
@@ -101,9 +103,9 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         if( pos_vertical < size_vertical)
             edge_vertical = &intersect_edges_vertical[pos_vertical];
 
-        IndexType size = intersected_vertices.size();
+        // IndexType size = intersected_vertices.size();
         // DIRINDEX1-value of current position.
-        const double left_bound = size > 0 ? intersected_vertices[size-1].first : mLowerBound[DIRINDEX1];
+        const double left_bound = mLowerBound[DIRINDEX1];
 
         // Get distance to current positive edge.
         double distance_pos = MAXD;
@@ -152,26 +154,22 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
             pos_positive += static_cast<int>(pos_found);
             pos_negative += static_cast<int>(neg_found);
             pos_vertical += static_cast<int>(ver_found);
+        } // ADD POSITIVE
+        else if (pos_found) {
+            // Add and increment positive
+            AddIntersectedVertexPositive(edge_positive, intersected_vertices);
+            ++pos_positive;
+        } // ADD Negative
+        else if( neg_found ){
+            // Add and increment negative
+            AddIntersectedVertexNegative(edge_negative, intersected_vertices);
+            ++pos_negative;
+        } // ADD VERTICAL
+        else if( ver_found ){
+            // Add and increment vertical
+            AddIntersectedVertexVertical(edge_vertical, intersected_vertices);
+            ++pos_vertical;
         }
-        else {
-            // ADD POSITIVE
-            if( pos_found ){
-                // Add and increment positive
-                AddIntersectedVertexPositive(edge_positive, intersected_vertices);
-                ++pos_positive;
-            } // ADD Negative
-            else if( neg_found ){
-                // Add and increment negative
-                AddIntersectedVertexNegative(edge_negative, intersected_vertices);
-                ++pos_negative;
-            } // ADD VERTICAL
-            else if( ver_found ){
-                // Add and increment vertical
-                AddIntersectedVertexVertical(edge_vertical, intersected_vertices);
-                ++pos_vertical;
-            }
-        }
-
     }
 
     // Add corner right
@@ -391,7 +389,7 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
         const auto &v2 = V2byEdgeId(edge_id, Orientation);
         bool v1_on_edge = std::abs(v1[1] - mUpperBound[DIRINDEX2]) < 10.0*mSnapTolerance;
         bool v2_on_edge = std::abs(v2[1] - mUpperBound[DIRINDEX2]) < 10.0*mSnapTolerance;
-        if( v1_on_edge || v2_on_edge ){
+        if( v1_on_edge ^ v2_on_edge ){
             auto new_edge = r_edges[edge_id];
             new_edge.SetVerticesOnUpperBoundary(v1_on_edge, v2_on_edge);
             rEdges.push_back( new_edge );
@@ -673,7 +671,7 @@ void TrimmedDomainOnPlane::AddIntersectedVertexPositive(Edge2D* pEdge, std::vect
             rVertices.push_back( std::make_pair(v1[0], false)  );
         }
     }
-    if( status.second ){
+    else if( status.second ){
         auto normal = pEdge->Normal();
         auto v2 = mVerticesPositive[pEdge->V2()];
         if ( normal[0] < ZEROTOL ){ // Just additional check. Actually not required.
@@ -691,7 +689,7 @@ void TrimmedDomainOnPlane::AddIntersectedVertexNegative(Edge2D* pEdge, std::vect
             rVertices.push_back( std::make_pair(v1[0], true)  );
         }
     }
-    if( status.second ){
+    else if( status.second ){
         auto normal = pEdge->Normal();
         auto v2 = mVerticesNegative[pEdge->V2()];
         if(normal[0] > -ZEROTOL) { // Just additional check. Actually not required.
