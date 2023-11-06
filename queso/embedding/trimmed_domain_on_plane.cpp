@@ -110,7 +110,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         // Get distance to current positive edge.
         double distance_pos = MAXD;
         if( edge_positive ){
-            auto status = edge_positive->IsVertexOnUpperBoundary();
+            const auto status = edge_positive->IsVertexOnUpperBoundary();
             if( status.first ){
                 distance_pos = std::abs(mVerticesPositive[edge_positive->V1()][0] - left_bound);
             }
@@ -122,7 +122,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         // Get distance to current negative edge.
         double distance_neg = MAXD;
         if( edge_negative ){
-            auto status = edge_negative->IsVertexOnUpperBoundary();
+            const auto status = edge_negative->IsVertexOnUpperBoundary();
             if( status.first ) {
                 distance_neg = std::abs(mVerticesNegative[edge_negative->V1()][0] - left_bound);
             } else {
@@ -133,7 +133,7 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         // Get distance to current vertical edge.
         double distance_ver = MAXD;
         if( edge_vertical ){
-            auto status = edge_vertical->IsVertexOnUpperBoundary();
+            const auto status = edge_vertical->IsVertexOnUpperBoundary();
             if( status.first ){
                 distance_ver = std::abs(mVerticesVertical[edge_vertical->V1()][0] - left_bound);
             }
