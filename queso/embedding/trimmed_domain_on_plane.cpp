@@ -74,8 +74,10 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
     // Check if corner points need to be inserted.
     Point2DType corner_left = { mLowerBound[DIRINDEX1], mUpperBound[DIRINDEX2] };
     Point2DType corner_right = { mUpperBound[DIRINDEX1], mUpperBound[DIRINDEX2] };
-    bool add_corner_left = !PointExists(corner_left, *mVerticesSetPositive);
-    bool add_corner_right = !PointExists(corner_right, *mVerticesSetPositive);
+    bool add_corner_left = !PointExists(corner_left, *mVerticesSetPositive)
+        && !PointExists(corner_left, *mVerticesSetNegative) && !PointExists(corner_left, *mVerticesSetVertical);
+    bool add_corner_right = !PointExists(corner_right, *mVerticesSetPositive)
+        && !PointExists(corner_right, *mVerticesSetNegative) && !PointExists(corner_right, *mVerticesSetVertical);
 
     // Add corner point left if neccesary.
     if( add_corner_left ){
@@ -101,125 +103,73 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         if( pos_vertical < size_vertical)
             edge_vertical = &intersect_edges_vertical[pos_vertical];
 
-        IndexType size = intersected_vertices.size();
+        // IndexType size = intersected_vertices.size();
         // DIRINDEX1-value of current position.
-        const double left_bound = size > 0 ? intersected_vertices[size-1].first : mLowerBound[DIRINDEX1];
+        const double left_bound = mLowerBound[DIRINDEX1];
 
         // Get distance to current positive edge.
         double distance_pos = MAXD;
-        bool double_vertex_edge = false;
         if( edge_positive ){
-            auto status = edge_positive->IsVertexOnUpperBoundary();
-            if( status.first && status.second ){
-                double_vertex_edge = true;
-            }
+            const auto status = edge_positive->IsVertexOnUpperBoundary();
             if( status.first ){
-                distance_pos = mVerticesPositive[edge_positive->V1()][0] - left_bound;
+                distance_pos = std::abs(mVerticesPositive[edge_positive->V1()][0] - left_bound);
             }
             else {
-                double_vertex_edge = false;
-                distance_pos = mVerticesPositive[edge_positive->V2()][0] - left_bound;
+                distance_pos = std::abs(mVerticesPositive[edge_positive->V2()][0] - left_bound);
             }
-
         }
 
         // Get distance to current negative edge.
         double distance_neg = MAXD;
         if( edge_negative ){
-            auto status = edge_negative->IsVertexOnUpperBoundary();
-            if( status.first )
-                distance_neg = mVerticesNegative[edge_negative->V1()][0] - left_bound;
-            else
-                distance_neg = mVerticesNegative[edge_negative->V2()][0] - left_bound;
+            const auto status = edge_negative->IsVertexOnUpperBoundary();
+            if( status.first ) {
+                distance_neg = std::abs(mVerticesNegative[edge_negative->V1()][0] - left_bound);
+            } else {
+                distance_neg = std::abs(mVerticesNegative[edge_negative->V2()][0] - left_bound);
+            }
         }
 
         // Get distance to current vertical edge.
         double distance_ver = MAXD;
         if( edge_vertical ){
-            auto status = edge_vertical->IsVertexOnUpperBoundary();
-            if( status.first )
-                distance_ver = mVerticesVertical[edge_vertical->V1()][0] - left_bound;
-            else
-                distance_ver = mVerticesVertical[edge_vertical->V2()][0] - left_bound;
-        }
-
-        // If distance pos < 0.
-        if( std::abs(distance_pos) < mSnapTolerance ){
-            const IndexType size = intersected_vertices.size();
-            // Make invalid. This is continous edge.
-            if( (!(add_corner_left && size == 1)) &&  (size > 0) ){
-                intersected_vertices[size-1].second = true;
-                double val = intersected_vertices[size-1].first;
-                intersected_vertices.push_back( std::make_pair(val, false)  );
-            }
-            // Increment ++positive.
-            if( double_vertex_edge ){
-                auto status = edge_positive->IsVertexOnUpperBoundary();
-                edge_positive->SetVerticesOnUpperBoundary(false, status.second);
+            const auto status = edge_vertical->IsVertexOnUpperBoundary();
+            if( status.first ){
+                distance_ver = std::abs(mVerticesVertical[edge_vertical->V1()][0] - left_bound);
             }
             else {
-                ++pos_positive;
-            }
-        }
-        else if( std::abs(distance_ver) < mSnapTolerance ){
-            // Increment ++vertical.
-            ++pos_vertical;
-        }
-        else if( std::abs(distance_neg) < mSnapTolerance ){
-            // Increment ++negative.
-            ++pos_negative;
-        } // Positive and vertical have the same distance.
-        else if( (distance_pos+distance_ver) < 0.1*MAXD && std::abs(distance_pos-distance_ver) <= mSnapTolerance ){
-            // Increment positive
-            if( double_vertex_edge ){
-                auto status = edge_positive->IsVertexOnUpperBoundary();
-                edge_positive->SetVerticesOnUpperBoundary(false, status.second);
-            }
-            else {
-                ++pos_positive;
-            }
-            ++pos_vertical;
-        // Positive and negative have the same distance.
-        } else if ( (distance_pos+distance_neg) < 0.1*MAXD &&  std::abs(distance_pos-distance_neg) <= mSnapTolerance ) {
-            // Increment positive
-            if( double_vertex_edge ){
-                auto status = edge_positive->IsVertexOnUpperBoundary();
-                edge_positive->SetVerticesOnUpperBoundary(false, status.second);
-            }
-            else {
-                ++pos_positive;
-            }
-            ++pos_negative;
-        // Negative and vertical have the same distance.
-        } else if ( (distance_ver+distance_neg) < 0.1*MAXD && std::abs(distance_ver-distance_neg) <= mSnapTolerance ) {
-            // Increment vertical and negative
-            ++pos_vertical;
-            ++pos_negative;
-        } else {
-            // ADD POSITIVE
-            if( distance_pos < distance_neg && distance_pos < distance_ver ){
-                // Add and increment positive
-                AddIntersectedVertexPositive(edge_positive, intersected_vertices);
-                if( double_vertex_edge ){
-                    auto status = edge_positive->IsVertexOnUpperBoundary();
-                    edge_positive->SetVerticesOnUpperBoundary(false, status.second);
-                }
-                else {
-                    ++pos_positive;
-                }
-            } // ADD Negative
-            else if( distance_neg < distance_pos && distance_neg < distance_ver ){
-                // Add and increment negative
-                AddIntersectedVertexNegative(edge_negative, intersected_vertices);
-                ++pos_negative;
-            } // ADD VERTICAL
-            else if( distance_ver < distance_neg && distance_ver < distance_pos ){
-                // Add and increment vertical
-                AddIntersectedVertexVertical(edge_vertical, intersected_vertices);
-                ++pos_vertical;
+                distance_ver = std::abs(mVerticesVertical[edge_vertical->V2()][0] - left_bound);
             }
         }
 
+        const double min_distance = std::min( {distance_pos, distance_neg, distance_ver} );
+        const bool pos_found =  distance_pos < (min_distance + mSnapTolerance);
+        const bool neg_found =  distance_neg < (min_distance + mSnapTolerance);
+        const bool ver_found = distance_ver < (min_distance + mSnapTolerance);
+
+        const IndexType found_count = static_cast<int>(pos_found) + static_cast<int>(neg_found) + static_cast<int>(ver_found);
+
+        // Ignore if double vertex.
+        if( found_count > 1 ) {
+            pos_positive += static_cast<int>(pos_found);
+            pos_negative += static_cast<int>(neg_found);
+            pos_vertical += static_cast<int>(ver_found);
+        } // ADD POSITIVE
+        else if (pos_found) {
+            // Add and increment positive
+            AddIntersectedVertexPositive(edge_positive, intersected_vertices);
+            ++pos_positive;
+        } // ADD Negative
+        else if( neg_found ){
+            // Add and increment negative
+            AddIntersectedVertexNegative(edge_negative, intersected_vertices);
+            ++pos_negative;
+        } // ADD VERTICAL
+        else if( ver_found ){
+            // Add and increment vertical
+            AddIntersectedVertexVertical(edge_vertical, intersected_vertices);
+            ++pos_vertical;
+        }
     }
 
     // Add corner right
@@ -232,7 +182,6 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
             add_corner_right = false;
         }
     }
-
 
     const double y_max_negative = GetMaxDIRINDEX2(mVerticesNegative);
     const double y_max_positive = GetMaxDIRINDEX2(mVerticesPositive);
@@ -440,7 +389,7 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
         const auto &v2 = V2byEdgeId(edge_id, Orientation);
         bool v1_on_edge = std::abs(v1[1] - mUpperBound[DIRINDEX2]) < 10.0*mSnapTolerance;
         bool v2_on_edge = std::abs(v2[1] - mUpperBound[DIRINDEX2]) < 10.0*mSnapTolerance;
-        if( v1_on_edge || v2_on_edge ){
+        if( v1_on_edge ^ v2_on_edge ){
             auto new_edge = r_edges[edge_id];
             new_edge.SetVerticesOnUpperBoundary(v1_on_edge, v2_on_edge);
             rEdges.push_back( new_edge );
@@ -449,12 +398,24 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
 
     const auto& r_vertices = GetVertices(Orientation);
     // Sort Edges from left to right (DIRINDEX1)
-    const IndexType dir_index_1 = DIRINDEX1;
-    std::sort( rEdges.begin(), rEdges.end(), [&r_vertices, dir_index_1](const auto& rLHs, const auto& rRHs){
+    std::sort( rEdges.begin(), rEdges.end(), [&r_vertices](const auto& rLHs, const auto& rRHs){
         const auto status_1 = rLHs.IsVertexOnUpperBoundary();
         const auto status_2 = rRHs.IsVertexOnUpperBoundary();
-        const double value_left = status_1.second ? r_vertices[rLHs.V2()][0] : r_vertices[rLHs.V1()][0];
-        const double value_right = status_2.second ? r_vertices[rRHs.V2()][0] : r_vertices[rRHs.V1()][0];
+
+        // Sort by vertex on upper boundary from left to right.
+        const IndexType index_v_left = status_1.first ? rLHs.V1() : rLHs.V2();
+        const IndexType index_v_right = status_2.first ? rRHs.V1() : rRHs.V2();
+
+        double value_left = r_vertices[index_v_left][0];
+        double value_right = r_vertices[index_v_right][0];
+
+        // If two edges share a vertex, sort by center of edges.
+        const bool same_vertices = (index_v_left == index_v_right);
+        if( same_vertices) {
+            value_left = 0.5*(r_vertices[rLHs.V1()][0] + r_vertices[rLHs.V2()][0]);
+            value_right = 0.5*(r_vertices[rRHs.V1()][0] + r_vertices[rRHs.V2()][0]);
+        }
+
         return value_left < value_right;
     }  );
 }
