@@ -72,7 +72,7 @@ IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
     else if( rValue == "GGQ_Reduced2")
         return IntegrationMethod::GGQ_Reduced2;
     else
-        QuESo_ERROR << "Integration Method: " + rValue + " not available! Available options are"
+        QuESo_ERROR << "Integration Method: '" + rValue + "' not available. Available options are"
         <<" 'Gauss', 'Gauss_Reduced1', 'Gauss_Reduced2', 'GGQ_Optimal', 'GGQ_Reduced1', 'GGQ_Reduced2'. \n";
 }
 
