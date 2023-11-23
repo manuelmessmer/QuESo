@@ -48,6 +48,8 @@ public:
     /// @brief Constructor
     /// @param rParameters
     QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
+
+        mParameters.Check();
         if( mParameters.Get<bool>("embedding_flag") ) {
             // Read main mesh
             if( mParameters.Get<std::string>("input_type") == "stl_file" ){
@@ -61,6 +63,8 @@ public:
                 CreateNewCondition(r_condition_settings);
             }
         }
+
+        Check();
     }
 
     /// Copy Constructor
@@ -92,6 +96,9 @@ public:
     /// @param rConditionParameters
     /// @return Condition&
     Condition& CreateNewCondition(const ConditionParameters& rConditionParameters);
+
+    /// @brief Performs necessary checks.
+    void Check() const;
 
     /// @brief Clear all containers.
     void Clear() {

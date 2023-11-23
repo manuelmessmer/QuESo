@@ -11,6 +11,8 @@ class Paths(object):
 
 # import core library (Kratos.so)
 sys.path.append(Paths.queso_libs)
+from QuESo_Application import PrintLogo
+PrintLogo()
 from QuESo_Application import *
 
 

@@ -21,7 +21,7 @@ namespace queso {
 void QuESo::Run()
 {
     Timer timer{};
-    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "\nQuESo ------------------------------------------ START" << std::endl;
+    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "QuESo ------------------------------------------ START" << std::endl;
 
     double volume_brep = 0.0;
     if( mParameters.Get<bool>("embedding_flag") ) {
@@ -193,6 +193,27 @@ Condition& QuESo::CreateNewCondition(const ConditionParameters& rConditionParame
     // Condition owns triangle mesh.
     mConditions.push_back( Condition(p_new_mesh, rConditionParameters) );
     return mConditions.back();
+}
+
+void QuESo::Check() const {
+    // Check if bounding box fully contains the triangle mesh.
+    if( mParameters.EchoLevel() > 0 ){
+        PointType lower_bound = mParameters.LowerBoundXYZ();
+        PointType upper_bound = mParameters.UpperBoundXYZ();
+        auto bb_mesh = MeshUtilities::BoundingBox(mTriangleMesh);
+        if( lower_bound[0] > bb_mesh.first[0]  ||
+            lower_bound[1] > bb_mesh.first[1]  ||
+            lower_bound[2] > bb_mesh.first[2]  ||
+            upper_bound[0] < bb_mesh.second[0] ||
+            upper_bound[1] < bb_mesh.second[1] ||
+            upper_bound[2] < bb_mesh.second[2] ) {
+                QuESo_INFO << "Warning :: The given bounding box: 'lower_bound_xyz' : " << lower_bound
+                    << ", 'upper_bound_xyz:' " << upper_bound << " does not fully contain the bounding box of "
+                    << "the input STL: 'lower_bound_xyz' : " << bb_mesh.first << ", 'upper_bound_xyz:' "
+                    << bb_mesh.second << '\n';
+        }
+    }
+
 }
 
 } // End namespace queso

@@ -6,6 +6,7 @@
 
 ////Project includes
 #include "includes/define.hpp"
+#include "utilities/math_utilities.hpp"
 #include "containers/variant_data_container.hpp"
 
 namespace queso {
@@ -85,7 +86,7 @@ private:
 
     /// Default components
     inline static const BaseType::ComponentVectorType mDefaultComponents = {
-        Component("echo_level", 0UL),
+        Component("echo_level", 1UL),
         Component("embedding_flag", true),
         Component("input_type", std::string("stl_file")),
         Component("initial_triangle_edge_length", 1.0),
@@ -294,7 +295,7 @@ public:
         return mGlobalParameters.Has<type>(rName);
     }
 
-/// @brief Adds global settings to parameter container.
+    /// @brief Adds global settings to parameter container.
     /// @param rGlobalParameters
     void AddGlobalSettings(const GlobalParameters& rGlobalParameters) {
         mGlobalParameters = rGlobalParameters;
@@ -334,6 +335,37 @@ public:
             r_condition_settings.PrintInfo(rOStream);
         }
         rOStream << "---------------------------------------------------\n\n";
+    }
+
+    /// @brief Checks parameter inputs.
+    void Check() const {
+        // Orders
+        Vector3i order = Order();
+        IndexType min_order =  Math::Min( order );
+        IndexType max_order =  Math::Max( order );
+        QuESo_ERROR_IF(min_order < 1) << "Invalid Input. The polynomial order must be p > 0. \n";
+        QuESo_INFO_IF(max_order > 4) << "Warning :: QuESo is designed to construct efficient quadrature rules for 1 <= p <= 4. "
+            << "For higher polynomial degrees, the process might become slow. It is recommended to use quadratic bases. Generally, they offer the best performance and accuracy.\n";
+
+        QuESo_INFO_IF(min_order == 1 && EchoLevel() > 0) << "Info :: When using LINEAR finite elements in combination with rather complex geometries, it can be beneficial to employ quadratic quadrature rules within cut elements. "
+            << "Linear quadrature rules will converge to the correct solution when using fine discretizations. However, quadratic quadrature rules "
+            << "are simply more suited to capture complex cut domains and can hence provide better results for coarse meshes. "
+            << "Thus, if you are integrating LINEAR finite elements, consider using '\"polynomial_order\" : [2, 2, 2]' and '\"integration_method\" : \"Gauss_Reduced1\"'. This will generate quadratic quadrature rules in all cut elements "
+            << "and linear Gauss rules for all full/interior elements.\n";
+
+        // Number of elements
+        Vector3i num_elements = NumberOfElements();
+        IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
+        QuESo_INFO_IF( tot_num_elements < 2 && EchoLevel() > 0 ) << "You are using only one single element.\n";
+
+        // GGQ rules
+        bool ggq_rules_used = GGQRuleIsUsed();
+        QuESo_ERROR_IF(ggq_rules_used && max_order > 4) << "Generalized Gauss Quadrature (GGQ) rules are only available for p <= 4.\n";
+
+        bool b_spline_mesh = Get<bool>("b_spline_mesh");
+        QuESo_ERROR_IF(ggq_rules_used && !b_spline_mesh) << "Generalized Gauss Quadrature (GGQ) rules are only applicable to B-Spline meshes with C^(p-1) continuity.\n";
+
+        QuESo_ERROR_IF(ggq_rules_used && min_order < 2) << "Generalized Gauss Quadrature (GGQ) rules are only applicable to B-Spline meshes with at least p=2.\n";
     }
 
     ///////////////////////////////////////////////////

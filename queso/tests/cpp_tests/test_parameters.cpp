@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     Parameters parameters{};
 
     IndexType eche_level = parameters.Get<unsigned long>("echo_level");
-    QuESo_CHECK_EQUAL(eche_level, 0UL);
+    QuESo_CHECK_EQUAL(eche_level, 1UL);
     QuESo_CHECK_EQUAL(eche_level, parameters.EchoLevel());
 
     bool embedding_flag = parameters.Get<bool>("embedding_flag");
