@@ -72,12 +72,25 @@ IntegrationMethodType GetIntegrationMethodFromString(const std::string& rValue){
     else if( rValue == "GGQ_Reduced2")
         return IntegrationMethod::GGQ_Reduced2;
     else
-        QuESo_ERROR << "Integration Method: " + rValue + " not available! \n";
+        QuESo_ERROR << "Integration Method: " + rValue + " not available! Available options are"
+        <<" 'Gauss', 'Gauss_Reduced1', 'Gauss_Reduced2', 'GGQ_Optimal', 'GGQ_Reduced1', 'GGQ_Reduced2'. \n";
 }
 
 PYBIND11_MODULE(QuESo_Application,m) {
 
     m.doc() = "This is a Python binding for QuESo";
+
+    m.def("PrintLogo", []()
+    {
+    QuESo_INFO << " Importing QuESo \n"
+        << "   ____        ______  _____        \n"
+        << "  / __ \\      |  ____|/ ____|       \n"
+        << " | |  | |_   _| |__  | (___   ___   \n"
+        << " | |  | | | | |  __|  \\___ \\ / _ \\  \n"
+        << " | |__| | |_| | |____ ____) | (_) | \n"
+        << "  \\___\\_\\\\__,_|______|_____/ \\___/  \n"
+        << "\t Quadrature for Embedded Solids \n\n";
+    }, "Print Logo");
 
     /// Required for GetPostMeshPointsRaw()
     py::class_<ptr_wrapper<double>>(m,"pdouble")
