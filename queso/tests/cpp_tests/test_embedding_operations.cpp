@@ -21,6 +21,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
     Parameters parameters( {Component("input_filename", filename),
+                            Component("echo_level", 0UL),
                             Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
                             Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
                             Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
@@ -74,6 +75,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 
     std::string filename = "queso/tests/cpp_tests/data/elephant.stl";
     Parameters parameters( {Component("input_filename", filename),
+                            Component("echo_level", 0UL),
                             Component("lower_bound_xyz", PointType(-0.37, -0.55, -0.31)),
                             Component("upper_bound_xyz", PointType(0.37, 0.55, 0.31)),
                             Component("b_spline_mesh", BSplineMesh),
@@ -249,6 +251,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
 
     std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
     Parameters parameters( {Component("input_filename", filename),
+                            Component("echo_level", 0UL),
                             Component("lower_bound_xyz", PointType(-130.0, -110.0, -110.0)),
                             Component("upper_bound_xyz", PointType(20.0, 190.0, 190.0)),
                             Component("b_spline_mesh", BSplineMesh),
