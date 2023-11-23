@@ -86,7 +86,7 @@ private:
 
     /// Default components
     inline static const BaseType::ComponentVectorType mDefaultComponents = {
-        Component("echo_level", 0UL),
+        Component("echo_level", 1UL),
         Component("embedding_flag", true),
         Component("input_type", std::string("stl_file")),
         Component("initial_triangle_edge_length", 1.0),
@@ -356,7 +356,7 @@ public:
         // Number of elements
         Vector3i num_elements = NumberOfElements();
         IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
-        QuESo_ERROR_IF( tot_num_elements < 2 ) << "Please use more than one single element.\n";
+        QuESo_INFO_IF( tot_num_elements < 2 && EchoLevel() > 0 ) << "You are using only one single element.\n";
 
         // GGQ rules
         bool ggq_rules_used = GGQRuleIsUsed();
