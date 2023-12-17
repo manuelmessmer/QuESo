@@ -31,7 +31,8 @@ void QuESo::Run()
 
         // Write Surface Mesh to vtk file if eco_level > 0
         if( mParameters.EchoLevel() > 0){
-            IO::WriteMeshToVTK(mTriangleMesh, "output/geometry.vtk", true);
+            const std::string output_filename = mParameters.Get<std::string>("output_directory_name") + "/geometry.vtk";
+            IO::WriteMeshToVTK(mTriangleMesh, output_filename.c_str(), true);
         }
     }
 
@@ -53,11 +54,12 @@ void QuESo::Run()
 
     if( mParameters.EchoLevel() > 0) {
         // Write vtk files (binary = true)
-        IO::WriteElementsToVTK(*mpElementContainer, "output/elements.vtk", true);
-        IO::WritePointsToVTK(*mpElementContainer, "All", "output/integration_points.vtk", true);
+        const std::string output_directory_name = mParameters.Get<std::string>("output_directory_name");
+        IO::WriteElementsToVTK(*mpElementContainer, (output_directory_name + "/elements.vtk").c_str(), true);
+        IO::WritePointsToVTK(*mpElementContainer, "All", (output_directory_name + "/integration_points.vtk").c_str(), true);
         IndexType cond_index = 0;
         for( const auto& r_condition : mConditions ){
-            std::string bc_filename = "output/" + r_condition.GetSettings().Get<std::string>("type")
+            const std::string bc_filename = output_directory_name + '/' + r_condition.GetSettings().Get<std::string>("type")
                 + '_' + std::to_string(++cond_index) + ".stl";
             IO::WriteMeshToSTL(r_condition.GetConformingMesh(), bc_filename.c_str(), true);
         }

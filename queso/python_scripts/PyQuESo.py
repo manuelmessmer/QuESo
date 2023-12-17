@@ -24,8 +24,9 @@ class PyQuESo:
         """The constructor"""
         self.parameters = ReadParameters(json_filename)
         self.b_spline_volume = BSplineVolume(self.parameters)
+        output_directory_name = self.parameters.GetGlobalSettings().GetString("output_directory_name")
         if self.parameters.EchoLevel() > 0:
-            folder_path = "./output/"
+            folder_path = "./" + output_directory_name + '/'
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
