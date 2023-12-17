@@ -89,6 +89,7 @@ private:
         Component("echo_level", 1UL),
         Component("embedding_flag", true),
         Component("input_type", std::string("stl_file")),
+        Component("output_directory_name", std::string("queso_output")),
         Component("initial_triangle_edge_length", 1.0),
         Component("min_num_boundary_triangles", 500UL),
         Component("moment_fitting_residual", 1.0e-10),
@@ -104,6 +105,7 @@ private:
     /// All available components
     inline static const BaseType::AvailableComponentVectorType mAllAvailableComponents = {
         std::make_pair<std::string, const std::type_info*>("input_filename", &typeid(std::string) ),
+        std::make_pair<std::string, const std::type_info*>("output_directory_name", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("input_type", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("input_kratos_modelpart_name", &typeid(std::string) ),
         std::make_pair<std::string, const std::type_info*>("postprocess_filename", &typeid(std::string) ),
