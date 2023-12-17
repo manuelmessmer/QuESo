@@ -215,7 +215,8 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
     if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
         QuESo_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
         if( rParam.EchoLevel() > 3 ) {
-            std::string filename = "output/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
+            const std::string output_directory_name = rParam.Get<std::string>("output_directory_name");
+            const std::string filename = output_directory_name + "/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
             IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
         }
     }
@@ -265,7 +266,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 
     // Solve non-negative Least-Square-Error problem.
     VectorType weights(number_reduced_points);
-    const double residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
+    const double rel_residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
 
     // Write computed weights onto integration points
     for( IndexType i = 0; i < number_reduced_points; ++i){
@@ -274,7 +275,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
         rIntegrationPoint[i].SetWeight(new_weight);
     }
 
-    return residual;
+    return rel_residual;
 }
 
 
