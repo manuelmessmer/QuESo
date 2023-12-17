@@ -266,7 +266,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 
     // Solve non-negative Least-Square-Error problem.
     VectorType weights(number_reduced_points);
-    const double residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
+    const double rel_residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
 
     // Write computed weights onto integration points
     for( IndexType i = 0; i < number_reduced_points; ++i){
@@ -275,7 +275,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
         rIntegrationPoint[i].SetWeight(new_weight);
     }
 
-    return residual;
+    return rel_residual;
 }
 
 

@@ -83,7 +83,7 @@ protected:
     /// @param[out] rIntegrationPoint
     /// @param rElement
     /// @param rParam
-    /// @return double Residual
+    /// @return double Relative residual ||ax -b||_L2 / ||b||_L2
     static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam);
 
     /// @brief Start point elimination algorihtm. Final quadrature rule is stored in rElement.
