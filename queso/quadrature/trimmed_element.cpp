@@ -4,6 +4,7 @@
 //// STL includes
 #include <stdexcept>
 #include <cmath>
+#include <numeric>
 //// Project includes
 #include "includes/define.hpp"
 #include "quadrature/trimmed_element.h"
@@ -238,6 +239,8 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
     const IndexType number_reduced_points = rIntegrationPoint.size();
 
+    const double l2_norm_ct = std::sqrt( std::inner_product(rConstantTerms.begin(), rConstantTerms.end(), rConstantTerms.begin(), 0.0) );
+
     /// Assemble moment fitting matrix.
     nnls::MatrixType fitting_matrix(number_of_functions, nnls::VectorType(number_reduced_points, 0.0));
     IndexType row_index = 0;
@@ -262,7 +265,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 
     // Solve non-negative Least-Square-Error problem.
     VectorType weights(number_reduced_points);
-    auto residual = nnls::nnls(fitting_matrix, rConstantTerms, weights)/number_of_functions;
+    const double residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
 
     // Write computed weights onto integration points
     for( IndexType i = 0; i < number_reduced_points; ++i){
