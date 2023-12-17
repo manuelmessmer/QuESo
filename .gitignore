@@ -1,11 +1,11 @@
 build/
-examples/cantilever/output/
-examples/stanford_bunny/output/
-examples/steering_knuckle/output/
+examples/cantilever/queso_output/
+examples/stanford_bunny/queso_output/
+examples/steering_knuckle/queso_output/
 examples_test/
 kratos_interface/__pycache__/
 queso/python_scripts/write_ls_dyna_keyword.py
-output/
+queso_output/
 kratos_output/
 libs/
 TestExecutables/
