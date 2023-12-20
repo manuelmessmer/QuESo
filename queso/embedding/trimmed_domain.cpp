@@ -80,6 +80,13 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     return bounding_box;
 }
 
+PointType TrimmedDomain::GetOpenFacesLow() const{
+    return mOpenFacesLow;
+}
+PointType TrimmedDomain::GetOpenFacesUp() const{
+    return mOpenFacesUp;
+}
+
 BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
     // Pointer to boundary integration points
     auto p_boundary_ips = MakeUnique<BoundaryIPVectorType>();

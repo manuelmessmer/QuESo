@@ -110,9 +110,9 @@ class SurfaceLoad(WeakBcsBase):
                     condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
                     if self.normal_flag:
                         normal = point.Normal()
-                        force_x = normal[0] * weight * self.force
-                        force_y = normal[1] * weight * self.force
-                        force_z = normal[2] * weight * self.force
+                        force_x = - normal[0] * weight * self.force[0]
+                        force_y = - normal[1] * weight * self.force[0]
+                        force_z = - normal[2] * weight * self.force[0]
                     else:
                         force_x = weight * self.force[0]
                         force_y = weight * self.force[1]

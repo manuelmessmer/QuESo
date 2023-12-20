@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.OptimizationApplication as OptimizationApplication
 from kratos_interface.weak_bcs import PenaltySupport
 from kratos_interface.weak_bcs import SurfaceLoad
 import re
@@ -68,11 +69,38 @@ class ModelPartUtilities:
         ''' Adds the QuESo elements to the KratosNurbsVolumeModelPart. '''
         nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry("NurbsVolume")
         volume_properties = KratosNurbsVolumeModelPart.GetProperties()[1]
+        import QuESo_PythonApplication as QuESoApp
+        from QuESo_PythonApplication.PyQuESo import PyQuESo
 
+        pyqueso = PyQuESo("QUESOParameters.json")
+        nodes = QuESoApp.PointVector()
+        for node in KratosNurbsVolumeModelPart.Nodes:
+            nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
+
+        pyqueso.Run()
+        are_inside = pyqueso.IsInside(nodes)
+        print("Number of nodes: ---------------------------------------------")
+        print("Number of nodes: ", len(nurbs_volume))
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, False, KratosNurbsVolumeModelPart.Nodes)
+        for node, is_inside in zip(KratosNurbsVolumeModelPart.Nodes, are_inside):
+            if( is_inside ):
+                node.Set(KratosMultiphysics.TO_ERASE, True)
+
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, False, KratosNurbsVolumeModelPart.Elements)
         el_count = 0
         for element in Elements:
             integration_points = []
+            delta_low = element.LowerBoundUVW()
+            delta_up = element.UpperBoundUVW()
+            upper_bound = element.UpperBoundXYZ()
+            lower_bound = element.LowerBoundXYZ()
+            delta_x = upper_bound[0] - lower_bound[0]
+            delta_y = upper_bound[1] - lower_bound[1]
+            delta_z = upper_bound[2] - lower_bound[2]
+            #extend = [0.0, 0.0, 0.0]
+            trimmed = False
             if element.IsTrimmed():
+                trimmed = True
                 for point in element.GetIntegrationPoints():
                     weight = point.GetWeight()
                     if( weight > 0):
@@ -86,7 +114,52 @@ class ModelPartUtilities:
                 # Create quadrature_point_geometries
                 quadrature_point_geometries = KratosMultiphysics.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
-                KratosNurbsVolumeModelPart.CreateNewElement('SmallDisplacementElement3D8N', el_count, quadrature_point_geometries[0], volume_properties)
+                kratos_element = KratosNurbsVolumeModelPart.CreateNewElement('SmallDisplacementElement3D8N', el_count, quadrature_point_geometries[0], volume_properties)
+                kratos_element.Set(KratosMultiphysics.TO_ERASE, trimmed)
+                import numpy as np
+                num_points = 12
+                if trimmed:
+                    triangle_mesh = element.GetClippedTriangleMesh()
+                    num_of_triangles = triangle_mesh.NumOfTriangles()
+                    integration_points = []
+
+                    matrix = KratosMultiphysics.Matrix(num_of_triangles*num_points, 7)
+                    for triangle_id in range(num_of_triangles):
+
+                        points = triangle_mesh.GetIntegrationPointsGlobal(triangle_id, 3)
+                        normal = triangle_mesh.Normal(triangle_id)
+                        # if( triangle_id == 0 ):
+                        #     print(points)
+                        #     #print(points.GetWeight())
+                        #     ghdgf55
+
+                        for point_id, point in enumerate(points):
+                            matrix[num_points*triangle_id+point_id, 0] = point.GetX()
+                            matrix[num_points*triangle_id+point_id, 1] = point.GetY()
+                            matrix[num_points*triangle_id+point_id, 2] = point.GetZ()
+                            matrix[num_points*triangle_id+point_id, 3] = point.GetWeight()
+                            matrix[num_points*triangle_id+point_id, 4] = normal[0]
+                            matrix[num_points*triangle_id+point_id, 5] = normal[1]
+                            matrix[num_points*triangle_id+point_id, 6] = normal[2]
+
+                    kratos_element.SetValue(OptimizationApplication.EMBEDDED_MESH,  matrix)
+                point1 = KratosMultiphysics.Vector([0.0, 0.0, 0.0])
+                point1[0] = delta_x
+                point1[1] = delta_y
+                point1[2] = delta_z
+                kratos_element.SetValue(KratosMultiphysics.CONTACT_FORCE, point1)
+
+                point2 = KratosMultiphysics.Vector([0.0, 0.0, 0.0])
+                point2[0] = delta_low[0]
+                point2[1] = delta_low[1]
+                point2[2] = delta_low[2]
+                kratos_element.SetValue(KratosMultiphysics.INTERNAL_FORCE, point2)
+
+                point3 = KratosMultiphysics.Vector([0.0, 0.0, 0.0])
+                point3[0] = delta_up[0]
+                point3[1] = delta_up[1]
+                point3[2] = delta_up[2]
+                kratos_element.SetValue(KratosMultiphysics.EXTERNAL_FORCE, point3)
 
     @staticmethod
     def AddConditionsToModelPart(KratosNurbsVolumeModelPart, Conditions, BoundsXYZ, BoundsUVW):

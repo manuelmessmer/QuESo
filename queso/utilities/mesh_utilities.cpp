@@ -273,6 +273,49 @@ double MeshUtilities::AverageAspectRatio(const TriangleMesh& rTriangleMesh){
     return average_aspect_ratio/rTriangleMesh.NumOfTriangles();
 }
 
+PointType MeshUtilities::AverageExtension(const TriangleMesh& rTriangleMesh ){
+
+    //auto p_triangle_mesh = pGetCuboid({0.0, -1.0, 0.0},  {2.0, 1.0, 1.0});
+    //TriangleMesh& triangle_mesh = *p_triangle_mesh;
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    PointType average_externsion = {0.0, 0.0, 0.0};
+    PointType total_directional_areas = {0.0, 0.0, 0.0};
+    for( IndexType i = 0; i < num_triangles; ++i ){
+        const double area = rTriangleMesh.Area(i);
+        const auto normal = rTriangleMesh.Normal(i);
+
+        PointType directional_areas = normal * area;
+
+        total_directional_areas[0] += std::abs(normal[0]) * area / 2.0;
+        total_directional_areas[1] += std::abs(normal[1]) * area / 2.0;
+        total_directional_areas[2] += std::abs(normal[2]) * area / 2.0;
+        // Get integration points
+        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto& r_points = *p_points;
+        // Loop over all points.
+        for( const auto& point : r_points ){
+            average_externsion[0] += directional_areas[0]*point[0];
+            average_externsion[1] += directional_areas[1]*point[1];
+            average_externsion[2] += directional_areas[2]*point[2];
+        }
+    }
+
+    average_externsion[0] /= total_directional_areas[0];
+    average_externsion[1] /= total_directional_areas[1];
+    average_externsion[2] /= total_directional_areas[2];
+
+    //std::cout << average_externsion << std::endl;
+    // const double total_volume = std::abs(1.0/3.0*(total_volume_1 + total_volume_2 + total_volume_3));
+    // const double error_v1 = std::abs(total_volume_1 - total_volume) / total_volume;
+    // const double error_v2 = std::abs(total_volume_2 - total_volume) / total_volume;
+    // const double error_v3 = std::abs(total_volume_3 - total_volume) / total_volume;
+
+    // const double error_area = std::abs(1.0*directional_areas.Norm()) / std::abs(total_area);
+
+    // const double max_error = std::max(std::max(std::max( error_v1, error_v2), error_v3), error_area );
+    return average_externsion;
+}
+
 double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     double total_volume_1 = 0.0;

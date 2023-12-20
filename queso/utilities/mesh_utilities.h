@@ -98,6 +98,7 @@ public:
     ///@return std::pair<PointType, PointType>
     static std::pair<PointType, PointType> BoundingBox(const TriangleMesh& rTriangleMesh);
 
+    static PointType AverageExtension(const TriangleMesh& rTriangleMesh );
     ///@}
 }; // End class MeshUtilities
 ///@} // End QuESo Classes

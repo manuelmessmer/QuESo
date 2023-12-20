@@ -49,6 +49,7 @@ public:
         mElementId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW), mParameters(rParam)
     {
         mIsTrimmed = false;
+        OpenFaces = {0.0, 0.0, 0.0};
     }
 
     // Delete copy constructor
@@ -86,6 +87,14 @@ public:
     /// @return const Parameters&
     const Parameters& GetParameters() const {
         return mParameters;
+    }
+
+    void SetOpenFaces(PointType value) {
+        OpenFaces = value;
+    }
+
+    PointType GetOpenFaces() {
+        return OpenFaces;
     }
 
     /// @brief Returns Vector of integration points.
@@ -216,6 +225,9 @@ private:
     const Parameters& mParameters;
 
     TrimmedDomainPtrType mpTrimmedDomain = nullptr;
+
+    PointType OpenFaces{};
+
     PointType mNumberOfNeighbours{};
     ///@}
 }; // End class Element

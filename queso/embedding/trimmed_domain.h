@@ -59,6 +59,8 @@ public:
         auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
         auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
 
+
+
         if( mpTriangleMesh->NumOfTriangles() > 0 ){
             auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
             auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
@@ -66,6 +68,36 @@ public:
             auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
             auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
             auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+
+            if( p_t2->NumOfTriangles() > 0 )
+                mOpenFacesUp[0] = MeshUtilities::Area(*p_t2);
+            else
+                mOpenFacesUp[0] = 0.0;
+
+            if( p_t4->NumOfTriangles() > 0 )
+                mOpenFacesUp[1] = MeshUtilities::Area(*p_t4);
+            else
+                mOpenFacesUp[1] = 0.0;
+
+            if( p_t6->NumOfTriangles() > 0 )
+                mOpenFacesUp[2] = MeshUtilities::Area(*p_t6);
+            else
+                mOpenFacesUp[2] = 0.0;
+
+            if( p_t1->NumOfTriangles() > 0 )
+                mOpenFacesLow[0] = MeshUtilities::Area(*p_t1);
+            else
+                mOpenFacesLow[0] = 0.0;
+
+            if( p_t3->NumOfTriangles() > 0 )
+                mOpenFacesLow[1] = MeshUtilities::Area(*p_t3);
+            else
+                mOpenFacesLow[1] = 0.0;
+
+            if( p_t5->NumOfTriangles() > 0 )
+                mOpenFacesLow[2] = MeshUtilities::Area(*p_t5);
+            else
+                mOpenFacesLow[2] = 0.0;
 
             const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
                 + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
@@ -96,6 +128,12 @@ public:
     ///@return bool
     bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const override;
 
+    /// @brief Return reference to triangle mesh
+    /// @return const TriangleMesh&
+    const TriangleMesh& GetClippedTriangleMesh() const {
+        return mClippedMesh;
+    }
+
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     BoundaryIPVectorPtrType pGetBoundaryIps() const;
@@ -113,6 +151,8 @@ public:
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
     const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
 
+    PointType GetOpenFacesLow() const override;
+    PointType GetOpenFacesUp() const override;
     ///@}
 private:
 
@@ -123,6 +163,7 @@ private:
     TriangleMesh mClippedMesh;
     GeometryQuery mGeometryQuery;
     double mSnapTolerance;
+
 
     ///@}
 };

@@ -191,6 +191,26 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("GetTriangleMesh", [](const Element& rElement){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh();
         }, py::return_value_policy::reference_internal)
+        .def("GetClippedTriangleMesh", [](const Element& rElement){
+            return rElement.pGetTrimmedDomain()->GetClippedTriangleMesh();
+        }, py::return_value_policy::reference_internal)
+        .def("GetBoundingBoxOfTrimmedDomain", [](const Element& rElement){
+            return rElement.pGetTrimmedDomain()->GetBoundingBoxOfTrimmedDomain();
+        })
+        .def("AverageExtension", [](const Element& rElement){
+            const auto& triangle_mesh = rElement.pGetTrimmedDomain()->GetTriangleMesh();
+            return MeshUtilities::AverageExtension(triangle_mesh);
+        })
+
+        .def("GetOpenFacesUp", [](const Element& rElement){
+            return rElement.pGetTrimmedDomain()->GetOpenFacesUp();
+        })
+        .def("GetOpenFacesLow", [](const Element& rElement){
+            return rElement.pGetTrimmedDomain()->GetOpenFacesLow();
+        })
+        .def("GetOpenFacesLow", [](const Element& rElement){
+            return rElement.pGetTrimmedDomain()->GetOpenFacesLow();
+        })
         .def("GetBCTriangleMesh", [](const Element& rElement, std::function<bool(double, double,double)> &IsInDomain){
             return rElement.pGetTrimmedDomain()->pGetTriangleMesh(IsInDomain);
         }, py::return_value_policy::reference_internal )

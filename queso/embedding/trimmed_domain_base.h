@@ -92,9 +92,14 @@ public:
 
     /// @brief Return reference to triangle mesh
     /// @return const TriangleMesh&
-    const TriangleMesh& GetTriangleMesh() const{
+    const TriangleMesh& GetTriangleMesh() const {
         return *(mpTriangleMesh.get());
     }
+
+
+    /// @brief Return reference to triangle mesh
+    /// @return const TriangleMesh&
+    virtual const TriangleMesh& GetClippedTriangleMesh() const = 0;
 
     ///@brief Returns intersections state of AABB (This is an Interface for the Octree).
     ///@param rLowerBound
@@ -131,6 +136,10 @@ public:
         return p_new_mesh;
     }
 
+    virtual PointType GetOpenFacesLow() const = 0;
+
+    virtual PointType GetOpenFacesUp() const = 0;
+
     ///@}
 
 protected:
@@ -139,6 +148,8 @@ protected:
     TriangleMeshPtrType mpTriangleMesh;
     PointType mLowerBound;
     PointType mUpperBound;
+    PointType mOpenFacesUp;
+    PointType mOpenFacesLow;
     const Parameters& mParameters;
     ///@}
 }; // End TrimmedDomainBase

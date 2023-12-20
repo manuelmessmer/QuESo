@@ -30,9 +30,10 @@ class PyQuESo:
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
 
-        self.queso = QuESo_Application.QuESo(self.parameters)
 
     def Run(self, kratos_model_part = ""):
+        print("---------------sfsfsfs------------------")
+        self.queso = QuESo_Application.QuESo(self.parameters)
         if kratos_available and kratos_model_part != "":
             ModelPartUtilities.CreateQuESoInput(kratos_model_part, self.parameters)
         self.queso.Run()
