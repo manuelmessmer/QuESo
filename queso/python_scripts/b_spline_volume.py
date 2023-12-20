@@ -12,12 +12,31 @@ class BSplineVolume:
         UpperBoundXYZ = Parameters.UpperBoundXYZ()
         LowerBoundUVW = Parameters.LowerBoundUVW()
         UpperBoundUVW = Parameters.UpperBoundUVW()
+        knot_vector_type = Parameters.GetGlobalSettings().GetString("knot_vector_type")
+        if( knot_vector_type == "open_knot_vector" ):
+            open_knot_vector = True
+        elif( knot_vector_type == "non_open_knot_vector" ):
+            open_knot_vector = False
+        else:
+            message = "BSplineVolume :: __init__ :: Given 'knot_vector_type': '" + knot_vector_type
+            message += "' not valid. Available options are: 'open_knot_vector' and 'non_open_knot_vector'."
+            raise Exception(message)
         self.spline_u = self.__construct_b_spline(
-            self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0])
+           self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0], open_knot_vector)
         self.spline_v = self.__construct_b_spline(
-            self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1])
+            self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1], open_knot_vector)
         self.spline_w = self.__construct_b_spline(
-            self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2])
+            self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2], open_knot_vector)
+
+    def GetSpline(self, Index):
+        if( Index == 0 ):
+            return self.spline_u
+        elif( Index == 1 ):
+            return self.spline_v
+        elif( Index == 2 ):
+            return self.spline_w
+        else:
+            raise Exception("BSplineVolume :: GetSpline :: Index out of scope.")
 
     def ControlPoints(self):
         ''' Returns control points of B-Spline volume in a list.
@@ -103,16 +122,24 @@ class BSplineVolume:
         '''
         return len(self.spline_w.c)
 
-    def __construct_b_spline(self, Order, NumElements, LowerBoundX, UpperBoundX, LowerBoundU, UpperBoundU):
+    def __construct_b_spline(self, Order, NumElements, LowerBoundX, UpperBoundX, LowerBoundU, UpperBoundU, OpenKnotVector=False):
         delta_u = (UpperBoundU-LowerBoundU)/NumElements
-        knots_u = np.array( (Order+1)*[LowerBoundU] )
-        knots_u = np.append( knots_u, (Order+1)*[UpperBoundU] )
+
+        if OpenKnotVector:
+            knots_u = np.array( (Order+1)*[LowerBoundU] )
+            knots_u = np.append( knots_u, (Order+1)*[UpperBoundU] )
+        else:
+            knots_u = np.array( [LowerBoundU - (Order-i)*delta_u for i in range(Order+1)] )
+            knots_u = np.append( knots_u, [(UpperBoundU + i*delta_u) for i in range(Order+1)] )
 
         delta_x = (UpperBoundX-LowerBoundX) / Order
-
+        center = (UpperBoundX+LowerBoundX) / 2.0
         cps_x = np.arange(LowerBoundX, UpperBoundX+0.5*delta_x,  delta_x )
-        spline_u = si.BSpline(knots_u, cps_x, Order)
 
+        if not OpenKnotVector:
+            cps_x = [ val - (Order-1)*(center-val) / (NumElements) for val in cps_x  ]
+
+        spline_u = si.BSpline(knots_u, cps_x, Order, extrapolate=False)
         knots_u_to_insert = np.arange(LowerBoundU+delta_u, UpperBoundU-0.5*delta_u, delta_u)
 
         for knot in knots_u_to_insert:
