@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, MakeBox({0, 0, 0}, {1, 1, 3.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
+    Element element(1, MakeBox({0, 0, 0}, {1, 1, 3.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
+    Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-     Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), parameters);
+     Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};

@@ -25,11 +25,9 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                             Component("upper_bound_xyz", Vector3d(1.5, 1.5, 12.0)),
                             Component("lower_bound_uvw", Vector3d(0.0, 0.0, 0.0)),
                             Component("upper_bound_uvw", Vector3d(1.0, 1.0, 1.0)),
-                            Component("min_num_boundary_triangles", 500UL),
                             Component("moment_fitting_residual", Residual),
                             Component("number_of_elements", Vector3i(6, 6, 13)),
                             Component("init_point_distribution_factor", 1UL),
-                            Component("min_element_volume_ratio", 1e-3),
                             Component("polynomial_order", rOrder ) } );
 
     TriangleMesh triangle_mesh{};
@@ -37,6 +35,9 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
+
+    const double min_vol_ratio = 1e-3;
+    const IndexType min_num_triangles = 500;
 
     Mapper mapper(parameters);
     IndexType number_trimmed_elements = 0;
@@ -51,11 +52,11 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 
         // Construct element
         Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw), parameters);
+                           MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
 
@@ -129,12 +130,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                             Component("upper_bound_xyz", Vector3d(-40, 10.0, 10.0)),
                             Component("lower_bound_uvw", Vector3d(-130.0, -110.0, -110.0)),
                             Component("upper_bound_uvw", Vector3d(-40, 10.0, 10.0)),
-                            Component("min_num_boundary_triangles", 500UL),
                             Component("moment_fitting_residual", 1e-8),
                             Component("number_of_elements", Vector3i(9, 12, 12)),
                             Component("init_point_distribution_factor", 1UL),
                             Component("echo_level", 1UL),
-                            Component("min_element_volume_ratio", 1e-3),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
 
@@ -143,6 +142,9 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
+
+    const double min_vol_ratio = 1e-3;
+    const IndexType min_num_triangles = 500;
 
     Mapper mapper(parameters);
     IndexType number_trimmed_elements = 0;
@@ -157,11 +159,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
         // Construct element
         Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw), parameters);
+                           MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
 
@@ -222,12 +224,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                             Component("lower_bound_uvw", Vector3d(-1.0, -1.0, -1.0)),
                             Component("upper_bound_uvw", Vector3d( 1.0,  1.0,  1.0)),
                             Component("b_spline_mesh", false),
-                            Component("min_num_boundary_triangles", 500UL),
                             Component("moment_fitting_residual", 1e-8),
                             Component("number_of_elements", Vector3i(8, 12, 7)),
                             Component("init_point_distribution_factor", 1UL),
                             Component("echo_level", 1UL),
-                            Component("min_element_volume_ratio", 1e-3),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
     TriangleMesh triangle_mesh{};
@@ -235,6 +235,9 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
+
+    const double min_vol_ratio = 1e-3;
+    const IndexType min_num_triangles = 500;
 
     Mapper mapper(parameters);
     IndexType number_trimmed_elements = 0;
@@ -249,11 +252,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
         // Construct element
         Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw), parameters);
+                           MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
 

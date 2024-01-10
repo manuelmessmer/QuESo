@@ -30,18 +30,15 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
-
-    Parameters params( {Component("lower_bound_xyz", point_A),
-                        Component("upper_bound_xyz", point_B),
-                        Component("number_of_elements", number_of_elements),
-                        Component("min_element_volume_ratio", 0.0) });
-
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.50;
     const double delta_y = 0.50;
     const double delta_z = 0.50;
+
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     std::vector<double> results;
     results.reserve(344);
@@ -52,7 +49,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
                 }
@@ -79,17 +76,15 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)),
-                        Component("min_element_volume_ratio", 0.0) });
-
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.3;
     const double delta_y = 0.3;
     const double delta_z = 0.3;
+
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     std::vector<double> results{};
     results.reserve(826);
@@ -101,7 +96,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
                 }
@@ -134,17 +129,15 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound_xyz", point_A),
-                        Component("upper_bound_xyz", point_B),
-                        Component("number_of_elements", number_of_elements),
-                        Component("min_element_volume_ratio", 0.0) });
-
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 0.1;
     const double delta_y = 0.1;
     const double delta_z = 0.1;
+
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     std::vector<double> results{};
     results.reserve(166);
@@ -156,7 +149,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
                 }
@@ -184,17 +177,15 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)),
-                        Component("min_element_volume_ratio", 0.0) });
-
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
     const double delta_x = 10;
     const double delta_y = 10;
     const double delta_z = 10;
+
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     std::vector<double> results{};
     results.reserve(381);
@@ -206,7 +197,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
                 }

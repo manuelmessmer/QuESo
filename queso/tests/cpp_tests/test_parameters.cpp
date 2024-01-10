@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     QuESo_CHECK_NEAR(parameters.InitialTriangleEdgeLength(), 1.0,1e-10);
 
     IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
-    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 500UL);
-    QuESo_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 500UL);
+    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 100UL);
+    QuESo_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 100UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
     QuESo_CHECK_RELATIVE_NEAR(moment_fitting_residual, 1e-10, 1e-10);

@@ -56,6 +56,9 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
     const double area_ref = MeshUtilities::Area(triangle_mesh);
     double area_test = 0.0;
 
+    const double min_vol_ratio = rParameters.Get<double>("min_element_volume_ratio");
+    const IndexType min_num_triangles = rParameters.Get<double>("min_num_boundary_triangles");
+
     Mapper mapper(rParameters);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
@@ -70,7 +73,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
 
         // Construct element
         Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw), rParameters);
+                           MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area_test += MeshUtilities::Area(*p_clipped_mesh);
@@ -79,7 +82,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
         const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz );
         if( status == IntersectionStatus::Trimmed){
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, rParameters);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
 
             // Get triangle mesh
             const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
@@ -199,8 +202,6 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
                             Component("lower_bound_uvw", rLowerBound),
                             Component("upper_bound_uvw", rUpperBound),
                             Component("number_of_elements", number_of_elements),
-                            Component("min_num_boundary_triangles", 100UL),
-                            Component("min_element_volume_ratio", 0.0),
                             Component("polynomial_order", Vector3i(2,2,2) ) } );
 
     TriangleMesh triangle_mesh{};
@@ -215,6 +216,9 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
+
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 100;
 
     const double volume_ref = MeshUtilities::Volume(triangle_mesh);
     const double area_ref = MeshUtilities::Area(triangle_mesh);
@@ -231,7 +235,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area += MeshUtilities::Area(*p_clipped_mesh);
         // Get Trimmed domain
-        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, parameters);
+        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
         if( p_trimmed_domain ){
             auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
             // Check triangle orientations.
