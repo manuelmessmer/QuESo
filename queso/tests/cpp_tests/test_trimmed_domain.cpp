@@ -58,6 +58,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
 
     const double min_vol_ratio = rParameters.Get<double>("min_element_volume_ratio");
     const IndexType min_num_triangles = rParameters.Get<unsigned long>("min_num_boundary_triangles");
+    const Vector3i order =  rParameters.Get<Vector3i>("polynomial_order");
 
     Mapper mapper(rParameters);
     IndexType number_trimmed_elements = 0;
@@ -97,7 +98,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
             auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
 
             std::vector<double> constant_terms{};
-            QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, rParameters);
+            QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, order);
 
             // Read and ignore header
             getline(file, line);

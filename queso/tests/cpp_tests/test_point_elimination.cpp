@@ -25,10 +25,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                             Component("upper_bound_xyz", Vector3d(1.5, 1.5, 12.0)),
                             Component("lower_bound_uvw", Vector3d(0.0, 0.0, 0.0)),
                             Component("upper_bound_uvw", Vector3d(1.0, 1.0, 1.0)),
-                            Component("moment_fitting_residual", Residual),
-                            Component("number_of_elements", Vector3i(6, 6, 13)),
-                            Component("init_point_distribution_factor", 1UL),
-                            Component("polynomial_order", rOrder ) } );
+                            Component("number_of_elements", Vector3i(6, 6, 13))} );
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
@@ -65,7 +62,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
+                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, rOrder, Residual);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-6);
@@ -82,10 +79,10 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
                 auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
-                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
+                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, rOrder);
 
                 // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
+                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, rOrder);
 
                 // Check if residual and weights are the same.
                 QuESo_CHECK_NEAR( residual, residual_2, EPS4 );
@@ -130,11 +127,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                             Component("upper_bound_xyz", Vector3d(-40, 10.0, 10.0)),
                             Component("lower_bound_uvw", Vector3d(-130.0, -110.0, -110.0)),
                             Component("upper_bound_uvw", Vector3d(-40, 10.0, 10.0)),
-                            Component("moment_fitting_residual", 1e-8),
-                            Component("number_of_elements", Vector3i(9, 12, 12)),
-                            Component("init_point_distribution_factor", 1UL),
-                            Component("echo_level", 1UL),
-                            Component("polynomial_order", Vector3i(2,2,2) ) } );
+                            Component("number_of_elements", Vector3i(9, 12, 12)) } );
 
 
     TriangleMesh triangle_mesh{};
@@ -172,7 +165,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
+                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, {2, 2, 2}, 1e-8);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-8);
@@ -188,10 +181,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
                 auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
-                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
+                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
 
                 // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
+                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
 
                 // Check if residual and weights are the same.
                 QuESo_CHECK_LT( residual, residual_2+EPS4 );
@@ -224,11 +217,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                             Component("lower_bound_uvw", Vector3d(-1.0, -1.0, -1.0)),
                             Component("upper_bound_uvw", Vector3d( 1.0,  1.0,  1.0)),
                             Component("b_spline_mesh", false),
-                            Component("moment_fitting_residual", 1e-8),
-                            Component("number_of_elements", Vector3i(8, 12, 7)),
-                            Component("init_point_distribution_factor", 1UL),
-                            Component("echo_level", 1UL),
-                            Component("polynomial_order", Vector3i(2,2,2) ) } );
+                            Component("number_of_elements", Vector3i(8, 12, 7)) } );
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
@@ -265,7 +254,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, parameters);
+                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, {2, 2, 2}, 1e-8);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-8);
@@ -281,10 +270,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
                 auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
-                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, parameters);
+                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
 
                 // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, parameters);
+                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
 
                 // Check if residual and weights are the same.
                 QuESo_CHECK_LT( residual, residual_2+EPS4 );
