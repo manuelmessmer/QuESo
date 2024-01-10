@@ -91,7 +91,7 @@ private:
         Component("input_type", std::string("stl_file")),
         Component("output_directory_name", std::string("queso_output")),
         Component("initial_triangle_edge_length", 1.0),
-        Component("min_num_boundary_triangles", 500UL),
+        Component("min_num_boundary_triangles", 100UL),
         Component("moment_fitting_residual", 1.0e-10),
         Component("min_element_volume_ratio", 1.0e-3),
         Component("b_spline_mesh", true),

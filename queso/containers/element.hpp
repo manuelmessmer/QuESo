@@ -45,9 +45,8 @@ public:
     ///@param rBoundXYZ Bounds of Element in physical space.
     ///@param rBoundUVW Bounds of Element in parametric space.
     ///@param rParam QuESo Parameters.
-    Element(IndexType ElementId, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW, const Parameters& rParam) :
-        mElementId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW), mParameters(rParam)
-    {
+    Element(IndexType ElementId, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW) :
+            mElementId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW) {
         mIsTrimmed = false;
     }
 
@@ -80,12 +79,6 @@ public:
     /// @return bool
     bool IsTrimmed() const{
         return mIsTrimmed;
-    }
-
-    /// @brief Returns QuESo parameters
-    /// @return const Parameters&
-    const Parameters& GetParameters() const {
-        return mParameters;
     }
 
     /// @brief Returns Vector of integration points.
@@ -213,7 +206,6 @@ private:
 
     const BoundingBoxType mBoundsXYZ{};
     const BoundingBoxType mBoundsUVW{};
-    const Parameters& mParameters;
 
     TrimmedDomainPtrType mpTrimmedDomain = nullptr;
     PointType mNumberOfNeighbours{};
