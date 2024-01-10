@@ -23,16 +23,16 @@ class PyQuESo:
     def __init__(self, json_filename):
         """The constructor"""
         self.parameters = ReadParameters(json_filename)
-        self.b_spline_volume = BSplineVolume(self.parameters)
         output_directory_name = self.parameters.GetGlobalSettings().GetString("output_directory_name")
         if self.parameters.EchoLevel() > 0:
             folder_path = "./" + output_directory_name + '/'
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
-        self.queso = QuESo_Application.QuESo(self.parameters)
 
     def Run(self, kratos_model_part = ""):
+        self.queso = QuESo_Application.QuESo(self.parameters)
+        self.b_spline_volume = BSplineVolume(self.parameters)
         if kratos_model_part != "":
             if (not kratos_available):
                 raise Exception("PyQuESo :: Trying to read from kratos modelpart, but Kratos is not available.")
