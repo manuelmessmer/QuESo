@@ -32,7 +32,11 @@ public:
 
     /// Default constructor
     Vector3()
-    {}
+    {
+        mData[0] = 0.0;
+        mData[1] = 0.0;
+        mData[2] = 0.0;
+    }
 
     /// Constructor
     Vector3(type x, type y, type z)
@@ -62,22 +66,53 @@ public:
     }
 
     /// Copy Assignement from BaseType
-    Vector3& operator=(const BaseType& rOther)
+    Vector3& operator=(BaseType& rOther)
     {
-        std::swap(mData, rOther);
+        mData.swap(rOther);
+        return *this;
+    }
+
+    /// Copy Assignement from BaseType
+    Vector3& operator=(BaseType rOther)
+    {
+        mData.swap(rOther);
         return *this;
     }
 
     /// Copy Assignement from Vector3
-    Vector3& operator=(const Vector3& rOther)
+    Vector3& operator=(Vector3& rOther)
     {
-        std::swap(mData, other.mData);
+        mData.swap(rOther.mData);
+        return *this;
+    }
+
+    /// Copy Assignement from Vector3
+    Vector3& operator=(Vector3 rOther)
+    {
+        mData.swap(rOther.mData);
         return *this;
     }
 
     ///@}
     ///@name Operations
     ///@{
+
+    const BaseType& data() const {
+        return mData;
+    }
+
+    BaseType data() {
+        return mData;
+    }
+
+    typename BaseType::const_iterator begin() const {
+        return mData.begin();
+    }
+
+    typename BaseType::const_iterator end() const {
+        return mData.end();
+    }
+
 
     type& X(){
         return mData(0);
