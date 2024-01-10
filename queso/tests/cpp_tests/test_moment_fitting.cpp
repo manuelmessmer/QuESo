@@ -33,7 +33,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
                             Component("polynomial_order", Vector3i(2, 2, 2)),
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 5UL),
-                            Component("init_point_distribution_factor", 3UL),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
@@ -50,9 +49,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
             auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
+
+    const Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
+    const IntegrationMethod integration_method = parameters.IntegrationMethod();
+
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    QuadratureSingleElement::AssembleIPs(element, parameters);
+    QuadratureSingleElement::AssembleIPs(element, polynomial_order, integration_method);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -92,7 +95,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
                             Component("polynomial_order", Vector3i(3, 3, 3)),
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 500UL),
-                            Component("init_point_distribution_factor", 3UL),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
@@ -111,9 +113,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
+    const Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
+    const IntegrationMethod integration_method = parameters.IntegrationMethod();
+
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    QuadratureSingleElement::AssembleIPs(element, parameters);
+    QuadratureSingleElement::AssembleIPs(element, polynomial_order, integration_method);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -153,7 +158,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
                             Component("polynomial_order", Vector3i(4, 4, 4)),
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 2000UL),
-                            Component("init_point_distribution_factor", 3UL),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
@@ -172,9 +176,12 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
+    const Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
+    const IntegrationMethod integration_method = parameters.IntegrationMethod();
+
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    QuadratureSingleElement::AssembleIPs(element, parameters);
+    QuadratureSingleElement::AssembleIPs(element, polynomial_order, integration_method);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
