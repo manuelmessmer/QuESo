@@ -87,8 +87,11 @@ public:
     /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
     /// @param rLowerBound Lower bound of AABB.
     /// @param rUpperBound Upper bound of AABB.
+    /// @param MinElementVolumeRatio Below this ratio elements are not considered.
+    /// @param MinNumberOfBoundaryTriangles Min number of triangles in the closed surface mesh.
     /// @return TrimmedDomainBasePtrType (Unique)
-    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound, const Parameters& rParameters ) const;
+    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
+        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const;
 
     ///@brief Clips triangle mesh by AABB.
     ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.

@@ -91,14 +91,13 @@ private:
         Component("input_type", std::string("stl_file")),
         Component("output_directory_name", std::string("queso_output")),
         Component("initial_triangle_edge_length", 1.0),
-        Component("min_num_boundary_triangles", 500UL),
+        Component("min_num_boundary_triangles", 100UL),
         Component("moment_fitting_residual", 1.0e-10),
         Component("min_element_volume_ratio", 1.0e-3),
         Component("b_spline_mesh", true),
         Component("knot_vector_type", std::string("open_knot_vector")),
         Component("lower_bound_uvw", PointType(-1.0, -1.0, -1.0)),
         Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
-        Component("init_point_distribution_factor", 1UL),
         Component("polynomial_order", Vector3i(2UL, 2UL, 2UL) ),
         Component("integration_method", IntegrationMethod::Gauss),
         Component("use_customized_trimmed_points", false) };
@@ -124,7 +123,6 @@ private:
         std::make_pair<std::string, const std::type_info*>("min_num_boundary_triangles", &typeid(unsigned long) ),
         std::make_pair<std::string, const std::type_info*>("moment_fitting_residual", &typeid(double) ),
         std::make_pair<std::string, const std::type_info*>("min_element_volume_ratio", &typeid(double) ),
-        std::make_pair<std::string, const std::type_info*>("init_point_distribution_factor", &typeid(unsigned long) ),
         std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
         std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ) };
     ///@}
@@ -425,10 +423,6 @@ public:
     bool UseCustomizedTrimmedPositions() const{
         /// Only used for testing.
         return Get<bool>("use_customized_trimmed_points");
-    }
-
-    IndexType GetPointDistributionFactor() const {
-        return static_cast<IndexType>( Get<unsigned long>("init_point_distribution_factor") );
     }
 
     bool GGQRuleIsUsed() const {

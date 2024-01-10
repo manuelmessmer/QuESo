@@ -4,6 +4,7 @@
         "echo_level"      : 1
     },
     "mesh_settings"     : {
+        "b_spline_mesh" : false,
         "lower_bound_xyz": [-1.5, -1.5, -1.0],
         "upper_bound_xyz": [1.5, 1.5, 11.0],
         "lower_bound_uvw": [-1.5, -1.5, -1.0],

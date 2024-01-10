@@ -87,14 +87,15 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                                 Component("upper_bound_xyz", upper_bound),
                                 Component("lower_bound_uvw", lower_bound),
                                 Component("upper_bound_uvw", upper_bound),
-                                Component("min_num_boundary_triangles", 10UL),
-                                Component("number_of_elements", num_elements),
-                                Component("min_element_volume_ratio", 0.0) } );
+                                Component("number_of_elements", num_elements)});
 
         auto delta_new = upper_bound - lower_bound;
 
         double test_volume = 0.0;
         double test_area = 0.0;
+
+        const double min_vol_ratio = 0.0;
+        const IndexType min_num_triangles = 10;
 
         BRepOperator brep_operator(triangle_mesh);
         FloodFill filler(&brep_operator, parameters);
@@ -106,7 +107,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
                     auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), parameters);
+                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
                     auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
                     test_area += MeshUtilities::Area(*p_clipped_mesh);
@@ -117,7 +118,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     }
                     if( status == IntersectionStatus::Trimmed){
                         // Get trimmed domain
-                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second, parameters);
+                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second, min_vol_ratio, min_num_triangles);
                         if( p_trimmed_domain ){
                             auto mesh = p_trimmed_domain->GetTriangleMesh();
                             test_volume += MeshUtilities::Volume(mesh);
@@ -267,7 +268,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
                     auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), parameters);
+                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
                     auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
 

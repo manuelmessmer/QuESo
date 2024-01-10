@@ -23,7 +23,6 @@ class PyQuESo:
     def __init__(self, json_filename):
         """The constructor"""
         self.parameters = ReadParameters(json_filename)
-        self.b_spline_volume = BSplineVolume(self.parameters)
         output_directory_name = self.parameters.GetGlobalSettings().GetString("output_directory_name")
         if self.parameters.EchoLevel() > 0:
             folder_path = "./" + output_directory_name + '/'
@@ -31,6 +30,7 @@ class PyQuESo:
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
         self.queso = QuESo_Application.QuESo(self.parameters)
+        self.b_spline_volume = BSplineVolume(self.parameters)
 
     def Run(self, kratos_model_part = ""):
         if kratos_model_part != "":

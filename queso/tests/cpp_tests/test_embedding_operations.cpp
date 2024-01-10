@@ -29,7 +29,6 @@ BOOST_AUTO_TEST_CASE(Intersection) {
                             Component("number_of_elements", Vector3i(1, 1, 1)),
                             Component("polynomial_order", Vector3i(2, 2, 2)),
                             Component("integration_method", IntegrationMethod::Gauss),
-                            Component("init_point_distribution_factor", 3UL),
                             Component("min_num_boundary_triangles", 5000UL),
                             Component("moment_fitting_residual", 1e-8) });
     QuESo queso(parameters);

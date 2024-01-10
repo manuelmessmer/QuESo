@@ -38,8 +38,9 @@ public:
 
         /// @brief Assemble tensor product quadrature rules.
         /// @param rElement
-        /// @param rParam
-        static void AssembleIPs(Element& rElement, const Parameters& rParam);
+        /// @param rOrder Order of quadrature rule.
+        /// @param Method Integration method: Default - Gauss.
+        static void AssembleIPs(Element& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss);
 
         /// @brief Assemble tensor product quadrature rules.
         /// @note This functions clears rIntegrationPoints.
