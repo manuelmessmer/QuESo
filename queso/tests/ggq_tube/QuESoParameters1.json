@@ -16,8 +16,7 @@
     "trimmed_quadrature_rule_settings"     : {
         "initial_triangle_edge_length" : 1.0,
         "min_num_boundary_triangles"  : 1,
-        "moment_fitting_residual": 1e-10,
-        "init_point_distribution_factor": 1
+        "moment_fitting_residual": 1e-10
     },
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"

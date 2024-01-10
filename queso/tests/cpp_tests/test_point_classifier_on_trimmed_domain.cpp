@@ -33,6 +33,9 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
+
     Mapper mapper(params);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
@@ -40,7 +43,7 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
         const Vector3d lower_bound = bounding_box.first;
         const Vector3d upper_bound = bounding_box.second;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 0.1;
             const double delta_p_y = 0.1;
             const double delta_p_z = 0.1;
@@ -76,6 +79,9 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
+
     const double delta_x = 0.15;
     const double delta_y = 0.15;
     const double delta_z = 0.15;
@@ -87,7 +93,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
                 Vector3d lower_bound = {x, y, z};
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
-                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+                    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     const double delta_p_x = 0.2;
                     const double delta_p_y = 0.2;
                     const double delta_p_z = 0.2;
@@ -125,6 +131,9 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
+
     Mapper mapper(params);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
@@ -132,7 +141,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
         Vector3d lower_bound = bounding_box.first;
         Vector3d upper_bound = bounding_box.second;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 0.01;
             const double delta_p_y = 0.01;
             const double delta_p_z = 0.01;
@@ -164,11 +173,13 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
                         Component("upper_bound_xyz", PointType(85, 46, 115)),
                         Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
                         Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(11, 9, 12)),
-                        Component("min_element_volume_ratio", 0.0) });
+                        Component("number_of_elements", Vector3i(11, 9, 12))});
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
+
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     Mapper mapper(params);
     IndexType num_of_trimmed_elements = 0;
@@ -177,7 +188,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
         Vector3d lower_bound = bounding_box.first;
         Vector3d upper_bound = bounding_box.second;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, params);
+            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 2;
             const double delta_p_y = 2;
             const double delta_p_z = 2;

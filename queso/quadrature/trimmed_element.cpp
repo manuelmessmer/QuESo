@@ -34,7 +34,7 @@ void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVecto
 }
 
 void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs,
-                                                    const Element& rElement, const Parameters& rParam){
+                                                    const Element& rElement, const Vector3i& rIntegrationOrder){
 
     // Initialize const variables.
     const auto bounds_xyz = rElement.GetBoundsXYZ();
@@ -44,9 +44,9 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     const PointType& b = bounds_xyz.second;
 
     const IndexType ffactor = 1;
-    const IndexType order_u = rParam.Order()[0];
-    const IndexType order_v = rParam.Order()[1];
-    const IndexType order_w = rParam.Order()[2];
+    const IndexType order_u = rIntegrationOrder[0];
+    const IndexType order_v = rIntegrationOrder[1];
+    const IndexType order_w = rIntegrationOrder[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
@@ -113,16 +113,16 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
 }
 
 void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints,
-                                                    const Element& rElement, const Parameters& rParam){
+                                                    const Element& rElement, const Vector3i& rIntegrationOrder){
 
     // Initialize const variables.
     const PointType& a = rElement.GetBoundsUVW().first;
     const PointType& b = rElement.GetBoundsUVW().second;
 
     const IndexType ffactor = 1;
-    const IndexType order_u = rParam.Order()[0];
-    const IndexType order_v = rParam.Order()[1];
-    const IndexType order_w = rParam.Order()[2];
+    const IndexType order_u = rIntegrationOrder[0];
+    const IndexType order_v = rIntegrationOrder[1];
+    const IndexType order_w = rIntegrationOrder[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
 
@@ -154,7 +154,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
-double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters& rParam){
+double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel){
 
     // Get boundary integration points.
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
@@ -162,7 +162,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
 
     // Get constant terms.
     VectorType constant_terms{};
-    ComputeConstantTerms(constant_terms, p_boundary_ips, rElement, rParam);
+    ComputeConstantTerms(constant_terms, p_boundary_ips, rElement, rIntegrationOrder);
 
     // Construct octree. Octree is used to distribute inital points within trimmed domain.
     const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
@@ -175,17 +175,16 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
     // Start point elimination.
     double residual = MAXD;
     SizeType iteration = 0UL;
-    SizeType point_distribution_factor = rParam.GetPointDistributionFactor();
+    SizeType point_distribution_factor = 1;
     IntegrationPointVectorType integration_points{};
 
-    const auto order = rParam.Order();
-    const IndexType max_iteration = (Math::Max(order) == 2) ? 4UL : 3UL;
+    const IndexType max_iteration = (Math::Max(rIntegrationOrder) == 2) ? 4UL : 3UL;
     // If residual can not be statisfied, try with more points in initial set.
-    while( residual > rParam.MomentFittingResidual() && iteration < max_iteration){
+    while( residual > Residual && iteration < max_iteration){
 
         // Distribute intial points via an octree.
-        const SizeType min_num_points = (order[0]+1)*(order[1]+1)*(order[2]+1)*(point_distribution_factor);
-        DistributeIntegrationPoints(integration_points, octree, min_num_points, order);
+        const SizeType min_num_points = (rIntegrationOrder[0]+1)*(rIntegrationOrder[1]+1)*(rIntegrationOrder[2]+1)*(point_distribution_factor);
+        DistributeIntegrationPoints(integration_points, octree, min_num_points, rIntegrationOrder);
 
         // If no point is contained in integration_points -> exit.
         if( integration_points.size() == 0 ){
@@ -199,7 +198,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
         old_integration_points.clear();
 
         // Run point elimination.
-        residual = PointElimination(constant_terms, integration_points, rElement, rParam);
+        residual = PointElimination(constant_terms, integration_points, rElement, rIntegrationOrder, Residual);
 
         // If residual is very high, remove all points. Note, elements without points will be neglected.
         if( residual > 1e-2 ) {
@@ -212,19 +211,19 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Parameters
         iteration++;
     }
 
-    if( residual > rParam.MomentFittingResidual() && rParam.EchoLevel() > 2){
+    if( residual > Residual && EchoLevel > 2){
         QuESo_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
-        if( rParam.EchoLevel() > 3 ) {
-            const std::string output_directory_name = rParam.Get<std::string>("output_directory_name");
-            const std::string filename = output_directory_name + "/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
-            IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
-        }
+        // if( rParam.EchoLevel() > 3 ) {
+        //     const std::string output_directory_name = rParam.Get<std::string>("output_directory_name");
+        //     const std::string filename = output_directory_name + "/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
+        //     IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
+        // }
     }
 
     return residual;
 }
 
-double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam){
+double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Vector3i& rIntegrationOrder){
 
 
     PointType a = rElement.GetBoundsUVW().first;
@@ -233,9 +232,9 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     double jacobian = rElement.DetJ();
 
     const IndexType ffactor = 1;
-    const IndexType order_u = rParam.Order()[0];
-    const IndexType order_v = rParam.Order()[1];
-    const IndexType order_w = rParam.Order()[2];
+    const IndexType order_u = rIntegrationOrder[0];
+    const IndexType order_v = rIntegrationOrder[1];
+    const IndexType order_w = rIntegrationOrder[2];
 
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
     const IndexType number_reduced_points = rIntegrationPoint.size();
@@ -279,17 +278,17 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 }
 
 
-double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam) {
+double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Vector3i& rIntegrationOrder, double Residual) {
 
     /// Initialize variables.
     const SizeType ffactor = 1;
-    const SizeType order_u = rParam.Order()[0];
-    const SizeType order_v = rParam.Order()[1];
-    const SizeType order_w = rParam.Order()[2];
+    const SizeType order_u = rIntegrationOrder[0];
+    const SizeType order_v = rIntegrationOrder[1];
+    const SizeType order_w = rIntegrationOrder[2];
     const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
     const IndexType min_number_of_points = order_u*order_v*order_w;
 
-    const double targeted_residual = rParam.MomentFittingResidual();
+    const double targeted_residual = Residual;
     double global_residual = MIND;
     double prev_residual = 0.0;
     const SizeType maximum_iteration = 1000UL;
@@ -301,7 +300,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
     // Also keep iterating, until targeted_residual is stepped over.
     while( point_is_eliminated || (global_residual < targeted_residual && number_iterations < maximum_iteration) ){
         point_is_eliminated = false;
-        global_residual = MomentFitting(rConstantTerms, rIntegrationPoint, rElement, rParam);
+        global_residual = MomentFitting(rConstantTerms, rIntegrationPoint, rElement, rIntegrationOrder);
         if( number_iterations == 0UL){
             /// In first iteration, revome all points but #number_of_functions
             // Sort integration points according to weight.

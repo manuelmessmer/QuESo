@@ -41,8 +41,8 @@ public:
     /// @param rParameters QuESo Parameters.
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
-            const BRepOperator* pOperator, const Parameters& rParameters, bool SwitchPlaneOrientation = false )
-        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound, rParameters),
+            const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )
+        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound),
           mClippedMesh(GetTriangleMesh()), mGeometryQuery(mClippedMesh, false)
     {
         // Set relative snap tolerance.
@@ -79,7 +79,7 @@ public:
             MeshUtilities::Append(*(mpTriangleMesh), *(p_t5));
             MeshUtilities::Append(*(mpTriangleMesh), *(p_t6));
 
-            MeshUtilities::Refine(*(mpTriangleMesh.get()), mParameters.MinimumNumberOfTriangles());
+            MeshUtilities::Refine(*(mpTriangleMesh.get()), MinNumberOfTriangles);
         }
 
     }

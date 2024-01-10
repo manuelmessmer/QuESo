@@ -34,17 +34,20 @@ public:
 
     /// @brief Assemble tensor product quadrature rules.
     /// @param rElements
-    /// @param rParameter
-    static void AssembleIPs(ElementContainer& rElements, const Parameters& rParameter);
+    /// @param rNumberOfElements
+    /// @param rIntegrationOrder
+    /// @param Method Integration method
+    static void AssembleIPs(ElementContainer& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method);
 
 private:
 
     ///@todo Refactor this
-    static void AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters);
+    static void AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction);
 
     static ElementContainer::ElementPtrType NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction );
 
-    static void StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters);
+    static void StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans,
+            const Vector3i& rIntegrationOrder, IntegrationMethodType Method);
 
     static bool AllElementsVisited(ElementContainer& rElements);
 }; // End Class QuadratureMultipleElements

@@ -89,9 +89,19 @@ void QuESo::Compute(){
     double et_compute_intersection = 0.0;
     double et_moment_fitting = 0.0;
 
+    // Get neccessary parameters
+    const bool embedding_flag = mParameters.Get<bool>("embedding_flag");
+    const bool ggq_rule_ise_used = mParameters.GGQRuleIsUsed();
+    const double min_vol_element_ratio = mParameters.Get<double>("min_element_volume_ratio");
+    const IndexType num_boundary_triangles = mParameters.MinimumNumberOfTriangles();
+    const double moment_fitting_residual = mParameters.Get<double>("moment_fitting_residual");
+    const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
+    const IntegrationMethod integration_method = mParameters.IntegrationMethod();
+    const IndexType echo_level = mParameters.EchoLevel();
+
     // Classify all elements.
     Unique<BRepOperator::StatusVectorType> p_classifications = nullptr;
-    if( mParameters.Get<bool>("embedding_flag") ){
+    if( embedding_flag ){
         Timer timer_check_intersect{};
         p_classifications = mpBRepOperator->pGetElementClassifications(mParameters);
         et_check_intersect += timer_check_intersect.Measure();
@@ -101,7 +111,7 @@ void QuESo::Compute(){
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index) {
         // Check classification status
         IntersectionStatus status{};
-        if( mParameters.Get<bool>("embedding_flag") ){
+        if( embedding_flag ){
             status = (*p_classifications)[index];
         }
         else { // If flag is false, consider all knotspans/ elements as inside
@@ -114,14 +124,15 @@ void QuESo::Compute(){
             const auto bounding_box_uvw = mMapper.GetBoundingBoxUVWFromIndex(index);
 
             // Construct element and check status
-            Shared<Element> new_element = MakeShared<Element>(index+1, bounding_box_xyz, bounding_box_uvw, mParameters);
+            Shared<Element> new_element = MakeShared<Element>(index+1, bounding_box_xyz, bounding_box_uvw);
             bool valid_element = false;
 
             // Distinguish between trimmed and non-trimmed elements.
             if( status == IntersectionStatus::Trimmed) {
                 new_element->SetIsTrimmed(true);
                 Timer timer_compute_intersection{};
-                auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second, mParameters);
+                auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
+                                                                          min_vol_element_ratio, num_boundary_triangles);
                 if( p_trimmed_domain ){
                     new_element->pSetTrimmedDomain(p_trimmed_domain);
                     valid_element = true;
@@ -131,7 +142,7 @@ void QuESo::Compute(){
                 // If valid solve moment fitting equation
                 if( valid_element ){
                     Timer timer_moment_fitting{};
-                    QuadratureTrimmedElement::AssembleIPs(*new_element, mParameters);
+                    QuadratureTrimmedElement::AssembleIPs(*new_element, polynomial_order, moment_fitting_residual, echo_level);
                     et_moment_fitting += timer_moment_fitting.Measure();
 
                     if( new_element->GetIntegrationPoints().size() == 0 ){
@@ -141,14 +152,14 @@ void QuESo::Compute(){
             }
             else if( status == IntersectionStatus::Inside){
                 // Get standard gauss legendre points
-                if( !mParameters.GGQRuleIsUsed() ){
-                    QuadratureSingleElement::AssembleIPs(*new_element, mParameters);
+                if( !ggq_rule_ise_used ){
+                    QuadratureSingleElement::AssembleIPs(*new_element, polynomial_order, integration_method);
                 }
                 valid_element = true;
             }
 
             if( valid_element ){
-                #pragma omp critical
+                #pragma omp critical // TODO: improve this.
                 mpElementContainer->AddElement(new_element); // After this new_element is a null_ptr. Is std::moved to container.
             }
         }
@@ -169,8 +180,11 @@ void QuESo::Compute(){
     }
 
     if( mParameters.GGQRuleIsUsed() ){
-        #pragma omp single
-        QuadratureMultipleElements::AssembleIPs(*mpElementContainer, mParameters);
+
+        const Vector3i number_of_elements = mParameters.Get<Vector3i>("number_of_elements");
+        const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
+        const IntegrationMethodType integration_method = mParameters.IntegrationMethod();
+        QuadratureMultipleElements::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
     }
 
     // Average time spent for each task

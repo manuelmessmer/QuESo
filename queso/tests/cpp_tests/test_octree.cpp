@@ -29,17 +29,12 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2.0, 2.0, 2.0};
 
-    Parameters params( {Component("lower_bound_xyz", lower_bound),
-                        Component("upper_bound_xyz", upper_bound),
-                        Component("lower_bound_uvw", lower_bound),
-                        Component("upper_bound_uvw", upper_bound),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
-
-    Mapper mapper(params);
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh);
-    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, params);
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
     Octree octree(p_trimmed_domain.get(), MakeBox({-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3}),
@@ -76,15 +71,12 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     Vector3d lower_bound = {-1.0, -1.0, -1.0};
     Vector3d upper_bound = {2.0, 2.0, 2.0};
 
-    Parameters params( {Component("lower_bound_xyz", lower_bound),
-                        Component("upper_bound_xyz", upper_bound),
-                        Component("lower_bound_uvw", lower_bound),
-                        Component("upper_bound_uvw", upper_bound),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh);
-    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, params);
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
     Octree octree(p_trimmed_domain.get(), MakeBox({-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3}),
@@ -117,16 +109,13 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {5.0, 5.0, 5.0};
 
-    Parameters params( {Component("lower_bound_xyz", lower_bound),
-                        Component("upper_bound_xyz", upper_bound),
-                        Component("lower_bound_uvw", lower_bound),
-                        Component("upper_bound_uvw", upper_bound),
-                        Component("number_of_elements", Vector3i(1, 1, 1) )});
+    const double min_vol_ratio = 0.0;
+    const IndexType min_num_triangles = 500;
 
     const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh);
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh);
-    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}, params);
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
     Octree octree(p_trimmed_domain.get(), MakeBox({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}),

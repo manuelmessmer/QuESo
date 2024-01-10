@@ -66,16 +66,12 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     QuESo_CHECK_NEAR(parameters.InitialTriangleEdgeLength(), 1.0,1e-10);
 
     IndexType min_num_boundary_triangles = parameters.Get<unsigned long>("min_num_boundary_triangles");
-    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 500UL);
-    QuESo_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 500UL);
+    QuESo_CHECK_EQUAL(min_num_boundary_triangles, 100UL);
+    QuESo_CHECK_EQUAL(parameters.MinimumNumberOfTriangles(), 100UL);
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
     QuESo_CHECK_RELATIVE_NEAR(moment_fitting_residual, 1e-10, 1e-10);
     QuESo_CHECK_RELATIVE_NEAR(parameters.MomentFittingResidual(), 1e-10, 1e-10);
-
-    IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
-    QuESo_CHECK_EQUAL( init_point_distribution_factor, 1UL);
-    QuESo_CHECK_EQUAL( parameters.GetPointDistributionFactor(), 1UL);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
     QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(2, 2, 2));
@@ -105,7 +101,6 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
                             Component("initial_triangle_edge_length", 5.0),
                             Component("min_num_boundary_triangles", 2000UL),
                             Component("moment_fitting_residual", 0.5e-5),
-                            Component("init_point_distribution_factor", 5UL),
                             Component("integration_method", IntegrationMethod::GGQ_Optimal) });
 
     std::string input_filename = parameters.Get<std::string>("input_filename");
@@ -146,9 +141,6 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
 
     double moment_fitting_residual = parameters.Get<double>("moment_fitting_residual");
     QuESo_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
-
-    IndexType init_point_distribution_factor = parameters.Get<unsigned long>("init_point_distribution_factor");
-    QuESo_CHECK_EQUAL(init_point_distribution_factor, 5UL);
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
     QuESo_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
@@ -195,9 +187,6 @@ void CheckValuesParameterCustomSetTest(const Parameters& rParameters ) {
     double moment_fitting_residual = rParameters.Get<double>("moment_fitting_residual");
     QuESo_CHECK_LT( std::abs(0.5e-5-moment_fitting_residual)/0.5e-5, 1.0e-10);
 
-    IndexType init_point_distribution_factor = rParameters.Get<unsigned long>("init_point_distribution_factor");
-    QuESo_CHECK_EQUAL(init_point_distribution_factor, 5UL);
-
     IntegrationMethod integration_method = rParameters.Get<IntegrationMethod>("integration_method");
     QuESo_CHECK_EQUAL( integration_method, IntegrationMethod::GGQ_Optimal);
 
@@ -223,7 +212,6 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     parameters.Set("initial_triangle_edge_length", 5.0);
     parameters.Set("min_num_boundary_triangles", 2000UL);
     parameters.Set("moment_fitting_residual", 0.5e-5);
-    parameters.Set("init_point_distribution_factor", 5UL);
     parameters.Set("integration_method", IntegrationMethod::GGQ_Optimal);
     parameters.Set("use_customized_trimmed_points", true);
 

@@ -10,7 +10,7 @@ namespace queso {
 
 typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
-void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const Parameters& rParameters){
+void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method){
 
     // Loop over all 3 space dimensions
     // i = 0: x
@@ -29,9 +29,9 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         if( found && !first_element->IsTrimmed() )
             door_to_door_neighbours.push_back(first_element);
 
-        if( rParameters.NumberOfElements()[i] == 1){
+        if( rNumberOfElements[i] == 1){
             if(door_to_door_neighbours.size() > 0 ){
-                    AssignNumberNeighbours(door_to_door_neighbours, i, rParameters);
+                    AssignNumberNeighbours(door_to_door_neighbours, i);
             }
             door_to_door_neighbours.clear();
         }
@@ -63,14 +63,14 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
             if( local_end ){
                 if(door_to_door_neighbours.size() > 0 ){
-                    AssignNumberNeighbours(door_to_door_neighbours, i, rParameters);
+                    AssignNumberNeighbours(door_to_door_neighbours, i);
                 }
                 door_to_door_neighbours.clear();
             }
             current_id = next_id;
         }
         if(door_to_door_neighbours.size() > 0 ){
-            AssignNumberNeighbours(door_to_door_neighbours, i, rParameters);
+            AssignNumberNeighbours(door_to_door_neighbours, i);
         }
         door_to_door_neighbours.clear();
     }
@@ -187,7 +187,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
         }
 
-        StoreIntegrationPoints( box_neighbours, current_dimensions, rParameters);
+        StoreIntegrationPoints( box_neighbours, current_dimensions, rIntegrationOrder, Method);
         // const auto element_it_begin_nei = box_neighbours.begin();
         // const int number_neighbours = box_neighbours.size();
         // for(int i = 0; i < number_neighbours; ++i){
@@ -259,7 +259,7 @@ double linear_function(int x, int number_neighbours){
 
     return value;
 }
-void QuadratureMultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction, const Parameters& rParameters){
+void QuadratureMultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
 
@@ -273,7 +273,8 @@ void QuadratureMultipleElements::AssignNumberNeighbours(ElementContainer::Elemen
 
 }
 
-void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans, const Parameters& rParameters){
+void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans,
+            const Vector3i& rIntegrationOrder, IntegrationMethodType Method){
     const auto element_it_begin = rElements.begin();
     // Find global extrem points (within box)
     PointType global_lower_point_param{1e10, 1e10, 1e10};
@@ -298,8 +299,6 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
             global_upper_point_param[2] = upper_point[2];
     }
 
-    const auto polynomial_degrees = rParameters.Order();
-
     // Loop over all elements
     for( IndexType i = 0; i < rElements.size(); ++i){
         auto element_it = *(element_it_begin + i);
@@ -315,7 +314,7 @@ void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::Elemen
             const double length_global = std::abs(global_upper_point_param[direction] - global_lower_point_param[direction]);
 
             const auto p_integration_point_list =
-                IntegrationPointFactory1D::GetGGQ(polynomial_degrees[direction], rNumberKnotspans[direction], rParameters.IntegrationMethod());
+                IntegrationPointFactory1D::GetGGQ(rIntegrationOrder[direction], rNumberKnotspans[direction], Method);
 
             for( IndexType j = 0; j < p_integration_point_list->size(); ++j){
                 double position = global_lower_point_param[direction] + distance_global* (*p_integration_point_list)[j][0];
