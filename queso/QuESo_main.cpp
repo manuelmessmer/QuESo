@@ -93,7 +93,7 @@ void QuESo::Compute(){
     const bool embedding_flag = mParameters.Get<bool>("embedding_flag");
     const bool ggq_rule_ise_used = mParameters.GGQRuleIsUsed();
     const double min_vol_element_ratio = mParameters.Get<double>("min_element_volume_ratio");
-    const IndexType num_boundary_triangles = mParameters.Get<IndexType>("min_num_boundary_triangles");
+    const IndexType num_boundary_triangles = mParameters.MinimumNumberOfTriangles();
     const double moment_fitting_residual = mParameters.Get<double>("moment_fitting_residual");
     const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
     const IntegrationMethod integration_method = mParameters.IntegrationMethod();
