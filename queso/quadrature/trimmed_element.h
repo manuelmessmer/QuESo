@@ -45,8 +45,10 @@ public:
     /// See: M. Meßmer et. al: Efficient CAD-integrated isogeometric analysis of trimmed solids,
     ///      Comput. Methods Appl. Mech. Engrg. 400 (2022) 115584, https://doi.org/10.1016/j.cma.2022.115584.
     ///@param rElement
-    ///@param rParam
-    static double AssembleIPs(Element& rElement, const Parameters& rParam);
+    ///@param rIntegrationOrder
+    ///@param Residual Targeted residual
+    ///@param EchoLevel Default: 0
+    static double AssembleIPs(Element& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel=0);
 
     ///@}
 protected:
@@ -66,33 +68,34 @@ protected:
     /// @param[out] rConstantTerms
     /// @param pIntegrationPoints (Unique<T>)
     /// @param rElement
-    /// @param rParam
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const Element& rElement, const Parameters& rParam);
+    /// @param rIntegrationOrder
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const Element& rElement, const Vector3i& rIntegrationOrder);
 
     /// @brief Computes constant terms of moment fitting equation via boundary integration points. This functions uses the divergence theorem
     //         to transform the respective volume integrals to countour/surface integrals.
     /// @param[out] rConstantTerms
     /// @param pBoundaryIPs (Unique<T>)
     /// @param rElement
-    /// @param rParam
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs, const Element& rElement, const Parameters& rParam);
+    /// @param rIntegrationOrder
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs, const Element& rElement, const Vector3i& rIntegrationOrder);
 
     /// @brief Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
     ///        Computed weights are directly assigned to rIntegrationPoint.
     /// @param rConstantTerms
     /// @param[out] rIntegrationPoint
     /// @param rElement
-    /// @param rParam
+    /// @param rIntegrationOrder
     /// @return double Relative residual ||ax -b||_L2 / ||b||_L2
-    static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Parameters& rParam);
+    static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Vector3i& rIntegrationOrder);
 
     /// @brief Start point elimination algorihtm. Final quadrature rule is stored in rElement.
     /// @param rConstantTerms
     /// @param rIntegrationPoint
     /// @param rElement
-    /// @param rParam
-    /// @return double Residual
-    static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Parameters& rParam);
+    /// @param rIntegrationOrder
+    /// @param Residual targeted residual
+    /// @return double achieved residual
+    static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Vector3i& rIntegrationOrder, double Residual);
 }; // End Class
 
 
