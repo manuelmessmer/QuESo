@@ -57,7 +57,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
     double area_test = 0.0;
 
     const double min_vol_ratio = rParameters.Get<double>("min_element_volume_ratio");
-    const IndexType min_num_triangles = rParameters.Get<double>("min_num_boundary_triangles");
+    const IndexType min_num_triangles = rParameters.Get<unsigned long>("min_num_boundary_triangles");
 
     Mapper mapper(rParameters);
     IndexType number_trimmed_elements = 0;
