@@ -9,15 +9,14 @@
 
 namespace queso {
 
-void QuadratureSingleElement::AssembleIPs(Element& rElement, const Parameters& rParam)
+void QuadratureSingleElement::AssembleIPs(Element& rElement, const Vector3i& rOrder, IntegrationMethodType Method)
 {
-    const auto method = rParam.IntegrationMethod();
     auto& integration_points = rElement.GetIntegrationPoints();
 
     PointType lower_bound_param = rElement.GetBoundsUVW().first;
     PointType upper_bound_param = rElement.GetBoundsUVW().second;
 
-    AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rParam.Order(), method);
+    AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rOrder, Method);
 }
 
 void QuadratureSingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
