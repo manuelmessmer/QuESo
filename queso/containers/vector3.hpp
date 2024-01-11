@@ -33,9 +33,6 @@ public:
 
     /// Default constructor
     Vector3() {
-        mData[0] = 0.0;
-        mData[1] = 0.0;
-        mData[2] = 0.0;
     }
 
     /// Constructor
@@ -209,7 +206,7 @@ public:
         rOStream << '(' << mData[0] << ", " << mData[1] << ", " << mData[2] << ')';
     }
 private:
-    std::array<type,3> mData;
+    std::array<type,3> mData{};
     ///@}
 }; // End Vector3 class
 ///@} // End QuESo classes
