@@ -340,7 +340,7 @@ namespace aabb_base
         nodeCount--;
     }
 
-    void Tree_base::insertParticle(unsigned int particle, std::array<double,3>& position, double radius)
+    void Tree_base::insertParticle(unsigned int particle, const std::array<double,3>& position, double radius)
     {
         // Make sure the particle doesn't already exist.
         if (particleMap.count(particle) != 0)
@@ -390,7 +390,7 @@ namespace aabb_base
         nodes[node].particle = particle;
     }
 
-    void Tree_base::insertParticle(unsigned int particle, std::array<double,3>& lowerBound, std::array<double,3>& upperBound)
+    void Tree_base::insertParticle(unsigned int particle, const std::array<double,3>& lowerBound, const std::array<double,3>& upperBound)
     {
         // Make sure the particle doesn't already exist.
         if (particleMap.count(particle) != 0)

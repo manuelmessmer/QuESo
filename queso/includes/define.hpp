@@ -69,8 +69,8 @@ enum IntersectionStatus {Inside, Outside, Trimmed};
 typedef IntersectionStatus IntersectionStatusType;
 
 // QuESo Factories
-inline BoundingBoxType MakeBox( std::array<double, 3> rL, std::array<double, 3> rR ){
-    return std::make_pair(PointType(rL), PointType(rR));
+inline BoundingBoxType MakeBox( PointType rL, PointType rR ){
+    return std::make_pair(rL, rR);
 }
 
 ///@}

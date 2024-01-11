@@ -123,7 +123,7 @@ void QuESo::Compute(){
             const auto bounding_box_xyz = mMapper.GetBoundingBoxXYZFromIndex(index);
             const auto bounding_box_uvw = mMapper.GetBoundingBoxUVWFromIndex(index);
 
-            // Construct element and check status
+            // Construct element and check status: TODO: Do not use Shared here.
             Shared<Element> new_element = MakeShared<Element>(index+1, bounding_box_xyz, bounding_box_uvw);
             bool valid_element = false;
 

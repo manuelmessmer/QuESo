@@ -16,10 +16,11 @@ namespace queso {
 
 /**
  * @class  Vector3
+ * @brief Aggregates std::array
  * @author Manuel Messmer
 */
 template<typename type>
-class Vector3 : public std::array<type,3>
+class Vector3
 {
 public:
     ///@name Type defintion
@@ -31,34 +32,38 @@ public:
     ///@{
 
     /// Default constructor
-    Vector3()
-    {}
+    Vector3() {
+    }
 
     /// Constructor
-    Vector3(type x, type y, type z)
-    {
-        this->data()[0] = x;
-        this->data()[1] = y;
-        this->data()[2] = z;
+    Vector3(type x, type y, type z) {
+        mData[0] = x;
+        mData[1] = y;
+        mData[2] = z;
     }
 
     /// Destructor
     ~Vector3() = default;
 
     /// Copy Constructor from BaseType
-    Vector3(const BaseType& rOther) : BaseType(rOther)
-    {
+    Vector3(const BaseType& rOther) {
+        mData[0] = rOther[0];
+        mData[1] = rOther[1];
+        mData[2] = rOther[2];
     }
 
     /// Copy Constructor from Vector3
-    Vector3(const Vector3& rOther) : BaseType(rOther)
-    {
+    Vector3(const Vector3& rOther) {
+        mData[0] = rOther[0];
+        mData[1] = rOther[1];
+        mData[2] = rOther[2];
     }
 
     /// Copy Assignement from Vector3
-    Vector3& operator=(const Vector3& rOther)
-    {
-        BaseType::operator=(rOther);
+    Vector3& operator=(const Vector3& rOther) {
+        mData[0] = rOther[0];
+        mData[1] = rOther[1];
+        mData[2] = rOther[2];
         return *this;
     }
 
@@ -66,111 +71,142 @@ public:
     ///@name Operations
     ///@{
 
-    type& X(){
-        return this->operator[](0);
+    /// Returns member std::array
+    const BaseType& data() const {
+        return mData;
     }
 
-    type& Y(){
-        return this->operator[](1);
-    }
-
-    type& Z(){
-        return this->operator[](2);
-    }
-
-    type X() const{
-        return this->operator[](0);
-    }
-
-    type Y() const{
-        return this->operator[](1);
-    }
-
-    type Z() const{
-        return this->operator[](2);
-    }
-
+    /// Returns member std::array
     const BaseType& Coordinates() const {
-        return *this;
+        return mData;
     }
 
+    /// Returns const_iterator to std::array
+    typename BaseType::const_iterator begin() const {
+        return mData.begin();
+    }
+
+    /// Returns const_iterator to std::array
+    typename BaseType::const_iterator end() const {
+        return mData.end();
+    }
+
+    /// Access first element
+    type& X(){
+        return mData[0];
+    }
+
+    /// Access second element
+    type& Y(){
+        return mData[1];
+    }
+
+    /// Access third element
+    type& Z(){
+        return mData[2];
+    }
+
+    /// Access first element const
+    type X() const{
+        return mData[0];
+    }
+
+    /// Access second element const
+    type Y() const{
+        return mData[1];
+    }
+
+    /// Access third element const
+    type Z() const{
+        return mData[2];
+    }
+
+    /// Access elements by index
     type& operator [] (std::size_t i){
-        return this->data()[i];
+        return mData[i];
     }
 
+    /// Access elements by index (const)
     type operator [] (std::size_t i) const{
-        return this->data()[i];
+        return mData[i];
     }
+
+    ///@}
+    ///@name Math operators
+    ///@{
 
     Vector3 operator+ (const type& rValue) const {
-        return Vector3(this->data()[0] + rValue, this->data()[1] + rValue, this->data()[2] + rValue);
+        return Vector3(mData[0] + rValue, mData[1] + rValue, mData[2] + rValue);
     }
 
     Vector3 operator+ (const Vector3& rOther) const {
-        return Vector3(this->data()[0] + rOther[0], this->data()[1] + rOther[1], this->data()[2] + rOther[2]);
+        return Vector3(mData[0] + rOther[0], mData[1] + rOther[1], mData[2] + rOther[2]);
     }
 
     Vector3 operator- (const type& rValue) const {
-        return Vector3(this->data()[0] - rValue, this->data()[1] - rValue, this->data()[2] - rValue);
+        return Vector3(mData[0] - rValue, mData[1] - rValue, mData[2] - rValue);
     }
 
     Vector3 operator- (const Vector3& rOther) const {
-        return Vector3(this->data()[0] - rOther[0], this->data()[1] - rOther[1], this->data()[2] - rOther[2]);
+        return Vector3(mData[0] - rOther[0], mData[1] - rOther[1], mData[2] - rOther[2]);
     }
 
     Vector3 operator* (const type& rValue) const {
-        return Vector3(this->data()[0] * rValue, this->data()[1] * rValue, this->data()[2] * rValue);
+        return Vector3(mData[0] * rValue, mData[1] * rValue, mData[2] * rValue);
     }
 
     Vector3 operator* (const Vector3& rOther) const {
-        return Vector3(this->data()[0] * rOther[0], this->data()[1] * rOther[1], this->data()[2] * rOther[2]);
+        return Vector3(mData[0] * rOther[0], mData[1] * rOther[1], mData[2] * rOther[2]);
     }
 
     Vector3 operator/ (const type& rValue) const {
-        return Vector3(this->data()[0] / rValue, this->data()[1] / rValue, this->data()[2] / rValue);
+        return Vector3(mData[0] / rValue, mData[1] / rValue, mData[2] / rValue);
     }
 
     Vector3 operator/ (const Vector3& rOther) const {
-        return Vector3(this->data()[0] / rOther[0], this->data()[1] / rOther[1], this->data()[2] / rOther[2]);
+        return Vector3(mData[0] / rOther[0], mData[1] / rOther[1], mData[2] / rOther[2]);
     }
 
     Vector3 operator+= (const Vector3& rOther)  {
-        this->data()[0] += rOther[0];
-        this->data()[1] += rOther[1];
-        this->data()[2] += rOther[2];
+        mData[0] += rOther[0];
+        mData[1] += rOther[1];
+        mData[2] += rOther[2];
         return *this;
     }
 
     Vector3 operator-= (const Vector3& rOther)  {
-        this->data()[0] -= rOther[0];
-        this->data()[1] -= rOther[1];
-        this->data()[2] -= rOther[2];
+        mData[0] -= rOther[0];
+        mData[1] -= rOther[1];
+        mData[2] -= rOther[2];
         return *this;
     }
 
     Vector3 operator*= (const type& rValue)  {
-        this->data()[0] *= rValue;
-        this->data()[1] *= rValue;
-        this->data()[2] *= rValue;
+        mData[0] *= rValue;
+        mData[1] *= rValue;
+        mData[2] *= rValue;
         return *this;
     }
 
     Vector3 operator/= (const type& rValue)  {
-        this->data()[0] /= rValue;
-        this->data()[1] /= rValue;
-        this->data()[2] /= rValue;
+        mData[0] /= rValue;
+        mData[1] /= rValue;
+        mData[2] /= rValue;
         return *this;
     }
 
     double Norm() const {
-        return std::sqrt( this->data()[0]*this->data()[0]
-                         +this->data()[1]*this->data()[1]
-                         +this->data()[2]*this->data()[2] );
+        return std::sqrt( mData[0]*mData[0]
+                         +mData[1]*mData[1]
+                         +mData[2]*mData[2] );
     }
 
+    ///@}
     void PrintInfo(std::ostream& rOStream) const {
-        rOStream << '(' << this->data()[0] << ", " << this->data()[1] << ", " << this->data()[2] << ')';
+        rOStream << '(' << mData[0] << ", " << mData[1] << ", " << mData[2] << ')';
     }
+private:
+    std::array<type,3> mData{};
     ///@}
 }; // End Vector3 class
 ///@} // End QuESo classes
