@@ -258,7 +258,8 @@ namespace aabb_base
             \param radius
                 The radius of the particle.
          */
-        void insertParticle(unsigned int, std::array<double,3>&, double);
+         //! Modification: array is passed as const reference.
+        void insertParticle(unsigned int, const std::array<double,3>&, double);
 
         //! Insert a particle into the tree (arbitrary shape with bounding box).
         /*! \param index
@@ -270,7 +271,8 @@ namespace aabb_base
             \param upperBound
                 The upper bound in each dimension.
          */
-        void insertParticle(unsigned int, std::array<double,3>&, std::array<double,3>&);
+        //! Modification: arrays are passed as const reference.
+        void insertParticle(unsigned int, const std::array<double,3>&, const std::array<double,3>&);
 
         /// Return the number of particles in the tree.
         unsigned int nParticles();
