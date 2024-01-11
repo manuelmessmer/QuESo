@@ -162,8 +162,8 @@ int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSe
     const Vector3i indices = mMapper.GetMatrixIndicesFromVectorIndex(index);
     const IndexType max_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
 
-    PointType lower_perturb = {0.0, 0.0, 0.0};
-    PointType upper_perturb = {0.0, 0.0, 0.0};
+    PointType lower_perturb(0.0, 0.0, 0.0);
+    PointType upper_perturb(0.0, 0.0, 0.0);
     int next_index = GetNextIndex(Direction, index, rPartition, lower_perturb, upper_perturb);
 
     // Check if out-of-range

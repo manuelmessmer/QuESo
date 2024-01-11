@@ -32,7 +32,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
             if( iteration >= max_iteration){ return false; }
             iteration++;
             // Get random direction. Must be postive! -> x>0, y>0, z>0
-            Vector3d direction = {drandon(gen), drandon(gen), drandon(gen)};
+            Vector3d direction(drandon(gen), drandon(gen), drandon(gen));
 
             // Normalize
             const double norm_direction = direction.Norm();
@@ -180,8 +180,8 @@ TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLower
                 }
                 if( switch_plane_orientation ){
                     // Perturb AABB slightly.
-                    PointType lower_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
-                    PointType upper_perturbation = {drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
+                    PointType lower_perturbation(drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance);
+                    PointType upper_perturbation(drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance);
 
                     lower_bound -= lower_perturbation;
                     upper_bound += upper_perturbation;
