@@ -16,6 +16,7 @@ namespace queso {
 
 /**
  * @class  Vector3
+ * @brief Aggregates std::array
  * @author Manuel Messmer
 */
 template<typename type>
@@ -31,16 +32,14 @@ public:
     ///@{
 
     /// Default constructor
-    Vector3()
-    {
+    Vector3() {
         mData[0] = 0.0;
         mData[1] = 0.0;
         mData[2] = 0.0;
     }
 
     /// Constructor
-    Vector3(type x, type y, type z)
-    {
+    Vector3(type x, type y, type z) {
         mData[0] = x;
         mData[1] = y;
         mData[2] = z;
@@ -50,46 +49,24 @@ public:
     ~Vector3() = default;
 
     /// Copy Constructor from BaseType
-    Vector3(const BaseType& rOther)
-    {
+    Vector3(const BaseType& rOther) {
         mData[0] = rOther[0];
         mData[1] = rOther[1];
         mData[2] = rOther[2];
     }
 
     /// Copy Constructor from Vector3
-    Vector3(const Vector3& rOther)
-    {
+    Vector3(const Vector3& rOther) {
         mData[0] = rOther[0];
         mData[1] = rOther[1];
         mData[2] = rOther[2];
     }
 
-    /// Copy Assignement from BaseType
-    Vector3& operator=(BaseType& rOther)
-    {
-        mData.swap(rOther);
-        return *this;
-    }
-
-    /// Copy Assignement from BaseType
-    Vector3& operator=(BaseType rOther)
-    {
-        mData.swap(rOther);
-        return *this;
-    }
-
     /// Copy Assignement from Vector3
-    Vector3& operator=(Vector3& rOther)
-    {
-        mData.swap(rOther.mData);
-        return *this;
-    }
-
-    /// Copy Assignement from Vector3
-    Vector3& operator=(Vector3 rOther)
-    {
-        mData.swap(rOther.mData);
+    Vector3& operator=(const Vector3& rOther) {
+        mData[0] = rOther[0];
+        mData[1] = rOther[1];
+        mData[2] = rOther[2];
         return *this;
     }
 
@@ -97,58 +74,69 @@ public:
     ///@name Operations
     ///@{
 
+    /// Returns member std::array
     const BaseType& data() const {
         return mData;
     }
 
-    BaseType data() {
+    /// Returns member std::array
+    const BaseType& Coordinates() const {
         return mData;
     }
 
+    /// Returns const_iterator to std::array
     typename BaseType::const_iterator begin() const {
         return mData.begin();
     }
 
+    /// Returns const_iterator to std::array
     typename BaseType::const_iterator end() const {
         return mData.end();
     }
 
-
+    /// Access first element
     type& X(){
-        return mData(0);
+        return mData[0];
     }
 
+    /// Access second element
     type& Y(){
-        return mData(1);
+        return mData[1];
     }
 
+    /// Access third element
     type& Z(){
-        return mData(2);
+        return mData[2];
     }
 
+    /// Access first element const
     type X() const{
-        return mData(0);
+        return mData[0];
     }
 
+    /// Access second element const
     type Y() const{
-        return mData(1);
+        return mData[1];
     }
 
+    /// Access third element const
     type Z() const{
-        return mData(2);
+        return mData[2];
     }
 
-    const BaseType& Coordinates() const {
-        return *this;
-    }
-
+    /// Access elements by index
     type& operator [] (std::size_t i){
         return mData[i];
     }
 
+    /// Access elements by index (const)
     type operator [] (std::size_t i) const{
         return mData[i];
     }
+
+    ///@}
+    ///@name Math operators
+    ///@{
 
     Vector3 operator+ (const type& rValue) const {
         return Vector3(mData[0] + rValue, mData[1] + rValue, mData[2] + rValue);
@@ -216,6 +204,7 @@ public:
                          +mData[2]*mData[2] );
     }
 
+    ///@}
     void PrintInfo(std::ostream& rOStream) const {
         rOStream << '(' << mData[0] << ", " << mData[1] << ", " << mData[2] << ')';
     }
