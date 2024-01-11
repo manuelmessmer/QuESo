@@ -22,6 +22,7 @@ namespace queso {
  * @author Manuel Messmer
  * @brief  Stores elements in vector and provides fast access via Id map.
  * @note Only active elements/knot spans are stored.
+ * @todo Refactor. Store elements as unique_ptr
 */
 class ElementContainer {
 
