@@ -27,3 +27,6 @@ class Analysis():
 
     def GetModelPart(self):
         return self.model.GetModelPart("NurbsMesh")
+
+    def GetEmbeddedModelPart(self):
+        return self.model.GetModelPart("EmbeddedModelPart")

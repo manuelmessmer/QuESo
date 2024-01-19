@@ -72,7 +72,7 @@ class ModelPartUtilities:
         import QuESo_PythonApplication as QuESoApp
         from QuESo_PythonApplication.PyQuESo import PyQuESo
 
-        pyqueso = PyQuESo("QUESOParameters.json")
+        pyqueso = PyQuESo("QUESOParameters_tmp.json")
         nodes = QuESoApp.PointVector()
         for node in KratosNurbsVolumeModelPart.Nodes:
             nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )

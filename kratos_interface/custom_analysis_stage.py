@@ -54,6 +54,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         embedded_model_part = self.model.CreateModelPart('EmbeddedModelPart')
         embedded_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+        embedded_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         embedded_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
         ModelPartUtilities.ReadModelPartFromTriangleMesh(embedded_model_part, self.triangle_mesh)
         # Convert the geometry model or import analysis suitable models.
