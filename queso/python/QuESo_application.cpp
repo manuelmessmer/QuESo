@@ -204,6 +204,23 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("GetNumberBoundaryTriangles", [](const Element& rElement ){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
         })
+        .def("GetBoundaryIntegrationPoints", [](const Element& rElement, IndexType method ){
+            if(rElement.IsTrimmed()){
+                return rElement.pGetTrimmedDomain()->pGetBoundaryIps(method);
+            } else {
+                // Pointer to boundary integration points
+                auto p_boundary_ips = MakeUnique<BoundaryIpVectorType>();
+                auto p_triangle_mesh = MeshUtilities::pGetCuboid(rElement.GetBoundsXYZ().first, rElement.GetBoundsXYZ().second);
+
+                p_boundary_ips->reserve(p_triangle_mesh->NumOfTriangles()*6UL);
+                for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ){
+                    auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
+                    p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+                }
+                return p_boundary_ips;
+            }
+
+        })
         .def("ID", &Element::GetId)
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
