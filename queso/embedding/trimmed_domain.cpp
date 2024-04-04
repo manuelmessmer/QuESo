@@ -84,9 +84,9 @@ BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
     // Pointer to boundary integration points
     auto p_boundary_ips = MakeUnique<BoundaryIPVectorType>();
 
-    p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*6UL);
+    p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*12UL);
     for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
-        IndexType method = 3; // Creates 6 points per triangle.
+        IndexType method = 3; // Creates 12 points per triangle.
         auto p_new_points = mpTriangleMesh->pGetIPsGlobal(triangle_id, method);
         p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
