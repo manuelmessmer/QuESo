@@ -1,6 +1,6 @@
 # QuESo - Quadrature for Embedded Solids
 
-[![License: MIT](https://img.shields.io/badge/License-BSD4-green.svg)](https://github.com/manuelmessmer/QuESo/blob/main/LICENSE) [![C++][c++-image]][c++standard] [![Build Status](https://github.com/manuelmessmer/QuESo/actions/workflows/ci.yml/badge.svg?https://github.com/manuelmessmer/QuESo/actions)](https://github.com/manuelmessmer/QuESo/actions)
+[![License: BSD4](https://img.shields.io/badge/License-BSD4-green.svg)](https://github.com/manuelmessmer/QuESo/blob/main/LICENSE) [![C++][c++-image]][c++standard] [![Build Status](https://github.com/manuelmessmer/QuESo/actions/workflows/ci.yml/badge.svg?https://github.com/manuelmessmer/QuESo/actions)](https://github.com/manuelmessmer/QuESo/actions)
 
 [c++-image]: https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B
 [c++standard]: https://isocpp.org/std/the-standard
