@@ -69,7 +69,7 @@ class PyQuESo:
         return [self.parameters.LowerBoundUVW(), self.parameters.UpperBoundUVW()]
 
     def GetBSplineVolume(self):
-        return self.b_spline_volume
+        return BSplineVolume(self.parameters)
 
     def GetIntegrationPoints(self):
         integration_points = QuESo_Application.IntegrationPointVector()
