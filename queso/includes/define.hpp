@@ -95,6 +95,50 @@ auto MakeUnique(Args&&... args) -> decltype(std::make_unique<T>(std::forward<Arg
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
+///@}
+///@name QuESo ITERATOR DEFINITIONS
+///@{
+
+// DereferenceIterator
+template <class BaseIterator> class DereferenceIterator : public BaseIterator {
+public:
+    using value_type = typename BaseIterator::value_type::element_type;
+    using pointer = value_type *;
+    using reference = value_type &;
+
+    DereferenceIterator(const BaseIterator &other) : BaseIterator(other) {}
+
+    reference operator*() const { return *(this->BaseIterator::operator*()); }
+    pointer operator->() const { return this->BaseIterator::operator*().get(); }
+    reference operator[](size_t n) const {
+        return *(this->BaseIterator::operator[](n));
+    }
+};
+
+template <typename Iterator> DereferenceIterator<Iterator> dereference_iterator(Iterator t) {
+    return DereferenceIterator<Iterator>(t);
+}
+
+// RawPointerIterator
+template <class BaseIterator> class RawPointerIterator : public BaseIterator {
+public:
+    using value_type = typename BaseIterator::value_type::element_type;
+    using pointer = value_type *;
+    using reference = value_type &;
+
+    RawPointerIterator(const BaseIterator &other) : BaseIterator(other) {}
+
+    pointer operator*() const { return (this->BaseIterator::operator*()).get(); }
+    pointer operator->() const { return this->BaseIterator::operator*().get(); }
+    pointer operator[](size_t n) const {
+        return (this->BaseIterator::operator[](n)).get();
+    }
+};
+
+template <typename Iterator> RawPointerIterator<Iterator> raw_pointer_iterator(Iterator t) {
+    return RawPointerIterator<Iterator>(t);
+}
+
 namespace Ptr {
     /// @brief Swap function ptrs.
     /// @tparam T Type
