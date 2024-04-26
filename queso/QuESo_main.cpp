@@ -50,7 +50,7 @@ void QuESo::Run()
     // Count number of trimmed elements
     SizeType number_of_trimmed_elements = 0;
     std::for_each(mpElementContainer->begin(), mpElementContainer->end(), [&number_of_trimmed_elements] (auto& el_it)
-        { if( el_it->IsTrimmed() ) { number_of_trimmed_elements++; } });
+        { if( el_it.IsTrimmed() ) { number_of_trimmed_elements++; } });
 
     if( mParameters.EchoLevel() > 0) {
         // Write vtk files (binary = true)
@@ -123,8 +123,8 @@ void QuESo::Compute(){
             const auto bounding_box_xyz = mMapper.GetBoundingBoxXYZFromIndex(index);
             const auto bounding_box_uvw = mMapper.GetBoundingBoxUVWFromIndex(index);
 
-            // Construct element and check status: TODO: Do not use Shared here.
-            Shared<Element> new_element = MakeShared<Element>(index+1, bounding_box_xyz, bounding_box_uvw);
+            // Construct element and check status:
+            Unique<Element> new_element = MakeUnique<Element>(index+1, bounding_box_xyz, bounding_box_uvw);
             bool valid_element = false;
 
             // Distinguish between trimmed and non-trimmed elements.

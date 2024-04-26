@@ -82,8 +82,8 @@ public:
 
     /// @brief Get all active elements.
     /// @return const Reference to ElementVectorPtrType
-    const ElementContainer::ElementVectorPtrType& GetElements() const {
-        return mpElementContainer->GetElements();
+    const ElementContainer& GetElements() const {
+        return *mpElementContainer;
     }
 
     /// @brief Get all conditions.
