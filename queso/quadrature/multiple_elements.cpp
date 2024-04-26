@@ -22,10 +22,10 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         bool found = false;
         IndexType current_id = 1;
         IndexType next_id = 0;
-        ElementContainer::ElementVectorPtrType door_to_door_neighbours;
+        std::vector<Element*> door_to_door_neighbours;
         door_to_door_neighbours.reserve(20);
         // Check if element with index=1 is part of rElements.
-        auto first_element = rElements.pGetElement(1, found);
+        const auto first_element = rElements.pGetElement(1, found);
         if( found && !first_element->IsTrimmed() )
             door_to_door_neighbours.push_back(first_element);
 
@@ -38,7 +38,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         std::size_t active_element_counter = 1;
         // Loop until all elements in rElements have beend visited/found
         while( active_element_counter < rElements.size() ){
-            ElementContainer::ElementPtrType neighbour;
+            Element* neighbour = nullptr;
 
             if(i == 0)
                 neighbour = rElements.pGetNextElementInX(current_id, next_id, found, local_end);
@@ -99,14 +99,15 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         (*element_it)->SetVisited(false);
     }
 
-    ElementContainer::ElementVectorPtrType box_neighbours{};
+    std::vector<Element*> box_neighbours{};
     box_neighbours.reserve(10000);
-    ElementContainer::ElementVectorPtrType::iterator max_element_it{};
-    ElementContainer::ElementPtrType neighbour{};
+    std::vector<Element*>::iterator max_element_it{};
+    Element* neighbour = nullptr;
 
     // Construct vector of sorted,unvisiteed elements.
-    ElementContainer::ElementVectorPtrType sorted_univisited_elements{};
-    sorted_univisited_elements.insert(sorted_univisited_elements.begin(), rElements.begin(), rElements.end());
+    std::vector<Element*> sorted_univisited_elements{};
+    sorted_univisited_elements.insert(sorted_univisited_elements.begin(), rElements.begin_to_ptr(), rElements.end_to_ptr());
+
     // Erase all trimmed elements.
     sorted_univisited_elements.erase(std::remove_if(sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](const auto& rValue) {
         return rValue->IsTrimmed(); }), sorted_univisited_elements.end());
@@ -133,7 +134,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
         while( max_neighbour_coefficient > ZEROTOL && !stop ){
             std::array<double,6> neighbour_coeff = {0, 0, 0 ,0 ,0 ,0};
-            std::array<ElementContainer::ElementVectorPtrType,6> tmp_neighbours{};
+            std::array<std::vector<Element*>,6> tmp_neighbours{};
 
             // Check all four nighbours
             const auto element_it_begin = box_neighbours.begin();
@@ -226,7 +227,7 @@ bool QuadratureMultipleElements::AllElementsVisited(ElementContainer& rElements)
     return true;
 }
 
-ElementContainer::ElementPtrType QuadratureMultipleElements::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
+Element* QuadratureMultipleElements::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
     bool dummy_local_end;
     std::size_t dummy_next_id;
 
@@ -259,7 +260,8 @@ double linear_function(int x, int number_neighbours){
 
     return value;
 }
-void QuadratureMultipleElements::AssignNumberNeighbours(ElementContainer::ElementVectorPtrType& rElements, IndexType direction){
+
+void QuadratureMultipleElements::AssignNumberNeighbours(std::vector<Element*>& rElements, IndexType direction){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
 
@@ -273,7 +275,7 @@ void QuadratureMultipleElements::AssignNumberNeighbours(ElementContainer::Elemen
 
 }
 
-void QuadratureMultipleElements::StoreIntegrationPoints(ElementContainer::ElementVectorPtrType& rElements, std::array<int,3>& rNumberKnotspans,
+void QuadratureMultipleElements::StoreIntegrationPoints(std::vector<Element*>& rElements, std::array<int,3>& rNumberKnotspans,
             const Vector3i& rIntegrationOrder, IntegrationMethodType Method){
     const auto element_it_begin = rElements.begin();
     // Find global extrem points (within box)
