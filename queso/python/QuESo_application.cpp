@@ -24,7 +24,7 @@
 typedef std::vector<queso::PointType> PointVectorType;
 typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 typedef std::vector<queso::IntegrationPoint> IntegrationPointVectorType;
-typedef std::vector<queso::Shared<queso::Element>> ElementVectorPtrType;
+typedef std::vector<queso::Unique<queso::Element>> ElementVectorPtrType;
 typedef std::vector<queso::Condition> ConditionVectorType;
 typedef std::vector<queso::ConditionParameters> ConditionParametersVectorType;
 typedef std::vector<queso::BoundaryIntegrationPoint> BoundaryIpVectorType;
@@ -103,7 +103,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         ;
 
     /// Export PointType
-    py::class_<PointType, std::shared_ptr<PointType>>(m,"Point")
+    py::class_<PointType, Unique<PointType>>(m,"Point")
         .def(py::init<std::array<double,3>>())
         .def(py::init<double, double, double>())
         .def("GetX", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
@@ -113,7 +113,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         ;
 
     /// Export PointType
-    py::class_<Vector3i, std::shared_ptr<Vector3i>>(m,"Vector3i")
+    py::class_<Vector3i, Unique<Vector3i>>(m,"Vector3i")
         .def(py::init<std::array<IndexType,3>>())
         .def(py::init<IndexType, IndexType, IndexType>())
         .def("GetX", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::X)) // Return const version of X()
@@ -123,35 +123,35 @@ PYBIND11_MODULE(QuESo_Application,m) {
         ;
 
     /// Export PointVector
-    py::bind_vector<PointVectorType,Unique<PointVectorType>>
+    py::bind_vector<PointVectorType, Unique<PointVectorType>>
         (m, "PointVector")
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
-    py::bind_vector<IntegrationPoint1DVectorType,Unique<IntegrationPoint1DVectorType>>
+    py::bind_vector<IntegrationPoint1DVectorType, Unique<IntegrationPoint1DVectorType>>
         (m, "IntegrationPoint1DVector")
     ;
 
     /// Export Integration Points
-    py::class_<IntegrationPoint, std::shared_ptr<IntegrationPoint>, PointType>(m, "IntegrationPoint")
+    py::class_<IntegrationPoint, Unique<IntegrationPoint>, PointType>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
         .def("GetWeight", &IntegrationPoint::GetWeight)
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 
     /// Export IntegrationPoint Vector
-    py::bind_vector<IntegrationPointVectorType,std::shared_ptr<IntegrationPointVectorType>>
+    py::bind_vector<IntegrationPointVectorType, Unique<IntegrationPointVectorType>>
         (m, "IntegrationPointVector")
     ;
 
     /// Export BoundaryIntegrationPoint
-    py::class_<BoundaryIntegrationPoint, std::shared_ptr<BoundaryIntegrationPoint>, IntegrationPoint>(m, "BoundaryIntegrationPoint")
+    py::class_<BoundaryIntegrationPoint, Unique<BoundaryIntegrationPoint>, IntegrationPoint>(m, "BoundaryIntegrationPoint")
         .def(py::init<double, double, double, double, const std::array<double,3>& >())
         .def("Normal", &BoundaryIntegrationPoint::Normal )
     ;
 
     /// Export BoundaryIntegrationPoint Vector
-    py::bind_vector<BoundaryIpVectorType,Unique<BoundaryIpVectorType>>
+    py::bind_vector<BoundaryIpVectorType, Unique<BoundaryIpVectorType>>
         (m, "BoundaryIPVector")
     ;
 
@@ -187,14 +187,14 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export MeshUtilities
-    py::class_<MeshUtilities, Unique<MeshUtilities>>(m,"MeshUtilities")
+    py::class_<MeshUtilities>(m,"MeshUtilities")
         .def_static("Append", [](TriangleMesh& rMesh, const TriangleMesh& rNewMesh){
             return MeshUtilities::Append(rMesh, rNewMesh);
         })
     ;
 
     /// Export Element
-    py::class_<Element, std::shared_ptr<Element>>(m,"Element")
+    py::class_<Element, Unique<Element>>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (Element::*)() const>(&Element::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
         .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first.Coordinates(); })
@@ -208,24 +208,24 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("IsTrimmed", &Element::IsTrimmed)
     ;
 
-    /// Export Element Vector
-    py::class_<ElementVectorPtrType>(m, "ElementVector")
-        .def(py::init<>())
-        .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
-        .def("__iter__", [](ElementVectorPtrType &v) {
+    /// Export Element Container
+    py::class_<ElementContainer, Unique<ElementContainer>>(m, "ElementContainer")
+        .def(py::init<const Parameters&>())
+        .def("__len__", [](const ElementContainer &v) { return v.size(); })
+        .def("__iter__", [](ElementContainer &v) {
             return py::make_iterator( v.begin(), v.end() );
         }, py::keep_alive<0, 1>())
     ;
 
     /// Export Condition
-    py::class_<Condition, std::shared_ptr<Condition>>(m,"Condition")
+    py::class_<Condition, Unique<Condition>>(m,"Condition")
         .def("IsWeakCondition", [](const Condition& rCondition)->bool { return true; } )
         .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
         .def("GetSettings", &Condition::GetSettings)
     ;
 
     /// Export Condition Vector
-    py::class_<ConditionVectorType>(m, "ConditionVector")
+    py::class_<ConditionVectorType, Unique<ConditionVectorType>>(m, "ConditionVector")
         .def(py::init<>())
         .def("__len__", [](const ConditionVectorType &v) { return v.size(); })
         .def("__iter__", [](ConditionVectorType &v) {
@@ -245,12 +245,12 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export IntegrationPointFactory1D (mainly for Testing in py)
-    py::class_<IntegrationPointFactory1D, std::shared_ptr<IntegrationPointFactory1D>>(m,"IntegrationPointFactory1D")
+    py::class_<IntegrationPointFactory1D>(m,"IntegrationPointFactory1D")
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
 
     /// Export VariantDataContainer
-    py::class_<VariantDataContainer,std::shared_ptr<VariantDataContainer>>(m,"VariantDataContainer")
+    py::class_<VariantDataContainer>(m,"VariantDataContainer")
         .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const PointType& rValue){
             rContainer.Set(rName, rValue); })
         .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::array<double,3>& rValue){
@@ -288,12 +288,12 @@ PYBIND11_MODULE(QuESo_Application,m) {
         ;
 
     /// Export GlobalParameters
-    py::class_<GlobalParameters,std::shared_ptr<GlobalParameters>, VariantDataContainer>(m,"GlobalParameters")
+    py::class_<GlobalParameters, VariantDataContainer>(m,"GlobalParameters")
         .def(py::init<>())
         ;
 
     /// Export ConditionParameters
-    py::class_<ConditionParameters,std::shared_ptr<ConditionParameters>, VariantDataContainer>(m,"ConditionParameters")
+    py::class_<ConditionParameters, VariantDataContainer>(m,"ConditionParameters")
         .def(py::init<std::string>())
         ;
 
@@ -307,7 +307,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export Parameters
-    py::class_<Parameters,std::shared_ptr<Parameters>>(m,"Parameters")
+    py::class_<Parameters>(m,"Parameters")
         .def(py::init<>())
         .def("AddGlobalSettings", &Parameters::AddGlobalSettings)
         .def("AddConditionSettings", &Parameters::AddConditionSettings)
@@ -327,7 +327,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         ;
 
     /// Export QuESo
-    py::class_<QuESo,std::shared_ptr<QuESo>>(m,"QuESo")
+    py::class_<QuESo>(m,"QuESo")
         .def(py::init<const Parameters&>())
         .def("Run", &QuESo::Run)
         .def("Clear", &QuESo::Clear)

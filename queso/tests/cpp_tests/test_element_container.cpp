@@ -19,19 +19,19 @@ BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 Unique<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
 
     Parameters param( {Component("number_of_elements", rNumberOfElemnts) } );
-    ElementContainer container(param);
+    Unique<ElementContainer> container = MakeUnique<ElementContainer>(param);
 
     IndexType number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
     for( IndexType i = 1; i <= number_elements; ++i){
         PointType tmp_point_A = {0.0, 0.0, 0.0};
         PointType tmp_point_B = {0.1, 0.1, 0.1};
-        std::shared_ptr<Element> tmp_element = std::make_shared<Element>(i, MakeBox(tmp_point_A, tmp_point_B),
+        Unique<Element> tmp_element = MakeUnique<Element>(i, MakeBox(tmp_point_A, tmp_point_B),
                                                                             MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
         if( i != 10)
-            container.AddElement(tmp_element);
+            container->AddElement(tmp_element);
     }
 
-    return MakeUnique<ElementContainer>(std::move(container));
+    return container;
 }
 
 BOOST_AUTO_TEST_CASE(TestElementContainerX) {
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerX) {
             IndexType reverse_id;
             bool dummy_found;
             bool dummy_local_end;
-            auto test_reverse_neighbour = container->pGetPreviousElementInX(next_id, reverse_id, dummy_found, dummy_local_end);
+            container->pGetPreviousElementInX(next_id, reverse_id, dummy_found, dummy_local_end);
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerY) {
             IndexType reverse_id;
             bool dummy_found;
             bool dummy_local_end;
-            auto test_reverse_neighbour = container->pGetPreviousElementInY(next_id, reverse_id, dummy_found, dummy_local_end);
+            container->pGetPreviousElementInY(next_id, reverse_id, dummy_found, dummy_local_end);
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
             IndexType reverse_id;
             bool dummy_found;
             bool dummy_local_end;
-            auto test_reverse_neighbour = container->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, dummy_local_end);
+            container->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, dummy_local_end);
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }

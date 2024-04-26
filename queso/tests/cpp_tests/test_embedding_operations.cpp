@@ -38,10 +38,10 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 
     QuESo_CHECK_EQUAL(elements.size(), 1);
 
-    const auto& points_reduced = (*elements.begin())->GetIntegrationPoints();
+    const auto& points_reduced = elements.begin()->GetIntegrationPoints();
     QuESo_CHECK_LT(points_reduced.size(), 28);
 
-    const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
+    const auto& r_triangle_mesh = elements.begin()->pGetTrimmedDomain()->GetTriangleMesh();
     const IndexType num_triangles = r_triangle_mesh.NumOfTriangles();
 
     QuESo_CHECK_GT(num_triangles, parameters.MinimumNumberOfTriangles());
@@ -96,7 +96,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
     for( IndexType i = 0; i < elements.size(); ++i){
-        auto el_it = *(el_it_begin+i);
+        const auto& el_it = *(el_it_begin+i);
         const double det_j = el_it->DetJ();
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPoints();
@@ -123,7 +123,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
-    const BoundingBoxType el_bounding_box = (*el_it_begin)->GetBoundsXYZ();
+    const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
     const PointType el_delta = el_bounding_box.second - el_bounding_box.first;
     const double ref_volume_inside = (el_delta[0]*el_delta[1]*el_delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
@@ -273,7 +273,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
     for( IndexType i = 0; i < elements.size(); ++i){
-        auto el_it = *(el_it_begin+i);
+        const auto& el_it = *(el_it_begin+i);
         const double det_j = el_it->DetJ();
         if( el_it->IsTrimmed() ){
             const auto& points_trimmed = el_it->GetIntegrationPoints();
@@ -300,7 +300,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
-    const BoundingBoxType el_bounding_box = (*el_it_begin)->GetBoundsXYZ();
+    const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
     const PointType delta = el_bounding_box.second - el_bounding_box.first;
     const double ref_volume_inside = (delta[0]*delta[1]*delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);

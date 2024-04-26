@@ -230,7 +230,7 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
 
     const auto begin_el_itr = rElementContainer.begin();
     for( IndexType i = 0; i < rElementContainer.size(); ++i){
-        auto el_itr = *(begin_el_itr + i);
+        const auto& el_itr = *(begin_el_itr + i);
         const auto& lower_point = el_itr->GetBoundsXYZ().first;
         const auto& upper_point = el_itr->GetBoundsXYZ().second;
 
@@ -334,7 +334,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
 
     QuESo_ERROR_IF( std::string(type) != "All") << "Only integration points option 'All' is available. \n";
 
-    auto p_points = rElementContainer.pGetPoints(type);
+    const auto& p_points = rElementContainer.pGetPoints(type);
     const IndexType num_points = p_points->size();
     const IndexType num_elements = p_points->size();
 
@@ -357,7 +357,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
 
     const auto el_it_ptr_begin = rElementContainer.begin();
     for( IndexType i = 0; i < rElementContainer.size(); ++i){
-        const auto el_ptr = *(el_it_ptr_begin + i);
+        const auto& el_ptr = (*(el_it_ptr_begin + i));
         const auto& r_points = el_ptr->GetIntegrationPoints();
         for( const auto& r_point : r_points ){
             auto point_global = el_ptr->PointFromParamToGlobal(r_point);
@@ -406,7 +406,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
     file << "SCALARS Weights double 1" << std::endl;
     file << "LOOKUP_TABLE default" << std::endl;
     for( IndexType i = 0; i < rElementContainer.size(); ++i){
-        const auto el_ptr = *(el_it_ptr_begin + i);
+        const auto& el_ptr = (*(el_it_ptr_begin + i));
         const auto& points = el_ptr->GetIntegrationPoints();
         for( const auto& point : points ){
             if( Binary ){
