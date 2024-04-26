@@ -29,7 +29,7 @@ class ElementContainer {
 public:
     ///@name Type Defintitions
     ///@{
-    typedef std::shared_ptr<Element> ElementPtrType;
+    typedef Unique<Element> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
     typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
@@ -45,6 +45,9 @@ public:
         mLastElementId = 0;
     }
 
+    // Delete copy constructor
+    ElementContainer(ElementContainer const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -53,44 +56,61 @@ public:
         return *pGetElement(id);
     }
 
-    const ElementPtrType pGetElement(std::size_t id) const {
+    const Element* pGetElement(std::size_t id) const {
         auto found_key = mElementIdMap.find(id);
         if( found_key == mElementIdMap.end() )
             QuESo_ERROR << "ID does not exist.\n";
-        return mElements[found_key->second];
+        return mElements[found_key->second].get();
     }
 
-    const ElementPtrType pGetElement(std::size_t id, bool& found) const{
+    Element* pGetElement(std::size_t id, bool& found){
         auto found_key = mElementIdMap.find(id);
         found = false;
         if( found_key != mElementIdMap.end() ){
             found = true;
-            return mElements[found_key->second];
+            return mElements[found_key->second].get();
         }
         return nullptr;
     }
 
-    ElementVectorPtrType::iterator begin(){
-        return mElements.begin();
+    DereferenceIterator<std::vector<std::unique_ptr<Element>>::iterator> begin() {
+        return dereference_iterator(mElements.begin());
     }
 
-    ElementVectorPtrType::const_iterator begin() const {
-        return mElements.begin();
+
+    DereferenceIterator<std::vector<std::unique_ptr<Element>>::const_iterator> begin() const {
+        return dereference_iterator(mElements.begin());
     }
 
-    ElementVectorPtrType::iterator end(){
-        return mElements.end();
+    DereferenceIterator<std::vector<std::unique_ptr<Element>>::iterator> end() {
+        return dereference_iterator(mElements.end());
     }
 
-    ElementVectorPtrType::const_iterator end() const {
-        return mElements.end();
+    DereferenceIterator<std::vector<std::unique_ptr<Element>>::const_iterator> end() const {
+        return dereference_iterator(mElements.end());
+    }
+
+    RawPointerIterator<std::vector<std::unique_ptr<Element>>::iterator> begin_to_ptr() {
+        return raw_pointer_iterator(mElements.begin());
+    }
+
+    RawPointerIterator<std::vector<std::unique_ptr<Element>>::const_iterator> begin_to_ptr() const {
+        return raw_pointer_iterator(mElements.begin());
+    }
+
+    RawPointerIterator<std::vector<std::unique_ptr<Element>>::iterator> end_to_ptr() {
+        return raw_pointer_iterator(mElements.end());
+    }
+
+    RawPointerIterator<std::vector<std::unique_ptr<Element>>::const_iterator> end_to_ptr() const {
+        return raw_pointer_iterator(mElements.end());
     }
 
     const ElementVectorPtrType& GetElements() const{
         return mElements;
     }
 
-    void AddElement(const ElementPtrType& rElement){
+    void AddElement(ElementPtrType& rElement){
         const int current_id = rElement->GetId();
         auto found_key = mElementIdMap.find(current_id);
         if( found_key == mElementIdMap.end() ){
@@ -115,7 +135,7 @@ public:
         mElementIdMap.reserve(new_capacity);
     }
 
-    ElementPtrType pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    Element* pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
         next_id = id + 1;
         int next_index = id + 1;
@@ -130,7 +150,7 @@ public:
         return found_element;
     }
 
-    ElementPtrType pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    Element* pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
@@ -150,7 +170,7 @@ public:
         return found_element;
     }
 
-    ElementPtrType pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    Element* pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
 
         int next_index = GetNextIndexZ(id, local_end);
@@ -168,7 +188,7 @@ public:
         return found_element;
     }
 
-    ElementPtrType pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    Element* pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
         next_id = id - 1;
         int next_index = id - 1;
@@ -185,7 +205,7 @@ public:
         return found_element;
     }
 
-    ElementPtrType pGetPreviousElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    Element* pGetPreviousElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
@@ -205,7 +225,7 @@ public:
         return found_element;
     }
 
-    ElementPtrType pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    Element* pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
         local_end = false;
 
         int next_index = GetPreviousIndexZ(id, local_end);
@@ -250,18 +270,18 @@ public:
         IntegrationPointVectorPtrType points = MakeUnique<IntegrationPointVectorType>();
         const auto begin_el_itr_ptr = this->begin();
         for( IndexType i = 0; i < this->size(); ++i){
-            auto el_itr = *(begin_el_itr_ptr + i);
+            const auto& el_ptr = *(begin_el_itr_ptr + i);
             IntegrationPointVectorType points_tmp;
             if( std::strcmp(type,"Trimmed") == 0 ){
-                if( el_itr->IsTrimmed() )
-                    points_tmp = el_itr->GetIntegrationPoints();
+                if( el_ptr->IsTrimmed() )
+                    points_tmp = el_ptr->GetIntegrationPoints();
             }
             else if( std::strcmp(type,"Inside") == 0 ){
-                if( !el_itr->IsTrimmed() )
-                    points_tmp = el_itr->GetIntegrationPoints();
+                if( !el_ptr->IsTrimmed() )
+                    points_tmp = el_ptr->GetIntegrationPoints();
             }
             else if( std::strcmp(type,"All") == 0 ){
-                points_tmp = el_itr->GetIntegrationPoints();
+                points_tmp = el_ptr->GetIntegrationPoints();
             }
             else {
                 QuESo_ERROR << "Given type '" << type << "' not available.\n";
@@ -276,7 +296,7 @@ public:
         const auto el_it_ptr_begin = this->begin();
         #pragma omp parallel for reduction(+ : volume)
         for( int i = 0; i < static_cast<int>(this->size()); ++i ){
-            const auto el_ptr = *(el_it_ptr_begin + i);
+            const auto& el_ptr = (*(el_it_ptr_begin + i));
             const double det_j = el_ptr->DetJ();
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
@@ -293,7 +313,7 @@ private:
         return i + 1;
     }
 
-    IndexType GetNextIndexY(IndexType i, bool& local_end){
+    IndexType GetNextIndexY(IndexType i, bool& local_end) const {
         auto indices = GetMatrixIndicesFromVectorIndex(i-1);
         if( indices[1] < mNumberOfElements[1]-1) {
             indices[1] += 1;
@@ -313,7 +333,7 @@ private:
         return new_index+1;
     }
 
-    IndexType GetNextIndexZ(IndexType i, bool& local_end){
+    IndexType GetNextIndexZ(IndexType i, bool& local_end) const {
         auto indices = GetMatrixIndicesFromVectorIndex(i-1);
         if( indices[2] < mNumberOfElements[2]-1) {
             indices[2] += 1;
@@ -337,7 +357,7 @@ private:
         return i - 1;
     }
 
-    IndexType GetPreviousIndexY(IndexType i, bool& local_end){
+    IndexType GetPreviousIndexY(IndexType i, bool& local_end) const {
         auto indices = GetMatrixIndicesFromVectorIndex(i-1);
         if( indices[1] > 0) {
             indices[1] -= 1;
@@ -357,7 +377,7 @@ private:
         return new_index+1;
     }
 
-    IndexType GetPreviousIndexZ(IndexType i, bool& local_end){
+    IndexType GetPreviousIndexZ(IndexType i, bool& local_end) const {
         auto indices = GetMatrixIndicesFromVectorIndex(i-1);
         if( indices[2] > 0 ){
             indices[2] -= 1;
@@ -378,7 +398,7 @@ private:
     }
 
     inline std::array<IndexType,3> GetMatrixIndicesFromVectorIndex(
-        const IndexType Index) noexcept
+        const IndexType Index) const noexcept
     {
         std::array<IndexType,3> result;
         const IndexType index_in_row_column_plane = Index % (mNumberOfElements[0]*mNumberOfElements[1]);
@@ -390,7 +410,7 @@ private:
     }
 
     inline IndexType GetVectorIndexFromMatrixIndices(
-        const IndexType RowIndex, const IndexType ColumnIndex, const IndexType DepthIndex) noexcept
+        const IndexType RowIndex, const IndexType ColumnIndex, const IndexType DepthIndex) const noexcept
     {
         return DepthIndex * (mNumberOfElements[1]*mNumberOfElements[0]) + ColumnIndex * mNumberOfElements[0] + RowIndex;
     }
