@@ -29,10 +29,11 @@ class PyQuESo:
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
             os.mkdir(folder_path)
-        self.queso = QuESo_Application.QuESo(self.parameters)
-        self.b_spline_volume = BSplineVolume(self.parameters)
 
     def Run(self, kratos_model_part = ""):
+        """Run QuESo"""
+        self.queso = QuESo_Application.QuESo(self.parameters)
+        self.b_spline_volume = BSplineVolume(self.parameters)
         if kratos_model_part != "":
             if (not kratos_available):
                 raise Exception("PyQuESo :: Trying to read from kratos modelpart, but Kratos is not available.")
@@ -68,7 +69,7 @@ class PyQuESo:
         return [self.parameters.LowerBoundUVW(), self.parameters.UpperBoundUVW()]
 
     def GetBSplineVolume(self):
-        return self.b_spline_volume
+        return BSplineVolume(self.parameters)
 
     def GetIntegrationPoints(self):
         integration_points = QuESo_Application.IntegrationPointVector()
