@@ -15,21 +15,15 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( NNLSTestSuite )
 
-
 BOOST_AUTO_TEST_CASE(NNLS_Rectangle_Matrix) {
     QuESo_INFO << "Testing :: Test nnls :: Rectangle Matrix" << std::endl;
-
 
     NNLS::MatrixType A = {
         0.1, 0.3, 0.2, 0.5,
         0.2, 0.7, 0.5, 0.3,
         3.0, 0.6, 1.1, 0.9};
 
-    NNLS::VectorType b(4);
-    b[0] = 0.1;
-    b[1] = 0.1;
-    b[2] = 0.7;
-    b[3] = 0.3;
+    NNLS::VectorType b = {0.1, 0.1, 0.7, 0.3};
 
     NNLS::VectorType x(3);
     double Rnorm = NNLS::solve(A,b,x);
