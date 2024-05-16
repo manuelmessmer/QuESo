@@ -243,7 +243,6 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 
     /// Assemble moment fitting matrix.
     NNLS::MatrixType fitting_matrix(number_of_functions * number_reduced_points, 0.0);
-    // Loop over all points
     const auto points_it_begin = rIntegrationPoint.begin();
     for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
         auto point_it = points_it_begin + column_index;
@@ -264,7 +263,7 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
 
     // Solve non-negative Least-Square-Error problem.
     VectorType weights(number_reduced_points);
-    VectorType tmp_constant_terms(rConstantTerms);
+    VectorType tmp_constant_terms(rConstantTerms); // NNLS::solve does modify input. Therefore, copy is required.
     const double rel_residual = NNLS::solve(fitting_matrix, tmp_constant_terms, weights) / l2_norm_ct;
 
     // Write computed weights onto integration points
