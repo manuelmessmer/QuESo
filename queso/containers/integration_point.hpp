@@ -58,8 +58,8 @@ public:
     /// Assignement operator
     IntegrationPoint& operator=(const IntegrationPoint& rOther)
     {
-        PointType::operator=(rOther);
         if( this != &rOther) {
+            PointType::operator=(rOther);
             mWeight = rOther.mWeight;
             mActiveFlag = rOther.mActiveFlag;
 

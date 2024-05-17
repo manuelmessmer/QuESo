@@ -47,8 +47,8 @@ public:
     /// Assignement operator
     BoundaryIntegrationPoint& operator=(const BoundaryIntegrationPoint& rOther)
     {
-        IntegrationPoint::operator=(rOther);
         if( this != &rOther) {
+            IntegrationPoint::operator=(rOther);
             mNormal[0] = rOther.mNormal[0];
             mNormal[1] = rOther.mNormal[1];
             mNormal[2] = rOther.mNormal[2];
