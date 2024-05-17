@@ -155,11 +155,11 @@ class SurfaceLoad(WeakBcsBase):
                 #Map points to local space of B-Spline box
                 local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
 
-                integration_points.append([local_point[0], local_point[1], local_point[2], point.GetWeight()])
+                integration_points.append([local_point[0], local_point[1], local_point[2], point.Weight()])
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
-                weight = point.GetWeight() # Weight contains all mapping terms.
+                weight = point.Weight() # Weight contains all mapping terms.
                 if weight > 1e-14:
                     condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
 
@@ -201,11 +201,11 @@ class PressureLoad(WeakBcsBase):
                 #Map points to local space of B-Spline box
                 local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
 
-                integration_points.append([local_point[0], local_point[1], local_point[2], point.GetWeight()])
+                integration_points.append([local_point[0], local_point[1], local_point[2], point.Weight()])
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
-                weight = point.GetWeight() # Weight contains all mapping terms.
+                weight = point.Weight() # Weight contains all mapping terms.
                 if weight > 1e-14:
                     condition = model_part.CreateNewCondition("LoadCondition", id_counter, quadrature_point_geometries_boundary[0], properties)
 

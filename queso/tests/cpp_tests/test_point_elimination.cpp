@@ -88,9 +88,9 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 QuESo_CHECK_NEAR( residual, residual_2, EPS4 );
                 double volume = 0.0;
                 for( IndexType i = 0; i < r_points.size(); ++i){
-                    const double weight1 = r_points[i].GetWeight();
+                    const double weight1 = r_points[i].Weight();
                     QuESo_CHECK_GT(weight1, EPS4);
-                    const double weight2 = copy_points[i].GetWeight();
+                    const double weight2 = copy_points[i].Weight();
                     QuESo_CHECK_RELATIVE_NEAR( weight1, weight2 , EPS2 );
                     volume += weight1*element.DetJ(); // Multiplied with det(J).
                 }
@@ -191,9 +191,9 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 QuESo_CHECK_LT( residual_2, residual+EPS4 );
                 double volume = 0.0;
                 for( IndexType i = 0; i < r_points.size(); ++i){
-                    const double weight1 = r_points[i].GetWeight();
+                    const double weight1 = r_points[i].Weight();
                     QuESo_CHECK_GT(weight1, EPS4);
-                    const double weight2 = copy_points[i].GetWeight();
+                    const double weight2 = copy_points[i].Weight();
                     const double error = std::abs(weight1 - weight2)/ weight1;
                     QuESo_CHECK_LT( error , EPS2 );
                     volume += weight1*element.DetJ(); // Multiplied with det(J).
@@ -280,9 +280,9 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 QuESo_CHECK_LT( residual_2, residual+EPS4 );
                 double volume = 0.0;
                 for( IndexType i = 0; i < r_points.size(); ++i){
-                    const double weight1 = r_points[i].GetWeight();
+                    const double weight1 = r_points[i].Weight();
                     QuESo_CHECK_GT(weight1, EPS4);
-                    const double weight2 = copy_points[i].GetWeight();
+                    const double weight2 = copy_points[i].Weight();
                     const double error = std::abs(weight1 - weight2)/ weight1;
                     QuESo_CHECK_LT( error , EPS2 );
                     volume += weight1*element.DetJ(); // Multiplied with det(J).

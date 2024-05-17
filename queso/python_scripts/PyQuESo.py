@@ -77,7 +77,7 @@ class PyQuESo:
         for element in self.elements:
             if element.IsTrimmed():
                 for point_trimmed_reduced in element.GetIntegrationPoints():
-                    weight = point_trimmed_reduced.GetWeight()
+                    weight = point_trimmed_reduced.Weight()
                     if( weight > 0):
                         integration_points.append(point_trimmed_reduced)
             else:

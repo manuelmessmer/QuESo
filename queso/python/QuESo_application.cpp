@@ -135,7 +135,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
     /// Export Integration Points
     py::class_<IntegrationPoint, Unique<IntegrationPoint>, PointType>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
-        .def("GetWeight", &IntegrationPoint::GetWeight)
+        .def("Weight", &IntegrationPoint::Weight)
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
 

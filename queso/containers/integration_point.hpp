@@ -71,7 +71,7 @@ public:
     ///@name Operations
     ///@{
 
-    double GetWeight() const{
+    double Weight() const{
         return mWeight;
     }
 
