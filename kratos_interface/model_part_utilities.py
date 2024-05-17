@@ -77,10 +77,10 @@ class ModelPartUtilities:
                 for point in element.GetIntegrationPoints():
                     weight = point.Weight()
                     if( weight > 0):
-                        integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.Weight()])
+                        integration_points.append([point.X(), point.Y(), point.Z(), point.Weight()])
             else:
                 for point in element.GetIntegrationPoints():
-                    integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.Weight()])
+                    integration_points.append([point.X(), point.Y(), point.Z(), point.Weight()])
 
             if( len(integration_points) > 0 ):
                 el_count += 1

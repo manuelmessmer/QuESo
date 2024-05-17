@@ -151,7 +151,7 @@ class SurfaceLoad(WeakBcsBase):
             #Create kratos condition on each point.
             for point in points:
                 integration_points = []
-                global_point = [point.GetX(), point.GetY(), point.GetZ()]
+                global_point = [point.X(), point.Y(), point.Z()]
                 #Map points to local space of B-Spline box
                 local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
 
@@ -197,7 +197,7 @@ class PressureLoad(WeakBcsBase):
             #Create kratos condition on each point.
             for point in points:
                 integration_points = []
-                global_point = [point.GetX(), point.GetY(), point.GetZ()]
+                global_point = [point.X(), point.Y(), point.Z()]
                 #Map points to local space of B-Spline box
                 local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
 

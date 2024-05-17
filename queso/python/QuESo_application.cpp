@@ -106,9 +106,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<PointType, Unique<PointType>>(m,"Point")
         .def(py::init<std::array<double,3>>())
         .def(py::init<double, double, double>())
-        .def("GetX", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
-        .def("GetY", static_cast< double (PointType::*)() const>(&PointType::Y)) // Return const version of Y()
-        .def("GetZ", static_cast< double (PointType::*)() const>(&PointType::Z)) // Return const version of Z()
+        .def("X", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
+        .def("Y", static_cast< double (PointType::*)() const>(&PointType::Y)) // Return const version of Y()
+        .def("Z", static_cast< double (PointType::*)() const>(&PointType::Z)) // Return const version of Z()
         .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
         ;
 
@@ -116,9 +116,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<Vector3i, Unique<Vector3i>>(m,"Vector3i")
         .def(py::init<std::array<IndexType,3>>())
         .def(py::init<IndexType, IndexType, IndexType>())
-        .def("GetX", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::X)) // Return const version of X()
-        .def("GetY", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Y)) // Return const version of Y()
-        .def("GetZ", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Z)) // Return const version of Z()
+        .def("X", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::X)) // Return const version of X()
+        .def("Y", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Y)) // Return const version of Y()
+        .def("Z", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Z)) // Return const version of Z()
         .def("__getitem__",  [](const Vector3i &v, IndexType i){return v[i];} )
         ;
 

@@ -35,7 +35,7 @@ class TestGGQTube(unittest.TestCase):
                 num_el_inside += 1
                 tmp_list = []
                 for point in element.GetIntegrationPoints():
-                    tmp_list.append( [point.GetX(), point.GetY(), point.GetZ(), point.Weight()] )
+                    tmp_list.append( [point.X(), point.Y(), point.Z(), point.Weight()] )
                 ips[element.ID()] = tmp_list
 
         # with open("test.json", 'w') as file:
