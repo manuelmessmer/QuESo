@@ -43,7 +43,7 @@ public:
     }
 
     /// Destructor
-    ~Vector3() = default;
+    virtual ~Vector3() {};
 
     /// Copy Constructor from BaseType
     Vector3(const BaseType& rOther) {

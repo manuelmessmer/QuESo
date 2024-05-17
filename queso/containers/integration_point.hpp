@@ -47,7 +47,7 @@ public:
     }
 
     /// Destructor
-    ~IntegrationPoint() = default;
+    virtual ~IntegrationPoint() {};
 
     /// Copy Constructor
     IntegrationPoint(const IntegrationPoint& rOther)
