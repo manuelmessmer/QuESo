@@ -242,30 +242,29 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     const double l2_norm_ct = std::sqrt( std::inner_product(rConstantTerms.begin(), rConstantTerms.end(), rConstantTerms.begin(), 0.0) );
 
     /// Assemble moment fitting matrix.
-    nnls::MatrixType fitting_matrix(number_of_functions, nnls::VectorType(number_reduced_points, 0.0));
-    IndexType row_index = 0;
-    for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-        for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-            for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                // Loop over all points
-                const auto points_it_begin = rIntegrationPoint.begin();
-                for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
-                    auto point_it = points_it_begin + column_index;
-
+    NNLS::MatrixType fitting_matrix(number_of_functions * number_reduced_points, 0.0);
+    const auto points_it_begin = rIntegrationPoint.begin();
+    for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
+        auto point_it = points_it_begin + column_index;
+        IndexType row_index = 0;
+        for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
                     const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
                                        * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
                                        * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
-
-                    fitting_matrix[row_index][column_index] = value;
+                    // Matrix is serialized: Column first.
+                    fitting_matrix[column_index*number_of_functions + row_index] = value;
+                    row_index++;
                 }
-                row_index++;
             }
         }
     }
 
     // Solve non-negative Least-Square-Error problem.
     VectorType weights(number_reduced_points);
-    const double rel_residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
+    VectorType tmp_constant_terms(rConstantTerms); // NNLS::solve does modify input. Therefore, copy is required.
+    const double rel_residual = NNLS::solve(fitting_matrix, tmp_constant_terms, weights) / l2_norm_ct;
 
     // Write computed weights onto integration points
     for( IndexType i = 0; i < number_reduced_points; ++i){
