@@ -61,11 +61,11 @@ public:
 
     /// Copy Assignement from Vector3
     Vector3& operator=(const Vector3& rOther) {
-        if( this != &rOther) {
+        //if( this != &rOther) {
             mData[0] = rOther[0];
             mData[1] = rOther[1];
             mData[2] = rOther[2];
-        }
+        //}
         return *this;
     }
 
