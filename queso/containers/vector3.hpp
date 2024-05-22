@@ -32,8 +32,8 @@ public:
     ///@{
 
     /// Default constructor
-    Vector3() {
-    }
+    Vector3() : mData() {
+    };
 
     /// Constructor
     Vector3(type x, type y, type z) {
@@ -43,7 +43,7 @@ public:
     }
 
     /// Destructor
-    virtual ~Vector3() {};
+    virtual ~Vector3() = default;
 
     /// Copy Constructor from BaseType
     Vector3(const BaseType& rOther) {
@@ -61,11 +61,10 @@ public:
 
     /// Copy Assignement from Vector3
     Vector3& operator=(const Vector3& rOther) {
-        //if( this != &rOther) {
-            mData[0] = rOther[0];
-            mData[1] = rOther[1];
-            mData[2] = rOther[2];
-        //}
+        mData[0] = rOther[0];
+        mData[1] = rOther[1];
+        mData[2] = rOther[2];
+
         return *this;
     }
 
@@ -208,7 +207,7 @@ public:
         rOStream << '(' << mData[0] << ", " << mData[1] << ", " << mData[2] << ')';
     }
 private:
-    std::array<type,3> mData{};
+    std::array<type,3> mData;
     ///@}
 }; // End Vector3 class
 ///@} // End QuESo classes
