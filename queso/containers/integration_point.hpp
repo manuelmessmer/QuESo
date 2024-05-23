@@ -23,35 +23,34 @@ public:
     ///@{
 
     /// Default constructor
-    IntegrationPoint() : PointType()
-    {}
+    IntegrationPoint() : PointType(), mWeight(0.0)
+    {
+    }
 
     /// 2D Constructor
     IntegrationPoint(double x, double y, double weigth_) :
         PointType(x,y,0.0), mWeight(weigth_)
     {
-        mActiveFlag = true;
     }
 
     /// 3D Constructor
     IntegrationPoint(double x, double y, double z, double weigth_) :
         PointType(x,y,z), mWeight(weigth_)
     {
-        mActiveFlag = true;
+
     }
     /// 3D Constructor
     IntegrationPoint(const PointType& rPoint, double weigth_) :
         PointType(rPoint), mWeight(weigth_)
     {
-        mActiveFlag = true;
     }
 
     /// Destructor
-    virtual ~IntegrationPoint() {};
+    virtual ~IntegrationPoint() = default;
 
     /// Copy Constructor
     IntegrationPoint(const IntegrationPoint& rOther)
-        : PointType(rOther), mWeight(rOther.mWeight), mActiveFlag(rOther.mActiveFlag)
+        : PointType(rOther), mWeight(rOther.mWeight)
     {
     }
 
@@ -61,8 +60,6 @@ public:
         if( this != &rOther) {
             PointType::operator=(rOther);
             mWeight = rOther.mWeight;
-            mActiveFlag = rOther.mActiveFlag;
-
         }
         return *this;
     }
@@ -79,20 +76,13 @@ public:
         mWeight = weigth_;
     }
 
-    void SetActive(bool value){
-        mActiveFlag = value;
-    }
 
-    bool IsActive(){
-        return mActiveFlag;
-    }
 
     ///@}
 private:
     ///@name Private member variables
     ///@{
     double mWeight;
-    bool mActiveFlag;
     ///@}
 }; // End class IntegrationPoint
 ///@} End QuESo classes
