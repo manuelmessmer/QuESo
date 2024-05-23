@@ -37,8 +37,8 @@ public:
     IntegrationPoint(double x, double y, double z, double weigth_) :
         PointType(x,y,z), mWeight(weigth_)
     {
-
     }
+
     /// 3D Constructor
     IntegrationPoint(const PointType& rPoint, double weigth_) :
         PointType(rPoint), mWeight(weigth_)
@@ -57,10 +57,10 @@ public:
     /// Assignement operator
     IntegrationPoint& operator=(const IntegrationPoint& rOther)
     {
-        if( this != &rOther) {
-            PointType::operator=(rOther);
-            mWeight = rOther.mWeight;
-        }
+
+        PointType::operator=(rOther);
+        mWeight = rOther.mWeight;
+
         return *this;
     }
 
@@ -68,15 +68,15 @@ public:
     ///@name Operations
     ///@{
 
+    /// Get integration weight
     double Weight() const{
         return mWeight;
     }
 
+    /// Set integration weight
     void SetWeight(double weigth_){
         mWeight = weigth_;
     }
-
-
 
     ///@}
 private:
