@@ -7,12 +7,12 @@ count=0
 for id in "${ids[@]}"
 do
   found=1
-  wget https://www.thingiverse.com/download:$id -O "TestExecutables/test.stl" &>/dev/null || found=0
+  wget https://www.thingiverse.com/download:$id -O "TestExecutables/test.stl" || found=0
 
   if [ "$found" == "1" ]; then
     echo "File: $id"
     let "count+=1"
-    ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.stl 2 10 || exit 1
+    ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.cstl 2 10 || exit 1
     ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.stl 3 30 || exit 1
   else
     echo File: $id is no longer available on Thingiverse.
