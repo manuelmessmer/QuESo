@@ -7,7 +7,7 @@ count=0
 for id in "${ids[@]}"
 do
   found=1
-  curl -L -o "TestExecutables/test.stl" $id || found=0
+  curl -L -o "TestExecutables/test.stl" https://www.thingiverse.com/download:$id || found=0
 
   if [ "$found" == "1" ]; then
     echo "File: $id"
