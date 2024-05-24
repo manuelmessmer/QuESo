@@ -7,7 +7,7 @@ count=0
 for id in "${ids[@]}"
 do
   found=1
-  wget -U 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.6) Gecko/20070802 SeaMonkey/1.1.4' https://www.thingiverse.com/download:$id -O "TestExecutables/test.stl" || found=0
+  curl -o "TestExecutables/test.stl" https://www.thingiverse.com/download:$id || found=0
 
   if [ "$found" == "1" ]; then
     echo "File: $id"
