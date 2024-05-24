@@ -75,8 +75,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     double error_norm = 0.0;
     // Check if weights are similar
     for( int i = 0; i < 27; ++i){
-        double weight_mf = points_moment_fitting[i].GetWeight();
-        double weight_gl = points_gauss_legendre[i].GetWeight();
+        double weight_mf = points_moment_fitting[i].Weight();
+        double weight_gl = points_gauss_legendre[i].Weight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
         QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-12);
@@ -138,8 +138,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     double error_norm = 0.0;
     // Check if weights are similar
     for( int i = 0; i < 64; ++i){
-        double weight_mf = points_moment_fitting[i].GetWeight();
-        double weight_gl = points_gauss_legendre[i].GetWeight();
+        double weight_mf = points_moment_fitting[i].Weight();
+        double weight_gl = points_gauss_legendre[i].Weight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
         QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-6);
@@ -200,8 +200,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     double error_norm = 0.0;
     // Check if weights are similar
     for( int i = 0; i < 125; ++i){
-        double weight_mf = points_moment_fitting[i].GetWeight();
-        double weight_gl = points_gauss_legendre[i].GetWeight();
+        double weight_mf = points_moment_fitting[i].Weight();
+        double weight_gl = points_gauss_legendre[i].Weight();
         double error = (weight_mf-weight_gl)/weight_gl;
         error_norm += std::pow(error,2);
         QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-6);

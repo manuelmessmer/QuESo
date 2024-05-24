@@ -105,7 +105,7 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
             //file_out << "E: " << number_trimmed_elements << std::endl;
             double surface_area = 0.0;
             for( auto& ip : *p_boundary_ips){
-                surface_area += ip.GetWeight();
+                surface_area += ip.Weight();
             }
             //file_out << std::setprecision(16) << surface_area << std::endl;
             // Read ref surface area

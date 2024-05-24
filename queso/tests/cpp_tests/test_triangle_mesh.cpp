@@ -57,7 +57,7 @@ std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTri
         area += rTriangleMesh.Area(triangle_id);
         auto p_ips = rTriangleMesh.pGetIPsGlobal(triangle_id, 1);
         for( auto& ip : (*p_ips) ){
-            weighted_normal += rTriangleMesh.Normal(triangle_id)*ip.GetWeight();
+            weighted_normal += rTriangleMesh.Normal(triangle_id)*ip.Weight();
         }
     }
     return std::make_pair(area, weighted_normal);

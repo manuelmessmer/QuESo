@@ -103,13 +103,13 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
             QuESo_CHECK_GT(points_trimmed.size(), 0);
             QuESo_CHECK_LT(points_trimmed.size(), (rOrder[0]+1)*(rOrder[1]+1)*(rOrder[2]+1)+1);
             for( const auto& point : points_trimmed ){
-                volume_trimmed += point.GetWeight()*det_j;
+                volume_trimmed += point.Weight()*det_j;
             }
             num_elements_trimmed++;
         } else {
             const auto& points_inside = el_it->GetIntegrationPoints();
             for( const auto& point : points_inside ){
-                volume_inside += point.GetWeight()*det_j;
+                volume_inside += point.Weight()*det_j;
                 num_points_inside++;
             }
             num_elements_inside++;
@@ -280,13 +280,13 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
             QuESo_CHECK_GT(points_trimmed.size(), 0);
             QuESo_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( const auto& point : points_trimmed ){
-                volume_trimmed += point.GetWeight()*det_j;
+                volume_trimmed += point.Weight()*det_j;
             }
             num_elements_trimmed++;
         } else {
             const auto& points_inside = el_it->GetIntegrationPoints();
             for( const auto& point : points_inside ){
-                volume_inside += point.GetWeight()*det_j;
+                volume_inside += point.Weight()*det_j;
                 num_points_inside++;
             }
             num_elements_inside++;

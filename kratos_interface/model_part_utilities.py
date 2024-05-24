@@ -75,12 +75,12 @@ class ModelPartUtilities:
             integration_points = []
             if element.IsTrimmed():
                 for point in element.GetIntegrationPoints():
-                    weight = point.GetWeight()
+                    weight = point.Weight()
                     if( weight > 0):
-                        integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
+                        integration_points.append([point.X(), point.Y(), point.Z(), point.Weight()])
             else:
                 for point in element.GetIntegrationPoints():
-                    integration_points.append([point.GetX(), point.GetY(), point.GetZ(), point.GetWeight()])
+                    integration_points.append([point.X(), point.Y(), point.Z(), point.Weight()])
 
             if( len(integration_points) > 0 ):
                 el_count += 1

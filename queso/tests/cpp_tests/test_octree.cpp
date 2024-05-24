@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     QuESo_CHECK_EQUAL( p_points->size(), 786432 );
     double volume = 0.0;
     for( auto point : (*p_points)){
-        volume += point.GetWeight();
+        volume += point.Weight();
     }
     QuESo_CHECK_LT( std::abs(volume-8.0)/8.0, 1e-10);
 } // End TouchingCubeTest1
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     QuESo_CHECK_EQUAL( p_points->size(), 596 );
     double volume = 0.0;
     for( auto point : (*p_points)){
-        volume += point.GetWeight();
+        volume += point.Weight();
     }
     QuESo_CHECK_LT( std::abs(volume-1.0)/1.0, 1e-4);
 } // End OctreeCubeTest2
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     QuESo_CHECK_EQUAL( p_points->size(), 45186 );
     double volume = 0.0;
     for( auto point : (*p_points)){
-        volume += point.GetWeight()*(0.8*1.2*0.7) / 8.0;;
+        volume += point.Weight()*(0.8*1.2*0.7) / 8.0;;
     }
     QuESo_CHECK_LT( std::abs(volume - ref_volume) / ref_volume, 2e-4);
 
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     QuESo_CHECK_EQUAL( p_points_2->size(), 60873);
     double volume_2 = 0.0;
     for( auto point : (*p_points_2)){
-        volume_2 += point.GetWeight()*(0.8*1.2*0.7) / 8.0;
+        volume_2 += point.Weight()*(0.8*1.2*0.7) / 8.0;
     }
     QuESo_CHECK_LT( std::abs(volume - volume_2) / volume, 1e-10);
 } // End OctreeBunny
