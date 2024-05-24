@@ -7,12 +7,12 @@ count=0
 for id in "${ids[@]}"
 do
   found=1
-  curl -o "TestExecutables/test.stl" https://www.thingiverse.com/download:$id || found=0
+  curl -L -o "TestExecutables/test.stl" $id || found=0
 
   if [ "$found" == "1" ]; then
     echo "File: $id"
     let "count+=1"
-    ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.cstl 2 10 || exit 1
+    ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.stl 2 10 || exit 1
     ./TestExecutables/test_queso_thingi10k -- single TestExecutables/test.stl 3 30 || exit 1
   else
     echo File: $id is no longer available on Thingiverse.
