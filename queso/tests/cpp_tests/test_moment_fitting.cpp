@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     PointType point_b_domain = {1.0, 1.0, 3.0};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
-    auto p_boundary_ips = MakeUnique<TrimmedDomainBase::BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<TrimmedDomain::BoundaryIPVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
             auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
-    auto p_boundary_ips = MakeUnique<TrimmedDomainBase::BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<TrimmedDomain::BoundaryIPVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
             auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
-    auto p_boundary_ips = MakeUnique<TrimmedDomainBase::BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<TrimmedDomain::BoundaryIPVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
             auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);

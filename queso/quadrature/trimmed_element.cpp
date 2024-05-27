@@ -19,7 +19,7 @@ namespace queso {
 
 typedef std::vector<double> VectorType;
 
-void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree,
+void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree,
                                                            SizeType MinNumPoints, const Vector3i& rIntegrationOrder){
     IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
     const IndexType max_iteration = 5UL;
@@ -170,7 +170,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& 
     BoundingBoxType bounding_box_uvw = MakeBox( rElement.PointFromGlobalToParam(bounding_box.first),
                                                 rElement.PointFromGlobalToParam(bounding_box.second));
 
-    Octree<TrimmedDomainBase> octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
+    Octree<TrimmedDomain> octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
 
     // Start point elimination.
     double residual = MAXD;
