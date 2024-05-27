@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(ParameterCheckComponentsTest) {
     Parameters parameters5{};
     BOOST_CHECK_THROW( parameters5.Set<IntegrationMethodType>("echo_level", IntegrationMethod::Gauss), std::exception);
     Parameters parameters6{};
-    BOOST_CHECK_THROW( parameters6.Set<Vector3d>("number_of_elements", Vector3d(1.0, 1.0, 1.0)), std::exception);
+    BOOST_CHECK_THROW( parameters6.Set<Vector3d>("number_of_elements", Vector3d{1.0, 1.0, 1.0}), std::exception);
 
     // Check if wrong Names (typos) are detected.
     Parameters parameters7{};
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(ParameterDefaultTest) {
     QuESo_CHECK_RELATIVE_NEAR(parameters.MomentFittingResidual(), 1e-10, 1e-10);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(2, 2, 2));
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i({2, 2, 2}));
     QuESo_CHECK_Vector3i_EQUAL(polynomial_order, parameters.Order());
 
     IntegrationMethod integration_method = parameters.Get<IntegrationMethod>("integration_method");
@@ -92,12 +92,12 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
                             Component("postprocess_filename", std::string("date/test2.stl")),
                             Component("echo_level", 2UL),
                             Component("embedding_flag", false),
-                            Component("lower_bound_xyz", PointType(-1.0, 0.0, 1.22)),
-                            Component("upper_bound_xyz", PointType(1.1, 3.3, 4.4)),
-                            Component("lower_bound_uvw", PointType(-1.0, 0.0, 1.22)),
-                            Component("upper_bound_uvw", PointType(1.1, 3.3, 4.4)),
-                            Component("polynomial_order", Vector3i(3,2,4)),
-                            Component("number_of_elements", Vector3i(10,12,14)),
+                            Component("lower_bound_xyz", PointType{-1.0, 0.0, 1.22}),
+                            Component("upper_bound_xyz", PointType{1.1, 3.3, 4.4}),
+                            Component("lower_bound_uvw", PointType{-1.0, 0.0, 1.22}),
+                            Component("upper_bound_uvw", PointType{1.1, 3.3, 4.4}),
+                            Component("polynomial_order", Vector3i{3,2,4}),
+                            Component("number_of_elements", Vector3i{10,12,14}),
                             Component("initial_triangle_edge_length", 5.0),
                             Component("min_num_boundary_triangles", 2000UL),
                             Component("moment_fitting_residual", 0.5e-5),
@@ -116,22 +116,22 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
     QuESo_CHECK_IS_FALSE(embedding_flag);
 
     PointType lower_bound = parameters.Get<PointType>("lower_bound_xyz");
-    QuESo_CHECK_POINT_NEAR(lower_bound, PointType(-1.0, 0.0, 1.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound, PointType({-1.0, 0.0, 1.22}), 1e-10);
 
     PointType upper_bound = parameters.Get<PointType>("upper_bound_xyz");
-    QuESo_CHECK_POINT_NEAR(upper_bound, PointType(1.1, 3.3, 4.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound, PointType({1.1, 3.3, 4.4}), 1e-10);
 
     PointType lower_bound_uvw = parameters.Get<PointType>("lower_bound_uvw");
-    QuESo_CHECK_POINT_NEAR(lower_bound_uvw, PointType(-1.0, 0.0, 1.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound_uvw, PointType({-1.0, 0.0, 1.22}), 1e-10);
 
     PointType upper_bound_uvw = parameters.Get<PointType>("upper_bound_uvw");
-    QuESo_CHECK_POINT_NEAR(upper_bound_uvw, PointType(1.1, 3.3, 4.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound_uvw, PointType({1.1, 3.3, 4.4}), 1e-10);
 
     Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(3, 2, 4));
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i({3, 2, 4}) );
 
     Vector3i number_elements = parameters.Get<Vector3i>("number_of_elements");
-    QuESo_CHECK_Vector3i_EQUAL(number_elements, Vector3i(10, 12, 14));
+    QuESo_CHECK_Vector3i_EQUAL(number_elements, Vector3i({10, 12, 14}) );
 
     double initial_triangle_edge_length = parameters.Get<double>("initial_triangle_edge_length");
     QuESo_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
@@ -164,19 +164,19 @@ void CheckValuesParameterCustomSetTest(const Parameters& rParameters ) {
     QuESo_CHECK_IS_FALSE(embedding_flag);
 
     PointType lower_bound = rParameters.Get<PointType>("lower_bound_xyz");
-    QuESo_CHECK_POINT_NEAR(lower_bound, PointType(-1.0, 0.0, 1.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound, PointType({-1.0, 0.0, 1.22}), 1e-10);
 
     PointType upper_bound = rParameters.Get<PointType>("upper_bound_xyz");
-    QuESo_CHECK_POINT_NEAR(upper_bound, PointType(1.1, 3.3, 4.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound, PointType({1.1, 3.3, 4.4}), 1e-10);
 
     PointType lower_bound_uvw = rParameters.Get<PointType>("lower_bound_uvw");
-    QuESo_CHECK_POINT_NEAR(lower_bound_uvw, PointType(-2.0, 1.0, 2.22), 1e-10);
+    QuESo_CHECK_POINT_NEAR(lower_bound_uvw, PointType({-2.0, 1.0, 2.22}), 1e-10);
 
     PointType upper_bound_uvw = rParameters.Get<PointType>("upper_bound_uvw");
-    QuESo_CHECK_POINT_NEAR(upper_bound_uvw, PointType(2.1, 6.3, 6.4), 1e-10);
+    QuESo_CHECK_POINT_NEAR(upper_bound_uvw, PointType({2.1, 6.3, 6.4}), 1e-10);
 
     Vector3i polynomial_order = rParameters.Get<Vector3i>("polynomial_order");
-    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i(3, 2, 4));
+    QuESo_CHECK_Vector3i_EQUAL(polynomial_order, Vector3i({3, 2, 4}));
 
     double initial_triangle_edge_length = rParameters.Get<double>("initial_triangle_edge_length");
     QuESo_CHECK_LT(std::abs(initial_triangle_edge_length-5.0),1e-10);
@@ -203,12 +203,12 @@ BOOST_AUTO_TEST_CASE(ParameterCustomSetTest) {
     parameters.Set("postprocess_filename", std::string("date/test2.stl"));
     parameters.Set("echo_level", 2UL);
     parameters.Set("embedding_flag", false);
-    parameters.Set("lower_bound_xyz", PointType(-1.0, 0.0, 1.22));
-    parameters.Set("upper_bound_xyz", PointType(1.1, 3.3, 4.4));
-    parameters.Set("lower_bound_uvw", PointType(-2.0, 1.0, 2.22));
-    parameters.Set("upper_bound_uvw", PointType(2.1, 6.3, 6.4));
-    parameters.Set("polynomial_order", Vector3i(3,2,4));
-    parameters.Set("number_of_elements", Vector3i(10,12,14));
+    parameters.Set("lower_bound_xyz", PointType{-1.0, 0.0, 1.22});
+    parameters.Set("upper_bound_xyz", PointType{1.1, 3.3, 4.4});
+    parameters.Set("lower_bound_uvw", PointType{-2.0, 1.0, 2.22});
+    parameters.Set("upper_bound_uvw", PointType{2.1, 6.3, 6.4});
+    parameters.Set("polynomial_order", Vector3i{3,2,4});
+    parameters.Set("number_of_elements", Vector3i({10,12,14}));
     parameters.Set("initial_triangle_edge_length", 5.0);
     parameters.Set("min_num_boundary_triangles", 2000UL);
     parameters.Set("moment_fitting_residual", 0.5e-5);
@@ -245,27 +245,27 @@ BOOST_AUTO_TEST_CASE(ParameterCastWrongTypesTest) {
     QuESo_CHECK_NEAR(value, 5.0, 1e-14);
 
     // Check if Vector3i are properly converted to Vector3d
-    parameters.Set<Vector3d>("lower_bound_xyz", Vector3d(1.0, 1.0, 1.0));
+    parameters.Set<Vector3d>("lower_bound_xyz", Vector3d{1.0, 1.0, 1.0});
 
-    parameters.Set<Vector3i>("lower_bound_xyz", Vector3i(2, 2, 2));
+    parameters.Set<Vector3i>("lower_bound_xyz", Vector3i{2, 2, 2});
     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
     auto vector = parameters.Get<Vector3d>("lower_bound_xyz");
-    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d(2.0, 2.0, 2.0), vector, 1e-14);
+    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({2.0, 2.0, 2.0}), vector, 1e-14);
 
-    parameters.Set<Vector3i>("lower_bound_xyz", Vector3i(54, 5, 5));
+    parameters.Set<Vector3i>("lower_bound_xyz", Vector3i{54, 5, 5});
     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
     vector = parameters.Get<Vector3d>("lower_bound_xyz");
-    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d(54, 5, 5), vector, 1e-14);
+    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({54, 5, 5}), vector, 1e-14);
 
-    parameters.Set<Vector3d>("lower_bound_xyz", Vector3d(3.0, 4.0, 5.0));
+    parameters.Set<Vector3d>("lower_bound_xyz", Vector3d{3.0, 4.0, 5.0});
     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
     vector = parameters.Get<Vector3d>("lower_bound_xyz");
-    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d(3.0, 4.0, 5.0), vector, 1e-14);
+    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({3.0, 4.0, 5.0}), vector, 1e-14);
 
-    parameters.Set<Vector3d>("lower_bound_xyz", Vector3d(3.0, 4.0, 5.0));
+    parameters.Set<Vector3d>("lower_bound_xyz", Vector3d{3.0, 4.0, 5.0});
     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
     vector = parameters.Get<Vector3d>("lower_bound_xyz");
-    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d(3.0, 4.0, 5.0), vector, 1e-14);
+    QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({3.0, 4.0, 5.0}), vector, 1e-14);
 }
 
 
@@ -275,16 +275,16 @@ void CheckValuesConditionParameteters(const Parameters& rParameters){
         if( r_cond.Get<std::string>("type") == "PenaltySupportCondition" ){
             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
             QuESo_CHECK_RELATIVE_NEAR(r_cond.Get<double>("penalty_factor"), 5.0, 1e-14 );
-            QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("value"), PointType(5.0, 3.0, 4.0), 1e-14 );
+            QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("value"), PointType({5.0, 3.0, 4.0}), 1e-14 );
         }
         if( r_cond.Get<std::string>("type") == "LagrangeSupportCondition" ){
             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
-            QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("value"), PointType(5.0, 3.0, 4.0), 1e-14 );
+            QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("value"), PointType({5.0, 3.0, 4.0}), 1e-14 );
         }
         if( r_cond.Get<std::string>("type") == "SurfaceLoadCondition" ){
             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
             QuESo_CHECK_RELATIVE_NEAR(r_cond.Get<double>("modulus"), 10.0, 1e-14 );
-            QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("direction"), PointType(5.0, 3.0, 4.0), 1e-14 );
+            QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("direction"), PointType({5.0, 3.0, 4.0}), 1e-14 );
         }
         if( r_cond.Get<std::string>("type") == "PressureLoadCondition" ){
             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
@@ -300,18 +300,18 @@ BOOST_AUTO_TEST_CASE(ConditionParametetersCustomSetTest) {
     ConditionParameters penalty_support_params("PenaltySupportCondition");
     penalty_support_params.Set("input_filename", std::string("test.stl"));
     penalty_support_params.Set("penalty_factor", 5.0);
-    penalty_support_params.Set("value", PointType(5.0, 3.0, 4.0));
+    penalty_support_params.Set("value", PointType{5.0, 3.0, 4.0});
     parameters.AddConditionSettings(penalty_support_params);
 
     ConditionParameters langrange_support_params("LagrangeSupportCondition");
     langrange_support_params.Set("input_filename", std::string("test.stl"));
-    langrange_support_params.Set("value", PointType(5.0, 3.0, 4.0));
+    langrange_support_params.Set("value", PointType{5.0, 3.0, 4.0});
     parameters.AddConditionSettings(langrange_support_params);
 
     ConditionParameters surface_load_params("SurfaceLoadCondition");
     surface_load_params.Set("input_filename", std::string("test.stl"));
     surface_load_params.Set("modulus", 10.0);
-    surface_load_params.Set("direction", PointType(5.0, 3.0, 4.0));
+    surface_load_params.Set("direction", PointType{5.0, 3.0, 4.0});
     parameters.AddConditionSettings(surface_load_params);
 
     ConditionParameters surface_pressure_params("PressureLoadCondition");
@@ -333,17 +333,17 @@ BOOST_AUTO_TEST_CASE(ConditionParametetersCustomConstructorTest) {
     ConditionParameters penalty_support_params({Component("type", std::string("PenaltySupportCondition")),
                                                 Component("input_filename", std::string("test.stl")),
                                                 Component("penalty_factor", 5.0),
-                                                Component("value", PointType(5.0, 3.0, 4.0)) });
+                                                Component("value", PointType{5.0, 3.0, 4.0}) });
     parameters.AddConditionSettings(penalty_support_params);
 
     ConditionParameters langrange_support_params({Component("type", std::string("LagrangeSupportCondition")),
                                                   Component("input_filename", std::string("test.stl")),
-                                                  Component("value", PointType(5.0, 3.0, 4.0)) });
+                                                  Component("value", PointType{5.0, 3.0, 4.0}) });
     parameters.AddConditionSettings(langrange_support_params);
 
     ConditionParameters surface_load_params({Component("type", std::string("SurfaceLoadCondition")),
                                              Component("input_filename", std::string("test.stl")),
-                                             Component("direction", PointType(5.0, 3.0, 4.0)),
+                                             Component("direction", PointType{5.0, 3.0, 4.0}),
                                              Component("modulus", 10.0) });
     parameters.AddConditionSettings(surface_load_params);
 
@@ -363,7 +363,7 @@ BOOST_AUTO_TEST_CASE(ConditionParametetersWrongTypesTest) {
     QuESo_INFO << "Testing :: Test Parameter :: Test Condition Parameters Wrong Types" << std::endl;
 
     ConditionParameters penalty_support_params("PenaltySupportCondition");
-    BOOST_CHECK_THROW( penalty_support_params.Set("penalty_factor", PointType(5.0, 3.0, 4.0)), std::exception );
+    BOOST_CHECK_THROW( penalty_support_params.Set("penalty_factor", PointType{5.0, 3.0, 4.0}), std::exception );
 
     ConditionParameters penalty_support_params_2("PenaltySupportCondition");
     BOOST_CHECK_THROW( penalty_support_params_2.Set("modulus", 5.0), std::exception );

@@ -73,7 +73,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
         const auto& normal = point_it->Normal();
-        PointType point = *point_it;
+        PointType point = point_it->data();
 
         // X-Direction
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){

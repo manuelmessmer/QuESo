@@ -32,11 +32,11 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
             if( iteration >= max_iteration){ return false; }
             iteration++;
             // Get random direction. Must be postive! -> x>0, y>0, z>0
-            Vector3d direction(drandon(gen), drandon(gen), drandon(gen));
+            Vector3d direction{drandon(gen), drandon(gen), drandon(gen)};
 
             // Normalize
-            const double norm_direction = direction.Norm();
-            direction /= norm_direction;
+            const double norm_direction = Math::Norm( direction );
+            Math::DivideSelf( direction, norm_direction);
 
             // Construct ray
             Ray_AABB_primitive ray(rPoint, direction);
@@ -71,11 +71,11 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
     while( success_count < 10 && current_id < num_triangles ){
         // Get direction
         const auto center_triangle = clipped_mesh.Center(current_id);
-        Vector3d direction = center_triangle - rPoint;
+        Vector3d direction = Math::Subtract( center_triangle, rPoint );
 
         // Normalize
-        double norm_direction = direction.Norm();
-        direction /= norm_direction;
+        double norm_direction = Math::Norm( direction );
+        Math::DivideSelf( direction, norm_direction );
 
         // Construct ray
         Ray_AABB_primitive ray(rPoint, direction);
@@ -125,7 +125,7 @@ IntersectionStatus BRepOperator::GetIntersectionState(
     // }
 
     // Test if center is inside or outside.
-    const PointType center = (rUpperBound+rLowerBound) * 0.5;
+    const PointType center = Math::AddAndMult(0.5, rUpperBound, rLowerBound);
     IntersectionStatus status = (IsInside(center)) ? Inside : Outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
@@ -150,7 +150,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     auto upper_bound = rUpperBound;
 
     const double snap_tolerance = RelativeSnapTolerance(lower_bound, upper_bound);
-    const auto delta = (upper_bound - lower_bound);
+    const auto delta = Math::Subtract(upper_bound, lower_bound);
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
     Unique<TrimmedDomain> best_prev_solution = nullptr;
@@ -180,11 +180,11 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
                 }
                 if( switch_plane_orientation ){
                     // Perturb AABB slightly.
-                    PointType lower_perturbation(drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance);
-                    PointType upper_perturbation(drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance);
+                    PointType lower_perturbation{drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
+                    PointType upper_perturbation{drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
 
-                    lower_bound -= lower_perturbation;
-                    upper_bound += upper_perturbation;
+                    Math::SubstractSelf( lower_bound, lower_perturbation );
+                    Math::AddSelf(upper_bound, upper_perturbation);
                 }
             }
         }
@@ -227,9 +227,9 @@ Unique<TriangleMesh> BRepOperator::pClipTriangleMesh(
 
 
 Unique<TriangleMesh> BRepOperator::pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
-    const PointType offset(30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL);
-    const auto lower_bound = rLowerBound + offset;
-    const auto upper_bound = rUpperBound + offset;
+    const PointType offset{30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL};
+    const auto lower_bound = Math::Add(rLowerBound, offset);
+    const auto upper_bound = Math::Add(rUpperBound, offset);
     double snap_tolerance = 1.0*ZEROTOL;
 
     auto p_intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);

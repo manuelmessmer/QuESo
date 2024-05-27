@@ -107,9 +107,9 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMesh& rTriangleMesh) const {
     // Compute mean of vertices
     PointType centroid = {0.0, 0.0, 0.0};
     for( IndexType i = 0 ; i < mNumVertices; ++i){
-        centroid += mVertices[i].first;
+        Math::AddSelf(centroid, mVertices[i].first);
     }
-    centroid /= static_cast<double>(mNumVertices);
+    Math::DivideSelf(centroid, static_cast<double>(mNumVertices));
 
     IndexType vertex_count = num_v;
     IndexType triangle_count = num_t;

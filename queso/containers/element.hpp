@@ -123,8 +123,8 @@ public:
     /// @brief Returns determinant of jacobian.
     /// @return double.
     double DetJ() const {
-        const auto detla_xyz = mBoundsXYZ.second - mBoundsXYZ.first;
-        const auto detla_uvw = mBoundsUVW.second - mBoundsUVW.first;
+        const auto detla_xyz = Math::Subtract( mBoundsXYZ.second, mBoundsXYZ.first );
+        const auto detla_uvw = Math::Subtract( mBoundsUVW.second, mBoundsUVW.first );
         return (detla_xyz[0]*detla_xyz[1]*detla_xyz[2]) / (detla_uvw[0]*detla_uvw[1]*detla_uvw[2]);
     }
 

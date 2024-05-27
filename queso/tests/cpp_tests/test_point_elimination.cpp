@@ -21,11 +21,11 @@ BOOST_AUTO_TEST_SUITE( PointEliminationTestSuite )
 
 void RunCylinder(const Vector3i& rOrder, double Residual){
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d(-1.5, -1.5, -1.0)),
-                            Component("upper_bound_xyz", Vector3d(1.5, 1.5, 12.0)),
-                            Component("lower_bound_uvw", Vector3d(0.0, 0.0, 0.0)),
-                            Component("upper_bound_uvw", Vector3d(1.0, 1.0, 1.0)),
-                            Component("number_of_elements", Vector3i(6, 6, 13))} );
+    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-1.5, -1.5, -1.0}),
+                            Component("upper_bound_xyz", Vector3d{1.5, 1.5, 12.0}),
+                            Component("lower_bound_uvw", Vector3d{0.0, 0.0, 0.0}),
+                            Component("upper_bound_uvw", Vector3d{1.0, 1.0, 1.0}),
+                            Component("number_of_elements", Vector3i{6, 6, 13})} );
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
@@ -123,11 +123,11 @@ BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test) {
 BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     QuESo_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d(-130.0, -110.0, -110.0)),
-                            Component("upper_bound_xyz", Vector3d(-40, 10.0, 10.0)),
-                            Component("lower_bound_uvw", Vector3d(-130.0, -110.0, -110.0)),
-                            Component("upper_bound_uvw", Vector3d(-40, 10.0, 10.0)),
-                            Component("number_of_elements", Vector3i(9, 12, 12)) } );
+    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-130.0, -110.0, -110.0}),
+                            Component("upper_bound_xyz", Vector3d{-40, 10.0, 10.0}),
+                            Component("lower_bound_uvw", Vector3d{-130.0, -110.0, -110.0}),
+                            Component("upper_bound_uvw", Vector3d{-40, 10.0, 10.0}),
+                            Component("number_of_elements", Vector3i{9, 12, 12}) } );
 
 
     TriangleMesh triangle_mesh{};
@@ -212,12 +212,12 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     QuESo_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d(-0.4, -0.6, -0.35)),
-                            Component("upper_bound_xyz", Vector3d(0.4, 0.6, 0.35)),
-                            Component("lower_bound_uvw", Vector3d(-1.0, -1.0, -1.0)),
-                            Component("upper_bound_uvw", Vector3d( 1.0,  1.0,  1.0)),
+    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-0.4, -0.6, -0.35}),
+                            Component("upper_bound_xyz", Vector3d{0.4, 0.6, 0.35}),
+                            Component("lower_bound_uvw", Vector3d{-1.0, -1.0, -1.0}),
+                            Component("upper_bound_uvw", Vector3d{ 1.0,  1.0,  1.0}),
                             Component("b_spline_mesh", false),
-                            Component("number_of_elements", Vector3i(8, 12, 7)) } );
+                            Component("number_of_elements", Vector3i{8, 12, 7}) } );
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");

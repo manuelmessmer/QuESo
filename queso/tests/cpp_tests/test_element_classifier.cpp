@@ -48,9 +48,9 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-1.5, -1.5, -1.0)),
-                        Component("upper_bound_xyz", PointType(1.5, 1.5, 12.0)),
-                        Component("number_of_elements", Vector3i(30, 30, 130)) });
+    Parameters params( {Component("lower_bound_xyz", PointType{-1.5, -1.5, -1.0}),
+                        Component("upper_bound_xyz", PointType{1.5, 1.5, 12.0}),
+                        Component("number_of_elements", Vector3i{30, 30, 130}) });
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -88,9 +88,9 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-1.5, -1.5, -1.5)),
-                        Component("upper_bound_xyz", PointType(1.5, 1.5, 1.5)),
-                        Component("number_of_elements", Vector3i(20, 20, 20)) });
+    Parameters params( {Component("lower_bound_xyz", PointType{-1.5, -1.5, -1.5}),
+                        Component("upper_bound_xyz", PointType{1.5, 1.5, 1.5}),
+                        Component("number_of_elements", Vector3i{20, 20, 20}) });
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -126,9 +126,9 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-0.4, -0.6, -0.35)),
-                        Component("upper_bound_xyz", PointType(0.4, 0.6, 0.35)),
-                        Component("number_of_elements", Vector3i(16, 24, 14)) });
+    Parameters params( {Component("lower_bound_xyz", PointType{-0.4, -0.6, -0.35}),
+                        Component("upper_bound_xyz", PointType{0.4, 0.6, 0.35}),
+                        Component("number_of_elements", Vector3i{16, 24, 14}) });
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -163,9 +163,9 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-24, -43, 5)),
-                        Component("upper_bound_xyz", PointType(85, 46, 115)),
-                        Component("number_of_elements", Vector3i(36, 30, 40)) });
+    Parameters params( {Component("lower_bound_xyz", PointType{-24, -43, 5}),
+                        Component("upper_bound_xyz", PointType{85, 46, 115}),
+                        Component("number_of_elements", Vector3i{36, 30, 40}) });
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);

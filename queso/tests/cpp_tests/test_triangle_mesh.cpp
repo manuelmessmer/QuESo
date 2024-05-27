@@ -51,13 +51,13 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
 
 std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTriangleMesh){
     double area = 0.0;
-    Vector3d weighted_normal(0.0, 0.0, 0.0);
+    Vector3d weighted_normal{0.0, 0.0, 0.0};
 
     for( IndexType triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id){
         area += rTriangleMesh.Area(triangle_id);
         auto p_ips = rTriangleMesh.pGetIPsGlobal(triangle_id, 1);
         for( auto& ip : (*p_ips) ){
-            weighted_normal += rTriangleMesh.Normal(triangle_id)*ip.Weight();
+            Math::AddSelf(weighted_normal, Math::Mult(ip.Weight(), rTriangleMesh.Normal(triangle_id)) );
         }
     }
     return std::make_pair(area, weighted_normal);
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 27911);
     auto new_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
-    double weighted_normal_error = (init_values.second - new_values.second).Norm();
+    double weighted_normal_error = Math::Norm( Math::Subtract(init_values.second, new_values.second) );
     QuESo_CHECK_LT( weighted_normal_error, 1e-14);
     QuESo_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
 }
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
     QuESo_CHECK_EQUAL(new_mesh.NumOfTriangles(), 112402);
     auto new_values = ComputeAreaAndWeightedNormal(new_mesh);
 
-    double weighted_normal_error = (init_values.second - new_values.second).Norm();
+    double weighted_normal_error = Math::Norm( Math::Subtract(init_values.second, new_values.second) );
     QuESo_CHECK_LT( weighted_normal_error, 1e-14);
     QuESo_CHECK_LT( std::abs(init_values.first - new_values.first)/init_values.first, 1e-10 );
 }
@@ -153,9 +153,9 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
     // Read mesh from STL file
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)) });
+    Parameters params( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
+                        Component("upper_bound_xyz", PointType{1.0, 1.0, 1.0}),
+                        Component("number_of_elements", Vector3i{1, 1, 1}) });
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);

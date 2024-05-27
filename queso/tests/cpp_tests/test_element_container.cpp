@@ -26,7 +26,7 @@ Unique<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
         PointType tmp_point_A = {0.0, 0.0, 0.0};
         PointType tmp_point_B = {0.1, 0.1, 0.1};
         Unique<Element> tmp_element = MakeUnique<Element>(i, MakeBox(tmp_point_A, tmp_point_B),
-                                                                            MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
+                                                             MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
         if( i != 10)
             container->AddElement(tmp_element);
     }

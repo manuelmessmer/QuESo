@@ -32,10 +32,10 @@ BOOST_AUTO_TEST_CASE(CheckTestCheckEqual) {
     BOOST_CHECK_THROW( QuESo_CHECK_EQUAL(true, false), std::exception  );
     BOOST_CHECK_THROW( QuESo_CHECK_NOT_EQUAL(true, true), std::exception  );
 
-    Vector3i a(1, 2, 3);
-    Vector3i b(1, 2, 3);
+    Vector3i a{1, 2, 3};
+    Vector3i b{1, 2, 3};
     QuESo_CHECK_Vector3i_EQUAL(a, b);
-    Vector3i b2(1, 3, 3);
+    Vector3i b2{1, 3, 3};
     BOOST_CHECK_THROW( QuESo_CHECK_Vector3i_EQUAL(a, b2), std::exception );
 }
 
@@ -66,10 +66,10 @@ BOOST_AUTO_TEST_CASE(CheckTestNear) {
     QuESo_CHECK_NEAR(a, b, 1e-6);
     BOOST_CHECK_THROW( QuESo_CHECK_NEAR(a, b, 1e-7), std::exception );
 
-    PointType a_p(2.2, 3.3, -2.0);
-    PointType b_p(2.2+9e-6, 3.3-9e-6, -2.0+9e-6);
+    PointType a_p{2.2, 3.3, -2.0};
+    PointType b_p{2.2+9e-6, 3.3-9e-6, -2.0+9e-6};
     QuESo_CHECK_POINT_NEAR(a_p, b_p, 1e-5);
-    PointType b2_p(2.2+0.9e-5, 3.3-0.9e-5, -2.0+0.9e-5);
+    PointType b2_p{2.2+0.9e-5, 3.3-0.9e-5, -2.0+0.9e-5};
     BOOST_CHECK_THROW( QuESo_CHECK_POINT_NEAR(a_p, b2_p, 8e-6), std::exception );
 }
 
@@ -91,10 +91,10 @@ BOOST_AUTO_TEST_CASE(CheckTestRelativeNear) {
     QuESo_CHECK_RELATIVE_NEAR(a, b, 1e-3);
     BOOST_CHECK_THROW( QuESo_CHECK_RELATIVE_NEAR(a, b, 1e-4), std::exception );
 
-    PointType a_p(2.2, 3.3, -2.0);
-    PointType b_p(2.2+9e-6, 3.3-9e-6, -2.0+9e-6);
+    PointType a_p{2.2, 3.3, -2.0};
+    PointType b_p{2.2+9e-6, 3.3-9e-6, -2.0+9e-6};
     QuESo_CHECK_POINT_RELATIVE_NEAR(a_p, b_p, 1e-5);
-    PointType b2_p(2.2+0.9e-5, 3.3-0.9e-5, -2.0+0.9e-5);
+    PointType b2_p{2.2+0.9e-5, 3.3-0.9e-5, -2.0+0.9e-5};
     BOOST_CHECK_THROW( QuESo_CHECK_POINT_RELATIVE_NEAR(a_p, b2_p, 1e-6), std::exception );
 }
 

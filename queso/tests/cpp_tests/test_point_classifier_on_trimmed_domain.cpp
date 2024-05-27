@@ -25,9 +25,9 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-1.5, -1.5, -1.0)),
-                        Component("upper_bound_xyz", PointType(1.5, 1.5, 12)),
-                        Component("number_of_elements", Vector3i(6, 6, 26)),
+    Parameters params( {Component("lower_bound_xyz", PointType{-1.5, -1.5, -1.0}),
+                        Component("upper_bound_xyz", PointType{1.5, 1.5, 12}),
+                        Component("number_of_elements", Vector3i{6, 6, 26}),
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
@@ -71,9 +71,9 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_xyz", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(1, 1, 1)),
+    Parameters params( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
+                        Component("upper_bound_xyz", PointType{1.0, 1.0, 1.0}),
+                        Component("number_of_elements", Vector3i{1, 1, 1}),
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
@@ -123,9 +123,9 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-0.4, -0.6, -0.35)),
-                        Component("upper_bound_xyz", PointType(0.4, 0.6, 0.35)),
-                        Component("number_of_elements", Vector3i(16, 24, 14)),
+    Parameters params( {Component("lower_bound_xyz", PointType{-0.4, -0.6, -0.35}),
+                        Component("upper_bound_xyz", PointType{0.4, 0.6, 0.35}),
+                        Component("number_of_elements", Vector3i{16, 24, 14}),
                         Component("min_element_volume_ratio", 0.0) });
 
     // Instantiate brep_operator
@@ -169,11 +169,11 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType(-24, -43, 5)),
-                        Component("upper_bound_xyz", PointType(85, 46, 115)),
-                        Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
-                        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
-                        Component("number_of_elements", Vector3i(11, 9, 12))});
+    Parameters params( {Component("lower_bound_xyz", PointType{-24, -43, 5}),
+                        Component("upper_bound_xyz", PointType{85, 46, 115}),
+                        Component("lower_bound_uvw", PointType{0.0, 0.0, 0.0}),
+                        Component("upper_bound_uvw", PointType{1.0, 1.0, 1.0}),
+                        Component("number_of_elements", Vector3i{11, 9, 12})});
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);

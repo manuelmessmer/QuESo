@@ -71,7 +71,7 @@ public:
         const auto P2 = this->P2(TriangleId);
         const auto P3 = this->P3(TriangleId);
 
-        return (P1+P2+P3) * (1.0/3.0);
+        return {1.0/3.0 * (P1[0]+P2[0]+P3[0]), 1.0/3.0 * (P1[1]+P2[1]+P3[1]), 1.0/3.0 * (P1[2]+P2[2]+P3[2])};
     }
 
     /// @brief Returns aspect ratio.
@@ -101,17 +101,17 @@ public:
         const auto& P3 = this->P3(TriangleId);
 
         for( IndexType i = 0; i < point_numbers; ++i){
-            const double xx  = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[0] +
-                               ShapeFunctionValue( 1, s_integration_points[i] ) * P2[0] +
-                               ShapeFunctionValue( 2, s_integration_points[i] ) * P3[0] ;
+            const double xx  = ShapeFunctionValue( 0, s_integration_points[i].data() ) * P1[0] +
+                               ShapeFunctionValue( 1, s_integration_points[i].data() ) * P2[0] +
+                               ShapeFunctionValue( 2, s_integration_points[i].data() ) * P3[0] ;
 
-            const double yy = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[1] +
-                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[1] +
-                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[1] ;
+            const double yy = ShapeFunctionValue( 0, s_integration_points[i].data() ) * P1[1] +
+                              ShapeFunctionValue( 1, s_integration_points[i].data() ) * P2[1] +
+                              ShapeFunctionValue( 2, s_integration_points[i].data() ) * P3[1] ;
 
-            const double zz = ShapeFunctionValue( 0, s_integration_points[i] ) * P1[2] +
-                              ShapeFunctionValue( 1, s_integration_points[i] ) * P2[2] +
-                              ShapeFunctionValue( 2, s_integration_points[i] ) * P3[2] ;
+            const double zz = ShapeFunctionValue( 0, s_integration_points[i].data() ) * P1[2] +
+                              ShapeFunctionValue( 1, s_integration_points[i].data() ) * P2[2] +
+                              ShapeFunctionValue( 2, s_integration_points[i].data() ) * P3[2] ;
 
             // Normalize weights to 1 by multiplying by 2.
             const double weight = 2.0*s_integration_points[i].Weight()*Area(TriangleId);
@@ -283,10 +283,10 @@ public:
     /// @param rP3 Vertex 3
     /// @return double
     static double Area(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
-        const auto A = rP2-rP1;
-        const auto B = rP3-rP1;
+        const auto A = Math::Subtract(rP2,rP1);
+        const auto B = Math::Subtract(rP3,rP1);
 
-        return 0.5*Math::Cross(A,B).Norm();
+        return 0.5* Math::Norm(Math::Cross(A,B));
     }
 
     /// @brief Returns AspectRatio of triangle
@@ -297,9 +297,9 @@ public:
     static double AspectRatio(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
         const auto area = Area(rP1, rP2, rP3);
 
-        const double a = (rP2-rP1).Norm(); // length a
-        const double b = (rP3-rP2).Norm(); // length b
-        const double c = (rP1-rP3).Norm(); // length c
+        const double a = Math::Norm( Math::Subtract(rP2, rP1) ); // length a
+        const double b = Math::Norm( Math::Subtract(rP3, rP2) ); // length b
+        const double c = Math::Norm( Math::Subtract(rP1, rP3) ); // length c
 
         const double max_edge = std::max(std::max(a, b), c);
 
@@ -317,13 +317,13 @@ public:
     /// @param rP3 Vertex 3
     /// @return Vector3d
     static Vector3d Normal(const Vector3d& rP1, const Vector3d& rP2, const Vector3d& rP3){
-        const auto A = rP2 - rP1;
-        const auto B = rP3 - rP2;
-        const auto C = rP1 - rP3;
+        const auto A = Math::Subtract( rP2, rP1);
+        const auto B = Math::Subtract( rP3, rP2);
+        const auto C = Math::Subtract( rP1, rP3);
 
-        const double lenght_A = A.Norm();
-        const double lenght_B = B.Norm();
-        const double lenght_C = C.Norm();
+        const double lenght_A = Math::Norm( A );
+        const double lenght_B = Math::Norm( B );
+        const double lenght_C = Math::Norm( C );
 
         PointType normal{};
         if( lenght_A >= lenght_C-ZEROTOL && lenght_B >= lenght_C-ZEROTOL){
@@ -335,8 +335,7 @@ public:
         else {
             normal = Math::Cross(B, C);
         }
-
-        normal *= 1.0/Math::Norm(normal);
+        Math::MultSelf( normal, 1.0/Math::Norm(normal));
         return normal;
     }
 
