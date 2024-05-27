@@ -360,7 +360,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
         const auto& el_ptr = (*(el_it_ptr_begin + i));
         const auto& r_points = el_ptr->GetIntegrationPoints();
         for( const auto& r_point : r_points ){
-            auto point_global = el_ptr->PointFromParamToGlobal(r_point);
+            auto point_global = el_ptr->PointFromParamToGlobal(r_point.data());
 
             if( Binary ){
                 WriteBinary(file, point_global[0]);

@@ -106,9 +106,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<PointType, Unique<PointType>>(m,"Point")
         .def(py::init<std::array<double,3>>())
         .def(py::init<double, double, double>())
-        .def("X", static_cast< double (PointType::*)() const>(&PointType::X)) // Return const version of X()
-        .def("Y", static_cast< double (PointType::*)() const>(&PointType::Y)) // Return const version of Y()
-        .def("Z", static_cast< double (PointType::*)() const>(&PointType::Z)) // Return const version of Z()
+        .def("X", [](const PointType& self){return self[0];} )
+        .def("Y", [](const PointType& self){return self[1];} )
+        .def("Z", [](const PointType& self){return self[2];} )
         .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
         ;
 
@@ -116,9 +116,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<Vector3i, Unique<Vector3i>>(m,"Vector3i")
         .def(py::init<std::array<IndexType,3>>())
         .def(py::init<IndexType, IndexType, IndexType>())
-        .def("X", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::X)) // Return const version of X()
-        .def("Y", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Y)) // Return const version of Y()
-        .def("Z", static_cast< IndexType (Vector3i::*)() const>(&Vector3i::Z)) // Return const version of Z()
+        .def("X", [](const Vector3i& self){return self[0];} )
+        .def("Y", [](const Vector3i& self){return self[1];} )
+        .def("Z", [](const Vector3i& self){return self[2];} )
         .def("__getitem__",  [](const Vector3i &v, IndexType i){return v[i];} )
         ;
 
@@ -133,8 +133,12 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export Integration Points
-    py::class_<IntegrationPoint, Unique<IntegrationPoint>, PointType>(m, "IntegrationPoint")
+    py::class_<IntegrationPoint, Unique<IntegrationPoint>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
+        .def("X", [](const IntegrationPoint& self){return self[0];} )
+        .def("Y", [](const IntegrationPoint& self){return self[1];} )
+        .def("Z", [](const IntegrationPoint& self){return self[2];} )
+        .def("__getitem__",  [](const IntegrationPoint &v, IndexType i){return v[i];} )
         .def("Weight", &IntegrationPoint::Weight)
         .def("SetWeight", &IntegrationPoint::SetWeight)
     ;
@@ -197,10 +201,10 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<Element, Unique<Element>>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (Element::*)() const>(&Element::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
-        .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first.Coordinates(); })
-        .def("UpperBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().second.Coordinates(); })
-        .def("LowerBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().first.Coordinates(); })
-        .def("UpperBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().second.Coordinates(); })
+        .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first; })
+        .def("UpperBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().second; })
+        .def("LowerBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().first; })
+        .def("UpperBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().second; })
         .def("GetNumberBoundaryTriangles", [](const Element& rElement ){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
         })
@@ -282,9 +286,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("GetString", [](VariantDataContainer& rContainer, const std::string& rName){
             return rContainer.Get<std::string>(rName); })
         .def("GetDoubleVector", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<PointType>(rName).Coordinates(); })
+            return rContainer.Get<PointType>(rName); })
         .def("GetIntVector", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<Vector3i>(rName).Coordinates(); })
+            return rContainer.Get<Vector3i>(rName); })
         ;
 
     /// Export GlobalParameters
@@ -315,13 +319,13 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("GetGlobalSettings", &Parameters::GetGlobalSettings, py::return_value_policy::reference_internal )
         .def("EchoLevel", &Parameters::EchoLevel)
         // Return std::array<type,3> types. Easier to handle in python.
-        .def("LowerBoundXYZ", []( const Parameters& rParams ) { return rParams.LowerBoundXYZ().Coordinates(); })
-        .def("UpperBoundXYZ", []( const Parameters& rParams ) { return rParams.UpperBoundXYZ().Coordinates(); })
-        .def("LowerBoundUVW", []( const Parameters& rParams ) { return rParams.LowerBoundUVW().Coordinates(); })
-        .def("UpperBoundUVW", []( const Parameters& rParams ) { return rParams.UpperBoundUVW().Coordinates(); })
-        .def("Order", []( const Parameters& rParams ) { return rParams.Order().Coordinates(); })
+        .def("LowerBoundXYZ", []( const Parameters& rParams ) { return rParams.LowerBoundXYZ(); })
+        .def("UpperBoundXYZ", []( const Parameters& rParams ) { return rParams.UpperBoundXYZ(); })
+        .def("LowerBoundUVW", []( const Parameters& rParams ) { return rParams.LowerBoundUVW(); })
+        .def("UpperBoundUVW", []( const Parameters& rParams ) { return rParams.UpperBoundUVW(); })
+        .def("Order", []( const Parameters& rParams ) { return rParams.Order(); })
         .def("IntegrationMethod", &Parameters::IntegrationMethod )
-        .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements().Coordinates(); })
+        .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements(); })
         .def("NumberOfConditions", &Parameters::NumberOfConditions)
         .def("GetInputFilename", []( const Parameters& rParams ) { return rParams.Get<std::string>("input_filename"); } )
         ;
