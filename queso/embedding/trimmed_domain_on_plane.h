@@ -6,10 +6,10 @@
 
 //// STL includes
 #include <set>
+#include <vector>
 //// Project includes
 #include "includes/define.hpp"
-#include "embedding/trimmed_domain_base.h"
-
+#include "containers/triangle_mesh.hpp"
 
 namespace queso
 {
@@ -17,6 +17,7 @@ namespace queso
 ///@{
 
 class BRepOperator;
+class TrimmedDomain;
 
 /**
  * @class  TrimmedDomainOnPlane
@@ -106,7 +107,7 @@ public:
     ///@{
 
     /// Constructor.
-    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain, bool SwitchOrientation = false)
+    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomain* pTrimmedDomain, bool SwitchOrientation = false)
         : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain), mSwitchOrientation(SwitchOrientation)
     {
         // Orientation
@@ -449,7 +450,7 @@ private:
     Point3DType mLowerBound; // Lower bound AABB
     Point3DType mUpperBound; // Upper bound AABB
 
-    const TrimmedDomainBase *mpTrimmedDomain; // Reuiqred for IsInside()-Test.
+    const TrimmedDomain* mpTrimmedDomain; // Reuiqred for IsInside()-Test.
 
     bool mSwitchOrientation; // Switch orientation of plane indices.
 

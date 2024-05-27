@@ -6,6 +6,7 @@
 //// Project includes
 #include "embedding/trimmed_domain_on_plane.h"
 #include "embedding/brep_operator.h"
+#include "embedding/trimmed_domain.h"
 #include "embedding/polygon.h"
 
 namespace queso

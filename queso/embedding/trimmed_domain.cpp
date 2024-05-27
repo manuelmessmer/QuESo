@@ -12,8 +12,8 @@
 
 namespace queso {
 
-typedef TrimmedDomainBase::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
-typedef TrimmedDomainBase::BoundingBox BoundingBox;
+typedef TrimmedDomain::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
+typedef TrimmedDomain::BoundingBox BoundingBox;
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
 
@@ -103,7 +103,7 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
 
     // Test if center is inside or outside.
     const PointType center = (rLowerBound + rUpperBound) * 0.5;
-    const auto status = (TrimmedDomainBase::IsInsideTrimmedDomain(center)) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+    const auto status = IsInsideTrimmedDomain(center) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;
