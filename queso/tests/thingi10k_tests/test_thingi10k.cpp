@@ -70,14 +70,14 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         auto delta_stl = Math::Subtract( upper_bound_stl, lower_bound_stl );
         double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
 
-        PointType lower_bound = Math::SubstractAndMult(0.1, lower_bound_stl, delta_stl);
+        PointType lower_bound = Math::Subtract(lower_bound_stl, Math::Mult(0.1, delta_stl));
 
-        Vector3i num_elements{};
+        Vector3i num_elements;
         num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));
         num_elements[1] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[1] / h ));
         num_elements[2] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[2] / h ));
 
-        PointType upper_bound{};
+        PointType upper_bound;
         upper_bound[0] = lower_bound[0] + num_elements[0]*h;
         upper_bound[1] = lower_bound[1] + num_elements[1]*h;
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                                 Component("upper_bound_xyz", upper_bound),
                                 Component("lower_bound_uvw", lower_bound),
                                 Component("upper_bound_uvw", upper_bound),
-                                Component("number_of_elements", num_elements)});
+                                Component("number_of_elements", num_elements) });
 
         double test_volume = 0.0;
         double test_area = 0.0;
