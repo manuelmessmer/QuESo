@@ -31,7 +31,7 @@ Please use the following references when citing QuESo in your work.
 
 * Manuel Meßmer, QuESo, https://github.com/manuelmessmer/QuESo.
 
-QuESo has also been used in the scope of shape optimization of embedded solid structures.
+QuESo has also been used in the scope of shape optimization of complex embedded solid structures.
 
 
 * Manuel Meßmer, Reza Najian Asl, Stefan Kollmannsberger, Roland Wüchner, Kai-Uwe Bletzinger, Shape optimization of embedded solids using implicit Vertex-Morphing, Comput. Methods Appl. Mech. Engrg.  426 (2024) 116999, [https://doi.org/10.1016/j.cma.2024.116999](https://doi.org/10.1016/j.cma.2024.116999)
