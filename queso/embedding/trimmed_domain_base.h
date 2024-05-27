@@ -18,6 +18,9 @@
 // ///@name QuESo Classes
 // ///@{
 
+// /// Forward declarations
+// class Element;
+
 // /**
 //  * @class  TrimmedDomainBase
 //  * @author Manuel Messmer
@@ -76,7 +79,6 @@
 
 //     ///@brief Returns boundary integration points of TrimmedDomain.
 //     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-//     template<typename TBoundaryIntegrationPointType>
 //     virtual BoundaryIPVectorPtrType pGetBoundaryIps() const = 0;
 
 //     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)

@@ -33,7 +33,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Unique<TrimmedDomainBase> TrimmedDomainBasePtrType;
+    typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
     typedef std::vector<IntersectionStatusType> StatusVectorType;
 
     ///@}
@@ -90,8 +90,8 @@ public:
     /// @param rUpperBound Upper bound of AABB.
     /// @param MinElementVolumeRatio Below this ratio elements are not considered.
     /// @param MinNumberOfBoundaryTriangles Min number of triangles in the closed surface mesh.
-    /// @return TrimmedDomainBasePtrType (Unique)
-    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
+    /// @return TrimmedDomainPtrType (Unique)
+    TrimmedDomainPtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
         double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const;
 
     ///@brief Clips triangle mesh by AABB.

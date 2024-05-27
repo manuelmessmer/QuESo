@@ -3,7 +3,7 @@
 
 //// Project includes
 #include "embedding/octree.h"
-#include "embedding/trimmed_domain_base.h"
+#include "embedding/trimmed_domain.h"
 
 namespace queso {
 
@@ -186,6 +186,6 @@ void Octree<TOperator>::AddIntegrationPoints(std::vector<TIntegrationPointType>&
 }
 
 // Explicit instantiation Octree
-template class Octree<TrimmedDomainBase>;
+template class Octree<TrimmedDomain>;
 
 } // End namespace queso
