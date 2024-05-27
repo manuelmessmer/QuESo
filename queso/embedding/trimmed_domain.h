@@ -98,7 +98,7 @@ public:
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    BoundaryIPVectorPtrType pGetBoundaryIps() const;
+    BoundaryIPVectorPtrType pGetBoundaryIps() const override;
 
     ///@brief Returns intersections state of AABB. This is an interface for the octree.
     ///@note This test is only performed on the mClippedMesh to be more efficient.
@@ -107,7 +107,7 @@ public:
     ///@param Tolerance Default: SNAPTOL. Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=SNAPTOL) const;
+    IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=SNAPTOL) const override;
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)

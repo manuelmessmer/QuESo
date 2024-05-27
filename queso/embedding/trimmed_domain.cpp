@@ -34,11 +34,11 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
 
         // Get direction
         const auto center_triangle = mClippedMesh.Center(current_id);
-        Vector3d direction = center_triangle - rPoint;
+        Vector3d direction = Math::Subtract( center_triangle, rPoint );
 
         // Normalize
-        double norm_direction = direction.Norm();
-        direction /= norm_direction;
+        double norm_direction = Math::Norm( direction );
+        Math::DivideSelf( direction, norm_direction);
 
         // Construct ray
         Ray_AABB_primitive ray(rPoint, direction);
@@ -102,7 +102,7 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
     }
 
     // Test if center is inside or outside.
-    const PointType center = (rLowerBound + rUpperBound) * 0.5;
+    const PointType center = Math::AddAndMult(0.5, rLowerBound, rUpperBound);
     const auto status = (TrimmedDomainBase::IsInsideTrimmedDomain(center)) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
