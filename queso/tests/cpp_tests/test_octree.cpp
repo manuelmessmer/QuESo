@@ -26,9 +26,6 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Vector3d lower_bound = {0.0, 0.0, 0.0};
-    Vector3d upper_bound = {2.0, 2.0, 2.0};
-
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
@@ -50,7 +47,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 37449UL); // 8^0+8^1+8^2+8^3..+8^5
     QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 32768UL); // 8^5
 
-    Vector3i r_order(2, 3, 1);
+    Vector3i r_order{2, 3, 1};
     auto p_points = octree.pGetIntegrationPoints(r_order);
     QuESo_CHECK_EQUAL( p_points->size(), 786432 );
     double volume = 0.0;
@@ -68,9 +65,6 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Vector3d lower_bound = {-1.0, -1.0, -1.0};
-    Vector3d upper_bound = {2.0, 2.0, 2.0};
-
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
@@ -87,7 +81,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 681UL);   // 1+4+4*4+4*4*4 + 4^1+4^2+4^3+4^4*2
     QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 596UL);   // 4^1+4^2+4^3+4^4*2
 
-    Vector3i r_order(0, 0, 0);
+    Vector3i r_order{0, 0, 0};
     auto p_points = octree.pGetIntegrationPoints(r_order);
 
     QuESo_CHECK_EQUAL( p_points->size(), 596 );
@@ -106,9 +100,6 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Vector3d lower_bound = {0.0, 0.0, 0.0};
-    Vector3d upper_bound = {5.0, 5.0, 5.0};
-
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
@@ -125,7 +116,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     octree.Refine(0, 5);
 
     // Check if integration points contain same volume as ref_volume
-    Vector3i r_order(2, 2, 2);
+    Vector3i r_order{2, 2, 2};
     auto p_points = octree.pGetIntegrationPoints(r_order);
 
     QuESo_CHECK_EQUAL( octree.NumberOfNodes(), 3887 );

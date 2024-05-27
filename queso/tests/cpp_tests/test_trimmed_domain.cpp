@@ -24,11 +24,11 @@ void CheckTriangleOrientation(const TriangleMesh& rTriangleMesh){
             const auto& p0 = rTriangleMesh.P1(i);
             const auto& p1 = rTriangleMesh.P2(i);
             const auto& p2 = rTriangleMesh.P3(i);
-            const auto A = p1 - p0;
-            const auto B = p2 - p1;
+            const auto A = Math::Subtract(p1, p0);
+            const auto B = Math::Subtract(p2, p1);
 
             PointType normal_cross = Math::Cross(A, B);
-            normal_cross /= normal_cross.Norm();
+            Math::DivideSelf(normal_cross, Math::Norm(normal_cross) );
 
             PointType normal_stored = rTriangleMesh.Normal(i);
 
@@ -66,11 +66,10 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
-        const Vector3d delta_xyz = upper_bound_xyz - lower_bound_xyz;
+        const Vector3d delta_xyz = Math::Subtract( upper_bound_xyz, lower_bound_xyz );
         const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
         const Vector3d lower_bound_uvw = bounding_box_uvw.first;
         const Vector3d upper_bound_uvw = bounding_box_uvw.second;
-        const Vector3d delta_uvw = upper_bound_uvw - lower_bound_uvw;
 
         // Construct element
         Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
@@ -147,14 +146,14 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d(-0.4, -0.6, -0.35)),
-                            Component("upper_bound_xyz", Vector3d(0.5, 0.7, 0.45) ),
-                            Component("lower_bound_uvw", Vector3d(0.0, 0.0, 0.0)),
-                            Component("upper_bound_uvw", Vector3d(1.0, 1.0, 1.0)),
+    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-0.4, -0.6, -0.35}),
+                            Component("upper_bound_xyz", Vector3d{0.5, 0.7, 0.45} ),
+                            Component("lower_bound_uvw", Vector3d{0.0, 0.0, 0.0}),
+                            Component("upper_bound_uvw", Vector3d{1.0, 1.0, 1.0}),
                             Component("min_num_boundary_triangles", 200UL),
-                            Component("number_of_elements", Vector3i(9, 13, 8)),
+                            Component("number_of_elements", Vector3i{9, 13, 8}),
                             Component("min_element_volume_ratio", 0.0),
-                            Component("polynomial_order", Vector3i(2,2,2) ) } );
+                            Component("polynomial_order", Vector3i{2,2,2} ) } );
 
     RunTest("queso/tests/cpp_tests/data/elephant.stl", parameters,
             "queso/tests/cpp_tests/results/surface_integral_elephant.txt", 166);
@@ -163,14 +162,14 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
 BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d(-24.0, -43.0, 5.0)),
-                            Component("upper_bound_xyz", Vector3d(85, 46.0, 115)),
-                            Component("lower_bound_uvw", Vector3d(-24.0, -43.0, 5.0)),
-                            Component("upper_bound_uvw", Vector3d(85, 46.0, 115)),
-                            Component("number_of_elements", Vector3i(8, 6, 8)),
+    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-24.0, -43.0, 5.0}),
+                            Component("upper_bound_xyz", Vector3d{85, 46.0, 115}),
+                            Component("lower_bound_uvw", Vector3d{-24.0, -43.0, 5.0}),
+                            Component("upper_bound_uvw", Vector3d{85, 46.0, 115}),
+                            Component("number_of_elements", Vector3i{8, 6, 8}),
                             Component("min_num_boundary_triangles", 100UL),
                             Component("min_element_volume_ratio", 0.0),
-                            Component("polynomial_order", Vector3i(2, 2, 2) ) } );
+                            Component("polynomial_order", Vector3i{2, 2, 2} ) } );
 
     RunTest("queso/tests/cpp_tests/data/stanford_bunny.stl", parameters,
             "queso/tests/cpp_tests/results/surface_integral_bunny.txt", 186);
@@ -179,15 +178,15 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d(-1.5, -1.5, -1)),
-                            Component("upper_bound_xyz", Vector3d(1.5, 1.5, 12 )),
+    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-1.5, -1.5, -1}),
+                            Component("upper_bound_xyz", Vector3d{1.5, 1.5, 12}),
                             Component("b_spline_mesh", false),
-                            Component("lower_bound_uvw", Vector3d(-1.0, -1.0, -1.0)),
-                            Component("upper_bound_uvw", Vector3d(1.0, 1.0, 1.0)),
-                            Component("number_of_elements", Vector3i(3, 3, 13)),
+                            Component("lower_bound_uvw", Vector3d{-1.0, -1.0, -1.0}),
+                            Component("upper_bound_uvw", Vector3d{1.0, 1.0, 1.0}),
+                            Component("number_of_elements", Vector3i{3, 3, 13}),
                             Component("min_num_boundary_triangles", 100UL),
                             Component("min_element_volume_ratio", 0.0),
-                            Component("polynomial_order", Vector3i(2,2,2) ) } );
+                            Component("polynomial_order", Vector3i{2,2,2} ) } );
 
     RunTest("queso/tests/cpp_tests/data/cylinder.stl", parameters,
             "queso/tests/cpp_tests/results/surface_integral_cylinder.txt", 80);
@@ -203,7 +202,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
                             Component("lower_bound_uvw", rLowerBound),
                             Component("upper_bound_uvw", rUpperBound),
                             Component("number_of_elements", number_of_elements),
-                            Component("polynomial_order", Vector3i(2,2,2) ) } );
+                            Component("polynomial_order", Vector3i{2,2,2} ) } );
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");

@@ -22,12 +22,12 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
     Parameters parameters( {Component("input_filename", filename),
                             Component("echo_level", 0UL),
-                            Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
-                            Component("lower_bound_uvw", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound_uvw", PointType(4.0, 5.0, 3.0)),
-                            Component("number_of_elements", Vector3i(1, 1, 1)),
-                            Component("polynomial_order", Vector3i(2, 2, 2)),
+                            Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
+                            Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
+                            Component("lower_bound_uvw", PointType{0.0, 0.0, 0.0}),
+                            Component("upper_bound_uvw", PointType{4.0, 5.0, 3.0}),
+                            Component("number_of_elements", Vector3i{1, 1, 1}),
+                            Component("polynomial_order", Vector3i{2, 2, 2}),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("min_num_boundary_triangles", 5000UL),
                             Component("moment_fitting_residual", 1e-8) });
@@ -70,13 +70,13 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOrder, IndexType NumPointsInside, double Tolerance,
                         bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
 
-    Vector3i num_elements = (Large) ? Vector3i(14, 22, 12) : Vector3i(7, 11, 6);
+    Vector3i num_elements = (Large) ? Vector3i{14, 22, 12} : Vector3i{7, 11, 6};
 
     std::string filename = "queso/tests/cpp_tests/data/elephant.stl";
     Parameters parameters( {Component("input_filename", filename),
                             Component("echo_level", 0UL),
-                            Component("lower_bound_xyz", PointType(-0.37, -0.55, -0.31)),
-                            Component("upper_bound_xyz", PointType(0.37, 0.55, 0.31)),
+                            Component("lower_bound_xyz", PointType{-0.37, -0.55, -0.31}),
+                            Component("upper_bound_xyz", PointType{0.37, 0.55, 0.31}),
                             Component("b_spline_mesh", BSplineMesh),
                             Component("lower_bound_uvw", rBoundsUVW.first),
                             Component("upper_bound_uvw", rBoundsUVW.second),
@@ -124,7 +124,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 
     // Check volume inside
     const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
-    const PointType el_delta = el_bounding_box.second - el_bounding_box.first;
+    const PointType el_delta = Math::Subtract( el_bounding_box.second, el_bounding_box.first );
     const double ref_volume_inside = (el_delta[0]*el_delta[1]*el_delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
 
@@ -138,133 +138,132 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 BOOST_AUTO_TEST_CASE(VolumeElephant1) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::Gauss, Vector3i(2, 2, 2), 2916, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(2, 2, 2), 2916, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(2, 2, 2), 2916, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{2, 2, 2}, 2916, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{2, 2, 2}, 2916, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{2, 2, 2}, 2916, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant2) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(2, 2, 2), 1786, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(2, 2, 2), 1786, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{2, 2, 2}, 1786, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{2, 2, 2}, 1786, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant3) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i(2, 2, 2), 673, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i(2, 2, 2), 673, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i{2, 2, 2}, 673, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i{2, 2, 2}, 673, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant4) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i(2, 2, 2), 406, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i(2, 2, 2), 406, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i{2, 2, 2}, 406, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i{2, 2, 2}, 406, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
 }
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant5) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::Gauss, Vector3i(3, 3, 3), 320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(3, 3, 3), 320, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(3, 3, 3), 320, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), false);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{3, 3, 3}, 320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{3, 3, 3}, 320, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{3, 3, 3}, 320, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), false);
 }
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant6) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(3, 3, 3), 256, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(3, 3, 3), 256, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{3, 3, 3}, 256, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{3, 3, 3}, 256, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
 }
 
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant7) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::Gauss, Vector3i(4, 4, 4), 625, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(4, 4, 4), 625, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(4, 4, 4), 625, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), false);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{4, 4, 4}, 625, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{4, 4, 4}, 625, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{4, 4, 4}, 625, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), false);
 }
 
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant8) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(4, 4, 4), 525, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{4, 4, 4}, 525, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
 }
 
 // p=Mix
 BOOST_AUTO_TEST_CASE(VolumeElephant9) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::Gauss, Vector3i(2, 3, 4), 6480, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(3, 4, 2), 6480, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
-    TestElephant(IntegrationMethod::Gauss, Vector3i(4, 2, 3), 6480, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{2, 3, 4}, 6480, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{3, 4, 2}, 6480, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
+    TestElephant(IntegrationMethod::Gauss, Vector3i{4, 2, 3}, 6480, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant10) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss_Reduced1 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::Gauss_Reduced1, Vector3i(2, 3, 4), 2592, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::Gauss_Reduced1, Vector3i(3, 4, 2), 2592, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
-    TestElephant(IntegrationMethod::Gauss_Reduced1, Vector3i(4, 2, 3), 2592, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss_Reduced1, Vector3i{2, 3, 4}, 2592, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss_Reduced1, Vector3i{3, 4, 2}, 2592, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
+    TestElephant(IntegrationMethod::Gauss_Reduced1, Vector3i{4, 2, 3}, 2592, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant11) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss_Reduced2 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::Gauss_Reduced2, Vector3i(2, 3, 4), 648, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::Gauss_Reduced2, Vector3i(3, 4, 2), 648, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
-    TestElephant(IntegrationMethod::Gauss_Reduced2, Vector3i(4, 2, 3), 648, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss_Reduced2, Vector3i{2, 3, 4}, 648, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::Gauss_Reduced2, Vector3i{3, 4, 2}, 648, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
+    TestElephant(IntegrationMethod::Gauss_Reduced2, Vector3i{4, 2, 3}, 648, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant12) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(2, 3, 4), 3657, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i(3, 4, 2), 3682, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{2, 3, 4}, 3657, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Optimal, Vector3i{3, 4, 2}, 3682, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant13) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i(2, 3, 4), 1710, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i(3, 4, 2), 1713, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i{2, 3, 4}, 1710, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced1, Vector3i{3, 4, 2}, 1713, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant14) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
-    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i(2, 3, 4), 1166, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
-    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i(3, 4, 2), 1192, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i{2, 3, 4}, 1166, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
+    TestElephant(IntegrationMethod::GGQ_Reduced2, Vector3i{3, 4, 2}, 1192, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
 }
 
 void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, IndexType NumPointsInside, double Tolerance,
                         bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
 
-    Vector3i num_elements = (Large) ? Vector3i(20, 40, 40) : Vector3i(5, 10, 10);
+    Vector3i num_elements = (Large) ? Vector3i{20, 40, 40} : Vector3i{5, 10, 10};
 
     std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
     Parameters parameters( {Component("input_filename", filename),
                             Component("echo_level", 0UL),
-                            Component("lower_bound_xyz", PointType(-130.0, -110.0, -110.0)),
-                            Component("upper_bound_xyz", PointType(20.0, 190.0, 190.0)),
+                            Component("lower_bound_xyz", PointType{-130.0, -110.0, -110.0}),
+                            Component("upper_bound_xyz", PointType{20.0, 190.0, 190.0}),
                             Component("b_spline_mesh", BSplineMesh),
                             Component("lower_bound_uvw", rBoundsUVW.first),
                             Component("upper_bound_uvw", rBoundsUVW.second),
                             Component("number_of_elements", num_elements),
-                            Component("polynomial_order", Vector3i(p, p, p)),
+                            Component("polynomial_order", Vector3i{p, p, p}),
                             Component("integration_method", IntegrationMethod) });
     QuESo queso(parameters);
     queso.Run();
 
     const auto& elements = queso.GetElements();
 
-    const PointType delta_uvw = rBoundsUVW.second - rBoundsUVW.first;
     // Compute total volume
     double volume_trimmed = 0.0;
     double volume_inside = 0.0;
@@ -301,7 +300,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
 
     // Check volume inside
     const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
-    const PointType delta = el_bounding_box.second - el_bounding_box.first;
+    const PointType delta = Math::Subtract( el_bounding_box.second, el_bounding_box.first );
     const double ref_volume_inside = (delta[0]*delta[1]*delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
 

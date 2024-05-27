@@ -67,10 +67,10 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         PointType lower_bound_stl = bounding_box_stl.first;
         PointType upper_bound_stl = bounding_box_stl.second;
 
-        auto delta_stl = upper_bound_stl - lower_bound_stl;
+        auto delta_stl = Math::Subtract( upper_bound_stl, lower_bound_stl );
         double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
 
-        PointType lower_bound = lower_bound_stl - delta_stl*0.1;
+        PointType lower_bound = Math::SubstractAndMult(0.1, lower_bound_stl, delta_stl);
 
         Vector3i num_elements{};
         num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));
@@ -88,8 +88,6 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                                 Component("lower_bound_uvw", lower_bound),
                                 Component("upper_bound_uvw", upper_bound),
                                 Component("number_of_elements", num_elements)});
-
-        auto delta_new = upper_bound - lower_bound;
 
         double test_volume = 0.0;
         double test_area = 0.0;
@@ -200,10 +198,10 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         PointType upper_bound_stl = bounding_box_stl.second;
 
         count++;
-        auto delta_stl = upper_bound_stl - lower_bound_stl;
+        auto delta_stl = Math::Subtract( upper_bound_stl, lower_bound_stl );
         double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
 
-        PointType lower_bound = lower_bound_stl - delta_stl*0.1;
+        PointType lower_bound = Math::SubstractAndMult(0.1, lower_bound_stl, delta_stl);
 
         Vector3i num_elements{};
         num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));

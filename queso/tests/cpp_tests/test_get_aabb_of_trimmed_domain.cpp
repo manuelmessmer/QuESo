@@ -21,11 +21,6 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 
     QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cylinder" << std::endl;
 
-    PointType point_A = {0.0, 0.0, 0.0};
-    PointType point_B = {2.0, 2.0, 3.0};
-    Vector3i number_of_elements = {1, 1, 1};
-    Vector3i order = {2, 2, 2};
-
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
@@ -51,7 +46,8 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
+                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    results.push_back( norm );
                 }
             }
         }
@@ -98,7 +94,8 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    results.push_back( (bounding_box.second - bounding_box.first ).Norm() );
+                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    results.push_back( norm );
                 }
             }
         }
@@ -119,11 +116,6 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 
 BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Elephant" << std::endl;
-
-    PointType point_A = {0.0, 0.0, 0.0};
-    PointType point_B = {2.0, 2.0, 3.0};
-    Vector3i number_of_elements = {1, 1, 1};
-    Vector3i order = {2, 2, 2};
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
@@ -151,7 +143,8 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
+                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    results.push_back( norm );
                 }
             }
         }
@@ -199,7 +192,8 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    results.push_back( ( bounding_box.second - bounding_box.first ).Norm() );
+                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    results.push_back( norm );
                 }
             }
         }

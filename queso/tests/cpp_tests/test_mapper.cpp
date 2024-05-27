@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
     const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
     const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  5.0, 2.0}, {-2.0, 7.0, 100.0} );
 
-    const Vector3i number_of_elements(5, 10, 7);
+    const Vector3i number_of_elements{5, 10, 7};
 
     Parameters parameters( {Component("lower_bound_xyz", bounds_xyz.first),
                             Component("upper_bound_xyz", bounds_xyz.second),
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
                             Component("number_of_elements", number_of_elements) } );
 
     Mapper mapper(parameters);
-    const auto delta = bounds_xyz.second - bounds_xyz.first;
+    const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -44,12 +44,12 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
                 auto box_2 = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
                 auto box_3 = mapper.GetBoundingBoxXYZFromIndex(indices);
 
-                QuESo_CHECK_LT( (box_1.first - box_2.first).Norm(), 1e-12 );
-                QuESo_CHECK_LT( (box_1.first - box_3.first).Norm(), 1e-12 );
-                QuESo_CHECK_LT( (box_1.second - box_2.second).Norm(), 1e-12 );
-                QuESo_CHECK_LT( (box_1.second - box_3.second).Norm(), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.first,  box_2.first) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.first, box_3.first) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.second, box_2.second) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.second, box_3.second) ), 1e-12 );
 
-                auto delta_box = box_1.second - box_1.first;
+                auto delta_box = Math::Subtract(box_1.second, box_1.first);
                 QuESo_CHECK_LT( std::abs(delta[0]/number_of_elements[0] - delta_box[0]) / delta_box[0], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[1]/number_of_elements[1] - delta_box[1]) / delta_box[1], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[2]/number_of_elements[2] - delta_box[2]) / delta_box[2], 1e-12);
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
     const BoundingBoxType bounds_xyz = MakeBox( {-25, -111.44, 7.89}, {78.67, -35.68, 18.99} );
     const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  -2.2, 2.0}, {2.0, 10.0, 17.0} );
 
-    const Vector3i number_of_elements(15, 11, 17);
+    const Vector3i number_of_elements{15, 11, 17};
 
     Parameters parameters( {Component("lower_bound_xyz", bounds_xyz.first),
                             Component("upper_bound_xyz", bounds_xyz.second),
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
                             Component("upper_bound_uvw", bounds_uvw.second),
                             Component("number_of_elements", number_of_elements) } );
 
-    const auto delta = bounds_xyz.second - bounds_xyz.first;
+    const auto delta = Math::Subtract( bounds_xyz.second, bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -97,12 +97,12 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
                 auto box_2 = Mapping::GetBoundingBoxFromIndex(i, j, k, bounds_xyz.first, bounds_xyz.second, number_of_elements);
                 auto box_3 = Mapping::GetBoundingBoxFromIndex(indices, bounds_xyz.first, bounds_xyz.second, number_of_elements);
 
-                QuESo_CHECK_LT( (box_1.first - box_2.first).Norm(), 1e-12 );
-                QuESo_CHECK_LT( (box_1.first - box_3.first).Norm(), 1e-12 );
-                QuESo_CHECK_LT( (box_1.second - box_2.second).Norm(), 1e-12 );
-                QuESo_CHECK_LT( (box_1.second - box_3.second).Norm(), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.first, box_2.first) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.first, box_3.first) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.second, box_2.second) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(box_1.second, box_3.second) ), 1e-12 );
 
-                auto delta_box = box_1.second - box_1.first;
+                auto delta_box = Math::Subtract(box_1.second, box_1.first);
                 QuESo_CHECK_LT( std::abs(delta[0]/number_of_elements[0] - delta_box[0]) / delta_box[0], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[1]/number_of_elements[1] - delta_box[1]) / delta_box[1], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[2]/number_of_elements[2] - delta_box[2]) / delta_box[2], 1e-12);
@@ -114,11 +114,11 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
                 QuESo_CHECK_EQUAL(index_1, index);
                 QuESo_CHECK_EQUAL(index_2, index);
 
-                PointType point_global(i+100.0, j-44.27, k+88.90);
+                PointType point_global{i+100.0, j-44.27, k+88.90};
                 PointType point_param =  Mapping::PointFromGlobalToParam(point_global, bounds_xyz, bounds_uvw);
                 PointType point_global_2 =  Mapping::PointFromParamToGlobal(point_param, bounds_xyz, bounds_uvw);
 
-                QuESo_CHECK_LT( (point_global - point_global_2).Norm(), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( Math::Subtract(point_global, point_global_2) ), 1e-12 );
             }
         }
     }

@@ -27,10 +27,10 @@ BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound_xyz", PointType(2.0, 2.0, 3.0)),
-                            Component("number_of_elements", Vector3i(1, 1, 1)),
-                            Component("polynomial_order", Vector3i(2, 2, 2)),
+    Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
+                            Component("upper_bound_xyz", PointType{2.0, 2.0, 3.0}),
+                            Component("number_of_elements", Vector3i{1, 1, 1}),
+                            Component("polynomial_order", Vector3i{2, 2, 2}),
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 5UL),
                             Component("integration_method", IntegrationMethod::Gauss),
@@ -89,10 +89,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
-                            Component("number_of_elements", Vector3i(1, 1, 1)),
-                            Component("polynomial_order", Vector3i(3, 3, 3)),
+    Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
+                            Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
+                            Component("number_of_elements", Vector3i{1, 1, 1}),
+                            Component("polynomial_order", Vector3i{3, 3, 3}),
                             Component("moment_fitting_residual", 1e-8),
                             Component("min_num_boundary_triangles", 500UL),
                             Component("integration_method", IntegrationMethod::Gauss),
@@ -152,10 +152,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", PointType(0.0, 0.0, 0.0)),
-                            Component("upper_bound_xyz", PointType(2.0, 2.0, 1.0)),
-                            Component("number_of_elements", Vector3i(1, 1, 1)),
-                            Component("polynomial_order", Vector3i(4, 4, 4)),
+    Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
+                            Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
+                            Component("number_of_elements", Vector3i{1, 1, 1}),
+                            Component("polynomial_order", Vector3i{4, 4, 4}),
                             Component("min_num_boundary_triangles", 2000UL),
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
