@@ -14,7 +14,7 @@
 
 namespace queso {
 
-typedef BRepOperator::TrimmedDomainBasePtrType TrimmedDomainBasePtrType;
+typedef BRepOperator::TrimmedDomainPtrType TrimmedDomainPtrType;
 typedef BRepOperator::StatusVectorType StatusVectorType;
 
 bool BRepOperator::IsInside(const PointType& rPoint) const {
@@ -138,7 +138,7 @@ Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const Paramete
     return flood_fill.ClassifyElements();
 }
 
-TrimmedDomainBasePtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
+TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
         double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const {
     // Instantiate random number generator
     std::random_device rd;
