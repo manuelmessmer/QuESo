@@ -28,8 +28,9 @@ class Octree {
 private:
     ///@name Type Definitions
     ///@{
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-    typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
+
+    // typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    // typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
 
     /**
      * @class  Octree::Node
@@ -69,7 +70,8 @@ private:
         /// @param[out] pPoints IntegrationPointVectorType
         /// @param rOrder Order of Gauss quadrature.
         /// @param pOperator Operator to perfrom Inside/Outside test.
-        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
+        template<typename TIntegrationPointType>
+        void GetIntegrationPoints(TIntegrationPointType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
 
         /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
         /// @param[out] rValue // Return value
@@ -150,7 +152,8 @@ public:
     ///        Also see: AddIntegrationPoints()
     /// @param rOrder Order of Gauss quadrature.
     /// @return IntegrationPointVectorPtrType
-    IntegrationPointVectorPtrType pGetIntegrationPoints(const Vector3i& rOrder) const;
+    template<typename TIntegrationPointType>
+    Unique<std::vector<TIntegrationPointType>> pGetIntegrationPoints(const Vector3i& rOrder) const;
 
     /// @brief Add integration points to rPoints. Points are constructed on the leafs of the octree.
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
@@ -158,7 +161,8 @@ public:
     ///        Also see: pGetIntegrationPoints().
     /// @param rPoints Vector of integration points.
     /// @param rOrder Order of Gauss quadrature.
-    void AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder) const;
+    template<typename TIntegrationPointType>
+    void AddIntegrationPoints(std::vector<TIntegrationPointType>& rPoints, const Vector3i& rOrder) const;
 
     /// @brief Returns current refinement level of leaf nodes that are classified as inside.
     /// @return IndexType

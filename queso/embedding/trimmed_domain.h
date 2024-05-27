@@ -81,7 +81,6 @@ public:
 
             MeshUtilities::Refine(*(mpTriangleMesh.get()), MinNumberOfTriangles);
         }
-
     }
 
     ///@}
@@ -107,7 +106,7 @@ public:
     ///@param Tolerance Default: SNAPTOL. Tolerance reduces AABB slightly. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=SNAPTOL) const override;
+    IntersectionStatusType GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance=SNAPTOL) const;
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)

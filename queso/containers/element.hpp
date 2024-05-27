@@ -23,6 +23,7 @@ namespace queso {
  * @author Manuel Messmer
  * @brief  Element/Knot Spans. Stores quadrature points and trimmed domain (if element is trimmed).
 */
+template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
 class Element
 {
 
@@ -32,7 +33,8 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    typedef TIntegrationPointType IntegrationPointType;
+    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
     typedef Unique<TrimmedDomainBase> TrimmedDomainPtrType;
 

@@ -33,10 +33,11 @@ class TriangleMesh
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::vector<IntegrationPoint> IpVectorType;
-    typedef Unique<IpVectorType> IpVectorPtrType;
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIpVectorType;
-    typedef Unique<BoundaryIpVectorType> BoundaryIpVectorPtrType;
+
+    // typedef std::vector<IntegrationPointType> IpVectorType;
+    // typedef Unique<IpVectorType> IpVectorPtrType;
+    // typedef std::vector<BoundaryIntegrationPointType> BoundaryIpVectorType;
+    // typedef Unique<BoundaryIpVectorType> BoundaryIpVectorPtrType;
     typedef std::vector<std::vector<std::tuple<IndexType, IndexType, IndexType>>> EdgesOnPlanesVectorType;
 
     ///@}
@@ -89,12 +90,13 @@ public:
     /// @param TriangleId
     /// @param Method integration method.
     /// @return BoundaryIpVectorPtrType.
-    BoundaryIpVectorPtrType pGetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
+    template<typename TBoundaryIntegrationPointType>
+    Unique<std::vector<TBoundaryIntegrationPointType>> pGetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
-        auto p_global_integration_points = MakeUnique<BoundaryIpVectorType>(point_numbers);
+        auto p_global_integration_points = MakeUnique<std::vector<TBoundaryIntegrationPointType>>(point_numbers);
 
         const auto& P1 = this->P1(TriangleId);
         const auto& P2 = this->P2(TriangleId);
@@ -115,7 +117,7 @@ public:
 
             // Normalize weights to 1 by multiplying by 2.
             const double weight = 2.0*s_integration_points[i].Weight()*Area(TriangleId);
-            (*p_global_integration_points)[i] = BoundaryIntegrationPoint(xx, yy, zz, weight, Normal(TriangleId) );
+            (*p_global_integration_points)[i] = TBoundaryIntegrationPointType(xx, yy, zz, weight, Normal(TriangleId) );
         }
 
         return p_global_integration_points;
@@ -367,9 +369,9 @@ private:
     }
 
     ///@brief Factory function for triangle Gauss Legendre points.
-    static const std::vector<IpVectorType>& AllIntegrationPoints()
+    static const std::vector<std::vector<IntegrationPoint>>& AllIntegrationPoints()
     {
-        static const std::vector<IpVectorType> integration_points =
+        static const std::vector<std::vector<IntegrationPoint>> integration_points =
         {
             TriangleGaussLegendrePoints1::IntegrationPoints(),
             TriangleGaussLegendrePoints2::IntegrationPoints(),
@@ -381,7 +383,7 @@ private:
     }
 
     ///@brief Get triangle Gauss Legendre points by Method - options (0,1,2,3)
-    static const IpVectorType& GetIntegrationPoints( IndexType Method ){
+    static const std::vector<IntegrationPoint>& GetIntegrationPoints( IndexType Method ){
         QuESo_ERROR_IF(Method > 3) << "IntegrationPoint Index exceeds default.\n";
 
         return AllIntegrationPoints()[Method];

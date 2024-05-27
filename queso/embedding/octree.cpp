@@ -75,7 +75,8 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
 }
 
 template<typename TOperator>
-void Octree<TOperator>::Node::GetIntegrationPoints(IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const{
+template<typename TIntegrationPointType>
+void Octree<TOperator>::Node::GetIntegrationPoints(TIntegrationPointType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const{
     if( this->IsLeaf() ){
 
         IntegrationPointVectorType integration_points_tmp{};
@@ -169,7 +170,8 @@ SizeType Octree<TOperator>::NumberOfNodes() const{
 }
 
 template<typename TOperator>
-typename Octree<TOperator>::IntegrationPointVectorPtrType Octree<TOperator>::pGetIntegrationPoints(const Vector3i& rOrder) const{
+template<typename TIntegrationPointType>
+Unique<std::vector<TIntegrationPointType>> Octree<TOperator>::pGetIntegrationPoints(const Vector3i& rOrder) const{
     auto p_points = MakeUnique<IntegrationPointVectorType>();
     p_points->reserve(NumberOfLeafs());
     mpRoot->GetIntegrationPoints(p_points.get(), rOrder, mpOperator );
@@ -177,7 +179,8 @@ typename Octree<TOperator>::IntegrationPointVectorPtrType Octree<TOperator>::pGe
 }
 
 template<typename TOperator>
-void Octree<TOperator>::AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder) const{
+template<typename TIntegrationPointType>
+void Octree<TOperator>::AddIntegrationPoints(std::vector<TIntegrationPointType>& rPoints, const Vector3i& rOrder) const{
     rPoints.reserve(NumberOfLeafs());
     mpRoot->GetIntegrationPoints(&rPoints, rOrder, mpOperator );
 }
