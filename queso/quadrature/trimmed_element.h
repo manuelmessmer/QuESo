@@ -62,7 +62,7 @@ protected:
     /// @param rOctree
     /// @param MinNumPoints Minimum Number of Points
     /// @param rIntegrationOrder Order of Gauss quadrature.
-    static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder);
+    static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder);
 
     /// @brief Computes constant terms of moment fitting equation via volume integration points.
     /// @param[out] rConstantTerms
