@@ -7,6 +7,7 @@
 //// STL includes
 #include <limits>
 #include <memory>
+#include <array>
 //// Project includes
 #include "includes/logger.hpp"
 #include "includes/exception.hpp"
