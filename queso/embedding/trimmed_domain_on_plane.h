@@ -46,8 +46,6 @@ public:
     typedef enum Orientation OrientationType;
     typedef std::array<double, 2> Point2DType;
     typedef Vector3d Point3DType;
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
-    typedef Unique<BoundaryIPVectorType> BoundaryIPVectorPtrType;
     typedef Unique<TriangleMesh> TriangleMeshPtrType;
 
     struct PointComparison {
