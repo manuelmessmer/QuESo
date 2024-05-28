@@ -42,7 +42,7 @@ void QuESo::Run()
         mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(r_condition.GetTriangleMesh() ) );
     }
     // Allocate element/knotspans container
-    mpElementContainer = MakeUnique<ElementContainer>(mParameters);
+    mpElementContainer = MakeUnique<ElementContainerType>(mParameters);
 
     // Start computation
     Compute();
@@ -124,7 +124,7 @@ void QuESo::Compute(){
             const auto bounding_box_uvw = mMapper.GetBoundingBoxUVWFromIndex(index);
 
             // Construct element and check status:
-            Unique<Element> new_element = MakeUnique<Element>(index+1, bounding_box_xyz, bounding_box_uvw);
+            Unique<ElementType> new_element = MakeUnique<ElementType>(index+1, bounding_box_xyz, bounding_box_uvw);
             bool valid_element = false;
 
             // Distinguish between trimmed and non-trimmed elements.
@@ -142,7 +142,7 @@ void QuESo::Compute(){
                 // If valid solve moment fitting equation
                 if( valid_element ){
                     Timer timer_moment_fitting{};
-                    QuadratureTrimmedElement::AssembleIPs(*new_element, polynomial_order, moment_fitting_residual, echo_level);
+                    QuadratureTrimmedElement<ElementType>::AssembleIPs(*new_element, polynomial_order, moment_fitting_residual, echo_level);
                     et_moment_fitting += timer_moment_fitting.Measure();
 
                     if( new_element->GetIntegrationPoints().size() == 0 ){
@@ -153,7 +153,7 @@ void QuESo::Compute(){
             else if( status == IntersectionStatus::Inside){
                 // Get standard gauss legendre points
                 if( !ggq_rule_ise_used ){
-                    QuadratureSingleElement::AssembleIPs(*new_element, polynomial_order, integration_method);
+                    QuadratureSingleElement<ElementType>::AssembleIPs(*new_element, polynomial_order, integration_method);
                 }
                 valid_element = true;
             }
@@ -184,7 +184,7 @@ void QuESo::Compute(){
         const Vector3i number_of_elements = mParameters.Get<Vector3i>("number_of_elements");
         const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
         const IntegrationMethodType integration_method = mParameters.IntegrationMethod();
-        QuadratureMultipleElements::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
+        QuadratureMultipleElements<ElementType>::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
     }
 
     // Average time spent for each task
