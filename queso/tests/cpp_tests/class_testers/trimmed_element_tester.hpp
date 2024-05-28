@@ -11,12 +11,13 @@ namespace Testing {
 
 // Make protected funtions public for testing.
 // This function shall only be used for testing!
-class QuadratureTrimmedElementTester : public QuadratureTrimmedElement {
+template<typename TElementType>
+class QuadratureTrimmedElementTester : public QuadratureTrimmedElement<TElementType> {
 public:
-    using QuadratureTrimmedElement::DistributeIntegrationPoints;
-    using QuadratureTrimmedElement::ComputeConstantTerms;
-    using QuadratureTrimmedElement::MomentFitting;
-    using QuadratureTrimmedElement::PointElimination;
+    using QuadratureTrimmedElement<TElementType>::DistributeIntegrationPoints;
+    using QuadratureTrimmedElement<TElementType>::ComputeConstantTerms;
+    using QuadratureTrimmedElement<TElementType>::MomentFitting;
+    using QuadratureTrimmedElement<TElementType>::PointElimination;
 };
 
 } // End namespace Tester

@@ -59,10 +59,12 @@ public:
     bool IsInside(const PointType& rPoint) const;
 
     ///@brief Returns intersections state of element.
+    ///@tparam TElementType
     ///@note Calls: GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL)
     ///@param rElement
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const Element& rElement) const {
+    template<typename TElementType>
+    IntersectionStatus GetIntersectionState(const TElementType& rElement) const {
         const auto& lower_bound = rElement.GetBoundsXYZ().first;
         const auto& upper_bound = rElement.GetBoundsXYZ().second;
         return GetIntersectionState(lower_bound, upper_bound);

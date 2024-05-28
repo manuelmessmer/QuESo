@@ -28,10 +28,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
-    typedef Unique<BoundaryIPVectorType> BoundaryIPVectorPtrType;
     typedef Unique<TriangleMesh> TriangleMeshPtrType;
-    typedef std::pair<PointType, PointType> BoundingBox;
 
     ///@}
     ///@name Life Cycle
@@ -85,7 +82,6 @@ public:
 
             MeshUtilities::Refine(*(mpTriangleMesh.get()), MinNumberOfTriangles);
         }
-
     }
 
     ///@}
@@ -123,8 +119,10 @@ public:
     }
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
+    /// @tparam BoundaryIntegrationPointType
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    BoundaryIPVectorPtrType pGetBoundaryIps() const;
+    template<typename BoundaryIntegrationPointType>
+    Unique<std::vector<BoundaryIntegrationPointType>> pGetBoundaryIps() const;
 
     ///@brief Returns intersections state of AABB. This is an interface for the octree.
     ///@note This test is only performed on the mClippedMesh to be more efficient.
@@ -137,7 +135,7 @@ public:
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
-    const BoundingBox GetBoundingBoxOfTrimmedDomain() const;
+    const BoundingBoxType GetBoundingBoxOfTrimmedDomain() const;
 
     ///@}
 private:

@@ -20,6 +20,9 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( PointEliminationTestSuite )
 
 void RunCylinder(const Vector3i& rOrder, double Residual){
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Parameters parameters( {Component("lower_bound_xyz", Vector3d{-1.5, -1.5, -1.0}),
                             Component("upper_bound_xyz", Vector3d{1.5, 1.5, 12.0}),
@@ -48,8 +51,8 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
         // Construct element
-        Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw));
+        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
+                               MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
@@ -62,7 +65,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, rOrder, Residual);
+                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, rOrder, Residual);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-6);
@@ -74,15 +77,15 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 QuESo_CHECK_GT(r_points.size(), rOrder[0]*rOrder[1]*rOrder[2]);
 
                 // Get copy of points.
-                Element::IntegrationPointVectorType copy_points(r_points);
+                ElementType::IntegrationPointVectorType copy_points(r_points);
 
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
-                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
-                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, rOrder);
+                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps<BoundaryIntegrationPoint>();
+                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, rOrder);
 
                 // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, rOrder);
+                const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, rOrder);
 
                 // Check if residual and weights are the same.
                 QuESo_CHECK_NEAR( residual, residual_2, EPS4 );
@@ -123,6 +126,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test) {
 BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     QuESo_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
 
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     Parameters parameters( {Component("lower_bound_xyz", Vector3d{-130.0, -110.0, -110.0}),
                             Component("upper_bound_xyz", Vector3d{-40, 10.0, 10.0}),
                             Component("lower_bound_uvw", Vector3d{-130.0, -110.0, -110.0}),
@@ -151,8 +158,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
         // Construct element
-        Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw));
+        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
+                               MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
@@ -165,7 +172,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, {2, 2, 2}, 1e-8);
+                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-8);
@@ -176,15 +183,15 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 QuESo_CHECK_GT(r_points.size(), 7);
 
                 // Get copy of points.
-                Element::IntegrationPointVectorType copy_points(r_points);
+                ElementType::IntegrationPointVectorType copy_points(r_points);
 
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
-                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
-                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
+                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps<BoundaryIntegrationPoint>();
+                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
 
                 // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
+                const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
 
                 // Check if residual and weights are the same.
                 QuESo_CHECK_LT( residual, residual_2+EPS4 );
@@ -211,6 +218,10 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
 BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     QuESo_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
+
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Parameters parameters( {Component("lower_bound_xyz", Vector3d{-0.4, -0.6, -0.35}),
                             Component("upper_bound_xyz", Vector3d{0.4, 0.6, 0.35}),
@@ -240,8 +251,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
         // Construct element
-        Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw));
+        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
+                               MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
             // Get trimmed domain
@@ -254,7 +265,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester::AssembleIPs(element, {2, 2, 2}, 1e-8);
+                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-8);
@@ -265,15 +276,15 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 QuESo_CHECK_GT(r_points.size(), 7);
 
                 // Get copy of points.
-                Element::IntegrationPointVectorType copy_points(r_points);
+                ElementType::IntegrationPointVectorType copy_points(r_points);
 
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
-                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps();
-                QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
+                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps<BoundaryIntegrationPointType>();
+                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
 
                 // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
+                const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
 
                 // Check if residual and weights are the same.
                 QuESo_CHECK_LT( residual, residual_2+EPS4 );

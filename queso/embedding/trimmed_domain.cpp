@@ -12,9 +12,6 @@
 
 namespace queso {
 
-typedef TrimmedDomain::BoundaryIPVectorPtrType BoundaryIPVectorPtrType;
-typedef TrimmedDomain::BoundingBox BoundingBox;
-
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
 
     const IndexType num_triangles = mClippedMesh.NumOfTriangles();
@@ -58,9 +55,9 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
     return is_inside;
 }
 
-const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
+const BoundingBoxType TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     // Initialize bounding box
-    BoundingBox bounding_box = { {MAXD, MAXD, MAXD},
+    BoundingBoxType bounding_box = { {MAXD, MAXD, MAXD},
                                  {LOWESTD, LOWESTD, LOWESTD} };
 
     // Loop over all vertices
@@ -80,14 +77,15 @@ const BoundingBox TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     return bounding_box;
 }
 
-BoundaryIPVectorPtrType TrimmedDomain::pGetBoundaryIps() const{
+template<typename BoundaryIntegrationPointType>
+Unique<std::vector<BoundaryIntegrationPointType>> TrimmedDomain::pGetBoundaryIps() const{
     // Pointer to boundary integration points
-    auto p_boundary_ips = MakeUnique<BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<std::vector<BoundaryIntegrationPointType>>();
 
     p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*12UL);
     for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
         IndexType method = 3; // Creates 12 points per triangle.
-        auto p_new_points = mpTriangleMesh->pGetIPsGlobal(triangle_id, method);
+        auto p_new_points = mpTriangleMesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
         p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
@@ -108,5 +106,8 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;
 }
+
+/// Explicit function instantiation
+template Unique<std::vector<BoundaryIntegrationPoint>> TrimmedDomain::pGetBoundaryIps<BoundaryIntegrationPoint>() const;
 
 } // End namespace queso

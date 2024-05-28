@@ -40,6 +40,10 @@ void CheckTriangleOrientation(const TriangleMesh& rTriangleMesh){
 void RunTest(const std::string& rFilename, const Parameters& rParameters,
             const std::string& rResultsFilename, IndexType NumTrimmedElements){
 
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, rFilename.c_str());
 
@@ -72,8 +76,8 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
         const Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
         // Construct element
-        Element element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                           MakeBox(lower_bound_uvw, upper_bound_uvw));
+        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
+                               MakeBox(lower_bound_uvw, upper_bound_uvw));
 
         auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area_test += MeshUtilities::Area(*p_clipped_mesh);
@@ -94,10 +98,10 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
             volume_test += MeshUtilities::Volume(r_mesh);
 
             // Get boundary integration points
-            auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+            auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps<BoundaryIntegrationPointType>();
 
             std::vector<double> constant_terms{};
-            QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, order);
+            QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, order);
 
             // Read and ignore header
             getline(file, line);

@@ -15,6 +15,7 @@
 #include "includes/define.hpp"
 #include "containers/element_container.hpp"
 #include "containers/element.hpp"
+#include "containers/boundary_integration_point.hpp"
 #include "containers/condition.hpp"
 #include "utilities/mapping_utilities.h"
 #include "includes/parameters.h"
@@ -37,7 +38,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<Element> ElementVectorType;
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef ElementContainer<ElementType> ElementContainerType;
+
+    typedef std::vector<ElementType> ElementVectorType;
     typedef std::vector<Condition> ConditionVectorType;
     typedef std::vector<Unique<BRepOperator>> BRepOperatorPtrVectorType;
 
@@ -82,7 +88,7 @@ public:
 
     /// @brief Get all active elements.
     /// @return const Reference to ElementVectorPtrType
-    const ElementContainer& GetElements() const {
+    const ElementContainerType& GetElements() const {
         return *mpElementContainer;
     }
 
@@ -124,7 +130,7 @@ private:
     TriangleMesh mTriangleMesh;
     Unique<BRepOperator> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
-    Unique<ElementContainer> mpElementContainer;
+    Unique<ElementContainerType> mpElementContainer;
     ConditionVectorType mConditions;
     const Parameters mParameters;
     Mapper mMapper;

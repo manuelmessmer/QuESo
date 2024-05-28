@@ -195,7 +195,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
@@ -216,7 +216,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
@@ -239,7 +239,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
 
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
@@ -287,7 +287,7 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
         Math::AddSelf(directional_areas, Math::Mult(area, normal) );
 
         // Get integration points
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){

@@ -18,16 +18,21 @@
 #include "containers/condition.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/mesh_utilities.h"
-#include "io/io_utilities.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<queso::PointType> PointVectorType;
-typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
-typedef std::vector<queso::IntegrationPoint> IntegrationPointVectorType;
-typedef std::vector<queso::Unique<queso::Element>> ElementVectorPtrType;
+typedef queso::IntegrationPoint IntegrationPointType;
+typedef queso::BoundaryIntegrationPoint BoundaryIntegrationPointType;
+typedef queso::Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+typedef queso::ElementContainer<ElementType> ElementContainerType;
+
+typedef ElementType::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
+typedef ElementType::IntegrationPointVectorType IntegrationPointVectorType;
+typedef std::vector<BoundaryIntegrationPointType> BoundaryIpVectorType;
+
+typedef std::vector<queso::Unique<ElementType>> ElementVectorPtrType;
 typedef std::vector<queso::Condition> ConditionVectorType;
 typedef std::vector<queso::ConditionParameters> ConditionParametersVectorType;
-typedef std::vector<queso::BoundaryIntegrationPoint> BoundaryIpVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
@@ -133,14 +138,14 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export Integration Points
-    py::class_<IntegrationPoint, Unique<IntegrationPoint>>(m, "IntegrationPoint")
+    py::class_<IntegrationPointType, Unique<IntegrationPointType>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
-        .def("X", [](const IntegrationPoint& self){return self[0];} )
-        .def("Y", [](const IntegrationPoint& self){return self[1];} )
-        .def("Z", [](const IntegrationPoint& self){return self[2];} )
-        .def("__getitem__",  [](const IntegrationPoint &v, IndexType i){return v[i];} )
-        .def("Weight", &IntegrationPoint::Weight)
-        .def("SetWeight", &IntegrationPoint::SetWeight)
+        .def("X", [](const IntegrationPointType& self){return self[0];} )
+        .def("Y", [](const IntegrationPointType& self){return self[1];} )
+        .def("Z", [](const IntegrationPointType& self){return self[2];} )
+        .def("__getitem__",  [](const IntegrationPointType &v, IndexType i){return v[i];} )
+        .def("Weight", &IntegrationPointType::Weight)
+        .def("SetWeight", &IntegrationPointType::SetWeight)
     ;
 
     /// Export IntegrationPoint Vector
@@ -149,9 +154,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export BoundaryIntegrationPoint
-    py::class_<BoundaryIntegrationPoint, Unique<BoundaryIntegrationPoint>, IntegrationPoint>(m, "BoundaryIntegrationPoint")
+    py::class_<BoundaryIntegrationPointType, Unique<BoundaryIntegrationPointType>, IntegrationPointType>(m, "BoundaryIntegrationPoint")
         .def(py::init<double, double, double, double, const std::array<double,3>& >())
-        .def("Normal", &BoundaryIntegrationPoint::Normal )
+        .def("Normal", &BoundaryIntegrationPointType::Normal )
     ;
 
     /// Export BoundaryIntegrationPoint Vector
@@ -168,7 +173,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
         .def("Area", [](TriangleMesh& self, IndexType Id){
             return self.Area(Id); })
         .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
-            return self.pGetIPsGlobal(Id, Method); })
+            return self.pGetIPsGlobal<BoundaryIntegrationPointType>(Id, Method); })
         .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
         .def("P1", &TriangleMesh::P1)
         .def("P2", &TriangleMesh::P2)
@@ -198,25 +203,25 @@ PYBIND11_MODULE(QuESo_Application,m) {
     ;
 
     /// Export Element
-    py::class_<Element, Unique<Element>>(m,"Element")
-        .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (Element::*)() const>(&Element::GetIntegrationPoints)
+    py::class_<ElementType, Unique<ElementType>>(m,"Element")
+        .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (ElementType::*)() const>(&ElementType::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
-        .def("LowerBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().first; })
-        .def("UpperBoundXYZ", [](const Element& rElement ){ return rElement.GetBoundsXYZ().second; })
-        .def("LowerBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().first; })
-        .def("UpperBoundUVW", [](const Element& rElement ){ return rElement.GetBoundsUVW().second; })
-        .def("GetNumberBoundaryTriangles", [](const Element& rElement ){
+        .def("LowerBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().first; })
+        .def("UpperBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().second; })
+        .def("LowerBoundUVW", [](const ElementType& rElement ){ return rElement.GetBoundsUVW().first; })
+        .def("UpperBoundUVW", [](const ElementType& rElement ){ return rElement.GetBoundsUVW().second; })
+        .def("GetNumberBoundaryTriangles", [](const ElementType& rElement ){
             return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
         })
-        .def("ID", &Element::GetId)
-        .def("IsTrimmed", &Element::IsTrimmed)
+        .def("ID", &ElementType::GetId)
+        .def("IsTrimmed", &ElementType::IsTrimmed)
     ;
 
     /// Export Element Container
-    py::class_<ElementContainer, Unique<ElementContainer>>(m, "ElementContainer")
+    py::class_<ElementContainerType, Unique<ElementContainerType>>(m, "ElementContainer")
         .def(py::init<const Parameters&>())
-        .def("__len__", [](const ElementContainer &v) { return v.size(); })
-        .def("__iter__", [](ElementContainer &v) {
+        .def("__len__", [](const ElementContainerType &v) { return v.size(); })
+        .def("__iter__", [](ElementContainerType &v) {
             return py::make_iterator( v.begin(), v.end() );
         }, py::keep_alive<0, 1>())
     ;

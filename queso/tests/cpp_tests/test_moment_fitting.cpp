@@ -27,6 +27,10 @@ BOOST_AUTO_TEST_SUITE( MomentFittingTestSuite )
 BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
 
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
                             Component("upper_bound_xyz", PointType{2.0, 2.0, 3.0}),
                             Component("number_of_elements", Vector3i{1, 1, 1}),
@@ -36,17 +40,17 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, MakeBox({0, 0, 0}, {1, 1, 3.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
+    ElementType element(1, MakeBox({0, 0, 0}, {1, 1, 3.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
     PointType point_b_domain = {1.0, 1.0, 3.0};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
-    auto p_boundary_ips = MakeUnique<TrimmedDomain::BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
-            auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
+            auto p_new_points = p_triangle_mesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
@@ -55,7 +59,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    QuadratureSingleElement::AssembleIPs(element, polynomial_order, integration_method);
+    QuadratureSingleElement<ElementType>::AssembleIPs(element, polynomial_order, integration_method);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -63,13 +67,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 
     // Run Moment Fitting
     std::vector<double> constant_terms{};
-    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, polynomial_order);
-    QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, polynomial_order);
+    QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, polynomial_order);
+    QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, polynomial_order);
     auto& points_moment_fitting = element.GetIntegrationPoints();
 
     // Get Gauss points as reference
-    Element::IntegrationPointVectorType points_gauss_legendre{};
-    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
+    ElementType::IntegrationPointVectorType points_gauss_legendre{};
+    QuadratureSingleElement<ElementType>::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
         element.GetBoundsUVW().second, {2, 2, 2});
 
     double error_norm = 0.0;
@@ -89,6 +93,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
 BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
 
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
                             Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
                             Component("number_of_elements", Vector3i{1, 1, 1}),
@@ -98,7 +106,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-    Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
+    ElementType element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
@@ -106,10 +114,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
-    auto p_boundary_ips = MakeUnique<TrimmedDomain::BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
-            auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
+            auto p_new_points = p_triangle_mesh->pGetIPsGlobal<BoundaryIntegrationPoint>(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
@@ -118,7 +126,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    QuadratureSingleElement::AssembleIPs(element, polynomial_order, integration_method);
+    QuadratureSingleElement<ElementType>::AssembleIPs(element, polynomial_order, integration_method);
     // Make sure weights are disturbed.
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -126,13 +134,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     // Run Moment Fitting
     std::vector<double> constant_terms{};
-    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, polynomial_order);
-    QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, polynomial_order);
+    QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, polynomial_order);
+    QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, polynomial_order);
     auto& points_moment_fitting = element.GetIntegrationPoints();
 
     // Get Gauss points as reference
-    Element::IntegrationPointVectorType points_gauss_legendre{};
-    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
+    ElementType::IntegrationPointVectorType points_gauss_legendre{};
+    QuadratureSingleElement<ElementType>::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
         element.GetBoundsUVW().second, {3, 3, 3});
 
     double error_norm = 0.0;
@@ -152,6 +160,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
 
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
                             Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
                             Component("number_of_elements", Vector3i{1, 1, 1}),
@@ -160,7 +172,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
                             Component("integration_method", IntegrationMethod::Gauss),
                             Component("use_customized_trimmed_points", false) });
 
-     Element element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
+     ElementType element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
@@ -168,10 +180,10 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
-    auto p_boundary_ips = MakeUnique<TrimmedDomain::BoundaryIPVectorType>();
+    auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
-            auto p_new_points = p_triangle_mesh->pGetIPsGlobal(triangle_id, method);
+            auto p_new_points = p_triangle_mesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
@@ -180,7 +192,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
-    QuadratureSingleElement::AssembleIPs(element, polynomial_order, integration_method);
+    QuadratureSingleElement<ElementType>::AssembleIPs(element, polynomial_order, integration_method);
     // Make sure weights are disturbed.param
     for( auto& point : element.GetIntegrationPoints() ){
         point.SetWeight(0.0);
@@ -188,13 +200,13 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 
     // Run Moment Fitting
     std::vector<double> constant_terms{};
-    QuadratureTrimmedElementTester::ComputeConstantTerms(constant_terms, p_boundary_ips, element, polynomial_order);
-    QuadratureTrimmedElementTester::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, polynomial_order);
+    QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, polynomial_order);
+    QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, element.GetIntegrationPoints(), element, polynomial_order);
     auto& points_moment_fitting = element.GetIntegrationPoints();
 
     // Get Gauss points as reference
-    Element::IntegrationPointVectorType points_gauss_legendre{};
-    QuadratureSingleElement::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
+    ElementType::IntegrationPointVectorType points_gauss_legendre{};
+    QuadratureSingleElement<ElementType>::AssembleIPs(points_gauss_legendre, element.GetBoundsUVW().first,
         element.GetBoundsUVW().second, polynomial_order);
 
     double error_norm = 0.0;

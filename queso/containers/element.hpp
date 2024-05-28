@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <memory>
 //// Project includes
-#include "containers/integration_point.hpp"
 #include "embedding/trimmed_domain.h"
 #include "includes/parameters.h"
 #include "utilities/mapping_utilities.h"
@@ -23,6 +22,7 @@ namespace queso {
  * @author Manuel Messmer
  * @brief  Element/Knot Spans. Stores quadrature points and trimmed domain (if element is trimmed).
 */
+template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
 class Element
 {
 
@@ -32,7 +32,11 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    typedef TIntegrationPointType IntegrationPointType;
+    typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
+    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
+    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
+
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
     typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
 
