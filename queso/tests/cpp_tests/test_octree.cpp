@@ -20,6 +20,10 @@ BOOST_AUTO_TEST_SUITE( Octree_TestSuite )
 
 BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     QuESo_INFO << "Testing :: Test Octree :: Test Cube 1" << std::endl;
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     /// Uniform refinement, each node has 8 children.
 
     // Read mesh from STL file
@@ -34,7 +38,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
-    Octree octree(p_trimmed_domain.get(), MakeBox({-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3}),
+    Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3}),
                                           MakeBox({-1.0, -1.0, -1.0},{1.0, 1.0, 1.0}) );
 
     // Refine octree to level 5.
@@ -48,7 +52,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 32768UL); // 8^5
 
     Vector3i r_order{2, 3, 1};
-    auto p_points = octree.pGetIntegrationPoints(r_order);
+    auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
     QuESo_CHECK_EQUAL( p_points->size(), 786432 );
     double volume = 0.0;
     for( auto point : (*p_points)){
@@ -59,6 +63,10 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 
 BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     QuESo_INFO << "Testing :: Test Octree :: Test Cube 2" << std::endl;
+
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
     /// Refinement in only on trimmed nodes in one direction.
 
     // Read mesh from STL file
@@ -73,7 +81,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
-    Octree octree(p_trimmed_domain.get(), MakeBox({-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3}),
+    Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3}),
                                           MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
     // Refine octree to level 5.
@@ -82,7 +90,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 596UL);   // 4^1+4^2+4^3+4^4*2
 
     Vector3i r_order{0, 0, 0};
-    auto p_points = octree.pGetIntegrationPoints(r_order);
+    auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
 
     QuESo_CHECK_EQUAL( p_points->size(), 596 );
     double volume = 0.0;
@@ -94,6 +102,10 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
 BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     QuESo_INFO << "Testing :: Test Octree :: Test Elephant" << std::endl;
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     // Compute volume of elephant through octree.
 
     // Read mesh from STL file
@@ -109,7 +121,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
-    Octree octree(p_trimmed_domain.get(), MakeBox({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}),
+    Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}),
                                           MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Refine octree to level 5.
@@ -117,7 +129,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
 
     // Check if integration points contain same volume as ref_volume
     Vector3i r_order{2, 2, 2};
-    auto p_points = octree.pGetIntegrationPoints(r_order);
+    auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
 
     QuESo_CHECK_EQUAL( octree.NumberOfNodes(), 3887 );
     QuESo_CHECK_EQUAL( p_points->size(), 45186 );
@@ -129,7 +141,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
 
     // Refine inner levels -> volume must the same as before.
     octree.Refine(5, 5);
-    auto p_points_2 = octree.pGetIntegrationPoints(r_order);
+    auto p_points_2 = octree.pGetIntegrationPoints<ElementType>(r_order);
     QuESo_CHECK_EQUAL( p_points_2->size(), 60873);
     double volume_2 = 0.0;
     for( auto point : (*p_points_2)){

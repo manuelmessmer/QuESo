@@ -55,7 +55,7 @@ std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTri
 
     for( IndexType triangle_id = 0; triangle_id < rTriangleMesh.NumOfTriangles(); ++triangle_id){
         area += rTriangleMesh.Area(triangle_id);
-        auto p_ips = rTriangleMesh.pGetIPsGlobal(triangle_id, 1);
+        auto p_ips = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(triangle_id, 1);
         for( auto& ip : (*p_ips) ){
             Math::AddSelf(weighted_normal, Math::Mult(ip.Weight(), rTriangleMesh.Normal(triangle_id)) );
         }
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
-                    const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+                    const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps<BoundaryIntegrationPoint>();
                     auto mesh = p_trimmed_domain->GetTriangleMesh();
                     volume += MeshUtilities::Volume(mesh);
                 }

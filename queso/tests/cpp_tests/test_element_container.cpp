@@ -16,16 +16,21 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
 
-Unique<ElementContainer> CreateTestElementContainer(Vector3i rNumberOfElemnts){
+typedef IntegrationPoint IntegrationPointType;
+typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+typedef ElementContainer<ElementType> ElementContainerType;
+
+Unique<ElementContainerType> CreateTestElementContainer(Vector3i rNumberOfElemnts){
 
     Parameters param( {Component("number_of_elements", rNumberOfElemnts) } );
-    Unique<ElementContainer> container = MakeUnique<ElementContainer>(param);
+    Unique<ElementContainerType> container = MakeUnique<ElementContainerType>(param);
 
     IndexType number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
     for( IndexType i = 1; i <= number_elements; ++i){
         PointType tmp_point_A = {0.0, 0.0, 0.0};
         PointType tmp_point_B = {0.1, 0.1, 0.1};
-        Unique<Element> tmp_element = MakeUnique<Element>(i, MakeBox(tmp_point_A, tmp_point_B),
+        Unique<ElementType> tmp_element = MakeUnique<ElementType>(i, MakeBox(tmp_point_A, tmp_point_B),
                                                              MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
         if( i != 10)
             container->AddElement(tmp_element);

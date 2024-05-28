@@ -23,6 +23,10 @@ namespace Testing{
 BOOST_AUTO_TEST_SUITE( Thingi10KTestSuite )
 
 BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     QuESo_INFO << "Testing :: Test Thingi10k :: STL embedding test.\n";
 
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
@@ -105,7 +109,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
                     auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
+                    ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
                     auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
                     test_area += MeshUtilities::Area(*p_clipped_mesh);
@@ -148,6 +152,10 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 }
 
 BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
+    typedef IntegrationPoint IntegrationPointType;
+    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+
     QuESo_INFO << "Testing :: Test Thingi10k :: Element classification.\n";
 
     // This test does not paralize the outer loop, such that FloodFillTester::ClassifyElementsForTest() (inside the loop) can be run locally in parallel.
@@ -266,7 +274,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
                     IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
                     auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    Element element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
+                    ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
                     auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
 
