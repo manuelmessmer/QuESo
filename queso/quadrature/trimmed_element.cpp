@@ -19,7 +19,8 @@ namespace queso {
 
 typedef std::vector<double> VectorType;
 
-void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree,
+template<typename TElementType>
+void QuadratureTrimmedElement<TElementType>::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree,
                                                            SizeType MinNumPoints, const Vector3i& rIntegrationOrder){
     IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
     const IndexType max_iteration = 5UL;
@@ -33,8 +34,9 @@ void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVecto
     }
 }
 
-void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs,
-                                                    const Element& rElement, const Vector3i& rIntegrationOrder){
+template<typename TElementType>
+void QuadratureTrimmedElement<TElementType>::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs,
+                                                    const ElementType& rElement, const Vector3i& rIntegrationOrder){
 
     // Initialize const variables.
     const auto bounds_xyz = rElement.GetBoundsXYZ();
@@ -112,8 +114,9 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
-void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints,
-                                                    const Element& rElement, const Vector3i& rIntegrationOrder){
+template<typename TElementType>
+void QuadratureTrimmedElement<TElementType>::ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints,
+                                                    const ElementType& rElement, const Vector3i& rIntegrationOrder){
 
     // Initialize const variables.
     const PointType& a = rElement.GetBoundsUVW().first;
@@ -154,7 +157,8 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
-double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel){
+template<typename TElementType>
+double QuadratureTrimmedElement<TElementType>::AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel){
 
     // Get boundary integration points.
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
@@ -223,7 +227,8 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& 
     return residual;
 }
 
-double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Vector3i& rIntegrationOrder){
+template<typename TElementType>
+double QuadratureTrimmedElement<TElementType>::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const ElementType& rElement, const Vector3i& rIntegrationOrder){
 
 
     PointType a = rElement.GetBoundsUVW().first;
@@ -276,8 +281,8 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     return rel_residual;
 }
 
-
-double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Vector3i& rIntegrationOrder, double Residual) {
+template<typename TElementType>
+double QuadratureTrimmedElement<TElementType>::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual) {
 
     /// Initialize variables.
     const SizeType ffactor = 1;
