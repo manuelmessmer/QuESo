@@ -21,7 +21,7 @@ void QuadratureSingleElement<TElementType>::AssembleIPs(ElementType& rElement, c
 }
 
 template<typename TElementType>
-void QuadratureSingleElement<TElementType>::AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
+void QuadratureSingleElement<TElementType>::AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
         const Vector3i& rOrder, IntegrationMethodType Method ){
 
     const auto p_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
@@ -53,6 +53,9 @@ void QuadratureSingleElement<TElementType>::AssembleIPs(IntegrationPointType& rI
         }
     }
 }
+
+/// Explicit class instantiation
+template class QuadratureSingleElement<Element<IntegrationPoint, BoundaryIntegrationPoint>>;
 
 } // End namespace queso
 

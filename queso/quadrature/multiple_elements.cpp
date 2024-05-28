@@ -351,9 +351,10 @@ void QuadratureMultipleElements<TElementType>::StoreIntegrationPoints(std::vecto
                 }
             }
         }
-
     }
-
 }
+
+/// Explicit class instantiation
+template class QuadratureMultipleElements<Element<IntegrationPoint, BoundaryIntegrationPoint>>;
 
 } // namespace queso

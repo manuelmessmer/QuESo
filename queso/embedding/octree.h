@@ -71,7 +71,7 @@ private:
         /// @param rOrder Order of Gauss quadrature.
         /// @param pOperator Operator to perfrom Inside/Outside test.
         template<typename TElementType>
-        void GetIntegrationPoints(typename TElementType::IntegrationPointType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
+        void GetIntegrationPoints(typename TElementType::IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
 
         /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
         /// @param[out] rValue // Return value

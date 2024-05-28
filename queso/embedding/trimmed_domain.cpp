@@ -107,4 +107,7 @@ IntersectionStatusType TrimmedDomain::GetIntersectionState(
     return status;
 }
 
+/// Explicit function instantiation
+template Unique<std::vector<BoundaryIntegrationPoint>> TrimmedDomain::pGetBoundaryIps<BoundaryIntegrationPoint>() const;
+
 } // End namespace queso

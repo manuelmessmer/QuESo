@@ -32,6 +32,7 @@ public:
         ///@{
         typedef TElementType ElementType;
         typedef typename ElementType::IntegrationPointType IntegrationPointType;
+        typedef typename ElementType::IntegrationPointVectorType IntegrationPointVectorType;
 
         ///@}
         ///@name Operations
@@ -50,7 +51,7 @@ public:
         /// @param rUpperBoundParam LowerBound of element in parametric space.
         /// @param rOrder Order of quadrature rule.
         /// @param Method Integration method: Default - Gauss.
-        static void AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
+        static void AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
                                 const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss );
         ///@}
 

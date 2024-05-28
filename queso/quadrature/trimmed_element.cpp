@@ -28,7 +28,7 @@ void QuadratureTrimmedElement<TElementType>::DistributeIntegrationPoints(Integra
     while( rIntegrationPoint.size() < MinNumPoints && iteration < max_iteration){
         rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
         rIntegrationPoint.clear();
-        rOctree.AddIntegrationPoints(rIntegrationPoint, rIntegrationOrder);
+        rOctree.template AddIntegrationPoints<TElementType>(rIntegrationPoint, rIntegrationOrder);
         refinemen_level++;
         iteration++;
     }
@@ -162,7 +162,7 @@ double QuadratureTrimmedElement<TElementType>::AssembleIPs(ElementType& rElement
 
     // Get boundary integration points.
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
-    const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+    const auto p_boundary_ips = p_trimmed_domain->template pGetBoundaryIps<typename TElementType::BoundaryIntegrationPointType>();
 
     // Get constant terms.
     VectorType constant_terms{};
@@ -389,6 +389,9 @@ double QuadratureTrimmedElement<TElementType>::PointElimination(const VectorType
         return global_residual;
     }
 }
+
+/// Explicit class instantiation
+template class QuadratureTrimmedElement<Element<IntegrationPoint, BoundaryIntegrationPoint>>;
 
 } // End namespace queso
 

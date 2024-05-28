@@ -18,7 +18,6 @@
 #include "containers/condition.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "utilities/mesh_utilities.h"
-#include "io/io_utilities.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<queso::PointType> PointVectorType;
