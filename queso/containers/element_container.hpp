@@ -24,15 +24,15 @@ namespace queso {
  * @note Only active elements/knot spans are stored.
  * @todo Refactor. Store elements as unique_ptr
 */
-template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
+template<typename TElementType>
 class ElementContainer {
 
 public:
     ///@name Type Defintitions
     ///@{
-    typedef TIntegrationPointType IntegrationPointType;
-    typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TElementType ElementType;
+    typedef typename ElementType::IntegrationPointType IntegrationPointType;
+    typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
 
     typedef Unique<ElementType> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
@@ -78,36 +78,36 @@ public:
         return nullptr;
     }
 
-    DereferenceIterator<std::vector<std::unique_ptr<ElementType>>::iterator> begin() {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin() {
         return dereference_iterator(mElements.begin());
     }
 
 
-    DereferenceIterator<std::vector<std::unique_ptr<ElementType>>::const_iterator> begin() const {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> begin() const {
         return dereference_iterator(mElements.begin());
     }
 
-    DereferenceIterator<std::vector<std::unique_ptr<ElementType>>::iterator> end() {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> end() {
         return dereference_iterator(mElements.end());
     }
 
-    DereferenceIterator<std::vector<std::unique_ptr<ElementType>>::const_iterator> end() const {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end() const {
         return dereference_iterator(mElements.end());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<ElementType>>::iterator> begin_to_ptr() {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin_to_ptr() {
         return raw_pointer_iterator(mElements.begin());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<ElementType>>::const_iterator> begin_to_ptr() const {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> begin_to_ptr() const {
         return raw_pointer_iterator(mElements.begin());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<ElementType>>::iterator> end_to_ptr() {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> end_to_ptr() {
         return raw_pointer_iterator(mElements.end());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<ElementType>>::const_iterator> end_to_ptr() const {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end_to_ptr() const {
         return raw_pointer_iterator(mElements.end());
     }
 
