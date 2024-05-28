@@ -66,7 +66,8 @@ public:
   /// @param Filename
   /// @param Binary
   /// @return bool
-  static bool WriteElementsToVTK(const ElementContainer& rElementContainer,
+  template<typename TElementType>
+  static bool WriteElementsToVTK(const ElementContainer<TElementType>& rElementContainer,
                                  const char* Filename,
                                  const bool Binary);
 
@@ -76,7 +77,8 @@ public:
   /// @param Filename
   /// @param Binary
   /// @return bool
-  static bool WritePointsToVTK(const ElementContainer& rElementContainer,
+  template<typename TElementType>
+  static bool WritePointsToVTK(const ElementContainer<TElementType>& rElementContainer,
                                const char* Type,
                                const char* Filename,
                                const bool Binary);

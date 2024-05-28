@@ -206,7 +206,8 @@ bool IO::WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
     return true;
 }
 
-bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //PolygonMesh
+template<typename TElementType>
+bool IO::WriteElementsToVTK(const ElementContainer<TElementType>& rElementContainer, //PolygonMesh
                             const char* Filename,
                             const bool Binary){
 
@@ -326,8 +327,8 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
     return true;
 }
 
-
-bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
+template<typename TElementType>
+bool IO::WritePointsToVTK(const ElementContainer<TElementType>& rElementContainer,
                           const char* type,
                           const char* Filename,
                           const bool Binary){
