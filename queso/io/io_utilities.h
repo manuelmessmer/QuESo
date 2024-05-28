@@ -24,7 +24,6 @@ namespace queso {
 class IO{
 
 public:
-
   ///@name Operations
   ///@{
 
@@ -62,6 +61,7 @@ public:
                                      const char* Filename,
                                      const bool Binary);
   /// @brief Write element container to VTK-file.
+  /// @tparam TElementType
   /// @param rElementContainer
   /// @param Filename
   /// @param Binary
@@ -72,6 +72,7 @@ public:
                                  const bool Binary);
 
   /// @brief Write points to VTK. Interface for ElementContainer.
+  /// @tparam TElementType
   /// @param rElementContainer
   /// @param Type
   /// @param Filename

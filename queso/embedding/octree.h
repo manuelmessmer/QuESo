@@ -29,9 +29,6 @@ private:
     ///@name Type Definitions
     ///@{
 
-    // typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-    // typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
-
     /**
      * @class  Octree::Node
      * @author Manuel Messmer
@@ -65,6 +62,7 @@ private:
         void Refine(IndexType MinLevel, IndexType MaxLevel, const TOperator* pOperator);
 
         /// @brief Recursive function (walks through octree) to get integration points.
+        /// @tparam TElementType
         /// @details Distributes Gauss points (according to rOrder) and adds all points to pPoints that are
         ///          inside the domain.
         /// @param[out] pPoints IntegrationPointVectorType
@@ -150,6 +148,7 @@ public:
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
     ///        But only points that are inside the domain are considered.
     ///        Also see: AddIntegrationPoints()
+    /// @tparam TElementType
     /// @param rOrder Order of Gauss quadrature.
     /// @return IntegrationPointVectorPtrType
     template<typename TElementType>
@@ -159,6 +158,7 @@ public:
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
     ///        But only points that are inside the domain are considered.
     ///        Also see: pGetIntegrationPoints().
+    /// @tparam TElementType
     /// @param rPoints Vector of integration points.
     /// @param rOrder Order of Gauss quadrature.
     template<typename TElementType>

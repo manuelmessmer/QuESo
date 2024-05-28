@@ -34,10 +34,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // typedef std::vector<IntegrationPointType> IpVectorType;
-    // typedef Unique<IpVectorType> IpVectorPtrType;
-    // typedef std::vector<BoundaryIntegrationPointType> BoundaryIpVectorType;
-    // typedef Unique<BoundaryIpVectorType> BoundaryIpVectorPtrType;
     typedef std::vector<std::vector<std::tuple<IndexType, IndexType, IndexType>>> EdgesOnPlanesVectorType;
 
     ///@}
@@ -87,6 +83,7 @@ public:
     }
 
     /// @brief Get boundary integration points in global space.
+    /// @tparam TBoundaryIntegrationPointType
     /// @param TriangleId
     /// @param Method integration method.
     /// @return BoundaryIpVectorPtrType.

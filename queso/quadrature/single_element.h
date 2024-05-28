@@ -21,6 +21,7 @@ namespace queso {
  * @class  QuadratureSingleElement. Provides assembly opeartions for tensor-product quadrature rules of single non-trimmed element.
  * @author Manuel Messmer
  * @brief  Provides assembly for 3D quadrature rules.
+ * @tparam TElementType
  * @details Available Quadrature rules:
  *          {Gauss, Gauss_Reduced1, Gauss_Reduced2}
 */
@@ -30,6 +31,7 @@ class QuadratureSingleElement {
 public:
         ///@name Type Definitions
         ///@{
+
         typedef TElementType ElementType;
         typedef typename ElementType::IntegrationPointType IntegrationPointType;
         typedef typename ElementType::IntegrationPointVectorType IntegrationPointVectorType;

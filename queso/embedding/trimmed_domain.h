@@ -119,6 +119,7 @@ public:
     }
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
+    /// @tparam BoundaryIntegrationPointType
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     template<typename BoundaryIntegrationPointType>
     Unique<std::vector<BoundaryIntegrationPointType>> pGetBoundaryIps() const;

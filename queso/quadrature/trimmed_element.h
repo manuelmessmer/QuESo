@@ -23,6 +23,7 @@ namespace queso {
  * @class  QuadratureTrimmedElement.
  * @author Manuel Messmer
  * @brief  Provides functions to create integration rules for trimmed elements.
+ * @tparam TElementType
 **/
 template<typename TElementType>
 class QuadratureTrimmedElement{
