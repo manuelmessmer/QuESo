@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <memory>
 //// Project includes
-#include "containers/integration_point.hpp"
 #include "embedding/trimmed_domain.h"
 #include "includes/parameters.h"
 #include "utilities/mapping_utilities.h"
