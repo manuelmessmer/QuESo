@@ -21,7 +21,7 @@ struct PointComparison {
     };
 };
 
-bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
+bool IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
                         const char* Filename,
                         const bool Binary){
     std::ofstream file;
@@ -81,7 +81,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
     return true;
 }
 
-bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
+bool IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
                          const char* Filename){
 
     // Open file
@@ -92,7 +92,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
     }
 }
 
-bool IO::WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
+bool IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
                         const char* Filename,
                         const bool Binary) {
 
@@ -545,7 +545,7 @@ bool IO::STLIsInASCIIFormat(const char* Filename) {
 }
 
 
-bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
+bool IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                 const char* Filename){
     // Open file
     std::ifstream file(Filename);
@@ -619,7 +619,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
 
         // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
         // the given vertices.
-        const PointType normal = TriangleMesh::Normal(vertices[0], vertices[1], vertices[2]);
+        const PointType normal = TriangleMeshInterface::Normal(vertices[0], vertices[1], vertices[2]);
 
         rTriangleMesh.AddNormal( normal );
 
@@ -630,7 +630,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
     return rTriangleMesh.Check();
 }
 
-bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
+bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
                                 const char* Filename){
 
     // Open file
@@ -717,7 +717,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
 
         // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
         // the given vertices.
-        const PointType normal = TriangleMesh::Normal(vertices[0], vertices[1], vertices[2]);
+        const PointType normal = TriangleMeshInterface::Normal(vertices[0], vertices[1], vertices[2]);
 
         rTriangleMesh.AddNormal(normal);
 

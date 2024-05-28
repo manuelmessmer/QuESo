@@ -8,7 +8,7 @@
 #include "aabb_tree/AABB_base.h"
 //// Project includes
 #include "embedding/aabb_primitive.h"
-#include "containers/triangle_mesh.hpp"
+#include "containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 
@@ -37,7 +37,7 @@ public:
     /// @param SkinThickness The skin thickness for fattened AABBs, as a fraction
     ///                      of the AABB_base base length.
     /// @param TouchIsOverlap Does touching count as overlapping in query operations?
-    AABB_tree(const TriangleMesh& TriangleMesh ) :
+    AABB_tree(const TriangleMeshInterface& TriangleMesh ) :
             aabb_base::Tree_base(3, 0.0, 16,  false)
     {
         mLowerBound = {MAXD, MAXD, MAXD};

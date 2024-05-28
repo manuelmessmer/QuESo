@@ -18,7 +18,7 @@ typedef TrimmedDomainOnPlane::Edge2D Edge2D;
 typedef TrimmedDomainOnPlane::Point2DType Point2DType;
 typedef TrimmedDomainOnPlane::Point2DSetType Point2DSetType;
 
-void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
+void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMeshInterface &rTriangleMesh)
 {
     const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlanes();
     const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);

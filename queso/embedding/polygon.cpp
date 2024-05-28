@@ -66,7 +66,7 @@ void Polygon<SIZE>::Clear(){
 }
 
 template<IndexType SIZE>
-void Polygon<SIZE>::AddToTriangleMesh(TriangleMesh& rTriangleMesh) const {
+void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) const {
     if(mNumVertices < 3){
         return;
     }

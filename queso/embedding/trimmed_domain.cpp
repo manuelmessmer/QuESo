@@ -14,7 +14,7 @@ namespace queso {
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
 
-    const IndexType num_triangles = mClippedMesh.NumOfTriangles();
+    const IndexType num_triangles = mpClippedMesh->NumOfTriangles();
     if( num_triangles == 0){
         return true;
     }
@@ -30,7 +30,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         }
 
         // Get direction
-        const auto center_triangle = mClippedMesh.Center(current_id);
+        const auto center_triangle = mpClippedMesh->Center(current_id);
         Vector3d direction = Math::Subtract( center_triangle, rPoint );
 
         // Normalize
@@ -41,12 +41,12 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         Ray_AABB_primitive ray(rPoint, direction);
 
         // Get vertices of current triangle
-        const auto& p1 = mClippedMesh.P1(current_id);
-        const auto& p2 = mClippedMesh.P2(current_id);
-        const auto& p3 = mClippedMesh.P3(current_id);
+        const auto& p1 = mpClippedMesh->P1(current_id);
+        const auto& p2 = mpClippedMesh->P2(current_id);
+        const auto& p3 = mpClippedMesh->P3(current_id);
 
         // Make sure target triangle is not parallel and has a significant area.
-        const double area = mClippedMesh.Area(current_id);
+        const double area = mpClippedMesh->Area(current_id);
         if( !ray.is_parallel(p1, p2, p3, 100.0*mSnapTolerance) && area >  100*ZEROTOL) {
             std::tie(is_inside, success_local) = mGeometryQuery.IsInside(ray);
         }
