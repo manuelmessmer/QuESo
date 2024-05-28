@@ -123,7 +123,7 @@ public:
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    BoundaryIPVectorPtrType pGetBoundaryIps() const override;
+    BoundaryIPVectorPtrType pGetBoundaryIps() const;
 
     ///@brief Returns intersections state of AABB. This is an interface for the octree.
     ///@note This test is only performed on the mClippedMesh to be more efficient.
