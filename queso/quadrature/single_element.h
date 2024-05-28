@@ -9,7 +9,6 @@
 #include <array>
 //// Project includes
 #include "containers/element.hpp"
-#include "containers/integration_point.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
@@ -25,12 +24,14 @@ namespace queso {
  * @details Available Quadrature rules:
  *          {Gauss, Gauss_Reduced1, Gauss_Reduced2}
 */
+template<typename TElementType>
 class QuadratureSingleElement {
 
 public:
         ///@name Type Definitions
         ///@{
-        typedef std::vector<IntegrationPoint> IntegrationPointType;
+        typedef TElementType ElementType;
+        typedef typename ElementType::IntegrationPointType IntegrationPointType;
 
         ///@}
         ///@name Operations
@@ -40,7 +41,7 @@ public:
         /// @param rElement
         /// @param rOrder Order of quadrature rule.
         /// @param Method Integration method: Default - Gauss.
-        static void AssembleIPs(Element& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss);
+        static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss);
 
         /// @brief Assemble tensor product quadrature rules.
         /// @note This functions clears rIntegrationPoints.
