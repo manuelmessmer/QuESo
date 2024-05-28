@@ -180,8 +180,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                 if( status == IntersectionStatus::Trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps<BoundaryIntegrationPoint>();
-                    auto mesh = p_trimmed_domain->GetTriangleMesh();
-                    volume += MeshUtilities::Volume(mesh);
+                    const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+                    volume += MeshUtilities::Volume(r_mesh);
                 }
                 else if (status == IntersectionStatus::Inside ){
                     const auto p_cube_mesh = MeshUtilities::pGetCuboid(lower_bound, upper_bound);

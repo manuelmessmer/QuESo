@@ -122,8 +122,8 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                         // Get trimmed domain
                         auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second, min_vol_ratio, min_num_triangles);
                         if( p_trimmed_domain ){
-                            auto mesh = p_trimmed_domain->GetTriangleMesh();
-                            test_volume += MeshUtilities::Volume(mesh);
+                            const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+                            test_volume += MeshUtilities::Volume(r_mesh);
                         }
                     } else if( status == IntersectionStatus::Inside ){
                         test_volume += (box.second[0] - box.first[0])
