@@ -34,7 +34,10 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
     typedef TIntegrationPointType IntegrationPointType;
+    typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
     typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
+    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationVectorPointType;
+
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
     typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
 
