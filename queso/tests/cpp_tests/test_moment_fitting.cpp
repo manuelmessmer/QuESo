@@ -10,8 +10,8 @@
 // Project includes
 #include "includes/checks.hpp"
 #include "embedding/brep_operator.h"
-#include "quadrature/trimmed_element.h"
-#include "quadrature/single_element.h"
+#include "quadrature/trimmed_element.hpp"
+#include "quadrature/single_element.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "includes/parameters.h"
 #include "utilities/mapping_utilities.h"

@@ -8,7 +8,7 @@
 //// Project includes
 #include "includes/checks.hpp"
 #include "containers/element_container.hpp"
-#include "quadrature/trimmed_element.h"
+#include "quadrature/trimmed_element.hpp"
 #include "containers/triangle_mesh.hpp"
 #include "embedding/brep_operator.h"
 #include "io/io_utilities.h"

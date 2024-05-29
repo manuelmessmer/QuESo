@@ -4,7 +4,7 @@
 #ifndef TRIMMED_ELEMENT_TESTER_INCLUDE_HPP
 #define TRIMMED_ELEMENT_TESTER_INCLUDE_HPP
 
-#include "quadrature/trimmed_element.h"
+#include "quadrature/trimmed_element.hpp"
 
 namespace queso {
 namespace Testing {

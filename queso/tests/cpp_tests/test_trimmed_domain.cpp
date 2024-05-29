@@ -10,7 +10,7 @@
 #include "containers/triangle_mesh.hpp"
 #include "io/io_utilities.h"
 #include "embedding/brep_operator.h"
-#include "quadrature/trimmed_element.h"
+#include "quadrature/trimmed_element.hpp"
 #include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 namespace queso {
