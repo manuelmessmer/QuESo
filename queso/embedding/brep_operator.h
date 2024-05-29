@@ -44,7 +44,7 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
     ///@param rParameters QuESo parameters.
-    BRepOperator(const TriangleMesh& rTriangleMesh, bool Closed=true)
+    BRepOperator(const TriangleMeshInterface& rTriangleMesh, bool Closed=true)
         : mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed)
     {
     }
@@ -101,8 +101,8 @@ public:
     ///@see pClipTriangleMeshUnique().
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<TriangleMeshInterface>. Clipped mesh.
+    Unique<TriangleMeshInterface> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
     /// @brief Returns true, if AABB is intersected by at least one triangle.
     /// @param rLowerBound of AABB.
@@ -128,8 +128,8 @@ public:
     ///@see pClipTriangleMesh()
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<TriangleMeshInterface>. Clipped mesh.
+    Unique<TriangleMeshInterface> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
     ///@}
 
 private:
@@ -137,7 +137,7 @@ private:
     ///@name Private Members
     ///@{
 
-    const TriangleMesh& mTriangleMesh;
+    const TriangleMeshInterface& mTriangleMesh;
     GeometryQuery mGeometryQuery;
 
     ///@}

@@ -18,7 +18,7 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
 
-void CheckTriangleOrientation(const TriangleMesh& rTriangleMesh){
+void CheckTriangleOrientation(const TriangleMeshInterface& rTriangleMesh){
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         if( rTriangleMesh.Area(i) > EPS3 ){
             const auto& p0 = rTriangleMesh.P1(i);

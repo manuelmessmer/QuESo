@@ -201,7 +201,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
 }
 
 
-Unique<TriangleMesh> BRepOperator::pClipTriangleMesh(
+Unique<TriangleMeshInterface> BRepOperator::pClipTriangleMesh(
         const PointType& rLowerBound, const PointType& rUpperBound ) const {
 
     const double snap_tolerance = 0.1*RelativeSnapTolerance(rUpperBound, rLowerBound);
@@ -226,7 +226,7 @@ Unique<TriangleMesh> BRepOperator::pClipTriangleMesh(
 }
 
 
-Unique<TriangleMesh> BRepOperator::pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+Unique<TriangleMeshInterface> BRepOperator::pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
     const PointType offset{30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL};
     const auto lower_bound = Math::Add(rLowerBound, offset);
     const auto upper_bound = Math::Add(rUpperBound, offset);

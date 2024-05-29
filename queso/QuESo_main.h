@@ -56,12 +56,13 @@ public:
     QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
 
         mParameters.Check();
+        mpTriangleMesh = MakeUnique<TriangleMesh>();
         if( mParameters.Get<bool>("embedding_flag") ) {
             // Read main mesh
             if( mParameters.Get<std::string>("input_type") == "stl_file" ){
                 // Read mesh
                 const auto& r_filename = mParameters.Get<std::string>("input_filename");
-                IO::ReadMeshFromSTL(mTriangleMesh, r_filename.c_str());
+                IO::ReadMeshFromSTL(*mpTriangleMesh, r_filename.c_str());
                 QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
             }
             // Read conditions
@@ -108,7 +109,7 @@ public:
 
     /// @brief Clear all containers.
     void Clear() {
-        mTriangleMesh.Clear();
+        mpTriangleMesh->Clear();
         mpBRepOperator = nullptr;
         mpBrepOperatorsBC.clear();
         mpElementContainer = nullptr;
@@ -117,8 +118,8 @@ public:
 
     /// @brief Returns triangle mesh.
     /// @return const TriangleMesh&
-    const TriangleMesh& GetTriangleMesh() {
-        return mTriangleMesh;
+    const TriangleMeshInterface& GetTriangleMesh() {
+        return *mpTriangleMesh;
     }
 
     ///@}
@@ -127,7 +128,7 @@ private:
 
     ///@name Private Members Variables
     ///@{
-    TriangleMesh mTriangleMesh;
+    Unique<TriangleMeshInterface> mpTriangleMesh;
     Unique<BRepOperator> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainerType> mpElementContainer;

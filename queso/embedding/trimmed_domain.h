@@ -28,7 +28,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Unique<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
 
     ///@}
     ///@name Life Cycle
@@ -44,7 +44,7 @@ public:
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )
         : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound),
-          mClippedMesh(GetTriangleMesh()), mGeometryQuery(mClippedMesh, false)
+          mpClippedMesh(mpTriangleMesh->Clone()), mGeometryQuery(*mpClippedMesh, false)
     {
         // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
@@ -107,14 +107,14 @@ public:
     bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const;
 
     /// @brief Return ptr to Triangle mesh (Raw Ptr)
-    /// @return const TriangleMesh*
-    const TriangleMesh* const pGetTriangleMesh() const{
+    /// @return const TriangleMeshInterface*
+    const TriangleMeshInterface* const pGetTriangleMesh() const{
         return mpTriangleMesh.get();
     }
 
     /// @brief Return reference to triangle mesh
-    /// @return const TriangleMesh&
-    const TriangleMesh& GetTriangleMesh() const{
+    /// @return const TriangleMeshInterface&
+    const TriangleMeshInterface& GetTriangleMesh() const{
         return *(mpTriangleMesh.get());
     }
 
@@ -147,7 +147,7 @@ private:
     PointType mLowerBound;
     PointType mUpperBound;
 
-    TriangleMesh mClippedMesh;
+    Unique<TriangleMeshInterface> mpClippedMesh;
     GeometryQuery mGeometryQuery;
     double mSnapTolerance;
 

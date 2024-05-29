@@ -46,7 +46,7 @@ public:
     typedef enum Orientation OrientationType;
     typedef std::array<double, 2> Point2DType;
     typedef Vector3d Point3DType;
-    typedef Unique<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
 
     struct PointComparison {
         PointComparison(double Tolerance) : mTolerance(Tolerance){}
@@ -176,7 +176,7 @@ public:
     //    |     |</-- plane upper  Z
     //    |_____|/
     //
-    TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh, const BRepOperator* pOperator) {
+    TriangleMeshPtrType pGetTriangulation(const TriangleMeshInterface &rTriangleMesh, const BRepOperator* pOperator) {
         CollectEdgesOnPlane(rTriangleMesh);
         CloseContourEdges(pOperator);
         return TriangulateDomain();
@@ -208,7 +208,7 @@ private:
     ///        -----|----- Negative oriented.
     ///             V
     /// @param rTriangleMesh Clipped triangle mesh inside trimmed domain.
-    void CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh);
+    void CollectEdgesOnPlane(const TriangleMeshInterface &rTriangleMesh);
 
     ///@brief Refine edges on trimmed domain on plane. See @details for more information.
     ///@details 1.) Checks if positive oriented edges span the entire AABB (we consider only the part that is inside the domain) in DIRINDEX1.

@@ -26,18 +26,18 @@ void QuESo::Run()
     double volume_brep = 0.0;
     if( mParameters.Get<bool>("embedding_flag") ) {
         // Compute volume
-        volume_brep = MeshUtilities::VolumeOMP(mTriangleMesh);
+        volume_brep = MeshUtilities::VolumeOMP(*mpTriangleMesh);
         QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
 
         // Write Surface Mesh to vtk file if eco_level > 0
         if( mParameters.EchoLevel() > 0){
             const std::string output_filename = mParameters.Get<std::string>("output_directory_name") + "/geometry.vtk";
-            IO::WriteMeshToVTK(mTriangleMesh, output_filename.c_str(), true);
+            IO::WriteMeshToVTK(*mpTriangleMesh, output_filename.c_str(), true);
         }
     }
 
     // Construct BRepOperator
-    mpBRepOperator = MakeUnique<BRepOperator>(mTriangleMesh);
+    mpBRepOperator = MakeUnique<BRepOperator>(*mpTriangleMesh);
     for( const auto& r_condition : mConditions ){
         mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(r_condition.GetTriangleMesh() ) );
     }
@@ -200,7 +200,7 @@ void QuESo::Compute(){
 }
 
 Condition& QuESo::CreateNewCondition(const ConditionParameters& rConditionParameters){
-    Unique<TriangleMesh> p_new_mesh = MakeUnique<TriangleMesh>();
+    Unique<TriangleMeshInterface> p_new_mesh = MakeUnique<TriangleMesh>();
     if( rConditionParameters.Get<std::string>("input_type") == "stl_file" ) {
         const std::string& r_filename = rConditionParameters.Get<std::string>("input_filename");
         IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
@@ -216,7 +216,7 @@ void QuESo::Check() const {
     if( mParameters.EchoLevel() > 0 ){
         PointType lower_bound = mParameters.LowerBoundXYZ();
         PointType upper_bound = mParameters.UpperBoundXYZ();
-        auto bb_mesh = MeshUtilities::BoundingBox(mTriangleMesh);
+        auto bb_mesh = MeshUtilities::BoundingBox(*mpTriangleMesh);
         if( lower_bound[0] > bb_mesh.first[0]  ||
             lower_bound[1] > bb_mesh.first[1]  ||
             lower_bound[2] > bb_mesh.first[2]  ||

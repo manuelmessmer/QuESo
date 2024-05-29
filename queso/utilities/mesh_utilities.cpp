@@ -14,7 +14,7 @@ namespace queso {
 
 typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
 
-void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTriangles){
+void MeshUtilities::Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles){
     IndexType original_size = rTriangleMesh.NumOfTriangles();
     IndexType size = original_size;
 
@@ -66,14 +66,14 @@ void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTri
     }
 }
 
-void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh){
+void MeshUtilities::Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh){
     std::vector<IndexType> indices(rNewMesh.NumOfTriangles());
     /// Fill vector with number of increasing values: 0,1,2..
     std::iota( indices.begin(), indices.end(), 0 );
     Append(rTriangleMesh, rNewMesh, indices);
 }
 
-void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh, const std::vector<IndexType>& rIndices){
+void MeshUtilities::Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh, const std::vector<IndexType>& rIndices){
 
     const IndexType initial_number_triangles = rTriangleMesh.NumOfTriangles();
     const IndexType initial_number_vertices = rTriangleMesh.NumOfVertices();
@@ -121,7 +121,7 @@ void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNew
     }
 }
 
-Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
+Unique<TriangleMeshInterface> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
     //
     //     2_______3                 y
     //     /      /|                ´|`
@@ -181,7 +181,7 @@ Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, con
 }
 
 
-double MeshUtilities::Area(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::Area(const TriangleMeshInterface& rTriangleMesh){
     double area = 0.0;
     // Loop over all triangles
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
@@ -190,7 +190,7 @@ double MeshUtilities::Area(const TriangleMesh& rTriangleMesh){
     return area;
 }
 
-double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles
@@ -210,7 +210,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     return std::abs(1.0/3.0*volume);
 }
 
-double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::VolumeOMP(const TriangleMeshInterface& rTriangleMesh){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles in omp parallel.
@@ -231,7 +231,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     return std::abs(1.0/3.0*volume);
 }
 
-double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
+double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh, IndexType Dir){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
 
@@ -254,7 +254,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
     return std::abs(volume);
 }
 
-double MeshUtilities::MaxAspectRatio(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::MaxAspectRatio(const TriangleMeshInterface& rTriangleMesh){
     double max_aspect_ratio = MIND;
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         const double aspect_ratio = rTriangleMesh.AspectRatio(i);
@@ -265,7 +265,7 @@ double MeshUtilities::MaxAspectRatio(const TriangleMesh& rTriangleMesh){
     return max_aspect_ratio;
 }
 
-double MeshUtilities::AverageAspectRatio(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::AverageAspectRatio(const TriangleMeshInterface& rTriangleMesh){
     double average_aspect_ratio = 0.0;
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         average_aspect_ratio += rTriangleMesh.AspectRatio(i);
@@ -273,7 +273,7 @@ double MeshUtilities::AverageAspectRatio(const TriangleMesh& rTriangleMesh){
     return average_aspect_ratio/rTriangleMesh.NumOfTriangles();
 }
 
-double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
+double MeshUtilities::EstimateQuality(const TriangleMeshInterface& rTriangleMesh ){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     double total_volume_1 = 0.0;
     double total_volume_2 = 0.0;
@@ -308,7 +308,7 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
 }
 
 
-std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMesh& rTriangleMesh) {
+std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMeshInterface& rTriangleMesh) {
     PointType lower_bound = {MAXD, MAXD, MAXD};
     PointType upper_bound = {LOWESTD, LOWESTD, LOWESTD};
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
