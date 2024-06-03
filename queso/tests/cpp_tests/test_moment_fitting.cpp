@@ -8,16 +8,16 @@
 //// STL includes
 #include "math.h"
 // Project includes
-#include "includes/checks.hpp"
-#include "embedding/brep_operator.h"
-#include "quadrature/trimmed_element.hpp"
-#include "quadrature/single_element.hpp"
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "includes/parameters.h"
-#include "utilities/mapping_utilities.h"
-#include "utilities/mesh_utilities.h"
-#include "io/io_utilities.h"
-#include "tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
+#include "queso/includes/checks.hpp"
+#include "queso/embedding/brep_operator.h"
+#include "queso/quadrature/trimmed_element.hpp"
+#include "queso/quadrature/single_element.hpp"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/includes/parameters.h"
+#include "queso/utilities/mapping_utilities.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/io/io_utilities.h"
+#include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 namespace queso {
 namespace Testing {

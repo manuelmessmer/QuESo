@@ -8,8 +8,8 @@
 #include <vector>
 #include <array>
 //// Project includes
-#include "containers/element.hpp"
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/containers/element.hpp"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
 

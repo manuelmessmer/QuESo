@@ -6,8 +6,8 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "includes/checks.hpp"
-#include "includes/parameters.h"
+#include "queso/includes/checks.hpp"
+#include "queso/includes/parameters.h"
 
 namespace queso {
 namespace Testing {

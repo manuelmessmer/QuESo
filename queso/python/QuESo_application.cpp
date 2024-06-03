@@ -10,14 +10,14 @@
 #include <iostream>
 #include <vector>
 //// Project includes
-#include "QuESo_main.h"
-#include "containers/element.hpp"
-#include "containers/element_container.hpp"
-#include "containers/triangle_mesh.hpp"
-#include "containers/integration_point.hpp"
-#include "containers/condition.hpp"
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "utilities/mesh_utilities.h"
+#include "queso/QuESo_main.h"
+#include "queso/containers/element.hpp"
+#include "queso/containers/element_container.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/integration_point.hpp"
+#include "queso/containers/condition.hpp"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/utilities/mesh_utilities.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<queso::PointType> PointVectorType;
