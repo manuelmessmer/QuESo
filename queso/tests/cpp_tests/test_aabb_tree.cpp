@@ -8,10 +8,10 @@
 //// STL includes
 #include <set>
 //// Project includes
-#include "includes/checks.hpp"
-#include "containers/triangle_mesh.hpp"
-#include "io/io_utilities.h"
-#include "embedding/aabb_tree.h"
+#include "queso/includes/checks.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/io/io_utilities.h"
+#include "queso/embedding/aabb_tree.h"
 
 namespace queso {
 namespace Testing {

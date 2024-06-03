@@ -6,10 +6,10 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "includes/checks.hpp"
-#include "containers/triangle_mesh.hpp"
-#include "io/io_utilities.h"
-#include "embedding/brep_operator.h"
+#include "queso/includes/checks.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/io/io_utilities.h"
+#include "queso/embedding/brep_operator.h"
 
 namespace queso {
 namespace Testing {

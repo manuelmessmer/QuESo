@@ -7,14 +7,14 @@
 #include <omp.h>
 
 //// Project includes
-#include "QuESo_main.h"
-#include "io/io_utilities.h"
-#include "utilities/mesh_utilities.h"
-#include "embedding/brep_operator.h"
-#include "quadrature/single_element.hpp"
-#include "quadrature/trimmed_element.hpp"
-#include "quadrature/multiple_elements.hpp"
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/QuESo_main.h"
+#include "queso/io/io_utilities.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/embedding/brep_operator.h"
+#include "queso/quadrature/single_element.hpp"
+#include "queso/quadrature/trimmed_element.hpp"
+#include "queso/quadrature/multiple_elements.hpp"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
 

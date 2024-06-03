@@ -9,12 +9,12 @@
 //// STL includes
 #include <string>
 //// Project includes
-#include "containers/triangle_mesh.hpp"
-#include "io/io_utilities.h"
-#include "embedding/brep_operator.h"
-#include "utilities/mesh_utilities.h"
-#include "embedding/flood_fill.h"
-#include "tests/cpp_tests/class_testers/flood_fill_tester.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/io/io_utilities.h"
+#include "queso/embedding/brep_operator.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/embedding/flood_fill.h"
+#include "queso/tests/cpp_tests/class_testers/flood_fill_tester.hpp"
 
 namespace queso {
 namespace Testing{

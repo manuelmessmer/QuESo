@@ -6,10 +6,10 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "includes/checks.hpp"
-#include "utilities/mapping_utilities.h"
-#include "io/io_utilities.h"
-#include "QuESo_main.h"
+#include "queso/includes/checks.hpp"
+#include "queso/utilities/mapping_utilities.h"
+#include "queso/io/io_utilities.h"
+#include "queso/QuESo_main.h"
 
 namespace queso {
 namespace Testing {

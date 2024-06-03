@@ -8,10 +8,10 @@
 //// STL includes
 
 //// Project includes
-#include "includes/checks.hpp"
-#include "containers/triangle_mesh.hpp"
-#include "embedding/brep_operator.h"
-#include "embedding/octree.h"
+#include "queso/includes/checks.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/octree.h"
 
 namespace queso {
 namespace Testing {

@@ -4,7 +4,7 @@
 #ifndef FLOOD_FILL_TESTER_INCLUDE_HPP
 #define FLOOD_FILL_TESTER_INCLUDE_HPP
 
-#include "embedding/flood_fill.h"
+#include "queso/embedding/flood_fill.h"
 
 namespace queso {
 namespace Testing {

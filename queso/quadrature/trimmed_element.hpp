@@ -10,12 +10,12 @@
 #include <variant>
 #include <numeric>
 //// Project includes
-#include "embedding/octree.h"
-#include "containers/element.hpp"
-#include "containers/boundary_integration_point.hpp"
-#include "includes/parameters.h"
-#include "utilities/polynomial_utilities.h"
-#include "solvers/nnls.h"
+#include "queso/embedding/octree.h"
+#include "queso/containers/element.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
+#include "queso/includes/parameters.h"
+#include "queso/utilities/polynomial_utilities.h"
+#include "queso/solvers/nnls.h"
 
 namespace queso {
 

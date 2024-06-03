@@ -6,7 +6,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "includes/checks.hpp"
+#include "queso/includes/checks.hpp"
 
 namespace queso {
 namespace Testing {

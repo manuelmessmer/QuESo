@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
 # Include local directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

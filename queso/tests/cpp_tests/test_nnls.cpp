@@ -6,9 +6,9 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
-#include "includes/checks.hpp"
-#include "solvers/nnls.h"
-#include "includes/logger.hpp"
+#include "queso/includes/checks.hpp"
+#include "queso/solvers/nnls.h"
+#include "queso/includes/logger.hpp"
 
 namespace queso {
 namespace Testing {
