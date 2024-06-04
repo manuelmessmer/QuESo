@@ -7,7 +7,7 @@
 //         Quadrature for Embedded Solids
 //
 //  License:    BSD 4-Clause License
-//			    See: https://github.com/manuelmessmer/QuESo/blob/main/LICENSE
+//              See: https://github.com/manuelmessmer/QuESo/blob/main/LICENSE
 //
 //  Authors:    Manuel Messmer
 
