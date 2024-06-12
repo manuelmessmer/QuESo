@@ -55,38 +55,19 @@ public:
     ///@{
 
     /// Constructor
-    ElementContainer(const Parameters& rParameters){
-        mNumberOfElements = rParameters.NumberOfElements();
-        mLastElementId = 0;
+    ElementContainer(const Parameters& rParameters) : mLastElementId(0), mNumberOfElements(rParameters.NumberOfElements())
+    {
     }
-
-    // Delete copy constructor
+    /// Destructor
+    ~ElementContainer() = default;
+    /// Copy Constructor
     ElementContainer(ElementContainer const& rOther) = delete;
+    /// Assignement Operator
+    ElementContainer& operator=(ElementContainer const& rOther) = delete;
 
     ///@}
-    ///@name Operations
+    ///@name Get Iterators
     ///@{
-
-    const ElementType& GetElement(std::size_t id) const{
-        return *pGetElement(id);
-    }
-
-    const ElementType* pGetElement(std::size_t id) const {
-        auto found_key = mElementIdMap.find(id);
-        if( found_key == mElementIdMap.end() )
-            QuESo_ERROR << "ID does not exist.\n";
-        return mElements[found_key->second].get();
-    }
-
-    ElementType* pGetElement(std::size_t id, bool& found){
-        auto found_key = mElementIdMap.find(id);
-        found = false;
-        if( found_key != mElementIdMap.end() ){
-            found = true;
-            return mElements[found_key->second].get();
-        }
-        return nullptr;
-    }
 
     DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin() {
         return dereference_iterator(mElements.begin());
@@ -119,6 +100,31 @@ public:
 
     RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end_to_ptr() const {
         return raw_pointer_iterator(mElements.end());
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    const ElementType& GetElement(std::size_t id) const{
+        return *pGetElement(id);
+    }
+
+    const ElementType* pGetElement(std::size_t id) const {
+        auto found_key = mElementIdMap.find(id);
+        if( found_key == mElementIdMap.end() )
+            QuESo_ERROR << "ID does not exist.\n";
+        return mElements[found_key->second].get();
+    }
+
+    ElementType* pGetElement(std::size_t id, bool& found){
+        auto found_key = mElementIdMap.find(id);
+        found = false;
+        if( found_key != mElementIdMap.end() ){
+            found = true;
+            return mElements[found_key->second].get();
+        }
+        return nullptr;
     }
 
     const ElementVectorPtrType& GetElements() const{
@@ -435,9 +441,9 @@ private:
     ///@{
 
     int mLastElementId;
-    ElementVectorPtrType mElements{};
-    ElementIdMapType mElementIdMap{};
-    Vector3i mNumberOfElements{};
+    Vector3i mNumberOfElements;
+    ElementVectorPtrType mElements;
+    ElementIdMapType mElementIdMap;
     ///@}
 }; // End class Element container
 ///@} // End QuESo classes
