@@ -25,53 +25,53 @@ namespace queso {
 typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
 
 void MeshUtilities::Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles){
-    IndexType original_size = rTriangleMesh.NumOfTriangles();
-    IndexType size = original_size;
-
-    double max_area = -1.0;
-    for( IndexType pos = 0; pos < size; ++pos){
-        max_area = std::max<double>( max_area, rTriangleMesh.Area(pos));
-    }
-
-    const auto& r_vertices = rTriangleMesh.GetVertices();
-    rTriangleMesh.Reserve(4*size);
-    IndexType pos = 0;
-    while( pos < size ){
-        // Make sure this is a copy!!
-        auto vertex_ids = rTriangleMesh.VertexIds(pos);
-        const Vector3d p1 = r_vertices[vertex_ids[0]];
-        const Vector3d p2 = r_vertices[vertex_ids[1]];
-        const Vector3d p3 = r_vertices[vertex_ids[2]];
-
-        const double area = rTriangleMesh.Area(pos);
-        if( area > 0.5*max_area ){
-            IndexType e1 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p1, p2) );
-            IndexType e2 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p2, p3) );
-            IndexType e3 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p3, p1) );
-
-            const auto normal = rTriangleMesh.Normal(pos);
-            rTriangleMesh.AddTriangle( {vertex_ids[0], e1, e3} );
-            rTriangleMesh.AddTriangle( {e1, vertex_ids[1], e2} );
-            rTriangleMesh.AddTriangle( {e2, vertex_ids[2], e3} );
-            rTriangleMesh.AddTriangle( {e1, e2, e3} );
-            rTriangleMesh.AddNormal( normal );
-            rTriangleMesh.AddNormal( normal );
-            rTriangleMesh.AddNormal( normal );
-            rTriangleMesh.AddNormal( normal );
-            size += 4;
-
-            rTriangleMesh.RemoveTriangle(pos);
-            rTriangleMesh.RemoveNormal(pos);
-            --size;
-        } else {
-            ++pos;
-        }
-        if( pos > original_size ){
-            rTriangleMesh.Reserve(4*original_size);
-            original_size = size;
-        }
-    }
     if( rTriangleMesh.NumOfTriangles() < MinNumberOfTriangles ){
+        IndexType original_size = rTriangleMesh.NumOfTriangles();
+        IndexType size = original_size;
+
+        double max_area = -1.0;
+        for( IndexType pos = 0; pos < size; ++pos){
+            max_area = std::max<double>( max_area, rTriangleMesh.Area(pos));
+        }
+
+        const auto& r_vertices = rTriangleMesh.GetVertices();
+        rTriangleMesh.Reserve(4*size);
+        IndexType pos = 0;
+        while( pos < size ){
+            // Make sure this is a copy!!
+            auto vertex_ids = rTriangleMesh.VertexIds(pos);
+            const Vector3d p1 = r_vertices[vertex_ids[0]];
+            const Vector3d p2 = r_vertices[vertex_ids[1]];
+            const Vector3d p3 = r_vertices[vertex_ids[2]];
+
+            const double area = rTriangleMesh.Area(pos);
+            if( area > 0.5*max_area ){
+                IndexType e1 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p1, p2) );
+                IndexType e2 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p2, p3) );
+                IndexType e3 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p3, p1) );
+
+                const auto normal = rTriangleMesh.Normal(pos);
+                rTriangleMesh.AddTriangle( {vertex_ids[0], e1, e3} );
+                rTriangleMesh.AddTriangle( {e1, vertex_ids[1], e2} );
+                rTriangleMesh.AddTriangle( {e2, vertex_ids[2], e3} );
+                rTriangleMesh.AddTriangle( {e1, e2, e3} );
+                rTriangleMesh.AddNormal( normal );
+                rTriangleMesh.AddNormal( normal );
+                rTriangleMesh.AddNormal( normal );
+                rTriangleMesh.AddNormal( normal );
+                size += 4;
+
+                rTriangleMesh.RemoveTriangle(pos);
+                rTriangleMesh.RemoveNormal(pos);
+                --size;
+            } else {
+                ++pos;
+            }
+            if( pos > original_size ){
+                rTriangleMesh.Reserve(4*original_size);
+                original_size = size;
+            }
+        }
         Refine(rTriangleMesh, MinNumberOfTriangles );
     }
 }

@@ -19,7 +19,6 @@
 #include <memory>
 //// Project includes
 #include "queso/embedding/trimmed_domain.h"
-#include "queso/includes/parameters.h"
 #include "queso/utilities/mapping_utilities.h"
 
 namespace queso {
@@ -30,12 +29,12 @@ namespace queso {
 /**
  * @class  Element
  * @author Manuel Messmer
- * @brief  Element/Knot Spans. Stores quadrature points and trimmed domain (if element is trimmed).
+ * @brief  Element/Knot Spans. Is is defined by a simpe bounding box in physical and in parametric space.
+ *         Stores quadrature points and trimmed domain (if element is trimmed).
 */
 template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
 class Element
 {
-
 public:
 
     ///@name Type Defintitions
@@ -58,14 +57,20 @@ public:
     ///@param ElementId UniqueID
     ///@param rBoundXYZ Bounds of Element in physical space.
     ///@param rBoundUVW Bounds of Element in parametric space.
-    ///@param rParam QuESo Parameters.
     Element(IndexType ElementId, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW) :
-            mElementId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW) {
-        mIsTrimmed = false;
+                mElementId(ElementId), mIsTrimmed(false), mIsVisited(false), mBoundsXYZ(rBoundXYZ),
+                mBoundsUVW(rBoundUVW), mpTrimmedDomain(nullptr)
+    {
     }
 
+    // Destructor
+    ~Element() = default;
+
     // Delete copy constructor
-    Element(Element const& rOther) = delete;
+    Element(const Element& rOther) = delete;
+
+    // Assignement operator
+    Element& operator=(const Element& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -85,23 +90,23 @@ public:
 
     /// @brief Return Id of this element.
     /// @return IndexType
-    const IndexType GetId() const{
+    const IndexType GetId() const {
         return mElementId;
     }
 
     /// @brief Returns true if element is trimmed.
     /// @return bool
-    bool IsTrimmed() const{
+    bool IsTrimmed() const {
         return mIsTrimmed;
     }
 
-    /// @brief Returns Vector of integration points.
+    /// @brief Returns Vector of integration points. (non-const)
     /// @return IntegrationPointVectorType&
     IntegrationPointVectorType& GetIntegrationPoints() {
         return mIntegrationPoints;
     }
 
-    /// @brief Returns const& Vector of integration points.
+    /// @brief Returns const& Vector of integration points. (const)
     /// @return const IntegrationPointVectorType&
     const IntegrationPointVectorType& GetIntegrationPoints() const{
         return mIntegrationPoints;
@@ -187,7 +192,7 @@ public:
 
     /// @brief Get neighbour coeefficient of this element. Required for assembly of GGQ rule. See: multiple_elements.hpp.
     /// @return double
-    double NeighbourCoefficient(){
+    double NeighbourCoefficient() const {
         return mNumberOfNeighbours[0]*mNumberOfNeighbours[1]*mNumberOfNeighbours[2];
     }
 
@@ -208,21 +213,21 @@ private:
 
     ///@name Private member variables
     ///@{
-    IntegrationPointVectorType mIntegrationPoints{};
+    IntegrationPointVectorType mIntegrationPoints;
 
-    IntegrationPoint1DVectorType mIntegrationPointsX{};
-    IntegrationPoint1DVectorType mIntegrationPointsY{};
-    IntegrationPoint1DVectorType mIntegrationPointsZ{};
+    IntegrationPoint1DVectorType mIntegrationPointsX;
+    IntegrationPoint1DVectorType mIntegrationPointsY;
+    IntegrationPoint1DVectorType mIntegrationPointsZ;
 
-    IndexType mElementId{};
-    bool mIsTrimmed{};
-    bool mIsVisited{};
+    const IndexType mElementId;
+    bool mIsTrimmed;
+    bool mIsVisited;
 
-    const BoundingBoxType mBoundsXYZ{};
-    const BoundingBoxType mBoundsUVW{};
+    const BoundingBoxType mBoundsXYZ;
+    const BoundingBoxType mBoundsUVW;
 
-    TrimmedDomainPtrType mpTrimmedDomain = nullptr;
-    PointType mNumberOfNeighbours{};
+    TrimmedDomainPtrType mpTrimmedDomain;
+    PointType mNumberOfNeighbours;
     ///@}
 }; // End class Element
 ///@} // QuESo classes
