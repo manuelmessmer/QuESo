@@ -13,7 +13,8 @@
     },
     "trimmed_quadrature_rule_settings"     : {
         "moment_fitting_residual": 1e-8,
-        "min_element_volume_ratio": 1e-3
+        "min_element_volume_ratio": 1e-3,
+        "min_num_boundary_triangles": 200
     },
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
