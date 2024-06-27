@@ -42,11 +42,11 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     Vector3d upper_bound = {-1.5, 2, 2};
 
     AABB_primitive aabb(lower_bound, upper_bound);
-    auto results = tree.Query(aabb);
+    const auto p_results = tree.Query(aabb);
 
     std::vector<IndexType> intersected_triangles{};
 
-    for( auto r : results){
+    for( auto r : (*p_results)){
         const auto& p1 = triangle_mesh.P1(r);
         const auto& p2 = triangle_mesh.P2(r);
         const auto& p3 = triangle_mesh.P3(r);
@@ -76,11 +76,11 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     Vector3d upper_bound = {5.0, 2, 2};
 
     AABB_primitive aabb(lower_bound, upper_bound);
-    auto results = tree.Query(aabb);
+    const auto p_results = tree.Query(aabb);
 
     std::vector<IndexType> intersected_triangles{};
 
-    for( auto r : results){
+    for( auto r : (*p_results)){
         const auto& p1 = triangle_mesh.P1(r);
         const auto& p2 = triangle_mesh.P2(r);
         const auto& p3 = triangle_mesh.P3(r);
@@ -117,11 +117,11 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     AABB_primitive aabb(lower_bound, upper_bound);
 
     // This test is conservative and must detect triangle.
-    auto results = tree.Query(aabb);
+    const auto p_results = tree.Query(aabb);
 
     std::vector<IndexType> intersected_triangles{};
 
-    for( auto r : results){
+    for( auto r : (*p_results)){
         const auto& p1 = triangle_mesh.P1(r);
         const auto& p2 = triangle_mesh.P2(r);
         const auto& p3 = triangle_mesh.P3(r);
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
                 Vector3d upper_bound = {xx+0.1, yy+0.1, zz+0.1};
 
                 AABB_primitive aabb(lower_bound, upper_bound);
-                auto results = tree.Query(aabb);
+                const auto p_results = tree.Query(aabb);
 
                 TriangleMesh new_mesh{};
 
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
 
                 std::vector<IndexType> intersected_triangles{};
 
-                for( auto r : results){
+                for( auto r : (*p_results)){
                     const auto& p1 = triangle_mesh.P1(r);
                     const auto& p2 = triangle_mesh.P2(r);
                     const auto& p3 = triangle_mesh.P3(r);
@@ -217,10 +217,10 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
                 Vector3d upper_bound = {xx+0.02, yy+0.02, zz+0.02};
 
                 AABB_primitive aabb(lower_bound, upper_bound);
-                auto results = tree.Query(aabb);
+                const auto p_results = tree.Query(aabb);
 
                 std::vector<IndexType> intersected_triangles{};
-                for( auto r : results){
+                for( auto r : (*p_results)){
                     const auto& p1 = triangle_mesh.P1(r);
                     const auto& p2 = triangle_mesh.P2(r);
                     const auto& p3 = triangle_mesh.P3(r);
@@ -271,10 +271,10 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
                 Vector3d upper_bound = {xx+2, yy+2, zz+2};
 
                 AABB_primitive aabb(lower_bound, upper_bound);
-                auto results = tree.Query(aabb);
+                const auto p_results = tree.Query(aabb);
 
                 std::vector<IndexType> intersected_triangles{};
-                for( auto r : results){
+                for( auto r : (*p_results)){
                     const auto& p1 = triangle_mesh.P1(r);
                     const auto& p2 = triangle_mesh.P2(r);
                     const auto& p3 = triangle_mesh.P3(r);

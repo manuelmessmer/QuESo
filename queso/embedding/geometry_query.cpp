@@ -30,10 +30,10 @@ namespace queso {
 
     bool GeometryQuery::DoIntersect(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const {
         AABB_primitive aabb(rLowerBound, rUpperBound);
-        auto result = mTree.Query(aabb);
+        const auto p_result = mTree.Query(aabb);
 
         const double snap_tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, Tolerance);
-        for( auto r : result){
+        for( auto r : (*p_result)){
             const auto& p1 = mTriangleMesh.P1(r);
             const auto& p2 = mTriangleMesh.P2(r);
             const auto& p3 = mTriangleMesh.P3(r);
@@ -49,11 +49,11 @@ namespace queso {
 
         // Perform fast search based on aabb tree. Conservative search.
         AABB_primitive aabb(rLowerBound, rUpperBound);
-        auto potential_intersections = mTree.Query(aabb);
+        const auto p_potential_intersections = mTree.Query(aabb);
 
         auto intersected_triangle_ids = MakeUnique<std::vector<IndexType>>();
-        intersected_triangle_ids->reserve(potential_intersections.size());
-        for( auto triangle_id : potential_intersections){
+        intersected_triangle_ids->reserve(p_potential_intersections->size());
+        for( auto triangle_id : (*p_potential_intersections)){
             const auto& p1 = mTriangleMesh.P1(triangle_id);
             const auto& p2 = mTriangleMesh.P2(triangle_id);
             const auto& p3 = mTriangleMesh.P3(triangle_id);
@@ -70,8 +70,8 @@ namespace queso {
     std::pair<bool, bool> GeometryQuery::IsInsideOpen( const Ray_AABB_primitive& rRay ) const {
         double min_distance = MAXD;
         bool is_inside = false;
-        auto potential_intersections = mTree.Query(rRay);
-        for( auto r : potential_intersections){
+        const auto p_potential_intersections = mTree.Query(rRay);
+        for( auto r : (*p_potential_intersections)){
             const auto& p1 = mTriangleMesh.P1(r);
             const auto& p2 = mTriangleMesh.P2(r);
             const auto& p3 = mTriangleMesh.P3(r);
@@ -100,9 +100,9 @@ namespace queso {
 
     std::pair<bool, bool> GeometryQuery::IsInsideClosed( const Ray_AABB_primitive& rRay ) const {
         // Get potential ray intersections from AABB tree.
-        auto potential_intersections = mTree.Query(rRay);
+        const auto p_potential_intersections = mTree.Query(rRay);
         IndexType intersection_count = 0;
-        for( auto r : potential_intersections){
+        for( auto r : (*p_potential_intersections)){
             const auto& p1 = mTriangleMesh.P1(r);
             const auto& p2 = mTriangleMesh.P2(r);
             const auto& p3 = mTriangleMesh.P3(r);
