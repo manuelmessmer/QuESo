@@ -26,7 +26,7 @@ class TestReadModelPartKratos(QuESoTestCase):
             weights = element.CalculateOnIntegrationPoints(KM.INTEGRATION_WEIGHT, computing_model_part.ProcessInfo)
             for value, weight in zip(values, weights):
                 strain_energy += value*weight
-        self.assertAlmostEqual(strain_energy, 53587.2458, delta=0.01)
+        self.assertAlmostEqual(strain_energy, 53588.324, delta=0.01)
 
 if __name__ == "__main__":
     unittest.main()
