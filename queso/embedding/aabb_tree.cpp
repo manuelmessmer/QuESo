@@ -31,13 +31,13 @@ bool AABB_tree::IsWithinBoundingBox(const PointType& rPoint) const {
 }
 
 
-std::vector<IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primitive) const
+Unique<std::vector<IndexType>> AABB_tree::Query(const AABB_primitive_base& rAABB_primitive) const
 {
     std::vector<IndexType> stack;
     stack.reserve(256);
     stack.push_back(BaseTreeType::Root());
 
-    std::vector<IndexType> particles;
+    Unique<std::vector<IndexType>> p_particles = MakeUnique<std::vector<IndexType>>();
 
     while (stack.size() > 0)
     {
@@ -55,7 +55,7 @@ std::vector<IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primiti
             // Check that we're at a leaf node.
             if (BaseTreeType::Nodes()[node].isLeaf())
             {
-                particles.push_back(BaseTreeType::Nodes()[node].particle);
+                p_particles->push_back(BaseTreeType::Nodes()[node].particle);
             }
             else
             {
@@ -64,7 +64,7 @@ std::vector<IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primiti
             }
         }
     }
-    return particles;
+    return std::move(p_particles);
 }
 
 } // End namespace queso

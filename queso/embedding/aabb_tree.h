@@ -92,8 +92,7 @@ public:
     ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
     ///@param rRay
     ///@return std::vector<unsigned int> Holds Id's of triangles.
-    ///@todo Should return ptr to std::vector<unsigned int>;
-    std::vector<IndexType> Query(const AABB_primitive_base& rAABB_primitive) const;
+    Unique<std::vector<IndexType>> Query(const AABB_primitive_base& rAABB_primitive) const;
 
     ///@}
 
