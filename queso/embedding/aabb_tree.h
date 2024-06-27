@@ -89,9 +89,9 @@ public:
     ///@return bool
     bool IsWithinBoundingBox(const PointType& rPoint) const;
 
-    ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
-    ///@param rRay
-    ///@return std::vector<unsigned int> Holds Id's of triangles.
+    ///@brief Get all potential interesections of AABB_primitive. Checks against bounding box of triangles.
+    ///@param rAABB_primitive
+    ///@return Unique<std::vector<unsigned int>> Holds Id's of triangles.
     Unique<std::vector<IndexType>> Query(const AABB_primitive_base& rAABB_primitive) const;
 
     ///@}
