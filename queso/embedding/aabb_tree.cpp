@@ -64,7 +64,7 @@ Unique<std::vector<IndexType>> AABB_tree::Query(const AABB_primitive_base& rAABB
             }
         }
     }
-    return std::move(p_particles);
+    return p_particles;
 }
 
 } // End namespace queso
