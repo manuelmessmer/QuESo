@@ -1,4 +1,4 @@
-# QuESo - Quadrature for Embedded Solids
+<p align=center><img height="72.125%" width="72.125%" src="https://github.com/manuelmessmer/QuESo/blob/main/docs/logo.png"></p>
 
 [![License: BSD4](https://img.shields.io/badge/License-BSD4-green.svg)](https://github.com/manuelmessmer/QuESo/blob/main/LICENSE) [![C++][c++-image]][c++standard] 
 
