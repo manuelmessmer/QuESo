@@ -27,7 +27,7 @@ Please use the following references when citing QuESo in your work.
 
 * Manuel Meßmer, Stefan Kollmannsberger, Roland Wüchner, Kai-Uwe Bletzinger, Robust numerical integration of embedded solids described in boundary representation, Comput. Methods Appl. Mech. Engrg.  419 (2024) 116670, [https://doi.org/10.1016/j.cma.2023.116670](https://doi.org/10.1016/j.cma.2023.116670).
   
-* Manuel Meßmer, Lukas F. Leidiner, Stefan Hartmann, ..., Kai-Uwe Bletzinger, Isogeometric Analysis on Trimmed Solids: A B-Spline-Based Approach Focusing on Explicit Dynamics, 13th European LS-DYNA Conference, Ulm, Germany, 2021. [Meßmer et al. 2022](https://www.researchgate.net/publication/357053531_Isogeometric_Analysis_on_Trimmed_Solids_A_B-Spline-Based_Approach_Focusing_on_Explicit_Dynamics).
+* Manuel Meßmer, Lukas F. Leidinger, Stefan Hartmann, ..., Kai-Uwe Bletzinger, Isogeometric Analysis on Trimmed Solids: A B-Spline-Based Approach Focusing on Explicit Dynamics, 13th European LS-DYNA Conference, Ulm, Germany, 2021. [Meßmer et al. 2022](https://www.researchgate.net/publication/357053531_Isogeometric_Analysis_on_Trimmed_Solids_A_B-Spline-Based_Approach_Focusing_on_Explicit_Dynamics).
 
 * Manuel Meßmer, QuESo, https://github.com/manuelmessmer/QuESo.
 
