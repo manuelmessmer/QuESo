@@ -111,7 +111,7 @@ private:
         Component("polynomial_order", Vector3i{2UL, 2UL, 2UL} ),
         Component("integration_method", IntegrationMethod::Gauss),
         Component("use_customized_trimmed_points", false),
-        Component("neglect_elements_if_mesh_is_flawed", true) };
+        Component("neglect_elements_if_stl_is_flawed", true) };
 
     /// All available components
     inline static const BaseType::AvailableComponentVectorType mAllAvailableComponents = {
@@ -136,7 +136,7 @@ private:
         std::make_pair<std::string, const std::type_info*>("min_element_volume_ratio", &typeid(double) ),
         std::make_pair<std::string, const std::type_info*>("integration_method", &typeid(IntegrationMethodType) ),
         std::make_pair<std::string, const std::type_info*>("use_customized_trimmed_points", &typeid(bool) ),
-        std::make_pair<std::string, const std::type_info*>("neglect_elements_if_mesh_is_flawed", &typeid(bool) ) };
+        std::make_pair<std::string, const std::type_info*>("neglect_elements_if_stl_is_flawed", &typeid(bool) ) };
     ///@}
 }; // End class GlobalParameters
 
