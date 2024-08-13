@@ -149,7 +149,7 @@ Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const Paramete
 }
 
 TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
-        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const {
+        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles, bool NeglectIfMeshIsFlawed ) const {
     // Instantiate random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -159,7 +159,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     auto lower_bound = rLowerBound;
     auto upper_bound = rUpperBound;
 
-    const double snap_tolerance = RelativeSnapTolerance(lower_bound, upper_bound);
+    const double snap_tolerance = 10.0*RelativeSnapTolerance(lower_bound, upper_bound);
     const auto delta = Math::Subtract(upper_bound, lower_bound);
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
@@ -207,11 +207,10 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
         }
     }
 
-    if( best_error < 1e-2 ) {
-        return best_prev_solution;
-    } else {
+    if( best_error > 1e-2 && NeglectIfMeshIsFlawed ) {
         return nullptr;
     }
+    return best_prev_solution;
 }
 
 
