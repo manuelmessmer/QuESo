@@ -149,7 +149,7 @@ Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const Paramete
 }
 
 TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
-        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const {
+        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles, bool NeglectIfMeshIsFlawed ) const {
     // Instantiate random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -159,7 +159,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     auto lower_bound = rLowerBound;
     auto upper_bound = rUpperBound;
 
-    const double snap_tolerance = RelativeSnapTolerance(lower_bound, upper_bound);
+    const double snap_tolerance = 10.0*RelativeSnapTolerance(lower_bound, upper_bound);
     const auto delta = Math::Subtract(upper_bound, lower_bound);
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
@@ -167,7 +167,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     double best_error = 5e-1;
     bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
-    while( iteration < 15){
+    while( iteration < 10){
         auto p_new_mesh = pClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
@@ -207,6 +207,9 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
         }
     }
 
+    if( best_error > 1e-2 && NeglectIfMeshIsFlawed ) {
+        return nullptr;
+    }
     return best_prev_solution;
 }
 

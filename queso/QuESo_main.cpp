@@ -123,6 +123,7 @@ Vector3d QuESo::Compute(){
     const IndexType num_boundary_triangles = mParameters.MinimumNumberOfTriangles();
     const double moment_fitting_residual = mParameters.Get<double>("moment_fitting_residual");
     const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
+    const bool neglect_elements_if_stl_is_flawed = mParameters.Get<bool>("neglect_elements_if_stl_is_flawed");
     const IntegrationMethod integration_method = mParameters.IntegrationMethod();
     const IndexType echo_level = mParameters.EchoLevel();
 
@@ -159,7 +160,7 @@ Vector3d QuESo::Compute(){
                 new_element->SetIsTrimmed(true);
                 Timer timer_compute_intersection{};
                 auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
-                                                                          min_vol_element_ratio, num_boundary_triangles);
+                                                                          min_vol_element_ratio, num_boundary_triangles, neglect_elements_if_stl_is_flawed);
                 if( p_trimmed_domain ){
                     new_element->pSetTrimmedDomain(p_trimmed_domain);
                     valid_element = true;
