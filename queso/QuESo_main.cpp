@@ -31,19 +31,16 @@ namespace queso {
 void QuESo::Run()
 {
     Timer timer{};
-    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "QuESo ------------------------------------------ START" << std::endl;
+    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "QuESo: Run -------------------------------------- START" << std::endl;
+
+    const auto& r_filename = mParameters.Get<std::string>("input_filename");
+    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << " o Read file: '" << r_filename << "'\n";
 
     double volume_brep = 0.0;
     if( mParameters.Get<bool>("embedding_flag") ) {
         // Compute volume
         volume_brep = MeshUtilities::VolumeOMP(*mpTriangleMesh);
-        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Volume of B-Rep model: " << volume_brep << '\n';
-
-        // Write Surface Mesh to vtk file if eco_level > 0
-        if( mParameters.EchoLevel() > 0){
-            const std::string output_filename = mParameters.Get<std::string>("output_directory_name") + "/geometry.vtk";
-            IO::WriteMeshToVTK(*mpTriangleMesh, output_filename.c_str(), true);
-        }
+        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << " o Volume of STL model: " << volume_brep << '\n';
     }
 
     // Construct BRepOperator
@@ -55,7 +52,7 @@ void QuESo::Run()
     mpElementContainer = MakeUnique<ElementContainerType>(mParameters);
 
     // Start computation
-    Compute();
+    Vector3d elapsed_times = Compute();
 
     // Count number of trimmed elements
     SizeType number_of_trimmed_elements = 0;
@@ -63,8 +60,35 @@ void QuESo::Run()
         { if( el_it.IsTrimmed() ) { number_of_trimmed_elements++; } });
 
     if( mParameters.EchoLevel() > 0) {
-        // Write vtk files (binary = true)
+        QuESo_INFO << " o Number of active elements: " << mpElementContainer->size() << std::endl;
+        QuESo_INFO << " o Number of trimmed elements: " << number_of_trimmed_elements << std::endl;
+
+        if( mParameters.EchoLevel() > 1 ) {
+            const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
+            QuESo_INFO << " o The computed quadrature represents " << volume_ips/volume_brep * 100.0
+                << "%\n   of the volume of the STL model.\n";
+
+            // Average time spent for each task
+            QuESo_INFO << " o Elapsed time (total): " << timer.Measure() << " sec\n";
+            QuESo_INFO << " o Elapsed times of individual tasks:\n";
+            QuESo_INFO << "   - Classification of elements:   " << elapsed_times[0] << " sec\n";
+            QuESo_INFO << "   - Computation of intersections: " << elapsed_times[1] << " sec\n";
+            QuESo_INFO << "   - Moment fitting:               " << elapsed_times[2] << " sec\n";
+        } else {
+            QuESo_INFO << " o Elapsed time: " << timer.Measure() << " sec\n";
+        }
+        QuESo_INFO << "QuESo: Run ---------------------------------------- END\n" << std::endl;
+    }
+
+    if( mParameters.Get<bool>("write_output_to_file") ) {
+        Timer timer_output{};
         const std::string output_directory_name = mParameters.Get<std::string>("output_directory_name");
+        if( mParameters.EchoLevel() > 0) {
+            QuESo_INFO << "QuESo: Write output to file --------------------- START\n";
+            QuESo_INFO << " o Output directory: '" << output_directory_name << "'\n";
+        }
+        // Write vtk files (binary = true)
+        IO::WriteMeshToVTK(*mpTriangleMesh, (output_directory_name + "/geometry.vtk" ).c_str(), true);
         IO::WriteElementsToVTK(*mpElementContainer, (output_directory_name + "/elements.vtk").c_str(), true);
         IO::WritePointsToVTK(*mpElementContainer, "All", (output_directory_name + "/integration_points.vtk").c_str(), true);
         IndexType cond_index = 0;
@@ -73,22 +97,15 @@ void QuESo::Run()
                 + '_' + std::to_string(++cond_index) + ".stl";
             IO::WriteMeshToSTL(r_condition.GetConformingMesh(), bc_filename.c_str(), true);
         }
-
-        QuESo_INFO << "Number of active elements: " << mpElementContainer->size() << std::endl;
-        QuESo_INFO << "Number of trimmed elements: " << number_of_trimmed_elements << std::endl;
-
-        if( mParameters.EchoLevel() > 1 ) {
-            const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
-            QuESo_INFO << "The computed quadrature represents " << volume_ips/volume_brep * 100.0
-                << "% of the volume of the BRep model.\n";
+        if( mParameters.EchoLevel() > 0) {
+            QuESo_INFO << " o Elapsed time: " << timer_output.Measure() << " sec\n";
+            QuESo_INFO << "QuESo: Write output to file ----------------------- End\n" << std::endl;
         }
-
-        QuESo_INFO << "Elapsed time: " << timer.Measure() << std::endl;
-        QuESo_INFO << "QuESo ------------------------------------------- END\n" << std::endl;
     }
+
 }
 
-void QuESo::Compute(){
+Vector3d QuESo::Compute(){
 
     // Reserve element container
     const IndexType global_number_of_elements = mMapper.NumberOfElements();
@@ -197,15 +214,8 @@ void QuESo::Compute(){
         QuadratureMultipleElements<ElementType>::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
     }
 
-    // Average time spent for each task
-    if( mParameters.EchoLevel() > 1 ){
-        const IndexType num_procs = std::thread::hardware_concurrency();
-        QuESo_INFO << "Elapsed times of individual tasks -------------- \n";
-        QuESo_INFO << "Detection of trimmed elements: --- " << et_check_intersect / ((double) num_procs) << '\n';
-        QuESo_INFO << "Compute intersection: ------------ " << et_compute_intersection / ((double) num_procs) << "\n";
-        QuESo_INFO << "Moment fitting: ------------------ " << et_moment_fitting / ((double) num_procs) << "\n";
-        QuESo_INFO << "------------------------------------------------ \n";
-    }
+    const IndexType num_procs = std::thread::hardware_concurrency();
+    return {et_check_intersect / ((double) num_procs), et_compute_intersection / ((double) num_procs), et_moment_fitting / ((double) num_procs)};
 
 }
 
