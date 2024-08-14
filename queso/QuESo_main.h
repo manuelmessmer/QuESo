@@ -73,7 +73,6 @@ public:
                 // Read mesh
                 const auto& r_filename = mParameters.Get<std::string>("input_filename");
                 IO::ReadMeshFromSTL(*mpTriangleMesh, r_filename.c_str());
-                QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "Read file: '" << r_filename << "'\n";
             }
             // Read conditions
             for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
@@ -151,7 +150,7 @@ private:
     ///@{
 
     /// @brief Compute
-    void Compute();
+    Vector3d Compute();
     ///@}
 };
 
