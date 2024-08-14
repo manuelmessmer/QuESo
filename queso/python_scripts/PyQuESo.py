@@ -23,8 +23,9 @@ class PyQuESo:
     def __init__(self, json_filename):
         """The constructor"""
         self.parameters = ReadParameters(json_filename)
+        write_output_to_file = self.parameters.GetGlobalSettings().GetBool("write_output_to_file")
         output_directory_name = self.parameters.GetGlobalSettings().GetString("output_directory_name")
-        if self.parameters.EchoLevel() > 0:
+        if write_output_to_file:
             folder_path = "./" + output_directory_name + '/'
             if os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
