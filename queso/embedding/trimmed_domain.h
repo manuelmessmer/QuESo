@@ -99,6 +99,7 @@ public:
     ///@{
 
     ///@brief Returns true if point is inside TrimmedDomain. Very fast test. First point is checked against clipped section.
+    ///       (see: IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess))
     ///       If this test is not successful, a global test is performed using the BRepOperator.
     ///@param rPoint
     ///@return bool
