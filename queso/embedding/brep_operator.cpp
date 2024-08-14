@@ -34,11 +34,11 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
 
     // Rough test, if point is actually within the bounding box of the mesh.
     if( mGeometryQuery.IsWithinBoundingBox(rPoint)) {
-        bool success = false;
         IndexType iteration = 0UL;
         const IndexType max_iteration = 100UL;
-        bool is_inside = false;
-        while( !success ){
+        IndexType success_count = 0;
+        int inside_count = 0;
+        while( success_count < 5 ){
             if( iteration >= max_iteration){ return false; }
             iteration++;
             // Get random direction. Must be postive! -> x>0, y>0, z>0
@@ -52,9 +52,17 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
             Ray_AABB_primitive ray(rPoint, direction);
 
             // Query ray
-            std::tie(is_inside, success) = mGeometryQuery.IsInside(ray);
+            auto [is_inside, success] = mGeometryQuery.IsInside(ray);
+            if( success ){
+                ++success_count;
+                if( is_inside ){
+                    ++inside_count;
+                } else {
+                    --inside_count;
+                }
+            }
         }
-        return is_inside;
+        return inside_count > 0;
     }
     return false;
 }
@@ -110,12 +118,7 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
         }
         ++current_id;
     }
-    if( inside_count > 0){
-        return true;
-    } else {
-        return false;
-    }
-
+    return inside_count > 0;
 }
 
 IntersectionStatus BRepOperator::GetIntersectionState(
@@ -167,7 +170,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     double best_error = 5e-1;
     bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
-    while( iteration < 10){
+    while( iteration < 15){
         auto p_new_mesh = pClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
