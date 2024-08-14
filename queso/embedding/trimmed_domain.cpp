@@ -15,12 +15,22 @@
 #include <random>
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/embedding/brep_operator.h"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/embedding/ray_aabb_primitive.h"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/io/io_utilities.h"
 
 namespace queso {
+
+bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
+    bool success = true;
+    const bool val = IsInsideTrimmedDomain(rPoint, success);
+    if( success ){
+        return val;
+    }
+    return mpBrepOperatorGlobal->IsInside(rPoint); // This test is more costly, but also more precise.
+}
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
 

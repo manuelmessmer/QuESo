@@ -53,7 +53,7 @@ public:
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )
-        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound),
+        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound), mpBrepOperatorGlobal(pOperator),
           mpClippedMesh(mpTriangleMesh->Clone()), mGeometryQuery(*mpClippedMesh, false)
     {
         // Set relative snap tolerance.
@@ -71,12 +71,12 @@ public:
         auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
 
         if( mpTriangleMesh->NumOfTriangles() > 0 ){
-            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
-            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
-            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
-            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
-            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
-            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()), pOperator );
+            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()) );
+            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()) );
+            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()) );
 
             const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
                 + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
@@ -98,23 +98,11 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Returns true if point is inside TrimmedDomain. Returns false, if test was not successful.
-    ///@note Calls: IsInsideTrimmedDomain(rPoint, rSuccess). If you want to know if test was successful, you should directly call
-    ///      IsInsideTrimmedDomain(rPoint, rSuccess).
+    ///@brief Returns true if point is inside TrimmedDomain. Very fast test. First point is checked against clipped section.
+    ///       If this test is not successful, a global test is performed using the BRepOperator.
     ///@param rPoint
     ///@return bool
-    bool IsInsideTrimmedDomain(const PointType& rPoint) const {
-        bool success = true;
-        return IsInsideTrimmedDomain(rPoint, success);
-    }
-
-    ///@brief Returns true if point is inside TrimmedDomain. Expects point to be inside AABB. Check is omitted.
-    ///@brief Performs ray tracing in direction of the first triangle. Search for all intersection of ray. Inside/Outside is detected
-    ///       based on the orientation of the closest intersected triangle (forward or backward facing).
-    ///@param rPoint
-    ///@param[out] rSuccess Is set to false, if e.g. all triangles are detected as parallel and therefore give ambiguous results.
-    ///@return bool
-    bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const;
+    bool IsInsideTrimmedDomain(const PointType& rPoint) const;
 
     /// @brief Return ptr to Triangle mesh (Raw Ptr)
     /// @return const TriangleMeshInterface*
@@ -163,11 +151,25 @@ public:
 private:
 
     ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@brief Returns true if point is inside TrimmedDomain. Expects point to be inside AABB. Check is omitted.
+    ///@brief Performs ray tracing in direction of the first triangle. Search for all intersection of ray. Inside/Outside is detected
+    ///       based on the orientation of the closest intersected triangle (forward or backward facing).
+    ///@param rPoint
+    ///@param[out] rSuccess Is set to false, if e.g. all triangles are detected as parallel and therefore give ambiguous results.
+    ///@return bool
+    bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const;
+
+    ///@}
     ///@name Private Members
     ///@{
     TriangleMeshPtrType mpTriangleMesh;
     PointType mLowerBound;
     PointType mUpperBound;
+
+    const BRepOperator* mpBrepOperatorGlobal;
 
     Unique<TriangleMeshInterface> mpClippedMesh;
     GeometryQuery mGeometryQuery;
