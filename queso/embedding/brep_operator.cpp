@@ -170,7 +170,7 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     double best_error = 5e-1;
     bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
-    while( iteration < 10){
+    while( iteration < 15){
         auto p_new_mesh = pClipTriangleMesh(lower_bound, upper_bound);
         if( p_new_mesh->NumOfTriangles() > 0) {
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
