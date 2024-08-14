@@ -50,7 +50,7 @@ void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMeshInterface &rTri
     }
 }
 
-void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
+void TrimmedDomainOnPlane::CloseContourEdges() {
     // 1. Insert edges such that positive oriented edges span the entire AABB.
     // Find all intersections of Edges with upper bound of AABB.
     //     UP2 x1-------x2---x3
@@ -211,14 +211,8 @@ void TrimmedDomainOnPlane::CloseContourEdges(const BRepOperator* pOperator) {
         new_point[DIRINDEX2] = 0.5*(mUpperBound[DIRINDEX2]+y_max);
         new_point[DIRINDEX3] = plane_position;
         Point2DType normal = {0, 1};
-        bool Success = true;
-        if ( mpTrimmedDomain->IsInsideTrimmedDomain(new_point, Success) ) {
+        if ( mpTrimmedDomain->IsInsideTrimmedDomain(new_point) ) {
             InsertEdge({v_left, mUpperBound[DIRINDEX2]}, {v_right, mUpperBound[DIRINDEX2]}, normal, Orientation::Positive);
-        }
-        if( !Success ){ // Safety Test.
-            if( pOperator->IsInside(new_point) ){
-                    InsertEdge({v_left, mUpperBound[DIRINDEX2]}, {v_right, mUpperBound[DIRINDEX2]}, normal, Orientation::Positive);
-            }
         }
     }
     else if( intersected_vertices.size() > 1 ){

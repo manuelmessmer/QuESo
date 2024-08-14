@@ -186,9 +186,9 @@ public:
     //    |     |</-- plane upper  Z
     //    |_____|/
     //
-    TriangleMeshPtrType pGetTriangulation(const TriangleMeshInterface &rTriangleMesh, const BRepOperator* pOperator) {
+    TriangleMeshPtrType pGetTriangulation(const TriangleMeshInterface &rTriangleMesh ) {
         CollectEdgesOnPlane(rTriangleMesh);
-        CloseContourEdges(pOperator);
+        CloseContourEdges();
         return TriangulateDomain();
     }
 
@@ -241,7 +241,7 @@ private:
     ///                 |  |     |   |                                     DIRINDEX2
     ///                 |  |     |   |                                         ^
     ///            x----v--x-----v---x      negative oriented edges            |---> DIRINDEX1
-    void CloseContourEdges(const BRepOperator* pOperator);
+    void CloseContourEdges();
 
     ///@brief Triangulates the trimmed domain on plane (see @details for more information).
     ///@details Assumes that the vertices of positive and negative oriented edges coincide along DIRINDEX1. See RefineEdges().
