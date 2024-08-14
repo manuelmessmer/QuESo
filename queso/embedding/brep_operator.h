@@ -103,7 +103,7 @@ public:
     /// @param MinNumberOfBoundaryTriangles Min number of triangles in the closed surface mesh.
     /// @return TrimmedDomainPtrType (Unique)
     TrimmedDomainPtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
-        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const;
+        double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles, bool NeglectIfMeshIsFlawed = true ) const;
 
     ///@brief Clips triangle mesh by AABB.
     ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.
