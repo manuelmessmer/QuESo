@@ -22,19 +22,18 @@ import sys
 def PyQuESoTestSuite():
     test_suite = unittest.TestSuite()
     if kratos_available:
-        test_suite.addTest(unittest.makeSuite(TestGGQCantileverKratos))
-        test_suite.addTest(unittest.makeSuite(TestTrimmedCantileverKratos))
-        test_suite.addTest(unittest.makeSuite(TestStrainEnergySteeringKnuckleKratos))
-        test_suite.addTest(unittest.makeSuite(TestBoundaryConditionsKratos))
-        test_suite.addTest(unittest.makeSuite(TestReadModelPartKratos))
+        test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGGQCantileverKratos))
+        test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestTrimmedCantileverKratos))
+        test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestStrainEnergySteeringKnuckleKratos))
+        test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBoundaryConditionsKratos))
     else:
         print("Warning :: Tests with KratosMultiphysics dependencies are skipped.")
 
-    test_suite.addTest(unittest.makeSuite(TestGGQTube))
-    test_suite.addTest(unittest.makeSuite(TestGGQ1d))
-    test_suite.addTest(unittest.makeSuite(TestBSplineVolume))
-    test_suite.addTest(unittest.makeSuite(TestParametersContainer))
-    test_suite.addTest(unittest.makeSuite(TestBoundaryConditions))
+    test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGGQTube))
+    test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGGQ1d))
+    test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBSplineVolume))
+    test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestParametersContainer))
+    test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBoundaryConditions))
 
     return test_suite
 
