@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     QuESo_INFO << "Testing :: Test Thingi10k :: STL embedding test.\n";
+    Timer timer;
 
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
@@ -155,10 +156,13 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 
         if( error_volume < 3e-10 && error_area < 1e-10 ){
             count++;
+        } else {
+            QuESo_INFO << "Test failed for filename: " << filename << std::endl;
         }
     }
 
-    std::cout << "Successfull tests: " << count << std::endl;
+    QuESo_INFO << "Successfull tests: " << count << '\n';
+    QuESo_INFO << "Elpased time: " << timer.Measure() << " sec\n";
 }
 
 BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
@@ -167,6 +171,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     QuESo_INFO << "Testing :: Test Thingi10k :: Element classification.\n";
+    Timer timer;
 
     // This test does not paralize the outer loop, such that FloodFillTester::ClassifyElementsForTest() (inside the loop) can be run locally in parallel.
     // Therefore, this test is quite slow.
@@ -299,6 +304,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     }
 
     std::cout << "Successfull tests: " << count << std::endl;
+    QuESo_INFO << "Elpased time: " << timer.Measure() << " sec\n";
 }
 
 BOOST_AUTO_TEST_SUITE_END()
