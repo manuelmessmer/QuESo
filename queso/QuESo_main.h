@@ -150,7 +150,7 @@ private:
     ///@{
 
     /// @brief Compute
-    Vector3d Compute();
+    std::array<double,5> Compute();
     ///@}
 };
 
