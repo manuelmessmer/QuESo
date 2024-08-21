@@ -123,12 +123,11 @@ public:
         }
 
         if( residual > Residual && EchoLevel > 2){
-            QuESo_INFO << "Moment Fitting :: Targeted residual can not be achieved: " << residual << std::endl;
-            // if( rParam.EchoLevel() > 3 ) {
-            //     const std::string output_directory_name = rParam.Get<std::string>("output_directory_name");
-            //     const std::string filename = output_directory_name + "/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
-            //     IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
-            // }
+            QuESo_INFO << "Warning :: Moment Fitting :: Targeted residual (" << Residual << ") is not achieved for element id: " << rElement.GetId() << ". Residual: " << residual << ".\n";
+            //if( rParam.EchoLevel() > 3 ) {
+            // const std::string filename = "queso_output/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
+            // IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
+            //}
         }
 
         return residual;
