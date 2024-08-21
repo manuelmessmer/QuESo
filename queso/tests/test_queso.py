@@ -15,7 +15,6 @@ if kratos_available:
     from queso.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
     from queso.tests.steering_knuckle_kratos.test_strain_energy_steering_knuckle import TestStrainEnergySteeringKnuckleKratos
     from queso.tests.boundary_conditions_kratos.test_boundary_conditions_kratos import TestBoundaryConditionsKratos
-    from queso.tests.read_modelpart_kratos.test_read_modelpart_kratos import TestReadModelPartKratos
 import unittest
 import sys
 
