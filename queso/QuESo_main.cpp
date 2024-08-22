@@ -52,7 +52,7 @@ void QuESo::Run()
     mpElementContainer = MakeUnique<ElementContainerType>(mParameters);
 
     // Start computation
-    Vector3d elapsed_times = Compute();
+    std::array<double, 5> elapsed_times = Compute();
 
     // Count number of trimmed elements
     SizeType number_of_trimmed_elements = 0;
@@ -71,9 +71,11 @@ void QuESo::Run()
             // Average time spent for each task
             QuESo_INFO << " o Elapsed time (total): " << timer.Measure() << " sec\n";
             QuESo_INFO << " o Elapsed times of individual tasks:\n";
-            QuESo_INFO << "   - Classification of elements:   " << elapsed_times[0] << " sec\n";
-            QuESo_INFO << "   - Computation of intersections: " << elapsed_times[1] << " sec\n";
-            QuESo_INFO << "   - Moment fitting:               " << elapsed_times[2] << " sec\n";
+            QuESo_INFO << "   - Classification of elements:    " << elapsed_times[0] << " sec\n";
+            QuESo_INFO << "   - Computation of intersections:  " << elapsed_times[1] << " sec\n";
+            QuESo_INFO << "   - Solution of moment fitting eq: " << elapsed_times[2] << " sec\n";
+            QuESo_INFO << "   - Construction of GGQ rules:     " << elapsed_times[3] << " sec\n";
+            QuESo_INFO << "   - Processing of BC's             " << elapsed_times[4] << " sec\n";
         } else {
             QuESo_INFO << " o Elapsed time: " << timer.Measure() << " sec\n";
         }
@@ -105,7 +107,7 @@ void QuESo::Run()
 
 }
 
-Vector3d QuESo::Compute(){
+std::array<double,5> QuESo::Compute(){
 
     // Reserve element container
     const IndexType global_number_of_elements = mMapper.NumberOfElements();
@@ -132,10 +134,10 @@ Vector3d QuESo::Compute(){
     if( embedding_flag ){
         Timer timer_check_intersect{};
         p_classifications = mpBRepOperator->pGetElementClassifications(mParameters);
-        et_check_intersect += timer_check_intersect.Measure();
+        et_check_intersect = timer_check_intersect.Measure();
     }
 
-    #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_check_intersect) reduction(+ : et_moment_fitting) schedule(dynamic)
+    #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_moment_fitting) schedule(dynamic)
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index) {
         // Check classification status
         IntersectionStatus status{};
@@ -194,7 +196,18 @@ Vector3d QuESo::Compute(){
 
     }
 
+    double et_ggq_rules = 0.0;
+    if( mParameters.GGQRuleIsUsed() ){
+        Timer timer_ggq_rules;
+        const Vector3i number_of_elements = mParameters.Get<Vector3i>("number_of_elements");
+        const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
+        const IntegrationMethodType integration_method = mParameters.IntegrationMethod();
+        QuadratureMultipleElements<ElementType>::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
+        et_ggq_rules = timer_ggq_rules.Measure();
+    }
+
     // Treat conditions
+    Timer timer_conditions;
     #pragma omp parallel for
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index ) {
         for( IndexType i = 0; i < mConditions.size(); ++i ){
@@ -206,17 +219,15 @@ Vector3d QuESo::Compute(){
             }
         }
     }
+    double et_conditions = (mConditions.size() > 0) ? timer_conditions.Measure() : 0.0;
 
-    if( mParameters.GGQRuleIsUsed() ){
-
-        const Vector3i number_of_elements = mParameters.Get<Vector3i>("number_of_elements");
-        const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
-        const IntegrationMethodType integration_method = mParameters.IntegrationMethod();
-        QuadratureMultipleElements<ElementType>::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
+    IndexType num_threads = 1;
+    #pragma omp parallel
+    {
+        num_threads = omp_get_num_threads();
     }
-
-    const IndexType num_procs = std::thread::hardware_concurrency();
-    return {et_check_intersect / ((double) num_procs), et_compute_intersection / ((double) num_procs), et_moment_fitting / ((double) num_procs)};
+    return {et_check_intersect, et_compute_intersection / ((double) num_threads),
+        et_moment_fitting / ((double) num_threads), et_ggq_rules, et_conditions};
 
 }
 
