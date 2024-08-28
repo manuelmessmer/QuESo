@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/utilities/voxel_indexing_utilities.h"
 #include "queso/utilities/mapping_utilities.h"
 
 namespace queso {
@@ -125,8 +126,8 @@ BOOST_AUTO_TEST_CASE(VoxelIndexingTest) {
                 QuESo_CHECK_EQUAL(index_2, index);
 
                 PointType point_global{i+100.0, j-44.27, k+88.90};
-                PointType point_param =  VoxelIndexing::PointFromGlobalToParam(point_global, bounds_xyz, bounds_uvw);
-                PointType point_global_2 =  VoxelIndexing::PointFromParamToGlobal(point_param, bounds_xyz, bounds_uvw);
+                PointType point_param =  Mapping::PointFromGlobalToParam(point_global, bounds_xyz, bounds_uvw);
+                PointType point_global_2 =  Mapping::PointFromParamToGlobal(point_param, bounds_xyz, bounds_uvw);
 
                 QuESo_CHECK_LT( Math::Norm( Math::Subtract(point_global, point_global_2) ), 1e-12 );
             }

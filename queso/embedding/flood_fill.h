@@ -22,7 +22,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/utilities/voxel_indexing_utilities.h"
 
 namespace queso {
 

@@ -129,14 +129,14 @@ public:
     /// @param rGlobalCoord
     /// @return PointType
     PointType PointFromGlobalToParam( const PointType& rGlobalCoord ) const {
-        return VoxelIndexing::PointFromGlobalToParam(rGlobalCoord, mBoundsXYZ, mBoundsUVW);
+        return Mapping::PointFromGlobalToParam(rGlobalCoord, mBoundsXYZ, mBoundsUVW);
     }
 
     /// @brief Map point from parametric space to global space.
     /// @param rLocalCoord
     /// @return PointType
     PointType PointFromParamToGlobal( const PointType& rLocalCoord ) const {
-        return VoxelIndexing::PointFromParamToGlobal(rLocalCoord, mBoundsXYZ, mBoundsUVW);
+        return Mapping::PointFromParamToGlobal(rLocalCoord, mBoundsXYZ, mBoundsUVW);
     }
 
     /// @brief Returns determinant of jacobian.

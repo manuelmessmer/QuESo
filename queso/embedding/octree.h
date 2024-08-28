@@ -19,6 +19,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/utilities/mapping_utilities.h"
 #include "queso/quadrature/single_element.hpp"
 
 namespace queso {
@@ -88,7 +89,7 @@ private:
                     pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
                 else {
                     for( auto& point : integration_points_tmp){
-                        const auto tmp_point = VoxelIndexing::PointFromParamToGlobal(point.data(), mBoundsXYZ, mBoundsUVW);
+                        const auto tmp_point = Mapping::PointFromParamToGlobal(point.data(), mBoundsXYZ, mBoundsUVW);
                         if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
                             pPoints->push_back(point);
                         }
