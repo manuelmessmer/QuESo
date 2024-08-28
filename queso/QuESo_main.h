@@ -63,7 +63,7 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
+    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mVoxelIndexer(mParameters) {
 
         mParameters.Check();
         mpTriangleMesh = MakeUnique<TriangleMesh>();
@@ -143,7 +143,7 @@ private:
     Unique<ElementContainerType> mpElementContainer;
     ConditionVectorType mConditions;
     const Parameters mParameters;
-    Mapper mMapper;
+    VoxelIndexer mVoxelIndexer;
     ///@}
 
     ///@name Private Member Operations

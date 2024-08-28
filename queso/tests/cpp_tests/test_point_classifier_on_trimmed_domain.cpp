@@ -46,10 +46,10 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(params);
+    VoxelIndexer voxel_indexer(params);
     IndexType num_of_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const auto bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound = bounding_box.first;
         const Vector3d upper_bound = bounding_box.second;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
@@ -144,10 +144,10 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(params);
+    VoxelIndexer voxel_indexer(params);
     IndexType num_of_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound = bounding_box.first;
         Vector3d upper_bound = bounding_box.second;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
@@ -191,10 +191,10 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(params);
+    VoxelIndexer voxel_indexer(params);
     IndexType num_of_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound = bounding_box.first;
         Vector3d upper_bound = bounding_box.second;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){

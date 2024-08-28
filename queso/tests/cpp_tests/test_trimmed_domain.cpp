@@ -74,14 +74,14 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
     const IndexType min_num_triangles = rParameters.Get<unsigned long>("min_num_boundary_triangles");
     const Vector3i order =  rParameters.Get<Vector3i>("polynomial_order");
 
-    Mapper mapper(rParameters);
+    VoxelIndexer voxel_indexer(rParameters);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
         const Vector3d delta_xyz = Math::Subtract( upper_bound_xyz, lower_bound_xyz );
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = voxel_indexer.GetBoundingBoxUVWFromIndex(i);
         const Vector3d lower_bound_uvw = bounding_box_uvw.first;
         const Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -239,10 +239,10 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     double volume = 0.0;
     double area = 0.0;
 
-    Mapper mapper(parameters);
+    VoxelIndexer voxel_indexer(parameters);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
 

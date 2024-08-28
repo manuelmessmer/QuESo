@@ -90,7 +90,7 @@ public:
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
     IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
 
-    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
+    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: VoxelIndexer.
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.

@@ -25,12 +25,12 @@ namespace queso {
 
 ///
 /**
- * @class  Mapping
+ * @class  VoxelIndexing
  * @author Manuel Messmer
  * @brief  Provides operations two map between spaces. Static interface.
- * @see Mapper for non-static interface.
+ * @see VoxelIndexer for non-static interface.
 */
-class Mapping {
+class VoxelIndexing {
 
 public:
 
@@ -102,22 +102,22 @@ public:
 
     ///@}
 
-}; // End class Mapping
+}; // End class VoxelIndexing
 
 /**
- * @class  Mapper
+ * @class  VoxelIndexer
  * @author Manuel Messmer
  * @brief  Provides operations two map between spaces. Non-Static interface.
- * @see Mapping for static interface.
+ * @see VoxelIndexing for static interface.
 */
-class Mapper {
+class VoxelIndexer {
 public:
     ///@name Life Cycle
     ///@{
 
     /// @brief Constructor
     /// @param rParameters
-    Mapper( const Parameters& rParameters ) :
+    VoxelIndexer( const Parameters& rParameters ) :
         mBoundXYZ( std::make_pair(rParameters.LowerBoundXYZ(), rParameters.UpperBoundXYZ()) ),
         mBoundUVW( std::make_pair(rParameters.LowerBoundUVW(), rParameters.UpperBoundUVW()) ),
         mNumberOfElements(rParameters.NumberOfElements()), mBSplineMesh(rParameters.Get<bool>("b_spline_mesh"))
@@ -196,7 +196,7 @@ private:
     const Vector3i mNumberOfElements;
     const bool mBSplineMesh;
     ///@}
-}; // End class Mapper.
+}; // End class VoxelIndexer.
 ///@} End queso classes.
 
 } // End namespace queso
