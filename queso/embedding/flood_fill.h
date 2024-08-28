@@ -22,7 +22,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/utilities/voxel_indexing_utilities.h"
 
 namespace queso {
 
@@ -60,7 +60,7 @@ public:
     /// @param pBrepOperator
     /// @param Parameters
     FloodFill(const BRepOperator* pBrepOperator, const Parameters& Parameters) :
-        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBoundXYZ()),
+        mpBrepOperator(pBrepOperator), mVoxelIndexer(Parameters), mLowerBound(Parameters.LowerBoundXYZ()),
         mUpperBound(Parameters.UpperBoundXYZ()), mNumberOfElements( Parameters.NumberOfElements() )
     {
         // Obtain discretization of background mesh.
@@ -73,7 +73,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
+    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: VoxelIndexer.
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.
@@ -194,7 +194,7 @@ private:
     ///@{
 
     const BRepOperator* mpBrepOperator;
-    Mapper mMapper;
+    VoxelIndexer mVoxelIndexer;
 
     // The following parameters are global values, w.r.t. to the background mesh.
     const PointType mLowerBound;

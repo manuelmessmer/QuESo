@@ -49,14 +49,14 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(parameters);
+    VoxelIndexer voxel_indexer(parameters);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound_xyz = bounding_box.first;
         Vector3d upper_bound_xyz = bounding_box.second;
 
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = voxel_indexer.GetBoundingBoxUVWFromIndex(i);
         Vector3d lower_bound_uvw = bounding_box_uvw.first;
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -156,14 +156,14 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(parameters);
+    VoxelIndexer voxel_indexer(parameters);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound_xyz = bounding_box.first;
         Vector3d upper_bound_xyz = bounding_box.second;
 
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = voxel_indexer.GetBoundingBoxUVWFromIndex(i);
         Vector3d lower_bound_uvw = bounding_box_uvw.first;
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -249,14 +249,14 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(parameters);
+    VoxelIndexer voxel_indexer(parameters);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < voxel_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = voxel_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound_xyz = bounding_box.first;
         Vector3d upper_bound_xyz = bounding_box.second;
 
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = voxel_indexer.GetBoundingBoxUVWFromIndex(i);
         Vector3d lower_bound_uvw = bounding_box_uvw.first;
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 

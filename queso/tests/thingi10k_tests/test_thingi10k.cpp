@@ -113,12 +113,12 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         BRepOperator brep_operator(triangle_mesh);
         FloodFill filler(&brep_operator, parameters);
         auto p_states = filler.ClassifyElements();
-        Mapper mapper(parameters);
+        VoxelIndexer voxel_indexer(parameters);
         for(IndexType i = 0; i < num_elements[0]; ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
-                    IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                    auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
+                    IndexType index = voxel_indexer.GetVectorIndexFromMatrixIndices(i, j, k);
+                    auto box = voxel_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
 
                     ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
@@ -281,13 +281,13 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
             BOOST_CHECK_EQUAL(group_inside_count, group_inside_count_single);
         }
 
-        Mapper mapper(parameters);
+        VoxelIndexer voxel_indexer(parameters);
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(num_elements[0]); ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
-                    IndexType index = mapper.GetVectorIndexFromMatrixIndices(i, j, k);
-                    auto box = mapper.GetBoundingBoxXYZFromIndex(i, j, k);
+                    IndexType index = voxel_indexer.GetVectorIndexFromMatrixIndices(i, j, k);
+                    auto box = voxel_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
 
                     ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 

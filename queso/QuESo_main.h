@@ -23,12 +23,12 @@
 
 /// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/includes/parameters.h"
+#include "queso/utilities/voxel_indexing_utilities.h"
 #include "queso/containers/element_container.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/condition.hpp"
-#include "queso/utilities/mapping_utilities.h"
-#include "queso/includes/parameters.h"
 #include "queso/embedding/brep_operator.h"
 
 namespace queso {
@@ -63,7 +63,7 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
+    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mVoxelIndexer(mParameters) {
 
         mParameters.Check();
         mpTriangleMesh = MakeUnique<TriangleMesh>();
@@ -143,7 +143,7 @@ private:
     Unique<ElementContainerType> mpElementContainer;
     ConditionVectorType mConditions;
     const Parameters mParameters;
-    Mapper mMapper;
+    VoxelIndexer mVoxelIndexer;
     ///@}
 
     ///@name Private Member Operations
