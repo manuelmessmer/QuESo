@@ -197,6 +197,17 @@ public:
         mKeyTypeName = GetTypeName<TKeyType>();
     }
 
+    /// Destructor
+    virtual ~Dictionary() = default;
+    /// Copy Constructor
+    Dictionary(const Dictionary& ) = delete;
+    /// Assignement operator
+    Dictionary& operator=(const Dictionary& ) = delete;
+    /// Move constructor
+    Dictionary(Dictionary&& ) = default;
+    /// Move assignement operator
+    Dictionary& operator=(Dictionary&& ) = default;
+
     ///@}
     ///@name Operations
     ///@{
