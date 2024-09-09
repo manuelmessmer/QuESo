@@ -45,7 +45,7 @@ public:
 
     Settings() : BaseType(Root::main, Str("settings")) {
         /// GeneralSettings
-        auto& r_general_settings = AddEmptyDictionary(Main::general_settings, Str("general_settings"));
+        auto& r_general_settings = AddEmptySubDictionary(Main::general_settings, Str("general_settings"));
         r_general_settings.AddValues(std::make_tuple(
             std::make_tuple(GeneralSettings::input_filename, Str("input_filename"), Str("dummy"), DontSet ),
             std::make_tuple(GeneralSettings::output_directory_name, Str("output_directory_name"), Str("queso_output"), Set ),
@@ -54,7 +54,7 @@ public:
         ));
 
         /// MeshSettings
-        auto& r_mesh_settings = AddEmptyDictionary(Main::mesh_settings, Str("mesh_settings"));
+        auto& r_mesh_settings = AddEmptySubDictionary(Main::mesh_settings, Str("mesh_settings"));
         r_mesh_settings.AddValues(std::make_tuple(
             std::make_tuple(MeshSettings::lower_bound_xyz, Str("lower_bound_xyz"), PointType{0.0, 0.0, 0.0}, DontSet ),
             std::make_tuple(MeshSettings::upper_bound_xyz, Str("upper_bound_xyz"), PointType{0.0, 0.0, 0.0}, DontSet  ),
@@ -65,7 +65,7 @@ public:
         ));
 
         /// TrimmedQuadratureRuleSettings
-        auto& trimmed_quadrature_rule_settings = AddEmptyDictionary(Main::trimmed_quadrature_rule_settings, Str("trimmed_quadrature_rule_settings"));
+        auto& trimmed_quadrature_rule_settings = AddEmptySubDictionary(Main::trimmed_quadrature_rule_settings, Str("trimmed_quadrature_rule_settings"));
         trimmed_quadrature_rule_settings.AddValues(std::make_tuple(
             std::make_tuple(TrimmedQuadratureRuleSettings::moment_fitting_residual, Str("moment_fitting_residual"), 1.0e-10, Set ),
             std::make_tuple(TrimmedQuadratureRuleSettings::min_element_volume_ratio, Str("min_element_volume_ratio"), 1.0e-3, Set  ),
@@ -74,20 +74,20 @@ public:
         ));
 
         /// NonTrimmedQuadratureRuleSettings
-        auto& non_trimmed_quadrature_rule_settings = AddEmptyDictionary(Main::non_trimmed_quadrature_rule_settings, Str("non_trimmed_quadrature_rule_settings"));
+        auto& non_trimmed_quadrature_rule_settings = AddEmptySubDictionary(Main::non_trimmed_quadrature_rule_settings, Str("non_trimmed_quadrature_rule_settings"));
         non_trimmed_quadrature_rule_settings.AddValues(std::make_tuple(
             std::make_tuple(NonTrimmedQuadratureRuleSettings::integration_method, Str("integration_method"), IntegrationMethod::Gauss, Set )
         ));
 
         /// ConditionSettings
-        AddEmptyDictionary(Main::conditions_settings, Str("conditions_settings"));
+        AddEmptySubDictionary(Main::conditions_settings, Str("conditions_settings"));
     }
 
     SettingsBaseType& CreateNewConditionSettings() {
         auto& r_conditions_settings = (*this)[Main::conditions_settings];
         IndexType size = r_conditions_settings.NumberOfSubDictionaries();
         std::string condition_name = "condition_" + std::to_string(size);
-        auto& r_new_condition_settings = r_conditions_settings.AddEmptyDictionary(size, condition_name);
+        auto& r_new_condition_settings = r_conditions_settings.AddEmptySubDictionary(size, condition_name);
         r_new_condition_settings.AddValues(std::make_tuple(
             std::make_tuple(ConditionSettings::condition_id, Str("condition_id"), IndexType(0), DontSet ),
             std::make_tuple(ConditionSettings::condition_type, Str("condition_type"), std::string("dummy"), DontSet  ),

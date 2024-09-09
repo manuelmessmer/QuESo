@@ -15,17 +15,16 @@
 #define DICTIONARY_INCLUDE_HPP
 
 //// STL includes
-#include "queso/includes/define.hpp"
 #include <iostream>
 #include <variant>
-#include <typeinfo>
-#include <typeindex>
+#include <cassert>
 #include <cxxabi.h>
 #include <set>
-#include <map>
-#include <any>
 #include <vector>
 #include <type_traits>
+
+/// Project includes
+#include "queso/includes/define.hpp"
 
 namespace queso {
 
@@ -69,6 +68,16 @@ public:
     /// @return const std::variant&
     const TVariantKey& GetKey() const {
         return mKey;
+    }
+
+    /// @brief Returns Value (no exception version)
+    /// @return const std::variant&
+    template<typename TValueType>
+    const TValueType& GetValueNoCheck() const {
+        assert(("KeyValuePair :: Value is not set.", mSet));
+        const TValueType* p_value = std::get_if<TValueType>(&mValue);
+        assert(("KeyValuePair :: Given Value type does not match stored Value type.", p_value != 0));
+        return *p_value;
     }
 
     /// @brief Returns Value
@@ -212,6 +221,16 @@ public:
     ///@name Operations
     ///@{
 
+    /// @brief Returns const ref to sub dictionary (no check version).
+    /// @tparam TKey.
+    /// @param QueryKey
+    /// @return const Dictionary&
+    template<typename TKeyType>
+    const Dictionary& GetSubDictionaryNoCheck(TKeyType QueryKey) const {
+        IndexType index = static_cast<IndexType>(QueryKey);
+        return *mSubDictionaries[index];
+    }
+
     /// @brief Returns const ref to next dictionery level.
     /// @tparam TKey.
     /// @param QueryKey
@@ -236,6 +255,18 @@ public:
             return *mSubDictionaries[index];
         }
         QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mSubDictionaryKeyTypeName << ").\n";
+    }
+
+    /// @brief Returns value to given Key (no exception version).
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param QueryKey
+    /// @return const TValueType&
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValueNoCheck(TKeyType QueryKey) const {
+        assert( ("Given Key type does not match stored Key type.", std::get_if<TKeyType>(&mDataDummyKey) ) != 0 );
+        IndexType index = static_cast<IndexType>(QueryKey);
+        return mData[index].template GetValueNoCheck<TValueType>();
     }
 
     /// @brief Returns value to given Key.
@@ -267,17 +298,6 @@ public:
         }
     }
 
-    /// @brief Returns key of current dictionary level
-    /// @return TVariantKey
-    const TVariantKey& GetKey() const {
-        return mKeyType;
-    }
-
-    /// @brief Returns name of Key type.
-    /// @return const std::string&
-    const std::string& GetKeyTypeName() const {
-        return mKeyTypeName;
-    }
     /// @brief Add values to the current level of the dictionary. Should only be called in derived class to define the default dictionary.
     /// @tparam TKey Type of keys. All keys within one level must have the same type (same enum).
     /// @tparam ...TValues Parameter pack for types.
@@ -289,8 +309,19 @@ public:
         UnpackTuple(NewEntries);
     }
 
+    /// @brief Returns numver of sub-dictionaries stored.
+    /// @return IndexType
+    const IndexType NumberOfSubDictionaries() const {
+        return mSubDictionaries.size();
+    }
+
+    /// @brief Adds an empty AddEmptySubDictionary
+    /// @tparam TKeyType
+    /// @param rKey
+    /// @param rKeyName
+    /// @return Dictionary&
     template<typename TKeyType>
-    Dictionary& AddEmptyDictionary(TKeyType rKey, std::string rKeyName) {
+    Dictionary& AddEmptySubDictionary(TKeyType rKey, std::string rKeyName) {
         if( mSubDictionaries.size() == 0 ) {
             mSubDictionaryDummyKey = rKey;
             mSubDictionaryKeyTypeName = GetTypeName<TKeyType>();
@@ -308,9 +339,10 @@ public:
         return *mSubDictionaries.back();
     }
 
-    // / @brief Print all components (Name, Value).
-    // /// @param rOStream
-    virtual void PrintInfo(std::ostream& rOStream, std::string& Indent) const {
+    /// @brief Prints this dictionary
+    /// @param rOStream
+    /// @param Indent
+    void PrintInfo(std::ostream& rOStream, std::string& Indent) const {
         rOStream << Indent << mKeyName << " {\n";
         std::string new_indent = Indent + "   ";
         for( const auto& key_value_pair : mData ){
@@ -369,6 +401,18 @@ private:
     ///@}
     ///@name Private operations.
     ///@{
+
+ /// @brief Returns key of current dictionary level
+    /// @return TVariantKey
+    const TVariantKey& GetKey() const {
+        return mKeyType;
+    }
+
+    /// @brief Returns name of Key type.
+    /// @return const std::string&
+    const std::string& GetKeyTypeName() const {
+        return mKeyTypeName;
+    }
 
     /// Returns type name of TType as char*
     template<typename TType>
