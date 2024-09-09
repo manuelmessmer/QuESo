@@ -89,7 +89,8 @@ public:
             if( p_type ) {
                 return *p_type;
             }
-            QuESo_ERROR << "Given Value type (" << GetTypeName<TValueType>() << ") does not match stored Value type (" << GetValueTypeName() << ").\n";
+            QuESo_ERROR << "For key: '" << GetKeyName() << "' - Given Value type (" << GetTypeName<TValueType>() << ") does not match stored Value type ("
+                << GetValueTypeName() << ").\n";
         } else {
            QuESo_ERROR << "The Value corresponding to the given Key (" << mKeyName << ") is not set.\n";
         }
@@ -104,7 +105,7 @@ public:
             mSet = true;
             mValue = NewValue;
         } else {
-            QuESo_ERROR << "Given Value type (" << GetTypeName<TValueType>() << ") does not match stored Value type ("
+            QuESo_ERROR << "For key: '" << GetKeyName() << "' - Given Value type (" << GetTypeName<TValueType>() << ") does not match stored Value type ("
                 << GetValueTypeName() << ").\n";
         }
     }
@@ -113,6 +114,12 @@ public:
     /// @return const std::string&
     const std::string& GetKeyName() const {
         return mKeyName;
+    }
+
+    /// @brief Returns true is Value is set.
+    /// @return bool
+    bool IsSet() const {
+        return mSet;
     }
 
     /// Returns underlying type name of stored value as char*.
@@ -227,6 +234,7 @@ public:
     /// @return const Dictionary&
     template<typename TKeyType>
     const Dictionary& GetSubDictionaryNoCheck(TKeyType QueryKey) const {
+        assert("Given Key type does not match stored Key type: " && std::get_if<TKeyType>(&mSubDictionaryDummyKey) != 0  );
         IndexType index = static_cast<IndexType>(QueryKey);
         return *mSubDictionaries[index];
     }
@@ -293,6 +301,17 @@ public:
         if( std::get_if<TKeyType>(&mDataDummyKey) ){
             IndexType index = static_cast<IndexType>(QueryKey);
             mData[index].SetValue(NewValue);
+        } else {
+            QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
+        }
+    }
+
+
+    template<typename TKeyType>
+    bool IsSet(TKeyType QueryKey){
+        if( std::get_if<TKeyType>(&mDataDummyKey) ){
+            IndexType index = static_cast<IndexType>(QueryKey);
+            return mData[index].IsSet();
         } else {
             QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
         }
