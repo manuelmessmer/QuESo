@@ -22,13 +22,8 @@
 
 namespace queso {
 
-/**
- * @class  Container to store all global parameters.
- * @author Manuel Messmer
-**/
 
 namespace Testing {
-
 
 BOOST_AUTO_TEST_SUITE( SettingsTestSuite )
 
@@ -258,155 +253,141 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::non_trimmed_quadrature_rule_settings).GetValueNoCheck<IntegrationMethod>(
         NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::GGQ_Optimal);
 }
-// BOOST_AUTO_TEST_CASE(ParameterCastWrongTypesTest) {
-//     QuESo_INFO << "Testing :: Test Parameter :: Test Cast Wrong Value types" << std::endl;
-
-//     Parameters parameters{};
-//     // Check if IndexTypes are properly converted to doubles
-//     parameters.Set<double>("moment_fitting_residual", 3.0);
-
-//     parameters.Set<unsigned long>("moment_fitting_residual", 4UL);
-//     BOOST_CHECK_THROW( parameters.Get<unsigned long>("moment_fitting_residual"), std::exception );
-//     double value = parameters.Get<double>("moment_fitting_residual");
-//     QuESo_CHECK_NEAR(value, 4.0, 1e-14);
-
-//     parameters.Set<unsigned long>("moment_fitting_residual", 5UL);
-//     BOOST_CHECK_THROW( parameters.Get<unsigned long>("moment_fitting_residual"), std::exception );
-//     value = parameters.Get<double>("moment_fitting_residual");
-//     QuESo_CHECK_NEAR(value, 5.0, 1e-14);
-
-//     parameters.Set<double>("moment_fitting_residual", 5UL);
-//     BOOST_CHECK_THROW( parameters.Get<unsigned long>("moment_fitting_residual"), std::exception );
-//     value = parameters.Get<double>("moment_fitting_residual");
-//     QuESo_CHECK_NEAR(value, 5.0, 1e-14);
-
-//     // Check if Vector3i are properly converted to Vector3d
-//     parameters.Set<Vector3d>("lower_bound_xyz", Vector3d{1.0, 1.0, 1.0});
-
-//     parameters.Set<Vector3i>("lower_bound_xyz", Vector3i{2, 2, 2});
-//     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
-//     auto vector = parameters.Get<Vector3d>("lower_bound_xyz");
-//     QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({2.0, 2.0, 2.0}), vector, 1e-14);
-
-//     parameters.Set<Vector3i>("lower_bound_xyz", Vector3i{54, 5, 5});
-//     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
-//     vector = parameters.Get<Vector3d>("lower_bound_xyz");
-//     QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({54, 5, 5}), vector, 1e-14);
-
-//     parameters.Set<Vector3d>("lower_bound_xyz", Vector3d{3.0, 4.0, 5.0});
-//     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
-//     vector = parameters.Get<Vector3d>("lower_bound_xyz");
-//     QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({3.0, 4.0, 5.0}), vector, 1e-14);
-
-//     parameters.Set<Vector3d>("lower_bound_xyz", Vector3d{3.0, 4.0, 5.0});
-//     BOOST_CHECK_THROW( parameters.Get<Vector3i>("lower_bound_xyz"), std::exception );
-//     vector = parameters.Get<Vector3d>("lower_bound_xyz");
-//     QuESo_CHECK_POINT_RELATIVE_NEAR(Vector3d({3.0, 4.0, 5.0}), vector, 1e-14);
-// }
 
 
-// void CheckValuesConditionParameteters(const Parameters& rParameters){
+BOOST_AUTO_TEST_CASE(SettingsConditionSettingsWrongTypeTest) {
+    QuESo_INFO << "Testing :: Test Settings :: Test Condition Settings Wrong Types " << std::endl;
 
-//     for( const auto& r_cond : rParameters.GetConditionsSettingsVector() ){
-//         if( r_cond.Get<std::string>("type") == "PenaltySupportCondition" ){
-//             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
-//             QuESo_CHECK_RELATIVE_NEAR(r_cond.Get<double>("penalty_factor"), 5.0, 1e-14 );
-//             QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("value"), PointType({5.0, 3.0, 4.0}), 1e-14 );
-//         }
-//         if( r_cond.Get<std::string>("type") == "LagrangeSupportCondition" ){
-//             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
-//             QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("value"), PointType({5.0, 3.0, 4.0}), 1e-14 );
-//         }
-//         if( r_cond.Get<std::string>("type") == "SurfaceLoadCondition" ){
-//             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
-//             QuESo_CHECK_RELATIVE_NEAR(r_cond.Get<double>("modulus"), 10.0, 1e-14 );
-//             QuESo_CHECK_POINT_RELATIVE_NEAR(r_cond.Get<PointType>("direction"), PointType({5.0, 3.0, 4.0}), 1e-14 );
-//         }
-//         if( r_cond.Get<std::string>("type") == "PressureLoadCondition" ){
-//             QuESo_CHECK_EQUAL(r_cond.Get<std::string>("input_filename") , std::string("test.stl"));
-//             QuESo_CHECK_RELATIVE_NEAR(r_cond.Get<double>("modulus"), 15.0, 1e-14 );
-//         }
-//     }
-// }
+    Settings settings;
 
-// BOOST_AUTO_TEST_CASE(ConditionParametetersCustomSetTest) {
-//     QuESo_INFO << "Testing :: Test Parameter :: Test Condition Parameters Custom Set" << std::endl;
+    auto& r_cond_settings = settings.CreateNewConditionSettings();
+    BOOST_REQUIRE_THROW( r_cond_settings.IsSet(MeshSettings::lower_bound_uvw), std::exception ); // Wrong Key
 
-//     Parameters parameters{};
-//     ConditionParameters penalty_support_params("PenaltySupportCondition");
-//     penalty_support_params.Set("input_filename", std::string("test.stl"));
-//     penalty_support_params.Set("penalty_factor", 5.0);
-//     penalty_support_params.Set("value", PointType{5.0, 3.0, 4.0});
-//     parameters.AddConditionSettings(penalty_support_params);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
+    BOOST_REQUIRE_THROW( r_cond_settings.SetValue(MeshSettings::lower_bound_uvw, PointType({2.0, 3.0, 4.0})), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.SetValue(ConditionSettings::condition_id, 2.0), std::exception ); // Wrong Key type
 
-//     ConditionParameters langrange_support_params("LagrangeSupportCondition");
-//     langrange_support_params.Set("input_filename", std::string("test.stl"));
-//     langrange_support_params.Set("value", PointType{5.0, 3.0, 4.0});
-//     parameters.AddConditionSettings(langrange_support_params);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::condition_id, 100UL);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<double>(ConditionSettings::condition_id), std::exception ); // Wrong Type
 
-//     ConditionParameters surface_load_params("SurfaceLoadCondition");
-//     surface_load_params.Set("input_filename", std::string("test.stl"));
-//     surface_load_params.Set("modulus", 10.0);
-//     surface_load_params.Set("direction", PointType{5.0, 3.0, 4.0});
-//     parameters.AddConditionSettings(surface_load_params);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<std::string>(ConditionSettings::condition_type), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::condition_type, std::string("dummy"));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::condition_type), std::exception ); // Wrong Type
 
-//     ConditionParameters surface_pressure_params("PressureLoadCondition");
-//     surface_pressure_params.Set("input_filename", std::string("test.stl"));
-//     surface_pressure_params.Set("modulus", 15.0);
-//     parameters.AddConditionSettings(surface_pressure_params);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<std::string>(ConditionSettings::input_filename), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::input_filename, std::string("dummy_2"));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::input_filename), std::exception ); // Wrong Type
 
-//     CheckValuesConditionParameteters(parameters);
-//     Parameters parameters_copy_const(parameters);
-//     CheckValuesConditionParameteters(parameters_copy_const);
-//     Parameters parameters_copy_assign = parameters;
-//     CheckValuesConditionParameteters(parameters_copy_assign);
-// }
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<double>(ConditionSettings::modulus), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::modulus, 2.0);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::modulus), std::exception ); // Wrong Type
 
-// BOOST_AUTO_TEST_CASE(ConditionParametetersCustomConstructorTest) {
-//     QuESo_INFO << "Testing :: Test Parameter :: Test Condition Parameters Custom Constructor" << std::endl;
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<PointType>(ConditionSettings::direction), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::direction, PointType({2.2, 3.0, 4.4}));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::direction), std::exception ); // Wrong Type
 
-//     Parameters parameters{};
-//     ConditionParameters penalty_support_params({Component("type", std::string("PenaltySupportCondition")),
-//                                                 Component("input_filename", std::string("test.stl")),
-//                                                 Component("penalty_factor", 5.0),
-//                                                 Component("value", PointType{5.0, 3.0, 4.0}) });
-//     parameters.AddConditionSettings(penalty_support_params);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<PointType>(ConditionSettings::value), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::value, PointType({2.1, 1.0, 2.4}));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::value), std::exception ); // Wrong Type
 
-//     ConditionParameters langrange_support_params({Component("type", std::string("LagrangeSupportCondition")),
-//                                                   Component("input_filename", std::string("test.stl")),
-//                                                   Component("value", PointType{5.0, 3.0, 4.0}) });
-//     parameters.AddConditionSettings(langrange_support_params);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<double>(ConditionSettings::penalty_factor), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::penalty_factor, 1e5);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::penalty_factor), std::exception ); // Wrong Type
+}
 
-//     ConditionParameters surface_load_params({Component("type", std::string("SurfaceLoadCondition")),
-//                                              Component("input_filename", std::string("test.stl")),
-//                                              Component("direction", PointType{5.0, 3.0, 4.0}),
-//                                              Component("modulus", 10.0) });
-//     parameters.AddConditionSettings(surface_load_params);
 
-//     ConditionParameters surface_pressure_params({Component("type", std::string("PressureLoadCondition")),
-//                                                  Component("input_filename", std::string("test.stl")),
-//                                                  Component("modulus", 15.0) });
-//     parameters.AddConditionSettings(surface_pressure_params);
+BOOST_AUTO_TEST_CASE(SettingsConditionSettingsDefaultValuesTest) {
+    QuESo_INFO << "Testing :: Test Settings :: Test Condition Settings Defaut Values" << std::endl;
 
-//     CheckValuesConditionParameteters(parameters);
-//     Parameters parameters_copy_const(parameters);
-//     CheckValuesConditionParameteters(parameters_copy_const);
-//     Parameters parameters_copy_assign = parameters;
-//     CheckValuesConditionParameteters(parameters_copy_assign);
-// }
+    Settings settings;
+    auto& r_cond_settings = settings.CreateNewConditionSettings();
 
-// BOOST_AUTO_TEST_CASE(ConditionParametetersWrongTypesTest) {
-//     QuESo_INFO << "Testing :: Test Parameter :: Test Condition Parameters Wrong Value types" << std::endl;
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::condition_id) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::condition_type) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::input_filename) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::modulus) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::direction) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::value) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::penalty_factor) );
+};
 
-//     ConditionParameters penalty_support_params("PenaltySupportCondition");
-//     BOOST_CHECK_THROW( penalty_support_params.Set("penalty_factor", PointType{5.0, 3.0, 4.0}), std::exception );
+BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
+    QuESo_INFO << "Testing :: Test Settings :: Test Condition Settings Customized Values" << std::endl;
 
-//     ConditionParameters penalty_support_params_2("PenaltySupportCondition");
-//     BOOST_CHECK_THROW( penalty_support_params_2.Set("modulus", 5.0), std::exception );
+    Settings settings;
+    {
+        auto& r_cond_settings = settings.CreateNewConditionSettings();
 
-//     ConditionParameters penalty_support_params_3("PenaltySupportCondition");
-//     BOOST_CHECK_THROW( penalty_support_params_3.Set("penalty_facto", 5.0), std::exception );
-// }
+        r_cond_settings.SetValue(ConditionSettings::condition_id, 120UL);
+        r_cond_settings.SetValue(ConditionSettings::condition_type, std::string("Hello"));
+        r_cond_settings.SetValue(ConditionSettings::input_filename, std::string("hallo"));
+        r_cond_settings.SetValue(ConditionSettings::modulus, 200.0);
+        r_cond_settings.SetValue(ConditionSettings::penalty_factor, 300.0);
+    }
+    {
+        auto& r_cond_settings = settings.CreateNewConditionSettings();
+
+        r_cond_settings.SetValue(ConditionSettings::condition_id, 150UL);
+        r_cond_settings.SetValue(ConditionSettings::condition_type, std::string("Hello2"));
+        r_cond_settings.SetValue(ConditionSettings::input_filename, std::string("hallo2"));
+        r_cond_settings.SetValue(ConditionSettings::direction, PointType{2.1, 3.2, 4.7});
+        r_cond_settings.SetValue(ConditionSettings::value, PointType{2.2, 2.3, 1.4} );
+    }
+    {
+        auto& r_cond_settings = settings[Main::conditions_settings];
+        QuESo_CHECK_EQUAL( r_cond_settings.NumberOfSubDictionaries(), 2 );
+
+        QuESo_CHECK( r_cond_settings[0UL].IsSet(ConditionSettings::condition_id) );
+        QuESo_CHECK_EQUAL( r_cond_settings[0UL].GetValue<IndexType>(ConditionSettings::condition_id), 120UL );
+
+        QuESo_CHECK( r_cond_settings[0UL].IsSet(ConditionSettings::condition_type) );
+        QuESo_CHECK_EQUAL( r_cond_settings[0UL].GetValue<std::string>(ConditionSettings::condition_type), std::string("Hello") );
+
+        QuESo_CHECK( r_cond_settings[0UL].IsSet(ConditionSettings::input_filename) );
+        QuESo_CHECK_EQUAL( r_cond_settings[0UL].GetValue<std::string>(ConditionSettings::input_filename), std::string("hallo") );
+
+        QuESo_CHECK( r_cond_settings[0UL].IsSet(ConditionSettings::modulus) );
+        QuESo_CHECK_EQUAL( r_cond_settings[0UL].GetValue<double>(ConditionSettings::modulus), 200.0 );
+
+        QuESo_CHECK( !r_cond_settings[0UL].IsSet(ConditionSettings::direction) );
+        BOOST_REQUIRE_THROW( r_cond_settings[0UL].GetValue<PointType>(ConditionSettings::direction), std::exception );
+
+        QuESo_CHECK( !r_cond_settings[0UL].IsSet(ConditionSettings::value) );
+        BOOST_REQUIRE_THROW( r_cond_settings[0UL].GetValue<PointType>(ConditionSettings::value), std::exception );
+
+        QuESo_CHECK( r_cond_settings[0UL].IsSet(ConditionSettings::penalty_factor) );
+        QuESo_CHECK_EQUAL( r_cond_settings[0UL].GetValue<double>(ConditionSettings::penalty_factor), 300.0 );
+
+    }
+    {
+        auto& r_cond_settings = settings[Main::conditions_settings];
+        QuESo_CHECK_EQUAL( r_cond_settings.NumberOfSubDictionaries(), 2 );
+
+        QuESo_CHECK( r_cond_settings[1UL].IsSet(ConditionSettings::condition_id) );
+        QuESo_CHECK_EQUAL( r_cond_settings[1UL].GetValue<IndexType>(ConditionSettings::condition_id), 150UL );
+
+        QuESo_CHECK( r_cond_settings[1UL].IsSet(ConditionSettings::condition_type) );
+        QuESo_CHECK_EQUAL( r_cond_settings[1UL].GetValue<std::string>(ConditionSettings::condition_type), std::string("Hello2") );
+
+        QuESo_CHECK( r_cond_settings[1UL].IsSet(ConditionSettings::input_filename) );
+        QuESo_CHECK_EQUAL( r_cond_settings[1UL].GetValue<std::string>(ConditionSettings::input_filename), std::string("hallo2") );
+
+        QuESo_CHECK( !r_cond_settings[1UL].IsSet(ConditionSettings::modulus) );
+        BOOST_REQUIRE_THROW( r_cond_settings[1UL].GetValue<double>(ConditionSettings::modulus), std::exception );
+
+        QuESo_CHECK( r_cond_settings[1UL].IsSet(ConditionSettings::direction) );
+        QuESo_CHECK_POINT_NEAR( r_cond_settings[1UL].GetValue<PointType>(ConditionSettings::direction), PointType({2.1, 3.2, 4.7}), 1e-10 );
+
+        QuESo_CHECK( r_cond_settings[1UL].IsSet(ConditionSettings::value) );
+        QuESo_CHECK_POINT_NEAR( r_cond_settings[1UL].GetValue<PointType>(ConditionSettings::value), PointType({2.2, 2.3, 1.4}), 1e-10 );
+
+        QuESo_CHECK( !r_cond_settings[1UL].IsSet(ConditionSettings::penalty_factor) );
+        BOOST_REQUIRE_THROW( r_cond_settings[1UL].GetValue<double>(ConditionSettings::penalty_factor), std::exception );
+    }
+};
 
 BOOST_AUTO_TEST_SUITE_END()
 
