@@ -23,7 +23,7 @@ namespace queso {
 
 /// Definition of dictionary keys
 enum class Root {main};
-enum class Main {general_settings, mesh_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings, conditions_settings};
+enum class Main {general_settings, mesh_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings, conditions_settings_list};
 enum class GeneralSettings {input_filename, output_directory_name, echo_level, embedding_flag};
 enum class MeshSettings {lower_bound_xyz, upper_bound_xyz, lower_bound_uvw, upper_bound_uvw, polynomial_order, number_of_elements};
 enum class TrimmedQuadratureRuleSettings {moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles, use_customized_trimmed_points };
@@ -80,11 +80,11 @@ public:
         ));
 
         /// ConditionSettings
-        AddEmptySubDictionary(Main::conditions_settings, Str("conditions_settings"));
+        AddEmptySubDictionary(Main::conditions_settings_list, Str("conditions_settings_list"));
     }
 
     SettingsBaseType& CreateNewConditionSettings() {
-        auto& r_conditions_settings = (*this)[Main::conditions_settings];
+        auto& r_conditions_settings = (*this)[Main::conditions_settings_list];
         IndexType size = r_conditions_settings.NumberOfSubDictionaries();
         std::string condition_name = "condition_" + std::to_string(size);
         auto& r_new_condition_settings = r_conditions_settings.AddEmptySubDictionary(size, condition_name);
@@ -94,7 +94,7 @@ public:
             std::make_tuple(ConditionSettings::input_filename, Str("input_filename"), std::string("dummy"), DontSet  ),
             std::make_tuple(ConditionSettings::modulus, Str("modulus"), 0.0, DontSet  ),
             std::make_tuple(ConditionSettings::direction, Str("direction"), PointType{0.0, 0.0, 0.0}, DontSet  ),
-            std::make_tuple(ConditionSettings::value, Str("value"), 0.0, DontSet  ),
+            std::make_tuple(ConditionSettings::value, Str("value"), PointType{0.0, 0.0, 0.0}, DontSet  ),
             std::make_tuple(ConditionSettings::penalty_factor, Str("penalty_factor"), 0.0, DontSet  )
         ));
 
