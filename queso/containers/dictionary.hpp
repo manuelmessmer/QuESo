@@ -34,18 +34,19 @@ namespace queso {
 /**
  * @class  KeyValuePair
  * @author Manuel Messmer
- * @brief  Stores Key/Value pairs. Keys are stored as TVariantKey. Values are stored as VariantType, which is hard-coded to:
+ * @brief  Stores Key/Value pairs. Keys are stored as TVariantKeyType. Values are stored as VariantValueType, which is hard-coded to:
  *         std::<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType>.
  * @tparam TVariantKey. This should be an enum class, wrapped inside an std::variant<enum class>.
+ * @see    Dictionary, which uses KeyValuePair.
 **/
-template<typename TVariantKey>
+template<typename TVariantKeyType>
 class KeyValuePair {
 
 public:
     ///@name Type definitions
     ///@{
 
-    typedef std::variant<PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType> VariantType;
+    typedef std::variant<PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType> VariantValueType;
 
     ///@}
     ///@name Life cycle
@@ -54,8 +55,8 @@ public:
     /// @brief Constructor
     /// @param NewKey Key. Is stored as TVariantKey.
     /// @param NewKeyName std:::string (Is stored to be able to print Key)
-    /// @param NewValue Value. Is stored as std::variant<VariantType>
-    KeyValuePair(TVariantKey NewKey, std::string NewKeyName, VariantType NewValue, bool Set )
+    /// @param NewValue Value. Is stored as std::variant<VariantValueType>
+    KeyValuePair(TVariantKeyType NewKey, std::string NewKeyName, VariantValueType NewValue, bool Set )
         : mKey(NewKey), mKeyName(NewKeyName), mValue(NewValue), mSet(Set)
     {
     }
@@ -66,7 +67,7 @@ public:
 
     /// @brief Returns Key
     /// @return const std::variant&
-    const TVariantKey& GetKey() const {
+    const TVariantKeyType& GetKey() const {
         return mKey;
     }
 
@@ -81,7 +82,8 @@ public:
     }
 
     /// @brief Returns Value
-    /// @return const std::variant&
+    /// @tparam TValueType
+    /// @return const TValueType&
     template<typename TValueType>
     const TValueType& GetValue() const {
         if ( mSet ){
@@ -122,11 +124,14 @@ public:
         return mSet;
     }
 
-    /// Returns underlying type name of stored value as char*.
+    /// @brief Returns underlying type name of stored value as char*.
+    /// @return const char*
     const char* GetValueTypeName() const {
         return std::visit( GetTypeNameVisit{}, mValue);
     }
 
+    /// @brief Prints value
+    /// @param rOstream
     void PrintValue(std::ostream& rOstream) const {
         if( mSet ){
             std::visit( PrintVisit(rOstream), mValue );
@@ -147,7 +152,7 @@ private:
         return abi::__cxa_demangle(typeid(TType).name(),0,0,&status);
     }
 
-    /// Visit struct to print Type names.
+    /// Visit struct to get Type names.
     struct GetTypeNameVisit {
         const char* operator()(const PointType& rValue){return "PointType/std::array<double, 3>"; };
         const char* operator()(const Vector3i& rValue){return "Vector3i/std::array<std::size_t, 3>"; };
@@ -158,6 +163,7 @@ private:
         const char* operator()(const IntegrationMethodType& rValue){return "IntegrationMethod"; };
     };
 
+    /// Visit struct to print values.
     struct PrintVisit {
         PrintVisit(std::ostream& rOStream) : mOstream(rOStream){}
         void operator()(const PointType& rValue){mOstream << rValue; };
@@ -176,9 +182,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    TVariantKey mKey;
+    TVariantKeyType mKey;
     std::string mKeyName;
-    VariantType mValue;
+    VariantValueType mValue;
     bool mSet;
     ///@}
 };
@@ -187,9 +193,12 @@ private:
  * @class  Dictionary.
  * @author Manuel Messmer
  * @brief Stores json-like data sets. Each key points either to the next level in the dictionary or to a base value type, e.g. double.
- *        On the lowest level, KeyValuePair's are stored. @see KeyValuePair. Possible ValueTypes are: PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType.
- *        The KeyTypes are supposed to be enum classes and can be passed as a template parameter pack: ...TEnumKeys.
- * @tparam TVariantKey. This should be an enum class, wrapped inside an std::variant<enum class>.
+ *        On the lowest level, KeyValuePair's are stored. The KeyTypes are supposed to be enum classes and can be passed as a template
+ *        parameter pack: ...TEnumKeys.
+ *        The main idea is to derive from Dictionary and to set the respective Keys.
+ * @see KeyValuePair. Possible ValueTypes are: PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType.
+ * @see Settings. Settings derives from Dictionary.
+ * @tparam TEnumKeys. This should be a pack of enum classes.
 **/
 template<typename... TEnumKeys>
 class Dictionary
@@ -206,61 +215,65 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @tparam TKey of this dictionary level.
+    /// @tparam TKeyType of this dictionary level.
     /// @param rKey Key of this dictionary level.
+    /// @param rKeyName Name of the Key. Used to print the Key name.
     template<typename TKeyType>
-    Dictionary(TKeyType rKey, std::string rKeyName) : mKeyType(rKey), mKeyName(rKeyName) {
+    Dictionary(TKeyType rKey, std::string rKeyName) : mKey(rKey), mKeyName(rKeyName) {
         mKeyTypeName = GetTypeName<TKeyType>();
     }
 
     /// Destructor
     virtual ~Dictionary() = default;
     /// Copy Constructor
-    Dictionary(const Dictionary& ) = delete;
+    Dictionary(const Dictionary& rDict) = delete;
     /// Assignement operator
-    Dictionary& operator=(const Dictionary& ) = delete;
+    Dictionary& operator=(const Dictionary& rDict) = delete;
     /// Move constructor
-    Dictionary(Dictionary&& ) = default;
+    Dictionary(Dictionary&& rDict) = default;
     /// Move assignement operator
-    Dictionary& operator=(Dictionary&& ) = default;
+    Dictionary& operator=(Dictionary&& rDict) = default;
 
     ///@}
     ///@name Operations
     ///@{
 
     /// @brief Returns const ref to sub dictionary (no check version).
-    /// @tparam TKey.
+    /// @tparam TKeyType.
     /// @param QueryKey
     /// @return const Dictionary&
+    /// @see operator [] <- Version with exception handling.
     template<typename TKeyType>
     const Dictionary& GetSubDictionaryNoCheck(TKeyType QueryKey) const {
         assert("Given Key type does not match stored Key type: " && std::get_if<TKeyType>(&mSubDictionaryDummyKey) != 0  );
-        IndexType index = static_cast<IndexType>(QueryKey);
-        return *mSubDictionaries[index];
+        const IndexType index = static_cast<IndexType>(QueryKey);
+        return mSubDictionaries[index];
     }
 
-    /// @brief Returns const ref to next dictionery level.
-    /// @tparam TKey.
+    /// @brief Returns ref to subdictionery corresponding to given key (const version).
+    /// @tparam TKeyType.
     /// @param QueryKey
     /// @return const Dictionary&
+    /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
     template<typename TKeyType>
     const Dictionary& operator [](TKeyType QueryKey) const {
         if ( std::get_if<TKeyType>(&mSubDictionaryDummyKey) ){
-            IndexType index = static_cast<IndexType>(QueryKey);
-            return *mSubDictionaries[index];
+            const IndexType index = static_cast<IndexType>(QueryKey);
+            return mSubDictionaries[index];
         }
         QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mSubDictionaryKeyTypeName << ").\n";
     }
 
-    /// @brief Returns ref to dictionery corresponding to given key.
-    /// @tparam TKey.
+    /// @brief Returns ref to subdictionery corresponding to given key (non-const version).
+    /// @tparam TKeyType.
     /// @param QueryKey
     /// @return Dictionary&
+    /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
     template<typename TKeyType>
     Dictionary& operator [](TKeyType QueryKey) {
         if ( std::get_if<TKeyType>(&mSubDictionaryDummyKey) ){
-            IndexType index = static_cast<IndexType>(QueryKey);
-            return *mSubDictionaries[index];
+            const IndexType index = static_cast<IndexType>(QueryKey);
+            return mSubDictionaries[index];
         }
         QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mSubDictionaryKeyTypeName << ").\n";
     }
@@ -270,10 +283,11 @@ public:
     /// @tparam TKeyType
     /// @param QueryKey
     /// @return const TValueType&
+    /// @see GetValue() <- Version with exception handling.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValueNoCheck(TKeyType QueryKey) const {
         assert( ("Given Key type does not match stored Key type.", std::get_if<TKeyType>(&mDataDummyKey) ) != 0 );
-        IndexType index = static_cast<IndexType>(QueryKey);
+        const IndexType index = static_cast<IndexType>(QueryKey);
         return mData[index].template GetValueNoCheck<TValueType>();
     }
 
@@ -282,10 +296,11 @@ public:
     /// @tparam TKeyType
     /// @param QueryKey
     /// @return const TValueType&
+    /// @see GetValueNoCheck() <- Version without exception handling. Should be used, if access Keys are hard-coded.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValue(TKeyType QueryKey) const {
         if( std::get_if<TKeyType>(&mDataDummyKey) ) {
-            IndexType index = static_cast<IndexType>(QueryKey);
+            const IndexType index = static_cast<IndexType>(QueryKey);
             return mData[index].template GetValue<TValueType>();
         }
         QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
@@ -299,38 +314,40 @@ public:
     template<typename TKeyType, typename TValueType>
     void SetValue(TKeyType QueryKey, TValueType NewValue) {
         if( std::get_if<TKeyType>(&mDataDummyKey) ){
-            IndexType index = static_cast<IndexType>(QueryKey);
+            const IndexType index = static_cast<IndexType>(QueryKey);
             mData[index].SetValue(NewValue);
         } else {
             QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
         }
     }
 
-
+    /// @brief Returns true if Value to given Key is set.
+    /// @tparam TKeyType.
+    /// @param QueryKey
+    /// @return bool
     template<typename TKeyType>
-    bool IsSet(TKeyType QueryKey){
+    bool IsSet(TKeyType QueryKey) const {
         if( std::get_if<TKeyType>(&mDataDummyKey) ){
-            IndexType index = static_cast<IndexType>(QueryKey);
+            const IndexType index = static_cast<IndexType>(QueryKey);
             return mData[index].IsSet();
-        } else {
-            QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
         }
+        QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
     }
 
-    /// @brief Add values to the current level of the dictionary. Should only be called in derived class to define the default dictionary.
-    /// @tparam TKey Type of keys. All keys within one level must have the same type (same enum).
-    /// @tparam ...TValues Parameter pack for types.
+    /// @brief Adds values to the current level of the dictionary. Should only be called in derived class to define the default dictionary.
+    /// @tparam TKeyType of keys. All keys within one level must have the same type (same enum).
+    /// @tparam ...TValueTypes Parameter pack for types.
     /// @param NewEntries
     template<typename TKeyType, typename... TValueTypes>
     void AddValues(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> NewEntries) {
-        mDataDummyKey = std::get<0>(std::get<0>(NewEntries));
+        mDataDummyKey = std::get<0>(std::get<0>(NewEntries)); // We store one key, to be able to test for the Key Type.
         mDataKeyTypeName = GetTypeName<TKeyType>();
         UnpackTuple(NewEntries);
     }
 
-    /// @brief Returns numver of sub-dictionaries stored.
+    /// @brief Returns number of subdictionaries stored.
     /// @return IndexType
-    const IndexType NumberOfSubDictionaries() const {
+    IndexType NumberOfSubDictionaries() const {
         return mSubDictionaries.size();
     }
 
@@ -346,21 +363,21 @@ public:
             mSubDictionaryKeyTypeName = GetTypeName<TKeyType>();
         }
         else {
-            for(const auto& level : mSubDictionaries) {
-                if( !std::get_if<TKeyType>(&level->GetKey() ) ) {
+            for(const auto& sub_dict : mSubDictionaries) {
+                if( !std::get_if<TKeyType>(&sub_dict.GetKey() ) ) {
                     QuESo_ERROR << "The keys on the same level must be of same type. Given Key type: '" << GetTypeName<TKeyType>()
-                        << ". Stored Key type on this level: '" << level->GetKeyTypeName() << "'.\n";
+                        << ". Stored Key type on this level: '" << sub_dict.GetKeyTypeName() << "'.\n";
                 }
             }
         }
         // Add new dictionary
-        mSubDictionaries.push_back( MakeUnique<Dictionary>(rKey, rKeyName) );
-        return *mSubDictionaries.back();
+        mSubDictionaries.push_back( Dictionary(rKey, rKeyName) );
+        return mSubDictionaries.back();
     }
 
     /// @brief Prints this dictionary
     /// @param rOStream
-    /// @param Indent
+    /// @param Indent Should be "" when called. This variable is used for recursive function calls.
     void PrintInfo(std::ostream& rOStream, std::string& Indent) const {
         rOStream << Indent << mKeyName << " {\n";
         std::string new_indent = Indent + "   ";
@@ -369,8 +386,8 @@ public:
             key_value_pair.PrintValue(rOStream);
             rOStream << '\n';
         }
-        for( const Unique<Dictionary<TEnumKeys...>>& p_sub_dictionary : mSubDictionaries  ) {
-            p_sub_dictionary->PrintInfo(rOStream, new_indent);
+        for( const Dictionary<TEnumKeys...>& r_sub_dictionary : mSubDictionaries  ) {
+            r_sub_dictionary.PrintInfo(rOStream, new_indent);
         }
         if( Indent == "" ){
             rOStream << "}";
@@ -414,17 +431,17 @@ private:
         }
 
         mData.push_back(KeyValuePair(TVariantKey(std::get<0>(r_tuple)), std::get<1>(r_tuple), std::get<2>(r_tuple), std::get<3>(r_tuple)));
-        UnpackTuple<I+1>(Tuple);
+        UnpackTuple<I+1>(Tuple); // Recursive call.
     }
 
     ///@}
     ///@name Private operations.
     ///@{
 
- /// @brief Returns key of current dictionary level
-    /// @return TVariantKey
+    /// @brief Returns Key of current dictionary level
+    /// @return  const TVariantKey&
     const TVariantKey& GetKey() const {
-        return mKeyType;
+        return mKey;
     }
 
     /// @brief Returns name of Key type.
@@ -445,21 +462,23 @@ private:
     ///@{
 
     //// Key related members. (Key of this dictionary)
-    TVariantKey mKeyType;
+    TVariantKey mKey;
     std::string mKeyName;
     std::string mKeyTypeName;
 
     //// Current Value related members. (Values stored in this dictionary)
+    // This key (mDataDummyKey) allows to test, if any given Key type matches the stored Key types.
+    // Is usually the Key of the first entry of mData.
     TVariantKey mDataDummyKey;
     std::string mDataKeyTypeName;
     std::vector<KeyValuePair<TVariantKey>> mData;
 
-    //// Members related to sub-dictionaries.
-    // Dummy key to check if a given key (e.g. given to a functions) has the correct key type.
+    //// Members related to subdictionaries.
+    // This key (mSubDictionaryDummyKey) allows to test, if any given Key type matches the stored Key types.
     // Since the key is used as index for mSubDictionaries, it has to be checked before accesing mSubDictionaries.
     TVariantKey mSubDictionaryDummyKey;
     std::string mSubDictionaryKeyTypeName;
-    std::vector<Unique<Dictionary<TEnumKeys...>>> mSubDictionaries;
+    std::vector<Dictionary<TEnumKeys...>> mSubDictionaries;
 
     ///@}
 };
