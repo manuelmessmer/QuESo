@@ -46,7 +46,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    typedef std::variant<PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType> VariantValueType;
+    typedef std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, BackgroundGridTypeType> VariantValueType;
 
     ///@}
     ///@name Life cycle
@@ -99,7 +99,7 @@ public:
     }
 
     /// @brief Sets Value
-    /// @tparam Type of value.
+    /// @tparam TValueType of value.
     /// @param NewValue
     template<typename TValueType>
     void SetValue(TValueType NewValue) {
@@ -109,6 +109,33 @@ public:
         } else {
             QuESo_ERROR << "For key: '" << GetKeyName() << "' - Given Value type (" << GetTypeName<TValueType>() << ") does not match stored Value type ("
                 << GetValueTypeName() << ").\n";
+        }
+    }
+
+    /// @brief Sets Value and cast 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
+    /// @tparam TValueType of value.
+    /// @param NewValue
+    template<typename TValueType>
+    void SetValueWithAmbiguousType(TValueType NewValue) {
+        bool is_set = false;
+        if constexpr ( std::is_same<TValueType, IndexType>::value ) { // If incoming is IndexType
+            if( std::get_if<double>(&mValue) ){                           // If stored is double
+                // Cast 0 -> 0.0
+                SetValue( static_cast<double>(NewValue) );
+                is_set = true;
+            }
+        }
+        else if constexpr ( std::is_same<TValueType, Vector3i>::value ) { // If incoming is Vector3i
+            if( std::get_if<Vector3d>(&mValue) ){                         // If stored is Vector3d
+                // Cast [0, 0, 0] -> [0.0, 0.0, 0.0]
+                SetValue( Vector3d{ static_cast<double>(NewValue[0]),
+                                    static_cast<double>(NewValue[1]),
+                                    static_cast<double>(NewValue[2])} );
+                is_set = true;
+            }
+        }
+        if( !is_set ){
+            SetValue(NewValue);
         }
     }
 
@@ -156,23 +183,26 @@ private:
     struct GetTypeNameVisit {
         const char* operator()(const PointType& rValue){return "PointType/std::array<double, 3>"; };
         const char* operator()(const Vector3i& rValue){return "Vector3i/std::array<std::size_t, 3>"; };
-        const char* operator()(const unsigned long& rValue){return "std::size_t"; };
+        const char* operator()(const IndexType& rValue){return "std::size_t"; };
         const char* operator()(const double& rValue){return "double"; };
         const char* operator()(const std::string& rValue){return "std::string"; };
         const char* operator()(const bool& rValue){return "bool"; };
         const char* operator()(const IntegrationMethodType& rValue){return "IntegrationMethod"; };
+        const char* operator()(const BackgroundGridTypeType& rValue){return "BackgroundGridType"; };
     };
 
     /// Visit struct to print values.
     struct PrintVisit {
+
         PrintVisit(std::ostream& rOStream) : mOstream(rOStream){}
         void operator()(const PointType& rValue){mOstream << rValue; };
         void operator()(const Vector3i& rValue){mOstream << rValue;};
-        void operator()(const unsigned long& rValue){ mOstream << rValue;};
+        void operator()(const IndexType& rValue){ mOstream << rValue;};
         void operator()(const double& rValue){mOstream << rValue;};
         void operator()(const std::string& rValue){mOstream << rValue;};
-        void operator()(const bool& rValue){mOstream << rValue; };
-        void operator()(const IntegrationMethodType& rValue){ mOstream << rValue; };
+        void operator()(const bool& rValue){std::string out = (rValue) ? "true" : "false"; mOstream << out; };
+        void operator()(const IntegrationMethodType& rValue){ mOstream << IntegrationMethodToString(rValue); };
+        void operator()(const BackgroundGridTypeType& rValue){ mOstream << BackgroundGridTypeToString(rValue); };
 
     private:
         std::ostream& mOstream;
@@ -196,7 +226,7 @@ private:
  *        On the lowest level, KeyValuePair's are stored. The KeyTypes are supposed to be enum classes and can be passed as a template
  *        parameter pack: ...TEnumKeys.
  *        The main idea is to derive from Dictionary and to set the respective Keys.
- * @see KeyValuePair. Possible ValueTypes are: PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType.
+ * @see KeyValuePair. Possible ValueTypes are: PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType.
  * @see Settings. Settings derives from Dictionary.
  * @tparam TEnumKeys. This should be a pack of enum classes.
 **/
@@ -321,6 +351,21 @@ public:
         }
     }
 
+    /// @brief Sets Value to given Key casts 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param QueryKey
+    /// @param NewValue
+    template<typename TKeyType, typename TValueType>
+    void SetValueWithAmbiguousType(TKeyType QueryKey, TValueType NewValue) {
+        if( std::get_if<TKeyType>(&mDataDummyKey) ){
+            const IndexType index = static_cast<IndexType>(QueryKey);
+            mData[index].SetValueWithAmbiguousType(NewValue);
+        } else {
+            QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
+        }
+    }
+
     /// @brief Returns true if Value to given Key is set.
     /// @tparam TKeyType.
     /// @param QueryKey
@@ -373,6 +418,13 @@ public:
         // Add new dictionary
         mSubDictionaries.push_back( Dictionary(rKey, rKeyName) );
         return mSubDictionaries.back();
+    }
+
+    /// @brief Throws error if any stored value on this level is not set.
+    void CheckIfValuesAreSet() {
+        for( const auto& r_key_val_pair : mData  ){
+            QuESo_ERROR_IF( !r_key_val_pair.IsSet() ) << "Variable: " << r_key_val_pair.GetKeyName() << " is not set.\n";
+        }
     }
 
     /// @brief Prints this dictionary
