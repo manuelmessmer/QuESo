@@ -27,7 +27,7 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( SettingsTestSuite )
 
-BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
+BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
     QuESo_INFO << "Testing :: Test Settings :: Test Wrong Types" << std::endl;
     Settings setting;
 
@@ -371,6 +371,44 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
         BOOST_REQUIRE_THROW( r_cond_settings_list[1UL].GetValue<double>(ConditionSettings::penalty_factor), std::exception );
     }
 };
+
+
+BOOST_AUTO_TEST_CASE(SettingsCastAmbiguousTypesTest) {
+    QuESo_INFO << "Testing :: Test Settings :: Test Cast Ambiguous Types" << std::endl;
+
+    Settings settings;
+
+    // Cast IndexType to double
+    BOOST_REQUIRE_THROW( settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5UL), std::exception ); // Wrong Type
+    // Lets set it with wrong type
+    settings[Main::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5UL);
+    {
+        const double r_double = settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
+        QuESo_CHECK_RELATIVE_NEAR(r_double, 5.0, 1e-10);
+    }
+    // Lets set it with correct type
+    settings[Main::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 7.7);
+    {
+        const double r_double = settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
+        QuESo_CHECK_RELATIVE_NEAR(r_double, 7.7, 1e-10);
+    }
+
+    // Cast Vector3i to Vector3d
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception ); // Not set
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, Vector3i({0, 0, 0})), std::exception ); // Wrong Type
+    // Lets set it with wrong type
+    settings[Main::background_grid_settings].SetValueWithAmbiguousType(BackgroundGridSettings::lower_bound_xyz, Vector3i({5, 3, 2}));
+    {
+        const PointType& r_point = settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        QuESo_CHECK_POINT_RELATIVE_NEAR(r_point, PointType({5.0, 3.0, 2.0}), 1e-10);
+    }
+    // Lets set it with correct type
+    settings[Main::background_grid_settings].SetValueWithAmbiguousType(BackgroundGridSettings::lower_bound_xyz, Vector3d({5.5, 2.2, 1.1}));
+    {
+        const PointType& r_point = settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        QuESo_CHECK_POINT_RELATIVE_NEAR(r_point, PointType({5.5, 2.2, 1.1}), 1e-10);
+    }
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
