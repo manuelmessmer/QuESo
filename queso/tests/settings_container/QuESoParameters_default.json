@@ -1,0 +1,18 @@
+{
+    "general_settings"   : {
+    },
+    "background_grid_settings"     : {
+    },
+    "trimmed_quadrature_rule_settings"     : {
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+    },
+    "conditions_settings_list"    :  [
+        {
+        },{
+        },{
+        },{
+        }
+    ]
+}
+
