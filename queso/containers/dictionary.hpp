@@ -448,6 +448,16 @@ public:
         }
     }
 
+    // Return begin iterator
+    typename std::vector<Dictionary<TEnumKeys...>>::iterator begin_sub_dicts() {
+        return mSubDictionaries.begin();
+    }
+
+    // Return end iterator
+    typename std::vector<Dictionary<TEnumKeys...>>::iterator end_sub_dicts() {
+        return mSubDictionaries.end();
+    }
+
     friend std::ostream& operator<< (std::ostream& rOStream, const Dictionary<TEnumKeys ...>& rThis) {
         std::string indent = "";
         rThis.PrintInfo(rOStream, indent);
