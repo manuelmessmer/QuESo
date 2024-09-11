@@ -343,7 +343,11 @@ public:
     void SetValue(TKeyType QueryKey, TValueType NewValue) {
         if( std::get_if<TKeyType>(&mDataDummyKey) ){
             const IndexType index = static_cast<IndexType>(QueryKey);
-            mData[index].SetValue(NewValue);
+            if constexpr(std::is_same_v<TValueType, unsigned long> || std::is_same_v<TValueType, int>) {
+                mData[index].SetValue(static_cast<IndexType>(NewValue));
+            } else {
+                mData[index].SetValue(NewValue);
+            }
         } else {
             QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mDataKeyTypeName << ").\n";
         }
