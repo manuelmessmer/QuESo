@@ -35,78 +35,76 @@ BOOST_AUTO_TEST_CASE(ParameterCustomConstructorTest) {
 
     /// General settings
     auto& r_general_settings = setting[Main::general_settings];
-    BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(MeshSettings::lower_bound_uvw), std::exception); // Wrong Key type
+    BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception); // Wrong Key type
 
     BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(GeneralSettings::input_filename), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(GeneralSettings::output_directory_name), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(GeneralSettings::echo_level), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(GeneralSettings::embedding_flag), std::exception); // Wrong Value type
 
     /// Mesh settings
-    auto& r_mesh_settings = setting[Main::mesh_settings];
+    auto& r_mesh_settings = setting[Main::background_grid_settings];
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception); // Wrong Key type
 
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::lower_bound_xyz), std::exception); // Not set
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception); // Not set
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::lower_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(MeshSettings::lower_bound_xyz, PointType{1.0, 2.0, 3.0});
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
+    r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{1.0, 2.0, 3.0});
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::lower_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(MeshSettings::lower_bound_xyz), std::exception); // Wrong Value type
-    const PointType& r_lower_bound_xyz = r_mesh_settings.GetValue<PointType>(MeshSettings::lower_bound_xyz);
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::lower_bound_xyz), std::exception); // Wrong Value type
+    const PointType& r_lower_bound_xyz = r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
     QuESo_CHECK_POINT_NEAR(r_lower_bound_xyz, PointType({1.0, 2.0, 3.0}), 1e-10);
 
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::upper_bound_xyz), std::exception); // Not set
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::upper_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(MeshSettings::upper_bound_xyz, PointType{1.0, 2.0, 3.0});
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::upper_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(MeshSettings::upper_bound_xyz), std::exception); // Wrong Value type
-    const PointType& r_upper_bound_xyz = r_mesh_settings.GetValue<PointType>(MeshSettings::upper_bound_xyz);
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), std::exception); // Not set
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
+    r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.0, 2.0, 3.0});
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::upper_bound_xyz), std::exception); // Wrong Value type
+    const PointType& r_upper_bound_xyz = r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
     QuESo_CHECK_POINT_NEAR(r_upper_bound_xyz, PointType({1.0, 2.0, 3.0}), 1e-10);
 
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::lower_bound_uvw), std::exception); // Not set
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::lower_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(MeshSettings::lower_bound_uvw, PointType{1.0, 2.0, 3.0});
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::lower_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(MeshSettings::lower_bound_uvw), std::exception); // Wrong Value type
-    const PointType& r_lower_bound_uvw= r_mesh_settings.GetValue<PointType>(MeshSettings::lower_bound_uvw);
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception); // Not set
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
+    r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{1.0, 2.0, 3.0});
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::lower_bound_uvw), std::exception); // Wrong Value type
+    const PointType& r_lower_bound_uvw= r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw);
     QuESo_CHECK_POINT_NEAR(r_lower_bound_uvw, PointType({1.0, 2.0, 3.0}), 1e-10);
 
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::upper_bound_uvw), std::exception); // Not set
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(MeshSettings::upper_bound_uvw, PointType{1.0, 2.0, 3.0});
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(MeshSettings::upper_bound_uvw), std::exception); // Wrong Value type
-    const PointType& r_upper_bound_uvw = r_mesh_settings.GetValue<PointType>(MeshSettings::upper_bound_uvw);
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), std::exception); // Not set
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
+    r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 2.0, 3.0});
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::upper_bound_uvw), std::exception); // Wrong Value type
+    const PointType& r_upper_bound_uvw = r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw);
     QuESo_CHECK_Vector3i_EQUAL(r_upper_bound_uvw, Vector3i({1, 2, 3}) );
 
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::polynomial_order), std::exception); // Not set
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::polynomial_order, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(MeshSettings::polynomial_order, Vector3i{1, 2, 3});
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::polynomial_order, IndexType(2)), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::polynomial_order), std::exception); // Wrong Value type
-    const Vector3i& r_polynomial_order = r_mesh_settings.GetValue<Vector3i>(MeshSettings::polynomial_order);
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::polynomial_order), std::exception); // Not set
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::polynomial_order, IndexType(2)), std::exception); // Wrong Value type
+    r_mesh_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{1, 2, 3});
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::polynomial_order, IndexType(2)), std::exception); // Wrong Value type
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::polynomial_order), std::exception); // Wrong Value type
+    const Vector3i& r_polynomial_order = r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
     QuESo_CHECK_Vector3i_EQUAL(r_polynomial_order, Vector3i({1, 2, 3}) );
 
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::number_of_elements), std::exception); // Not set
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::number_of_elements, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(MeshSettings::number_of_elements, Vector3i{1, 2, 3});
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MeshSettings::number_of_elements, IndexType(2)), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(MeshSettings::number_of_elements), std::exception); // Wrong Value type
-    const Vector3i& number_of_elements = r_mesh_settings.GetValue<Vector3i>(MeshSettings::number_of_elements);
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::number_of_elements), std::exception); // Not set
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::number_of_elements, IndexType(2)), std::exception); // Wrong Value type
+    r_mesh_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 2, 3});
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::number_of_elements, IndexType(2)), std::exception); // Wrong Value type
+    BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::number_of_elements), std::exception); // Wrong Value type
+    const Vector3i& number_of_elements = r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
     QuESo_CHECK_Vector3i_EQUAL(number_of_elements, Vector3i({1, 2, 3}) );
 
     /// Trimmed quadrature rule settings
     auto& r_trimmed_quad_rule_settings = setting[Main::trimmed_quadrature_rule_settings];
-    BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.SetValue(MeshSettings::number_of_elements, Vector3i{1, 2, 3}), std::exception); // Wrong Key type
+    BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 2, 3}), std::exception); // Wrong Key type
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::moment_fitting_residual), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), std::exception); // Wrong Value type
-    BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::use_customized_trimmed_points), std::exception); // Wrong Value type
 
     /// Non trimmed quadrature rule settings
     auto& r_non_trimmed_quad_rule_settings = setting[Main::non_trimmed_quadrature_rule_settings];
-    BOOST_REQUIRE_THROW(r_non_trimmed_quad_rule_settings.SetValue(MeshSettings::number_of_elements, Vector3i{1, 2, 3}), std::exception); // Wrong Key type
+    BOOST_REQUIRE_THROW(r_non_trimmed_quad_rule_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 2, 3}), std::exception); // Wrong Key type
     BOOST_REQUIRE_THROW(r_non_trimmed_quad_rule_settings.GetValue<IndexType>(NonTrimmedQuadratureRuleSettings::integration_method), std::exception); // Wrong Value type
 }
 
@@ -126,27 +124,24 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
     QuESo_CHECK( settings[Main::general_settings].IsSet(GeneralSettings::echo_level) );
     QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 1UL);
 
-    QuESo_CHECK( settings[Main::general_settings].IsSet(GeneralSettings::embedding_flag) );
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<bool>(GeneralSettings::embedding_flag), true);
-
     /// Mesh settings
-    QuESo_CHECK( !settings[Main::mesh_settings].IsSet(MeshSettings::lower_bound_xyz) );
-    BOOST_REQUIRE_THROW( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::lower_bound_xyz), std::exception );
+    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_xyz) );
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception );
 
-    QuESo_CHECK( !settings[Main::mesh_settings].IsSet(MeshSettings::upper_bound_xyz) );
-    BOOST_REQUIRE_THROW( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::upper_bound_xyz), std::exception );
+    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::upper_bound_xyz) );
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), std::exception );
 
-    QuESo_CHECK( !settings[Main::mesh_settings].IsSet(MeshSettings::lower_bound_uvw) );
-    BOOST_REQUIRE_THROW( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::lower_bound_uvw), std::exception );
+    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_uvw) );
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception );
 
-    QuESo_CHECK( !settings[Main::mesh_settings].IsSet(MeshSettings::upper_bound_uvw) );
-    BOOST_REQUIRE_THROW( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::upper_bound_uvw), std::exception );
+    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::upper_bound_uvw) );
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), std::exception );
 
-    QuESo_CHECK( !settings[Main::mesh_settings].IsSet(MeshSettings::polynomial_order) );
-    BOOST_REQUIRE_THROW( settings[Main::mesh_settings].GetValue<Vector3i>(MeshSettings::polynomial_order), std::exception );
+    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::polynomial_order) );
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order), std::exception );
 
-    QuESo_CHECK( !settings[Main::mesh_settings].IsSet(MeshSettings::number_of_elements) );
-    BOOST_REQUIRE_THROW( settings[Main::mesh_settings].GetValue<Vector3i>(MeshSettings::number_of_elements), std::exception );
+    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::number_of_elements) );
+    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements), std::exception );
 
     /// TrimmedQuadratureRuleSettings settings
     QuESo_CHECK( settings[Main::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::moment_fitting_residual) );
@@ -157,9 +152,6 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
 
     QuESo_CHECK( settings[Main::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::min_num_boundary_triangles) );
     QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 100 );
-
-    QuESo_CHECK( settings[Main::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::use_customized_trimmed_points) );
-    QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<bool>(TrimmedQuadratureRuleSettings::use_customized_trimmed_points), false );
 
     // NonTrimmedQuadratureRuleSettings settings
     QuESo_CHECK( settings[Main::non_trimmed_quadrature_rule_settings].IsSet(NonTrimmedQuadratureRuleSettings::integration_method) );
@@ -175,7 +167,6 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     settings[Main::general_settings].SetValue(GeneralSettings::input_filename, std::string("test_filename.stl"));
     settings[Main::general_settings].SetValue(GeneralSettings::output_directory_name, std::string("new_output/"));
     settings[Main::general_settings].SetValue(GeneralSettings::echo_level, 2UL);
-    settings[Main::general_settings].SetValue(GeneralSettings::embedding_flag, false);
 
 
     QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::string("test_filename.stl") );
@@ -189,46 +180,42 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 2Ul );
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<IndexType>(GeneralSettings::echo_level), 2UL );
 
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<bool>(GeneralSettings::embedding_flag), false);
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<bool>(GeneralSettings::embedding_flag), false );
-
     /// Mesh settings
-    settings[Main::mesh_settings].SetValue(MeshSettings::lower_bound_xyz, PointType({1.0, 1.0, 2.0}));
-    settings[Main::mesh_settings].SetValue(MeshSettings::upper_bound_xyz, PointType({0.0, 3.0, 2.0}));
-    settings[Main::mesh_settings].SetValue(MeshSettings::lower_bound_uvw, PointType({0.1, -1.0, 2.0}));
-    settings[Main::mesh_settings].SetValue(MeshSettings::upper_bound_uvw, PointType({0.66, 1.0, 2.2}));
-    settings[Main::mesh_settings].SetValue(MeshSettings::polynomial_order, Vector3i({5, 6, 7}));
-    settings[Main::mesh_settings].SetValue(MeshSettings::number_of_elements, Vector3i({8, 9, 2}));
+    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType({1.0, 1.0, 2.0}));
+    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType({0.0, 3.0, 2.0}));
+    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({0.1, -1.0, 2.0}));
+    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType({0.66, 1.0, 2.2}));
+    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i({5, 6, 7}));
+    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i({8, 9, 2}));
 
-    QuESo_CHECK_EQUAL( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::lower_bound_xyz), PointType({1.0, 1.0, 2.0}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::mesh_settings).GetValueNoCheck<PointType>(MeshSettings::lower_bound_xyz),
+    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), PointType({1.0, 1.0, 2.0}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_xyz),
         PointType({1.0, 1.0, 2.0}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::upper_bound_xyz), PointType({0.0, 3.0, 2.0}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::mesh_settings).GetValueNoCheck<PointType>(MeshSettings::upper_bound_xyz),
+    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), PointType({0.0, 3.0, 2.0}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::upper_bound_xyz),
         PointType({0.0, 3.0, 2.0}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::lower_bound_uvw), PointType({0.1, -1.0, 2.0}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::mesh_settings).GetValueNoCheck<PointType>(MeshSettings::lower_bound_uvw),
+    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), PointType({0.1, -1.0, 2.0}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_uvw),
         PointType({0.1, -1.0, 2.0}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::mesh_settings].GetValue<PointType>(MeshSettings::upper_bound_uvw), PointType({0.66, 1.0, 2.2}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::mesh_settings).GetValueNoCheck<PointType>(MeshSettings::upper_bound_uvw),
+    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), PointType({0.66, 1.0, 2.2}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::upper_bound_uvw),
         PointType({0.66, 1.0, 2.2}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::mesh_settings].GetValue<Vector3i>(MeshSettings::polynomial_order), Vector3i({5, 6, 7}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::mesh_settings).GetValueNoCheck<Vector3i>(MeshSettings::polynomial_order),
+    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order), Vector3i({5, 6, 7}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<Vector3i>(BackgroundGridSettings::polynomial_order),
         Vector3i({5, 6, 7}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::mesh_settings].GetValue<Vector3i>(MeshSettings::number_of_elements), Vector3i({8, 9, 2}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::mesh_settings).GetValueNoCheck<Vector3i>(MeshSettings::number_of_elements),
+    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements), Vector3i({8, 9, 2}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<Vector3i>(BackgroundGridSettings::number_of_elements),
         Vector3i({8, 9, 2}) );
 
     /// Trimmed quadrature rule settings
     settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5.6e-5);
     settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.45);
     settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, IndexType(234));
-    settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::use_customized_trimmed_points, true);
 
     QuESo_CHECK_RELATIVE_NEAR( settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual), 5.6e-5, 1e-10 );
     QuESo_CHECK_RELATIVE_NEAR( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<double>(
@@ -241,10 +228,6 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234UL );
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<IndexType>(
         TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234UL);
-
-    QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<bool>(TrimmedQuadratureRuleSettings::use_customized_trimmed_points), true );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<bool>(
-        TrimmedQuadratureRuleSettings::use_customized_trimmed_points), true );
 
     /// Non trimmed quadrature rule settings
     settings[Main::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::GGQ_Optimal);
@@ -261,10 +244,10 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsWrongTypeTest) {
     Settings settings;
 
     auto& r_cond_settings_list = settings.CreateNewConditionSettings();
-    BOOST_REQUIRE_THROW( r_cond_settings_list.IsSet(MeshSettings::lower_bound_uvw), std::exception ); // Wrong Key
+    BOOST_REQUIRE_THROW( r_cond_settings_list.IsSet(BackgroundGridSettings::lower_bound_uvw), std::exception ); // Wrong Key
 
     BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
-    BOOST_REQUIRE_THROW( r_cond_settings_list.SetValue(MeshSettings::lower_bound_uvw, PointType({2.0, 3.0, 4.0})), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings_list.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({2.0, 3.0, 4.0})), std::exception ); // Wrong Key type
     BOOST_REQUIRE_THROW( r_cond_settings_list.SetValue(ConditionSettings::condition_id, 2.0), std::exception ); // Wrong Key type
 
     BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
