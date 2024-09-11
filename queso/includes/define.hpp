@@ -18,6 +18,7 @@
 #include <limits>
 #include <memory>
 #include <array>
+#include <unordered_map>
 //// Project includes
 #include "queso/includes/logger.hpp"
 #include "queso/includes/exception.hpp"
@@ -76,9 +77,20 @@ constexpr double EPS4 = 1e-14;
 // Enum's
 enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
 typedef enum IntegrationMethod IntegrationMethodType;
+constexpr const char* IntegrationMethodToString(IntegrationMethodType rValue){
+    constexpr std::array<const char*, 6> type_to_string {{"Gauss",  "Gauss_Reduced1", "Gauss_Reduced2", "GGQ_Optimal", "GGQ_Reduced1", "GGQ_Reduced2"}};
+    return type_to_string[static_cast<int>(rValue)];
+}
 
 enum IntersectionStatus {Inside, Outside, Trimmed};
 typedef IntersectionStatus IntersectionStatusType;
+
+enum class BackgroundGridType {b_spline_grid, hexahedral_fe_grid};
+typedef BackgroundGridType BackgroundGridTypeType;
+constexpr const char* BackgroundGridTypeToString(BackgroundGridTypeType rValue){
+    constexpr std::array<const char*, 2> type_to_string {{"b_spline_grid", "hexahedral_fe_grid"}};
+    return type_to_string[static_cast<int>(rValue)];
+}
 
 // QuESo Factories
 inline BoundingBoxType MakeBox( PointType rL, PointType rR ){
