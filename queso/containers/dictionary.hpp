@@ -306,9 +306,16 @@ public:
     /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
     template<typename TKeyType>
     Dictionary& operator [](TKeyType QueryKey) {
-        if ( std::get_if<TKeyType>(&mSubDictionaryDummyKey) ){
-            const IndexType index = static_cast<IndexType>(QueryKey);
-            return mSubDictionaries[index];
+        if constexpr(std::is_same_v<TKeyType, unsigned long> || std::is_same_v<TKeyType, int>) {
+            if ( std::get_if<IndexType>(&mSubDictionaryDummyKey) ){
+                const IndexType index = static_cast<IndexType>(QueryKey);
+                return mSubDictionaries[index];
+            }
+        } else {
+            if ( std::get_if<TKeyType>(&mSubDictionaryDummyKey) ){
+                const IndexType index = static_cast<IndexType>(QueryKey);
+                return mSubDictionaries[index];
+            }
         }
         QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mSubDictionaryKeyTypeName << ").\n";
     }
