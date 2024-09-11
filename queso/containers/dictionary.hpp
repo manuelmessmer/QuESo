@@ -45,7 +45,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    typedef std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, BackgroundGridTypeType> VariantValueType;
+    typedef std::variant<PointType, Vector3i, bool, double, unsigned long, std::string, IntegrationMethodType, BackgroundGridTypeType> VariantValueType;
 
     ///@}
     ///@name Life cycle
