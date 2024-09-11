@@ -71,6 +71,10 @@ void DictionaryBinderHelper(TBinderType& binder) {
         return rDictionary.GetValue<IndexType>(rEnum); });
     binder.def("GetString", [](SettingsBaseType& rDictionary, TEnumType rEnum ){
         return rDictionary.GetValue<std::string>(rEnum); });
+    binder.def("GetIntegrationMethod", [](SettingsBaseType& rDictionary, TEnumType rEnum ){
+        return rDictionary.GetValue<IntegrationMethodType>(rEnum); });
+    binder.def("GetBackgroundGridType", [](SettingsBaseType& rDictionary, TEnumType rEnum ){
+        return rDictionary.GetValue<BackgroundGridTypeType>(rEnum); });
 }
 
 void AddSettingsToPython(pybind11::module& m) {
@@ -138,10 +142,12 @@ void AddSettingsToPython(pybind11::module& m) {
     DictionaryBinderHelper<SettingsBaseTypeBinderType, NonTrimmedQuadratureRuleSettings>(settings_base_type_binder);
     DictionaryBinderHelper<SettingsBaseTypeBinderType, ConditionSettings>(settings_base_type_binder);
 
-    settings_base_type_binder.def("GetIntegrationMethod", [](SettingsBaseType& rDictionary, IntegrationMethodType rEnum ){
-        return IntegrationMethodToString(rEnum); });
-    settings_base_type_binder.def("GetBackgroundGridType", [](SettingsBaseType& rDictionary, BackgroundGridTypeType rEnum ){
-        return BackgroundGridTypeToString(rEnum); });
+    settings_base_type_binder.def("NumberOfSubDictionaries", &SettingsBaseType::NumberOfSubDictionaries);
+    settings_base_type_binder.def("__getitem__", [](SettingsBaseType& rDictionary, IndexType rIndex){
+        return &rDictionary[rIndex]; }, py::return_value_policy::reference_internal );
+    settings_base_type_binder.def("__iter__",    [](SettingsBaseType& rDictionary){
+        return py::make_iterator(rDictionary.begin_sub_dicts(), rDictionary.end_sub_dicts());},  py::keep_alive<0,1>());
+    settings_base_type_binder.def("__len__",    [](SettingsBaseType& rDictionary){return rDictionary.NumberOfSubDictionaries(); });
 
     /// Export settings
     py::class_<Settings, SettingsBaseType>(m,"Settings")
