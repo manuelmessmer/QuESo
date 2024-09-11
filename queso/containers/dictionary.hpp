@@ -18,7 +18,6 @@
 #include <iostream>
 #include <variant>
 #include <cassert>
-#include <cxxabi.h>
 #include <set>
 #include <vector>
 #include <type_traits>
@@ -175,8 +174,7 @@ private:
     /// Returns type name of TType as char*
     template<typename TType>
     const char* GetTypeName() const {
-        int status;
-        return abi::__cxa_demangle(typeid(TType).name(),0,0,&status);
+        return typeid(TType).name();
     }
 
     /// Visit struct to get Type names.
@@ -515,8 +513,7 @@ private:
     /// Returns type name of TType as char*
     template<typename TType>
     const char* GetTypeName() const {
-        int status;
-        return abi::__cxa_demangle(typeid(TType).name(),0,0,&status);
+        return typeid(TType).name();
     }
 
     ///@}
