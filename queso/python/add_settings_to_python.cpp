@@ -52,9 +52,9 @@ void DictionaryBinderHelper(TBinderType& binder) {
         rDictionary.SetValue(rEnum, rValue); });
     binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, IndexType rValue){
         rDictionary.SetValueWithAmbiguousType(rEnum, rValue); }); // Allows cast to double, if possible.
-    binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, IntegrationMethodType rValue){
-        rDictionary.SetValue(rEnum, rValue); });
     binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, const std::string& rValue){
+        rDictionary.SetValue(rEnum, rValue); });
+    binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, IntegrationMethodType rValue){
         rDictionary.SetValue(rEnum, rValue); });
     binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, const BackgroundGridTypeType& rValue){
         rDictionary.SetValue(rEnum, rValue); });
@@ -79,21 +79,22 @@ void DictionaryBinderHelper(TBinderType& binder) {
 
 void AddSettingsToPython(pybind11::module& m) {
 
-    /// Export enum IntegrationMethod
+    /// Export enum BackgroundGridType
     py::enum_<BackgroundGridType>(m, "BackgroundGridType")
         .value("b_spline_grid", BackgroundGridType::b_spline_grid)
         .value("hexahedral_fe_grid", BackgroundGridType::hexahedral_fe_grid)
     ;
 
-    /// Export enum IntegrationMethod
-    py::enum_<Main> (m, "Main")
-        .value("general_settings", Main::general_settings)
-        .value("background_grid_settings", Main::background_grid_settings)
-        .value("trimmed_quadrature_rule_settings", Main::trimmed_quadrature_rule_settings)
-        .value("non_trimmed_quadrature_rule_settings", Main::non_trimmed_quadrature_rule_settings)
-        .value("conditions_settings_list", Main::conditions_settings_list)
+    /// Export enum MainSettings
+    py::enum_<MainSettings> (m, "MainSettings")
+        .value("general_settings", MainSettings::general_settings)
+        .value("background_grid_settings", MainSettings::background_grid_settings)
+        .value("trimmed_quadrature_rule_settings", MainSettings::trimmed_quadrature_rule_settings)
+        .value("non_trimmed_quadrature_rule_settings", MainSettings::non_trimmed_quadrature_rule_settings)
+        .value("conditions_settings_list", MainSettings::conditions_settings_list)
     ;
 
+    /// Export enum GeneralSettings
     py::enum_<GeneralSettings> (m, "GeneralSettings")
         .value("input_filename", GeneralSettings::input_filename)
         .value("output_directory_name", GeneralSettings::output_directory_name)
@@ -101,6 +102,7 @@ void AddSettingsToPython(pybind11::module& m) {
         .value("write_output_to_file", GeneralSettings::write_output_to_file)
     ;
 
+    /// Export enum BackgroundGridSettings
     py::enum_<BackgroundGridSettings> (m, "BackgroundGridSettings")
         .value("grid_type", BackgroundGridSettings::grid_type)
         .value("lower_bound_xyz", BackgroundGridSettings::lower_bound_xyz)
@@ -111,16 +113,19 @@ void AddSettingsToPython(pybind11::module& m) {
         .value("number_of_elements", BackgroundGridSettings::number_of_elements)
     ;
 
+    /// Export enum TrimmedQuadratureRuleSettings
     py::enum_<TrimmedQuadratureRuleSettings> (m, "TrimmedQuadratureRuleSettings")
         .value("moment_fitting_residual", TrimmedQuadratureRuleSettings::moment_fitting_residual)
         .value("min_element_volume_ratio", TrimmedQuadratureRuleSettings::min_element_volume_ratio)
         .value("min_num_boundary_triangles", TrimmedQuadratureRuleSettings::min_num_boundary_triangles)
     ;
 
+    /// Export enum NonTrimmedQuadratureRuleSettings
     py::enum_<NonTrimmedQuadratureRuleSettings> (m, "NonTrimmedQuadratureRuleSettings")
         .value("integration_method", NonTrimmedQuadratureRuleSettings::integration_method)
     ;
 
+    /// Export enum ConditionSettings
     py::enum_<ConditionSettings> (m, "ConditionSettings")
         .value("condition_id", ConditionSettings::condition_id)
         .value("condition_type", ConditionSettings::condition_type)
@@ -135,7 +140,7 @@ void AddSettingsToPython(pybind11::module& m) {
     typedef py::class_<SettingsBaseType> SettingsBaseTypeBinderType;
     py::class_<SettingsBaseType> settings_base_type_binder(m,"Dictionary");
 
-    DictionaryBinderHelper<SettingsBaseTypeBinderType, Main>(settings_base_type_binder);
+    DictionaryBinderHelper<SettingsBaseTypeBinderType, MainSettings>(settings_base_type_binder);
     DictionaryBinderHelper<SettingsBaseTypeBinderType, GeneralSettings>(settings_base_type_binder);
     DictionaryBinderHelper<SettingsBaseTypeBinderType, BackgroundGridSettings>(settings_base_type_binder);
     DictionaryBinderHelper<SettingsBaseTypeBinderType, TrimmedQuadratureRuleSettings>(settings_base_type_binder);
@@ -143,13 +148,13 @@ void AddSettingsToPython(pybind11::module& m) {
     DictionaryBinderHelper<SettingsBaseTypeBinderType, ConditionSettings>(settings_base_type_binder);
 
     settings_base_type_binder.def("NumberOfSubDictionaries", &SettingsBaseType::NumberOfSubDictionaries);
-    settings_base_type_binder.def("__getitem__", [](SettingsBaseType& rDictionary, IndexType rIndex){
-        return &rDictionary[rIndex]; }, py::return_value_policy::reference_internal );
+    settings_base_type_binder.def("__getitem__", [](SettingsBaseType& rDictionary, IndexType Index){
+        return &rDictionary[Index]; }, py::return_value_policy::reference_internal );
     settings_base_type_binder.def("__iter__",    [](SettingsBaseType& rDictionary){
         return py::make_iterator(rDictionary.begin_sub_dicts(), rDictionary.end_sub_dicts());},  py::keep_alive<0,1>());
     settings_base_type_binder.def("__len__",    [](SettingsBaseType& rDictionary){return rDictionary.NumberOfSubDictionaries(); });
 
-    /// Export settings
+    /// Export Settings
     py::class_<Settings, SettingsBaseType>(m,"Settings")
         .def(py::init<>())
         .def("CreateNewConditionSettings", &Settings::CreateNewConditionSettings, py::return_value_policy::reference_internal)

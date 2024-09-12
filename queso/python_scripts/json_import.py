@@ -39,7 +39,7 @@ class JsonImport():
 
     @classmethod
     def _ReadList(cls, enum_key, value, queso_settings):
-        if( enum_key is  QuESo_Application.Main.conditions_settings_list ):
+        if( enum_key is  QuESo_Application.MainSettings.conditions_settings_list ):
             cls._ReadConditionsSettingsList(value, queso_settings)
         else:
             queso_settings.SetValue(enum_key, value )
@@ -83,14 +83,14 @@ class JsonImport():
         return keys
 
     string_to_enum_dict = {
-        "general_settings"  : QuESo_Application.Main.general_settings,
+        "general_settings"  : QuESo_Application.MainSettings.general_settings,
         "general_settings_values"  : {
             "input_filename"  : QuESo_Application.GeneralSettings.input_filename,
             "output_directory_name"  : QuESo_Application.GeneralSettings.output_directory_name,
             "echo_level"  : QuESo_Application.GeneralSettings.echo_level,
             "write_output_to_file" : QuESo_Application.GeneralSettings.write_output_to_file
         },
-        "background_grid_settings"  : QuESo_Application.Main.background_grid_settings,
+        "background_grid_settings"  : QuESo_Application.MainSettings.background_grid_settings,
         "background_grid_settings_values"  : {
             "grid_type"        : QuESo_Application.BackgroundGridSettings.grid_type,
             "lower_bound_xyz"  : QuESo_Application.BackgroundGridSettings.lower_bound_xyz,
@@ -100,17 +100,17 @@ class JsonImport():
             "polynomial_order"  : QuESo_Application.BackgroundGridSettings.polynomial_order,
             "number_of_elements"  : QuESo_Application.BackgroundGridSettings.number_of_elements,
         },
-        "trimmed_quadrature_rule_settings"  : QuESo_Application.Main.trimmed_quadrature_rule_settings,
+        "trimmed_quadrature_rule_settings"  : QuESo_Application.MainSettings.trimmed_quadrature_rule_settings,
         "trimmed_quadrature_rule_settings_values"  : {
             "moment_fitting_residual"  : QuESo_Application.TrimmedQuadratureRuleSettings.moment_fitting_residual,
             "min_element_volume_ratio"  : QuESo_Application.TrimmedQuadratureRuleSettings.min_element_volume_ratio,
             "min_num_boundary_triangles"  : QuESo_Application.TrimmedQuadratureRuleSettings.min_num_boundary_triangles
         },
-        "non_trimmed_quadrature_rule_settings"  : QuESo_Application.Main.non_trimmed_quadrature_rule_settings,
+        "non_trimmed_quadrature_rule_settings"  : QuESo_Application.MainSettings.non_trimmed_quadrature_rule_settings,
         "non_trimmed_quadrature_rule_settings_values"  : {
             "integration_method"  : QuESo_Application.NonTrimmedQuadratureRuleSettings.integration_method
         },
-        "conditions_settings_list" : QuESo_Application.Main.conditions_settings_list,
+        "conditions_settings_list" : QuESo_Application.MainSettings.conditions_settings_list,
         "conditions_settings_list_values" : {
             "condition_id"  :   QuESo_Application.ConditionSettings.condition_id,
             "condition_type"  :   QuESo_Application.ConditionSettings.condition_type,

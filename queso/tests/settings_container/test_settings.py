@@ -5,13 +5,10 @@ from queso.python_scripts.QuESoUnittest import QuESoTestCase
 # External imports
 import unittest
 
-import time
-
-
 class TestSettingsContainer(QuESoTestCase):
     def check_customized_values(self, settings):
         # Check general_settings
-        general_settings = settings[QuESo.Main.general_settings]
+        general_settings = settings[QuESo.MainSettings.general_settings]
 
         self.assertTrue(general_settings.IsSet(QuESo.GeneralSettings.input_filename))
         input_filename = general_settings.GetString(QuESo.GeneralSettings.input_filename)
@@ -30,7 +27,7 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertFalse(write_output_to_file)
 
         # Check background_grid_settings
-        background_grid_settings = settings[QuESo.Main.background_grid_settings]
+        background_grid_settings = settings[QuESo.MainSettings.background_grid_settings]
 
         self.assertTrue(background_grid_settings.IsSet(QuESo.BackgroundGridSettings.grid_type))
         grid_type = background_grid_settings.GetBackgroundGridType(QuESo.BackgroundGridSettings.grid_type)
@@ -61,7 +58,7 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertListsEqual(number_of_elements, [5, 2, 13] )
 
         # Check trimmed_quadrature_rule_settings
-        trimmed_quadrature_rule_settings = settings[QuESo.Main.trimmed_quadrature_rule_settings]
+        trimmed_quadrature_rule_settings = settings[QuESo.MainSettings.trimmed_quadrature_rule_settings]
 
         self.assertTrue(trimmed_quadrature_rule_settings.IsSet(QuESo.TrimmedQuadratureRuleSettings.moment_fitting_residual))
         moment_fitting_residual = trimmed_quadrature_rule_settings.GetDouble(QuESo.TrimmedQuadratureRuleSettings.moment_fitting_residual)
@@ -76,13 +73,13 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertEqual(min_num_boundary_triangles, 233)
 
         # Check non_trimmed_quadrature_rule_settings
-        non_trimmed_quadrature_rule_settings = settings[QuESo.Main.non_trimmed_quadrature_rule_settings]
+        non_trimmed_quadrature_rule_settings = settings[QuESo.MainSettings.non_trimmed_quadrature_rule_settings]
 
         self.assertTrue(non_trimmed_quadrature_rule_settings.IsSet(QuESo.NonTrimmedQuadratureRuleSettings.integration_method))
         integration_method = non_trimmed_quadrature_rule_settings.GetIntegrationMethod(QuESo.NonTrimmedQuadratureRuleSettings.integration_method)
         self.assertEqual(integration_method, QuESo.IntegrationMethod.GGQ_Optimal)
 
-        conditions_settings_list = settings[QuESo.Main.conditions_settings_list]
+        conditions_settings_list = settings[QuESo.MainSettings.conditions_settings_list]
         self.assertEqual(conditions_settings_list.NumberOfSubDictionaries(), 4)
 
         ref_condition_settings = {
@@ -174,7 +171,7 @@ class TestSettingsContainer(QuESoTestCase):
 
     def check_default_values(self, settings):
         # Check general_settings
-        general_settings = settings[QuESo.Main.general_settings]
+        general_settings = settings[QuESo.MainSettings.general_settings]
 
         self.assertFalse(general_settings.IsSet(QuESo.GeneralSettings.input_filename))
 
@@ -191,7 +188,7 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertTrue(write_output_to_file)
 
         # Check background_grid_settings
-        background_grid_settings = settings[QuESo.Main.background_grid_settings]
+        background_grid_settings = settings[QuESo.MainSettings.background_grid_settings]
 
         self.assertFalse(background_grid_settings.IsSet(QuESo.BackgroundGridSettings.grid_type))
 
@@ -208,7 +205,7 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertFalse(background_grid_settings.IsSet(QuESo.BackgroundGridSettings.number_of_elements))
 
         # Check trimmed_quadrature_rule_settings
-        trimmed_quadrature_rule_settings = settings[QuESo.Main.trimmed_quadrature_rule_settings]
+        trimmed_quadrature_rule_settings = settings[QuESo.MainSettings.trimmed_quadrature_rule_settings]
 
         self.assertTrue(trimmed_quadrature_rule_settings.IsSet(QuESo.TrimmedQuadratureRuleSettings.moment_fitting_residual))
         moment_fitting_residual = trimmed_quadrature_rule_settings.GetDouble(QuESo.TrimmedQuadratureRuleSettings.moment_fitting_residual)
@@ -223,13 +220,13 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertEqual(min_num_boundary_triangles, 100)
 
         # Check non_trimmed_quadrature_rule_settings
-        non_trimmed_quadrature_rule_settings = settings[QuESo.Main.non_trimmed_quadrature_rule_settings]
+        non_trimmed_quadrature_rule_settings = settings[QuESo.MainSettings.non_trimmed_quadrature_rule_settings]
 
         self.assertTrue(non_trimmed_quadrature_rule_settings.IsSet(QuESo.NonTrimmedQuadratureRuleSettings.integration_method))
         integration_method = non_trimmed_quadrature_rule_settings.GetIntegrationMethod(QuESo.NonTrimmedQuadratureRuleSettings.integration_method)
         self.assertEqual(integration_method, QuESo.IntegrationMethod.Gauss)
 
-        conditions_settings_list = settings[QuESo.Main.conditions_settings_list]
+        conditions_settings_list = settings[QuESo.MainSettings.conditions_settings_list]
         self.assertEqual(conditions_settings_list.NumberOfSubDictionaries(), 4)
 
         for i, condition_setting in enumerate(conditions_settings_list):

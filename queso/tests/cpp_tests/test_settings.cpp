@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
     BOOST_REQUIRE_THROW(setting[GeneralSettings::echo_level], std::exception); // Wrong Key type
 
     /// General settings
-    auto& r_general_settings = setting[Main::general_settings];
+    auto& r_general_settings = setting[MainSettings::general_settings];
     BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception); // Wrong Key type
 
     BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(GeneralSettings::input_filename), std::exception); // Wrong Value type
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
     BOOST_REQUIRE_THROW(r_general_settings.GetValue<PointType>(GeneralSettings::echo_level), std::exception); // Wrong Value type
 
     /// Mesh settings
-    auto& r_mesh_settings = setting[Main::background_grid_settings];
+    auto& r_mesh_settings = setting[MainSettings::background_grid_settings];
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception); // Wrong Key type
 
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception); // Not set
@@ -96,14 +96,14 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
     QuESo_CHECK_Vector3i_EQUAL(number_of_elements, Vector3i({1, 2, 3}) );
 
     /// Trimmed quadrature rule settings
-    auto& r_trimmed_quad_rule_settings = setting[Main::trimmed_quadrature_rule_settings];
+    auto& r_trimmed_quad_rule_settings = setting[MainSettings::trimmed_quadrature_rule_settings];
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 2, 3}), std::exception); // Wrong Key type
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::moment_fitting_residual), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_trimmed_quad_rule_settings.GetValue<Vector3i>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), std::exception); // Wrong Value type
 
     /// Non trimmed quadrature rule settings
-    auto& r_non_trimmed_quad_rule_settings = setting[Main::non_trimmed_quadrature_rule_settings];
+    auto& r_non_trimmed_quad_rule_settings = setting[MainSettings::non_trimmed_quadrature_rule_settings];
     BOOST_REQUIRE_THROW(r_non_trimmed_quad_rule_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 2, 3}), std::exception); // Wrong Key type
     BOOST_REQUIRE_THROW(r_non_trimmed_quad_rule_settings.GetValue<IndexType>(NonTrimmedQuadratureRuleSettings::integration_method), std::exception); // Wrong Value type
 }
@@ -115,47 +115,47 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
     Settings settings;
 
     /// General settings
-    QuESo_CHECK( !settings[Main::general_settings].IsSet(GeneralSettings::input_filename) );
-    BOOST_REQUIRE_THROW( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::exception );
+    QuESo_CHECK( !settings[MainSettings::general_settings].IsSet(GeneralSettings::input_filename) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::exception );
 
-    QuESo_CHECK( settings[Main::general_settings].IsSet(GeneralSettings::output_directory_name) );
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
+    QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::output_directory_name) );
+    QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
 
-    QuESo_CHECK( settings[Main::general_settings].IsSet(GeneralSettings::echo_level) );
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 1u);
+    QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::echo_level) );
+    QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 1u);
 
     /// Mesh settings
-    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_xyz) );
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception );
+    QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_xyz) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception );
 
-    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::upper_bound_xyz) );
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), std::exception );
+    QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::upper_bound_xyz) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), std::exception );
 
-    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_uvw) );
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception );
+    QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_uvw) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception );
 
-    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::upper_bound_uvw) );
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), std::exception );
+    QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::upper_bound_uvw) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), std::exception );
 
-    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::polynomial_order) );
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order), std::exception );
+    QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::polynomial_order) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order), std::exception );
 
-    QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::number_of_elements) );
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements), std::exception );
+    QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::number_of_elements) );
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements), std::exception );
 
     /// TrimmedQuadratureRuleSettings settings
-    QuESo_CHECK( settings[Main::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::moment_fitting_residual) );
-    QuESo_CHECK_RELATIVE_NEAR( settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual), 1e-10,1e-10 );
+    QuESo_CHECK( settings[MainSettings::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::moment_fitting_residual) );
+    QuESo_CHECK_RELATIVE_NEAR( settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual), 1e-10,1e-10 );
 
-    QuESo_CHECK( settings[Main::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::min_element_volume_ratio) );
-    QuESo_CHECK_RELATIVE_NEAR( settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 1e-3,1e-10 );
+    QuESo_CHECK( settings[MainSettings::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::min_element_volume_ratio) );
+    QuESo_CHECK_RELATIVE_NEAR( settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 1e-3,1e-10 );
 
-    QuESo_CHECK( settings[Main::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::min_num_boundary_triangles) );
-    QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 100 );
+    QuESo_CHECK( settings[MainSettings::trimmed_quadrature_rule_settings].IsSet(TrimmedQuadratureRuleSettings::min_num_boundary_triangles) );
+    QuESo_CHECK_EQUAL( settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 100 );
 
     // NonTrimmedQuadratureRuleSettings settings
-    QuESo_CHECK( settings[Main::non_trimmed_quadrature_rule_settings].IsSet(NonTrimmedQuadratureRuleSettings::integration_method) );
-    QuESo_CHECK_EQUAL( settings[Main::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::Gauss );
+    QuESo_CHECK( settings[MainSettings::non_trimmed_quadrature_rule_settings].IsSet(NonTrimmedQuadratureRuleSettings::integration_method) );
+    QuESo_CHECK_EQUAL( settings[MainSettings::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::Gauss );
 }
 
 BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
@@ -164,76 +164,76 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     Settings settings;
 
     /// General settings
-    settings[Main::general_settings].SetValue(GeneralSettings::input_filename, std::string("test_filename.stl"));
-    settings[Main::general_settings].SetValue(GeneralSettings::output_directory_name, std::string("new_output/"));
-    settings[Main::general_settings].SetValue(GeneralSettings::echo_level, 2u);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, std::string("test_filename.stl"));
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::output_directory_name, std::string("new_output/"));
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 2u);
 
 
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::string("test_filename.stl") );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<std::string>(GeneralSettings::input_filename),
+    QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::string("test_filename.stl") );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::general_settings).GetValueNoCheck<std::string>(GeneralSettings::input_filename),
         std::string("test_filename.stl") );
 
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::output_directory_name), std::string("new_output/") );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<std::string>(GeneralSettings::output_directory_name),
+    QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::output_directory_name), std::string("new_output/") );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::general_settings).GetValueNoCheck<std::string>(GeneralSettings::output_directory_name),
         std::string("new_output/") );
 
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 2u );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<IndexType>(GeneralSettings::echo_level), 2UL );
+    QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 2u );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::general_settings).GetValueNoCheck<IndexType>(GeneralSettings::echo_level), 2UL );
 
     /// Mesh settings
-    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType({1.0, 1.0, 2.0}));
-    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType({0.0, 3.0, 2.0}));
-    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({0.1, -1.0, 2.0}));
-    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType({0.66, 1.0, 2.2}));
-    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i({5, 6, 7}));
-    settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i({8, 9, 2}));
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType({1.0, 1.0, 2.0}));
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType({0.0, 3.0, 2.0}));
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({0.1, -1.0, 2.0}));
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType({0.66, 1.0, 2.2}));
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i({5, 6, 7}));
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i({8, 9, 2}));
 
-    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), PointType({1.0, 1.0, 2.0}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_xyz),
+    QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), PointType({1.0, 1.0, 2.0}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_xyz),
         PointType({1.0, 1.0, 2.0}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), PointType({0.0, 3.0, 2.0}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::upper_bound_xyz),
+    QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz), PointType({0.0, 3.0, 2.0}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::upper_bound_xyz),
         PointType({0.0, 3.0, 2.0}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), PointType({0.1, -1.0, 2.0}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_uvw),
+    QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw), PointType({0.1, -1.0, 2.0}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_uvw),
         PointType({0.1, -1.0, 2.0}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), PointType({0.66, 1.0, 2.2}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::upper_bound_uvw),
+    QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), PointType({0.66, 1.0, 2.2}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::upper_bound_uvw),
         PointType({0.66, 1.0, 2.2}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order), Vector3i({5, 6, 7}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<Vector3i>(BackgroundGridSettings::polynomial_order),
+    QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order), Vector3i({5, 6, 7}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<Vector3i>(BackgroundGridSettings::polynomial_order),
         Vector3i({5, 6, 7}) );
 
-    QuESo_CHECK_EQUAL( settings[Main::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements), Vector3i({8, 9, 2}) );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::background_grid_settings).GetValueNoCheck<Vector3i>(BackgroundGridSettings::number_of_elements),
+    QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements), Vector3i({8, 9, 2}) );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<Vector3i>(BackgroundGridSettings::number_of_elements),
         Vector3i({8, 9, 2}) );
 
     /// Trimmed quadrature rule settings
-    settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5.6e-5);
-    settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.45);
-    settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, IndexType(234));
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5.6e-5);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.45);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, IndexType(234));
 
-    QuESo_CHECK_RELATIVE_NEAR( settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual), 5.6e-5, 1e-10 );
-    QuESo_CHECK_RELATIVE_NEAR( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<double>(
+    QuESo_CHECK_RELATIVE_NEAR( settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual), 5.6e-5, 1e-10 );
+    QuESo_CHECK_RELATIVE_NEAR( settings.GetSubDictionaryNoCheck(MainSettings::trimmed_quadrature_rule_settings).GetValueNoCheck<double>(
         TrimmedQuadratureRuleSettings::moment_fitting_residual), 5.6e-5, 1e-10 );
 
-    QuESo_CHECK_RELATIVE_NEAR( settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 0.45, 1e-10 );
-    QuESo_CHECK_RELATIVE_NEAR( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<double>(
+    QuESo_CHECK_RELATIVE_NEAR( settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 0.45, 1e-10 );
+    QuESo_CHECK_RELATIVE_NEAR( settings.GetSubDictionaryNoCheck(MainSettings::trimmed_quadrature_rule_settings).GetValueNoCheck<double>(
         TrimmedQuadratureRuleSettings::min_element_volume_ratio), 0.45, 1e-10 );
 
-    QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234u );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<IndexType>(
+    QuESo_CHECK_EQUAL( settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234u );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::trimmed_quadrature_rule_settings).GetValueNoCheck<IndexType>(
         TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234u);
 
     /// Non trimmed quadrature rule settings
-    settings[Main::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::GGQ_Optimal);
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::GGQ_Optimal);
 
-    QuESo_CHECK_EQUAL( settings[Main::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::GGQ_Optimal );
-    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::non_trimmed_quadrature_rule_settings).GetValueNoCheck<IntegrationMethod>(
+    QuESo_CHECK_EQUAL( settings[MainSettings::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::GGQ_Optimal );
+    QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::non_trimmed_quadrature_rule_settings).GetValueNoCheck<IntegrationMethod>(
         NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::GGQ_Optimal);
 }
 
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
         r_cond_settings_list.SetValue(ConditionSettings::value, PointType{2.2, 2.3, 1.4} );
     }
     {
-        auto& r_cond_settings_list = settings[Main::conditions_settings_list];
+        auto& r_cond_settings_list = settings[MainSettings::conditions_settings_list];
         QuESo_CHECK_EQUAL( r_cond_settings_list.NumberOfSubDictionaries(), 2 );
 
         QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::condition_id) );
@@ -346,7 +346,7 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
 
     }
     {
-        auto& r_cond_settings_list = settings[Main::conditions_settings_list];
+        auto& r_cond_settings_list = settings[MainSettings::conditions_settings_list];
         QuESo_CHECK_EQUAL( r_cond_settings_list.NumberOfSubDictionaries(), 2 );
 
         QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::condition_id) );
@@ -379,33 +379,33 @@ BOOST_AUTO_TEST_CASE(SettingsCastAmbiguousTypesTest) {
     Settings settings;
 
     // Cast IndexType to double
-    BOOST_REQUIRE_THROW( settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5u), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5u), std::exception ); // Wrong Type
     // Lets set it with wrong type
-    settings[Main::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5u);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5u);
     {
-        const double r_double = settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
+        const double r_double = settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
         QuESo_CHECK_RELATIVE_NEAR(r_double, 5.0, 1e-10);
     }
     // Lets set it with correct type
-    settings[Main::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 7.7);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 7.7);
     {
-        const double r_double = settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
+        const double r_double = settings[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
         QuESo_CHECK_RELATIVE_NEAR(r_double, 7.7, 1e-10);
     }
 
     // Cast Vector3i to Vector3d
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception ); // Not set
-    BOOST_REQUIRE_THROW( settings[Main::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, Vector3i({0, 0, 0})), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception ); // Not set
+    BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, Vector3i({0, 0, 0})), std::exception ); // Wrong Type
     // Lets set it with wrong type
-    settings[Main::background_grid_settings].SetValueWithAmbiguousType(BackgroundGridSettings::lower_bound_xyz, Vector3i({5, 3, 2}));
+    settings[MainSettings::background_grid_settings].SetValueWithAmbiguousType(BackgroundGridSettings::lower_bound_xyz, Vector3i({5, 3, 2}));
     {
-        const PointType& r_point = settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        const PointType& r_point = settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
         QuESo_CHECK_POINT_RELATIVE_NEAR(r_point, PointType({5.0, 3.0, 2.0}), 1e-10);
     }
     // Lets set it with correct type
-    settings[Main::background_grid_settings].SetValueWithAmbiguousType(BackgroundGridSettings::lower_bound_xyz, Vector3d({5.5, 2.2, 1.1}));
+    settings[MainSettings::background_grid_settings].SetValueWithAmbiguousType(BackgroundGridSettings::lower_bound_xyz, Vector3d({5.5, 2.2, 1.1}));
     {
-        const PointType& r_point = settings[Main::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        const PointType& r_point = settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
         QuESo_CHECK_POINT_RELATIVE_NEAR(r_point, PointType({5.5, 2.2, 1.1}), 1e-10);
     }
 }
