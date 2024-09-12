@@ -267,9 +267,9 @@ public:
     /// Assignement operator
     Dictionary& operator=(const Dictionary& rDict) = delete;
     /// Move constructor
-    Dictionary(Dictionary&& rDict) = delete;
+    Dictionary(Dictionary&& rDict) = default;
     /// Move assignement operator
-    Dictionary& operator=(Dictionary&& rDict) = delete;
+    Dictionary& operator=(Dictionary&& rDict) = default;
 
     ///@}
     ///@name Operations

@@ -18,7 +18,6 @@
 #include <limits>
 #include <memory>
 #include <array>
-#include <unordered_map>
 //// Project includes
 #include "queso/includes/logger.hpp"
 #include "queso/includes/exception.hpp"
