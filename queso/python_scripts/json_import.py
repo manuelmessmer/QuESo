@@ -104,7 +104,8 @@ class JsonImport():
         "trimmed_quadrature_rule_settings_values"  : {
             "moment_fitting_residual"  : QuESo_Application.TrimmedQuadratureRuleSettings.moment_fitting_residual,
             "min_element_volume_ratio"  : QuESo_Application.TrimmedQuadratureRuleSettings.min_element_volume_ratio,
-            "min_num_boundary_triangles"  : QuESo_Application.TrimmedQuadratureRuleSettings.min_num_boundary_triangles
+            "min_num_boundary_triangles"  : QuESo_Application.TrimmedQuadratureRuleSettings.min_num_boundary_triangles,
+            "neglect_elements_if_stl_is_flawed" : QuESo_Application.TrimmedQuadratureRuleSettings.neglect_elements_if_stl_is_flawed
         },
         "non_trimmed_quadrature_rule_settings"  : QuESo_Application.MainSettings.non_trimmed_quadrature_rule_settings,
         "non_trimmed_quadrature_rule_settings_values"  : {

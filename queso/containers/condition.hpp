@@ -15,7 +15,7 @@
 #define CONDITION_INCLUDE_HPP
 
 //// STL includes
-#include "queso/includes/parameters.h"
+#include "queso/includes/settings.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
@@ -36,9 +36,9 @@ public:
 
     /// @brief Constructor
     /// @param pTriangleMesh Ptr is moved. Ownership is passed to Condition.
-    /// @param rConditionParameters
-    Condition(Unique<TriangleMeshInterface>& pTriangleMesh, const ConditionParameters& rConditionParameters )
-        : mpInitialTriangleMesh(std::move(pTriangleMesh)), mConditionParameters(rConditionParameters)
+    /// @param rConditionSettings
+    Condition(Unique<TriangleMeshInterface>& pTriangleMesh, const SettingsBaseType& rConditionSettings )
+        : mpInitialTriangleMesh(std::move(pTriangleMesh)), mConditionSettings(rConditionSettings)
     {
         mConformingTriangleMesh.Reserve(10*mpInitialTriangleMesh->NumOfTriangles());
         mConformingTriangleMesh.ReserveEdgesOnPlane(10);
@@ -67,9 +67,9 @@ public:
     }
 
     /// @brief Returns setting of condtiion
-    /// @return const ConditionParameters&
-    const ConditionParameters& GetSettings() const {
-        return mConditionParameters;
+    /// @return const SettingsBaseType&
+    const SettingsBaseType& GetSettings() const {
+        return mConditionSettings;
     }
 
 private:
@@ -79,7 +79,7 @@ private:
 
     Unique<TriangleMeshInterface> mpInitialTriangleMesh;
     TriangleMesh mConformingTriangleMesh;
-    const ConditionParameters& mConditionParameters;
+    const SettingsBaseType& mConditionSettings;
 
     ///@}
 }; // End class Condition

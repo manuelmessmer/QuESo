@@ -58,10 +58,12 @@ public:
 
     /// @brief Constructor of FloodFill.
     /// @param pBrepOperator
-    /// @param Parameters
-    FloodFill(const BRepOperator* pBrepOperator, const Parameters& Parameters) :
-        mpBrepOperator(pBrepOperator), mMapper(Parameters), mLowerBound(Parameters.LowerBoundXYZ()),
-        mUpperBound(Parameters.UpperBoundXYZ()), mNumberOfElements( Parameters.NumberOfElements() )
+    /// @param rSettings
+    FloodFill(const BRepOperator* pBrepOperator, const SettingsBaseType& rSettings) :
+        mpBrepOperator(pBrepOperator), mMapper(rSettings),
+        mLowerBound(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz) ),
+        mUpperBound(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz) ),
+        mNumberOfElements( rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) )
     {
         // Obtain discretization of background mesh.
         mDelta[0] = std::abs(mUpperBound[0] - mLowerBound[0]) / (mNumberOfElements[0]);

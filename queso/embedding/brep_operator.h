@@ -94,7 +94,7 @@ public:
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.
-    Unique<StatusVectorType> pGetElementClassifications(const Parameters& rParameters) const;
+    Unique<StatusVectorType> pGetElementClassifications(const SettingsBaseType& rSettings) const;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
     /// @param rLowerBound Lower bound of AABB.

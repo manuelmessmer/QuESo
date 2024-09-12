@@ -1,6 +1,7 @@
-import QuESo_PythonApplication as QuESo_Application
+import QuESo_PythonApplication as QuESo_App
 from queso.python_scripts.b_spline_volume import BSplineVolume
 from queso.python_scripts.helper import *
+from queso.python_scripts.json_import import JsonImport
 import os
 import shutil
 
@@ -22,9 +23,9 @@ class PyQuESo:
     """
     def __init__(self, json_filename):
         """The constructor"""
-        self.parameters = ReadParameters(json_filename)
-        write_output_to_file = self.parameters.GetGlobalSettings().GetBool("write_output_to_file")
-        output_directory_name = self.parameters.GetGlobalSettings().GetString("output_directory_name")
+        self.settings = JsonImport.ReadSettings(json_filename)
+        write_output_to_file = self.settings[QuESo_App.MainSettings.general_settings].GetBool(QuESo_App.GeneralSettings.write_output_to_file)
+        output_directory_name = self.settings[QuESo_App.MainSettings.general_settings].GetString(QuESo_App.GeneralSettings.output_directory_name)
         if write_output_to_file:
             folder_path = "./" + output_directory_name + '/'
             if os.path.exists(folder_path):
@@ -33,8 +34,7 @@ class PyQuESo:
 
     def Run(self):
         """Run QuESo"""
-        self.queso = QuESo_Application.QuESo(self.parameters)
-        self.b_spline_volume = BSplineVolume(self.parameters)
+        self.queso = QuESo_App.QuESo(self.settings)
         self.queso.Run()
         self.elements = self.queso.GetElements()
         self.conditions = self.queso.GetConditions()
@@ -50,26 +50,26 @@ class PyQuESo:
     def GetConditions(self):
         return self.conditions
 
-    def GetNumberElements(self):
-        return self.parameters.NumberOfElements()
+    # def GetNumberElements(self):
+    #     return self.settings[].NumberOfElements()
 
-    def GetLowerBoundDomainXYZ(self):
-        return self.parameters.LowerBoundXYZ()
+    # def GetLowerBoundDomainXYZ(self):
+    #     return self.settings[].LowerBoundXYZ()
 
-    def GetUpperBoundDomainXYZ(self):
-        return self.parameters.UpperBoundXYZ()
+    # def GetUpperBoundDomainXYZ(self):
+    #     return self.settings[].UpperBoundXYZ()
 
-    def GetBoundsXYZ(self):
-        return [self.parameters.LowerBoundXYZ(), self.parameters.UpperBoundXYZ()]
+    # def GetBoundsXYZ(self):
+    #     return [self.settings[].LowerBoundXYZ(), self.settings[].UpperBoundXYZ()]
 
-    def GetBoundsUVW(self):
-        return [self.parameters.LowerBoundUVW(), self.parameters.UpperBoundUVW()]
+    # def GetBoundsUVW(self):
+    #     return [self.settings[].LowerBoundUVW(), self.settings[].UpperBoundUVW()]
 
-    def GetBSplineVolume(self):
-        return BSplineVolume(self.parameters)
+    def GetBSplineVolume(self, knot_vector_type):
+        return BSplineVolume(self.settings, knot_vector_type)
 
     def GetIntegrationPoints(self):
-        integration_points = QuESo_Application.IntegrationPointVector()
+        integration_points = QuESo_App.IntegrationPointVector()
         # Gather all poitnts (TODO: make this in C++)
         for element in self.elements:
             if element.IsTrimmed():
@@ -100,13 +100,13 @@ class PyQuESo:
 
     def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
-            self.analysis = Analysis( self.parameters, kratos_settings, self.elements, self.conditions, self.queso.GetTriangleMesh())
+            self.analysis = Analysis( self.settings, kratos_settings, self.elements, self.conditions, self.queso.GetTriangleMesh())
         else:
             raise Exception("RunKratosAnalysis :: Kratos is not available.")
 
     # def __ReadInputFromModelPart(self, KratosEmbeddedModelPart):
     #     # Read main mesh
-    #     global_settings = self.parameters.GetGlobalSettings()
+    #     global_settings = self.settings[].GetGlobalSettings()
     #     if global_settings.GetString("input_type") == "kratos_modelpart":
     #         triangle_mesh = self.queso.GetTriangleMesh()
     #         model_part_name = global_settings.GetString("input_kratos_modelpart_name")
@@ -115,7 +115,7 @@ class PyQuESo:
     #         ModelPartUtilities.ReadTriangleMeshFromModelPart(triangle_mesh, model_part, type="Elements")
 
     #     # Read condition related meshes
-    #     for condition_settings in self.parameters.GetConditionsSettingsVector():
+    #     for condition_settings in self.settings[].GetConditionsSettingsVector():
     #         if condition_settings.GetString("input_type") == "kratos_modelpart":
     #             condition = self.queso.CreateNewCondition(condition_settings)
     #             triangle_mesh = condition.GetTriangleMesh()

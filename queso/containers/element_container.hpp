@@ -20,7 +20,7 @@
 #include <stdexcept>
 //// Project includes
 #include "queso/containers/element.hpp"
-#include "queso/includes/parameters.h"
+#include "queso/includes/settings.hpp"
 
 namespace queso {
 
@@ -55,7 +55,8 @@ public:
     ///@{
 
     /// Constructor
-    ElementContainer(const Parameters& rParameters) : mLastElementId(0), mNumberOfElements(rParameters.NumberOfElements())
+    ElementContainer(const SettingsBaseType& rSettings) : mLastElementId(0),
+        mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements))
     {
     }
     /// Destructor
