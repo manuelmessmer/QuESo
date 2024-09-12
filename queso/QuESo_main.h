@@ -28,7 +28,7 @@
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/condition.hpp"
 #include "queso/utilities/mapping_utilities.h"
-#include "queso/includes/parameters.h"
+#include "queso/includes/settings.hpp"
 #include "queso/embedding/brep_operator.h"
 
 namespace queso {
@@ -63,21 +63,20 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    QuESo(const Parameters& rParameters ) : mParameters(rParameters), mMapper(mParameters) {
+    QuESo(const Settings& rSettings ) : mSettings(rSettings), mMapper(mSettings) {
 
-        mParameters.Check();
+        const_cast<Settings&>(mSettings).Check();
         mpTriangleMesh = MakeUnique<TriangleMesh>();
-        if( mParameters.Get<bool>("embedding_flag") ) {
-            // Read main mesh
-            if( mParameters.Get<std::string>("input_type") == "stl_file" ){
-                // Read mesh
-                const auto& r_filename = mParameters.Get<std::string>("input_filename");
-                IO::ReadMeshFromSTL(*mpTriangleMesh, r_filename.c_str());
-            }
-            // Read conditions
-            for( const auto& r_condition_settings :  mParameters.GetConditionsSettingsVector() ){
-                CreateNewCondition(r_condition_settings);
-            }
+        const auto& r_general_settings = mSettings[MainSettings::general_settings];
+
+        // Read mesh
+        const auto& r_filename = r_general_settings.GetValue<std::string>(GeneralSettings::input_filename);
+        IO::ReadMeshFromSTL(*mpTriangleMesh, r_filename.c_str());
+
+        const auto& r_conditions_settings_list =  mSettings[MainSettings::conditions_settings_list];
+        const IndexType number_of_conditions = r_conditions_settings_list.NumberOfSubDictionaries();
+        for( IndexType i = 0; i < number_of_conditions; ++i){
+            CreateNewCondition(r_conditions_settings_list[i]);
         }
 
         Check();
@@ -109,9 +108,9 @@ public:
     }
 
     /// @brief Creates a new condition and adds to mConditions-Vector.
-    /// @param rConditionParameters
+    /// @param rConditionSettings
     /// @return Condition&
-    Condition& CreateNewCondition(const ConditionParameters& rConditionParameters);
+    Condition& CreateNewCondition(const SettingsBaseType& rConditionSettings);
 
     /// @brief Performs necessary checks.
     void Check() const;
@@ -142,7 +141,7 @@ private:
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<ElementContainerType> mpElementContainer;
     ConditionVectorType mConditions;
-    const Parameters mParameters;
+    const Settings mSettings;
     Mapper mMapper;
     ///@}
 
