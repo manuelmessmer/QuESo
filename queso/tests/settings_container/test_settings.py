@@ -62,7 +62,7 @@ class TestSettingsContainer(QuESoTestCase):
 
         self.assertTrue(trimmed_quadrature_rule_settings.IsSet(QuESo.TrimmedQuadratureRuleSettings.moment_fitting_residual))
         moment_fitting_residual = trimmed_quadrature_rule_settings.GetDouble(QuESo.TrimmedQuadratureRuleSettings.moment_fitting_residual)
-        self.assertAlmostEqual(moment_fitting_residual, 0.0021, 8)
+        self.assertAlmostEqual(moment_fitting_residual, 0.0023, 8)
 
         self.assertTrue(trimmed_quadrature_rule_settings.IsSet(QuESo.TrimmedQuadratureRuleSettings.min_element_volume_ratio))
         min_element_volume_ratio = trimmed_quadrature_rule_settings.GetDouble(QuESo.TrimmedQuadratureRuleSettings.min_element_volume_ratio)
