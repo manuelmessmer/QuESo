@@ -161,7 +161,7 @@ void AddSettingsToPython(pybind11::module& m) {
         .def("Check", &Settings::Check)
     ;
 
-    }
+} // End AddSettingsToPython
 
 } // End namespace Python
 } // End namespace queso
