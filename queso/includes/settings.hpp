@@ -18,10 +18,10 @@
 /// Project includes
 #include "queso/containers/dictionary.hpp"
 
-
 namespace queso {
 
 /// Definition of dictionary keys
+// IMPORTANT: If key is added here, it must also be added to json_import.py.
 enum class Root {main};
 enum class Main {general_settings, background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings, conditions_settings_list, testing_settings};
 enum class GeneralSettings {input_filename, output_directory_name, echo_level, write_output_to_file};
@@ -33,16 +33,37 @@ enum class ConditionSettings {condition_id, condition_type, input_filename, modu
 
 typedef Dictionary<Root, Main, GeneralSettings, BackgroundGridSettings, TrimmedQuadratureRuleSettings, NonTrimmedQuadratureRuleSettings, ConditionSettings, IndexType, TestingSettings> SettingsBaseType;
 
+///@name QuESo Classes
+///@{
+
+/**
+ * @class  Settings.
+ * @author Manuel Messmer.
+ * @brief  Derived version from Dictionary, which specifies all available Keys, ValueTypes and default values.
+ * @see    Dictionary.
+**/
 class Settings : public SettingsBaseType
 {
 public:
+    ///@}
+    ///@name Type definitions
+    ///@{
+
     typedef SettingsBaseType BaseType;
     typedef std::string Str;
 
-    bool Set = true;
-    bool DontSet = false;
+    ///@}
+    ///@name Life cycle
+    ///@{
 
+    /// @brief Constructor. Sets up the default dictionary.
+    /// @param TestingFlag If true, TestingSettings dictionary is added. However, in normal usecase, TestingFlag = false.
     Settings(bool TestingFlag = false) : BaseType(Root::main, Str("settings")) {
+
+        /// Let's define the default dictionary...
+        bool Set = true; // Given values are set as default values.
+        bool DontSet = false; // Given values are only dummy values used to deduced the associated type.
+                            // However, calling IsSet() will return false.
 
         /// GeneralSettings
         auto& r_general_settings = AddEmptySubDictionary(Main::general_settings, Str("general_settings"));
@@ -80,6 +101,7 @@ public:
             std::make_tuple(NonTrimmedQuadratureRuleSettings::integration_method, Str("integration_method"), IntegrationMethod::Gauss, Set )
         ));
 
+        /// Optional TestingSettings
         if( TestingFlag ) {
             auto& r_testing_settings = AddEmptySubDictionary(Main::testing_settings, Str("testing_settings"));
             r_testing_settings.AddValues(std::make_tuple(
@@ -92,10 +114,16 @@ public:
         AddEmptySubDictionary(Main::conditions_settings_list, Str("conditions_settings_list"));
     }
 
+    ///@}
+    ///@name Member operations
+    ///@{
+
+    /// @brief Creates new condition settings.
+    /// @return SettingsBaseType& Reference to dictionary that contains condition settings.
     SettingsBaseType& CreateNewConditionSettings() {
         auto& r_conditions_settings = (*this)[Main::conditions_settings_list];
-        IndexType size = r_conditions_settings.NumberOfSubDictionaries();
-        std::string condition_name = "condition_" + std::to_string(size);
+        const IndexType size = r_conditions_settings.NumberOfSubDictionaries();
+        const std::string condition_name = "condition_" + std::to_string(size);
         auto& r_new_condition_settings = r_conditions_settings.AddEmptySubDictionary(size, condition_name);
         r_new_condition_settings.AddValues(std::make_tuple(
             std::make_tuple(ConditionSettings::condition_id, Str("condition_id"), IndexType(0), DontSet ),
@@ -125,15 +153,15 @@ public:
     }
 
 private:
+
     // Hide the following functions
     using BaseType::AddValues;
     using BaseType::AddEmptySubDictionary;
+
+    ///@}
 };
-
-
-
 
 ///@}
 } // End queso namespace.
 
-#endif // End CONDITION_INCLUDE_HPP
+#endif // End SETTINGS_INCLUDE_HPP
