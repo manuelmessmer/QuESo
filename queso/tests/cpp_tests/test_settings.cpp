@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception); // Wrong Key type
 
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), std::exception); // Not set
-    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
+    BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, 2u), std::exception); // Wrong Key type
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
     r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{1.0, 2.0, 3.0});
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
     QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
 
     QuESo_CHECK( settings[Main::general_settings].IsSet(GeneralSettings::echo_level) );
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 1UL);
+    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 1u);
 
     /// Mesh settings
     QuESo_CHECK( !settings[Main::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_xyz) );
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     /// General settings
     settings[Main::general_settings].SetValue(GeneralSettings::input_filename, std::string("test_filename.stl"));
     settings[Main::general_settings].SetValue(GeneralSettings::output_directory_name, std::string("new_output/"));
-    settings[Main::general_settings].SetValue(GeneralSettings::echo_level, 2UL);
+    settings[Main::general_settings].SetValue(GeneralSettings::echo_level, 2u);
 
 
     QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::string("test_filename.stl") );
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<std::string>(GeneralSettings::output_directory_name),
         std::string("new_output/") );
 
-    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 2Ul );
+    QuESo_CHECK_EQUAL( settings[Main::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 2u );
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::general_settings).GetValueNoCheck<IndexType>(GeneralSettings::echo_level), 2UL );
 
     /// Mesh settings
@@ -225,9 +225,9 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     QuESo_CHECK_RELATIVE_NEAR( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<double>(
         TrimmedQuadratureRuleSettings::min_element_volume_ratio), 0.45, 1e-10 );
 
-    QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234UL );
+    QuESo_CHECK_EQUAL( settings[Main::trimmed_quadrature_rule_settings].GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234u );
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(Main::trimmed_quadrature_rule_settings).GetValueNoCheck<IndexType>(
-        TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234UL);
+        TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234u);
 
     /// Non trimmed quadrature rule settings
     settings[Main::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::GGQ_Optimal);
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsWrongTypeTest) {
     BOOST_REQUIRE_THROW( r_cond_settings_list.SetValue(ConditionSettings::condition_id, 2.0), std::exception ); // Wrong Key type
 
     BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::condition_id, 100UL);
+    r_cond_settings_list.SetValue(ConditionSettings::condition_id, 100u);
     BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
     BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<double>(ConditionSettings::condition_id), std::exception ); // Wrong Type
 
@@ -323,52 +323,52 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
         auto& r_cond_settings_list = settings[Main::conditions_settings_list];
         QuESo_CHECK_EQUAL( r_cond_settings_list.NumberOfSubDictionaries(), 2 );
 
-        QuESo_CHECK( r_cond_settings_list[0UL].IsSet(ConditionSettings::condition_id) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[0UL].GetValue<IndexType>(ConditionSettings::condition_id), 120UL );
+        QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::condition_id) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[0u].GetValue<IndexType>(ConditionSettings::condition_id), 120u );
 
-        QuESo_CHECK( r_cond_settings_list[0UL].IsSet(ConditionSettings::condition_type) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[0UL].GetValue<std::string>(ConditionSettings::condition_type), std::string("Hello") );
+        QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::condition_type) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[0u].GetValue<std::string>(ConditionSettings::condition_type), std::string("Hello") );
 
-        QuESo_CHECK( r_cond_settings_list[0UL].IsSet(ConditionSettings::input_filename) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[0UL].GetValue<std::string>(ConditionSettings::input_filename), std::string("hallo") );
+        QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::input_filename) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[0u].GetValue<std::string>(ConditionSettings::input_filename), std::string("hallo") );
 
-        QuESo_CHECK( r_cond_settings_list[0UL].IsSet(ConditionSettings::modulus) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[0UL].GetValue<double>(ConditionSettings::modulus), 200.0 );
+        QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::modulus) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[0u].GetValue<double>(ConditionSettings::modulus), 200.0 );
 
-        QuESo_CHECK( !r_cond_settings_list[0UL].IsSet(ConditionSettings::direction) );
-        BOOST_REQUIRE_THROW( r_cond_settings_list[0UL].GetValue<PointType>(ConditionSettings::direction), std::exception );
+        QuESo_CHECK( !r_cond_settings_list[0u].IsSet(ConditionSettings::direction) );
+        BOOST_REQUIRE_THROW( r_cond_settings_list[0u].GetValue<PointType>(ConditionSettings::direction), std::exception );
 
-        QuESo_CHECK( !r_cond_settings_list[0UL].IsSet(ConditionSettings::value) );
-        BOOST_REQUIRE_THROW( r_cond_settings_list[0UL].GetValue<PointType>(ConditionSettings::value), std::exception );
+        QuESo_CHECK( !r_cond_settings_list[0u].IsSet(ConditionSettings::value) );
+        BOOST_REQUIRE_THROW( r_cond_settings_list[0u].GetValue<PointType>(ConditionSettings::value), std::exception );
 
-        QuESo_CHECK( r_cond_settings_list[0UL].IsSet(ConditionSettings::penalty_factor) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[0UL].GetValue<double>(ConditionSettings::penalty_factor), 300.0 );
+        QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::penalty_factor) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[0u].GetValue<double>(ConditionSettings::penalty_factor), 300.0 );
 
     }
     {
         auto& r_cond_settings_list = settings[Main::conditions_settings_list];
         QuESo_CHECK_EQUAL( r_cond_settings_list.NumberOfSubDictionaries(), 2 );
 
-        QuESo_CHECK( r_cond_settings_list[1UL].IsSet(ConditionSettings::condition_id) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[1UL].GetValue<IndexType>(ConditionSettings::condition_id), 150UL );
+        QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::condition_id) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[1u].GetValue<IndexType>(ConditionSettings::condition_id), 150u );
 
-        QuESo_CHECK( r_cond_settings_list[1UL].IsSet(ConditionSettings::condition_type) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[1UL].GetValue<std::string>(ConditionSettings::condition_type), std::string("Hello2") );
+        QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::condition_type) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[1u].GetValue<std::string>(ConditionSettings::condition_type), std::string("Hello2") );
 
-        QuESo_CHECK( r_cond_settings_list[1UL].IsSet(ConditionSettings::input_filename) );
-        QuESo_CHECK_EQUAL( r_cond_settings_list[1UL].GetValue<std::string>(ConditionSettings::input_filename), std::string("hallo2") );
+        QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::input_filename) );
+        QuESo_CHECK_EQUAL( r_cond_settings_list[1u].GetValue<std::string>(ConditionSettings::input_filename), std::string("hallo2") );
 
-        QuESo_CHECK( !r_cond_settings_list[1UL].IsSet(ConditionSettings::modulus) );
-        BOOST_REQUIRE_THROW( r_cond_settings_list[1UL].GetValue<double>(ConditionSettings::modulus), std::exception );
+        QuESo_CHECK( !r_cond_settings_list[1u].IsSet(ConditionSettings::modulus) );
+        BOOST_REQUIRE_THROW( r_cond_settings_list[1u].GetValue<double>(ConditionSettings::modulus), std::exception );
 
-        QuESo_CHECK( r_cond_settings_list[1UL].IsSet(ConditionSettings::direction) );
-        QuESo_CHECK_POINT_NEAR( r_cond_settings_list[1UL].GetValue<PointType>(ConditionSettings::direction), PointType({2.1, 3.2, 4.7}), 1e-10 );
+        QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::direction) );
+        QuESo_CHECK_POINT_NEAR( r_cond_settings_list[1u].GetValue<PointType>(ConditionSettings::direction), PointType({2.1, 3.2, 4.7}), 1e-10 );
 
-        QuESo_CHECK( r_cond_settings_list[1UL].IsSet(ConditionSettings::value) );
-        QuESo_CHECK_POINT_NEAR( r_cond_settings_list[1UL].GetValue<PointType>(ConditionSettings::value), PointType({2.2, 2.3, 1.4}), 1e-10 );
+        QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::value) );
+        QuESo_CHECK_POINT_NEAR( r_cond_settings_list[1u].GetValue<PointType>(ConditionSettings::value), PointType({2.2, 2.3, 1.4}), 1e-10 );
 
-        QuESo_CHECK( !r_cond_settings_list[1UL].IsSet(ConditionSettings::penalty_factor) );
-        BOOST_REQUIRE_THROW( r_cond_settings_list[1UL].GetValue<double>(ConditionSettings::penalty_factor), std::exception );
+        QuESo_CHECK( !r_cond_settings_list[1u].IsSet(ConditionSettings::penalty_factor) );
+        BOOST_REQUIRE_THROW( r_cond_settings_list[1u].GetValue<double>(ConditionSettings::penalty_factor), std::exception );
     }
 };
 
@@ -379,9 +379,9 @@ BOOST_AUTO_TEST_CASE(SettingsCastAmbiguousTypesTest) {
     Settings settings;
 
     // Cast IndexType to double
-    BOOST_REQUIRE_THROW( settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5UL), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( settings[Main::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5u), std::exception ); // Wrong Type
     // Lets set it with wrong type
-    settings[Main::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5UL);
+    settings[Main::trimmed_quadrature_rule_settings].SetValueWithAmbiguousType(TrimmedQuadratureRuleSettings::moment_fitting_residual, 5u);
     {
         const double r_double = settings[Main::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
         QuESo_CHECK_RELATIVE_NEAR(r_double, 5.0, 1e-10);

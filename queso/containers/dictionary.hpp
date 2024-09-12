@@ -285,8 +285,11 @@ public:
     /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
     template<typename TKeyType>
     const Dictionary& operator [](TKeyType QueryKey) const {
-        if constexpr(std::is_same_v<TKeyType, unsigned long> || std::is_same_v<TKeyType, int>) {
+        if constexpr(std::is_same_v<TKeyType, int>
+                  || std::is_same_v<TKeyType, unsigned int>
+                  || std::is_same_v<TKeyType, unsigned long>) { // Accept different integer types.
             if ( std::get_if<IndexType>(&mSubDictionaryDummyKey) ){
+                QuESo_ERROR_IF( QueryKey < 0 ) << "Key must be non-negative.\n";
                 const IndexType index = static_cast<IndexType>(QueryKey);
                 return mSubDictionaries[index];
             }
@@ -306,8 +309,11 @@ public:
     /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
     template<typename TKeyType>
     Dictionary& operator [](TKeyType QueryKey) {
-        if constexpr(std::is_same_v<TKeyType, unsigned long> || std::is_same_v<TKeyType, int>) {
+        if constexpr(std::is_same_v<TKeyType, int>
+                  || std::is_same_v<TKeyType, unsigned int>
+                  || std::is_same_v<TKeyType, unsigned long>) { // Accept different integer types.
             if ( std::get_if<IndexType>(&mSubDictionaryDummyKey) ){
+                QuESo_ERROR_IF( QueryKey < 0 ) << "Key must be non-negative.\n";
                 const IndexType index = static_cast<IndexType>(QueryKey);
                 return mSubDictionaries[index];
             }
@@ -357,7 +363,10 @@ public:
     void SetValue(TKeyType QueryKey, TValueType NewValue) {
         if( std::get_if<TKeyType>(&mDataDummyKey) ){
             const IndexType index = static_cast<IndexType>(QueryKey);
-            if constexpr(std::is_same_v<TValueType, unsigned long> || std::is_same_v<TValueType, int>) {
+            if constexpr(std::is_same_v<TValueType, int>
+                      || std::is_same_v<TValueType, unsigned int>
+                      || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+                QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
                 mData[index].SetValue(static_cast<IndexType>(NewValue));
             } else {
                 mData[index].SetValue(NewValue);
@@ -376,7 +385,10 @@ public:
     void SetValueWithAmbiguousType(TKeyType QueryKey, TValueType NewValue) {
         if( std::get_if<TKeyType>(&mDataDummyKey) ){
             const IndexType index = static_cast<IndexType>(QueryKey);
-            if constexpr(std::is_same_v<TValueType, unsigned long> || std::is_same_v<TValueType, int>) {
+            if constexpr(std::is_same_v<TValueType, int>
+                      || std::is_same_v<TValueType, unsigned int>
+                      || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+                QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
                 mData[index].SetValueWithAmbiguousType(static_cast<IndexType>(NewValue));
             } else {
                 mData[index].SetValueWithAmbiguousType(NewValue);
