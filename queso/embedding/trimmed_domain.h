@@ -49,7 +49,7 @@ public:
     /// @param rLowerBound Lower bound of trimmed domain.
     /// @param rUpperBound Upper bound of trimmed domain.
     /// @param pOperator Pointer to BrepOperator to perform IsInside()-check. Only used as safety procedure, if IsInsideTrimmedDomain() failes.
-    /// @param rParameters QuESo Parameters.
+    /// @param MinNumberOfTriangles Minimum number of triangles used to discretize the boundary of this trimmed domain.
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )

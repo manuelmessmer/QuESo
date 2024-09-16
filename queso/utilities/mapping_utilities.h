@@ -116,7 +116,7 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param rParameters
+    /// @param rSettings
     Mapper( const SettingsBaseType& rSettings ) :
         mBoundXYZ( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
                                   rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),

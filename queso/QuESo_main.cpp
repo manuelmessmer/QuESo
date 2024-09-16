@@ -120,7 +120,7 @@ std::array<double,5> QuESo::Compute(){
     double et_compute_intersection = 0.0;
     double et_moment_fitting = 0.0;
 
-    // Get neccessary parameters
+    // Get neccessary settings
     const IntegrationMethod integration_method = mSettings[MainSettings::non_trimmed_quadrature_rule_settings]
         .GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
     const bool ggq_rule_ise_used =  integration_method >= 3;
@@ -228,14 +228,14 @@ std::array<double,5> QuESo::Compute(){
 
 }
 
-Condition& QuESo::CreateNewCondition(const SettingsBaseType& rConditionParameters){
+Condition& QuESo::CreateNewCondition(const SettingsBaseType& rConditionSettings){
     Unique<TriangleMeshInterface> p_new_mesh = MakeUnique<TriangleMesh>();
 
-    const std::string& r_filename = rConditionParameters.GetValue<std::string>(ConditionSettings::input_filename);
+    const std::string& r_filename = rConditionSettings.GetValue<std::string>(ConditionSettings::input_filename);
     IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
 
     // Condition owns triangle mesh.
-    mConditions.push_back( Condition(p_new_mesh, rConditionParameters) );
+    mConditions.push_back( Condition(p_new_mesh, rConditionSettings) );
     return mConditions.back();
 }
 

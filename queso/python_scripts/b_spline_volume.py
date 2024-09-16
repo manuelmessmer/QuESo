@@ -5,7 +5,7 @@ import scipy.interpolate as si
 class BSplineVolume:
     def __init__(self, settings, knot_vector_type):
         ''' Constructor of BSplineVolume \n
-        Takes QuESo::Parameters as input.
+        Takes QuESo::Settings as input.
         '''
         grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
         self.Order = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.polynomial_order)

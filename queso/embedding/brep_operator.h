@@ -53,7 +53,7 @@ public:
     /// Constructor
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
-    ///@param rParameters QuESo parameters.
+    ///@param Closed Must be true, if mesh is closed.
     BRepOperator(const TriangleMeshInterface& rTriangleMesh, bool Closed=true)
         : mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed)
     {
