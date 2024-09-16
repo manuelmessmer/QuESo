@@ -1,6 +1,7 @@
 # Project imports
 from platform import release
 import re
+import QuESo_PythonApplication as QuESo_App
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 
 try:
@@ -122,7 +123,11 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
             model_part = self.pyqueso.GetAnalysis().GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-            self.CheckErrorInDisplacement(self.pyqueso.GetLowerBoundDomainXYZ(), self.pyqueso.GetUpperBoundDomainXYZ(), nurbs_volume, tolerance)
+            settings = self.pyqueso.GetSettings()
+            grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+            lower_bound = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz)
+            upper_bound = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz)
+            self.CheckErrorInDisplacement(lower_bound, upper_bound, nurbs_volume, tolerance)
 
     def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):
         # Compare to analytical solution (Timoshenko Beam)
