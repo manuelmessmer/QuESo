@@ -1,3 +1,4 @@
+import QuESo_PythonApplication as QuESo_App
 # Import Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
@@ -9,7 +10,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
     Overrides the StructuralMechanicsAnalysis Stage from Kratos.
     """
-    def __init__(self, model, queso_parameters, kratos_settings_filename, elements, boundary_conditions, triangle_mesh):
+    def __init__(self, model, queso_settings, kratos_settings_filename, elements, boundary_conditions, triangle_mesh):
         """The constructor."""
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
@@ -18,11 +19,11 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         self.boundary_conditions = boundary_conditions
         self.triangle_mesh = triangle_mesh
         self.elements = elements
-        self.queso_parameters = queso_parameters
+        self.queso_settings = queso_settings
 
         self.lagrange_dofs_required = False
-        for condition_param in self.queso_parameters.GetConditionsSettingsVector():
-            if( condition_param.GetString("type") == "LagrangeSupportCondition" ):
+        for condition_param in self.queso_settings[QuESo_App.MainSettings.conditions_settings_list]:
+            if( condition_param.GetString(QuESo_App.ConditionSettings.condition_type) == "LagrangeSupportCondition" ):
                 self.lagrange_dofs_required = True
 
         nurbs_model_part = model.CreateModelPart("NurbsMesh")
@@ -33,24 +34,25 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             nurbs_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
             nurbs_model_part.AddNodalSolutionStepVariable(IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
+        grid_settings = self.queso_settings[QuESo_App.MainSettings.background_grid_settings]
         #Override the NurbsGeometryModeler input parameters
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
                 parameters.AddEmptyValue("lower_point_xyz")
-                parameters["lower_point_xyz"].SetVector(self.queso_parameters.LowerBoundXYZ())
+                parameters["lower_point_xyz"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz))
                 parameters.AddEmptyValue("upper_point_xyz")
-                parameters["upper_point_xyz"].SetVector(self.queso_parameters.UpperBoundXYZ())
+                parameters["upper_point_xyz"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz))
 
                 parameters.AddEmptyValue("lower_point_uvw")
-                parameters["lower_point_uvw"].SetVector(self.queso_parameters.LowerBoundUVW())
+                parameters["lower_point_uvw"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw))
                 parameters.AddEmptyValue("upper_point_uvw")
-                parameters["upper_point_uvw"].SetVector(self.queso_parameters.UpperBoundUVW())
+                parameters["upper_point_uvw"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw))
 
                 parameters.AddEmptyValue("polynomial_order")
-                parameters["polynomial_order"].SetVector(self.queso_parameters.Order())
+                parameters["polynomial_order"].SetVector(grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.polynomial_order))
                 parameters.AddEmptyValue("number_of_knot_spans")
-                parameters["number_of_knot_spans"].SetVector(self.queso_parameters.NumberOfElements())
+                parameters["number_of_knot_spans"].SetVector(grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.number_of_elements))
 
         self.Initialized = False
         super().__init__(model, analysis_parameters)
@@ -79,8 +81,11 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         ModelPartUtilities.RemoveAllElements(model_part)
         ModelPartUtilities.RemoveAllConditions(model_part)
         ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
-        bounds_xyz = [self.queso_parameters.LowerBoundXYZ(), self.queso_parameters.UpperBoundXYZ()]
-        bounds_uvw = [self.queso_parameters.LowerBoundUVW(), self.queso_parameters.UpperBoundUVW()]
+        grid_settings = self.queso_settings[QuESo_App.MainSettings.background_grid_settings]
+        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz)]
+        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw)]
         ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, bounds_xyz, bounds_uvw)
 
         # Add Dofs
