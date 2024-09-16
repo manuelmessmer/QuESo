@@ -23,7 +23,6 @@
 #include "queso/quadrature/trimmed_element.hpp"
 #include "queso/quadrature/single_element.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "queso/includes/parameters.h"
 #include "queso/utilities/mapping_utilities.h"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/io/io_utilities.h"

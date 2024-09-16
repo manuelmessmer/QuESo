@@ -17,7 +17,6 @@
 #include <boost/test/unit_test.hpp>
 // Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/includes/parameters.h"
 #include "queso/containers/element.hpp"
 #include "queso/containers/element_container.hpp"
 
