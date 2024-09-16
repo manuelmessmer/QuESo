@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
 
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), std::exception); // Not set
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
-    r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 2.0, 1.0});
+    r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 2.0, 3.0});
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::upper_bound_uvw), std::exception); // Wrong Value type
     const PointType& r_upper_bound_uvw = r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw);
