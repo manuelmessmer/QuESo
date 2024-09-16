@@ -3,7 +3,8 @@
         "input_filename"  : "data/stanford_bunny.stl",
         "echo_level"      : 1
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
+        "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-24.0, -43.0, 5.0],
         "upper_bound_xyz": [85.0, 46.0, 115.0],
         "lower_bound_uvw": [-24.0, -43.0, 5.0],

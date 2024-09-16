@@ -3,7 +3,8 @@
         "input_filename"  : "data/cylinder.stl",
         "echo_level"      : 1
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
+        "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-1.5, -1.5, -1.0],
         "upper_bound_xyz": [1.5, 1.5, 11.0],
         "lower_bound_uvw": [-1.5, -1.5, -1.0],
@@ -17,16 +18,22 @@
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
     },
-    "conditions"    :  [{
-        "SurfaceLoadCondition": {
+"conditions_settings_list"    :  [
+        {
+            "condition_id" : 1,
+            "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "data/tip.stl",
             "modulus": 0.1,
             "direction" : [0, 1, 0]
-        }},{
-        "PenaltySupportCondition": {
+        },
+        {
+            "condition_id" : 2,
+            "condition_type" : "PenaltySupportCondition",
             "input_filename" : "data/base.stl",
             "value" : [0.0, 0.0, 0.0],
             "penalty_factor" : 1e10
-        }}
+        }
     ]
 }
+
+

@@ -3,7 +3,8 @@
         "input_filename"  : "data/steering_knuckle.stl",
         "echo_level"      : 1
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
+        "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
         "upper_bound_xyz": [20.0, 190.0, 190.0],
         "lower_bound_uvw": [-130.0, -110.0, -110.0],
