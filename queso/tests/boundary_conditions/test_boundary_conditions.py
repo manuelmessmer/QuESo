@@ -58,12 +58,12 @@ class TestBoundaryConditions(QuESoTestCase):
                 raise Exception("TestBoundaryConditions :: Given condition type does not exist.")
 
     def test_1(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoParameters1.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoSettings1.json")
         pyqueso.Run()
         self.check_values(pyqueso)
 
     def test_2(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoParameters2.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoSettings2.json")
         pyqueso.Run()
         self.check_values(pyqueso)
 

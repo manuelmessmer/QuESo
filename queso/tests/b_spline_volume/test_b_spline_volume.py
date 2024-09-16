@@ -9,42 +9,42 @@ import json
 
 class TestBSplineVolume(QuESoTestCase):
     def test1(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters1.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings1.json"
         results_filename = "queso/tests/b_spline_volume/results_1.json"
         self.RunTest(input_filename, results_filename)
 
     def test2(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters2.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings2.json"
         results_filename = "queso/tests/b_spline_volume/results_2.json"
         self.RunTest(input_filename, results_filename)
 
     def test3(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters3.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings3.json"
         results_filename = "queso/tests/b_spline_volume/results_3.json"
         self.RunTest(input_filename, results_filename)
 
     def test4(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters4.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings4.json"
         results_filename = "queso/tests/b_spline_volume/results_4.json"
         self.RunTest(input_filename, results_filename)
 
     def test5(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters5.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings5.json"
         results_filename = "queso/tests/b_spline_volume/results_5.json"
         self.RunTest(input_filename, results_filename)
 
     def test6(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters6.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings6.json"
         results_filename = "queso/tests/b_spline_volume/results_6.json"
         self.RunTest(input_filename, results_filename)
 
     def test7(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters7.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings7.json"
         results_filename = "queso/tests/b_spline_volume/results_7.json"
         self.RunTest(input_filename, results_filename)
 
     def test8(self):
-        input_filename = "queso/tests/b_spline_volume/QuESoParameters8.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings8.json"
         results_filename = "queso/tests/b_spline_volume/results_8.json"
         self.RunTest(input_filename, results_filename)
 

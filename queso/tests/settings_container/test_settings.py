@@ -243,13 +243,13 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertFalse(settings.IsSet(QuESo.ConditionSettings.penalty_factor))
 
     def test_customized_values(self):
-        settings = JsonImport.ReadSettings("queso/tests/settings_container/QuESoParameters_custom_1.json")
+        settings = JsonImport.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_1.json")
         self.check_customized_values(settings)
-        settings2 = JsonImport.ReadSettings("queso/tests/settings_container/QuESoParameters_custom_2.json")
+        settings2 = JsonImport.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_2.json")
         self.check_customized_values(settings2)
 
     def test_default_values(self):
-        settings = JsonImport.ReadSettings("queso/tests/settings_container/QuESoParameters_default.json")
+        settings = JsonImport.ReadSettings("queso/tests/settings_container/QuESoSettings_default.json")
         self.check_default_values(settings)
 
 

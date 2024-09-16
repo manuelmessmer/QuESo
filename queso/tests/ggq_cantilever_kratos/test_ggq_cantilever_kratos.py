@@ -25,7 +25,7 @@ import numpy as np
 #        Test ist currently disabled.
 def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
-        settings = JsonImport.ReadSettings("queso/tests/ggq_cantilever_kratos/QuESoParameters.json")
+        settings = JsonImport.ReadSettings("queso/tests/ggq_cantilever_kratos/QuESoSettings.json")
 
         grid_settings = settings[QuESo_APP.MainSettings.background_grid_settings]
 

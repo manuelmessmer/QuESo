@@ -34,7 +34,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
             area += weight*det_J
         self.assertAlmostEqual(area,ref_value, 5)
 
-    def construct_b_spline_volume(self, model, queso_settings):
+    def construct_b_spline_volume(self, model, QuESoSettings):
         modeler_settings = KM.Parameters("""
             [{
                 "modeler_name": "NurbsGeometryModeler",
@@ -45,7 +45,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
             }]
             """)
 
-        grid_settings = queso_settings[QuESo_App.MainSettings.background_grid_settings]
+        grid_settings = QuESoSettings[QuESo_App.MainSettings.background_grid_settings]
 
         tmp_parameters = modeler_settings[0]["Parameters"]
         tmp_parameters.AddEmptyValue("lower_point_xyz")
@@ -66,7 +66,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.run_modelers(model, modeler_settings)
 
     def test_penalty_support(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Penalty.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_Penalty.json")
         pyqueso.Run()
 
         model = KM.Model()
@@ -93,7 +93,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.check_surface_area(model_part, 1183.54304)
 
     def test_lagrange_support(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Lagrange.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_Lagrange.json")
         pyqueso.Run()
 
         model = KM.Model()
@@ -115,7 +115,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.check_surface_area(model_part, 921.163635)
 
     def test_surface_load(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_SurfaceLoad.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_SurfaceLoad.json")
         pyqueso.Run()
 
         model = KM.Model()
@@ -140,7 +140,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.assertListsAlmostEqual(force, [ref_value]*3, 5)
 
     def test_pressure_load(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Pressure.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_Pressure.json")
         pyqueso.Run()
 
         model = KM.Model()
