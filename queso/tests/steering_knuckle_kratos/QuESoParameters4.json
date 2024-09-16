@@ -4,6 +4,7 @@
         "echo_level"      : 0
     },
     "background_grid_settings"     : {
+        "grid_type"      : "b_spline_grid",
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
         "upper_bound_xyz": [20.0, 190.0, 190.0],
         "lower_bound_uvw": [-300.0, 10.0, 5.0],
@@ -18,27 +19,27 @@
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
     },
-    "conditions"    :  [{
-        "SurfaceLoadCondition": {
+    "conditions_settings_list"    :  [{
+            "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N1.stl",
             "modulus" : 2.0,
             "direction" : [-1.0, 0.0, 0.0]
-        }},{
-        "SurfaceLoadCondition": {
+        },{
+            "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N2.stl",
             "modulus" : 1.0,
             "direction" : [0.0, 0.0, 1.0]
-        }},{
-        "SurfaceLoadCondition": {
+        },{
+            "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N3.stl",
             "modulus" : 0.3,
             "direction" : [0.0, 1.0, 0.0]
-        }},{
-        "PenaltySupportCondition": {
+        },{
+            "condition_type" : "PenaltySupportCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/D1.stl",
             "value" : [0.0, 0.0, 0.0],
             "penalty_factor" : 1e10
-        }}
+        }
     ]
 }
 

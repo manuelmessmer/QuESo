@@ -1,6 +1,7 @@
 # Project imports
 import QuESo_PythonApplication as QuESo_APP
 from queso.python_scripts.helper import *
+from queso.python_scripts.json_import import JsonImport
 from queso.python_scripts.QuESoUnittest import QuESoTestCase
 
 try:
@@ -20,20 +21,26 @@ if kratos_available:
 import unittest
 import numpy as np
 
+## TODO: This needs to be done on python level without 'embedding_flag#
+#        Test ist currently disabled.
 def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
-        parameters = ReadParameters("queso/tests/ggq_cantilever_kratos/QuESoParameters.json")
+        settings = JsonImport.ReadSettings("queso/tests/ggq_cantilever_kratos/QuESoParameters.json")
 
-        global_settings = parameters.GetGlobalSettings()
+        grid_settings = settings[QuESo_APP.MainSettings.background_grid_settings]
 
-        global_settings.Set("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
-        global_settings.Set("polynomial_order", polynomial_degree)
+        grid_settings.SetValue(QuESo_APP.BackgroundGridSettings.number_of_elements, [number_cross_elements, number_cross_elements, number_z_elements])
+        grid_settings.SetValue(QuESo_APP.BackgroundGridSettings.polynomial_order, polynomial_degree)
+
+        non_trimmed_quad_rule_settings = settings[QuESo_APP.MainSettings.non_trimmed_quadrature_rule_settings]
         if reduction_flag == False:
-            global_settings.Set("integration_method", "Gauss")
+            method = QuESo_APP.IntegrationMethod.Gauss
+            non_trimmed_quad_rule_settings.SetValue(QuESo_APP.NonTrimmedQuadratureRuleSettings.integration_method, method)
         else:
-            global_settings.Set("integration_method", "GGQ_Optimal")
+            method = QuESo_APP.IntegrationMethod.GGQ_Optimal
+            non_trimmed_quad_rule_settings.SetValue(QuESo_APP.NonTrimmedQuadratureRuleSettings.integration_method, method)
 
-        embedder = QuESo_APP.QuESo(parameters)
+        embedder = QuESo_APP.QuESo(settings)
         embedder.Run()
 
         elements = embedder.GetElements()
@@ -45,7 +52,7 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
 
 
         kratos_settings_filename = "queso/tests/ggq_cantilever_kratos/KratosParameters.json"
-        analysis = Analysis(parameters, kratos_settings_filename, elements, boundary_condition, embedder.GetTriangleMesh())
+        analysis = Analysis(settings, kratos_settings_filename, elements, boundary_condition, embedder.GetTriangleMesh())
         model_part = analysis.GetModelPart()
         geometry = model_part.GetGeometry("NurbsVolume")
 

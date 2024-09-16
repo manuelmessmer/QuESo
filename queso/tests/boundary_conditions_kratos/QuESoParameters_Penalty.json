@@ -4,6 +4,7 @@
         "echo_level"      : 0
     },
     "background_grid_settings"     : {
+        "grid_type"      : "b_spline_grid",
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
         "upper_bound_xyz": [20.0, 190.0, 190.0],
         "lower_bound_uvw": [-130.0, -110.0, -110.0],
@@ -17,12 +18,12 @@
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
     },
-    "conditions"    :  [{
-        "PenaltySupportCondition": {
+    "conditions_settings_list"    :  [{
+            "condition_type" : "PenaltySupportCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/D1.stl",
             "value" : [0.0, 0.0, 1.0],
             "penalty_factor" : 1e10
-        }}
+        }
     ]
 }
 

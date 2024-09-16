@@ -4,6 +4,7 @@
         "echo_level"      : 0
     },
     "background_grid_settings"     : {
+        "grid_type"      : "b_spline_grid",
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
         "upper_bound_xyz": [20.0, 190.0, 190.0],
         "lower_bound_uvw": [-130.0, -110.0, -110.0],
@@ -17,11 +18,11 @@
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
     },
-    "conditions"    :  [{
-        "PressureLoadCondition": {
+    "conditions_settings_list"    :  [{
+            "condition_type" : "PressureLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N2.stl",
             "modulus" : 2.0
-        }}
+        }
     ]
 }
 

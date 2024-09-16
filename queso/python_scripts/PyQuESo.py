@@ -50,6 +50,9 @@ class PyQuESo:
     def GetConditions(self):
         return self.conditions
 
+    def GetSettings(self):
+        return self.settings
+
     # def GetNumberElements(self):
     #     return self.settings[].NumberOfElements()
 
