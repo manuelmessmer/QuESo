@@ -1,10 +1,6 @@
 {
-    "general_settings"  : {
-        "embedding_flag" : false
-    },
-    "mesh_settings"     : {
-        "b_spline_mesh" : true,
-        "knot_vector_type" : "non_open_knot_vector",
+    "background_grid_settings"     : {
+        "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-1.5, -1.5, -1.00],
         "upper_bound_xyz": [1.5, 1.5, 11.00],
         "lower_bound_uvw": [5.5, 4.5, 2.22],

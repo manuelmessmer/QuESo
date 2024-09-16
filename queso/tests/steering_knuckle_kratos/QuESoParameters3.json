@@ -3,7 +3,7 @@
         "input_filename"  : "queso/tests/steering_knuckle_kratos/data/steering_knuckle.stl",
         "echo_level"      : 0
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
         "upper_bound_xyz": [20.0, 190.0, 190.0],
         "lower_bound_uvw": [0.0, 0.0, 0.0],

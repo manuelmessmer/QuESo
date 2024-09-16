@@ -10,10 +10,10 @@ class BSplineVolume:
         grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
         self.Order = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.polynomial_order)
         NumElements = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.number_of_elements)
-        LowerBoundXYZ = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz)
-        UpperBoundXYZ = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz)
-        LowerBoundUVW = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw)
-        UpperBoundUVW = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw)
+        LowerBoundXYZ = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz)
+        UpperBoundXYZ = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz)
+        LowerBoundUVW = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw)
+        UpperBoundUVW = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw)
         if( knot_vector_type == "open_knot_vector" ):
             open_knot_vector = True
         elif( knot_vector_type == "non_open_knot_vector" ):

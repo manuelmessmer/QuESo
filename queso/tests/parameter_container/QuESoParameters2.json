@@ -3,7 +3,7 @@
         "input_filename"  : "dummy.stl",
         "echo_level"      : 1
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
         "lower_bound_xyz": [-130, -110, -110],
         "upper_bound_xyz": [20, 190, 190],
         "lower_bound_uvw": [-130, -110, -110],

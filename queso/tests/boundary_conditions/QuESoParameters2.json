@@ -3,7 +3,8 @@
         "input_filename"  : "queso/tests/steering_knuckle_kratos/data/steering_knuckle.stl",
         "echo_level"      : 0
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
+        "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-130, -110, -110],
         "upper_bound_xyz": [20, 190, 190],
         "lower_bound_uvw": [-130, -110, -110],
@@ -18,25 +19,25 @@
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
     },
-    "conditions"    :  [{
-        "SurfaceLoadCondition": {
+    "conditions_settings_list"    :  [{
+            "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N1.stl",
             "modulus" : 5,
             "direction" : [-1, 2, 3]
-        }},{
-        "PressureLoadCondition": {
+        },{
+            "condition_type" : "PressureLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N2.stl",
             "modulus" : 2
-        }},{
-        "LagrangeSupportCondition": {
+        },{
+            "condition_type" : "LagrangeSupportCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N3.stl",
             "value" : [0, 0.3, 0]
-        }},{
-        "PenaltySupportCondition": {
+        },{
+            "condition_type" : "PenaltySupportCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/D1.stl",
             "value" : [0, 0, 0],
             "penalty_factor" : 1e10
-        }}
+        }
     ]
 }
 

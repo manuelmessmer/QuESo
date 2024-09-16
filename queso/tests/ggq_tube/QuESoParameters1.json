@@ -5,7 +5,7 @@
         "echo_level"      : 0,
         "embedding_flag"  : true
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
         "lower_bound_xyz": [-1.99, -1.99, -0.1],
         "upper_bound_xyz": [1.99, 1.99, 5.1],
         "lower_bound_uvw": [0.0, 0.0, 0.0],
