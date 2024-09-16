@@ -30,18 +30,22 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     QuESo_INFO << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
 
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
-    Parameters parameters( {Component("input_filename", filename),
-                            Component("echo_level", 0UL),
-                            Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
-                            Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
-                            Component("lower_bound_uvw", PointType{0.0, 0.0, 0.0}),
-                            Component("upper_bound_uvw", PointType{4.0, 5.0, 3.0}),
-                            Component("number_of_elements", Vector3i{1, 1, 1}),
-                            Component("polynomial_order", Vector3i{2, 2, 2}),
-                            Component("integration_method", IntegrationMethod::Gauss),
-                            Component("min_num_boundary_triangles", 5000UL),
-                            Component("moment_fitting_residual", 1e-8) });
-    QuESo queso(parameters);
+
+    Settings settings;
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{2.0, 2.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{4.0, 5.0, 3.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-8);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 5000u);
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::Gauss);
+
+    QuESo queso(settings);
     queso.Run();
 
     const auto& elements = queso.GetElements();
@@ -54,7 +58,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     const auto& r_triangle_mesh = elements.begin()->pGetTrimmedDomain()->GetTriangleMesh();
     const IndexType num_triangles = r_triangle_mesh.NumOfTriangles();
 
-    QuESo_CHECK_GT(num_triangles, parameters.MinimumNumberOfTriangles());
+    QuESo_CHECK_GT(num_triangles, 5000.0);
 
     double area = 0.0;
     for( IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id){
@@ -78,22 +82,25 @@ BOOST_AUTO_TEST_CASE(Intersection) {
 }
 
 void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOrder, IndexType NumPointsInside, double Tolerance,
-                        bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
+                   bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
 
     Vector3i num_elements = (Large) ? Vector3i{14, 22, 12} : Vector3i{7, 11, 6};
-
+    BackgroundGridTypeType grid_type = (BSplineMesh) ? BackgroundGridType::b_spline_grid : BackgroundGridType::hexahedral_fe_grid;
     std::string filename = "queso/tests/cpp_tests/data/elephant.stl";
-    Parameters parameters( {Component("input_filename", filename),
-                            Component("echo_level", 0UL),
-                            Component("lower_bound_xyz", PointType{-0.37, -0.55, -0.31}),
-                            Component("upper_bound_xyz", PointType{0.37, 0.55, 0.31}),
-                            Component("b_spline_mesh", BSplineMesh),
-                            Component("lower_bound_uvw", rBoundsUVW.first),
-                            Component("upper_bound_uvw", rBoundsUVW.second),
-                            Component("number_of_elements", num_elements),
-                            Component("polynomial_order", rOrder),
-                            Component("integration_method", IntegrationMethod) });
-    QuESo queso(parameters);
+
+    Settings settings;
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.37, -0.55, -0.31});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.37, 0.55, 0.31});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, rOrder);
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
+
+    QuESo queso(settings);
     queso.Run();
 
     const auto& elements = queso.GetElements();
@@ -257,19 +264,22 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
                         bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
 
     Vector3i num_elements = (Large) ? Vector3i{20, 40, 40} : Vector3i{5, 10, 10};
-
+    BackgroundGridTypeType grid_type = (BSplineMesh) ? BackgroundGridType::b_spline_grid : BackgroundGridType::hexahedral_fe_grid;
     std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
-    Parameters parameters( {Component("input_filename", filename),
-                            Component("echo_level", 0UL),
-                            Component("lower_bound_xyz", PointType{-130.0, -110.0, -110.0}),
-                            Component("upper_bound_xyz", PointType{20.0, 190.0, 190.0}),
-                            Component("b_spline_mesh", BSplineMesh),
-                            Component("lower_bound_uvw", rBoundsUVW.first),
-                            Component("upper_bound_uvw", rBoundsUVW.second),
-                            Component("number_of_elements", num_elements),
-                            Component("polynomial_order", Vector3i{p, p, p}),
-                            Component("integration_method", IntegrationMethod) });
-    QuESo queso(parameters);
+
+    Settings settings;
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{p, p, p});
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
+
+    QuESo queso(settings);
     queso.Run();
 
     const auto& elements = queso.GetElements();

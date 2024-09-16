@@ -34,11 +34,13 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-1.5, -1.5, -1.0}),
-                            Component("upper_bound_xyz", Vector3d{1.5, 1.5, 12.0}),
-                            Component("lower_bound_uvw", Vector3d{0.0, 0.0, 0.0}),
-                            Component("upper_bound_uvw", Vector3d{1.0, 1.0, 1.0}),
-                            Component("number_of_elements", Vector3i{6, 6, 13})} );
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 13});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
@@ -49,7 +51,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(parameters);
+    Mapper mapper(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
@@ -140,12 +142,13 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-130.0, -110.0, -110.0}),
-                            Component("upper_bound_xyz", Vector3d{-40, 10.0, 10.0}),
-                            Component("lower_bound_uvw", Vector3d{-130.0, -110.0, -110.0}),
-                            Component("upper_bound_uvw", Vector3d{-40, 10.0, 10.0}),
-                            Component("number_of_elements", Vector3i{9, 12, 12}) } );
-
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{-40, 10.0, 10.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 12, 12});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/steering_knuckle.stl");
@@ -156,7 +159,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(parameters);
+    Mapper mapper(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
@@ -233,12 +236,13 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-0.4, -0.6, -0.35}),
-                            Component("upper_bound_xyz", Vector3d{0.4, 0.6, 0.35}),
-                            Component("lower_bound_uvw", Vector3d{-1.0, -1.0, -1.0}),
-                            Component("upper_bound_uvw", Vector3d{ 1.0,  1.0,  1.0}),
-                            Component("b_spline_mesh", false),
-                            Component("number_of_elements", Vector3i{8, 12, 7}) } );
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0,  1.0,  1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 12, 7});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
@@ -249,7 +253,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(parameters);
+    Mapper mapper(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);

@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/utilities/math_utilities.hpp"
 #include "queso/utilities/mapping_utilities.h"
 
 namespace queso {
@@ -32,13 +33,15 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
 
     const Vector3i number_of_elements{5, 10, 7};
 
-    Parameters parameters( {Component("lower_bound_xyz", bounds_xyz.first),
-                            Component("upper_bound_xyz", bounds_xyz.second),
-                            Component("lower_bound_uvw", bounds_uvw.first),
-                            Component("upper_bound_uvw", bounds_uvw.second),
-                            Component("number_of_elements", number_of_elements) } );
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    Mapper mapper(parameters);
+    Mapper mapper(settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
@@ -85,12 +88,6 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
     const BoundingBoxType bounds_uvw = MakeBox( { -10.0,  -2.2, 2.0}, {2.0, 10.0, 17.0} );
 
     const Vector3i number_of_elements{15, 11, 17};
-
-    Parameters parameters( {Component("lower_bound_xyz", bounds_xyz.first),
-                            Component("upper_bound_xyz", bounds_xyz.second),
-                            Component("lower_bound_uvw", bounds_uvw.first),
-                            Component("upper_bound_uvw", bounds_uvw.second),
-                            Component("number_of_elements", number_of_elements) } );
 
     const auto delta = Math::Subtract( bounds_xyz.second, bounds_xyz.first );
     double volume = 0.0;

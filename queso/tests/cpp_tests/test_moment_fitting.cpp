@@ -41,15 +41,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-    Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
-                            Component("upper_bound_xyz", PointType{2.0, 2.0, 3.0}),
-                            Component("number_of_elements", Vector3i{1, 1, 1}),
-                            Component("polynomial_order", Vector3i{2, 2, 2}),
-                            Component("moment_fitting_residual", 1e-8),
-                            Component("min_num_boundary_triangles", 5UL),
-                            Component("integration_method", IntegrationMethod::Gauss),
-                            Component("use_customized_trimmed_points", false) });
-
     ElementType element(1, MakeBox({0, 0, 0}, {1, 1, 3.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
@@ -64,8 +55,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
-    const Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    const IntegrationMethod integration_method = parameters.IntegrationMethod();
+    const Vector3i polynomial_order = {2, 2, 2};
+    const IntegrationMethod integration_method = IntegrationMethod::Gauss;
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
@@ -107,15 +98,6 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-    Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
-                            Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
-                            Component("number_of_elements", Vector3i{1, 1, 1}),
-                            Component("polynomial_order", Vector3i{3, 3, 3}),
-                            Component("moment_fitting_residual", 1e-8),
-                            Component("min_num_boundary_triangles", 500UL),
-                            Component("integration_method", IntegrationMethod::Gauss),
-                            Component("use_customized_trimmed_points", false) });
-
     ElementType element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
@@ -123,7 +105,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     PointType point_b_domain = {2.0, 2.0, 1.0};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
-    MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
+    MeshUtilities::Refine(*p_triangle_mesh, 500 );
     auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
@@ -131,8 +113,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
-    const Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    const IntegrationMethod integration_method = parameters.IntegrationMethod();
+    const Vector3i polynomial_order = {3, 3, 3};
+    const IntegrationMethod integration_method = IntegrationMethod::Gauss;
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
@@ -174,22 +156,14 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-    Parameters parameters( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
-                            Component("upper_bound_xyz", PointType{2.0, 2.0, 1.0}),
-                            Component("number_of_elements", Vector3i{1, 1, 1}),
-                            Component("polynomial_order", Vector3i{4, 4, 4}),
-                            Component("min_num_boundary_triangles", 2000UL),
-                            Component("integration_method", IntegrationMethod::Gauss),
-                            Component("use_customized_trimmed_points", false) });
-
-     ElementType element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
+    ElementType element(1, MakeBox({0, 0, 0}, {2.0, 2.0, 1.0}), MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
 
     // Construct cube over domian.
     PointType point_a_domain = {0.0, 0.0, 0.0};
     PointType point_b_domain = {2.0, 2.0, 1.0};
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
-    MeshUtilities::Refine(*p_triangle_mesh, parameters.MinimumNumberOfTriangles() );
+    MeshUtilities::Refine(*p_triangle_mesh, 2000 );
     auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
     for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
             IndexType method = 3; // This will create 6 points per triangle.
@@ -197,8 +171,8 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
             p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
     }
 
-    const Vector3i polynomial_order = parameters.Get<Vector3i>("polynomial_order");
-    const IntegrationMethod integration_method = parameters.IntegrationMethod();
+    const Vector3i polynomial_order = {4, 4, 4};
+    const IntegrationMethod integration_method = IntegrationMethod::Gauss;
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();

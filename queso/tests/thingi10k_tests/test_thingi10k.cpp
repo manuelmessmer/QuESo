@@ -97,12 +97,14 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         upper_bound[1] = lower_bound[1] + num_elements[1]*h;
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
 
-        Parameters parameters( { Component("input_filename", filename),
-                                Component("lower_bound_xyz", lower_bound),
-                                Component("upper_bound_xyz", upper_bound),
-                                Component("lower_bound_uvw", lower_bound),
-                                Component("upper_bound_uvw", upper_bound),
-                                Component("number_of_elements", num_elements) });
+        Settings settings;
+        settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
 
         double test_volume = 0.0;
         double test_area = 0.0;
@@ -111,9 +113,9 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         const IndexType min_num_triangles = 10;
 
         BRepOperator brep_operator(triangle_mesh);
-        FloodFill filler(&brep_operator, parameters);
+        FloodFill filler(&brep_operator, settings);
         auto p_states = filler.ClassifyElements();
-        Mapper mapper(parameters);
+        Mapper mapper(settings);
         for(IndexType i = 0; i < num_elements[0]; ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
@@ -236,17 +238,20 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         upper_bound[1] = lower_bound[1] + num_elements[1]*h;
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
 
-        Parameters parameters( { Component("input_filename", filename),
-                                Component("lower_bound_xyz", lower_bound),
-                                Component("upper_bound_xyz", upper_bound),
-                                Component("lower_bound_uvw", lower_bound),
-                                Component("upper_bound_uvw", upper_bound),
-                                Component("min_num_boundary_triangles", 10UL),
-                                Component("number_of_elements", num_elements),
-                                Component("min_element_volume_ratio", 0.0) } );
+        Settings settings;
+        settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+
+        settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 10u);
+        settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
         BRepOperator brep_operator(triangle_mesh);
-        FloodFillTester filler(&brep_operator, parameters);
+        FloodFillTester filler(&brep_operator, settings);
         auto result = filler.ClassifyElementsForTest();
 
         auto p_states = std::move(result.first);
@@ -281,7 +286,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
             BOOST_CHECK_EQUAL(group_inside_count, group_inside_count_single);
         }
 
-        Mapper mapper(parameters);
+        Mapper mapper(settings);
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(num_elements[0]); ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){

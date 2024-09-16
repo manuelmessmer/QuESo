@@ -35,10 +35,14 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType{-1.5, -1.5, -1.0}),
-                        Component("upper_bound_xyz", PointType{1.5, 1.5, 12}),
-                        Component("number_of_elements", Vector3i{6, 6, 26}),
-                        Component("min_element_volume_ratio", 0.0) });
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 26});
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -46,7 +50,7 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(params);
+    Mapper mapper(settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
@@ -81,10 +85,14 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType{0.0, 0.0, 0.0}),
-                        Component("upper_bound_xyz", PointType{1.0, 1.0, 1.0}),
-                        Component("number_of_elements", Vector3i{1, 1, 1}),
-                        Component("min_element_volume_ratio", 0.0) });
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -133,10 +141,14 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType{-0.4, -0.6, -0.35}),
-                        Component("upper_bound_xyz", PointType{0.4, 0.6, 0.35}),
-                        Component("number_of_elements", Vector3i{16, 24, 14}),
-                        Component("min_element_volume_ratio", 0.0) });
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{16, 24, 14});
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -144,7 +156,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(params);
+    Mapper mapper(settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
@@ -179,11 +191,13 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Parameters params( {Component("lower_bound_xyz", PointType{-24, -43, 5}),
-                        Component("upper_bound_xyz", PointType{85, 46, 115}),
-                        Component("lower_bound_uvw", PointType{0.0, 0.0, 0.0}),
-                        Component("upper_bound_uvw", PointType{1.0, 1.0, 1.0}),
-                        Component("number_of_elements", Vector3i{11, 9, 12})});
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24, -43, 5});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{11, 9, 12});
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -191,7 +205,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(params);
+    Mapper mapper(settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);

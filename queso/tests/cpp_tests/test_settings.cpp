@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, IndexType(2)), std::exception); // Wrong Value type
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::upper_bound_uvw), std::exception); // Wrong Value type
     const PointType& r_upper_bound_uvw = r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw);
-    QuESo_CHECK_Vector3i_EQUAL(r_upper_bound_uvw, Vector3i({1, 2, 3}) );
+    QuESo_CHECK_POINT_NEAR(r_upper_bound_uvw, PointType({1, 2, 1}), 1e-10 );
 
     BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::polynomial_order), std::exception); // Not set
     BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::polynomial_order, IndexType(2)), std::exception); // Wrong Value type
