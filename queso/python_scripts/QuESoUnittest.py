@@ -20,9 +20,9 @@ class QuESoTestCase(unittest.TestCase):
         '''
         error_msg_size = "Test failed since the sizes of: " + str(ListA) + " and " + str(ListB) + " do not match."
         self.assertEqual(len(ListA), len(ListB), error_msg_size)
-        for a,b in zip(ListA, ListB):
+        for i, (a,b) in enumerate(zip(ListA, ListB)):
             error_msg_not_equal = "Test failed since elements with id " + str(i) + " of: " + str(ListA)
-            error_msg_not_equal += " and " + str(ListB) + " are nto equal."
+            error_msg_not_equal += " and " + str(ListB) + " are not equal."
             self.assertEqual(a, b, error_msg_not_equal)
 
     def assertListsSize(self, ListA, ListB):

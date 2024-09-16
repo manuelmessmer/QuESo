@@ -1,0 +1,48 @@
+{
+    "general_settings"   : {
+        "input_filename"  : "dummy.stl",
+        "output_directory_name" : "new_output",
+        "echo_level"      : 2,
+        "write_output_to_file" : false
+    },
+    "background_grid_settings"     : {
+        "grid_type" : "b_spline_grid",
+        "lower_bound_xyz": [-130, -110, -110],
+        "upper_bound_xyz": [20, 190.0, 190],
+        "lower_bound_uvw": [1.23, 3.334, 5.66],
+        "upper_bound_uvw": [4.4, 5.5, 2.2],
+        "polynomial_order" : [2, 3, 2],
+        "number_of_elements" : [5, 2, 13]
+    },
+    "trimmed_quadrature_rule_settings"     : {
+        "moment_fitting_residual" : 0.0023,
+        "min_element_volume_ratio" : 0.012,
+        "min_num_boundary_triangles" : 233
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+        "integration_method" : "GGQ_Optimal"
+    },
+    "conditions_settings_list"    :  [
+        {
+            "condition_id" : 3,
+            "condition_type" : "test_type1",
+            "input_filename" : "test_filename_1.stl",
+            "modulus" : 5,
+            "direction" : [-1, 2, 3],
+            "value" : [1.0, 2.0, 2],
+            "penalty_factor" : 1e5
+        },{
+            "condition_id" : 1,
+            "condition_type" : "test_type2",
+            "input_filename" : "test_filename_2.stl",
+            "modulus" : 2
+        },{
+            "input_filename" : "test_filename_3.stl",
+            "value" : [0, 0.3, 0]
+        },{
+            "value" : [0, 0, 0],
+            "penalty_factor" : 1e10
+        }
+    ]
+}
+

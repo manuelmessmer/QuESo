@@ -29,6 +29,8 @@
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "queso/utilities/mesh_utilities.h"
 
+#include "queso/python/add_settings_to_python.h"
+
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<queso::PointType> PointVectorType;
 typedef queso::IntegrationPoint IntegrationPointType;
@@ -106,6 +108,8 @@ PYBIND11_MODULE(QuESo_Application,m) {
         << "  \\___\\_\\\\__,_|______|_____/ \\___/  \n"
         << "\t Quadrature for Embedded Solids \n\n";
     }, "Print Logo");
+
+    AddSettingsToPython(m);
 
     /// Required for GetPostMeshPointsRaw()
     py::class_<ptr_wrapper<double>>(m,"pdouble")
