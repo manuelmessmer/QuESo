@@ -37,12 +37,12 @@ public:
 
     /// Legendre Polynomial defined on (a,b)
     static double f_x(double x, int order, double a, double b){
-        return mLegendePolynomials[order]->f_x(x, a, b);
+        return mLegendePolynomials[order];//->f_x(x, a, b);
     }
 
     /// Returns integral of Legendre polynomial defined on (a,b)
     static double f_x_int(double x, int order, double a, double b){
-        return mLegendePolynomials[order]->f_x_int(x, a, b);
+        return mLegendePolynomials[order];//->f_x_int(x, a, b);
     }
 
 
@@ -207,8 +207,14 @@ public:
 
 private:
     // Static vector to access polynomials
-    static const std::vector<Unique<FuncBase>> mLegendePolynomials;
+    //static const std::vector<Unique<FuncBase>> mLegendePolynomials;
+
+    static const std::vector<double> mLegendePolynomials;
 };
+
+} // End namespace queso
+
+#endif // POLYNOMIAL_UTILITIES_INCLUDE_H
 
 ///// Alteranative implemntation using std::varaint instead of inheritance
 
@@ -382,6 +388,3 @@ private:
 
 ///@}
 
-} // End namespace queso
-
-#endif

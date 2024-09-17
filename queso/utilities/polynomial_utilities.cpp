@@ -16,25 +16,27 @@
 
 namespace queso {
 
-template<typename T, typename... Args>
-auto HelperMakeVector(Args&&... args) {
-  std::vector<T> vec;
-  vec.reserve(sizeof...(Args));
-  (vec.emplace_back(std::forward<Args>(args)), ...);
-  return vec;
-}
+// template<typename T, typename... Args>
+// auto HelperMakeVector(Args&&... args) {
+//   std::vector<T> vec;
+//   vec.reserve(sizeof...(Args));
+//   (vec.emplace_back(std::forward<Args>(args)), ...);
+//   return vec;
+// }
 
-const std::vector<Unique<Polynomial::FuncBase>> Polynomial::mLegendePolynomials =
-    HelperMakeVector<Unique<Polynomial::FuncBase>>(
-        MakeUnique<Polynomial::FxP0>(),
-        MakeUnique<Polynomial::FxP1>(),
-        MakeUnique<Polynomial::FxP2>(),
-        MakeUnique<Polynomial::FxP3>(),
-        MakeUnique<Polynomial::FxP4>(),
-        MakeUnique<Polynomial::FxP5>(),
-        MakeUnique<Polynomial::FxP6>(),
-        MakeUnique<Polynomial::FxP7>(),
-        MakeUnique<Polynomial::FxP8>() );
+// const std::vector<Unique<Polynomial::FuncBase>> Polynomial::mLegendePolynomials =
+//     HelperMakeVector<Unique<Polynomial::FuncBase>>(
+//         MakeUnique<Polynomial::FxP0>(),
+//         MakeUnique<Polynomial::FxP1>(),
+//         MakeUnique<Polynomial::FxP2>(),
+//         MakeUnique<Polynomial::FxP3>(),
+//         MakeUnique<Polynomial::FxP4>(),
+//         MakeUnique<Polynomial::FxP5>(),
+//         MakeUnique<Polynomial::FxP6>(),
+//         MakeUnique<Polynomial::FxP7>(),
+//         MakeUnique<Polynomial::FxP8>() );
+
+const std::vector<double> Polynomial::mLegendePolynomials = {0.0, 1.0, 2.0, 3.0};
 
 } // End namespace queso
 
