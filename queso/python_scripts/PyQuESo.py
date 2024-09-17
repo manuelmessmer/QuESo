@@ -106,23 +106,3 @@ class PyQuESo:
             self.analysis = Analysis( self.settings, kratos_settings, self.elements, self.conditions, self.queso.GetTriangleMesh())
         else:
             raise Exception("RunKratosAnalysis :: Kratos is not available.")
-
-    # def __ReadInputFromModelPart(self, KratosEmbeddedModelPart):
-    #     # Read main mesh
-    #     global_settings = self.settings[].GetGlobalSettings()
-    #     if global_settings.GetString("input_type") == "kratos_modelpart":
-    #         triangle_mesh = self.queso.GetTriangleMesh()
-    #         model_part_name = global_settings.GetString("input_kratos_modelpart_name")
-    #         model_part = KratosEmbeddedModelPart.GetSubModelPart(model_part_name)
-    #         triangle_mesh.Reserve(model_part.NumberOfElements())
-    #         ModelPartUtilities.ReadTriangleMeshFromModelPart(triangle_mesh, model_part, type="Elements")
-
-    #     # Read condition related meshes
-    #     for condition_settings in self.settings[].GetConditionsSettingsVector():
-    #         if condition_settings.GetString("input_type") == "kratos_modelpart":
-    #             condition = self.queso.CreateNewCondition(condition_settings)
-    #             triangle_mesh = condition.GetTriangleMesh()
-    #             model_part_name = condition_settings.GetString("input_kratos_modelpart_name")
-    #             triangle_mesh.Reserve(model_part.NumberOfConditions())
-    #             model_part = KratosEmbeddedModelPart.GetSubModelPart(model_part_name)
-    #             ModelPartUtilities.ReadTriangleMeshFromModelPart(triangle_mesh, model_part, type="Conditions")
