@@ -36,16 +36,12 @@ class Polynomial {
 public:
 
     /// Legendre Polynomial defined on (a,b)
-    static double f_x(double x, int order, double a, double b){
-        return mLegendePolynomials[order];//->f_x(x, a, b);
-    }
+    static double f_x(double x, int order, double a, double b);
 
     /// Returns integral of Legendre polynomial defined on (a,b)
-    static double f_x_int(double x, int order, double a, double b){
-        return mLegendePolynomials[order];//->f_x_int(x, a, b);
-    }
+    static double f_x_int(double x, int order, double a, double b);
 
-
+private:
 
     // Base class for function classes
     class FuncBase {
@@ -205,11 +201,8 @@ public:
         }
     };
 
-private:
     // Static vector to access polynomials
-    //static const std::vector<Unique<FuncBase>> mLegendePolynomials;
-
-    static const std::vector<double> mLegendePolynomials;
+    static const std::vector<Unique<FuncBase>> mLegendePolynomials;
 };
 
 } // End namespace queso
