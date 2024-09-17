@@ -11,8 +11,8 @@
 //
 //  Authors:    Manuel Messmer
 
+// Project includes
 #include "queso/utilities/polynomial_utilities.h"
-#include "queso/includes/define.hpp"
 
 namespace queso {
 
@@ -26,15 +26,15 @@ auto HelperMakeVector(Args&&... args) {
 
 const std::vector<Unique<Polynomial::FuncBase>> Polynomial::mLegendePolynomials =
     HelperMakeVector<Unique<Polynomial::FuncBase>>(
-        MakeUnique<FxP0>(),
-        MakeUnique<FxP1>(),
-        MakeUnique<FxP2>(),
-        MakeUnique<FxP3>(),
-        MakeUnique<FxP4>(),
-        MakeUnique<FxP5>(),
-        MakeUnique<FxP6>(),
-        MakeUnique<FxP7>(),
-        MakeUnique<FxP8>() );
+        MakeUnique<Polynomial::FxP0>(),
+        MakeUnique<Polynomial::FxP1>(),
+        MakeUnique<Polynomial::FxP2>(),
+        MakeUnique<Polynomial::FxP3>(),
+        MakeUnique<Polynomial::FxP4>(),
+        MakeUnique<Polynomial::FxP5>(),
+        MakeUnique<Polynomial::FxP6>(),
+        MakeUnique<Polynomial::FxP7>(),
+        MakeUnique<Polynomial::FxP8>() );
 
 } // End namespace queso
 
