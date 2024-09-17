@@ -45,7 +45,7 @@ public:
         return mLegendePolynomials[order]->f_x_int(x, a, b);
     }
 
-private:
+
 
     // Base class for function classes
     class FuncBase {
@@ -205,6 +205,7 @@ private:
         }
     };
 
+private:
     // Static vector to access polynomials
     static const std::vector<Unique<FuncBase>> mLegendePolynomials;
 };
