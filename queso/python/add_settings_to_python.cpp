@@ -11,27 +11,16 @@
 //
 //  Authors:    Manuel Messmer
 
-/// External includes
-#include <pybind11/complex.h>
-#include <pybind11/stl.h>
-#include <pybind11/stl_bind.h>
-#include <pybind11/functional.h>
 /// Project inlcudes
+#include "queso/python/define_python.hpp"
 #include "queso/python/add_settings_to_python.h"
+// To export
 #include "queso/includes/settings.hpp"
 
 namespace queso {
 namespace Python {
 
 namespace py = pybind11;
-
-template< class T>
-std::string PrintObject(const T& rObject)
-{
-    std::stringstream ss;
-    ss << rObject;
-    return ss.str();
-}
 
 template< class TBinderType, typename TEnumType>
 void DictionaryBinderHelper(TBinderType& binder) {
@@ -78,12 +67,6 @@ void DictionaryBinderHelper(TBinderType& binder) {
 }
 
 void AddSettingsToPython(pybind11::module& m) {
-
-    /// Export enum BackgroundGridType
-    py::enum_<BackgroundGridType>(m, "BackgroundGridType")
-        .value("b_spline_grid", BackgroundGridType::b_spline_grid)
-        .value("hexahedral_fe_grid", BackgroundGridType::hexahedral_fe_grid)
-    ;
 
     /// Export enum MainSettings
     py::enum_<MainSettings> (m, "MainSettings")
