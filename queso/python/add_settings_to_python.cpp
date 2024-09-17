@@ -118,6 +118,7 @@ void AddSettingsToPython(pybind11::module& m) {
         .value("moment_fitting_residual", TrimmedQuadratureRuleSettings::moment_fitting_residual)
         .value("min_element_volume_ratio", TrimmedQuadratureRuleSettings::min_element_volume_ratio)
         .value("min_num_boundary_triangles", TrimmedQuadratureRuleSettings::min_num_boundary_triangles)
+        .value("neglect_elements_if_stl_is_flawed", TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed)
     ;
 
     /// Export enum NonTrimmedQuadratureRuleSettings

@@ -4,7 +4,7 @@
         "input_kratos_modelpart_name" : "hook",
         "echo_level"      : 0
     },
-    "mesh_settings"     : {
+    "background_grid_settings"     : {
         "lower_bound_xyz": [-70.0, -30.0, -145.0],
         "upper_bound_xyz": [150.0, 30.0, 195.0],
         "lower_bound_uvw": [-70.0, -30.0, -145.0],

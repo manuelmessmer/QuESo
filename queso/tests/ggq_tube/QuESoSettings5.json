@@ -1,0 +1,22 @@
+{
+    "general_settings"   : {
+        "input_filename"  : "queso/tests/ggq_tube/tube.stl",
+        "echo_level"      : 0
+    },
+    "background_grid_settings"     : {
+        "grid_type"      : "b_spline_grid",
+        "lower_bound_xyz": [-1.99, -1.99, -0.1],
+        "upper_bound_xyz": [1.99, 1.99, 5.1],
+        "lower_bound_uvw": [0.0, 0.0, 0.0],
+        "upper_bound_uvw": [1.0, 1.0, 1.0],
+        "polynomial_order" : [2, 2, 2],
+        "number_of_elements" : [12,12,15]
+    },
+    "trimmed_quadrature_rule_settings"     : {
+        "min_num_boundary_triangles"  : 1,
+        "moment_fitting_residual": 1e-10
+    },
+    "non_trimmed_quadrature_rule_settings" : {
+        "integration_method" : "GGQ_Reduced1"
+    }
+}

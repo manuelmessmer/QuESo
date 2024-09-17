@@ -44,7 +44,6 @@ typedef std::vector<BoundaryIntegrationPointType> BoundaryIpVectorType;
 
 typedef std::vector<queso::Unique<ElementType>> ElementVectorPtrType;
 typedef std::vector<queso::Condition> ConditionVectorType;
-typedef std::vector<queso::ConditionParameters> ConditionParametersVectorType;
 
 PYBIND11_MAKE_OPAQUE(PointVectorType);
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
@@ -52,7 +51,6 @@ PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 PYBIND11_MAKE_OPAQUE(ConditionVectorType);
-PYBIND11_MAKE_OPAQUE(ConditionParametersVectorType);
 
 namespace queso {
 namespace Python {
@@ -233,7 +231,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
 
     /// Export Element Container
     py::class_<ElementContainerType, Unique<ElementContainerType>>(m, "ElementContainer")
-        .def(py::init<const Parameters&>())
+        .def(py::init<const SettingsBaseType&>())
         .def("__len__", [](const ElementContainerType &v) { return v.size(); })
         .def("__iter__", [](ElementContainerType &v) {
             return py::make_iterator( v.begin(), v.end() );
@@ -271,87 +269,9 @@ PYBIND11_MODULE(QuESo_Application,m) {
     py::class_<IntegrationPointFactory1D>(m,"IntegrationPointFactory1D")
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
-
-    /// Export VariantDataContainer
-    py::class_<VariantDataContainer>(m,"VariantDataContainer")
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const PointType& rValue){
-            rContainer.Set(rName, rValue); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::array<double,3>& rValue){
-            rContainer.Set(rName, PointType(rValue)); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const Vector3i& rValue){
-            rContainer.Set(rName, rValue); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::array<IndexType,3>& rValue){
-            rContainer.Set(rName, Vector3i(rValue)); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const bool rValue){
-            rContainer.Set(rName, rValue); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const unsigned long rValue){
-            rContainer.Set(rName, rValue); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const double rValue){
-            rContainer.Set(rName, rValue); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const IntegrationMethodType& rValue){
-            rContainer.Set(rName, rValue); })
-        .def("Set",[](VariantDataContainer& rContainer, const std::string& rName, const std::string& rValue){
-            // Allow integration method to be string. JSON is parsed as string.
-            if( rName == "integration_method" ){
-                rContainer.Set(rName, GetIntegrationMethodFromString(rValue)); }
-            else {
-                rContainer.Set(rName, rValue); } })
-        .def("GetBool", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<bool>(rName); })
-        .def("GetInteger", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<unsigned long>(rName); })
-        .def("GetDouble", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<double>(rName); })
-        .def("GetString", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<std::string>(rName); })
-        .def("GetDoubleVector", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<PointType>(rName); })
-        .def("GetIntVector", [](VariantDataContainer& rContainer, const std::string& rName){
-            return rContainer.Get<Vector3i>(rName); })
-        ;
-
-    /// Export GlobalParameters
-    py::class_<GlobalParameters, VariantDataContainer>(m,"GlobalParameters")
-        .def(py::init<>())
-        ;
-
-    /// Export ConditionParameters
-    py::class_<ConditionParameters, VariantDataContainer>(m,"ConditionParameters")
-        .def(py::init<std::string>())
-        ;
-
-    /// Export ConditionParameters Vector
-    py::class_<ConditionParametersVectorType>(m, "ConditionParametersVector")
-        .def(py::init<>())
-        .def("__len__", [](const ConditionParametersVectorType &v) { return v.size(); })
-        .def("__iter__", [](ConditionParametersVectorType &v) {
-            return py::make_iterator( v.begin(), v.end() );
-        }, py::keep_alive<0, 1>())
-    ;
-
-    /// Export Parameters
-    py::class_<Parameters>(m,"Parameters")
-        .def(py::init<>())
-        .def("AddGlobalSettings", &Parameters::AddGlobalSettings)
-        .def("AddConditionSettings", &Parameters::AddConditionSettings)
-        .def("GetConditionsSettingsVector", &Parameters::GetConditionsSettingsVector, py::return_value_policy::reference_internal )
-        .def("GetGlobalSettings", &Parameters::GetGlobalSettings, py::return_value_policy::reference_internal )
-        .def("EchoLevel", &Parameters::EchoLevel)
-        // Return std::array<type,3> types. Easier to handle in python.
-        .def("LowerBoundXYZ", []( const Parameters& rParams ) { return rParams.LowerBoundXYZ(); })
-        .def("UpperBoundXYZ", []( const Parameters& rParams ) { return rParams.UpperBoundXYZ(); })
-        .def("LowerBoundUVW", []( const Parameters& rParams ) { return rParams.LowerBoundUVW(); })
-        .def("UpperBoundUVW", []( const Parameters& rParams ) { return rParams.UpperBoundUVW(); })
-        .def("Order", []( const Parameters& rParams ) { return rParams.Order(); })
-        .def("IntegrationMethod", &Parameters::IntegrationMethod )
-        .def("NumberOfElements", []( const Parameters& rParams ) { return rParams.NumberOfElements(); })
-        .def("NumberOfConditions", &Parameters::NumberOfConditions)
-        .def("GetInputFilename", []( const Parameters& rParams ) { return rParams.Get<std::string>("input_filename"); } )
-        ;
-
     /// Export QuESo
     py::class_<QuESo>(m,"QuESo")
-        .def(py::init<const Parameters&>())
+        .def(py::init<const Settings&>())
         .def("Run", &QuESo::Run)
         .def("Clear", &QuESo::Clear)
         .def("GetElements",  &QuESo::GetElements, py::return_value_policy::reference_internal )

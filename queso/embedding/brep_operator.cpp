@@ -146,8 +146,8 @@ IntersectionStatus BRepOperator::GetIntersectionState(
 }
 
 
-Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const Parameters& rParameters) const {
-    FloodFill flood_fill(this, rParameters);
+Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const SettingsBaseType& rSettings) const {
+    FloodFill flood_fill(this, rSettings);
     return flood_fill.ClassifyElements();
 }
 

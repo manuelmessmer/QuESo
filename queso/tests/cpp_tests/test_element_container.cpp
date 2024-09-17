@@ -17,7 +17,6 @@
 #include <boost/test/unit_test.hpp>
 // Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/includes/parameters.h"
 #include "queso/containers/element.hpp"
 #include "queso/containers/element_container.hpp"
 
@@ -33,8 +32,10 @@ typedef ElementContainer<ElementType> ElementContainerType;
 
 Unique<ElementContainerType> CreateTestElementContainer(Vector3i rNumberOfElemnts){
 
-    Parameters param( {Component("number_of_elements", rNumberOfElemnts) } );
-    Unique<ElementContainerType> container = MakeUnique<ElementContainerType>(param);
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElemnts);
+
+    Unique<ElementContainerType> container = MakeUnique<ElementContainerType>(settings);
 
     IndexType number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
     for( IndexType i = 1; i <= number_elements; ++i){

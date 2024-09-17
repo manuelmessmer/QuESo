@@ -31,17 +31,18 @@ namespace queso {
 void QuESo::Run()
 {
     Timer timer{};
-    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << "QuESo: Run -------------------------------------- START" << std::endl;
+    const auto& r_general_settings = mSettings[MainSettings::general_settings];
+    const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+    QuESo_INFO_IF(echo_level > 0) << "QuESo: Run -------------------------------------- START" << std::endl;
 
-    const auto& r_filename = mParameters.Get<std::string>("input_filename");
-    QuESo_INFO_IF(mParameters.EchoLevel() > 0) << " o Read file: '" << r_filename << "'\n";
+    const auto& r_filename = r_general_settings.GetValue<std::string>(GeneralSettings::input_filename);
+    QuESo_INFO_IF(echo_level > 0) << " o Read file: '" << r_filename << "'\n";
 
     double volume_brep = 0.0;
-    if( mParameters.Get<bool>("embedding_flag") ) {
-        // Compute volume
-        volume_brep = MeshUtilities::VolumeOMP(*mpTriangleMesh);
-        QuESo_INFO_IF(mParameters.EchoLevel() > 0) << " o Volume of STL model: " << volume_brep << '\n';
-    }
+    // Compute volume
+    volume_brep = MeshUtilities::VolumeOMP(*mpTriangleMesh);
+    QuESo_INFO_IF(echo_level > 0) << " o Volume of STL model: " << volume_brep << '\n';
+
 
     // Construct BRepOperator
     mpBRepOperator = MakeUnique<BRepOperator>(*mpTriangleMesh);
@@ -49,7 +50,7 @@ void QuESo::Run()
         mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(r_condition.GetTriangleMesh() ) );
     }
     // Allocate element/knotspans container
-    mpElementContainer = MakeUnique<ElementContainerType>(mParameters);
+    mpElementContainer = MakeUnique<ElementContainerType>(mSettings);
 
     // Start computation
     std::array<double, 5> elapsed_times = Compute();
@@ -59,11 +60,11 @@ void QuESo::Run()
     std::for_each(mpElementContainer->begin(), mpElementContainer->end(), [&number_of_trimmed_elements] (auto& el_it)
         { if( el_it.IsTrimmed() ) { number_of_trimmed_elements++; } });
 
-    if( mParameters.EchoLevel() > 0) {
+    if( echo_level > 0) {
         QuESo_INFO << " o Number of active elements: " << mpElementContainer->size() << std::endl;
         QuESo_INFO << " o Number of trimmed elements: " << number_of_trimmed_elements << std::endl;
 
-        if( mParameters.EchoLevel() > 1 ) {
+        if( echo_level > 1 ) {
             const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
             QuESo_INFO << " o The computed quadrature represents " << volume_ips/volume_brep * 100.0
                 << "%\n   of the volume of the STL model.\n";
@@ -82,10 +83,10 @@ void QuESo::Run()
         QuESo_INFO << "QuESo: Run ---------------------------------------- END\n" << std::endl;
     }
 
-    if( mParameters.Get<bool>("write_output_to_file") ) {
+    if( r_general_settings.GetValue<bool>(GeneralSettings::write_output_to_file) ) {
         Timer timer_output{};
-        const std::string output_directory_name = mParameters.Get<std::string>("output_directory_name");
-        if( mParameters.EchoLevel() > 0) {
+        const std::string output_directory_name = r_general_settings.GetValue<std::string>(GeneralSettings::output_directory_name);
+        if( echo_level > 0) {
             QuESo_INFO << "QuESo: Write output to file --------------------- START\n";
             QuESo_INFO << " o Output directory: '" << output_directory_name << "'\n";
         }
@@ -95,11 +96,12 @@ void QuESo::Run()
         IO::WritePointsToVTK(*mpElementContainer, "All", (output_directory_name + "/integration_points.vtk").c_str(), true);
         IndexType cond_index = 0;
         for( const auto& r_condition : mConditions ){
-            const std::string bc_filename = output_directory_name + '/' + r_condition.GetSettings().Get<std::string>("type")
+            const std::string bc_filename = output_directory_name + '/'
+                + r_condition.GetSettings().GetValue<std::string>(ConditionSettings::condition_type)
                 + '_' + std::to_string(++cond_index) + ".stl";
             IO::WriteMeshToSTL(r_condition.GetConformingMesh(), bc_filename.c_str(), true);
         }
-        if( mParameters.EchoLevel() > 0) {
+        if( echo_level > 0) {
             QuESo_INFO << " o Elapsed time: " << timer_output.Measure() << " sec\n";
             QuESo_INFO << "QuESo: Write output to file ----------------------- End\n" << std::endl;
         }
@@ -118,35 +120,33 @@ std::array<double,5> QuESo::Compute(){
     double et_compute_intersection = 0.0;
     double et_moment_fitting = 0.0;
 
-    // Get neccessary parameters
-    const bool embedding_flag = mParameters.Get<bool>("embedding_flag");
-    const bool ggq_rule_ise_used = mParameters.GGQRuleIsUsed();
-    const double min_vol_element_ratio = mParameters.Get<double>("min_element_volume_ratio");
-    const IndexType num_boundary_triangles = mParameters.MinimumNumberOfTriangles();
-    const double moment_fitting_residual = mParameters.Get<double>("moment_fitting_residual");
-    const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
-    const bool neglect_elements_if_stl_is_flawed = mParameters.Get<bool>("neglect_elements_if_stl_is_flawed");
-    const IntegrationMethod integration_method = mParameters.IntegrationMethod();
-    const IndexType echo_level = mParameters.EchoLevel();
+    // Get neccessary settings
+    const IntegrationMethod integration_method = mSettings[MainSettings::non_trimmed_quadrature_rule_settings]
+        .GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
+    const bool ggq_rule_ise_used =  integration_method >= 3;
+    const auto& r_trimmed_quad_rule_settings = mSettings[MainSettings::trimmed_quadrature_rule_settings];
+    const double min_vol_element_ratio = r_trimmed_quad_rule_settings.GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
+    const IndexType num_boundary_triangles = r_trimmed_quad_rule_settings.GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
+    const double moment_fitting_residual = r_trimmed_quad_rule_settings.GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
+    const bool neglect_elements_if_stl_is_flawed = r_trimmed_quad_rule_settings.GetValue<bool>(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed);
+    const auto& r_grid_settings = mSettings[MainSettings::background_grid_settings];
+    const Vector3i polynomial_order = r_grid_settings.GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+    const Vector3i number_of_elements = r_grid_settings.GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
+
+    const IndexType echo_level = mSettings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
 
     // Classify all elements.
     Unique<BRepOperator::StatusVectorType> p_classifications = nullptr;
-    if( embedding_flag ){
-        Timer timer_check_intersect{};
-        p_classifications = mpBRepOperator->pGetElementClassifications(mParameters);
-        et_check_intersect = timer_check_intersect.Measure();
-    }
+
+    Timer timer_check_intersect{};
+    p_classifications = mpBRepOperator->pGetElementClassifications(mSettings);
+    et_check_intersect = timer_check_intersect.Measure();
+
 
     #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_moment_fitting) schedule(dynamic)
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index) {
         // Check classification status
-        IntersectionStatus status{};
-        if( embedding_flag ){
-            status = (*p_classifications)[index];
-        }
-        else { // If flag is false, consider all knotspans/ elements as inside
-            status = IntersectionStatus::Inside;
-        }
+        const IntersectionStatus status = (*p_classifications)[index];
 
         if( status == IntersectionStatus::Inside || status == IntersectionStatus::Trimmed ) {
             // Get bounding box of element
@@ -197,11 +197,8 @@ std::array<double,5> QuESo::Compute(){
     }
 
     double et_ggq_rules = 0.0;
-    if( mParameters.GGQRuleIsUsed() ){
+    if( ggq_rule_ise_used ){
         Timer timer_ggq_rules;
-        const Vector3i number_of_elements = mParameters.Get<Vector3i>("number_of_elements");
-        const Vector3i polynomial_order = mParameters.Get<Vector3i>("polynomial_order");
-        const IntegrationMethodType integration_method = mParameters.IntegrationMethod();
         QuadratureMultipleElements<ElementType>::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
         et_ggq_rules = timer_ggq_rules.Measure();
     }
@@ -231,23 +228,22 @@ std::array<double,5> QuESo::Compute(){
 
 }
 
-Condition& QuESo::CreateNewCondition(const ConditionParameters& rConditionParameters){
+Condition& QuESo::CreateNewCondition(const SettingsBaseType& rConditionSettings){
     Unique<TriangleMeshInterface> p_new_mesh = MakeUnique<TriangleMesh>();
-    if( rConditionParameters.Get<std::string>("input_type") == "stl_file" ) {
-        const std::string& r_filename = rConditionParameters.Get<std::string>("input_filename");
-        IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
-    }
+
+    const std::string& r_filename = rConditionSettings.GetValue<std::string>(ConditionSettings::input_filename);
+    IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
 
     // Condition owns triangle mesh.
-    mConditions.push_back( Condition(p_new_mesh, rConditionParameters) );
+    mConditions.push_back( Condition(p_new_mesh, rConditionSettings) );
     return mConditions.back();
 }
 
 void QuESo::Check() const {
     // Check if bounding box fully contains the triangle mesh.
-    if( mParameters.EchoLevel() > 0 ){
-        PointType lower_bound = mParameters.LowerBoundXYZ();
-        PointType upper_bound = mParameters.UpperBoundXYZ();
+    if( mSettings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level) > 0 ){
+        PointType lower_bound = mSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        PointType upper_bound = mSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
         auto bb_mesh = MeshUtilities::BoundingBox(*mpTriangleMesh);
         if( lower_bound[0] > bb_mesh.first[0]  ||
             lower_bound[1] > bb_mesh.first[1]  ||

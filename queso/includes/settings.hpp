@@ -21,12 +21,12 @@
 namespace queso {
 
 /// Definition of dictionary keys
-// IMPORTANT: If key is added here, it must also be added to json_import.py.
+// IMPORTANT: If key is added here, it must also be added to add_settings_to_python.cpp and to json_import.py.
 enum class Root {main_settings};
 enum class MainSettings {general_settings, background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings, conditions_settings_list, testing_settings};
 enum class GeneralSettings {input_filename, output_directory_name, echo_level, write_output_to_file};
 enum class BackgroundGridSettings {grid_type, lower_bound_xyz, upper_bound_xyz, lower_bound_uvw, upper_bound_uvw, polynomial_order, number_of_elements};
-enum class TrimmedQuadratureRuleSettings {moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles };
+enum class TrimmedQuadratureRuleSettings {moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed };
 enum class NonTrimmedQuadratureRuleSettings {integration_method};
 enum class TestingSettings {use_customized_trimmed_points, embedding_flag};
 enum class ConditionSettings {condition_id, condition_type, input_filename, modulus, direction, value, penalty_factor};
@@ -92,7 +92,8 @@ public:
         trimmed_quadrature_rule_settings.AddValues(std::make_tuple(
             std::make_tuple(TrimmedQuadratureRuleSettings::moment_fitting_residual, Str("moment_fitting_residual"), 1.0e-10, Set ),
             std::make_tuple(TrimmedQuadratureRuleSettings::min_element_volume_ratio, Str("min_element_volume_ratio"), 1.0e-3, Set  ),
-            std::make_tuple(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, Str("min_num_boundary_triangles"), IndexType(100), Set  )
+            std::make_tuple(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, Str("min_num_boundary_triangles"), IndexType(100), Set  ),
+            std::make_tuple(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed, Str("neglect_elements_if_stl_is_flawed"), true, Set  )
         ));
 
         /// NonTrimmedQuadratureRuleSettings

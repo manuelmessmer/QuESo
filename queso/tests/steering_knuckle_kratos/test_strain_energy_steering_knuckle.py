@@ -24,16 +24,16 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
         self.assertAlmostEqual(strain_energy, 21.787, delta=tolerance)
 
     def test_1(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters1.json", 0.005)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoSettings1.json", 0.005)
 
     def test_2(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters2.json", 0.005)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoSettings2.json", 0.005)
 
     def test_3(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters3.json", 0.005)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoSettings3.json", 0.005)
 
     def test_4(self):
-        self.run_test("queso/tests/steering_knuckle_kratos/QuESoParameters4.json", 0.005)
+        self.run_test("queso/tests/steering_knuckle_kratos/QuESoSettings4.json", 0.005)
 
 if __name__ == "__main__":
     unittest.main()

@@ -16,6 +16,7 @@
 
 // Project includes
 #include "queso/utilities/mapping_utilities.h"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
 

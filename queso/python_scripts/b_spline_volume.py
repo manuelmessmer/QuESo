@@ -1,18 +1,19 @@
+import QuESo_PythonApplication as QuESo_App
 import numpy as np
 import scipy.interpolate as si
 
 class BSplineVolume:
-    def __init__(self, Parameters):
+    def __init__(self, settings, knot_vector_type):
         ''' Constructor of BSplineVolume \n
-        Takes QuESo::Parameters as input.
+        Takes QuESo::Settings as input.
         '''
-        self.Order = Parameters.Order()
-        NumElements = Parameters.NumberOfElements()
-        LowerBoundXYZ = Parameters.LowerBoundXYZ()
-        UpperBoundXYZ = Parameters.UpperBoundXYZ()
-        LowerBoundUVW = Parameters.LowerBoundUVW()
-        UpperBoundUVW = Parameters.UpperBoundUVW()
-        knot_vector_type = Parameters.GetGlobalSettings().GetString("knot_vector_type")
+        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+        self.Order = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.polynomial_order)
+        NumElements = grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.number_of_elements)
+        LowerBoundXYZ = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz)
+        UpperBoundXYZ = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz)
+        LowerBoundUVW = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw)
+        UpperBoundUVW = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw)
         if( knot_vector_type == "open_knot_vector" ):
             open_knot_vector = True
         elif( knot_vector_type == "non_open_knot_vector" ):

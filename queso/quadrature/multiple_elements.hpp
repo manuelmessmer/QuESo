@@ -18,7 +18,6 @@
 #include "queso/includes/define.hpp"
 #include "queso/containers/element_container.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "queso/includes/parameters.h"
 
 namespace queso {
 

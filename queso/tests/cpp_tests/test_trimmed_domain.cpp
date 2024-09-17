@@ -47,7 +47,7 @@ void CheckTriangleOrientation(const TriangleMeshInterface& rTriangleMesh){
     }
 }
 
-void RunTest(const std::string& rFilename, const Parameters& rParameters,
+void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
             const std::string& rResultsFilename, IndexType NumTrimmedElements){
 
     typedef IntegrationPoint IntegrationPointType;
@@ -70,11 +70,14 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
     const double area_ref = MeshUtilities::Area(triangle_mesh);
     double area_test = 0.0;
 
-    const double min_vol_ratio = rParameters.Get<double>("min_element_volume_ratio");
-    const IndexType min_num_triangles = rParameters.Get<unsigned long>("min_num_boundary_triangles");
-    const Vector3i order =  rParameters.Get<Vector3i>("polynomial_order");
+    const double min_vol_ratio = rSettings[MainSettings::trimmed_quadrature_rule_settings].
+        GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
+    const IndexType min_num_triangles = rSettings[MainSettings::trimmed_quadrature_rule_settings].
+        GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
+    const Vector3i order =  rSettings[MainSettings::background_grid_settings].
+        GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
 
-    Mapper mapper(rParameters);
+    Mapper mapper(rSettings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
@@ -159,50 +162,57 @@ void RunTest(const std::string& rFilename, const Parameters& rParameters,
 BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.5, 0.7, 0.45});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 13, 8});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-0.4, -0.6, -0.35}),
-                            Component("upper_bound_xyz", Vector3d{0.5, 0.7, 0.45} ),
-                            Component("lower_bound_uvw", Vector3d{0.0, 0.0, 0.0}),
-                            Component("upper_bound_uvw", Vector3d{1.0, 1.0, 1.0}),
-                            Component("min_num_boundary_triangles", 200UL),
-                            Component("number_of_elements", Vector3i{9, 13, 8}),
-                            Component("min_element_volume_ratio", 0.0),
-                            Component("polynomial_order", Vector3i{2,2,2} ) } );
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 200u);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
-    RunTest("queso/tests/cpp_tests/data/elephant.stl", parameters,
+    RunTest("queso/tests/cpp_tests/data/elephant.stl", settings,
             "queso/tests/cpp_tests/results/surface_integral_elephant.txt", 166);
 }
 
 BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-24.0, -43.0, 5.0}),
-                            Component("upper_bound_xyz", Vector3d{85, 46.0, 115}),
-                            Component("lower_bound_uvw", Vector3d{-24.0, -43.0, 5.0}),
-                            Component("upper_bound_uvw", Vector3d{85, 46.0, 115}),
-                            Component("number_of_elements", Vector3i{8, 6, 8}),
-                            Component("min_num_boundary_triangles", 100UL),
-                            Component("min_element_volume_ratio", 0.0),
-                            Component("polynomial_order", Vector3i{2, 2, 2} ) } );
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24.0, -43.0, 5.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46.0, 115});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-24.0, -43.0, 5.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{85, 46.0, 115});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 6, 8});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
 
-    RunTest("queso/tests/cpp_tests/data/stanford_bunny.stl", parameters,
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+
+    RunTest("queso/tests/cpp_tests/data/stanford_bunny.stl", settings,
             "queso/tests/cpp_tests/results/surface_integral_bunny.txt", 186);
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
 
-    Parameters parameters( {Component("lower_bound_xyz", Vector3d{-1.5, -1.5, -1}),
-                            Component("upper_bound_xyz", Vector3d{1.5, 1.5, 12}),
-                            Component("b_spline_mesh", false),
-                            Component("lower_bound_uvw", Vector3d{-1.0, -1.0, -1.0}),
-                            Component("upper_bound_uvw", Vector3d{1.0, 1.0, 1.0}),
-                            Component("number_of_elements", Vector3i{3, 3, 13}),
-                            Component("min_num_boundary_triangles", 100UL),
-                            Component("min_element_volume_ratio", 0.0),
-                            Component("polynomial_order", Vector3i{2,2,2} ) } );
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{3, 3, 13});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
 
-    RunTest("queso/tests/cpp_tests/data/cylinder.stl", parameters,
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+
+    RunTest("queso/tests/cpp_tests/data/cylinder.stl", settings,
             "queso/tests/cpp_tests/results/surface_integral_cylinder.txt", 80);
 }
 
@@ -211,12 +221,14 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     const PointType Perturbation ){
 
     Vector3i number_of_elements = {1, 1, 1};
-    Parameters parameters( {Component("lower_bound_xyz", rLowerBound),
-                            Component("upper_bound_xyz", rUpperBound),
-                            Component("lower_bound_uvw", rLowerBound),
-                            Component("upper_bound_uvw", rUpperBound),
-                            Component("number_of_elements", number_of_elements),
-                            Component("polynomial_order", Vector3i{2,2,2} ) } );
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, rLowerBound);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, rUpperBound);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rLowerBound);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rUpperBound);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
@@ -239,7 +251,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     double volume = 0.0;
     double area = 0.0;
 
-    Mapper mapper(parameters);
+    Mapper mapper(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);

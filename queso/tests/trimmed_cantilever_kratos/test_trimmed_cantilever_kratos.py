@@ -1,6 +1,7 @@
 # Project imports
 from platform import release
 import re
+import QuESo_PythonApplication as QuESo_App
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 
 try:
@@ -25,20 +26,20 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=2
         #"number_of_elements" : [2,2,10]
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters1.json", 0.002)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings1.json", 0.002)
 
     def test_2(self):
         #p=2
         #"number_of_elements" : [2,2,4]
         #el=3000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters2.json", 0.015)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings2.json", 0.015)
 
     def test_3(self):
         #p=2
         #"number_of_elements" : [8,8,10]
         #"integration_method" : "Gauss"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters3.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings3.json", 0.0005)
         ips_inside = 0
         for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
@@ -53,7 +54,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [8,8,10]
         #"integration_method : "GGQ_Optimal"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters4.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings4.json", 0.0005)
 
         ips_inside = 0
         for element in self.pyqueso.GetElements():
@@ -68,7 +69,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [8,8,10]
         #"integration_method : "GGQ_Reduced1"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters5.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings5.json", 0.0005)
 
         ips_inside = 0
         for element in self.pyqueso.GetElements():
@@ -83,7 +84,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [8,8,10]
         #"integration_method : "GGQ_Reduced2"
         #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters6.json", 0.0005)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings6.json", 0.0005)
 
         ips_inside = 0
         for element in self.pyqueso.GetElements():
@@ -97,7 +98,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=3
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters7.json", 0.0008)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings7.json", 0.0008)
         for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 4*4*4)
@@ -106,7 +107,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #p=3
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoParameters8.json", 0.0008)
+        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings8.json", 0.0008)
         for element in self.pyqueso.GetElements():
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 5*5*5)
@@ -122,7 +123,11 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
             model_part = self.pyqueso.GetAnalysis().GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-            self.CheckErrorInDisplacement(self.pyqueso.GetLowerBoundDomainXYZ(), self.pyqueso.GetUpperBoundDomainXYZ(), nurbs_volume, tolerance)
+            settings = self.pyqueso.GetSettings()
+            grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+            lower_bound = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz)
+            upper_bound = grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz)
+            self.CheckErrorInDisplacement(lower_bound, upper_bound, nurbs_volume, tolerance)
 
     def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):
         # Compare to analytical solution (Timoshenko Beam)

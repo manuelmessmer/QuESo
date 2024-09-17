@@ -16,7 +16,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/includes/parameters.h"
+#include "queso/includes/settings.hpp"
 
 namespace queso {
 
@@ -116,11 +116,14 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param rParameters
-    Mapper( const Parameters& rParameters ) :
-        mBoundXYZ( std::make_pair(rParameters.LowerBoundXYZ(), rParameters.UpperBoundXYZ()) ),
-        mBoundUVW( std::make_pair(rParameters.LowerBoundUVW(), rParameters.UpperBoundUVW()) ),
-        mNumberOfElements(rParameters.NumberOfElements()), mBSplineMesh(rParameters.Get<bool>("b_spline_mesh"))
+    /// @param rSettings
+    Mapper( const SettingsBaseType& rSettings ) :
+        mBoundXYZ( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
+                                  rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
+        mBoundUVW( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw),
+                                  rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw)) ),
+        mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) ),
+        mBSplineMesh( rSettings[MainSettings::background_grid_settings].GetValue<BackgroundGridType>(BackgroundGridSettings::grid_type) ==  BackgroundGridType::b_spline_grid )
     {
     }
 

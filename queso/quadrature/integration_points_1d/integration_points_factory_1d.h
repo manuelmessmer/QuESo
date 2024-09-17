@@ -19,7 +19,7 @@
 #include <array>
 #include <memory>
 //// Project includes
-#include "queso/includes/parameters.h"
+#include "queso/includes/define.hpp"
 
 namespace queso {
 

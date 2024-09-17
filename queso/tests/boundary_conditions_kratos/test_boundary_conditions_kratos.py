@@ -1,4 +1,5 @@
 # Project imports
+import QuESo_PythonApplication as QuESo_App
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
 from kratos_interface.model_part_utilities import ModelPartUtilities
@@ -33,7 +34,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
             area += weight*det_J
         self.assertAlmostEqual(area,ref_value, 5)
 
-    def construct_b_spline_volume(self, model, queso_params):
+    def construct_b_spline_volume(self, model, QuESoSettings):
         modeler_settings = KM.Parameters("""
             [{
                 "modeler_name": "NurbsGeometryModeler",
@@ -43,33 +44,41 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
                 }
             }]
             """)
+
+        grid_settings = QuESoSettings[QuESo_App.MainSettings.background_grid_settings]
+
         tmp_parameters = modeler_settings[0]["Parameters"]
         tmp_parameters.AddEmptyValue("lower_point_xyz")
-        tmp_parameters["lower_point_xyz"].SetVector(queso_params.LowerBoundXYZ())
+        tmp_parameters["lower_point_xyz"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz))
         tmp_parameters.AddEmptyValue("upper_point_xyz")
-        tmp_parameters["upper_point_xyz"].SetVector(queso_params.UpperBoundXYZ())
+        tmp_parameters["upper_point_xyz"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz))
+
         tmp_parameters.AddEmptyValue("lower_point_uvw")
-        tmp_parameters["lower_point_uvw"].SetVector(queso_params.LowerBoundUVW())
+        tmp_parameters["lower_point_uvw"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw))
         tmp_parameters.AddEmptyValue("upper_point_uvw")
-        tmp_parameters["upper_point_uvw"].SetVector(queso_params.UpperBoundUVW())
+        tmp_parameters["upper_point_uvw"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw))
+
         tmp_parameters.AddEmptyValue("polynomial_order")
-        tmp_parameters["polynomial_order"].SetVector(queso_params.Order())
+        tmp_parameters["polynomial_order"].SetVector(grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.polynomial_order))
         tmp_parameters.AddEmptyValue("number_of_knot_spans")
-        tmp_parameters["number_of_knot_spans"].SetVector(queso_params.NumberOfElements())
-        tmp_parameters["model_part_name"].SetString("NurbsMesh")
+        tmp_parameters["number_of_knot_spans"].SetVector(grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.number_of_elements))
 
         self.run_modelers(model, modeler_settings)
 
     def test_penalty_support(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Penalty.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_Penalty.json")
         pyqueso.Run()
 
         model = KM.Model()
         model_part = model.CreateModelPart("NurbsMesh")
 
-        bounds_xyz = pyqueso.GetBoundsXYZ()
-        bounds_uvw = pyqueso.GetBoundsUVW()
-        self.construct_b_spline_volume(model, pyqueso.parameters)
+        settings = pyqueso.GetSettings()
+        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
+        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         properties = model_part.GetProperties()[1]
@@ -84,15 +93,19 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.check_surface_area(model_part, 1183.54304)
 
     def test_lagrange_support(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Lagrange.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_Lagrange.json")
         pyqueso.Run()
 
         model = KM.Model()
         model_part = model.CreateModelPart("NurbsMesh")
 
-        bounds_xyz = pyqueso.GetBoundsXYZ()
-        bounds_uvw = pyqueso.GetBoundsUVW()
-        self.construct_b_spline_volume(model, pyqueso.parameters)
+        settings = pyqueso.GetSettings()
+        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
+        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         for condition in model_part.Conditions:
@@ -102,15 +115,19 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.check_surface_area(model_part, 921.163635)
 
     def test_surface_load(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_SurfaceLoad.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_SurfaceLoad.json")
         pyqueso.Run()
 
         model = KM.Model()
         model_part = model.CreateModelPart("NurbsMesh")
 
-        bounds_xyz = pyqueso.GetBoundsXYZ()
-        bounds_uvw = pyqueso.GetBoundsUVW()
-        self.construct_b_spline_volume(model, pyqueso.parameters)
+        settings = pyqueso.GetSettings()
+        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
+        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         force = [0.0, 0.0, 0.0]
@@ -123,15 +140,19 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         self.assertListsAlmostEqual(force, [ref_value]*3, 5)
 
     def test_pressure_load(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoParameters_Pressure.json")
+        pyqueso = PyQuESo("queso/tests/boundary_conditions_kratos/QuESoSettings_Pressure.json")
         pyqueso.Run()
 
         model = KM.Model()
         model_part = model.CreateModelPart("NurbsMesh")
 
-        bounds_xyz = pyqueso.GetBoundsXYZ()
-        bounds_uvw = pyqueso.GetBoundsUVW()
-        self.construct_b_spline_volume(model, pyqueso.parameters)
+        settings = pyqueso.GetSettings()
+        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
+        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
+        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
+                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         force = [0.0, 0.0, 0.0]

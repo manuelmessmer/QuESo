@@ -23,8 +23,8 @@ namespace Testing {
 // This class shall only be used for testing!
 class FloodFillTester : public FloodFill {
 public:
-    FloodFillTester(BRepOperator* pBrepOperator, const Parameters& rParameters)
-        : FloodFill(pBrepOperator, rParameters)
+    FloodFillTester(BRepOperator* pBrepOperator, const SettingsBaseType& rSettings)
+        : FloodFill(pBrepOperator, rSettings)
     {
     }
 

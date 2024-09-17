@@ -263,7 +263,7 @@ public:
     /// Destructor
     virtual ~Dictionary() = default;
     /// Copy Constructor
-    Dictionary(const Dictionary& rDict) = delete;
+    Dictionary(const Dictionary& rDict) = default;
     /// Assignement operator
     Dictionary& operator=(const Dictionary& rDict) = delete;
     /// Move constructor

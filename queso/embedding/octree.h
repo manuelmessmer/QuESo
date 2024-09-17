@@ -151,7 +151,6 @@ public:
     /// @param pOperator Operator to perform GetIntersectionState() and IsInsideTrimmedDomain().
     /// @param rBoundsXYZ Bounds of AABB of Root Node in physical space.
     /// @param rBoundsUVW Bounds of AABB of Root Node in parametric space.
-    /// @param rParameters QuESo Parameters.
     Octree(const TOperator* pOperator, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW)
         : mpOperator(pOperator) {
 

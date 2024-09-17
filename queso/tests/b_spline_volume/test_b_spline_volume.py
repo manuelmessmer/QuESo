@@ -9,52 +9,44 @@ import json
 
 class TestBSplineVolume(QuESoTestCase):
     def test1(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters1_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters1_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings1.json"
         results_filename = "queso/tests/b_spline_volume/results_1.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test2(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters2_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters2_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings2.json"
         results_filename = "queso/tests/b_spline_volume/results_2.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test3(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters3_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters3_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings3.json"
         results_filename = "queso/tests/b_spline_volume/results_3.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test4(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters4_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters4_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings4.json"
         results_filename = "queso/tests/b_spline_volume/results_4.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test5(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters5_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters5_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings5.json"
         results_filename = "queso/tests/b_spline_volume/results_5.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test6(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters6_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters6_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings6.json"
         results_filename = "queso/tests/b_spline_volume/results_6.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test7(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters7_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters7_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings7.json"
         results_filename = "queso/tests/b_spline_volume/results_7.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def test8(self):
-        input_filename_open = "queso/tests/b_spline_volume/QuESoParameters8_open.json"
-        input_filename_non_open = "queso/tests/b_spline_volume/QuESoParameters8_non_open.json"
+        input_filename = "queso/tests/b_spline_volume/QuESoSettings8.json"
         results_filename = "queso/tests/b_spline_volume/results_8.json"
-        self.RunTest(input_filename_open, input_filename_non_open, results_filename)
+        self.RunTest(input_filename, results_filename)
 
     def __CompareOpenVsNonOpen(self, open_spline, non_open_spline):
         knots_u_open = open_spline.t
@@ -81,10 +73,9 @@ class TestBSplineVolume(QuESoTestCase):
             self.assertTrue(found)
 
 
-    def RunTest(self, input_filename_open, input_filename_non_open, results_filename):
-        pyqueso_open = PyQuESo(input_filename_open)
-
-        volume_open = pyqueso_open.GetBSplineVolume()
+    def RunTest(self, input_filename, results_filename):
+        pyqueso = PyQuESo(input_filename)
+        volume_open = pyqueso.GetBSplineVolume("open_knot_vector")
         cps = volume_open.ControlPoints()
         knots_u = volume_open.KnotsU()
         knots_v = volume_open.KnotsV()
@@ -152,8 +143,7 @@ class TestBSplineVolume(QuESoTestCase):
         for k1, k2 in zip(res["knots_w"], knots_w):
             self.assertAlmostEqual(k1, k2, 12)
 
-        pyqueso_non_open = PyQuESo(input_filename_non_open)
-        volume_non_open = pyqueso_non_open.GetBSplineVolume()
+        volume_non_open = pyqueso.GetBSplineVolume("non_open_knot_vector")
 
         self.__CompareOpenVsNonOpen(volume_open.GetSpline(0), volume_non_open.GetSpline(0))
         self.__CompareOpenVsNonOpen(volume_open.GetSpline(1), volume_non_open.GetSpline(1))

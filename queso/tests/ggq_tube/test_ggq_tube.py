@@ -7,22 +7,22 @@ import json
 class TestGGQTube(unittest.TestCase):
     #p=2
     def test_1(self):
-        self.RunTest("queso/tests/ggq_tube/QuESoParameters1.json", "queso/tests/ggq_tube/result_ips_gauss.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoSettings1.json", "queso/tests/ggq_tube/result_ips_gauss.json")
 
     def test_2(self):
-        self.RunTest("queso/tests/ggq_tube/QuESoParameters2.json", "queso/tests/ggq_tube/result_ips_gauss_reduced1.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoSettings2.json", "queso/tests/ggq_tube/result_ips_gauss_reduced1.json")
 
     def test_3(self):
-        self.RunTest("queso/tests/ggq_tube/QuESoParameters3.json", "queso/tests/ggq_tube/result_ips_gauss_reduced2.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoSettings3.json", "queso/tests/ggq_tube/result_ips_gauss_reduced2.json")
 
     def test_4(self):
-        self.RunTest("queso/tests/ggq_tube/QuESoParameters4.json", "queso/tests/ggq_tube/result_ips_reduced_exact.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoSettings4.json", "queso/tests/ggq_tube/result_ips_reduced_exact.json")
 
     def test_5(self):
-        self.RunTest("queso/tests/ggq_tube/QuESoParameters5.json", "queso/tests/ggq_tube/result_ips_reduced_order1.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoSettings5.json", "queso/tests/ggq_tube/result_ips_reduced_order1.json")
 
     def test_6(self):
-        self.RunTest("queso/tests/ggq_tube/QuESoParameters6.json", "queso/tests/ggq_tube/result_ips_reduced_order2.json")
+        self.RunTest("queso/tests/ggq_tube/QuESoSettings6.json", "queso/tests/ggq_tube/result_ips_reduced_order2.json")
 
     def RunTest(self,filename, filename_result):
         self.pyqueso = PyQuESo(filename)
