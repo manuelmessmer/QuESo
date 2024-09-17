@@ -14,12 +14,11 @@
 #ifndef POLYNOMIAL_UTILITIES_INCLUDE_H
 #define POLYNOMIAL_UTILITIES_INCLUDE_H
 
-// STL includes
+/// STL includes
 #include <vector>
 #include <variant>
 #include <cmath>
-#include <functional>
-
+/// Project includes
 #include "queso/includes/define.hpp"
 
 namespace queso {
