@@ -206,7 +206,7 @@ private:
     };
 
     // Static vector to access polynomials
-    const static std::vector<Unique<FuncBase>> mLegendePolynomials;
+    static std::vector<Unique<FuncBase>> mLegendePolynomials;
 };
 
 ///// Alteranative implemntation using std::varaint instead of inheritance
