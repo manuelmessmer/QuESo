@@ -16,12 +16,11 @@
 
 namespace queso {
 
-
-double Polynomial::f_x(double x, int order, double a, double b){
+double Polynomial::f_x(double x, IndexType order, double a, double b){
         return mLegendePolynomials[order]->f_x(x, a, b);
     }
 
-double Polynomial::f_x_int(double x, int order, double a, double b){
+double Polynomial::f_x_int(double x, IndexType order, double a, double b){
     return mLegendePolynomials[order]->f_x_int(x, a, b);
 }
 

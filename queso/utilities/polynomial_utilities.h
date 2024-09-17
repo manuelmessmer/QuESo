@@ -27,21 +27,29 @@ namespace queso {
 ///@{
 
 /**
- * @class  Polynomial
+ * @class  Polynomial (Legendre)
  * @author Manuel Messmer
- * @brief  Provides evaluations of Legendre Polynomials. Replaces switch by accessing a vector.
- *         Therefore, accessing the respective functions is faster.
-*/
+ * @brief  Provides static interface to evaluate Legendre Polynomials.
+ *         The polynomial of different orders are stored in a vector.
+ *         This implementation is faster than a simple switch.
+**/
 class Polynomial {
 public:
 
-    /// Legendre Polynomial defined on (a,b)
-    static double f_x(double x, int order, double a, double b);
+    ///@name Public Operations
+    ///@{
+
+    /// Returns Legendre polynomial defined on (a,b)
+    static double f_x(double x, IndexType order, double a, double b);
 
     /// Returns integral of Legendre polynomial defined on (a,b)
-    static double f_x_int(double x, int order, double a, double b);
+    static double f_x_int(double x, IndexType order, double a, double b);
 
 private:
+
+    ///@}
+    ///@name Private Class defifinitions
+    ///@{
 
     // Base class for function classes
     class FuncBase {
@@ -59,13 +67,13 @@ private:
         /// Move assignement operator
         FuncBase& operator=(FuncBase&& rDict) = delete;
 
-        // Virtual functions that must be overriden
+        // Virtual interface for Legendre polynomial
         virtual double inline f_x( double x, double a, double b ) = 0;
+        // Virtual interface for integral of Legendre polynomial
         virtual double inline f_x_int( double x, double a, double b ) = 0;
 
     protected:
-        ///@brief Simple Power function
-        ///@details For gcc (without --ffast-math compiler flag) this is faster than std::pow().
+        /// Simple power function
         double inline power( double x, std::size_t p){
             double result = 1.0;
             while( p > 0UL ) {
@@ -76,7 +84,7 @@ private:
         }
     };
 
-    // Pplynomial (p=0)
+    // Polynomial (p=0)
     class FxP0 : public FuncBase {
     public:
         // Shifted legendre polynomial (p=0)
@@ -201,15 +209,22 @@ private:
         }
     };
 
+    ///@}
+    ///@name Private Member Variables
+    ///@{
+
     // Static vector to access polynomials
     static const std::vector<Unique<FuncBase>> mLegendePolynomials;
-};
+    //@}
+}; //@} End Polynomial
 
 } // End namespace queso
 
 #endif // POLYNOMIAL_UTILITIES_INCLUDE_H
 
-///// Alteranative implemntation using std::varaint instead of inheritance
+/////
+///// Alternative implemntation using std::varaint instead of inheritance
+/////
 
 // ///
 // /**
