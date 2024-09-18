@@ -49,23 +49,23 @@ void QuESo::Run()
     for( const auto& r_condition : mConditions ){
         mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(r_condition.GetTriangleMesh() ) );
     }
-    // Allocate element/knotspans container
-    mpElementContainer = MakeUnique<ElementContainerType>(mSettings);
+    // Allocate background grid
+    mpBackgroundGrid = MakeUnique<BackgroundGridType>(mSettings);
 
     // Start computation
     std::array<double, 5> elapsed_times = Compute();
 
     // Count number of trimmed elements
     SizeType number_of_trimmed_elements = 0;
-    std::for_each(mpElementContainer->begin(), mpElementContainer->end(), [&number_of_trimmed_elements] (auto& el_it)
+    std::for_each(mpBackgroundGrid->begin(), mpBackgroundGrid->end(), [&number_of_trimmed_elements] (auto& el_it)
         { if( el_it.IsTrimmed() ) { number_of_trimmed_elements++; } });
 
     if( echo_level > 0) {
-        QuESo_INFO << " o Number of active elements: " << mpElementContainer->size() << std::endl;
+        QuESo_INFO << " o Number of active elements: " << mpBackgroundGrid->size() << std::endl;
         QuESo_INFO << " o Number of trimmed elements: " << number_of_trimmed_elements << std::endl;
 
         if( echo_level > 1 ) {
-            const double volume_ips = mpElementContainer->GetVolumeOfAllIPs();
+            const double volume_ips = mpBackgroundGrid->GetVolumeOfAllIPs();
             QuESo_INFO << " o The computed quadrature represents " << volume_ips/volume_brep * 100.0
                 << "%\n   of the volume of the STL model.\n";
 
@@ -92,8 +92,8 @@ void QuESo::Run()
         }
         // Write vtk files (binary = true)
         IO::WriteMeshToVTK(*mpTriangleMesh, (output_directory_name + "/geometry.vtk" ).c_str(), true);
-        IO::WriteElementsToVTK(*mpElementContainer, (output_directory_name + "/elements.vtk").c_str(), true);
-        IO::WritePointsToVTK(*mpElementContainer, "All", (output_directory_name + "/integration_points.vtk").c_str(), true);
+        IO::WriteElementsToVTK(*mpBackgroundGrid, (output_directory_name + "/elements.vtk").c_str(), true);
+        IO::WritePointsToVTK(*mpBackgroundGrid, "All", (output_directory_name + "/integration_points.vtk").c_str(), true);
         IndexType cond_index = 0;
         for( const auto& r_condition : mConditions ){
             const std::string bc_filename = output_directory_name + '/'
@@ -113,7 +113,7 @@ std::array<double,5> QuESo::Compute(){
 
     // Reserve element container
     const IndexType global_number_of_elements = mMapper.NumberOfElements();
-    mpElementContainer->reserve(global_number_of_elements);
+    mpBackgroundGrid->reserve(global_number_of_elements);
 
     // Time Variables
     double et_check_intersect = 0.0;
@@ -190,7 +190,7 @@ std::array<double,5> QuESo::Compute(){
 
             if( valid_element ){
                 #pragma omp critical // TODO: improve this.
-                mpElementContainer->AddElement(new_element); // After this new_element is a null_ptr. Is std::moved to container.
+                mpBackgroundGrid->AddElement(new_element); // After this new_element is a null_ptr. Is std::moved to container.
             }
         }
 
@@ -199,7 +199,7 @@ std::array<double,5> QuESo::Compute(){
     double et_ggq_rules = 0.0;
     if( ggq_rule_ise_used ){
         Timer timer_ggq_rules;
-        QuadratureMultipleElements<ElementType>::AssembleIPs(*mpElementContainer, number_of_elements, polynomial_order, integration_method);
+        QuadratureMultipleElements<ElementType>::AssembleIPs(*mpBackgroundGrid, number_of_elements, polynomial_order, integration_method);
         et_ggq_rules = timer_ggq_rules.Measure();
     }
 

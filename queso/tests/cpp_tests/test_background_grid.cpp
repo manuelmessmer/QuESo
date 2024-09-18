@@ -18,24 +18,24 @@
 // Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/containers/element.hpp"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 
 namespace queso {
 namespace Testing {
 
-BOOST_AUTO_TEST_SUITE( ElementContainerTestSuite )
+BOOST_AUTO_TEST_SUITE( BackgroundGridTestSuite )
 
 typedef IntegrationPoint IntegrationPointType;
 typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
 typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-typedef ElementContainer<ElementType> ElementContainerType;
+typedef BackgroundGrid<ElementType> BackgroundGridType;
 
-Unique<ElementContainerType> CreateTestElementContainer(Vector3i rNumberOfElemnts){
+Unique<BackgroundGridType> CreateTestBackgroundGrid(Vector3i rNumberOfElemnts){
 
     Settings settings;
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElemnts);
 
-    Unique<ElementContainerType> container = MakeUnique<ElementContainerType>(settings);
+    Unique<BackgroundGridType> p_grid = MakeUnique<BackgroundGridType>(settings);
 
     IndexType number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
     for( IndexType i = 1; i <= number_elements; ++i){
@@ -44,31 +44,31 @@ Unique<ElementContainerType> CreateTestElementContainer(Vector3i rNumberOfElemnt
         Unique<ElementType> tmp_element = MakeUnique<ElementType>(i, MakeBox(tmp_point_A, tmp_point_B),
                                                              MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
         if( i != 10)
-            container->AddElement(tmp_element);
+            p_grid->AddElement(tmp_element);
     }
 
-    return container;
+    return p_grid;
 }
 
-BOOST_AUTO_TEST_CASE(TestElementContainerX) {
-    QuESo_INFO << "Testing :: Test Element Container :: Element Container Walking along X Direction" << std::endl;
+BOOST_AUTO_TEST_CASE(TestBackgroundGridX) {
+    QuESo_INFO << "Testing :: Test Background Grid :: Background Grid Walking along X Direction" << std::endl;
 
     Vector3i number_of_elements = {3, 4, 2};
-    auto container = CreateTestElementContainer(number_of_elements);
+    auto p_grid = CreateTestBackgroundGrid(number_of_elements);
 
     bool local_end;
     bool found;
     IndexType next_id;
     IndexType current_id = 1;
-    QuESo_CHECK_EQUAL(container->size(), 23);
+    QuESo_CHECK_EQUAL(p_grid->size(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < container->size() + 1; ++i){
-        auto neighbour = container->pGetNextElementInX(current_id, next_id, found, local_end);
+    for( IndexType i = 1; i < p_grid->size() + 1; ++i){
+        auto neighbour = p_grid->pGetNextElementInX(current_id, next_id, found, local_end);
         if( found ){
             IndexType reverse_id;
             bool dummy_found;
             bool dummy_local_end;
-            container->pGetPreviousElementInX(next_id, reverse_id, dummy_found, dummy_local_end);
+            p_grid->pGetPreviousElementInX(next_id, reverse_id, dummy_found, dummy_local_end);
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
@@ -100,11 +100,11 @@ bool contains(std::vector<int>& v, int test_value){
     return false;
 }
 
-BOOST_AUTO_TEST_CASE(TestElementContainerY) {
-    QuESo_INFO << "Testing :: Test Element Container :: Element Container Walking along Y Direction" << std::endl;
+BOOST_AUTO_TEST_CASE(TestBackgroundGridY) {
+    QuESo_INFO << "Testing :: Test Background Grid :: Background Grid Walking along Y Direction" << std::endl;
 
     Vector3i number_of_elements = {3, 4, 2};
-    auto container = CreateTestElementContainer(number_of_elements);
+    auto p_grid = CreateTestBackgroundGrid(number_of_elements);
 
     bool local_end;
     bool found;
@@ -113,15 +113,15 @@ BOOST_AUTO_TEST_CASE(TestElementContainerY) {
     std::vector<int> test_next_ids {1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12, 13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24};
     std::vector<int> test_local_ends {10, 11, 12, 22, 23, 24};
 
-    QuESo_CHECK_EQUAL(container->size(), 23);
+    QuESo_CHECK_EQUAL(p_grid->size(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < container->size() + 1; ++i){
-        auto neighbour = container->pGetNextElementInY(current_id, next_id, found, local_end);
+    for( IndexType i = 1; i < p_grid->size() + 1; ++i){
+        auto neighbour = p_grid->pGetNextElementInY(current_id, next_id, found, local_end);
         if( found ){
             IndexType reverse_id;
             bool dummy_found;
             bool dummy_local_end;
-            container->pGetPreviousElementInY(next_id, reverse_id, dummy_found, dummy_local_end);
+            p_grid->pGetPreviousElementInY(next_id, reverse_id, dummy_found, dummy_local_end);
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
@@ -147,11 +147,11 @@ BOOST_AUTO_TEST_CASE(TestElementContainerY) {
     QuESo_CHECK_EQUAL(active_element_counter, 23);
 } // End Testcase
 
-BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
-    QuESo_INFO << "Testing :: Test Element Container :: Element Container Walking along Z Direction" << std::endl;
+BOOST_AUTO_TEST_CASE(TestBackgroundGridZ) {
+    QuESo_INFO << "Testing :: Test Background Grid :: Background Grid Walking along Z Direction" << std::endl;
 
     Vector3i number_of_elements = {3, 4, 2};
-    auto container = CreateTestElementContainer(number_of_elements);
+    auto p_grid = CreateTestBackgroundGrid(number_of_elements);
 
     bool local_end;
     bool found;
@@ -160,15 +160,15 @@ BOOST_AUTO_TEST_CASE(TestElementContainerZ) {
     std::vector<int> test_next_ids {1, 13, 2, 14, 3, 15, 4, 16, 5, 17, 6, 18, 7, 19, 8, 20, 9, 21, 10, 22, 11, 23, 12, 24};
     std::vector<int> test_local_ends {13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
 
-    QuESo_CHECK_EQUAL(container->size(), 23);
+    QuESo_CHECK_EQUAL(p_grid->size(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < container->size() + 1; ++i){
-        auto neighbour = container->pGetNextElementInZ(current_id, next_id, found, local_end);
+    for( IndexType i = 1; i < p_grid->size() + 1; ++i){
+        auto neighbour = p_grid->pGetNextElementInZ(current_id, next_id, found, local_end);
         if( found ){
             IndexType reverse_id;
             bool dummy_found;
             bool dummy_local_end;
-            container->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, dummy_local_end);
+            p_grid->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, dummy_local_end);
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }

@@ -11,8 +11,8 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef ELEMENT_CONTAINER_INCLUDE_H
-#define ELEMENT_CONTAINER_INCLUDE_H
+#ifndef BACKGROUND_GRID_INCLUDE_HPP
+#define BACKGROUND_GRID_INCLUDE_HPP
 
 //// STL includes
 #include <cstring>
@@ -28,14 +28,14 @@ namespace queso {
 ///@{
 
 /**
- * @class  ElementContainer
+ * @class  BackgroundGrid
  * @author Manuel Messmer
  * @brief  Stores elements in vector and provides fast access via Id map.
  * @note Only active elements/knot spans are stored.
  * @todo Refactor. Store elements as unique_ptr
 */
 template<typename TElementType>
-class ElementContainer {
+class BackgroundGrid {
 
 public:
     ///@name Type Defintitions
@@ -55,16 +55,16 @@ public:
     ///@{
 
     /// Constructor
-    ElementContainer(const SettingsBaseType& rSettings) : mLastElementId(0),
+    BackgroundGrid(const SettingsBaseType& rSettings) : mLastElementId(0),
         mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements))
     {
     }
     /// Destructor
-    ~ElementContainer() = default;
+    ~BackgroundGrid() = default;
     /// Copy Constructor
-    ElementContainer(ElementContainer const& rOther) = delete;
+    BackgroundGrid(BackgroundGrid const& rOther) = delete;
     /// Assignement Operator
-    ElementContainer& operator=(ElementContainer const& rOther) = delete;
+    BackgroundGrid& operator=(BackgroundGrid const& rOther) = delete;
 
     ///@}
     ///@name Get Iterators
@@ -446,8 +446,8 @@ private:
     ElementVectorPtrType mElements;
     ElementIdMapType mElementIdMap;
     ///@}
-}; // End class Element container
+}; // End class BackgroundGrid
 ///@} // End QuESo classes
 
 } // End namespace queso
-#endif // ELEMENT_CONTAINER_INCLUDE_H
+#endif // BACKGROUND_GRID_INCLUDE_HPP

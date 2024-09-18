@@ -16,7 +16,7 @@
 #include "queso/python/add_containers_to_python.h"
 // To export
 #include "queso/containers/triangle_mesh.hpp"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/condition.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
@@ -25,7 +25,6 @@ typedef std::vector<queso::PointType> PointVectorType;
 typedef queso::IntegrationPoint IntegrationPointType;
 typedef queso::BoundaryIntegrationPoint BoundaryIntegrationPointType;
 typedef queso::Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-typedef queso::ElementContainer<ElementType> ElementContainerType;
 typedef ElementType::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
 
 typedef ElementType::IntegrationPointVectorType IntegrationPointVectorType;
@@ -147,11 +146,11 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Element Container
-    py::class_<ElementContainerType, Unique<ElementContainerType>>(m, "ElementContainer")
+    py::class_<BackgroundGrid<ElementType>, Unique<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
         .def(py::init<const SettingsBaseType&>())
-        .def("__len__", [](const ElementContainerType &v) { return v.size(); })
-        .def("__iter__", [](ElementContainerType &v) {
-            return py::make_iterator( v.begin(), v.end() );
+        .def("__len__", [](const BackgroundGrid<ElementType> &rGrid) { return rGrid.size(); })
+        .def("__iter__", [](BackgroundGrid<ElementType> &rGrid) {
+            return py::make_iterator( rGrid.begin(), rGrid.end() );
         }, py::keep_alive<0, 1>())
     ;
 

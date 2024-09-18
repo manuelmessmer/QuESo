@@ -16,7 +16,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
@@ -39,7 +39,7 @@ public:
     ///@{
 
     typedef TElementType ElementType;
-    typedef ElementContainer<ElementType> ElementContainerType;
+    typedef BackgroundGrid<ElementType> BackgroundGridType;
 
     ///@}
     ///@name Operations
@@ -50,7 +50,7 @@ public:
     /// @param rNumberOfElements
     /// @param rIntegrationOrder
     /// @param Method Integration method
-    static void AssembleIPs(ElementContainerType& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
+    static void AssembleIPs(BackgroundGridType& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
         // Loop over all 3 space dimensions
         // i = 0: x
         // i = 1: y
@@ -269,7 +269,7 @@ private:
         }
     }
 
-    static ElementType* NextElement(ElementContainerType& rElements, std::size_t id, bool& found, int direction ) {
+    static ElementType* NextElement(BackgroundGridType& rElements, std::size_t id, bool& found, int direction ) {
         bool dummy_local_end;
         std::size_t dummy_next_id;
 
@@ -368,7 +368,7 @@ private:
         }
     }
 
-    static bool AllElementsVisited(ElementContainerType& rElements) {
+    static bool AllElementsVisited(BackgroundGridType& rElements) {
         const auto element_it_begin = rElements.begin();
         const int number_neighbours = rElements.size();
         for(int i = 0; i < number_neighbours; ++i){

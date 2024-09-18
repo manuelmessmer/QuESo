@@ -17,7 +17,7 @@
 //// STL includes
 #include <fstream>
 //// Project includes
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 
@@ -73,15 +73,15 @@ public:
 
     /// @brief Write element container to VTK-file.
     /// @tparam TElementType
-    /// @param rElementContainer
+    /// @param rBackgroundGrid
     /// @param Filename
     /// @param Binary
     /// @return bool
     template<typename TElementType>
-    static bool WriteElementsToVTK(const ElementContainer<TElementType>& rElementContainer,
+    static bool WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                                     const char* Filename,
                                     const bool Binary) {
-        const SizeType num_elements = rElementContainer.size();
+        const SizeType num_elements = rBackgroundGrid.size();
 
         std::ofstream file;
         if(Binary)
@@ -99,8 +99,8 @@ public:
         file << "DATASET UNSTRUCTURED_GRID" << std::endl;
         file << "POINTS " << num_elements*8 << " double" << std::endl;
 
-        const auto begin_el_itr = rElementContainer.begin();
-        for( IndexType i = 0; i < rElementContainer.size(); ++i){
+        const auto begin_el_itr = rBackgroundGrid.begin();
+        for( IndexType i = 0; i < rBackgroundGrid.size(); ++i){
             const auto& el_itr = *(begin_el_itr + i);
             const auto& lower_point = el_itr->GetBoundsXYZ().first;
             const auto& upper_point = el_itr->GetBoundsXYZ().second;
@@ -165,7 +165,7 @@ public:
         file << std::endl;
         // Write Cells
         file << "Cells " << num_elements << " " << num_elements*9 << std::endl;
-        for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
+        for( int i = 0; i < static_cast<int>(rBackgroundGrid.size()); ++i){
             if( Binary ){
                 int k = 8;
                 WriteBinary(file, k);
@@ -181,8 +181,8 @@ public:
         }
         file << std::endl;
 
-        file << "CELL_TYPES " << rElementContainer.size() << std::endl;
-        for( int i = 0; i < static_cast<int>(rElementContainer.size()); ++i){
+        file << "CELL_TYPES " << rBackgroundGrid.size() << std::endl;
+        for( int i = 0; i < static_cast<int>(rBackgroundGrid.size()); ++i){
             if( Binary ){
                 int k = 12;
                 WriteBinary(file, k);
@@ -197,22 +197,22 @@ public:
         return true;
     }
 
-    /// @brief Write points to VTK. Interface for ElementContainer.
+    /// @brief Write points to VTK. Interface for BackgroundGrid.
     /// @tparam TElementType
-    /// @param rElementContainer
+    /// @param rBackgroundGrid
     /// @param Type
     /// @param Filename
     /// @param Binary
     /// @return bool
     template<typename TElementType>
-    static bool WritePointsToVTK(const ElementContainer<TElementType>& rElementContainer,
+    static bool WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                                 const char* Type,
                                 const char* Filename,
                                 const bool Binary) {
 
         QuESo_ERROR_IF( std::string(Type) != "All") << "Only integration points option 'All' is available. \n";
 
-        const auto& p_points = rElementContainer.pGetPoints(Type);
+        const auto& p_points = rBackgroundGrid.pGetPoints(Type);
         const IndexType num_points = p_points->size();
         const IndexType num_elements = p_points->size();
 
@@ -233,8 +233,8 @@ public:
         file << "DATASET UNSTRUCTURED_GRID" << std::endl;
         file << "POINTS " << num_points << " double" << std::endl;
 
-        const auto el_it_ptr_begin = rElementContainer.begin();
-        for( IndexType i = 0; i < rElementContainer.size(); ++i){
+        const auto el_it_ptr_begin = rBackgroundGrid.begin();
+        for( IndexType i = 0; i < rBackgroundGrid.size(); ++i){
             const auto& el_ptr = (*(el_it_ptr_begin + i));
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
@@ -283,7 +283,7 @@ public:
         file << "POINT_DATA " << num_points << std::endl;
         file << "SCALARS Weights double 1" << std::endl;
         file << "LOOKUP_TABLE default" << std::endl;
-        for( IndexType i = 0; i < rElementContainer.size(); ++i){
+        for( IndexType i = 0; i < rBackgroundGrid.size(); ++i){
             const auto& el_ptr = (*(el_it_ptr_begin + i));
             const auto& points = el_ptr->GetIntegrationPoints();
             for( const auto& point : points ){
