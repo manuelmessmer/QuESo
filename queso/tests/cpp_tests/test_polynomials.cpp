@@ -18,7 +18,7 @@
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "queso/utilities/polynomial_utilities.h"
+#include "queso/utilities/polynomial_utilities.hpp"
 
 namespace queso {
 namespace Testing{
