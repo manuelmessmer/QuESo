@@ -20,6 +20,7 @@
 #include <stdexcept>
 //// Project includes
 #include "queso/containers/element.hpp"
+#include "queso/containers/condition.hpp"
 #include "queso/includes/settings.hpp"
 
 namespace queso {
@@ -45,10 +46,14 @@ public:
     typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
 
     typedef Unique<ElementType> ElementPtrType;
-    typedef std::vector<ElementPtrType> ElementVectorPtrType;
+    typedef std::vector<ElementPtrType> ElementContainerType;
     typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::unordered_map<IndexType, IndexType> ElementIdMapType;
+
+    typedef Condition ConditionType;
+    typedef Unique<Condition> ConditionPtrType;
+    typedef std::vector<std::vector<ConditionPtrType>> ConditionContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -128,7 +133,7 @@ public:
         return nullptr;
     }
 
-    const ElementVectorPtrType& GetElements() const{
+    const ElementContainerType& GetElements() const{
         return mElements;
     }
 
@@ -443,8 +448,10 @@ private:
 
     int mLastElementId;
     Vector3i mNumberOfElements;
-    ElementVectorPtrType mElements;
+    ElementContainerType mElements;
     ElementIdMapType mElementIdMap;
+
+    ConditionContainerType mConditions;
     ///@}
 }; // End class BackgroundGrid
 ///@} // End QuESo classes
