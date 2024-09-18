@@ -23,7 +23,7 @@
 #include "queso/embedding/octree.h"
 #include "queso/containers/element.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/utilities/polynomial_utilities.h"
+#include "queso/utilities/polynomial_utilities.hpp"
 #include "queso/solvers/nnls.h"
 
 namespace queso {
