@@ -160,6 +160,383 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
     QuESo_CHECK_LT( std::abs(volume - volume_ref) / volume_ref, 1e-12);
 }
 
+bool contains(std::vector<IndexType>& v, IndexType test_value){
+    if(std::find(v.begin(), v.end(), test_value) != v.end()) {
+        return true;
+    }
+    return false;
+}
+
+BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
+    QuESo_INFO << "Testing :: Test Grid Indexer :: Test Walk Through Global Partition X" << std::endl;
+
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0} );
+
+    const Vector3i number_of_elements{3, 4, 5};
+
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+
+    GridIndexer grid_indexer(settings);
+
+    // Walk foward
+    IndexType index = 0;
+    bool local_end = false;
+    IndexType i = 0;
+    while(index < grid_indexer.NumberOfElements()-1 ){
+        bool should_be_local_end = ((index+1)%3 == 0);
+        index = grid_indexer.GetNextIndexX(index, local_end);
+        ++i;
+        QuESo_CHECK_EQUAL(index, i);
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 59);
+    --i;
+
+    while( index > 0) {
+        bool should_be_local_end = ((index)%3 == 0);
+        index = grid_indexer.GetPreviousIndexX(index, local_end);
+        QuESo_CHECK_EQUAL(index, i);
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        --i;
+    }
+    QuESo_CHECK_EQUAL(index, 0);
+}
+
+BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
+    QuESo_INFO << "Testing :: Test Grid Indexer :: Test Walk Through Global Partition Y" << std::endl;
+
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0} );
+
+    const Vector3i number_of_elements{3, 4, 5};
+
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+
+    GridIndexer grid_indexer(settings);
+    // Walk foward
+    IndexType index = 0;
+    bool local_end = false;
+    IndexType i = 1;
+    std::vector<IndexType> order_y = {0,3,6,9,1,4,7,10,2,5,8,11,12,15,18,21,13,16,19,22,14,17,20,23,24,27,30,
+        33,25,28,31,34,26,29,32,35,36,39,42,45,37,40,43,46,38,41,44,47,48,51,54,57,49,52,55,58,50,53,56,59};
+    std::vector<IndexType> local_ends_y = {9, 10, 11, 21, 22, 23, 33, 34, 35, 45, 46, 47, 57, 58};
+    while(index < grid_indexer.NumberOfElements()-1 ){
+        bool should_be_local_end = contains(local_ends_y, index);
+        index = grid_indexer.GetNextIndexY(index, local_end);
+        QuESo_CHECK_EQUAL(order_y[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 59);
+
+    local_ends_y = {0, 1, 2, 12, 13, 14, 24, 25, 26, 36, 37, 38, 48, 49, 50};
+    while( index > 0) {
+        bool should_be_local_end = contains(local_ends_y, index);
+        index = grid_indexer.GetPreviousIndexY(index, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order_y[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 0);
+}
+
+
+BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
+    QuESo_INFO << "Testing :: Test Grid Indexer :: Test Walk Through Global Partition Z" << std::endl;
+
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0} );
+
+    const Vector3i number_of_elements{3, 4, 5};
+
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+
+    GridIndexer grid_indexer(settings);
+    // Walk foward
+    IndexType index = 0;
+    bool local_end = false;
+    IndexType i = 1;
+    std::vector<IndexType> order_z = {0,12,24,36,48,1,13,25,37,49,2,14,26,38,50,3,15,27,39,51,4,16,28,40,52,5,17,29,41,53,
+        6,18,30,42,54,7,19,31,43,55,8,20,32,44,56,9,21,33,45,57,10,22,34,46,58,11,23,35,47,59};
+
+    std::vector<IndexType> local_ends_z = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58};
+    while(index < grid_indexer.NumberOfElements() - 1 ){
+        bool should_be_local_end = contains(local_ends_z, index);
+        index = grid_indexer.GetNextIndexZ(index, local_end);
+        QuESo_CHECK_EQUAL(order_z[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 59);
+
+    // Walk backwards
+    local_ends_z = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    while( index > 0) {
+        bool should_be_local_end = contains(local_ends_z, index);
+        index = grid_indexer.GetPreviousIndexZ(index, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order_z[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 0);
+}
+
+BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
+    QuESo_INFO << "Testing :: Test Grid Indexer :: Test Walk Through Local Partition X" << std::endl;
+
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0} );
+
+    const Vector3i number_of_elements{3, 4, 5};
+
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+
+    GridIndexer grid_indexer(settings);
+
+    PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
+    // Walk foward
+    IndexType index = 16;
+    bool local_end = false;
+    IndexType i = 1;
+    std::vector<IndexType> order = {16, 17, 19, 20, 22, 23, 28, 29, 31, 32, 34, 35, 40, 41, 43, 44, 46, 47};
+    std::vector<IndexType> local_ends = {17, 20, 23, 29, 32, 35, 41, 44, 47};
+    while(index < 47 ){
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetNextIndexX(index, local_partition_1, local_end);
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 47);
+
+    // Walk backwards
+    local_ends = {16, 19, 22, 28, 31, 34, 40, 43, 46};
+    while( index > 16) {
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetPreviousIndexX(index, local_partition_1, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 16);
+
+
+    PartitionBoxType local_partition_2 = std::make_pair(Vector3i({0, 0, 0}), Vector3i({1, 1, 2}));
+    // Walk foward
+    index = 0;
+    i = 1;
+    order = {0, 1, 3, 4, 12, 13, 15, 16, 24, 25, 27, 28};
+    local_ends = {1, 4, 13, 16, 25, 28};
+    while(index < 28 ){
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetNextIndexX(index, local_partition_2, local_end);
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 28);
+
+    // Walk backwards
+    local_ends = {0, 3, 12, 15, 24, 27};
+    while( index > 0) {
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetPreviousIndexX(index, local_partition_2, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 0);
+}
+
+BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
+    QuESo_INFO << "Testing :: Test Grid Indexer :: Test Walk Through Local Partition Y" << std::endl;
+
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0} );
+
+    const Vector3i number_of_elements{3, 4, 5};
+
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+
+    GridIndexer grid_indexer(settings);
+
+    PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
+    // Walk foward
+    IndexType index = 16;
+    bool local_end = false;
+    IndexType i = 1;
+    std::vector<IndexType> order = {16, 19, 22, 17, 20, 23, 28, 31, 34, 29, 32, 35, 40, 43, 46, 41, 44, 47};
+    std::vector<IndexType> local_ends = {22, 23, 34, 35, 46, 47};
+    while(index < 47 ){
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetNextIndexY(index, local_partition_1, local_end);
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 47);
+
+    // Walk backwards
+    local_ends = {16, 17, 28, 29, 40, 41};
+    while( index > 16) {
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetPreviousIndexY(index, local_partition_1, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 16);
+
+
+    PartitionBoxType local_partition_2 = std::make_pair(Vector3i({0, 0, 0}), Vector3i({1, 1, 2}));
+    // Walk foward
+    index = 0;
+    i = 1;
+    order = {0, 3, 1, 4, 12, 15, 13, 16, 24, 27, 25, 28};
+    local_ends = {3, 4, 15, 16, 27, 28};
+    while(index < 28 ){
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetNextIndexY(index, local_partition_2, local_end);
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 28);
+
+    // Walk backwards
+    local_ends = {0, 1, 12, 13, 24, 25};
+    while( index > 0) {
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetPreviousIndexY(index, local_partition_2, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 0);
+}
+
+
+BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
+    QuESo_INFO << "Testing :: Test Grid Indexer :: Test Walk Through Local Partition Z" << std::endl;
+
+    const BoundingBoxType bounds_xyz = MakeBox( {-1.0, -0.5, 1.0}, {5.0, 10.5, 13.0} );
+    const BoundingBoxType bounds_uvw = MakeBox( {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0} );
+
+    const Vector3i number_of_elements{3, 4, 5};
+
+    Settings settings;
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+
+    GridIndexer grid_indexer(settings);
+
+    PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
+    // Walk foward
+    IndexType index = 16;
+    bool local_end = false;
+    IndexType i = 1;
+    std::vector<IndexType> order = {16, 28, 40, 17, 29, 41, 19, 31, 43, 20, 32, 44, 22, 34, 46, 23, 35, 47};
+    std::vector<IndexType> local_ends = {40, 41, 43, 44, 46, 47};
+    while(index < 47 ){
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetNextIndexZ(index, local_partition_1, local_end);
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 47);
+
+    // Walk backwards
+    local_ends = {16, 17, 19, 20, 22, 23};
+    while( index > 16) {
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetPreviousIndexZ(index, local_partition_1, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 16);
+
+
+    PartitionBoxType local_partition_2 = std::make_pair(Vector3i({0, 0, 0}), Vector3i({1, 1, 2}));
+    // Walk foward
+    index = 0;
+    i = 1;
+    order = {0, 12, 24, 1, 13, 25, 3, 15, 27, 4, 16, 28};
+    local_ends = {27, 28, 24, 25};
+    while(index < 28 ){
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetNextIndexZ(index, local_partition_2, local_end);
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        ++i;
+    }
+
+    --i;
+    QuESo_CHECK_EQUAL(index, 28);
+
+    // Walk backwards
+    local_ends = {0, 1, 3, 4};
+    while( index > 0) {
+        bool should_be_local_end = contains(local_ends, index);
+        index = grid_indexer.GetPreviousIndexZ(index, local_partition_2, local_end);
+        --i;
+        QuESo_CHECK_EQUAL(order[i], index)
+        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+    }
+    QuESo_CHECK_EQUAL(index, 0);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
