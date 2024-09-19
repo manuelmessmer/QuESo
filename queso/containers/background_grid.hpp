@@ -19,6 +19,7 @@
 #include <sstream>
 #include <stdexcept>
 //// Project includes
+#include "queso/containers/grid_indexer.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/condition.hpp"
 #include "queso/includes/settings.hpp"
@@ -60,8 +61,8 @@ public:
     ///@{
 
     /// Constructor
-    BackgroundGrid(const SettingsBaseType& rSettings) : mLastElementId(0),
-        mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements))
+    BackgroundGrid(const SettingsBaseType& rSettings) :
+        mGridIndexer(rSettings), mLastElementId(0)
     {
     }
     /// Destructor
@@ -164,7 +165,7 @@ public:
 
     ElementType* pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-        next_id = GetNextIndexX(id, local_end);
+        next_id = mGridIndexer.GetNextIndexX(id-1, local_end)+1;
         auto found_element = pGetElement(next_id, found);
         if( found == false){  // Element is not found
             local_end = true;
@@ -174,7 +175,7 @@ public:
 
     ElementType* pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-        next_id = GetNextIndexY(id, local_end);
+        next_id = mGridIndexer.GetNextIndexY(id-1, local_end)+1;
         auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
@@ -186,7 +187,7 @@ public:
 
     ElementType* pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-        next_id = GetNextIndexZ(id, local_end);
+        next_id = mGridIndexer.GetNextIndexZ(id-1, local_end)+1;
         auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
@@ -198,7 +199,7 @@ public:
 
     ElementType* pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-        next_id = GetPreviousIndexX(id, local_end);
+        next_id = mGridIndexer.GetPreviousIndexX(id-1, local_end)+1;
         auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
@@ -211,7 +212,7 @@ public:
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
-        next_id = GetPreviousIndexY(id, local_end);
+        next_id = mGridIndexer.GetPreviousIndexY(id-1, local_end)+1;
         auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
@@ -224,7 +225,7 @@ public:
     ElementType* pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
         local_end = false;
 
-        next_id = GetPreviousIndexZ(id, local_end);
+        next_id = mGridIndexer.GetPreviousIndexZ(id-1, local_end)+1;
         auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
@@ -235,25 +236,7 @@ public:
     }
 
     bool IsLast(std::size_t id, std::size_t direction ){
-        auto indices = GetMatrixIndicesFromVectorIndex(id-1);
-
-        switch( direction )
-        {
-        case 0: // Forward x
-            return (indices[0] == (mNumberOfElements[0]-1));
-        case 1: // Backward X
-            return (indices[0] == 0);
-        case 2: // Forward Y
-            return (indices[1] == (mNumberOfElements[1]-1));
-        case 3: // Backward Y
-            return (indices[1] == 0);
-        case 4: // Forward Z
-            return (indices[2] == (mNumberOfElements[2]-1));
-        case 5: // Backward Z
-            return (indices[2] == 0);
-        default:
-            QuESo_ERROR << "There are only 6 different directions! \n";
-        }
+        return mGridIndexer.IsLocalEnd(id-1, direction);
     }
 
     const IntegrationPointVectorPtrType pGetPoints(const char* type) const {
@@ -299,136 +282,12 @@ public:
 
 private:
 
-    IndexType GetNextIndexX(IndexType i,  bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
-        if( indices[0] == mNumberOfElements[0]-1) {
-            local_end = true;
-        }
-        return i + 1;
-    }
-
-    IndexType GetNextIndexY(IndexType i, bool& local_end) const {
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
-        if( indices[1] < mNumberOfElements[1]-1) {
-            indices[1] += 1;
-        }
-        else if( indices[0] < mNumberOfElements[0]-1){
-            indices[0] += 1;
-            indices[1] = 0;
-            local_end = true;
-        }
-        else {
-            indices[2] += 1;
-            indices[1] = 0;
-            indices[0] = 0;
-            local_end = true;
-        }
-
-        IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
-
-        return new_index+1;
-    }
-
-    IndexType GetNextIndexZ(IndexType i, bool& local_end) const {
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
-        if( indices[2] < mNumberOfElements[2]-1) {
-            indices[2] += 1;
-        }
-        else if( indices[0] < mNumberOfElements[0]-1){
-            indices[0] += 1;
-            indices[2] = 0;
-            local_end = true;
-        }
-        else {
-            indices[1] += 1;
-            indices[2] = 0;
-            indices[0] = 0;
-            local_end = true;
-        }
-
-        IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
-
-        return new_index+1;
-    }
-
-    IndexType GetPreviousIndexX(IndexType i, bool& local_end){
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
-        if( indices[0] == 0 ) {
-            local_end = true;
-        }
-
-        return i - 1;
-    }
-
-    IndexType GetPreviousIndexY(IndexType i, bool& local_end) const {
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
-        if( indices[1] > 0) {
-            indices[1] -= 1;
-        }
-        else if( indices[0] > 0){
-            indices[0] -= 1;
-            indices[1] = mNumberOfElements[1]-1;
-            local_end = true;
-        }
-        else {
-            indices[2] -= 1;
-            indices[1] = mNumberOfElements[1]-1;
-            indices[0] = mNumberOfElements[0]-1;
-            local_end = true;
-        }
-
-        IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
-
-        return new_index+1;
-    }
-
-    IndexType GetPreviousIndexZ(IndexType i, bool& local_end) const {
-
-        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
-        if( indices[2] > 0 ){
-            indices[2] -= 1;
-        }
-        else if( indices[0] > 0){
-            indices[0] -= 1;
-            indices[2] = mNumberOfElements[2]-1;
-            local_end = true;
-        }
-        else {
-            indices[1] -= 1;
-            indices[2] = mNumberOfElements[2]-1;
-            indices[0] = mNumberOfElements[0]-1;
-            local_end = true;
-        }
-
-        IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
-
-        return new_index+1;
-    }
-
-    inline std::array<IndexType,3> GetMatrixIndicesFromVectorIndex(
-        const IndexType Index) const noexcept
-    {
-        std::array<IndexType,3> result;
-        const IndexType index_in_row_column_plane = Index % (mNumberOfElements[0]*mNumberOfElements[1]);
-        result[0] = index_in_row_column_plane % mNumberOfElements[0]; // row
-        result[1] = index_in_row_column_plane / mNumberOfElements[0]; // column
-        result[2] = Index / (mNumberOfElements[0]*mNumberOfElements[1]);   // depth
-
-        return result;
-    }
-
-    inline IndexType GetVectorIndexFromMatrixIndices(
-        const IndexType RowIndex, const IndexType ColumnIndex, const IndexType DepthIndex) const noexcept
-    {
-        return DepthIndex * (mNumberOfElements[1]*mNumberOfElements[0]) + ColumnIndex * mNumberOfElements[0] + RowIndex;
-    }
-
     ///@}
     ///@name Private member variables
     ///@{
 
+    GridIndexer mGridIndexer;
     int mLastElementId;
-    Vector3i mNumberOfElements;
     ElementContainerType mElements;
     ElementIdMapType mElementIdMap;
 
