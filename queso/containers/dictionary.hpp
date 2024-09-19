@@ -34,7 +34,7 @@ namespace queso {
  * @class  KeyValuePair
  * @author Manuel Messmer
  * @brief  Stores Key/Value pairs. Keys are stored as TVariantKeyType. Values are stored as VariantValueType, which is hard-coded to:
- *         std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, BackgroundGridTypeType>.
+ *         std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType>.
  * @tparam TVariantKey. This should be an pack of enum classes, wrapped inside an std::variant<...enum class>.
  * @see    Dictionary, which uses KeyValuePair.
 **/
@@ -45,7 +45,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    typedef std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, BackgroundGridTypeType> VariantValueType;
+    typedef std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType> VariantValueType;
 
     ///@}
     ///@name Life cycle
@@ -194,7 +194,7 @@ private:
         const char* operator()(const std::string& rValue){return "std::string"; };
         const char* operator()(const bool& rValue){return "bool"; };
         const char* operator()(const IntegrationMethodType& rValue){return "IntegrationMethod"; };
-        const char* operator()(const BackgroundGridTypeType& rValue){return "BackgroundGridType"; };
+        const char* operator()(const GridTypeType& rValue){return "GridType"; };
     };
 
     /// Visit struct to print values.
@@ -208,7 +208,7 @@ private:
         void operator()(const std::string& rValue){mOstream << rValue;};
         void operator()(const bool& rValue){std::string out = (rValue) ? "true" : "false"; mOstream << out; };
         void operator()(const IntegrationMethodType& rValue){ mOstream << IntegrationMethodToString(rValue); };
-        void operator()(const BackgroundGridTypeType& rValue){ mOstream << BackgroundGridTypeToString(rValue); };
+        void operator()(const GridTypeType& rValue){ mOstream << GridTypeToString(rValue); };
 
     private:
         std::ostream& mOstream;
@@ -232,7 +232,7 @@ private:
  *        Key/Value-paires are stored as 'KeyValuePair'. The KeyTypes are supposed to be enum classes and can be passed as a template
  *        parameter pack: ...TEnumKeys.
  *        The main idea is to derive from Dictionary and to set the respective Keys and default Values.
- * @see KeyValuePair. Possible ValueTypes are: PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, BackgroundGridTypeType.
+ * @see KeyValuePair. Possible ValueTypes are: PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType.
  * @see Settings. Settings derives from Dictionary.
  * @tparam TEnumKeys. This should be a pack of enum classes.
 **/

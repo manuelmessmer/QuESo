@@ -35,10 +35,10 @@ void AddGlobalsToPython(pybind11::module& m) {
         .export_values()
     ;
 
-    /// Export enum BackgroundGridType
-    py::enum_<BackgroundGridType>(m, "BackgroundGridType")
-        .value("b_spline_grid", BackgroundGridType::b_spline_grid)
-        .value("hexahedral_fe_grid", BackgroundGridType::hexahedral_fe_grid)
+    /// Export enum GridType
+    py::enum_<GridType>(m, "GridType")
+        .value("b_spline_grid", GridType::b_spline_grid)
+        .value("hexahedral_fe_grid", GridType::hexahedral_fe_grid)
     ;
 
 } // End AddGlobalsToPython

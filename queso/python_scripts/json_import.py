@@ -133,7 +133,7 @@ class JsonImport():
     }
 
     string_to_enum_grid_type = {
-        "b_spline_grid"  : QuESo_Application.BackgroundGridType.b_spline_grid,
-        "hexahedral_fe_grid"  : QuESo_Application.BackgroundGridType.hexahedral_fe_grid
+        "b_spline_grid"  : QuESo_Application.GridType.b_spline_grid,
+        "hexahedral_fe_grid"  : QuESo_Application.GridType.hexahedral_fe_grid
     }
 
