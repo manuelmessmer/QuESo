@@ -35,7 +35,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});

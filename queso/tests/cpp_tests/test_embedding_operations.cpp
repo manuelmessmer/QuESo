@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     Settings settings;
     settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
     settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{2.0, 2.0, 1.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
@@ -85,7 +85,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
                    bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
 
     Vector3i num_elements = (Large) ? Vector3i{14, 22, 12} : Vector3i{7, 11, 6};
-    BackgroundGridTypeType grid_type = (BSplineMesh) ? BackgroundGridType::b_spline_grid : BackgroundGridType::hexahedral_fe_grid;
+    GridTypeType grid_type = (BSplineMesh) ? GridType::b_spline_grid : GridType::hexahedral_fe_grid;
     std::string filename = "queso/tests/cpp_tests/data/elephant.stl";
 
     Settings settings;
@@ -264,7 +264,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
                         bool BSplineMesh, const BoundingBoxType& rBoundsUVW, bool Large){
 
     Vector3i num_elements = (Large) ? Vector3i{20, 40, 40} : Vector3i{5, 10, 10};
-    BackgroundGridTypeType grid_type = (BSplineMesh) ? BackgroundGridType::b_spline_grid : BackgroundGridType::hexahedral_fe_grid;
+    GridTypeType grid_type = (BSplineMesh) ? GridType::b_spline_grid : GridType::hexahedral_fe_grid;
     std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
 
     Settings settings;

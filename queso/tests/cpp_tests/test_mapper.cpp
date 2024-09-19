@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(MapperTest) {
     const Vector3i number_of_elements{5, 10, 7};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);

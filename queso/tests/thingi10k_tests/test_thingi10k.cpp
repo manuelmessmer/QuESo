@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 
         Settings settings;
         settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
 
         Settings settings;
         settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);

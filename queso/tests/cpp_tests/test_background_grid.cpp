@@ -34,6 +34,11 @@ Unique<BackgroundGridType> CreateTestBackgroundGrid(Vector3i rNumberOfElemnts){
 
     Settings settings;
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElemnts);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24, -43, 5});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
 
     Unique<BackgroundGridType> p_grid = MakeUnique<BackgroundGridType>(settings);
 
