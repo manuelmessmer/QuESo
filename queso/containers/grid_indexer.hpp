@@ -46,15 +46,13 @@ public:
                                   rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw)) ),
         mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) ),
         mGlobalPartition( std::make_pair(Vector3i({0, 0, 0}), Vector3i({mNumberOfElements[0]-1, mNumberOfElements[1]-1, mNumberOfElements[2]-1}) )),
-        mBSplineMesh( rSettings[MainSettings::background_grid_settings].GetValue<BackgroundGridType>(BackgroundGridSettings::grid_type) ==  BackgroundGridType::b_spline_grid )
+        mBSplineMesh( rSettings[MainSettings::background_grid_settings].GetValue<GridType>(BackgroundGridSettings::grid_type) ==  GridType::b_spline_grid )
     {
     }
 
     ///@}
     ///@name Public Operations
     ///@{
-
-    enum class IndexState {okay, local_end, out_of_bounds};
 
     /// @brief Maps univariate index to trivariate indices i -> (i,j,k).
     /// @see GetVectorIndexFromMatrixIndices.
@@ -172,13 +170,14 @@ public:
                 return GetPreviousIndexZ(Index, LocalEnd);
             default:
                 assert(false);
+                return 0;
         }
     }
 
     /// @brief Returns next index in given direction and partition.
     /// @param Index current index.
-    /// @param rPartition active partition.
     /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param rPartition active partition.
     /// @param[out] LocalEnd True if current index is a local end.
     /// @return IndexType
     inline IndexType GetNextIndex(IndexType Index, IndexType Direction, const PartitionBoxType& rPartition, bool& LocalEnd) const {
@@ -197,6 +196,7 @@ public:
                 return GetPreviousIndexZ(Index, rPartition, LocalEnd);
             default:
                 assert(false);
+                return 0;
         }
     }
 
@@ -415,6 +415,42 @@ public:
         }
 
         return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+    }
+
+    /// @brief Returns true if current index is a local end w.r.t. the given direction.
+    /// @param i current index
+    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @return bool
+    bool IsLocalEnd(IndexType i, IndexType Direction){
+        return IsLocalEnd(i, Direction, mGlobalPartition);
+    }
+
+    /// @brief Returns true if current index is a local end w.r.t. the given direction.
+    /// @param i current index
+    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param rPartition active Partition
+    /// @return bool
+    bool IsLocalEnd(IndexType i, IndexType Direction, const PartitionBoxType& rPartition ){
+        auto indices = GetMatrixIndicesFromVectorIndex(i);
+
+        switch( Direction )
+        {
+        case 0: // Forward x
+            return (indices[0] == (rPartition.second[0]));
+        case 1: // Backward X
+            return (indices[0] == (rPartition.first[0]));
+        case 2: // Forward Y
+            return (indices[1] == (rPartition.second[1]));
+        case 3: // Backward Y
+            return (indices[1] == (rPartition.first[1]));
+        case 4: // Forward Z
+            return (indices[2] == (rPartition.second[2]));
+        case 5: // Backward Z
+            return (indices[2] == (rPartition.first[2]));
+        default:
+            assert(false);
+            return false;
+        }
     }
 
     ///@}
