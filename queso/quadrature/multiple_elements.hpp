@@ -96,10 +96,6 @@ public:
                     }
                 }
 
-                // if( door_to_door_neighbours.size() >= 40 ){ // Maximum number of points is reached or element is trimmed
-                //     local_end = true;
-                // }
-
                 if( local_end ){
                     if(door_to_door_neighbours.size() > 0 ){
                         AssignNumberNeighbours(door_to_door_neighbours, i);

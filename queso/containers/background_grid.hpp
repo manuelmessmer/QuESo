@@ -164,13 +164,8 @@ public:
 
     ElementType* pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-        next_id = id + 1;
-        int next_index = id + 1;
-        auto indices = GetMatrixIndicesFromVectorIndex(id);
-        if( indices[0] == mNumberOfElements[0]-1) {
-            local_end = true;
-        }
-        auto found_element = pGetElement(next_index, found);
+        next_id = GetNextIndexX(id, local_end);
+        auto found_element = pGetElement(next_id, found);
         if( found == false){  // Element is not found
             local_end = true;
         }
@@ -178,17 +173,9 @@ public:
     }
 
     ElementType* pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
-        // Make sure current element exists
-        // TODO:: if id >= mLastElement error
         local_end = false;
-        int next_index = GetNextIndexY(id, local_end);
-        next_id = next_index;
-
-        auto indices = GetMatrixIndicesFromVectorIndex(next_id-1); // Matrix starts with 0. Here Id's start with 1.
-        if( indices[1] == mNumberOfElements[1]-1) {
-            local_end = true;
-        }
-        auto found_element = pGetElement(next_index, found);
+        next_id = GetNextIndexY(id, local_end);
+        auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
             local_end = true;
@@ -199,14 +186,8 @@ public:
 
     ElementType* pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-
-        int next_index = GetNextIndexZ(id, local_end);
-        next_id = next_index;
-        auto indices = GetMatrixIndicesFromVectorIndex(next_id-1); // Matrix starts with 0. Here Id's start with 1.
-        if( indices[2] == mNumberOfElements[2]-1) {
-            local_end = true;
-        }
-        auto found_element = pGetElement(next_index, found);
+        next_id = GetNextIndexZ(id, local_end);
+        auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
             local_end = true;
@@ -217,14 +198,8 @@ public:
 
     ElementType* pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
-        next_id = id - 1;
-        int next_index = id - 1;
-        auto indices = GetMatrixIndicesFromVectorIndex(id);
-        if( indices[0] == mNumberOfElements[0]-1) {
-            local_end = true;
-        }
-
-        auto found_element = pGetElement(next_index, found);
+        next_id = GetPreviousIndexX(id, local_end);
+        auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
             local_end = true;
@@ -236,14 +211,8 @@ public:
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
-        int next_index = GetPreviousIndexY(id, local_end);
-        next_id = next_index;
-
-        auto indices = GetMatrixIndicesFromVectorIndex(next_id-1); // Matrix starts with 0. Here Id's start with 1.
-        if( indices[1] == mNumberOfElements[1]-1) {
-            local_end = true;
-        }
-        auto found_element = pGetElement(next_index, found);
+        next_id = GetPreviousIndexY(id, local_end);
+        auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
             local_end = true;
@@ -255,14 +224,8 @@ public:
     ElementType* pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
         local_end = false;
 
-        int next_index = GetPreviousIndexZ(id, local_end);
-        next_id = next_index;
-
-        auto indices = GetMatrixIndicesFromVectorIndex(next_id-1); // Matrix starts with 0. Here Id's start with 1.
-        if( indices[2] == mNumberOfElements[2]-1) {
-            local_end = true;
-        }
-        auto found_element = pGetElement(next_index, found);
+        next_id = GetPreviousIndexZ(id, local_end);
+        auto found_element = pGetElement(next_id, found);
 
         if( found == false){                            // Element is not found
             local_end = true;
@@ -336,7 +299,11 @@ public:
 
 private:
 
-    IndexType GetNextIndexX(IndexType i){
+    IndexType GetNextIndexX(IndexType i,  bool& local_end){
+        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        if( indices[0] == mNumberOfElements[0]-1) {
+            local_end = true;
+        }
         return i + 1;
     }
 
@@ -348,11 +315,13 @@ private:
         else if( indices[0] < mNumberOfElements[0]-1){
             indices[0] += 1;
             indices[1] = 0;
+            local_end = true;
         }
         else {
             indices[2] += 1;
             indices[1] = 0;
             indices[0] = 0;
+            local_end = true;
         }
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
@@ -368,11 +337,13 @@ private:
         else if( indices[0] < mNumberOfElements[0]-1){
             indices[0] += 1;
             indices[2] = 0;
+            local_end = true;
         }
         else {
             indices[1] += 1;
             indices[2] = 0;
             indices[0] = 0;
+            local_end = true;
         }
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
@@ -380,7 +351,12 @@ private:
         return new_index+1;
     }
 
-    IndexType GetPreviousIndexX(IndexType i){
+    IndexType GetPreviousIndexX(IndexType i, bool& local_end){
+        auto indices = GetMatrixIndicesFromVectorIndex(i-1);
+        if( indices[0] == 0 ) {
+            local_end = true;
+        }
+
         return i - 1;
     }
 
@@ -392,11 +368,13 @@ private:
         else if( indices[0] > 0){
             indices[0] -= 1;
             indices[1] = mNumberOfElements[1]-1;
+            local_end = true;
         }
         else {
             indices[2] -= 1;
             indices[1] = mNumberOfElements[1]-1;
             indices[0] = mNumberOfElements[0]-1;
+            local_end = true;
         }
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
@@ -405,18 +383,21 @@ private:
     }
 
     IndexType GetPreviousIndexZ(IndexType i, bool& local_end) const {
+
         auto indices = GetMatrixIndicesFromVectorIndex(i-1);
         if( indices[2] > 0 ){
             indices[2] -= 1;
         }
         else if( indices[0] > 0){
             indices[0] -= 1;
-            indices[2] = mNumberOfElements[2]-1;;
+            indices[2] = mNumberOfElements[2]-1;
+            local_end = true;
         }
         else {
             indices[1] -= 1;
-            indices[2] = mNumberOfElements[2]-1;;
-            indices[0] = mNumberOfElements[0]-1;;
+            indices[2] = mNumberOfElements[2]-1;
+            indices[0] = mNumberOfElements[0]-1;
+            local_end = true;
         }
 
         IndexType new_index = GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);

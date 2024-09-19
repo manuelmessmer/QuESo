@@ -43,7 +43,7 @@ Unique<BackgroundGridType> CreateTestBackgroundGrid(Vector3i rNumberOfElemnts){
         PointType tmp_point_B = {0.1, 0.1, 0.1};
         Unique<ElementType> tmp_element = MakeUnique<ElementType>(i, MakeBox(tmp_point_A, tmp_point_B),
                                                              MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
-        if( i != 10)
+        if( i != 17)
             p_grid->AddElement(tmp_element);
     }
 
@@ -67,13 +67,16 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridX) {
         if( found ){
             IndexType reverse_id;
             bool dummy_found;
-            bool dummy_local_end;
-            p_grid->pGetPreviousElementInX(next_id, reverse_id, dummy_found, dummy_local_end);
+            bool local_end_reversed;
+            p_grid->pGetPreviousElementInX(next_id, reverse_id, dummy_found, local_end_reversed);
+            if( local_end ) {
+                QuESo_CHECK(local_end_reversed);
+            }
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
         QuESo_CHECK_EQUAL(next_id, i+1);
-        if( next_id == 10 ){
+        if( next_id == 17 ){
             QuESo_CHECK(local_end);
             QuESo_CHECK_IS_FALSE(found);
         }
@@ -81,7 +84,7 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridX) {
             QuESo_CHECK_EQUAL(neighbour->GetId(), i+1);
             QuESo_CHECK(found);
 
-            if( neighbour->GetId() % 3 == 0 ){
+            if( current_id % 3 == 0 ){
                 QuESo_CHECK(local_end);
             }
             else {
@@ -120,14 +123,17 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridY) {
         if( found ){
             IndexType reverse_id;
             bool dummy_found;
-            bool dummy_local_end;
-            p_grid->pGetPreviousElementInY(next_id, reverse_id, dummy_found, dummy_local_end);
+            bool local_end_reversed;
+            p_grid->pGetPreviousElementInY(next_id, reverse_id, dummy_found, local_end_reversed);
+            if( local_end ) {
+                QuESo_CHECK(local_end_reversed);
+            }
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
         QuESo_CHECK_EQUAL(static_cast<int>(next_id), test_next_ids[i]);
 
-        if( next_id == 10 ){
+        if( next_id == 17 ){
             QuESo_CHECK(local_end);
             QuESo_CHECK_IS_FALSE(found);
         }
@@ -135,7 +141,7 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridY) {
             QuESo_CHECK_EQUAL(found, true);
             QuESo_CHECK_EQUAL(static_cast<int>(neighbour->GetId()), test_next_ids[i]);
 
-            if( contains(test_local_ends, neighbour->GetId()) ){
+            if( contains(test_local_ends, current_id) ){
                 QuESo_CHECK(local_end);
             }
             else {
@@ -167,14 +173,18 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridZ) {
         if( found ){
             IndexType reverse_id;
             bool dummy_found;
-            bool dummy_local_end;
-            p_grid->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, dummy_local_end);
+            bool local_end_reversed;
+
+            p_grid->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, local_end_reversed);
+            if( local_end ) {
+                QuESo_CHECK(local_end_reversed);
+            }
             QuESo_CHECK_EQUAL(current_id, reverse_id);
             active_element_counter++;
         }
         QuESo_CHECK_EQUAL(static_cast<int>(next_id), test_next_ids[i]);
 
-        if( next_id == 10 ){
+        if( next_id == 17 ){
             QuESo_CHECK(local_end);
             QuESo_CHECK_IS_FALSE(found);
         }
@@ -182,7 +192,7 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridZ) {
             QuESo_CHECK(found);
             QuESo_CHECK_EQUAL(static_cast<int>(neighbour->GetId()), test_next_ids[i]);
 
-            if( contains(test_local_ends, neighbour->GetId()) ){
+            if( contains(test_local_ends, current_id) ){
                 QuESo_CHECK(local_end);
             }
             else {
