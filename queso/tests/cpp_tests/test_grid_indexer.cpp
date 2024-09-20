@@ -187,25 +187,34 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
 
     // Walk foward
     IndexType index = 0;
-    bool local_end = false;
+    GridIndexer::IndexInfo index_info{};
     IndexType i = 0;
     while(index < grid_indexer.NumberOfElements()-1 ){
-        bool should_be_local_end = ((index+1)%3 == 0);
-        index = grid_indexer.GetNextIndexX(index, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if ((index+1)%3 == 0) { index_info_ref = GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexX(index);
         ++i;
         QuESo_CHECK_EQUAL(index, i);
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 59);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexX(index);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
     QuESo_CHECK_EQUAL(index, 59);
     --i;
 
+    // Walk backwards
     while( index > 0) {
-        bool should_be_local_end = ((index)%3 == 0);
-        index = grid_indexer.GetPreviousIndexX(index, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if ((index)%3 == 0) { index_info_ref = GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexX(index);
         QuESo_CHECK_EQUAL(index, i);
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         --i;
     }
+    QuESo_CHECK_EQUAL(index, 0);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexX(index);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 0);
 }
 
@@ -228,30 +237,38 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
     GridIndexer grid_indexer(settings);
     // Walk foward
     IndexType index = 0;
-    bool local_end = false;
+    GridIndexer::IndexInfo index_info;
     IndexType i = 1;
     std::vector<IndexType> order_y = {0,3,6,9,1,4,7,10,2,5,8,11,12,15,18,21,13,16,19,22,14,17,20,23,24,27,30,
         33,25,28,31,34,26,29,32,35,36,39,42,45,37,40,43,46,38,41,44,47,48,51,54,57,49,52,55,58,50,53,56,59};
     std::vector<IndexType> local_ends_y = {9, 10, 11, 21, 22, 23, 33, 34, 35, 45, 46, 47, 57, 58};
     while(index < grid_indexer.NumberOfElements()-1 ){
-        bool should_be_local_end = contains(local_ends_y, index);
-        index = grid_indexer.GetNextIndexY(index, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends_y, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexY(index);
         QuESo_CHECK_EQUAL(order_y[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 59);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexY(index);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 59);
+    --i;
 
     local_ends_y = {0, 1, 2, 12, 13, 14, 24, 25, 26, 36, 37, 38, 48, 49, 50};
     while( index > 0) {
-        bool should_be_local_end = contains(local_ends_y, index);
-        index = grid_indexer.GetPreviousIndexY(index, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends_y, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexY(index);
         --i;
         QuESo_CHECK_EQUAL(order_y[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 0);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 0);
 }
 
@@ -275,32 +292,40 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
     GridIndexer grid_indexer(settings);
     // Walk foward
     IndexType index = 0;
-    bool local_end = false;
+    GridIndexer::IndexInfo index_info;
     IndexType i = 1;
     std::vector<IndexType> order_z = {0,12,24,36,48,1,13,25,37,49,2,14,26,38,50,3,15,27,39,51,4,16,28,40,52,5,17,29,41,53,
         6,18,30,42,54,7,19,31,43,55,8,20,32,44,56,9,21,33,45,57,10,22,34,46,58,11,23,35,47,59};
 
     std::vector<IndexType> local_ends_z = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58};
-    while(index < grid_indexer.NumberOfElements() - 1 ){
-        bool should_be_local_end = contains(local_ends_z, index);
-        index = grid_indexer.GetNextIndexZ(index, local_end);
+    while(index < grid_indexer.NumberOfElements()-1  ){
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends_z, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexZ(index);
         QuESo_CHECK_EQUAL(order_z[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 59);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexZ(index);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 59);
+    --i;
 
     // Walk backwards
     local_ends_z = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     while( index > 0) {
-        bool should_be_local_end = contains(local_ends_z, index);
-        index = grid_indexer.GetPreviousIndexZ(index, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends_z, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index);
         --i;
         QuESo_CHECK_EQUAL(order_z[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 0);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 0);
 }
 
@@ -325,32 +350,39 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
     IndexType index = 16;
-    bool local_end = false;
+    GridIndexer::IndexInfo index_info;
     IndexType i = 1;
     std::vector<IndexType> order = {16, 17, 19, 20, 22, 23, 28, 29, 31, 32, 34, 35, 40, 41, 43, 44, 46, 47};
     std::vector<IndexType> local_ends = {17, 20, 23, 29, 32, 35, 41, 44, 47};
     while(index < 47 ){
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetNextIndexX(index, local_partition_1, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexX(index, local_partition_1);
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 47);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexX(index, local_partition_1);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 47);
+    --i;
 
     // Walk backwards
     local_ends = {16, 19, 22, 28, 31, 34, 40, 43, 46};
     while( index > 16) {
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetPreviousIndexX(index, local_partition_1, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexX(index, local_partition_1);
         --i;
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
     QuESo_CHECK_EQUAL(index, 16);
-
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexX(index, local_partition_1);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
+    QuESo_CHECK_EQUAL(index, 16);
 
     PartitionBoxType local_partition_2 = std::make_pair(Vector3i({0, 0, 0}), Vector3i({1, 1, 2}));
     // Walk foward
@@ -359,25 +391,33 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
     order = {0, 1, 3, 4, 12, 13, 15, 16, 24, 25, 27, 28};
     local_ends = {1, 4, 13, 16, 25, 28};
     while(index < 28 ){
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetNextIndexX(index, local_partition_2, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexX(index, local_partition_2);
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 28);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexX(index, local_partition_2);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 28);
+    --i;
 
     // Walk backwards
     local_ends = {0, 3, 12, 15, 24, 27};
     while( index > 0) {
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetPreviousIndexX(index, local_partition_2, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexX(index, local_partition_2);
         --i;
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 0);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexX(index, local_partition_2);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 0);
 }
 
@@ -402,30 +442,38 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
     IndexType index = 16;
-    bool local_end = false;
+    GridIndexer::IndexInfo index_info;
     IndexType i = 1;
     std::vector<IndexType> order = {16, 19, 22, 17, 20, 23, 28, 31, 34, 29, 32, 35, 40, 43, 46, 41, 44, 47};
     std::vector<IndexType> local_ends = {22, 23, 34, 35, 46, 47};
     while(index < 47 ){
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetNextIndexY(index, local_partition_1, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexY(index, local_partition_1);
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 47);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexY(index, local_partition_1);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 47);
+    --i;
 
     // Walk backwards
     local_ends = {16, 17, 28, 29, 40, 41};
     while( index > 16) {
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetPreviousIndexY(index, local_partition_1, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexY(index, local_partition_1);
         --i;
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 16);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexY(index, local_partition_1);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 16);
 
 
@@ -436,25 +484,33 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
     order = {0, 3, 1, 4, 12, 15, 13, 16, 24, 27, 25, 28};
     local_ends = {3, 4, 15, 16, 27, 28};
     while(index < 28 ){
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetNextIndexY(index, local_partition_2, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexY(index, local_partition_2);
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 28);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexY(index, local_partition_2);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 28);
+    --i;
 
     // Walk backwards
     local_ends = {0, 1, 12, 13, 24, 25};
     while( index > 0) {
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetPreviousIndexY(index, local_partition_2, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexY(index, local_partition_2);
         --i;
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 0);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexY(index, local_partition_2);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 0);
 }
 
@@ -480,32 +536,39 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
     IndexType index = 16;
-    bool local_end = false;
+    GridIndexer::IndexInfo index_info;
     IndexType i = 1;
     std::vector<IndexType> order = {16, 28, 40, 17, 29, 41, 19, 31, 43, 20, 32, 44, 22, 34, 46, 23, 35, 47};
     std::vector<IndexType> local_ends = {40, 41, 43, 44, 46, 47};
     while(index < 47 ){
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetNextIndexZ(index, local_partition_1, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexZ(index, local_partition_1);
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 47);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexZ(index, local_partition_1);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 47);
+    --i;
 
     // Walk backwards
     local_ends = {16, 17, 19, 20, 22, 23};
     while( index > 16) {
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetPreviousIndexZ(index, local_partition_1, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index, local_partition_1);
         --i;
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
     QuESo_CHECK_EQUAL(index, 16);
-
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index, local_partition_1);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
+    QuESo_CHECK_EQUAL(index, 16);
 
     PartitionBoxType local_partition_2 = std::make_pair(Vector3i({0, 0, 0}), Vector3i({1, 1, 2}));
     // Walk foward
@@ -514,25 +577,33 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
     order = {0, 12, 24, 1, 13, 25, 3, 15, 27, 4, 16, 28};
     local_ends = {27, 28, 24, 25};
     while(index < 28 ){
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetNextIndexZ(index, local_partition_2, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetNextIndexZ(index, local_partition_2);
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
         ++i;
     }
 
-    --i;
     QuESo_CHECK_EQUAL(index, 28);
+    std::tie(index, index_info) = grid_indexer.GetNextIndexZ(index, local_partition_2);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end );
+    QuESo_CHECK_EQUAL(index, 28);
+    --i;
 
     // Walk backwards
     local_ends = {0, 1, 3, 4};
     while( index > 0) {
-        bool should_be_local_end = contains(local_ends, index);
-        index = grid_indexer.GetPreviousIndexZ(index, local_partition_2, local_end);
+        GridIndexer::IndexInfo index_info_ref = GridIndexer::IndexInfo::middle;
+        if( contains(local_ends, index) ) { index_info_ref =  GridIndexer::IndexInfo::local_end; }
+        std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index, local_partition_2);
         --i;
         QuESo_CHECK_EQUAL(order[i], index)
-        QuESo_CHECK_EQUAL(local_end, should_be_local_end);
+        QuESo_CHECK_EQUAL(index_info, index_info_ref);
     }
+    QuESo_CHECK_EQUAL(index, 0);
+    std::tie(index, index_info) = grid_indexer.GetPreviousIndexZ(index, local_partition_2);
+    QuESo_CHECK_EQUAL(index_info, GridIndexer::IndexInfo::global_end);
     QuESo_CHECK_EQUAL(index, 0);
 }
 

@@ -68,12 +68,13 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridX) {
     QuESo_CHECK_EQUAL(p_grid->size(), 23);
     IndexType active_element_counter = 1;
     for( IndexType i = 1; i < p_grid->size() + 1; ++i){
-        auto neighbour = p_grid->pGetNextElementInX(current_id, next_id, found, local_end);
-        if( found ){
+        auto neighbour = p_grid->pGetNextElementInX(current_id, next_id, local_end);
+        found = false;
+        if( neighbour ){
+            found = true;
             IndexType reverse_id;
-            bool dummy_found;
             bool local_end_reversed;
-            p_grid->pGetPreviousElementInX(next_id, reverse_id, dummy_found, local_end_reversed);
+            p_grid->pGetPreviousElementInX(next_id, reverse_id, local_end_reversed);
             if( local_end ) {
                 QuESo_CHECK(local_end_reversed);
             }
@@ -124,12 +125,13 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridY) {
     QuESo_CHECK_EQUAL(p_grid->size(), 23);
     IndexType active_element_counter = 1;
     for( IndexType i = 1; i < p_grid->size() + 1; ++i){
-        auto neighbour = p_grid->pGetNextElementInY(current_id, next_id, found, local_end);
-        if( found ){
+        found = false;
+        auto neighbour = p_grid->pGetNextElementInY(current_id, next_id, local_end);
+        if( neighbour ){
+            found = true;
             IndexType reverse_id;
-            bool dummy_found;
             bool local_end_reversed;
-            p_grid->pGetPreviousElementInY(next_id, reverse_id, dummy_found, local_end_reversed);
+            p_grid->pGetPreviousElementInY(next_id, reverse_id, local_end_reversed);
             if( local_end ) {
                 QuESo_CHECK(local_end_reversed);
             }
@@ -174,13 +176,14 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridZ) {
     QuESo_CHECK_EQUAL(p_grid->size(), 23);
     IndexType active_element_counter = 1;
     for( IndexType i = 1; i < p_grid->size() + 1; ++i){
-        auto neighbour = p_grid->pGetNextElementInZ(current_id, next_id, found, local_end);
-        if( found ){
+        found = false;
+        auto neighbour = p_grid->pGetNextElementInZ(current_id, next_id, local_end);
+        if( neighbour ){
+            found = true;
             IndexType reverse_id;
-            bool dummy_found;
             bool local_end_reversed;
 
-            p_grid->pGetPreviousElementInZ(next_id, reverse_id, dummy_found, local_end_reversed);
+            p_grid->pGetPreviousElementInZ(next_id, reverse_id, local_end_reversed);
             if( local_end ) {
                 QuESo_CHECK(local_end_reversed);
             }
