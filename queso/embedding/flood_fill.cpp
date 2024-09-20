@@ -114,7 +114,7 @@ void FloodFill::PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBo
         for( IndexType i = partition.first[0]; i < partition.second[0]; ++i ){
             for( IndexType j = partition.first[1]; j < partition.second[1]; ++j ) {
                 for( IndexType k = partition.first[2]; k < partition.second[2]; ++k ) {
-                    const IndexType index = mMapper.GetVectorIndexFromMatrixIndices(i, j, k);
+                    const IndexType index = mGridIndexer.GetVectorIndexFromMatrixIndices(i, j, k);
                     if( !visited[index] ) { // Unvisited
                         GroupSetType new_group; // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
                         std::get<0>(new_group) = p_i; // Partition index
@@ -135,7 +135,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
 
     // Set Index as visited
     rVisited[Index] = true;
-    const auto box = mMapper.GetBoundingBoxXYZFromIndex(Index);
+    const auto box = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
     // Only start filling if current element is not trimmed.
     if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
         rStates[Index] = IntersectionStatus::Trimmed;
@@ -173,6 +173,7 @@ int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSe
 
     PointType lower_perturb{0.0, 0.0, 0.0};
     PointType upper_perturb{0.0, 0.0, 0.0};
+
     int next_index = GetNextIndex(Direction, index, rPartition, lower_perturb, upper_perturb);
 
     // Check if out-of-range
@@ -182,7 +183,7 @@ int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSe
 
     // If next box is trimmed, add inside count.
     // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
-    auto box_next = mMapper.GetBoundingBoxXYZFromIndex(next_index);
+    auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
     if( mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_perturb) , Math::Add(box_next.second, upper_perturb) )){
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
@@ -241,13 +242,13 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
 
         // Loop over elements in active group.
         for(auto& index : index_set ){
-            const auto indices = mMapper.GetMatrixIndicesFromVectorIndex(index);
+            const auto indices = mGridIndexer.GetMatrixIndicesFromVectorIndex(index);
 
             //// Find boundary indices. We consider only boundary indices that also bound the bounding box of each element.
             // Upper bound
             if( static_cast<int>(indices[PartitionDir]) >= std::get<1>( group_bounding_box ) ){
                 auto next_index = GetNextIndex(walk_directions[0], index, lower_offset, upper_offset );
-                auto box_next = mMapper.GetBoundingBoxXYZFromIndex(next_index);
+                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed(Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ) {
                     if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
                         std::get<1>( group_bounding_box ) = indices[PartitionDir];
@@ -259,7 +260,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
             // Lower bound
             if( static_cast<int>(indices[PartitionDir]) <= std::get<0>( group_bounding_box ) ){
                 auto next_index = GetNextIndex(walk_directions[1], index, lower_offset, upper_offset );
-                auto box_next = mMapper.GetBoundingBoxXYZFromIndex(next_index);
+                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ){
                     if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
                         std::get<0>( group_bounding_box ) = indices[PartitionDir];
@@ -273,7 +274,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
             // Lower bound.
             if( indices[PartitionDir] == std::get<1>(rPartitions[partition_index])[PartitionDir]-1 ) {
                 auto next_index = GetNextIndex(walk_directions[0], index, lower_offset, upper_offset );
-                auto box_next = mMapper.GetBoundingBoxXYZFromIndex(next_index);
+                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
                 if( mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
@@ -281,7 +282,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
             // Upper bound.
             if( indices[PartitionDir] == std::get<0>(rPartitions[partition_index])[PartitionDir] ) {
                 auto next_index = GetNextIndex(walk_directions[1], index, lower_offset, upper_offset );
-                auto box_next = mMapper.GetBoundingBoxXYZFromIndex(next_index);
+                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
                 if( mpBrepOperator->IsTrimmed( Math::Add( box_next.first, lower_offset), Math::Add( box_next.second, upper_offset) ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
@@ -360,8 +361,8 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
 }
 
 int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
-    const auto box_current = mMapper.GetBoundingBoxXYZFromIndex(Index);
-    const auto box_next = mMapper.GetBoundingBoxXYZFromIndex(NextIndex);
+    const auto box_current = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
+    const auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(NextIndex);
     const PointType center_box = Math::AddAndMult(0.5, box_current.first, box_current.second);
 
     if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, Math::Add(box_next.first, rLowerOffset) , Math::Add(box_next.second, rUpperOffset) ) ) {
@@ -382,8 +383,30 @@ int FloodFill::GetNextIndex( IndexType Direction, IndexType Index, PointType& rL
     return GetNextIndex(Direction, Index, partition_box, rLowerBoundOffset, rUpperBoundOffset);
 }
 
+BoundingBoxType FloodFill::GetOffsets(IndexType Direction ) const {
+    const double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
+    switch(Direction){
+        case 0:
+            return std::make_pair(PointType{-tolerance, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
+        case 1:
+            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{tolerance, 0.0, 0.0});
+
+        case 2:
+            return std::make_pair(PointType{0.0, -tolerance, 0.0}, PointType{0.0, 0.0, 0.0});
+        case 3:
+            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, tolerance, 0.0});
+        case 4:
+            return std::make_pair(PointType{0.0, 0.0, -tolerance}, PointType{0.0, 0.0, 0.0});
+        case 5:
+            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, tolerance});
+        default:
+            assert(false);
+            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
+    }
+}
+
 int FloodFill::GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const {
-    const auto indices = mMapper.GetMatrixIndicesFromVectorIndex(Index);
+    const auto indices = mGridIndexer.GetMatrixIndicesFromVectorIndex(Index);
     Vector3i next_indices = indices;
     rLowerBoundOffset = {0.0, 0.0, 0.0};
     rUpperBoundOffset = {0.0, 0.0, 0.0};
@@ -423,7 +446,7 @@ int FloodFill::GetNextIndex(IndexType Direction, IndexType Index, const Partitio
             QuESo_ERROR << " Direction is out-of-range.\n";
     }
 
-    return mMapper.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
+    return mGridIndexer.GetVectorIndexFromMatrixIndices(next_indices[0], next_indices[1], next_indices[2]);
 }
 
 } // End namespace queso
