@@ -25,8 +25,8 @@ namespace Mapping {
 
     /// @brief Maps point from global to parametric space.
     /// @param rGlobalCoord Point to map.
-    /// @param rBoundsXYZ physical bounds of background mesh.
-    /// @param rBoundsUVW parametric bounds of background mesh.
+    /// @param rBoundsXYZ physical bounds of background grid.
+    /// @param rBoundsUVW parametric bounds of background grid.
     /// @return PointType
     inline PointType PointFromGlobalToParam( const PointType& rGlobalCoord, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW){
         const auto delta_xyz = Math::Subtract( rBoundsXYZ.second, rBoundsXYZ.first );
@@ -39,8 +39,8 @@ namespace Mapping {
 
     /// @brief Maps point from parametric to global space.
     /// @param rLocalCoord Point to map.
-    /// @param rBoundsXYZ of background mesh.
-    /// @param rBoundsUVW of background mesh.
+    /// @param rBoundsXYZ physical bounds of background grid.
+    /// @param rBoundsUVW parametric bounds of background grid.
     /// @return PointType.
     inline PointType PointFromParamToGlobal( const PointType& rLocalCoord, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW){
         const auto delta_xyz = Math::Subtract( rBoundsXYZ.second,  rBoundsXYZ.first );
