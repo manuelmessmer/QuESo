@@ -19,7 +19,7 @@
 #include <memory>
 //// Project includes
 #include "queso/embedding/trimmed_domain.h"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/utilities/mapping_utilities.hpp"
 
 namespace queso {
 

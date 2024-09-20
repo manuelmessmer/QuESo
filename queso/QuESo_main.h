@@ -27,7 +27,7 @@
 #include "queso/containers/element.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/condition.hpp"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/containers/grid_indexer.hpp"
 #include "queso/includes/settings.hpp"
 #include "queso/embedding/brep_operator.h"
 
@@ -63,7 +63,7 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    QuESo(const Settings& rSettings ) : mSettings(rSettings), mMapper(mSettings) {
+    QuESo(const Settings& rSettings ) : mSettings(rSettings), mGridIndexer(mSettings) {
 
         const_cast<Settings&>(mSettings).Check();
         mpTriangleMesh = MakeUnique<TriangleMesh>();
@@ -142,7 +142,7 @@ private:
     Unique<BackgroundGridType> mpBackgroundGrid;
     ConditionVectorType mConditions;
     const Settings mSettings;
-    Mapper mMapper;
+    GridIndexer mGridIndexer;
     ///@}
 
     ///@name Private Member Operations

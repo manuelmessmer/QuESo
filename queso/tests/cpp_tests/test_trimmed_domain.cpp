@@ -77,14 +77,14 @@ void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
     const Vector3i order =  rSettings[MainSettings::background_grid_settings].
         GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
 
-    Mapper mapper(rSettings);
+    GridIndexer grid_indexer(rSettings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
         const Vector3d delta_xyz = Math::Subtract( upper_bound_xyz, lower_bound_xyz );
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
         const Vector3d lower_bound_uvw = bounding_box_uvw.first;
         const Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -251,10 +251,10 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     double volume = 0.0;
     double area = 0.0;
 
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
 

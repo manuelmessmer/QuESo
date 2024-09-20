@@ -17,7 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/containers/grid_indexer.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/QuESo_main.h"
 

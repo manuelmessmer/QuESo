@@ -112,7 +112,7 @@ void QuESo::Run()
 std::array<double,5> QuESo::Compute(){
 
     // Reserve element container
-    const IndexType global_number_of_elements = mMapper.NumberOfElements();
+    const IndexType global_number_of_elements = mGridIndexer.NumberOfElements();
     mpBackgroundGrid->reserve(global_number_of_elements);
 
     // Time Variables
@@ -150,8 +150,8 @@ std::array<double,5> QuESo::Compute(){
 
         if( status == IntersectionStatus::Inside || status == IntersectionStatus::Trimmed ) {
             // Get bounding box of element
-            const auto bounding_box_xyz = mMapper.GetBoundingBoxXYZFromIndex(index);
-            const auto bounding_box_uvw = mMapper.GetBoundingBoxUVWFromIndex(index);
+            const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
+            const auto bounding_box_uvw = mGridIndexer.GetBoundingBoxUVWFromIndex(index);
 
             // Construct element and check status:
             Unique<ElementType> new_element = MakeUnique<ElementType>(index+1, bounding_box_xyz, bounding_box_uvw);
@@ -208,7 +208,7 @@ std::array<double,5> QuESo::Compute(){
     #pragma omp parallel for
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index ) {
         for( IndexType i = 0; i < mConditions.size(); ++i ){
-            const auto bounding_box_xyz = mMapper.GetBoundingBoxXYZFromIndex(index);
+            const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
             const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
             if( p_new_mesh->NumOfTriangles() > 0 ){
                 #pragma omp critical

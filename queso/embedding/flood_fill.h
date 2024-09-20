@@ -76,7 +76,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: Mapper.
+    /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: GridIndexer.
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @return Unique<StatusVectorType>.

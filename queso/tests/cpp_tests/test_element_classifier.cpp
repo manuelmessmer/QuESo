@@ -68,14 +68,14 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
 
-    const SizeType num_of_elements = mapper.NumberOfElements();
+    const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
     result.reserve(num_of_elements);
     std::vector<std::pair<PointType, PointType>> boxes{};
     for(IndexType i = 0; i < num_of_elements; ++i) {
-        auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+        auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
 
     }
@@ -112,13 +112,13 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
 
-    const SizeType num_of_elements = mapper.NumberOfElements();
+    const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
     result.reserve(num_of_elements);
     for( IndexType i = 0; i < num_of_elements; ++i ){
-        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+        const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
     }
 
@@ -154,12 +154,12 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
 
     std::vector<IndexType> result{};
     result.reserve(5376);
     for( IndexType i = 0; i < 5376; ++i ){
-        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+        const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
     }
 
@@ -195,13 +195,13 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
 
-    const SizeType num_of_elements = mapper.NumberOfElements();
+    const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
     result.reserve(num_of_elements);
     for( IndexType i = 0; i < num_of_elements; ++i){
-        const auto bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+        const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second ) );
     }
 
