@@ -34,6 +34,10 @@ namespace queso {
 */
 class GridIndexer {
 public:
+
+    enum class IndexInfo {middle, local_end, global_end};
+    typedef std::pair<IndexType, IndexInfo> IndexReturnType;
+
     ///@name Life Cycle
     ///@{
 
@@ -152,25 +156,24 @@ public:
     /// @brief Returns next index in given direction.
     /// @param Index current index.
     /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndex(IndexType Index, IndexType Direction, bool& LocalEnd) const {
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndex(IndexType Index, IndexType Direction) const {
         switch(Direction){
             case 0:
-                return GetNextIndexX(Index, LocalEnd);
+                return GetNextIndexX(Index);
             case 1:
-                return GetPreviousIndexX(Index, LocalEnd);
+                return GetPreviousIndexX(Index);
             case 2:
-                return GetNextIndexY(Index, LocalEnd);
+                return GetNextIndexY(Index);
             case 3:
-                return GetPreviousIndexY(Index, LocalEnd);
+                return GetPreviousIndexY(Index);
             case 4:
-                return GetNextIndexZ(Index, LocalEnd);
+                return GetNextIndexZ(Index);
             case 5:
-                return GetPreviousIndexZ(Index, LocalEnd);
+                return GetPreviousIndexZ(Index);
             default:
                 assert(false);
-                return 0;
+                return std::make_pair(0, IndexInfo::middle);
         }
     }
 
@@ -178,25 +181,24 @@ public:
     /// @param Index current index.
     /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndex(IndexType Index, IndexType Direction, const PartitionBoxType& rPartition, bool& LocalEnd) const {
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndex(IndexType Index, IndexType Direction, const PartitionBoxType& rPartition) const {
         switch(Direction){
             case 0:
-                return GetNextIndexX(Index, rPartition, LocalEnd);
+                return GetNextIndexX(Index, rPartition);
             case 1:
-                return GetPreviousIndexX(Index, rPartition, LocalEnd);
+                return GetPreviousIndexX(Index, rPartition);
             case 2:
-                return GetNextIndexY(Index, rPartition, LocalEnd);
+                return GetNextIndexY(Index, rPartition);
             case 3:
-                return GetPreviousIndexY(Index, rPartition, LocalEnd);
+                return GetPreviousIndexY(Index, rPartition);
             case 4:
-                return GetNextIndexZ(Index, rPartition, LocalEnd);
+                return GetNextIndexZ(Index, rPartition);
             case 5:
-                return GetPreviousIndexZ(Index, rPartition, LocalEnd);
+                return GetPreviousIndexZ(Index, rPartition);
             default:
                 assert(false);
-                return 0;
+                return std::make_pair(0, IndexInfo::middle);
         }
     }
 
@@ -204,17 +206,16 @@ public:
     /// @param i current index.
     /// @param[out] LocalEnd True if current index is a local end.
     /// @return IndexType
-    inline IndexType GetNextIndexX(IndexType i,  bool& rLocalEnd) const {
-        return GetNextIndexX(i, mGlobalPartition, rLocalEnd);
+    inline IndexReturnType GetNextIndexX(IndexType i) const {
+        return GetNextIndexX(i, mGlobalPartition);
     }
 
     /// @brief Returns next index in x-direction.
     /// @param i current index.
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndexX(IndexType i, const PartitionBoxType& rPartition, bool& rLocalEnd) const {
-        rLocalEnd = false;
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndexX(IndexType i, const PartitionBoxType& rPartition) const {
+        IndexInfo index_info = IndexInfo::middle;
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[0] < rPartition.second[0]) {
             indices[0] += 1;
@@ -222,35 +223,33 @@ public:
         else if (indices[1] < rPartition.second[1]) {
             indices[0] = rPartition.first[0];
             indices[1] += 1;
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         }
         else if (indices[2] < rPartition.second[2]) {
             indices[2] += 1;
             indices[1] = rPartition.first[1];
             indices[0] = rPartition.first[0];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         } else {
-            assert(false); // Should not be reached.
+            index_info = IndexInfo::global_end;
+            return std::make_pair(i, index_info);
         }
-
-        return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+        return std::make_pair(GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]), index_info);
     }
 
     /// @brief Returns next index in y-direction.
     /// @param i current index.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndexY(IndexType i,  bool& rLocalEnd) const {
-        return GetNextIndexY(i, mGlobalPartition, rLocalEnd);
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndexY(IndexType i) const {
+        return GetNextIndexY(i, mGlobalPartition);
     }
 
     /// @brief Returns next index in y-direction.
     /// @param i current index.
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndexY(IndexType i, const PartitionBoxType& rPartition, bool& rLocalEnd) const {
-        rLocalEnd = false;
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndexY(IndexType i, const PartitionBoxType& rPartition) const {
+        IndexInfo index_info = IndexInfo::middle;
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[1] < rPartition.second[1]) {
             indices[1] += 1;
@@ -258,35 +257,33 @@ public:
         else if( indices[0] < rPartition.second[0]){
             indices[0] += 1;
             indices[1] = rPartition.first[1];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         }
         else if( indices[2] < rPartition.second[2] ) {
             indices[2] += 1;
             indices[1] = rPartition.first[1];
             indices[0] = rPartition.first[0];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         } else {
-            assert(false); // Should not be reached.
+            index_info = IndexInfo::global_end;
+            return std::make_pair(i, index_info);
         }
-
-        return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+        return std::make_pair(GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]), index_info);
     }
 
     /// @brief Returns next index in z-direction.
     /// @param i current index.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndexZ(IndexType i,  bool& rLocalEnd) const {
-        return GetNextIndexZ(i, mGlobalPartition, rLocalEnd);
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndexZ(IndexType i) const {
+        return GetNextIndexZ(i, mGlobalPartition);
     }
 
     /// @brief Returns next index in z-direction.
     /// @param i current index.
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetNextIndexZ(IndexType i, const PartitionBoxType& rPartition, bool& rLocalEnd) const {
-        rLocalEnd = false;
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetNextIndexZ(IndexType i, const PartitionBoxType& rPartition) const {
+        IndexInfo index_info = IndexInfo::middle;
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[2] < rPartition.second[2]) {
             indices[2] += 1;
@@ -294,36 +291,34 @@ public:
         else if( indices[0] < rPartition.second[0]){
             indices[0] += 1;
             indices[2] = rPartition.first[2];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         }
         else if( indices[1] < rPartition.second[1]) {
             indices[1] += 1;
             indices[2] = rPartition.first[2];
             indices[0] = rPartition.first[0];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         } else {
-            assert(false); // Should not be reached.
+            index_info = IndexInfo::global_end;
+            return std::make_pair(i, index_info);
         }
-
-        return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+        return std::make_pair(GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]), index_info);
     }
 
 
     /// @brief Returns previous index in x-direction.
     /// @param i current index..
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetPreviousIndexX(IndexType i, bool& rLocalEnd) const {
-        return GetPreviousIndexX(i, mGlobalPartition, rLocalEnd);
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetPreviousIndexX(IndexType i) const {
+        return GetPreviousIndexX(i, mGlobalPartition);
     }
 
     /// @brief Returns previous index in x-direction.
     /// @param i current index.
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetPreviousIndexX(IndexType i, const PartitionBoxType& rPartition, bool& rLocalEnd) const {
-        rLocalEnd = false;
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetPreviousIndexX(IndexType i, const PartitionBoxType& rPartition) const {
+        IndexInfo index_info = IndexInfo::middle;
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[0] > rPartition.first[0] ) {
             indices[0] -= 1;
@@ -331,35 +326,33 @@ public:
         else if( indices[1] > rPartition.first[1] ){
             indices[0] = rPartition.second[0];
             indices[1] -= 1;
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         }
         else if( indices[2] > rPartition.first[2] ){
             indices[2] -= 1;
             indices[1] = rPartition.second[1];
             indices[0] = rPartition.second[0];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         } else {
-            assert(false); // Should not be reached.
+            index_info = IndexInfo::global_end;
+            return std::make_pair(i, index_info);
         }
-
-        return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+        return std::make_pair(GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]), index_info);
     }
 
     /// @brief Returns previous index in y-direction.
     /// @param i current index.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetPreviousIndexY(IndexType i, bool& rLocalEnd) const {
-        return GetPreviousIndexY(i, mGlobalPartition, rLocalEnd);
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetPreviousIndexY(IndexType i) const {
+        return GetPreviousIndexY(i, mGlobalPartition);
     }
 
     /// @brief Returns previous index in y-direction.
     /// @param i current index.
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetPreviousIndexY(IndexType i, const PartitionBoxType& rPartition, bool& rLocalEnd) const {
-        rLocalEnd = false;
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetPreviousIndexY(IndexType i, const PartitionBoxType& rPartition) const {
+        IndexInfo index_info = IndexInfo::middle;
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[1] > rPartition.first[1] ) {
             indices[1] -= 1;
@@ -367,35 +360,33 @@ public:
         else if( indices[0] > rPartition.first[0] ){
             indices[0] -= 1;
             indices[1] = rPartition.second[1];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         }
         else if( indices[2] > rPartition.first[2] ){
             indices[2] -= 1;
             indices[1] = rPartition.second[1];
             indices[0] = rPartition.second[0];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         } else {
-            assert(false); // Should not be reached.
+            index_info = IndexInfo::global_end;
+            return std::make_pair(i, index_info);
         }
+        return std::make_pair(GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]), index_info);
+    }
 
-        return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+    /// @brief Returns previous index in z-direction.
+    /// @param i current index.
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetPreviousIndexZ(IndexType i) const {
+        return GetPreviousIndexZ(i, mGlobalPartition);
     }
 
     /// @brief Returns previous index in z-direction.
     /// @param i current index.
     /// @param rPartition active partition.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetPreviousIndexZ(IndexType i, bool& rLocalEnd) const {
-        return GetPreviousIndexZ(i, mGlobalPartition, rLocalEnd);
-    }
-
-    /// @brief Returns previous index in z-direction.
-    /// @param i current index.
-    /// @param[out] LocalEnd True if current index is a local end.
-    /// @return IndexType
-    inline IndexType GetPreviousIndexZ(IndexType i, const PartitionBoxType& rPartition, bool& rLocalEnd) const {
-        rLocalEnd = false;
+    /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
+    inline IndexReturnType GetPreviousIndexZ(IndexType i, const PartitionBoxType& rPartition) const {
+        IndexInfo index_info = IndexInfo::middle;
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         if( indices[2] > rPartition.first[2] ){
             indices[2] -= 1;
@@ -403,26 +394,26 @@ public:
         else if( indices[0] > rPartition.first[0]){
             indices[0] -= 1;
             indices[2] = rPartition.second[2];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         }
         else if( indices[1] > rPartition.first[1]){
             indices[1] -= 1;
             indices[2] = rPartition.second[2];
             indices[0] = rPartition.second[0];
-            rLocalEnd = true;
+            index_info = IndexInfo::local_end;
         } else {
-            assert(false);
+            index_info = IndexInfo::global_end;
+            return std::make_pair(i, index_info);
         }
-
-        return GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]);
+        return std::make_pair(GetVectorIndexFromMatrixIndices(indices[0], indices[1], indices[2]), index_info);
     }
 
     /// @brief Returns true if current index is a local end w.r.t. the given direction.
     /// @param i current index
     /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
     /// @return bool
-    bool IsLocalEnd(IndexType i, IndexType Direction){
-        return IsLocalEnd(i, Direction, mGlobalPartition);
+    bool IsEnd(IndexType i, IndexType Direction){
+        return IsEnd(i, Direction, mGlobalPartition);
     }
 
     /// @brief Returns true if current index is a local end w.r.t. the given direction.
@@ -430,9 +421,8 @@ public:
     /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
     /// @param rPartition active Partition
     /// @return bool
-    bool IsLocalEnd(IndexType i, IndexType Direction, const PartitionBoxType& rPartition ){
+    bool IsEnd(IndexType i, IndexType Direction, const PartitionBoxType& rPartition ){
         auto indices = GetMatrixIndicesFromVectorIndex(i);
-
         switch( Direction )
         {
         case 0: // Forward x
@@ -466,6 +456,7 @@ private:
                             Math::Add( rLowerBound, Math::MultElementWise(delta, Math::Add({1.0, 1.0, 1.0}, indices_d))) );
 
     }
+
     ///@name Private Members
     ///@{
 
@@ -478,6 +469,21 @@ private:
     ///@}
 }; // End class GridIndexer.
 ///@} End queso classes.
+
+
+/// Output stream function
+inline std::ostream& operator<<(std::ostream& os, GridIndexer::IndexInfo p) {
+    switch(p) {
+        case GridIndexer::IndexInfo::middle:
+            return (os << "middle");
+        case GridIndexer::IndexInfo::local_end:
+            return (os << "local_end");
+        case GridIndexer::IndexInfo::global_end:
+            return (os << "global_end");
+        default:
+            return os;
+    }
+}
 
 } // End namespace queso
 
