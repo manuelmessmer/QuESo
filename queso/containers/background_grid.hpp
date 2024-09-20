@@ -119,16 +119,15 @@ public:
 
     const ElementType* pGetElement(std::size_t id) const {
         auto found_key = mElementIdMap.find(id);
-        if( found_key == mElementIdMap.end() )
-            QuESo_ERROR << "ID does not exist.\n";
-        return mElements[found_key->second].get();
+        if( found_key != mElementIdMap.end() ){
+            return mElements[found_key->second].get();
+        }
+        return nullptr;
     }
 
-    ElementType* pGetElement(std::size_t id, bool& found){
+    ElementType* pGetElement(IndexType id){
         auto found_key = mElementIdMap.find(id);
-        found = false;
         if( found_key != mElementIdMap.end() ){
-            found = true;
             return mElements[found_key->second].get();
         }
         return nullptr;
@@ -163,80 +162,77 @@ public:
         mElementIdMap.reserve(new_capacity);
     }
 
-    ElementType* pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
-        local_end = false;
-        next_id = mGridIndexer.GetNextIndexX(id-1, local_end)+1;
-        auto found_element = pGetElement(next_id, found);
-        if( found == false){  // Element is not found
-            local_end = true;
+    ElementType* pGetNextElementInX(IndexType id, IndexType& next_id, bool& is_end) {
+        auto [next_index, index_info] = mGridIndexer.GetNextIndexX(id-1);
+        is_end = ( index_info != GridIndexer::IndexInfo::middle );
+        next_id = next_index + 1;
+        ElementType* p_element = pGetElement(next_id);
+        if( !p_element ){ // Element not found. This also indicates an end.
+            is_end = true;
         }
-        return found_element;
+        return p_element;
     }
 
-    ElementType* pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
-        local_end = false;
-        next_id = mGridIndexer.GetNextIndexY(id-1, local_end)+1;
-        auto found_element = pGetElement(next_id, found);
-
-        if( found == false){                            // Element is not found
-            local_end = true;
+    ElementType* pGetNextElementInY(IndexType id, IndexType& next_id, bool& is_end) {
+        auto [next_index, index_info] = mGridIndexer.GetNextIndexY(id-1);
+        is_end = ( index_info != GridIndexer::IndexInfo::middle );
+        next_id = next_index + 1;
+        ElementType* p_element = pGetElement(next_id);
+        if( !p_element ){ // Element not found. This also indicates an end.
+            is_end = true;
         }
-
-        return found_element;
+        return p_element;
     }
 
-    ElementType* pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
-        local_end = false;
-        next_id = mGridIndexer.GetNextIndexZ(id-1, local_end)+1;
-        auto found_element = pGetElement(next_id, found);
 
-        if( found == false){                            // Element is not found
-            local_end = true;
+    ElementType* pGetNextElementInZ(IndexType id, IndexType& next_id, bool& is_end) {
+        auto [next_index, index_info] = mGridIndexer.GetNextIndexZ(id-1);
+        is_end = ( index_info != GridIndexer::IndexInfo::middle );
+        next_id = next_index + 1;
+        ElementType* p_element = pGetElement(next_id);
+        if( !p_element ){ // Element not found. This also indicates an end.
+            is_end = true;
         }
-
-        return found_element;
+        return p_element;
     }
 
-    ElementType* pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
-        local_end = false;
-        next_id = mGridIndexer.GetPreviousIndexX(id-1, local_end)+1;
-        auto found_element = pGetElement(next_id, found);
 
-        if( found == false){                            // Element is not found
-            local_end = true;
+    ElementType* pGetPreviousElementInX(IndexType id, IndexType& next_id, bool& is_end) {
+        auto [next_index, index_info] = mGridIndexer.GetPreviousIndexX(id-1);
+        is_end = ( index_info != GridIndexer::IndexInfo::middle );
+        next_id = next_index + 1;
+        ElementType* p_element = pGetElement(next_id);
+        if( !p_element ){ // Element not found. This also indicates an end.
+            is_end = true;
         }
-        return found_element;
+        return p_element;
     }
 
-    ElementType* pGetPreviousElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
-        // Make sure current element exists
-        // TODO:: if id >= mLastElement error
-        local_end = false;
-        next_id = mGridIndexer.GetPreviousIndexY(id-1, local_end)+1;
-        auto found_element = pGetElement(next_id, found);
 
-        if( found == false){                            // Element is not found
-            local_end = true;
+    ElementType* pGetPreviousElementInY(IndexType id, IndexType& next_id, bool& is_end) {
+        auto [next_index, index_info] = mGridIndexer.GetPreviousIndexY(id-1);
+        is_end = ( index_info != GridIndexer::IndexInfo::middle );
+        next_id = next_index + 1;
+        ElementType* p_element = pGetElement(next_id);
+        if( !p_element ){ // Element not found. This also indicates an end.
+            is_end = true;
         }
-
-        return found_element;
+        return p_element;
     }
 
-    ElementType* pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
-        local_end = false;
-
-        next_id = mGridIndexer.GetPreviousIndexZ(id-1, local_end)+1;
-        auto found_element = pGetElement(next_id, found);
-
-        if( found == false){                            // Element is not found
-            local_end = true;
+    ElementType* pGetPreviousElementInZ(IndexType id, IndexType& next_id, bool& is_end) {
+        auto [next_index, index_info] = mGridIndexer.GetPreviousIndexZ(id-1);
+        is_end = ( index_info != GridIndexer::IndexInfo::middle );
+        next_id = next_index + 1;
+        ElementType* p_element = pGetElement(next_id);
+        if( !p_element ){ // Element not found. This also indicates an end.
+            is_end = true;
         }
-
-        return found_element;
+        return p_element;
     }
 
     bool IsLast(std::size_t id, std::size_t direction ){
-        return mGridIndexer.IsLocalEnd(id-1, direction);
+        return mGridIndexer.IsEnd(id-1, direction);
     }
 
     const IntegrationPointVectorPtrType pGetPoints(const char* type) const {
