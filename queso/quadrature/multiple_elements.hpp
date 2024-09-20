@@ -58,14 +58,13 @@ public:
         // Find neighbour relations!
         for( IndexType i = 0; i <= 2; ++i){
             bool local_end = false;
-            bool found = false;
             IndexType current_id = 1;
             IndexType next_id = 0;
             std::vector<ElementType*> door_to_door_neighbours;
             door_to_door_neighbours.reserve(20);
             // Check if element with index=1 is part of rElements.
-            const auto first_element = rElements.pGetElement(1, found);
-            if( found && !first_element->IsTrimmed() )
+            const auto first_element = rElements.pGetElement(1);
+            if( first_element && !first_element->IsTrimmed() )
                 door_to_door_neighbours.push_back(first_element);
 
             if( rNumberOfElements[i] == 1){
@@ -80,13 +79,13 @@ public:
                 ElementType* neighbour = nullptr;
 
                 if(i == 0)
-                    neighbour = rElements.pGetNextElementInX(current_id, next_id, found, local_end);
+                    neighbour = rElements.pGetNextElementInX(current_id, next_id, local_end);
                 else if(i==1)
-                    neighbour = rElements.pGetNextElementInY(current_id, next_id, found, local_end);
+                    neighbour = rElements.pGetNextElementInY(current_id, next_id, local_end);
                 else
-                    neighbour = rElements.pGetNextElementInZ(current_id, next_id, found, local_end);
+                    neighbour = rElements.pGetNextElementInZ(current_id, next_id, local_end);
 
-                if( found ){
+                if( neighbour ){
                     active_element_counter++;
                     if(neighbour->IsTrimmed()){ // Is trimmed can only be evaluated if element is found (otherwise nullptr)
                         local_end = true;
@@ -178,10 +177,9 @@ public:
                     int current_id = (*element_it)->GetId();
 
                     for( int direction = 0; direction < 6; ++direction){
-                        bool found = false;
                         if( !rElements.IsLast(current_id, direction) ){
-                            neighbour = NextElement(rElements, current_id, found, direction);
-                            if( found && !neighbour->IsVisited() && !neighbour->IsTrimmed() ){
+                            neighbour = NextElement(rElements, current_id, direction);
+                            if( neighbour && !neighbour->IsVisited() && !neighbour->IsTrimmed() ){
                                 neighbour_coeff[direction] += neighbour->NeighbourCoefficient();
                                 tmp_neighbours[direction].push_back(neighbour);
                             }
@@ -265,24 +263,24 @@ private:
         }
     }
 
-    static ElementType* NextElement(BackgroundGridType& rElements, std::size_t id, bool& found, int direction ) {
+    static ElementType* NextElement(BackgroundGridType& rElements, std::size_t id, int direction ) {
         bool dummy_local_end;
         std::size_t dummy_next_id;
 
         switch( direction )
         {
         case 0:
-            return rElements.pGetNextElementInX(id, dummy_next_id, found, dummy_local_end);
+            return rElements.pGetNextElementInX(id, dummy_next_id, dummy_local_end);
         case 1:
-            return rElements.pGetPreviousElementInX(id, dummy_next_id, found, dummy_local_end);
+            return rElements.pGetPreviousElementInX(id, dummy_next_id, dummy_local_end);
         case 2:
-            return rElements.pGetNextElementInY(id, dummy_next_id, found, dummy_local_end);
+            return rElements.pGetNextElementInY(id, dummy_next_id, dummy_local_end);
         case 3:
-            return rElements.pGetPreviousElementInY(id, dummy_next_id, found, dummy_local_end);
+            return rElements.pGetPreviousElementInY(id, dummy_next_id, dummy_local_end);
         case 4:
-            return rElements.pGetNextElementInZ(id, dummy_next_id, found, dummy_local_end);
+            return rElements.pGetNextElementInZ(id, dummy_next_id,  dummy_local_end);
         case 5:
-            return rElements.pGetPreviousElementInZ(id, dummy_next_id, found, dummy_local_end);
+            return rElements.pGetPreviousElementInZ(id, dummy_next_id, dummy_local_end);
         default:
             QuESo_ERROR << "There are only 6 different directions.\n";
         }
