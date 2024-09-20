@@ -22,7 +22,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/containers/grid_indexer.hpp"
 
 namespace queso {
 
@@ -60,15 +60,16 @@ public:
     /// @param pBrepOperator
     /// @param rSettings
     FloodFill(const BRepOperator* pBrepOperator, const SettingsBaseType& rSettings) :
-        mpBrepOperator(pBrepOperator), mMapper(rSettings),
-        mLowerBound(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz) ),
-        mUpperBound(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz) ),
+        mpBrepOperator(pBrepOperator), mGridIndexer(rSettings),
         mNumberOfElements( rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) )
     {
+
+        const auto& r_lower_bound = rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        const auto& r_upper_bound = rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
         // Obtain discretization of background mesh.
-        mDelta[0] = std::abs(mUpperBound[0] - mLowerBound[0]) / (mNumberOfElements[0]);
-        mDelta[1] = std::abs(mUpperBound[1] - mLowerBound[1]) / (mNumberOfElements[1]);
-        mDelta[2] = std::abs(mUpperBound[2] - mLowerBound[2]) / (mNumberOfElements[2]);
+        mDelta[0] = std::abs(r_upper_bound[0] - r_lower_bound[0]) / (mNumberOfElements[0]);
+        mDelta[1] = std::abs(r_upper_bound[1] - r_lower_bound[1]) / (mNumberOfElements[1]);
+        mDelta[2] = std::abs(r_upper_bound[2] - r_lower_bound[2]) / (mNumberOfElements[2]);
     }
 
     ///@}
@@ -165,42 +166,23 @@ private:
     /// @return int
     int GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const;
 
-    /// @brief Returns the next index for a given direction.
-    /// @param Direction
-    /// @param Index Current index.
-    /// @return int Next index.
-    int GetNextIndex( IndexType Direction, IndexType Index ) const;
 
-    /// @brief Returns the next index for a given direction. It also outputs 'offsets', which extend the size of the next element towards the direction
-    ///        of the start element to catch trimming surfaces that are exactly on the boundary.
-    /// @param Direction
-    /// @param Index
-    /// @param [out] rLowerBoundOffset
-    /// @param [out] rUpperBoundOffset
-    /// @return int NextIndex.
-    int GetNextIndex( IndexType Direction, IndexType Index, PointType& rLowerBoundOffset, PointType& rUpperBoundOffset ) const;
 
-    /// @brief Returns the next index for a given direction and partition. It also outputs 'offsets', which extend the size of the next element towards the direction
+    /// @brief Returns the offset for a given direction, which is used to extend the size of the next element towards the direction
     ///        of the start element to catch trimming surfaces that are exactly on the boundary.
-    /// @param Direction
-    /// @param Index
-    /// @param rPartition
-    /// @param [out] rLowerBoundOffset
-    /// @param [out] rUpperBoundOffset
-    /// @return int NextIndex.
-    int GetNextIndex(IndexType Direction, IndexType Index, const PartitionBoxType& rPartition,
-        PointType& rLowerBoundOffset, PointType& rUpperBoundOffset) const;
+    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @return BoundingBoxType
+    BoundingBoxType GetOffsets(IndexType Direction ) const;
+
 
     ///@}
     ///@name Members
     ///@{
 
     const BRepOperator* mpBrepOperator;
-    Mapper mMapper;
+    GridIndexer mGridIndexer;
 
     // The following parameters are global values, w.r.t. to the background mesh.
-    const PointType mLowerBound;
-    const PointType mUpperBound;
     const Vector3i mNumberOfElements;
     PointType mDelta;
 
