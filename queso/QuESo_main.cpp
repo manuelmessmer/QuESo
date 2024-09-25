@@ -142,7 +142,6 @@ std::array<double,5> QuESo::Compute(){
     p_classifications = mpBRepOperator->pGetElementClassifications(mSettings);
     et_check_intersect = timer_check_intersect.Measure();
 
-
     #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_moment_fitting) schedule(dynamic)
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index) {
         // Check classification status
