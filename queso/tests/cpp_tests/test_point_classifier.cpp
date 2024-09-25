@@ -20,7 +20,7 @@
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 
 namespace queso {
 namespace Testing {

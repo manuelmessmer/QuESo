@@ -23,11 +23,11 @@
 
 /// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/condition.hpp"
-#include "queso/utilities/mapping_utilities.h"
+#include "queso/containers/grid_indexer.hpp"
 #include "queso/includes/settings.hpp"
 #include "queso/embedding/brep_operator.h"
 
@@ -51,7 +51,7 @@ public:
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-    typedef ElementContainer<ElementType> ElementContainerType;
+    typedef BackgroundGrid<ElementType> BackgroundGridType;
 
     typedef std::vector<ElementType> ElementVectorType;
     typedef std::vector<Condition> ConditionVectorType;
@@ -63,7 +63,7 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    QuESo(const Settings& rSettings ) : mSettings(rSettings), mMapper(mSettings) {
+    QuESo(const Settings& rSettings ) : mSettings(rSettings), mGridIndexer(mSettings) {
 
         const_cast<Settings&>(mSettings).Check();
         mpTriangleMesh = MakeUnique<TriangleMesh>();
@@ -97,8 +97,8 @@ public:
 
     /// @brief Get all active elements.
     /// @return const Reference to ElementVectorPtrType
-    const ElementContainerType& GetElements() const {
-        return *mpElementContainer;
+    const BackgroundGridType& GetElements() const {
+        return *mpBackgroundGrid;
     }
 
     /// @brief Get all conditions.
@@ -120,7 +120,7 @@ public:
         mpTriangleMesh->Clear();
         mpBRepOperator = nullptr;
         mpBrepOperatorsBC.clear();
-        mpElementContainer = nullptr;
+        mpBackgroundGrid = nullptr;
         mConditions.clear();
     }
 
@@ -139,10 +139,10 @@ private:
     Unique<TriangleMeshInterface> mpTriangleMesh;
     Unique<BRepOperator> mpBRepOperator;
     BRepOperatorPtrVectorType mpBrepOperatorsBC;
-    Unique<ElementContainerType> mpElementContainer;
+    Unique<BackgroundGridType> mpBackgroundGrid;
     ConditionVectorType mConditions;
     const Settings mSettings;
-    Mapper mMapper;
+    GridIndexer mGridIndexer;
     ///@}
 
     ///@name Private Member Operations

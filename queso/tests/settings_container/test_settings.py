@@ -30,8 +30,8 @@ class TestSettingsContainer(QuESoTestCase):
         background_grid_settings = settings[QuESo.MainSettings.background_grid_settings]
 
         self.assertTrue(background_grid_settings.IsSet(QuESo.BackgroundGridSettings.grid_type))
-        grid_type = background_grid_settings.GetBackgroundGridType(QuESo.BackgroundGridSettings.grid_type)
-        self.assertEqual(grid_type, QuESo.BackgroundGridType.b_spline_grid)
+        grid_type = background_grid_settings.GetGridType(QuESo.BackgroundGridSettings.grid_type)
+        self.assertEqual(grid_type, QuESo.GridType.b_spline_grid)
 
         self.assertTrue(background_grid_settings.IsSet(QuESo.BackgroundGridSettings.lower_bound_xyz))
         lower_bound_xyz = background_grid_settings.GetDoubleVector(QuESo.BackgroundGridSettings.lower_bound_xyz)

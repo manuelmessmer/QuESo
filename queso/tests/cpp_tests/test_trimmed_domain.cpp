@@ -77,14 +77,14 @@ void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
     const Vector3i order =  rSettings[MainSettings::background_grid_settings].
         GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
 
-    Mapper mapper(rSettings);
+    GridIndexer grid_indexer(rSettings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
         const Vector3d delta_xyz = Math::Subtract( upper_bound_xyz, lower_bound_xyz );
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
         const Vector3d lower_bound_uvw = bounding_box_uvw.first;
         const Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.5, 0.7, 0.45});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24.0, -43.0, 5.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46.0, 115});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-24.0, -43.0, 5.0});
@@ -201,7 +201,7 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
@@ -222,7 +222,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
 
     Vector3i number_of_elements = {1, 1, 1};
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, rLowerBound);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, rUpperBound);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rLowerBound);
@@ -251,10 +251,10 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     double volume = 0.0;
     double area = 0.0;
 
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
 

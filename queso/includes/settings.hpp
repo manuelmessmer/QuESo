@@ -78,7 +78,7 @@ public:
         /// BackgroundGridSettings
         auto& r_background_grid_settings = AddEmptySubDictionary(MainSettings::background_grid_settings, Str("background_grid_settings"));
         r_background_grid_settings.AddValues(std::make_tuple(
-            std::make_tuple(BackgroundGridSettings::grid_type, Str("grid_type"), BackgroundGridType::b_spline_grid, DontSet ),
+            std::make_tuple(BackgroundGridSettings::grid_type, Str("grid_type"), GridType::b_spline_grid, DontSet ),
             std::make_tuple(BackgroundGridSettings::lower_bound_xyz, Str("lower_bound_xyz"), PointType{0.0, 0.0, 0.0}, DontSet  ),
             std::make_tuple(BackgroundGridSettings::upper_bound_xyz, Str("upper_bound_xyz"), PointType{0.0, 0.0, 0.0}, DontSet  ),
             std::make_tuple(BackgroundGridSettings::lower_bound_uvw, Str("lower_bound_uvw"), PointType{0.0, 0.0, 0.0}, DontSet  ),

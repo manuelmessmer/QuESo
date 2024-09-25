@@ -45,7 +45,7 @@ void DictionaryBinderHelper(TBinderType& binder) {
         rDictionary.SetValue(rEnum, rValue); });
     binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, IntegrationMethodType rValue){
         rDictionary.SetValue(rEnum, rValue); });
-    binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, const BackgroundGridTypeType& rValue){
+    binder.def("SetValue", [](SettingsBaseType& rDictionary, TEnumType rEnum, const GridTypeType& rValue){
         rDictionary.SetValue(rEnum, rValue); });
 
     binder.def("GetDoubleVector", [](SettingsBaseType& rDictionary, TEnumType rEnum){
@@ -62,8 +62,8 @@ void DictionaryBinderHelper(TBinderType& binder) {
         return rDictionary.GetValue<std::string>(rEnum); });
     binder.def("GetIntegrationMethod", [](SettingsBaseType& rDictionary, TEnumType rEnum ){
         return rDictionary.GetValue<IntegrationMethodType>(rEnum); });
-    binder.def("GetBackgroundGridType", [](SettingsBaseType& rDictionary, TEnumType rEnum ){
-        return rDictionary.GetValue<BackgroundGridTypeType>(rEnum); });
+    binder.def("GetGridType", [](SettingsBaseType& rDictionary, TEnumType rEnum ){
+        return rDictionary.GetValue<GridTypeType>(rEnum); });
 }
 
 void AddSettingsToPython(pybind11::module& m) {

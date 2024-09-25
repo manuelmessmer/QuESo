@@ -17,7 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/quadrature/trimmed_element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
@@ -35,7 +35,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
@@ -51,14 +51,14 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound_xyz = bounding_box.first;
         Vector3d upper_bound_xyz = bounding_box.second;
 
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
         Vector3d lower_bound_uvw = bounding_box_uvw.first;
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::b_spline_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
@@ -159,14 +159,14 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound_xyz = bounding_box.first;
         Vector3d upper_bound_xyz = bounding_box.second;
 
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
         Vector3d lower_bound_uvw = bounding_box_uvw.first;
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, BackgroundGridType::hexahedral_fe_grid);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
@@ -253,14 +253,14 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    Mapper mapper(settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < mapper.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = mapper.GetBoundingBoxXYZFromIndex(i);
+    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound_xyz = bounding_box.first;
         Vector3d upper_bound_xyz = bounding_box.second;
 
-        const BoundingBoxType bounding_box_uvw = mapper.GetBoundingBoxUVWFromIndex(i);
+        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
         Vector3d lower_bound_uvw = bounding_box_uvw.first;
         Vector3d upper_bound_uvw = bounding_box_uvw.second;
 

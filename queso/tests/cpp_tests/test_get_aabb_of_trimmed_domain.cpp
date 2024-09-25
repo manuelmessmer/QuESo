@@ -17,7 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/containers/element_container.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"

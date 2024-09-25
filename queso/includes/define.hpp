@@ -35,6 +35,7 @@ typedef std::array<double,3> PointType;
 typedef std::array<double,3> Vector3d;
 typedef std::array<IndexType,3>  Vector3i;
 typedef std::pair<PointType, PointType> BoundingBoxType;
+typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
 
 ///@}
 ///@name QuESo GLOBAL VARIABLES
@@ -84,9 +85,9 @@ constexpr const char* IntegrationMethodToString(IntegrationMethodType rValue){
 enum IntersectionStatus {Inside, Outside, Trimmed};
 typedef IntersectionStatus IntersectionStatusType;
 
-enum class BackgroundGridType {b_spline_grid, hexahedral_fe_grid};
-typedef BackgroundGridType BackgroundGridTypeType;
-constexpr const char* BackgroundGridTypeToString(BackgroundGridTypeType rValue){
+enum class GridType {b_spline_grid, hexahedral_fe_grid};
+typedef GridType GridTypeType;
+constexpr const char* GridTypeToString(GridTypeType rValue){
     constexpr std::array<const char*, 2> type_to_string {{"b_spline_grid", "hexahedral_fe_grid"}};
     return type_to_string[static_cast<int>(rValue)];
 }
