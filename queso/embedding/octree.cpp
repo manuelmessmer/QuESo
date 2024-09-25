@@ -46,7 +46,7 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
         //    |________|/
         //    e        f
         //
-        if( (mLevel < MinLevel) || (mLevel < MaxLevel && mStatus == IntersectionStatus::Trimmed) ){
+        if( (mLevel < MinLevel) || (mLevel < MaxLevel && mStatus == IntersectionState::trimmed) ){
             // Corner a
             CreateNewNode(MinLevel, MaxLevel, 0, std::make_pair(r_lower_bound_xyz, Math::Add(r_lower_bound_xyz, delta_xyz) ),
                                                  std::make_pair(r_lower_bound_uvw, Math::Add(r_lower_bound_uvw, delta_uvw) ), pOperator);
@@ -112,7 +112,7 @@ void Octree<TOperator>::Node::NumberOfNodes(IndexType& rValue) const {
 template<typename TOperator>
 void Octree<TOperator>::Node::CreateNewNode(IndexType MinLevel, IndexType MaxLevel, IndexType ChildIndex, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW, const TOperator* pOperator){
     const auto status = pOperator->GetIntersectionState(rBoundsXYZ.first, rBoundsXYZ.second);
-    if( status != IntersectionStatus::Outside ){
+    if( status != IntersectionState::outside ){
         mChildren[ChildIndex] = MakeUnique<Node>(rBoundsXYZ, rBoundsUVW, status, mLevel+1);
         ++mNumChildren;
         mChildren[ChildIndex]->Refine(MinLevel, MaxLevel, pOperator);

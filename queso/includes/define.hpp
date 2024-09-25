@@ -15,6 +15,7 @@
 #define DEFINE_INCLUDE_HPP
 
 //// STL includes
+#include <ostream>
 #include <limits>
 #include <memory>
 #include <array>
@@ -82,14 +83,32 @@ constexpr const char* IntegrationMethodToString(IntegrationMethodType rValue){
     return type_to_string[static_cast<int>(rValue)];
 }
 
-enum IntersectionStatus {Inside, Outside, Trimmed};
-typedef IntersectionStatus IntersectionStatusType;
+enum class IntersectionState {inside, outside, trimmed};
+typedef IntersectionState IntersectionStateType;
+inline std::ostream& operator<<(std::ostream& rOs, IntersectionStateType Enum) {
+    switch(Enum) {
+        case IntersectionState::inside:
+            return (rOs << "Inside");
+        case IntersectionState::outside:
+            return (rOs << "Outside");
+        case IntersectionState::trimmed:
+            return (rOs << "Trimmed");
+        default:
+            return rOs;
+    }
+}
 
 enum class GridType {b_spline_grid, hexahedral_fe_grid};
 typedef GridType GridTypeType;
-constexpr const char* GridTypeToString(GridTypeType rValue){
-    constexpr std::array<const char*, 2> type_to_string {{"b_spline_grid", "hexahedral_fe_grid"}};
-    return type_to_string[static_cast<int>(rValue)];
+inline std::ostream& operator<<(std::ostream& rOs, GridTypeType Enum) {
+    switch(Enum) {
+        case GridType::b_spline_grid:
+            return (rOs << "b_spline_grid");
+        case GridType::hexahedral_fe_grid:
+            return (rOs << "hexahedral_fe_grid");
+        default:
+            return rOs;
+    }
 }
 
 // QuESo Factories
@@ -178,7 +197,7 @@ namespace Ptr {
 
 
 template<typename type>
-std::ostream& operator<<(std::ostream& rOStream, const std::array<type, 3>& rThis)  {
+inline std::ostream& operator<<(std::ostream& rOStream, const std::array<type, 3>& rThis)  {
     rOStream << '(' << rThis[0] << ", " << rThis[1] << ", " << rThis[2] << ')';
     return rOStream;
 }

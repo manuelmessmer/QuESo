@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 Vector3d lower_bound = {x, y, z};
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == IntersectionStatus::Trimmed){
+                if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == IntersectionStatus::Trimmed){
+                if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == IntersectionStatus::Trimmed){
+                if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
 
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
-                if( status == IntersectionStatus::Trimmed){
+                if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
                     const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );

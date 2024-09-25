@@ -121,17 +121,17 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
     return inside_count > 0;
 }
 
-IntersectionStatus BRepOperator::GetIntersectionState(
+IntersectionState BRepOperator::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
 
     if( mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance) ){
-        return IntersectionStatus::Trimmed;
+        return IntersectionState::trimmed;
     }
 
     // Multiple test do not seem to be necessary.
     // Note that for robust analysis, use flood flow.
-    // IntersectionStatus status_confirm = (IsInside(center)) ? Inside : Outside;
+    // IntersectionState status_confirm = (IsInside(center)) ? Inside : Outside;
     // while( status != status_confirm){
     //     status = (IsInside(center)) ? Inside : Outside;
     //     status_confirm = (IsInside(center)) ? Inside : Outside;
@@ -139,7 +139,7 @@ IntersectionStatus BRepOperator::GetIntersectionState(
 
     // Test if center is inside or outside.
     const PointType center = Math::AddAndMult(0.5, rUpperBound, rLowerBound);
-    IntersectionStatus status = (IsInside(center)) ? Inside : Outside;
+    IntersectionState status = (IsInside(center)) ? IntersectionState::inside : IntersectionState::outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;

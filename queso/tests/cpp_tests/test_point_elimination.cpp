@@ -66,7 +66,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
         ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
                                MakeBox(lower_bound_uvw, upper_bound_uvw));
 
-        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
+        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
         ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
                                MakeBox(lower_bound_uvw, upper_bound_uvw));
 
-        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
+        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
         ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
                                MakeBox(lower_bound_uvw, upper_bound_uvw));
 
-        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionStatus::Trimmed){
+        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){

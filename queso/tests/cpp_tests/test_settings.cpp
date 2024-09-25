@@ -181,12 +181,17 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::general_settings).GetValueNoCheck<IndexType>(GeneralSettings::echo_level), 2UL );
 
     /// Mesh settings
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType({1.0, 1.0, 2.0}));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType({0.0, 3.0, 2.0}));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({0.1, -1.0, 2.0}));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType({0.66, 1.0, 2.2}));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i({5, 6, 7}));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i({8, 9, 2}));
+
+    // QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<GridType>(BackgroundGridSettings::grid_type), GridType::b_spline_grid );
+    // QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<GridType>(BackgroundGridSettings::grid_type),
+    //     GridType::b_spline_grid );
 
     QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz), PointType({1.0, 1.0, 2.0}) );
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::background_grid_settings).GetValueNoCheck<PointType>(BackgroundGridSettings::lower_bound_xyz),

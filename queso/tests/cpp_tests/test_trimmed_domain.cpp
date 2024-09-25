@@ -97,7 +97,7 @@ void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
 
 
         const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz );
-        if( status == IntersectionStatus::Trimmed){
+        if( status == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
 
@@ -148,7 +148,7 @@ void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
             }
             number_trimmed_elements++;
         }
-        else if( status == IntersectionStatus::Inside ){
+        else if( status == IntersectionState::inside ){
             volume_test += delta_xyz[0]*delta_xyz[1]*delta_xyz[2];
         }
     }

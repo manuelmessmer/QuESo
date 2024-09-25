@@ -39,16 +39,16 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
     Vector3d lower_bound = {-2, -2, -2};
     Vector3d upper_bound = {-1.5, 2, 2};
     // Touch from outside with tolerance=0.0 is trimmed.
-    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), IntersectionStatus::Trimmed );
+    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), IntersectionState::trimmed );
     // Touch from outside with tolerance>0.0 is outside.
-    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), IntersectionStatus::Outside );
+    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), IntersectionState::outside );
 
     lower_bound = {-1.5, -1.5, -1.5};
     upper_bound = {-1.4, -1.4, -1.4};
     // Touch from inside with tolerance=0.0 is trimmed.
-    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), IntersectionStatus::Trimmed );
+    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 0.0), IntersectionState::trimmed );
     // Touch from inside with tolerance>0.0 is inside.
-    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), IntersectionStatus::Inside );
+    QuESo_CHECK_EQUAL( brep_operator.GetIntersectionState(lower_bound, upper_bound, 1e-8), IntersectionState::inside );
 }
 
 BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     std::vector<std::pair<PointType, PointType>> boxes{};
     for(IndexType i = 0; i < num_of_elements; ++i) {
         auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second)) );
 
     }
 
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     result.reserve(num_of_elements);
     for( IndexType i = 0; i < num_of_elements; ++i ){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second)) );
     }
 
     // Get flood fill solution
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     result.reserve(5376);
     for( IndexType i = 0; i < 5376; ++i ){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second)) );
     }
 
     // Get flood fill solution
@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     result.reserve(num_of_elements);
     for( IndexType i = 0; i < num_of_elements; ++i){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second ) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second )) );
     }
 
     // Get flood fill solution

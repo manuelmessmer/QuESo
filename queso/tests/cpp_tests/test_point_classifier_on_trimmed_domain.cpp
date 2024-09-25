@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound = bounding_box.first;
         const Vector3d upper_bound = bounding_box.second;
-        if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
+        if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 0.1;
             const double delta_p_y = 0.1;
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
             for(double z = -1.5001; z <= 1.5; z += delta_z){
                 Vector3d lower_bound = {x, y, z};
                 Vector3d upper_bound = {x+delta_x, y+delta_y, z+delta_z};
-                if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
+                if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     const double delta_p_x = 0.2;
                     const double delta_p_y = 0.2;
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound = bounding_box.first;
         Vector3d upper_bound = bounding_box.second;
-        if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
+        if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 0.01;
             const double delta_p_y = 0.01;
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         Vector3d lower_bound = bounding_box.first;
         Vector3d upper_bound = bounding_box.second;
-        if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionStatus::Trimmed){
+        if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 2;
             const double delta_p_y = 2;

@@ -41,7 +41,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements(GroupSetVectorType& rGroups
 
     // Set all elements as outside.
     StatusVectorType states(total_num_elements);
-    std::fill(states.begin(), states.end(), IntersectionStatus::Outside );
+    std::fill(states.begin(), states.end(), IntersectionState::outside );
 
     // Get max num elements. Partition will happen along side with max_elements.
     IndexType max_num_elements_per_dir = std::max<IndexType>( std::max<IndexType>(
@@ -108,7 +108,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements(GroupSetVectorType& rGroups
     // Mark states
     for( auto& r_group : rGroupsOutput ){
         int inside_count = std::get<2>(r_group);
-        auto state = (inside_count > 0) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+        auto state = (inside_count > 0) ? IntersectionState::inside : IntersectionState::outside;
         for( auto group_it = std::get<1>(r_group).begin(); group_it !=  std::get<1>(r_group).end(); ++group_it){
             states[*group_it] = state;
         }
@@ -151,7 +151,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
     const auto box = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
     // Only start filling if current element is not trimmed.
     if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
-        rStates[Index] = IntersectionStatus::Trimmed;
+        rStates[Index] = IntersectionState::trimmed;
     } else {
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<1>(rGroupSet).insert(Index);
@@ -208,7 +208,7 @@ int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSe
     // Is trimmed.
     if( mpBrepOperator->IsTrimmed(box_next.first, box_next.second) ){
         rVisited[next_index] = true;
-        rStates[next_index] = IntersectionStatus::Trimmed;
+        rStates[next_index] = IntersectionState::trimmed;
         return -1;
     }
 

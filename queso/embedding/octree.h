@@ -54,7 +54,7 @@ private:
         /// @param rBoundsUVW Bounds of AABB in parametric space..
         /// @param Status Options: 'Trimmed' or 'Inside'.
         /// @param Level Refinement Level (default - 0).
-        Node( const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW, IntersectionStatusType Status, IndexType Level = 0UL) :
+        Node( const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW, IntersectionStateType Status, IndexType Level = 0UL) :
             mBoundsXYZ(rBoundsXYZ), mBoundsUVW(rBoundsUVW), mStatus(Status), mLevel(Level)
         {
             mChildren = {nullptr};
@@ -84,7 +84,7 @@ private:
                 std::vector<typename TElementType::IntegrationPointType> integration_points_tmp{};
                 // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
                 QuadratureSingleElement<TElementType>::AssembleIPs(integration_points_tmp, mBoundsUVW.first, mBoundsUVW.second, rOrder);
-                if( mStatus == IntersectionStatus::Inside )
+                if( mStatus == IntersectionState::inside )
                     pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
                 else {
                     for( auto& point : integration_points_tmp){
@@ -134,7 +134,7 @@ private:
         ///@{
         BoundingBoxType mBoundsXYZ;
         BoundingBoxType mBoundsUVW;
-        IntersectionStatus mStatus;
+        IntersectionState mStatus;
         std::array<Unique<Node>, 8> mChildren{};
         SizeType mLevel;
         SizeType mNumChildren;
@@ -155,7 +155,7 @@ public:
         : mpOperator(pOperator) {
 
         // Create new root node.
-        mpRoot = MakeUnique<Node>(rBoundsXYZ, rBoundsUVW, IntersectionStatus::Trimmed, 0UL);
+        mpRoot = MakeUnique<Node>(rBoundsXYZ, rBoundsUVW, IntersectionState::trimmed, 0UL);
     }
 
     ///@}

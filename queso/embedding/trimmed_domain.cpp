@@ -97,16 +97,16 @@ const BoundingBoxType TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     return bounding_box;
 }
 
-IntersectionStatusType TrimmedDomain::GetIntersectionState(
+IntersectionStateType TrimmedDomain::GetIntersectionState(
         const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
 {
     if( mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance) ){
-        return IntersectionStatus::Trimmed;
+        return IntersectionState::trimmed;
     }
 
     // Test if center is inside or outside.
     const PointType center = Math::AddAndMult(0.5, rLowerBound, rUpperBound);
-    const auto status = IsInsideTrimmedDomain(center) ? IntersectionStatus::Inside : IntersectionStatus::Outside;
+    const auto status = IsInsideTrimmedDomain(center) ? IntersectionState::inside : IntersectionState::outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
     return status;

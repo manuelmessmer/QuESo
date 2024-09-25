@@ -44,7 +44,7 @@ public:
     ///@{
 
     typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
-    typedef std::vector<IntersectionStatusType> StatusVectorType;
+    typedef std::vector<IntersectionStateType> StatusVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -72,9 +72,9 @@ public:
     ///@tparam TElementType
     ///@note Calls: GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL)
     ///@param rElement
-    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
+    ///@return IntersectionState, enum: (0-Inside, 1-Outside, 2-Trimmed).
     template<typename TElementType>
-    IntersectionStatus GetIntersectionState(const TElementType& rElement) const {
+    IntersectionState GetIntersectionState(const TElementType& rElement) const {
         const auto& lower_bound = rElement.GetBoundsXYZ().first;
         const auto& upper_bound = rElement.GetBoundsXYZ().second;
         return GetIntersectionState(lower_bound, upper_bound);
@@ -87,8 +87,8 @@ public:
     ///@param rUpperBound Upper bound of AABB.
     ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
-    ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
+    ///@return IntersectionState, enum: (0-Inside, 1-Outside, 2-Trimmed).
+    IntersectionState GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
 
     /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: GridIndexer.
     /// @brief This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed

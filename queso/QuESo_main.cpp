@@ -146,9 +146,9 @@ std::array<double,5> QuESo::Compute(){
     #pragma omp parallel for reduction(+ : et_compute_intersection) reduction(+ : et_moment_fitting) schedule(dynamic)
     for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index) {
         // Check classification status
-        const IntersectionStatus status = (*p_classifications)[index];
+        const IntersectionState status = (*p_classifications)[index];
 
-        if( status == IntersectionStatus::Inside || status == IntersectionStatus::Trimmed ) {
+        if( status == IntersectionState::inside || status == IntersectionState::trimmed ) {
             // Get bounding box of element
             const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
             const auto bounding_box_uvw = mGridIndexer.GetBoundingBoxUVWFromIndex(index);
@@ -158,7 +158,7 @@ std::array<double,5> QuESo::Compute(){
             bool valid_element = false;
 
             // Distinguish between trimmed and non-trimmed elements.
-            if( status == IntersectionStatus::Trimmed) {
+            if( status == IntersectionState::trimmed) {
                 new_element->SetIsTrimmed(true);
                 Timer timer_compute_intersection{};
                 auto p_trimmed_domain = mpBRepOperator->pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
@@ -180,7 +180,7 @@ std::array<double,5> QuESo::Compute(){
                     }
                 }
             }
-            else if( status == IntersectionStatus::Inside){
+            else if( status == IntersectionState::inside){
                 // Get standard gauss legendre points
                 if( !ggq_rule_ise_used ){
                     QuadratureSingleElement<ElementType>::AssembleIPs(*new_element, polynomial_order, integration_method);

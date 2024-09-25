@@ -41,7 +41,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<IntersectionStatusType> StatusVectorType;
+    typedef std::vector<IntersectionStateType> StatusVectorType;
     typedef std::stack<IndexType> IndexStackType;
     typedef std::vector<bool> BoolVectorType;
     // GroupSetType holds the following information <Partition index, Element Indices, IsInsideCount>
