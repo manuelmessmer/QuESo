@@ -177,7 +177,7 @@ public:
                     int current_id = (*element_it)->GetId();
 
                     for( int direction = 0; direction < 6; ++direction){
-                        if( !rElements.IsLast(current_id, direction) ){
+                        if( !rElements.IsEnd(current_id, direction) ){
                             neighbour = NextElement(rElements, current_id, direction);
                             if( neighbour && !neighbour->IsVisited() && !neighbour->IsTrimmed() ){
                                 neighbour_coeff[direction] += neighbour->NeighbourCoefficient();
