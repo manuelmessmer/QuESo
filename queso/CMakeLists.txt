@@ -2,8 +2,10 @@
 cmake_minimum_required(VERSION 3.1)
 project(QuESo_Application)
 
-# Set build type to Release
-set(CMAKE_BUILD_TYPE Release)
+# If build type is not defined, set it to Release.
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
 # Include local directories
