@@ -76,11 +76,25 @@ constexpr double EPS3 = 1e-12;
 constexpr double EPS4 = 1e-14;
 
 // Enum's
-enum IntegrationMethod {Gauss, Gauss_Reduced1, Gauss_Reduced2, GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2};
-typedef enum IntegrationMethod IntegrationMethodType;
-constexpr const char* IntegrationMethodToString(IntegrationMethodType rValue){
-    constexpr std::array<const char*, 6> type_to_string {{"Gauss",  "Gauss_Reduced1", "Gauss_Reduced2", "GGQ_Optimal", "GGQ_Reduced1", "GGQ_Reduced2"}};
-    return type_to_string[static_cast<int>(rValue)];
+enum class IntegrationMethod {gauss, gauss_reduced_1, gauss_reduced_2, ggq_optimal, ggq_reduced_1, ggq_reduced_2};
+typedef IntegrationMethod IntegrationMethodType;
+inline std::ostream& operator<<(std::ostream& rOs, IntegrationMethodType Enum) {
+    switch(Enum) {
+        case IntegrationMethod::gauss:
+            return (rOs << "Gauss");
+        case IntegrationMethod::gauss_reduced_1:
+            return (rOs << "Gauss_Reduced1");
+        case IntegrationMethod::gauss_reduced_2:
+            return (rOs << "Gauss_Reduced2");
+        case IntegrationMethod::ggq_optimal:
+            return (rOs << "GGQ_Optimal");
+        case IntegrationMethod::ggq_reduced_1:
+            return (rOs << "GGQ_Reduced1");
+        case IntegrationMethod::ggq_reduced_2:
+            return (rOs << "GGQ_Reduced2");
+        default:
+            return rOs;
+    }
 }
 
 enum class IntersectionState {inside, outside, trimmed};

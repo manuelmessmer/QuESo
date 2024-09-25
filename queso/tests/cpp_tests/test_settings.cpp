@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
 
     // NonTrimmedQuadratureRuleSettings settings
     QuESo_CHECK( settings[MainSettings::non_trimmed_quadrature_rule_settings].IsSet(NonTrimmedQuadratureRuleSettings::integration_method) );
-    QuESo_CHECK_EQUAL( settings[MainSettings::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::Gauss );
+    QuESo_CHECK_EQUAL( settings[MainSettings::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::gauss );
 }
 
 BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
@@ -235,11 +235,11 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
         TrimmedQuadratureRuleSettings::min_num_boundary_triangles), 234u);
 
     /// Non trimmed quadrature rule settings
-    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::GGQ_Optimal);
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::ggq_optimal);
 
-    QuESo_CHECK_EQUAL( settings[MainSettings::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::GGQ_Optimal );
+    QuESo_CHECK_EQUAL( settings[MainSettings::non_trimmed_quadrature_rule_settings].GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::ggq_optimal );
     QuESo_CHECK_EQUAL( settings.GetSubDictionaryNoCheck(MainSettings::non_trimmed_quadrature_rule_settings).GetValueNoCheck<IntegrationMethod>(
-        NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::GGQ_Optimal);
+        NonTrimmedQuadratureRuleSettings::integration_method), IntegrationMethod::ggq_optimal);
 }
 
 

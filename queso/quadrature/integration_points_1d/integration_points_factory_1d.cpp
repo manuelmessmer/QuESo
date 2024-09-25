@@ -29,7 +29,7 @@ typedef std::vector<std::vector<std::array<double, 2>>> Ip1DVectorVectorType;
 
 // Public member functions
 Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method ){
-    if( Method == GGQ_Optimal || Method == GGQ_Reduced1 || Method == GGQ_Reduced2){
+    if( Method == IntegrationMethod::ggq_optimal || Method == IntegrationMethod::ggq_reduced_1 || Method == IntegrationMethod::ggq_reduced_2){
         return GetGGQPoints(PolynomialDegree, NumberKnotSpans, Method);
     } else
     {
@@ -40,11 +40,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ( SizeType PolynomialDegree, 
 Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree, IntegrationMethodType Method ){
     switch(Method)
     {
-        case Gauss:
+        case IntegrationMethod::gauss:
             return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree]);
-        case Gauss_Reduced1:
+        case IntegrationMethod::gauss_reduced_1:
             return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-1]);
-        case Gauss_Reduced2:
+        case IntegrationMethod::gauss_reduced_2:
             return MakeUnique<Ip1DVectorType>(mGaussLegendrePoints[PolynomialDegree-2]);
         default:
             QuESo_ERROR << "Method not available\n";
@@ -55,11 +55,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGauss( SizeType PolynomialDegree
 const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension(SizeType PolynomialDegre, IntegrationMethodType Method ){
     switch(Method)
     {
-        case GGQ_Optimal:
+        case IntegrationMethod::ggq_optimal:
             return {2*PolynomialDegre, PolynomialDegre-2};
-        case GGQ_Reduced1:
+        case IntegrationMethod::ggq_reduced_1:
             return {2*PolynomialDegre-1, PolynomialDegre-2};
-        case GGQ_Reduced2:
+        case IntegrationMethod::ggq_reduced_2:
             return {2*PolynomialDegre-2, PolynomialDegre-2};
         default:
             QuESo_ERROR << "Method not available\n";
@@ -117,13 +117,13 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
         const SizeType odd = m % 2;
         switch(Method)
         {
-            case GGQ_Optimal:
+            case IntegrationMethod::ggq_optimal:
                 p_base_points = mBasePointsOptimal[PolynomialDegree-2][odd];
                 break;
-            case GGQ_Reduced1:
+            case IntegrationMethod::ggq_reduced_1:
                 p_base_points = mBasePointsReduced1[PolynomialDegree-2][odd];
                 break;
-            case GGQ_Reduced2:
+            case IntegrationMethod::ggq_reduced_2:
                 p_base_points = mBasePointsReduced2[PolynomialDegree-2][odd];
                 break;
             default:
@@ -157,11 +157,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
         else {
             switch(Method)
             {
-                case GGQ_Optimal:
+                case IntegrationMethod::ggq_optimal:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
-                case GGQ_Reduced1:
+                case IntegrationMethod::ggq_reduced_1:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
-                case GGQ_Reduced2:
+                case IntegrationMethod::ggq_reduced_2:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
                     QuESo_ERROR << "Method not available 2.\n";
@@ -193,11 +193,11 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQPoints(SizeType PolynomialDeg
         else {
             switch(Method)
             {
-                case GGQ_Optimal:
+                case IntegrationMethod::ggq_optimal:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsOptimal[PolynomialDegree-2])[e-1]);
-                case GGQ_Reduced1:
+                case IntegrationMethod::ggq_reduced_1:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced1[PolynomialDegree-2])[e-1]);
-                case GGQ_Reduced2:
+                case IntegrationMethod::ggq_reduced_2:
                     return MakeUnique<Ip1DVectorType>( (*mPrecomputedPointsReduced2[PolynomialDegree-2])[e-1]);
                 default:
                     QuESo_ERROR << "Method not available 3.\n";

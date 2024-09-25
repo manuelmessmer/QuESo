@@ -99,7 +99,7 @@ public:
         /// NonTrimmedQuadratureRuleSettings
         auto& non_trimmed_quadrature_rule_settings = AddEmptySubDictionary(MainSettings::non_trimmed_quadrature_rule_settings, Str("non_trimmed_quadrature_rule_settings"));
         non_trimmed_quadrature_rule_settings.AddValues(std::make_tuple(
-            std::make_tuple(NonTrimmedQuadratureRuleSettings::integration_method, Str("integration_method"), IntegrationMethod::Gauss, Set )
+            std::make_tuple(NonTrimmedQuadratureRuleSettings::integration_method, Str("integration_method"), IntegrationMethod::gauss, Set )
         ));
 
         /// Optional TestingSettings

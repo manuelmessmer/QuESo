@@ -207,7 +207,7 @@ private:
         void operator()(const double& rValue){mOstream << rValue;};
         void operator()(const std::string& rValue){mOstream << rValue;};
         void operator()(const bool& rValue){std::string out = (rValue) ? "true" : "false"; mOstream << out; };
-        void operator()(const IntegrationMethodType& rValue){ mOstream << IntegrationMethodToString(rValue); };
+        void operator()(const IntegrationMethodType& rValue){ mOstream << rValue; };
         void operator()(const GridTypeType& rValue){ mOstream << rValue; };
 
     private:

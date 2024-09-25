@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     }
 
     const Vector3i polynomial_order = {2, 2, 2};
-    const IntegrationMethod integration_method = IntegrationMethod::Gauss;
+    const IntegrationMethod integration_method = IntegrationMethod::gauss;
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
     }
 
     const Vector3i polynomial_order = {3, 3, 3};
-    const IntegrationMethod integration_method = IntegrationMethod::Gauss;
+    const IntegrationMethod integration_method = IntegrationMethod::gauss;
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
     }
 
     const Vector3i polynomial_order = {4, 4, 4};
-    const IntegrationMethod integration_method = IntegrationMethod::Gauss;
+    const IntegrationMethod integration_method = IntegrationMethod::gauss;
 
     // Distribtue Gauss points within element.
     element.GetIntegrationPoints().clear();

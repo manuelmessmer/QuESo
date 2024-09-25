@@ -54,7 +54,7 @@ public:
     /// @param rElement
     /// @param rOrder Order of quadrature rule.
     /// @param Method Integration method: Default - Gauss.
-    static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss) {
+    static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss) {
         auto& integration_points = rElement.GetIntegrationPoints();
 
         PointType lower_bound_param = rElement.GetBoundsUVW().first;
@@ -71,7 +71,7 @@ public:
     /// @param rOrder Order of quadrature rule.
     /// @param Method Integration method: Default - Gauss.
     static void AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
-                            const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss ) {
+                            const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss ) {
         const auto p_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
         const auto p_ip_list_v = IntegrationPointFactory1D::GetGauss(rOrder[1], Method);
         const auto p_ip_list_w = IntegrationPointFactory1D::GetGauss(rOrder[2], Method);
