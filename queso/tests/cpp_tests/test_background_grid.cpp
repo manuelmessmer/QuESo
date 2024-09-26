@@ -65,9 +65,9 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridX) {
     bool found;
     IndexType next_id;
     IndexType current_id = 1;
-    QuESo_CHECK_EQUAL(p_grid->size(), 23);
+    QuESo_CHECK_EQUAL(p_grid->NumberOfActiveElements(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < p_grid->size() + 1; ++i){
+    for( IndexType i = 1; i < p_grid->NumberOfActiveElements() + 1; ++i){
         auto neighbour = p_grid->pGetNextElementInX(current_id, next_id, local_end);
         found = false;
         if( neighbour ){
@@ -122,9 +122,9 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridY) {
     std::vector<int> test_next_ids {1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12, 13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24};
     std::vector<int> test_local_ends {10, 11, 12, 22, 23, 24};
 
-    QuESo_CHECK_EQUAL(p_grid->size(), 23);
+    QuESo_CHECK_EQUAL(p_grid->NumberOfActiveElements(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < p_grid->size() + 1; ++i){
+    for( IndexType i = 1; i < p_grid->NumberOfActiveElements() + 1; ++i){
         found = false;
         auto neighbour = p_grid->pGetNextElementInY(current_id, next_id, local_end);
         if( neighbour ){
@@ -173,9 +173,9 @@ BOOST_AUTO_TEST_CASE(TestBackgroundGridZ) {
     std::vector<int> test_next_ids {1, 13, 2, 14, 3, 15, 4, 16, 5, 17, 6, 18, 7, 19, 8, 20, 9, 21, 10, 22, 11, 23, 12, 24};
     std::vector<int> test_local_ends {13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
 
-    QuESo_CHECK_EQUAL(p_grid->size(), 23);
+    QuESo_CHECK_EQUAL(p_grid->NumberOfActiveElements(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < p_grid->size() + 1; ++i){
+    for( IndexType i = 1; i < p_grid->NumberOfActiveElements() + 1; ++i){
         found = false;
         auto neighbour = p_grid->pGetNextElementInZ(current_id, next_id, local_end);
         if( neighbour ){
