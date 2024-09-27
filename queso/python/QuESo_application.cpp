@@ -17,6 +17,7 @@
 #include "queso/python/add_settings_to_python.h"
 #include "queso/python/add_containers_to_python.h"
 #include "queso/python/add_globals_to_python.h"
+#include "queso/python/add_utilities_to_python.h"
 #include "queso/QuESo_main.h"
 
 namespace queso {
@@ -42,15 +43,8 @@ PYBIND11_MODULE(QuESo_Application,m) {
     AddGlobalsToPython(m);
     AddSettingsToPython(m);
     AddContainersToPython(m);
+    AddUtilitiesToPython(m);
 
-    /// Export QuESo
-    py::class_<QuESo>(m,"QuESo")
-        .def(py::init<const Settings&>())
-        .def("Run", &QuESo::Run)
-        .def("GetElements",  &QuESo::GetElements, py::return_value_policy::reference_internal )
-        .def("GetTriangleMesh", &QuESo::GetTriangleMesh, py::return_value_policy::reference_internal)
-        .def("GetConditions", &QuESo::GetConditions, py::return_value_policy::reference_internal )
-    ;
 }
 
 }// End namespace Python

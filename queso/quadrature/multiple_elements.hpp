@@ -30,6 +30,7 @@ namespace queso {
  * @brief  Provides assembly for 3D quadrature rules.
  * @details Available Quadrature rules:
  *          {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
+ * @todo   This class requires major refactoring. Implementation should be similar to FloodFill.
 */
 template<typename TElementType>
 class QuadratureMultipleElements {
@@ -69,13 +70,13 @@ public:
 
             if( rNumberOfElements[i] == 1){
                 if(door_to_door_neighbours.size() > 0 ){
-                        AssignNumberNeighbours(door_to_door_neighbours, i);
+                    AssignNumberNeighbours(door_to_door_neighbours, i);
                 }
                 door_to_door_neighbours.clear();
             }
             std::size_t active_element_counter = 1;
             // Loop until all elements in rElements have beend visited/found
-            while( active_element_counter < rElements.size() ){
+            while( active_element_counter < rElements.NumberOfActiveElements() ){
                 ElementType* neighbour = nullptr;
 
                 if(i == 0)
@@ -109,26 +110,9 @@ public:
             door_to_door_neighbours.clear();
         }
 
-        // const auto element_it_begin_nei = rElements.begin();
-        // const int number_neighbours = rElements.size();
-        // for(int i = 0; i < number_neighbours; ++i){
-        //     auto element_it = element_it_begin_nei + i;
-        //     if( !(*element_it)->IsTrimmed()){
-        //         auto local_lower_point = (*element_it)->GetLowerBoundParam();
-        //         auto local_upper_point = (*element_it)->GetUpperBoundParam();
-        //         double a = 0.5*(local_upper_point[0] + local_lower_point[0]);
-        //         double b = 0.5*(local_upper_point[1] + local_lower_point[1]);
-        //         double c = 0.5*(local_upper_point[2] + local_lower_point[2]);
-
-        //         auto& points = (*element_it)->GetIntegrationPoints();
-        //         points.push_back( IntegrationPoint(a, b, c, (*element_it)->NeighbourCoefficient() ) );
-        //     }
-
-        // }
-
         // Set all as not visited
-        const auto element_it_begin = rElements.begin();
-        for( IndexType i = 0; i < rElements.size(); ++i){
+        const auto element_it_begin = rElements.ElementsBegin();
+        for( IndexType i = 0; i < rElements.NumberOfActiveElements(); ++i){
             auto element_it = element_it_begin + i;
             (*element_it)->SetVisited(false);
         }
@@ -140,7 +124,7 @@ public:
 
         // Construct vector of sorted,unvisiteed elements.
         std::vector<ElementType*> sorted_univisited_elements{};
-        sorted_univisited_elements.insert(sorted_univisited_elements.begin(), rElements.begin_to_ptr(), rElements.end_to_ptr());
+        sorted_univisited_elements.insert(sorted_univisited_elements.begin(), rElements.ElementsBeginToPtr(), rElements.ElementsEndToPtr());
 
         // Erase all trimmed elements.
         sorted_univisited_elements.erase(std::remove_if(sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](const auto& rValue) {
@@ -320,7 +304,7 @@ private:
             const auto lower_point_param = element_it->GetBoundsUVW().first;
             const auto upper_point_param = element_it->GetBoundsUVW().second;
 
-            std::array<typename ElementType::IntegrationPoint1DVectorType, 3> tmp_integration_points{};
+            std::array<std::vector<std::array<double,2>>, 3> tmp_integration_points{};
 
             for( int direction = 0; direction < 3; ++direction){
                 const double distance_global = global_upper_point_param[direction] - global_lower_point_param[direction];

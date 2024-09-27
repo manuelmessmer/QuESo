@@ -66,6 +66,11 @@ public:
     /// @return double.
     static double Area(const TriangleMeshInterface& rTriangleMesh);
 
+    /// @brief Returns surface area of triangle mesh (OMP version).
+    /// @param rTriangleMesh
+    /// @return double.
+    static double AreaOMP(const TriangleMeshInterface& rTriangleMesh);
+
     ///@brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
     ///@param rTriangleMesh
     ///@return double
