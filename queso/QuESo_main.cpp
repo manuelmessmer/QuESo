@@ -42,13 +42,8 @@ void QuESo::Run()
     // Compute volume
     volume_brep = MeshUtilities::VolumeOMP(*mpTriangleMesh);
     QuESo_INFO_IF(echo_level > 0) << " o Volume of STL model: " << volume_brep << '\n';
-
-
     // Construct BRepOperator
     mpBRepOperator = MakeUnique<BRepOperator>(*mpTriangleMesh);
-    for( const auto& r_condition : mConditions ){
-        mpBrepOperatorsBC.push_back( MakeUnique<BRepOperator>(r_condition.GetTriangleMesh() ) );
-    }
     // Allocate background grid
     mpBackgroundGrid = MakeUnique<BackgroundGridType>(mSettings);
 
@@ -57,11 +52,11 @@ void QuESo::Run()
 
     // Count number of trimmed elements
     SizeType number_of_trimmed_elements = 0;
-    std::for_each(mpBackgroundGrid->begin(), mpBackgroundGrid->end(), [&number_of_trimmed_elements] (auto& el_it)
+    std::for_each(mpBackgroundGrid->ElementsBegin(), mpBackgroundGrid->ElementsEnd(), [&number_of_trimmed_elements] (auto& el_it)
         { if( el_it.IsTrimmed() ) { number_of_trimmed_elements++; } });
 
     if( echo_level > 0) {
-        QuESo_INFO << " o Number of active elements: " << mpBackgroundGrid->size() << std::endl;
+        QuESo_INFO << " o Number of active elements: " << mpBackgroundGrid->NumberOfActiveElements() << std::endl;
         QuESo_INFO << " o Number of trimmed elements: " << number_of_trimmed_elements << std::endl;
 
         if( echo_level > 1 ) {
@@ -95,11 +90,11 @@ void QuESo::Run()
         IO::WriteElementsToVTK(*mpBackgroundGrid, (output_directory_name + "/elements.vtk").c_str(), true);
         IO::WritePointsToVTK(*mpBackgroundGrid, "All", (output_directory_name + "/integration_points.vtk").c_str(), true);
         IndexType cond_index = 0;
-        for( const auto& r_condition : mConditions ){
+        for( const auto& p_condition : mpBackgroundGrid->GetConditions() ){
             const std::string bc_filename = output_directory_name + '/'
-                + r_condition.GetSettings().GetValue<std::string>(ConditionSettings::condition_type)
+                + p_condition->GetSettings().GetValue<std::string>(ConditionSettings::condition_type)
                 + '_' + std::to_string(++cond_index) + ".stl";
-            IO::WriteMeshToSTL(r_condition.GetConformingMesh(), bc_filename.c_str(), true);
+            IO::WriteConditionToSTL(*p_condition,  bc_filename.c_str(), true);
         }
         if( echo_level > 0) {
             QuESo_INFO << " o Elapsed time: " << timer_output.Measure() << " sec\n";
@@ -113,7 +108,7 @@ std::array<double,5> QuESo::Compute(){
 
     // Reserve element container
     const IndexType global_number_of_elements = mGridIndexer.NumberOfElements();
-    mpBackgroundGrid->reserve(global_number_of_elements);
+    mpBackgroundGrid->ReserveElements(global_number_of_elements);
 
     // Time Variables
     double et_check_intersect = 0.0;
@@ -204,18 +199,35 @@ std::array<double,5> QuESo::Compute(){
 
     // Treat conditions
     Timer timer_conditions;
-    #pragma omp parallel for
-    for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index ) {
-        for( IndexType i = 0; i < mConditions.size(); ++i ){
+
+    const auto& r_conditions_settings_list =  mSettings[MainSettings::conditions_settings_list];
+    const IndexType number_of_conditions = r_conditions_settings_list.NumberOfSubDictionaries();
+    mpBackgroundGrid->ReserveConditions(number_of_conditions);
+    for( IndexType i_c = 0; i_c < number_of_conditions; ++i_c ) {
+        const SettingsBaseType& r_condition_settings = r_conditions_settings_list[i_c];
+
+        const std::string& r_filename = r_condition_settings.GetValue<std::string>(ConditionSettings::input_filename);
+        Unique<TriangleMeshInterface> p_new_mesh = MakeUnique<TriangleMesh>();
+        IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
+
+        Unique<ConditionType> p_new_condition = MakeUnique<ConditionType>(p_new_mesh, r_condition_settings);
+        BRepOperator brep_operator_c(p_new_condition->GetTriangleMesh());
+
+        #pragma omp parallel for
+        for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index ) {
+
             const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
-            const auto p_new_mesh = mpBrepOperatorsBC[i]->pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
-            if( p_new_mesh->NumOfTriangles() > 0 ){
+            auto p_new_mesh = brep_operator_c.pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
+            if( p_new_mesh->NumOfTriangles() > 0 ) {
+                const auto p_el = mpBackgroundGrid->pGetElement(index+1);
+                auto p_new_segment = MakeUnique<ConditionType::ConditionSegmentType>(p_el, p_new_mesh);
                 #pragma omp critical
-                mConditions[i].AddToConformingMesh(*p_new_mesh);
+                p_new_condition->AddSegment(p_new_segment);
             }
         }
+        mpBackgroundGrid->AddCondition(p_new_condition);
     }
-    double et_conditions = (mConditions.size() > 0) ? timer_conditions.Measure() : 0.0;
+    double et_conditions = (mpBackgroundGrid->NumberOfConditions() > 0) ? timer_conditions.Measure() : 0.0;
 
     IndexType num_threads = 1;
     #pragma omp parallel
@@ -225,17 +237,6 @@ std::array<double,5> QuESo::Compute(){
     return {et_check_intersect, et_compute_intersection / ((double) num_threads),
         et_moment_fitting / ((double) num_threads), et_ggq_rules, et_conditions};
 
-}
-
-Condition& QuESo::CreateNewCondition(const SettingsBaseType& rConditionSettings){
-    Unique<TriangleMeshInterface> p_new_mesh = MakeUnique<TriangleMesh>();
-
-    const std::string& r_filename = rConditionSettings.GetValue<std::string>(ConditionSettings::input_filename);
-    IO::ReadMeshFromSTL(*p_new_mesh, r_filename.c_str());
-
-    // Condition owns triangle mesh.
-    mConditions.push_back( Condition(p_new_mesh, rConditionSettings) );
-    return mConditions.back();
 }
 
 void QuESo::Check() const {

@@ -39,8 +39,10 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOBindaryTest) {
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
     double surface_area = MeshUtilities::Area(triangle_mesh);
+    double surface_area_omp = MeshUtilities::AreaOMP(triangle_mesh);
 
     QuESo_CHECK_NEAR(surface_area, 69.11212872984862, 1e-10);
+    QuESo_CHECK_NEAR(surface_area_omp, 69.11212872984862, 1e-10);
 }
 
 BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
@@ -55,8 +57,10 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
     double surface_area = MeshUtilities::Area(triangle_mesh);
+    double surface_area_omp = MeshUtilities::AreaOMP(triangle_mesh);
 
     QuESo_CHECK_NEAR(surface_area, 69.11212872984862, 1e-10);
+    QuESo_CHECK_NEAR(surface_area_omp, 69.11212872984862, 1e-10);
 }
 
 std::pair<double,Vector3d> ComputeAreaAndWeightedNormal(const TriangleMesh& rTriangleMesh){

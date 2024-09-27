@@ -71,6 +71,87 @@ public:
                                         const char* Filename,
                                         const bool Binary);
 
+    /// @brief Write triangle mesh associated to given condition to STL-file.
+    /// @tparam TElementType
+    /// @param rCondition
+    /// @param Filename
+    /// @param Binary
+    /// @return bool
+    template<typename TElementType>
+    static bool WriteConditionToSTL(const Condition<TElementType>& rCondition,
+                                    const char* Filename,
+                                    const bool Binary){
+        std::ofstream file;
+        if(Binary)
+            file.open(Filename, std::ios::out | std::ios::binary);
+        else
+            file.open(Filename);
+
+        if(!file.good()){
+            std::cerr << "Warning :: IO::WriteConditionsToVTk :: Could not open file: " << Filename << ".\n";
+            return false;
+        }
+
+        IndexType num_triangles = 0;
+        for( const auto& p_segments : rCondition.GetSegments() ){
+            num_triangles += p_segments->GetTriangleMesh().NumOfTriangles();
+        }
+
+        if(Binary) {
+            file << "FileType: Binary                                                                ";
+            file.write(reinterpret_cast<const char *>(&static_cast<const int&>(num_triangles)), sizeof(static_cast<const int&>(num_triangles)));
+
+            for( const auto& p_segments : rCondition.GetSegments() ){
+                const auto& r_triangle_mesh = p_segments->GetTriangleMesh();
+                const IndexType local_num_triangles = r_triangle_mesh.NumOfTriangles();
+                for(IndexType triangle_id = 0; triangle_id < local_num_triangles; ++triangle_id) {
+                    const auto& p1 = r_triangle_mesh.P1(triangle_id);
+                    const auto& p2 = r_triangle_mesh.P2(triangle_id);
+                    const auto& p3 = r_triangle_mesh.P3(triangle_id);
+
+                    const auto& normal = r_triangle_mesh.Normal(triangle_id);
+
+                    const float coords[12] = { static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]),
+                                               static_cast<float>(p1[0]), static_cast<float>(p1[1]), static_cast<float>(p1[2]),
+                                               static_cast<float>(p2[0]), static_cast<float>(p2[1]), static_cast<float>(p2[2]),
+                                               static_cast<float>(p3[0]), static_cast<float>(p3[1]), static_cast<float>(p3[2]) };
+
+                    for(int i=0; i<12; ++i){
+                        file.write(reinterpret_cast<const char *>(&coords[i]), sizeof(coords[i]));
+                    }
+                    file << "  ";
+                }
+            }
+        }
+        else
+        {
+            file << "solid\n";
+            for( const auto& p_segments : rCondition.GetSegments() ){
+                const auto& r_triangle_mesh = p_segments->GetTriangleMesh();
+                const IndexType local_num_triangles = r_triangle_mesh.NumOfTriangles();
+
+                for(IndexType triangle_id = 0; triangle_id < local_num_triangles; ++triangle_id) {
+                    const auto& p1 = r_triangle_mesh.P1(triangle_id);
+                    const auto& p2 = r_triangle_mesh.P2(triangle_id);
+                    const auto& p3 = r_triangle_mesh.P3(triangle_id);
+
+                    const auto& normal = r_triangle_mesh.Normal(triangle_id);
+
+                    file << "facet normal " << normal[0] << ' ' << normal[1] << ' ' << normal[2] << "\nouter loop\n";
+                    file << "vertex " << p1[0] << ' ' << p1[1] << ' ' << p1[2] << ' ' << "\n";
+                    file << "vertex " << p2[0] << ' ' << p2[1] << ' ' << p2[2] << ' ' << "\n";
+                    file << "vertex " << p3[0] << ' ' << p3[1] << ' ' << p3[2] << ' ' << "\n";
+                    file << "endloop\nendfacet\n";
+                }
+            }
+            file << "endsolid"<<std::endl;
+        }
+        file.close();
+
+        return true;
+    }
+
+
     /// @brief Write element container to VTK-file.
     /// @tparam TElementType
     /// @param rBackgroundGrid
@@ -78,10 +159,10 @@ public:
     /// @param Binary
     /// @return bool
     template<typename TElementType>
-    static bool WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
+    static bool WriteElementsToVTK( const BackgroundGrid<TElementType>& rBackgroundGrid,
                                     const char* Filename,
                                     const bool Binary) {
-        const SizeType num_elements = rBackgroundGrid.size();
+        const SizeType num_elements = rBackgroundGrid.NumberOfActiveElements();
 
         std::ofstream file;
         if(Binary)
@@ -99,8 +180,8 @@ public:
         file << "DATASET UNSTRUCTURED_GRID" << std::endl;
         file << "POINTS " << num_elements*8 << " double" << std::endl;
 
-        const auto begin_el_itr = rBackgroundGrid.begin();
-        for( IndexType i = 0; i < rBackgroundGrid.size(); ++i){
+        const auto begin_el_itr = rBackgroundGrid.ElementsBegin();
+        for( IndexType i = 0; i < num_elements; ++i){
             const auto& el_itr = *(begin_el_itr + i);
             const auto& lower_point = el_itr->GetBoundsXYZ().first;
             const auto& upper_point = el_itr->GetBoundsXYZ().second;
@@ -165,7 +246,7 @@ public:
         file << std::endl;
         // Write Cells
         file << "Cells " << num_elements << " " << num_elements*9 << std::endl;
-        for( int i = 0; i < static_cast<int>(rBackgroundGrid.size()); ++i){
+        for( int i = 0; i < static_cast<int>(rBackgroundGrid.NumberOfActiveElements()); ++i){
             if( Binary ){
                 int k = 8;
                 WriteBinary(file, k);
@@ -181,8 +262,8 @@ public:
         }
         file << std::endl;
 
-        file << "CELL_TYPES " << rBackgroundGrid.size() << std::endl;
-        for( int i = 0; i < static_cast<int>(rBackgroundGrid.size()); ++i){
+        file << "CELL_TYPES " << rBackgroundGrid.NumberOfActiveElements() << std::endl;
+        for( int i = 0; i < static_cast<int>(rBackgroundGrid.NumberOfActiveElements()); ++i){
             if( Binary ){
                 int k = 12;
                 WriteBinary(file, k);
@@ -212,9 +293,8 @@ public:
 
         QuESo_ERROR_IF( std::string(Type) != "All") << "Only integration points option 'All' is available. \n";
 
-        const auto& p_points = rBackgroundGrid.pGetPoints(Type);
-        const IndexType num_points = p_points->size();
-        const IndexType num_elements = p_points->size();
+        const IndexType num_points = rBackgroundGrid.NumberOfIntegrationPoints();
+        const IndexType num_elements = num_points;
 
         std::ofstream file;
         if(Binary)
@@ -233,8 +313,8 @@ public:
         file << "DATASET UNSTRUCTURED_GRID" << std::endl;
         file << "POINTS " << num_points << " double" << std::endl;
 
-        const auto el_it_ptr_begin = rBackgroundGrid.begin();
-        for( IndexType i = 0; i < rBackgroundGrid.size(); ++i){
+        const auto el_it_ptr_begin = rBackgroundGrid.ElementsBegin();
+        for( IndexType i = 0; i < rBackgroundGrid.NumberOfActiveElements(); ++i){
             const auto& el_ptr = (*(el_it_ptr_begin + i));
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
@@ -253,7 +333,7 @@ public:
         }
         file << std::endl;
 
-        //Write Cells
+        // Write Cells
         file << "Cells " << num_elements << " " << num_elements*2 << std::endl;
         for( IndexType i = 0; i < num_elements; ++i){
             if( Binary ){
@@ -283,7 +363,7 @@ public:
         file << "POINT_DATA " << num_points << std::endl;
         file << "SCALARS Weights double 1" << std::endl;
         file << "LOOKUP_TABLE default" << std::endl;
-        for( IndexType i = 0; i < rBackgroundGrid.size(); ++i){
+        for( IndexType i = 0; i < rBackgroundGrid.NumberOfActiveElements(); ++i){
             const auto& el_ptr = (*(el_it_ptr_begin + i));
             const auto& points = el_ptr->GetIntegrationPoints();
             for( const auto& point : points ){
