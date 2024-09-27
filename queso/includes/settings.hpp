@@ -175,9 +175,12 @@ public:
         IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
         QuESo_INFO_IF( tot_num_elements < 2 && echo_level > 0 ) << "You are using only one single element.\n";
 
-        // GGQ rules
         const IntegrationMethod integration_method = (*this)[MainSettings::non_trimmed_quadrature_rule_settings]
             .GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
+
+        QuESo_ERROR_IF( min_order < 2 && integration_method == IntegrationMethod::gauss_reduced_2)
+            << "Gauss_Reduced2 is only applicable to background grids with at least p=2.\n";
+        // GGQ rules
         const bool ggq_rule_ise_used =  static_cast<int>(integration_method) >= 3;
         QuESo_ERROR_IF(ggq_rule_ise_used && max_order > 4) << "Generalized Gauss Quadrature (GGQ) rules are only available for p <= 4.\n";
 
