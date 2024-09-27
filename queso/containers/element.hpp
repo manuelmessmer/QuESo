@@ -49,6 +49,7 @@ public:
     typedef TIntegrationPointType IntegrationPointType;
     typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
 
+    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
     typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
     typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
 
