@@ -13,7 +13,7 @@
         "number_of_elements" : [60, 120, 120]
     },
     "trimmed_quadrature_rule_settings"     : {
-        "moment_fitting_residual": 1e-6
+        "moment_fitting_residual": 1e-8
     },
     "non_trimmed_quadrature_rule_settings" : {
         "integration_method" : "Gauss"
