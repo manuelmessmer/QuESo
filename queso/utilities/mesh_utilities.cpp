@@ -190,11 +190,21 @@ Unique<TriangleMeshInterface> MeshUtilities::pGetCuboid(const PointType& rLowerP
     return p_new_triangle_mesh;
 }
 
-
 double MeshUtilities::Area(const TriangleMeshInterface& rTriangleMesh){
     double area = 0.0;
     // Loop over all triangles
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
+        area += rTriangleMesh.Area(i);
+    }
+    return area;
+}
+
+double MeshUtilities::AreaOMP(const TriangleMeshInterface& rTriangleMesh){
+    double area = 0.0;
+    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+    // Loop over all triangles in omp parallel.
+    #pragma omp parallel for reduction(+ : area)
+    for( IndexType i = 0; i < num_triangles; ++i ){
         area += rTriangleMesh.Area(i);
     }
     return area;
