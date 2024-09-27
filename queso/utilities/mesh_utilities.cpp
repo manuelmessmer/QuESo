@@ -204,7 +204,7 @@ double MeshUtilities::AreaOMP(const TriangleMeshInterface& rTriangleMesh){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : area)
-    for( IndexType i = 0; i < num_triangles; ++i ){
+    for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
         area += rTriangleMesh.Area(i);
     }
     return area;
