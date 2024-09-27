@@ -15,10 +15,9 @@
 #define BACKGROUND_GRID_INCLUDE_HPP
 
 //// STL includes
-#include <cstring>
-#include <sstream>
-#include <stdexcept>
+
 //// Project includes
+#include "queso/includes/define.hpp"
 #include "queso/containers/grid_indexer.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/condition.hpp"
@@ -32,9 +31,11 @@ namespace queso {
 /**
  * @class  BackgroundGrid
  * @author Manuel Messmer
- * @brief  Stores elements in vector and provides fast access via Id map.
- * @note Only active elements/knot spans are stored.
-*/
+ * @brief  Stores active elements and conditions.
+ *         Indexing is based on GridIndexer.
+ * @tparam TElementType must provide the following typedefs: IntegrationPointType, BoundaryIntegrationPointType.
+ * @see    grid_indexer.hpp
+**/
 template<typename TElementType>
 class BackgroundGrid {
 
@@ -49,23 +50,23 @@ public:
 
     typedef Unique<ElementType> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementContainerType;
-    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
-    typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::unordered_map<IndexType, IndexType> ElementIdMapType;
 
-    typedef Condition ConditionType;
-    typedef Unique<Condition> ConditionPtrType;
-    typedef std::vector<std::vector<ConditionPtrType>> ConditionContainerType;
+    typedef Condition<ElementType> ConditionType;
+    typedef Unique<ConditionType> ConditionPtrType;
+    typedef std::vector<ConditionPtrType> ConditionContainerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
+    /// @brief Constructor
+    /// @param rSettings
     BackgroundGrid(const SettingsBaseType& rSettings) :
-        mGridIndexer(rSettings), mLastElementId(0)
+        mGridIndexer(rSettings)
     {
     }
+
     /// Destructor
     ~BackgroundGrid() = default;
     /// Copy Constructor
@@ -83,14 +84,14 @@ public:
 
     /// @brief Returns reference to element with given Id.
     /// @param ElementId
-    ///@return const ElementType&
+    /// @return const ElementType&
     const ElementType& GetElement(IndexType ElementId) const{
         return *pGetElement(ElementId);
     }
 
     /// @brief Returns raw pointer to element with given Id (const version).
     /// @param ElementId
-    ///@return const ElementType*
+    /// @return const ElementType*
     const ElementType* pGetElement(IndexType ElementId) const {
         auto found_key = mElementIdMap.find(ElementId);
         if( found_key != mElementIdMap.end() ){
@@ -101,7 +102,7 @@ public:
 
     /// @brief Returns raw pointer to element with given Id (non-const version).
     /// @param ElementId
-    ///@return const ElementType*
+    /// @return const ElementType*
     ElementType* pGetElement(IndexType ElementId){
         auto found_key = mElementIdMap.find(ElementId);
         if( found_key != mElementIdMap.end() ){
@@ -116,32 +117,80 @@ public:
         return mElements;
     }
 
-    /// @brief Moves element into container.
+    /// @brief Returns all conditions.
+    /// @return const std::vector<Unique<Element>>&
+    const ConditionContainerType& GetConditions() const{
+        return mConditions;
+    }
+
+    /// @brief Adds a new condition to the background grid.
+    /// @param ConditionPtrType
+    void AddCondition(ConditionPtrType& pCondition){
+        mConditions.push_back(std::move(pCondition));
+    }
+
+    /// @todo Add the following functions for invalid elements.
+    // /// @brief Returns raw pointer to a potentially stored invalid element with given Id (non-const version).
+    // /// @param ElementId
+    // ///@return const ElementType*
+    // const ElementType* pGetInvalidElement(IndexType ElementId) const{
+    //     auto found_key = mInvalidElementIdMap.find(ElementId);
+    //     if( found_key != mInvalidElementIdMap.end() ){
+    //         return mInvalidElements[found_key->second].get();
+    //     }
+    //     return nullptr;
+    // }
+
+    // /// @brief Moves element into container.
+    // void AddInvalidElement(ElementPtrType& pElement){
+    //     const IndexType current_id = pElement->GetId();
+    //     const auto found_key = mInvalidElementIdMap.find(current_id);
+    //     if( found_key == mInvalidElementIdMap.end() ){
+    //         mInvalidElementIdMap.insert(std::pair<IndexType, IndexType>(pElement->GetId(), mInvalidElements.size()));
+    //         mInvalidElements.push_back(std::move(pElement));
+    //     }
+    //     else {
+    //         QuESo_ERROR << "ID already exists.\n";
+    //     }
+    // }
+
+    /// @brief Adds element to container. Element is moved into container.
+    /// @param pElement
     void AddElement(ElementPtrType& pElement){
         const IndexType current_id = pElement->GetId();
         const auto found_key = mElementIdMap.find(current_id);
         if( found_key == mElementIdMap.end() ){
-            if( pElement->GetId() > static_cast<IndexType>(mLastElementId) ){
-                mLastElementId = pElement->GetId();
-            }
             mElementIdMap.insert(std::pair<IndexType, IndexType>(pElement->GetId(), mElements.size()));
             mElements.push_back(std::move(pElement));
         }
         else {
-            QuESo_ERROR << "ID already exists.\n";
+            QuESo_ERROR << "ID already exists.\n"; // Make this assert instead?
         }
+    }
+
+    /// @brief Returns number of stored conditions.
+    /// @return IndexType.
+    IndexType NumberOfConditions() const {
+        return mConditions.size();
     }
 
     /// @brief Returns number of stored elements.
     /// @return IndexType.
-    IndexType size() const {
+    IndexType NumberOfActiveElements() const {
         return mElements.size();
     }
 
-    /// @brief Adjust capacity of element containers.
-    void reserve(IndexType NewCapacity){
+    /// @brief Adjusts capacity of element container.
+    /// @param NewCapacity.
+    void ReserveElements(IndexType NewCapacity){
         mElements.reserve(NewCapacity);
         mElementIdMap.reserve(NewCapacity);
+    }
+
+    /// @brief Adjusts capacity of condition container.
+    /// @param NewCapacity.
+    void ReserveConditions(IndexType NewCapacity){
+        mConditions.reserve(NewCapacity);
     }
 
     /// @brief Returns raw ptr to next element in x-direction.
@@ -250,12 +299,13 @@ public:
 
     /// @brief Returns the volume stored on all integration points.
     /// @return double.
+    /// @todo Remove this function
     double GetVolumeOfAllIPs() const {
         double volume = 0.0;
-        const auto el_it_ptr_begin = this->begin();
+        const auto el_it_ptr_begin = ElementsBegin();
         #pragma omp parallel for reduction(+ : volume)
-        for( int i = 0; i < static_cast<int>(this->size()); ++i ){
-            const auto& el_ptr = (*(el_it_ptr_begin + i));
+        for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
+            const auto& el_ptr = *(el_it_ptr_begin + i);
             const double det_j = el_ptr->DetJ();
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
@@ -265,66 +315,147 @@ public:
         return volume;
     }
 
+    /// @brief Returns total number of integration points.
+    /// @return IndexType
     /// @todo Remove this function
-    const IntegrationPointVectorPtrType pGetPoints(const char* type) const {
-        IntegrationPointVectorPtrType points = MakeUnique<IntegrationPointVectorType>();
-        const auto begin_el_itr_ptr = this->begin();
-        for( IndexType i = 0; i < this->size(); ++i){
-            const auto& el_ptr = *(begin_el_itr_ptr + i);
-            IntegrationPointVectorType points_tmp;
-            if( std::strcmp(type,"Trimmed") == 0 ){
-                if( el_ptr->IsTrimmed() )
-                    points_tmp = el_ptr->GetIntegrationPoints();
-            }
-            else if( std::strcmp(type,"Inside") == 0 ){
-                if( !el_ptr->IsTrimmed() )
-                    points_tmp = el_ptr->GetIntegrationPoints();
-            }
-            else if( std::strcmp(type,"All") == 0 ){
-                points_tmp = el_ptr->GetIntegrationPoints();
-            }
-            else {
-                QuESo_ERROR << "Given type '" << type << "' not available.\n";
-            }
-            points->insert(points->end(), points_tmp.begin(), points_tmp.end());
+    IndexType NumberOfIntegrationPoints() const {
+        IndexType number = 0.0;
+        const auto el_it_ptr_begin = ElementsBegin();
+        #pragma omp parallel for reduction(+ : number)
+        for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
+            const auto& el_ptr = *(el_it_ptr_begin + i);
+            const auto& r_points = el_ptr->GetIntegrationPoints();
+            number += r_points.size();
         }
-        return points;
+        return number;
     }
 
     ///@}
     ///@name Get Iterators
     ///@{
 
-    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin() {
+    ///@}
+    ///@name Iterators
+    ///@{
+
+    //////////////////
+    //// Elements ////
+    //////////////////
+
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ElementContainerType::iterator> ElementsBegin() {
         return dereference_iterator(mElements.begin());
     }
 
-    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> begin() const {
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ElementContainerType::const_iterator> ElementsBegin() const {
         return dereference_iterator(mElements.begin());
     }
 
-    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> end() {
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ElementContainerType::iterator> ElementsEnd() {
         return dereference_iterator(mElements.end());
     }
 
-    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end() const {
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ElementContainerType::const_iterator> ElementsEnd() const {
         return dereference_iterator(mElements.end());
     }
 
-    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin_to_ptr() {
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ElementContainerType::iterator> ElementsBeginToPtr() {
         return raw_pointer_iterator(mElements.begin());
     }
 
-    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> begin_to_ptr() const {
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ElementContainerType::const_iterator> ElementsBeginToPtr() const {
         return raw_pointer_iterator(mElements.begin());
     }
 
-    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> end_to_ptr() {
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ElementContainerType::iterator> ElementsEndToPtr() {
         return raw_pointer_iterator(mElements.end());
     }
 
-    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end_to_ptr() const {
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ElementContainerType::const_iterator> ElementsEndToPtr() const {
         return raw_pointer_iterator(mElements.end());
+    }
+
+    ////////////////////
+    //// Conditions ////
+    ////////////////////
+
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ConditionContainerType::iterator> ConditionsBegin() {
+        return dereference_iterator(mConditions.begin());
+    }
+
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ConditionContainerType::const_iterator> ConditionsBegin() const {
+        return dereference_iterator(mConditions.begin());
+    }
+
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ConditionContainerType::iterator> ConditionsEnd() {
+        return dereference_iterator(mConditions.end());
+    }
+
+    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    ///        but directly to the actual object.
+    /// @return DereferenceIterator
+    DereferenceIterator<typename ConditionContainerType::const_iterator> ConditionsEnd() const {
+        return dereference_iterator(mConditions.end());
+    }
+
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ConditionContainerType::iterator> ConditionsBeginToPtr() {
+        return raw_pointer_iterator(mConditions.begin());
+    }
+
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ConditionContainerType::const_iterator> ConditionsBeginToPtr() const {
+        return raw_pointer_iterator(mConditions.begin());
+    }
+
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ConditionContainerType::iterator> CondiitonsEndToPtr() {
+        return raw_pointer_iterator(mConditions.end());
+    }
+
+    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
+    ///        but to Object*.
+    /// @return DereferenceIterator
+    RawPointerIterator<typename ConditionContainerType::const_iterator> CondiitonsEndToPtr() const {
+        return raw_pointer_iterator(mConditions.end());
     }
 
 private:
@@ -334,9 +465,12 @@ private:
     ///@{
 
     GridIndexer mGridIndexer;
-    int mLastElementId;
+
     ElementContainerType mElements;
     ElementIdMapType mElementIdMap;
+
+    ElementContainerType mInvalidElements;
+    ElementIdMapType mInvalidElementIdMap;
 
     ConditionContainerType mConditions;
 
