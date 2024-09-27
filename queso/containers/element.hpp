@@ -15,9 +15,9 @@
 #define ELEMENT_INCLUDE_H
 
 //// STL includes
-#include <stdexcept>
-#include <memory>
+
 //// Project includes
+#include "queso/includes/define.hpp"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/utilities/mapping_utilities.hpp"
 
@@ -29,8 +29,12 @@ namespace queso {
 /**
  * @class  Element
  * @author Manuel Messmer
- * @brief  Element/Knot Spans. Is is defined by a simpe bounding box in physical and in parametric space.
+ * @brief  Container to store data on element level.
+ *         Is is defined by a simpe bounding box in physical and in parametric space.
  *         Stores quadrature points and trimmed domain (if element is trimmed).
+ * @tparam TIntegrationPointType
+ * @tparam TBoundaryIntegrationPointType
+ * @see    background_grid.hpp
 */
 template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
 class Element
@@ -39,14 +43,13 @@ public:
 
     ///@name Type Defintitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
+
+    /// The following point definitions are the general definitions for IntegrationPoint
+    /// and BoundaryIntegrationPoint used everywhere else.
     typedef TIntegrationPointType IntegrationPointType;
     typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
-    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
-    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
 
-    typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
+    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
     typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
 
     ///@}
@@ -65,12 +68,14 @@ public:
 
     // Destructor
     ~Element() = default;
-
     // Delete copy constructor
     Element(const Element& rOther) = delete;
-
     // Assignement operator
     Element& operator=(const Element& rOther) = delete;
+    /// Move constructor
+    Element(Element&& rOther) = delete;
+    /// Move assignement operator
+    Element& operator=(Element&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -112,7 +117,6 @@ public:
         return mIntegrationPoints;
     }
 
-
     /// @brief Get bounds of element in physical/global coordinates.
     /// @return BoundingBoxType
     const BoundingBoxType& GetBoundsXYZ() const {
@@ -147,18 +151,6 @@ public:
         return (detla_xyz[0]*detla_xyz[1]*detla_xyz[2]) / (detla_uvw[0]*detla_uvw[1]*detla_uvw[2]);
     }
 
-    /// @brief Returns 1D integration points. Required for assembly of GGQ rules.
-    /// @param Dir Space Direction: 0-x, 1-y, 2-z.
-    /// @return IntegrationPoint1DVectorType&
-    IntegrationPoint1DVectorType& IntegrationPoints1D(IndexType Dir){
-        if(Dir==0)
-            return mIntegrationPointsX;
-        if(Dir==1)
-            return mIntegrationPointsY;
-
-        return mIntegrationPointsZ;
-    }
-
     /// @brief Set trimmed domain of element.
     /// @param pTrimmedDomain Ptr (Unique) to new trimmed domain.
     void pSetTrimmedDomain(TrimmedDomainPtrType& pTrimmedDomain ){
@@ -186,12 +178,14 @@ public:
     /// @brief Set neighbour coefficient. Required for assembly of GGQ rule. See: multiple_elements.hpp.
     /// @param Value New Value.
     /// @param Direction Space Direction: 0-x, 1-y, 2-z.
+    /// @todo Remove this function.
     void SetNeighbourCoefficient(double Value, IndexType Direction){
         mNumberOfNeighbours[Direction] = Value;
     }
 
     /// @brief Get neighbour coeefficient of this element. Required for assembly of GGQ rule. See: multiple_elements.hpp.
     /// @return double
+    /// @todo Remove this function.
     double NeighbourCoefficient() const {
         return mNumberOfNeighbours[0]*mNumberOfNeighbours[1]*mNumberOfNeighbours[2];
     }
@@ -215,10 +209,6 @@ private:
     ///@{
     IntegrationPointVectorType mIntegrationPoints;
 
-    IntegrationPoint1DVectorType mIntegrationPointsX;
-    IntegrationPoint1DVectorType mIntegrationPointsY;
-    IntegrationPoint1DVectorType mIntegrationPointsZ;
-
     const IndexType mElementId;
     bool mIsTrimmed;
     bool mIsVisited;
@@ -227,6 +217,8 @@ private:
     const BoundingBoxType mBoundsUVW;
 
     TrimmedDomainPtrType mpTrimmedDomain;
+
+    /// @todo Remove this member
     PointType mNumberOfNeighbours;
     ///@}
 }; // End class Element
