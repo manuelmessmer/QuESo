@@ -2,9 +2,10 @@
 cmake_minimum_required(VERSION 3.1)
 project(QuESo_Application)
 
+set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE})
 # If build type is not defined, set it to Release.
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+    message(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 
@@ -18,9 +19,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /EHsc -W2 /std:c++17 /D _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -W2 /std:c++17 /D _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -funroll-loops -Wsuggest-override -std=c++17 ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -funroll-loops -Wsuggest-override -std=c++17 ")
 endif()
 
 # OMP support
