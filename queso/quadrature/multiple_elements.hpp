@@ -304,7 +304,7 @@ private:
             const auto lower_point_param = element_it->GetBoundsUVW().first;
             const auto upper_point_param = element_it->GetBoundsUVW().second;
 
-            std::array<typename ElementType::IntegrationPoint1DVectorType, 3> tmp_integration_points{};
+            std::array<std::vector<std::array<double,2>>, 3> tmp_integration_points{};
 
             for( int direction = 0; direction < 3; ++direction){
                 const double distance_global = global_upper_point_param[direction] - global_lower_point_param[direction];
