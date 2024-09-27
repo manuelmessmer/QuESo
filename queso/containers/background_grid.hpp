@@ -319,7 +319,7 @@ public:
     /// @return IndexType
     /// @todo Remove this function
     IndexType NumberOfIntegrationPoints() const {
-        IndexType number = 0.0;
+        IndexType number = 0;
         const auto el_it_ptr_begin = ElementsBegin();
         #pragma omp parallel for reduction(+ : number)
         for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
