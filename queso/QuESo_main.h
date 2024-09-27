@@ -52,10 +52,7 @@ public:
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
     typedef BackgroundGrid<ElementType> BackgroundGridType;
-
-    typedef std::vector<ElementType> ElementVectorType;
-    typedef std::vector<Condition> ConditionVectorType;
-    typedef std::vector<Unique<BRepOperator>> BRepOperatorPtrVectorType;
+    typedef Condition<ElementType> ConditionType;
 
     ///@}
     ///@name  Life Cycle
@@ -73,12 +70,6 @@ public:
         const auto& r_filename = r_general_settings.GetValue<std::string>(GeneralSettings::input_filename);
         IO::ReadMeshFromSTL(*mpTriangleMesh, r_filename.c_str());
 
-        const auto& r_conditions_settings_list =  mSettings[MainSettings::conditions_settings_list];
-        const IndexType number_of_conditions = r_conditions_settings_list.NumberOfSubDictionaries();
-        for( IndexType i = 0; i < number_of_conditions; ++i){
-            CreateNewCondition(r_conditions_settings_list[i]);
-        }
-
         Check();
     }
 
@@ -87,6 +78,11 @@ public:
 
     /// Copy Assignement
     QuESo & operator= (const QuESo &) = delete;
+
+    /// Move constructor
+    QuESo(QuESo&& rOther) = delete;
+    /// Move assignement operator
+    QuESo& operator=(QuESo&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -97,20 +93,16 @@ public:
 
     /// @brief Get all active elements.
     /// @return const Reference to ElementVectorPtrType
-    const BackgroundGridType& GetElements() const {
-        return *mpBackgroundGrid;
+    const BackgroundGridType::ElementContainerType& GetElements() const {
+        return mpBackgroundGrid->GetElements();
     }
 
     /// @brief Get all conditions.
     /// @return const Reference to ElementVectorPtrType
-    const ConditionVectorType& GetConditions() const {
-        return mConditions;
+    const BackgroundGridType::ConditionContainerType& GetConditions() const {
+        return mpBackgroundGrid->GetConditions();
     }
 
-    /// @brief Creates a new condition and adds to mConditions-Vector.
-    /// @param rConditionSettings
-    /// @return Condition&
-    Condition& CreateNewCondition(const SettingsBaseType& rConditionSettings);
 
     /// @brief Performs necessary checks.
     void Check() const;
@@ -119,9 +111,7 @@ public:
     void Clear() {
         mpTriangleMesh->Clear();
         mpBRepOperator = nullptr;
-        mpBrepOperatorsBC.clear();
         mpBackgroundGrid = nullptr;
-        mConditions.clear();
     }
 
     /// @brief Returns triangle mesh.
@@ -138,9 +128,7 @@ private:
     ///@{
     Unique<TriangleMeshInterface> mpTriangleMesh;
     Unique<BRepOperator> mpBRepOperator;
-    BRepOperatorPtrVectorType mpBrepOperatorsBC;
     Unique<BackgroundGridType> mpBackgroundGrid;
-    ConditionVectorType mConditions;
     const Settings mSettings;
     GridIndexer mGridIndexer;
     ///@}
