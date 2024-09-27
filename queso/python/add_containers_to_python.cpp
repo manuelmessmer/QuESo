@@ -19,25 +19,38 @@
 #include "queso/containers/background_grid.hpp"
 #include "queso/containers/condition.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/QuESo_main.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<queso::PointType> PointVectorType;
+PYBIND11_MAKE_OPAQUE(PointVectorType);
+
 typedef queso::IntegrationPoint IntegrationPointType;
 typedef queso::BoundaryIntegrationPoint BoundaryIntegrationPointType;
 typedef queso::Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-typedef ElementType::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
+typedef queso::Unique<ElementType> ElementPtrType;
+PYBIND11_MAKE_OPAQUE(ElementPtrType);
+typedef std::vector<ElementPtrType> ElementVectorPtrType;
+PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
+
+typedef queso::Condition<ElementType> ConditionType;
+typedef queso::Unique<ConditionType> ConditionPtrType;
+typedef std::vector<ConditionPtrType> ConditionVectorPtrType;
+PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
+
+typedef queso::ConditionSegment<ElementType> ConditionSegmentType;
+typedef queso::Unique<ConditionSegmentType> ConditionSegmentPtrType;
+PYBIND11_MAKE_OPAQUE(ConditionSegmentPtrType)
+typedef std::vector<ConditionSegmentPtrType> ConditionSegmentVectorPtrType;
+PYBIND11_MAKE_OPAQUE(ConditionSegmentVectorPtrType)
 
 typedef ElementType::IntegrationPointVectorType IntegrationPointVectorType;
-typedef std::vector<BoundaryIntegrationPointType> BoundaryIpVectorType;
-
-typedef std::vector<queso::Unique<ElementType>> ElementVectorPtrType;
-typedef std::vector<queso::Condition> ConditionVectorType;
-
-PYBIND11_MAKE_OPAQUE(PointVectorType);
-PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType);
-PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
-PYBIND11_MAKE_OPAQUE(ConditionVectorType);
+
+typedef ElementType::BoundaryIntegrationPointVectorType BoundaryIpVectorType;
+PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
+
+typedef std::vector<std::array<double,2>> IntegrationPoint1DVectorType;
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 
 namespace queso {
@@ -57,7 +70,12 @@ void AddContainersToPython(pybind11::module& m) {
         .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
         ;
 
-    /// Export PointType
+    /// Export PointVector
+    py::bind_vector<PointVectorType, Unique<PointVectorType>>
+        (m, "PointVector")
+    ;
+
+    /// Export Vector3i
     py::class_<Vector3i, Unique<Vector3i>>(m,"Vector3i")
         .def(py::init<std::array<IndexType,3>>())
         .def(py::init<IndexType, IndexType, IndexType>())
@@ -66,11 +84,6 @@ void AddContainersToPython(pybind11::module& m) {
         .def("Z", [](const Vector3i& self){return self[2];} )
         .def("__getitem__",  [](const Vector3i &v, IndexType i){return v[i];} )
         ;
-
-    /// Export PointVector
-    py::bind_vector<PointVectorType, Unique<PointVectorType>>
-        (m, "PointVector")
-    ;
 
     /// Export Integration Points
     py::class_<IntegrationPointType, Unique<IntegrationPointType>>(m, "IntegrationPoint")
@@ -99,8 +112,12 @@ void AddContainersToPython(pybind11::module& m) {
         (m, "BoundaryIPVector")
     ;
 
+    /// Export TriangleMeshInterface
+    py::class_<TriangleMeshInterface, Unique<TriangleMeshInterface>>(m,"TriangleMeshInterface")
+    ;
+
     /// Export TriangleMesh
-    py::class_<TriangleMesh, Unique<TriangleMesh>>(m,"TriangleMesh")
+    py::class_<TriangleMesh, Unique<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
         .def(py::init<>())
         .def("Center", &TriangleMesh::Center)
         .def("Normal", [](TriangleMesh& self, IndexType Id){
@@ -108,7 +125,7 @@ void AddContainersToPython(pybind11::module& m) {
         .def("Area", [](TriangleMesh& self, IndexType Id){
             return self.Area(Id); })
         .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
-            return self.pGetIPsGlobal<BoundaryIntegrationPointType>(Id, Method); })
+            return self.pGetIPsGlobal<BoundaryIntegrationPointType>(Id, Method); }, py::return_value_policy::move)
         .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
         .def("P1", &TriangleMesh::P1)
         .def("P2", &TriangleMesh::P2)
@@ -145,29 +162,58 @@ void AddContainersToPython(pybind11::module& m) {
         .def("IsTrimmed", &ElementType::IsTrimmed)
     ;
 
-    /// Export Element Container
+    // Export Element Vector
+    py::class_<ElementVectorPtrType, Unique<ElementVectorPtrType>>(m, "ElementVector")
+        .def("__getitem__", [](const ElementVectorPtrType &v, const IndexType i) { return &(*v[i]); })
+        .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
+        .def("__iter__", [](ElementVectorPtrType &v) {
+            return py::make_iterator( dereference_iterator(v.begin()), dereference_iterator(v.end()) );
+        }, py::keep_alive<0, 1>() )
+    ;
+
+    /// Export BackgroundGrid
     py::class_<BackgroundGrid<ElementType>, Unique<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
         .def(py::init<const SettingsBaseType&>())
-        .def("__len__", [](const BackgroundGrid<ElementType> &rGrid) { return rGrid.size(); })
-        .def("__iter__", [](BackgroundGrid<ElementType> &rGrid) {
-            return py::make_iterator( rGrid.begin(), rGrid.end() );
-        }, py::keep_alive<0, 1>())
+        .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
+        .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
+        .def("GetConditions", &BackgroundGrid<ElementType>::GetConditions, py::return_value_policy::reference_internal)
+        .def("NumberOfConditions", &BackgroundGrid<ElementType>::NumberOfConditions)
+    ;
+
+    /// Export Condition Segment
+    py::class_<ConditionSegmentType, Unique<ConditionSegmentType>>(m,"ConditionSegment")
+        .def("GetTriangleMesh", &ConditionSegmentType::GetTriangleMesh , py::return_value_policy::reference_internal )
+    ;
+
+    // Export ConditionSegment Vector
+    py::class_<ConditionSegmentVectorPtrType, Unique<ConditionSegmentVectorPtrType>>(m, "ConditionSegmentVector")
+        .def("__getitem__", [](const ConditionSegmentVectorPtrType &v, const IndexType i) { return &(*v[i]); })
+        .def("__len__", [](const ConditionSegmentVectorPtrType &v) { return v.size(); })
+        .def("__iter__", [](ConditionSegmentVectorPtrType &v) {
+            return py::make_iterator( dereference_iterator(v.begin()), dereference_iterator(v.end()) );
+        }, py::keep_alive<0, 1>() )
     ;
 
     /// Export Condition
-    py::class_<Condition, Unique<Condition>>(m,"Condition")
-        .def("IsWeakCondition", [](const Condition& rCondition)->bool { return true; } )
-        .def("GetTriangleMesh", &Condition::GetConformingMesh , py::return_value_policy::reference_internal )
-        .def("GetSettings", &Condition::GetSettings)
+    py::class_<ConditionType, Unique<ConditionType>>(m,"Condition")
+        .def("IsWeakCondition", [](const ConditionType& rCondition)->bool { return true; } )
+        .def("GetTriangleMesh", &ConditionType::GetTriangleMesh, py::return_value_policy::reference_internal )
+        .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
+        .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
+        .def("NumberOfSegments", &ConditionType::NumberOfSegments )
+        .def("__len__", [](const ConditionType &v) { return v.NumberOfSegments(); })
+        .def("__iter__", [](ConditionType &v) {
+            return py::make_iterator( v.SegmentsBegin(), v.SegmentsEnd() );
+        }, py::keep_alive<0, 1>())
     ;
 
-    /// Export Condition Vector
-    py::class_<ConditionVectorType, Unique<ConditionVectorType>>(m, "ConditionVector")
-        .def(py::init<>())
-        .def("__len__", [](const ConditionVectorType &v) { return v.size(); })
-        .def("__iter__", [](ConditionVectorType &v) {
-            return py::make_iterator( v.begin(), v.end() );
-        }, py::keep_alive<0, 1>())
+    // Export Condition Vector
+    py::class_<ConditionVectorPtrType, Unique<ConditionVectorPtrType>>(m, "ConditionVector")
+        .def("__getitem__", [](const ConditionVectorPtrType &v, const IndexType i) { return &(*v[i]); })
+        .def("__len__", [](const ConditionVectorPtrType &v) { return v.size(); })
+        .def("__iter__", [](ConditionVectorPtrType &v) {
+            return py::make_iterator( dereference_iterator(v.begin()), dereference_iterator(v.end()) );
+        })
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
@@ -178,6 +224,15 @@ void AddContainersToPython(pybind11::module& m) {
     /// Export IntegrationPointFactory1D (mainly for Testing in py)
     py::class_<IntegrationPointFactory1D>(m,"IntegrationPointFactory1D")
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
+    ;
+
+    /// Export QuESo
+    py::class_<QuESo>(m,"QuESo")
+        .def(py::init<const Settings&>())
+        .def("Run", &QuESo::Run)
+        .def("GetTriangleMesh", &QuESo::GetTriangleMesh, py::return_value_policy::reference_internal)
+        .def("GetElements", &QuESo::GetElements, py::return_value_policy::reference_internal)
+        .def("GetConditions", &QuESo::GetConditions, py::return_value_policy::reference_internal )
     ;
 
 } // End AddContainersToPython
