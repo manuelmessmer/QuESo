@@ -153,6 +153,13 @@ public:
         (*this)[MainSettings::background_grid_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::non_trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
+
+        const IntegrationMethod integration_method = (*this)[MainSettings::non_trimmed_quadrature_rule_settings]
+            .GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
+        const bool ggq_rule_ise_used =  static_cast<int>(integration_method) >= 3;
+        const GridType grid_type = (*this)[MainSettings::background_grid_settings]
+            .GetValue<GridType>(BackgroundGridSettings::grid_type);
+        QuESo_ERROR_IF( ggq_rule_ise_used && (grid_type != GridType::b_spline_grid)) << "GGQ_Rules can only be used in combination with 'grid_type' : 'b_spline_grid'.\n";
     }
 
 private:
