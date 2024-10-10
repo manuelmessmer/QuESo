@@ -26,7 +26,7 @@ namespace queso {
 namespace Polynomial {
 
     /// Simple power function
-    inline double power( double x, std::size_t p){
+    inline double power( double x, std::size_t p) noexcept {
         double result = 1.0;
         while( p > 0UL ) {
             result = result * x;
@@ -36,7 +36,7 @@ namespace Polynomial {
     }
 
     /// Returns Legendre polynomial defined on (a,b)
-    inline double f_x(double x, IndexType order, double a, double b){
+    inline double f_x(double x, IndexType order, double a, double b) noexcept {
         switch(order) {
             case 0:
                 return 1;
@@ -87,7 +87,7 @@ namespace Polynomial {
 
 
     /// Returns integral of Legendre polynomial defined on (a,b)
-    inline double f_x_int(double x, IndexType order, double a, double b){
+    inline double f_x_int(double x, IndexType order, double a, double b) noexcept {
         switch(order) {
             case 0:
                 {
