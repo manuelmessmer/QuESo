@@ -248,42 +248,42 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsWrongTypeTest) {
 
     Settings settings;
 
-    auto& r_cond_settings_list = settings.CreateNewConditionSettings();
-    BOOST_REQUIRE_THROW( r_cond_settings_list.IsSet(BackgroundGridSettings::lower_bound_uvw), std::exception ); // Wrong Key
+    auto& r_cond_settings = settings.CreateNewConditionSettings();
+    BOOST_REQUIRE_THROW( r_cond_settings.IsSet(BackgroundGridSettings::lower_bound_uvw), std::exception ); // Wrong Key
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
-    BOOST_REQUIRE_THROW( r_cond_settings_list.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({2.0, 3.0, 4.0})), std::exception ); // Wrong Key type
-    BOOST_REQUIRE_THROW( r_cond_settings_list.SetValue(ConditionSettings::condition_id, 2.0), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
+    BOOST_REQUIRE_THROW( r_cond_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType({2.0, 3.0, 4.0})), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.SetValue(ConditionSettings::condition_id, 2.0), std::exception ); // Wrong Key type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::condition_id, 100u);
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<double>(ConditionSettings::condition_id), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::condition_id), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::condition_id, 100u);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<double>(ConditionSettings::condition_id), std::exception ); // Wrong Type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<std::string>(ConditionSettings::condition_type), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::condition_type, std::string("dummy"));
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::condition_type), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<std::string>(ConditionSettings::condition_type), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::condition_type, std::string("dummy"));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::condition_type), std::exception ); // Wrong Type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<std::string>(ConditionSettings::input_filename), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::input_filename, std::string("dummy_2"));
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::input_filename), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<std::string>(ConditionSettings::input_filename), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::input_filename, std::string("dummy_2"));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::input_filename), std::exception ); // Wrong Type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<double>(ConditionSettings::modulus), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::modulus, 2.0);
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::modulus), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<double>(ConditionSettings::modulus), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::modulus, 2.0);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::modulus), std::exception ); // Wrong Type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<PointType>(ConditionSettings::direction), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::direction, PointType({2.2, 3.0, 4.4}));
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::direction), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<PointType>(ConditionSettings::direction), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::direction, PointType({2.2, 3.0, 4.4}));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::direction), std::exception ); // Wrong Type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<PointType>(ConditionSettings::value), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::value, PointType({2.1, 1.0, 2.4}));
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::value), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<PointType>(ConditionSettings::value), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::value, PointType({2.1, 1.0, 2.4}));
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::value), std::exception ); // Wrong Type
 
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<double>(ConditionSettings::penalty_factor), std::exception ); // Not set
-    r_cond_settings_list.SetValue(ConditionSettings::penalty_factor, 1e5);
-    BOOST_REQUIRE_THROW( r_cond_settings_list.GetValue<IndexType>(ConditionSettings::penalty_factor), std::exception ); // Wrong Type
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<double>(ConditionSettings::penalty_factor), std::exception ); // Not set
+    r_cond_settings.SetValue(ConditionSettings::penalty_factor, 1e5);
+    BOOST_REQUIRE_THROW( r_cond_settings.GetValue<IndexType>(ConditionSettings::penalty_factor), std::exception ); // Wrong Type
 }
 
 
@@ -291,15 +291,15 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsDefaultValuesTest) {
     QuESo_INFO << "Testing :: Test Settings :: Test Condition Settings Defaut Values" << std::endl;
 
     Settings settings;
-    auto& r_cond_settings_list = settings.CreateNewConditionSettings();
+    auto& r_cond_settings = settings.CreateNewConditionSettings();
 
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::condition_id) );
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::condition_type) );
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::input_filename) );
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::modulus) );
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::direction) );
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::value) );
-    QuESo_CHECK( !r_cond_settings_list.IsSet(ConditionSettings::penalty_factor) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::condition_id) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::condition_type) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::input_filename) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::modulus) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::direction) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::value) );
+    QuESo_CHECK( !r_cond_settings.IsSet(ConditionSettings::penalty_factor) );
 };
 
 BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
@@ -307,26 +307,26 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
 
     Settings settings;
     {
-        auto& r_cond_settings_list = settings.CreateNewConditionSettings();
+        auto& r_cond_settings = settings.CreateNewConditionSettings();
 
-        r_cond_settings_list.SetValue(ConditionSettings::condition_id, 120UL);
-        r_cond_settings_list.SetValue(ConditionSettings::condition_type, std::string("Hello"));
-        r_cond_settings_list.SetValue(ConditionSettings::input_filename, std::string("hallo"));
-        r_cond_settings_list.SetValue(ConditionSettings::modulus, 200.0);
-        r_cond_settings_list.SetValue(ConditionSettings::penalty_factor, 300.0);
+        r_cond_settings.SetValue(ConditionSettings::condition_id, 120UL);
+        r_cond_settings.SetValue(ConditionSettings::condition_type, std::string("Hello"));
+        r_cond_settings.SetValue(ConditionSettings::input_filename, std::string("hallo"));
+        r_cond_settings.SetValue(ConditionSettings::modulus, 200.0);
+        r_cond_settings.SetValue(ConditionSettings::penalty_factor, 300.0);
     }
     {
-        auto& r_cond_settings_list = settings.CreateNewConditionSettings();
+        auto& r_cond_settings = settings.CreateNewConditionSettings();
 
-        r_cond_settings_list.SetValue(ConditionSettings::condition_id, 150UL);
-        r_cond_settings_list.SetValue(ConditionSettings::condition_type, std::string("Hello2"));
-        r_cond_settings_list.SetValue(ConditionSettings::input_filename, std::string("hallo2"));
-        r_cond_settings_list.SetValue(ConditionSettings::direction, PointType{2.1, 3.2, 4.7});
-        r_cond_settings_list.SetValue(ConditionSettings::value, PointType{2.2, 2.3, 1.4} );
+        r_cond_settings.SetValue(ConditionSettings::condition_id, 150UL);
+        r_cond_settings.SetValue(ConditionSettings::condition_type, std::string("Hello2"));
+        r_cond_settings.SetValue(ConditionSettings::input_filename, std::string("hallo2"));
+        r_cond_settings.SetValue(ConditionSettings::direction, PointType{2.1, 3.2, 4.7});
+        r_cond_settings.SetValue(ConditionSettings::value, PointType{2.2, 2.3, 1.4} );
     }
     {
-        auto& r_cond_settings_list = settings[MainSettings::conditions_settings_list];
-        QuESo_CHECK_EQUAL( r_cond_settings_list.NumberOfSubDictionaries(), 2 );
+        auto& r_cond_settings_list = settings.GetList(MainSettings::conditions_settings_list);
+        QuESo_CHECK_EQUAL( r_cond_settings_list.size(), 2 );
 
         QuESo_CHECK( r_cond_settings_list[0u].IsSet(ConditionSettings::condition_id) );
         QuESo_CHECK_EQUAL( r_cond_settings_list[0u].GetValue<IndexType>(ConditionSettings::condition_id), 120u );
@@ -351,8 +351,8 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsCustomizedValuesTest) {
 
     }
     {
-        auto& r_cond_settings_list = settings[MainSettings::conditions_settings_list];
-        QuESo_CHECK_EQUAL( r_cond_settings_list.NumberOfSubDictionaries(), 2 );
+        auto& r_cond_settings_list = settings.GetList(MainSettings::conditions_settings_list);
+        QuESo_CHECK_EQUAL( r_cond_settings_list.size(), 2 );
 
         QuESo_CHECK( r_cond_settings_list[1u].IsSet(ConditionSettings::condition_id) );
         QuESo_CHECK_EQUAL( r_cond_settings_list[1u].GetValue<IndexType>(ConditionSettings::condition_id), 150u );
