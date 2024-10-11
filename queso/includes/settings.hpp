@@ -143,13 +143,9 @@ public:
     }
 
     /// @brief Check values.
-    void Check() {
-        // Make sure this value is not numerically zero.
-        const double value = (*this)[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
-        if( value < 0.9e-10 ){
-            (*this)[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 1e-10);
-        }
+    const Settings& Check() const {
 
+        // Check if values are set
         (*this)[MainSettings::general_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::background_grid_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
@@ -157,9 +153,10 @@ public:
 
         const IndexType echo_level = (*this)[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
         // Orders
-        Vector3i order = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
-        IndexType min_order =  Math::Min( order );
-        IndexType max_order =  Math::Max( order );
+        const Vector3i order = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+
+        const IndexType min_order =  Math::Min( order );
+        const IndexType max_order =  Math::Max( order );
         QuESo_ERROR_IF(min_order < 1) << "Invalid Input. The polynomial order must be p > 0. \n";
         QuESo_INFO_IF(max_order > 4) << "Warning :: QuESo is designed to construct efficient quadrature rules for 1 <= p <= 4. "
             << "For higher polynomial degrees, the process might become slow. It is recommended to use quadratic bases. Generally, they offer the best performance and accuracy.\n";
@@ -171,8 +168,8 @@ public:
             << "and linear Gauss rules for all full/interior elements.\n";
 
         // Number of elements
-        Vector3i num_elements = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
-        IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
+        const Vector3i num_elements = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
+        const IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
         QuESo_INFO_IF( tot_num_elements < 2 && echo_level > 0 ) << "You are using only one single element.\n";
 
         const IntegrationMethod integration_method = (*this)[MainSettings::non_trimmed_quadrature_rule_settings]
@@ -189,6 +186,8 @@ public:
         QuESo_ERROR_IF( ggq_rule_ise_used && (grid_type != GridType::b_spline_grid)) << "GGQ_Rules can only be used in combination with 'grid_type' : 'b_spline_grid'.\n";
 
         QuESo_ERROR_IF(ggq_rule_ise_used && min_order < 2) << "Generalized Gauss Quadrature (GGQ) rules are only applicable to B-Spline meshes with at least p=2.\n";
+
+        return *this;
     }
 
 private:

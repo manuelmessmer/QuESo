@@ -60,9 +60,8 @@ public:
 
     /// @brief Constructor
     /// @param rParameters
-    QuESo(const Settings& rSettings ) : mSettings(rSettings), mGridIndexer(mSettings) {
+    QuESo(const Settings& rSettings ) : mSettings(rSettings.Check()), mGridIndexer(mSettings) {
 
-        const_cast<Settings&>(mSettings).Check();
         mpTriangleMesh = MakeUnique<TriangleMesh>();
         const auto& r_general_settings = mSettings[MainSettings::general_settings];
 

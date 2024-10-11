@@ -120,7 +120,7 @@ std::array<double,5> QuESo::Compute(){
         .GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
     const bool ggq_rule_ise_used =  static_cast<int>(integration_method) >= 3;
     const auto& r_trimmed_quad_rule_settings = mSettings[MainSettings::trimmed_quadrature_rule_settings];
-    const double min_vol_element_ratio = r_trimmed_quad_rule_settings.GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
+    const double min_vol_element_ratio = std::max(r_trimmed_quad_rule_settings.GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 1e-10);
     const IndexType num_boundary_triangles = r_trimmed_quad_rule_settings.GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
     const double moment_fitting_residual = r_trimmed_quad_rule_settings.GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
     const bool neglect_elements_if_stl_is_flawed = r_trimmed_quad_rule_settings.GetValue<bool>(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed);

@@ -142,7 +142,6 @@ void AddSettingsToPython(pybind11::module& m) {
     py::class_<Settings, SettingsBaseType>(m,"Settings")
         .def(py::init<>())
         .def("CreateNewConditionSettings", &Settings::CreateNewConditionSettings, py::return_value_policy::reference_internal)
-        .def("Check", &Settings::Check)
     ;
 
 } // End AddSettingsToPython

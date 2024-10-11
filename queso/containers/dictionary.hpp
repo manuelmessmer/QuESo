@@ -469,7 +469,7 @@ public:
     }
 
     /// @brief Throws error if any stored value on this level is not set.
-    void CheckIfValuesAreSet() {
+    void CheckIfValuesAreSet() const {
         for( const auto& r_key_val_pair : mData  ){
             QuESo_ERROR_IF( !r_key_val_pair.IsSet() ) << "Variable: " << r_key_val_pair.GetKeyName() << " is not set.\n";
         }
