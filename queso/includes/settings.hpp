@@ -143,13 +143,9 @@ public:
     }
 
     /// @brief Check values.
-    void Check() {
-        // Make sure this value is not numerically zero.
-        const double value = (*this)[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
-        if( value < 0.9e-10 ){
-            (*this)[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 1e-10);
-        }
+    const Settings& Check() const {
 
+        // Check if values are set
         (*this)[MainSettings::general_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::background_grid_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
