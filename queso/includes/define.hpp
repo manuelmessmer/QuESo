@@ -22,6 +22,7 @@
 //// Project includes
 #include "queso/includes/logger.hpp"
 #include "queso/includes/exception.hpp"
+#include "queso/includes/assert.hpp"
 #include "queso/includes/timer.hpp"
 
 namespace queso {
