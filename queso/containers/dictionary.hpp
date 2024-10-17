@@ -257,6 +257,7 @@ struct DictStarts {
  *        The KeyTypes are supposed to be enum classes and can be passed as a template parameter pack: ...TEnumKeys.
  *        The main idea is to derive from Dictionary and to 'hardcode' the respective keys/enums.
  *        Thereby, the keys on the same level, must be of the same type (same enum). ( @see e.g. Settings ).
+ *        Most functions also allow to pass the Key as and std::string. However, this is intended only to be used in Python.
  * @details KeyValuePair, Subdictionaries and Lists are stored in std::vector<>'s. The enum keys are used as the respective indices,
  *          allowing extremely fast access. Consequently, the enum pointing to the first items of KeyValuePair, Subdictionaries, or
  *          Lists must all be equal to 0. However, we want them to be the same EnumType, since they are all on the same level in the
@@ -367,7 +368,8 @@ public:
         static_assert( is_scoped_int_enum<TKeyType>::value );
         QuESo_ERROR_IF(!mIsList) << "Trying to add a ListItem to an object, which is not a list.\n";
         // A list item is again a list.
-        mListsOfDicts.push_back( Dictionary(std::monostate{}, "") );
+        std::string name = mKeyName + '[' + std::to_string(mListsOfDicts.size()) + ']';
+        mListsOfDicts.push_back( Dictionary(std::monostate{}, name) );
         auto& r_new_list = mListsOfDicts.back();
         r_new_list.AddValues(NewEntries);
         return r_new_list;
@@ -458,7 +460,13 @@ public:
             [&rQueryKeyName](const Dictionary& rDict)
                 { return rQueryKeyName == rDict.GetKeyName();});
         if( it == mSubDictionaries.end() ){
-            QuESo_ERROR << "Given Key (" << rQueryKeyName << ") was not found.\n";
+            const auto p_possible_options = pGetPossibleKeyNames(mSubDictionaries);
+            std::string error_message = "Given Key (" + rQueryKeyName + ") was not found for any subdictionary"
+                + " on this level (" + mKeyName + ") of the dictionary.\n";
+            if( p_possible_options ) {
+                error_message += "Possible options are: " + *p_possible_options + '\n';
+            }
+            QuESo_ERROR << error_message;
         }
         IndexType index = it - mSubDictionaries.begin();
         return mSubDictionaries[index];
@@ -498,7 +506,13 @@ public:
             [&rQueryKeyName](const Dictionary& rDict)
                 { return rQueryKeyName == rDict.GetKeyName();});
         if( it == mListsOfDicts.end() ){
-            QuESo_ERROR << "Given Key (" << rQueryKeyName << ") was not found.\n";
+            const auto p_possible_options = pGetPossibleKeyNames(mListsOfDicts);
+            std::string error_message = "Given Key (" + rQueryKeyName + ") was not found for any list"
+                + " on this level (" + mKeyName + ") of the dictionary.\n";
+            if( p_possible_options ) {
+                error_message += "Possible options are: " + *p_possible_options + '\n';
+            }
+            QuESo_ERROR << error_message;
         }
         IndexType index = it - mListsOfDicts.begin();
         return mListsOfDicts[index].GetList();
@@ -709,7 +723,32 @@ private:
             IndexType index = it - mData.begin();
             return index;
         }
-        QuESo_ERROR << "Given Key (" << rQueryKeyName << ") was not found.\n";
+        const auto p_possible_options = pGetPossibleKeyNames(mData);
+        std::string error_message = "Given Key (" + rQueryKeyName + ") was not found for any Value"
+            + " on this level (" + mKeyName + ") of the dictionary.\n";
+        if( p_possible_options ) {
+            error_message += "Possible options are: " + *p_possible_options + '\n';
+        }
+        QuESo_ERROR << error_message;
+    }
+
+    ///@brief Returns Key Names that are available for the given container.
+    ///       Returns nullptr if container is empty.
+    ///@tparam TContainer
+    ///@param rContainer
+    ///@return Unique<std::string>
+    template<typename TContainer>
+    Unique<std::string> pGetPossibleKeyNames(const TContainer& rContainer) const {
+        if( rContainer.size() > 0 ) {
+            Unique<std::string> p_possible_options = MakeUnique<std::string>("[");
+            for( IndexType i = 0; i < rContainer.size()-1; ++i ) {
+                const auto& r_key_name = rContainer[i].GetKeyName();
+                (*p_possible_options) += '\'' + r_key_name + "', ";
+            }
+            (*p_possible_options) += '\'' + rContainer.back().GetKeyName() + "']";
+            return p_possible_options;
+        }
+        return nullptr;
     }
 
     /// @brief Prints this dictionary in JSON format.
