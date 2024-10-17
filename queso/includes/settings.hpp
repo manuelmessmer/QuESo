@@ -23,16 +23,23 @@ namespace queso {
 
 /// Definition of dictionary keys
 // IMPORTANT: If key is added here, it must also be added to add_settings_to_python.cpp and to json_import.py.
-enum class Root {main_settings};
-enum class MainSettings {general_settings, background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings, conditions_settings_list, testing_settings};
-enum class GeneralSettings {input_filename, output_directory_name, echo_level, write_output_to_file};
-enum class BackgroundGridSettings {grid_type, lower_bound_xyz, upper_bound_xyz, lower_bound_uvw, upper_bound_uvw, polynomial_order, number_of_elements};
-enum class TrimmedQuadratureRuleSettings {moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed };
-enum class NonTrimmedQuadratureRuleSettings {integration_method};
-enum class TestingSettings {use_customized_trimmed_points, embedding_flag};
-enum class ConditionSettings {condition_id, condition_type, input_filename, modulus, direction, value, penalty_factor};
 
-typedef Dictionary<Root, MainSettings, GeneralSettings, BackgroundGridSettings, TrimmedQuadratureRuleSettings, NonTrimmedQuadratureRuleSettings, ConditionSettings, IndexType, TestingSettings> SettingsBaseType;
+enum class Root {main_settings=DictStarts::start_subdicts};
+enum class MainSettings {
+    general_settings=DictStarts::start_subdicts, background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings,
+    conditions_settings_list=DictStarts::start_lists };
+enum class GeneralSettings {
+    input_filename=DictStarts::start_values, output_directory_name, echo_level, write_output_to_file};
+enum class BackgroundGridSettings {
+    grid_type=DictStarts::start_values, lower_bound_xyz, upper_bound_xyz, lower_bound_uvw, upper_bound_uvw, polynomial_order, number_of_elements};
+enum class TrimmedQuadratureRuleSettings {
+    moment_fitting_residual=DictStarts::start_values, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed };
+enum class NonTrimmedQuadratureRuleSettings {
+    integration_method=DictStarts::start_values};
+enum class ConditionSettings {
+    condition_id=DictStarts::start_values, condition_type, input_filename, modulus, direction, value, penalty_factor};
+
+typedef Dictionary<Root, MainSettings, GeneralSettings, BackgroundGridSettings, TrimmedQuadratureRuleSettings, NonTrimmedQuadratureRuleSettings, ConditionSettings> SettingsBaseType;
 
 ///@name QuESo Classes
 ///@{
@@ -58,8 +65,7 @@ public:
     ///@{
 
     /// @brief Constructor. Sets up the default dictionary.
-    /// @param TestingFlag If true, TestingSettings dictionary is added. However, in normal usecase, TestingFlag = false.
-    Settings(bool TestingFlag = false) : BaseType(Root::main_settings, Str("settings")) {
+    Settings() : BaseType(Root::main_settings, Str("settings")) {
 
         /// Let's define the default dictionary...
         bool Set = true; // Given values are set as default values.
@@ -103,17 +109,8 @@ public:
             std::make_tuple(NonTrimmedQuadratureRuleSettings::integration_method, Str("integration_method"), IntegrationMethod::gauss, Set )
         ));
 
-        /// Optional TestingSettings
-        if( TestingFlag ) {
-            auto& r_testing_settings = AddEmptySubDictionary(MainSettings::testing_settings, Str("testing_settings"));
-            r_testing_settings.AddValues(std::make_tuple(
-                std::make_tuple(TestingSettings::use_customized_trimmed_points, Str("use_customized_trimmed_points"), false, Set  ),
-                std::make_tuple(TestingSettings::embedding_flag, Str("embedding_flag"), true, Set)
-            ));
-        }
-
-        /// ConditionSettings
-        AddEmptySubDictionary(MainSettings::conditions_settings_list, Str("conditions_settings_list"));
+        /// ConditionSettingsList
+        AddEmptyList(MainSettings::conditions_settings_list, Str("conditions_settings_list"));
     }
 
     ///@}
@@ -123,13 +120,10 @@ public:
     /// @brief Creates new condition settings.
     /// @return SettingsBaseType& Reference to dictionary that contains condition settings.
     SettingsBaseType& CreateNewConditionSettings() {
-        bool DontSet = false; // Given values are only dummy values used to deduced the associated type.
+        bool DontSet = false; // Given values are only dummy values used to deduce the associated type.
 
-        auto& r_conditions_settings = (*this)[MainSettings::conditions_settings_list];
-        const IndexType size = r_conditions_settings.NumberOfSubDictionaries();
-        const std::string condition_name = "condition_" + std::to_string(size);
-        auto& r_new_condition_settings = r_conditions_settings.AddEmptySubDictionary(size, condition_name);
-        r_new_condition_settings.AddValues(std::make_tuple(
+        auto& r_conditions_settings = GetListObject(MainSettings::conditions_settings_list);
+        auto& r_new_condition_settings = r_conditions_settings.AddListItem(std::make_tuple(
             std::make_tuple(ConditionSettings::condition_id, Str("condition_id"), IndexType(0), DontSet ),
             std::make_tuple(ConditionSettings::condition_type, Str("condition_type"), std::string("dummy"), DontSet  ),
             std::make_tuple(ConditionSettings::input_filename, Str("input_filename"), std::string("dummy"), DontSet  ),
@@ -143,23 +137,20 @@ public:
     }
 
     /// @brief Check values.
-    void Check() {
-        // Make sure this value is not numerically zero.
-        const double value = (*this)[MainSettings::trimmed_quadrature_rule_settings].GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
-        if( value < 0.9e-10 ){
-            (*this)[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 1e-10);
-        }
+    const Settings& Check() const {
 
+        /// Check if all values are set.
         (*this)[MainSettings::general_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::background_grid_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::non_trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
 
         const IndexType echo_level = (*this)[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
-        // Orders
-        Vector3i order = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
-        IndexType min_order =  Math::Min( order );
-        IndexType max_order =  Math::Max( order );
+
+        // Check if polynomial_orders are feasible.
+        Vector3i orders = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+        IndexType min_order =  Math::Min( orders );
+        IndexType max_order =  Math::Max( orders );
         QuESo_ERROR_IF(min_order < 1) << "Invalid Input. The polynomial order must be p > 0. \n";
         QuESo_INFO_IF(max_order > 4) << "Warning :: QuESo is designed to construct efficient quadrature rules for 1 <= p <= 4. "
             << "For higher polynomial degrees, the process might become slow. It is recommended to use quadratic bases. Generally, they offer the best performance and accuracy.\n";
@@ -170,7 +161,7 @@ public:
             << "Thus, if you are integrating LINEAR finite elements, consider using '\"polynomial_order\" : [2, 2, 2]' and '\"integration_method\" : \"Gauss_Reduced1\"'. This will generate quadratic quadrature rules in all cut elements "
             << "and linear Gauss rules for all full/interior elements.\n";
 
-        // Number of elements
+        // Check if num_elements are feasible.
         Vector3i num_elements = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
         IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
         QuESo_INFO_IF( tot_num_elements < 2 && echo_level > 0 ) << "You are using only one single element.\n";
@@ -180,7 +171,8 @@ public:
 
         QuESo_ERROR_IF( min_order < 2 && integration_method == IntegrationMethod::gauss_reduced_2)
             << "Gauss_Reduced2 is only applicable to background grids with at least p=2.\n";
-        // GGQ rules
+
+        // Check if ggq_rules are feasible.
         const bool ggq_rule_ise_used =  static_cast<int>(integration_method) >= 3;
         QuESo_ERROR_IF(ggq_rule_ise_used && max_order > 4) << "Generalized Gauss Quadrature (GGQ) rules are only available for p <= 4.\n";
 
@@ -189,12 +181,19 @@ public:
         QuESo_ERROR_IF( ggq_rule_ise_used && (grid_type != GridType::b_spline_grid)) << "GGQ_Rules can only be used in combination with 'grid_type' : 'b_spline_grid'.\n";
 
         QuESo_ERROR_IF(ggq_rule_ise_used && min_order < 2) << "Generalized Gauss Quadrature (GGQ) rules are only applicable to B-Spline meshes with at least p=2.\n";
+
+        return *this;
     }
 
 private:
 
-    // Hide the following functions
+    /// Hide the following functions
+    /// @note Note making these functions protected in the Base class does not help, sine they are called here on
+    /// a reference to base class instance.
     using BaseType::AddValues;
+    using BaseType::AddListItem;
+    using BaseType::GetListObject;
+    using BaseType::AddEmptyList;
     using BaseType::AddEmptySubDictionary;
 
     ///@}

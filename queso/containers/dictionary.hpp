@@ -19,6 +19,7 @@
 #include <variant>
 #include <cassert>
 #include <vector>
+#include <algorithm>
 #include <type_traits>
 
 /// Project includes
@@ -74,22 +75,21 @@ public:
         return mKey;
     }
 
-    /// @brief Returns Value (no exception version). Very fast, but does not check types.
+    /// @brief Returns Value.
     /// @return const TValueType&.
-    /// @see GetValue(). <- This version is slower, as it checks the given types.
+    /// @note Only throws in DEBUG mode.
     template<typename TValueType>
     const TValueType& GetValueNoCheck() const noexcept(NOTDEBUG) {
-        assert(mIsSet); // KeyValuePair :: Value is not set.
+        QuESo_ASSERT(mIsSet, "Value is not set.");
         const TValueType* p_value = std::get_if<TValueType>(&mValue);
-        assert(p_value != 0); // KeyValuePair :: Given Value type does not match stored Value type.
+        QuESo_ASSERT(p_value != 0, "Given Value type does not match stored Value type.");
         return *p_value;
     }
 
-    /// @brief Returns Value (exception version). Slightly slower as GetValueNoCheck(), as it checks the given types.
-    ///        On C++ level GetValueNoCheck() should be used. However, Python uses this version.
+    /// @brief Returns Value.
     /// @tparam TValueType.
     /// @return const TValueType&.
-    /// @see GetValueNoCheck(). <- This version is faster, as it does not check the given types.
+    /// @note Throws in DEBUG and NONBDEUG mode.
     template<typename TValueType>
     const TValueType& GetValue() const {
         if ( mIsSet ){
@@ -106,7 +106,21 @@ public:
     /// @brief Sets Value.
     /// @tparam TValueType of value.
     /// @param NewValue.
-    /// @see SetValueWithAmbiguousType() <- This version cast ambiguous types, if possible, e.g., allows to cast 0 -> 0.0.
+    /// @note Only throws in DEBUG mode.
+    template<typename TValueType>
+    void SetValueNoCheck(TValueType NewValue) noexcept(NOTDEBUG) {
+        const TValueType* p_value = std::get_if<TValueType>(&mValue);
+        QuESo_ASSERT(p_value != 0, "Given Value type does not match stored Value type.");
+        if( p_value ) {
+            mIsSet = true;
+            mValue = NewValue;
+        }
+    }
+
+    /// @brief Sets Value.
+    /// @tparam TValueType of value.
+    /// @param NewValue.
+    /// @note Throws in DEBUG and NONBDEUG mode.
     template<typename TValueType>
     void SetValue(TValueType NewValue) {
         if( std::get_if<TValueType>(&mValue) ){
@@ -118,7 +132,7 @@ public:
         }
     }
 
-    /// @brief Sets Value and cast 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
+    /// @brief Sets Value and casts 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
     /// @tparam TValueType of value.
     /// @param NewValue
     /// @note This is useful for Python, where the values come from a JSON file.
@@ -270,8 +284,14 @@ public:
     ///@name Type definitions
     ///@{
 
-    typedef std::variant<std::monostate, TEnumKeys...> TVariantKey; // Each stored key can take these values.
     /// std::monostate allows to not set the key.
+    typedef std::variant<std::monostate, TEnumKeys...> TVariantKey; // Each stored key can take these values.
+    typedef KeyValuePair<TVariantKey> KeyValuePairType;
+
+    /// Type trait to check for scoped int enums
+    template<typename TType>
+    using is_scoped_int_enum = std::integral_constant<bool, !std::is_convertible<TType,int>{}
+                                                            && std::is_enum<TType>{}>;
 
     ///@}
     ///@name Life cycle
@@ -315,6 +335,7 @@ public:
     /// @return Dictionary&
     template<typename TKeyType>
     Dictionary& AddEmptySubDictionary(TKeyType rKey, std::string rKeyName) {
+        static_assert( is_scoped_int_enum<TKeyType>::value );
         // Check if key index fits the current dictionary size.
         const int index = static_cast<int>(rKey) - DictStarts::start_subdicts;
         QuESo_ERROR_IF( static_cast<int>(mSubDictionaries.size()) != index)
@@ -343,6 +364,7 @@ public:
     ///@return Dictionary&
     template<typename TKeyType, typename... TValueTypes>
     Dictionary& AddListItem(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> NewEntries) {
+        static_assert( is_scoped_int_enum<TKeyType>::value );
         QuESo_ERROR_IF(!mIsList) << "Trying to add a ListItem to an object, which is not a list.\n";
         // A list item is again a list.
         mListsOfDicts.push_back( Dictionary(std::monostate{}, "") );
@@ -358,6 +380,7 @@ public:
     /// @return Dictionary&
     template<typename TKeyType>
     Dictionary& AddEmptyList(TKeyType rKey, std::string rKeyName) {
+        static_assert( is_scoped_int_enum<TKeyType>::value );
         // Check if key index fits the current dictionary size.
         const int index = static_cast<int>(rKey) - DictStarts::start_lists;
         QuESo_ERROR_IF(static_cast<int>(mListsOfDicts.size()) != index)
@@ -388,6 +411,7 @@ public:
     /// @param NewEntries
     template<typename TKeyType, typename... TValueTypes>
     void AddValues(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> NewEntries) {
+        static_assert( is_scoped_int_enum<TKeyType>::value );
         if( mChildrenDummyKey.index() == 0 ) { // Dummy key not set -> std::(monostate: index()==0).
             // We store one key, to be able to test for the Key Type.
             mChildrenDummyKey = std::get<0>(std::get<0>(NewEntries));
@@ -400,77 +424,84 @@ public:
     /// GetItems ///
     ////////////////
 
-    /// @brief Returns const ref to sub dictionary (no exception version).
-    ///        This version is very fast, as it does not check the given type. This should be used on C++ level.
+    /// @brief Returns ref to subdictionary corresponding to given key provided as Enum (const version).
     /// @tparam TKeyType.
     /// @param QueryKey
     /// @return const Dictionary&
-    /// @see operator [] <- Version with exception handling. Sould be used e.g. in Python.
-    template<typename TKeyType>
-    const Dictionary& GetSubDictionaryNoCheck(TKeyType QueryKey) const noexcept(NOTDEBUG) {
-        assert( std::get_if<TKeyType>(&mChildrenDummyKey) != 0  ); // Given Key type does not match stored Key type.
+    /// @note only throws in DEBUG mode.
+    template<typename TKeyType,
+             typename = std::enable_if_t<is_scoped_int_enum<TKeyType>::value>>
+    const Dictionary& operator [](TKeyType QueryKey) const noexcept(NOTDEBUG) {
+        QuESo_ASSERT( std::get_if<TKeyType>(&mChildrenDummyKey) != 0, "Given Key type does not match stored Key type.\n");
         const int index = static_cast<int>(QueryKey) - DictStarts::start_subdicts;
         return mSubDictionaries[index];
     }
 
-    /// @brief Returns ref to subdictionary corresponding to given key (exception version, const version).
-    ///        This version is slower than GetSubDictionaryNoCheck(), as it checks the given type.
-    /// @tparam TKeyType.
-    /// @param QueryKey
-    /// @return const Dictionary&
-    /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
-    template<typename TKeyType>
-    const Dictionary& operator [](TKeyType QueryKey) const {
-        if ( std::get_if<TKeyType>(&mChildrenDummyKey) ){
-            return mSubDictionaries[GetDictIndex(QueryKey)];
-        }
-        QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mChildrenKeyTypeName << ").\n";
-    }
-
-    /// @brief Returns ref to subdictionary corresponding to given key (exception version, non-const version).
+    /// @brief Returns ref to subdictionary corresponding to given key provided as Enum (non const version).
     /// @tparam TKeyType.
     /// @param QueryKey
     /// @return Dictionary&
-    /// @see GetSubDictionaryNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
-    template<typename TKeyType>
-    Dictionary& operator [](TKeyType QueryKey) {
+    /// @note only throws in DEBUG mode.
+    template<typename TKeyType,
+             typename = std::enable_if_t<is_scoped_int_enum<TKeyType>::value>>
+    Dictionary& operator [](TKeyType QueryKey) noexcept(NOTDEBUG) {
         return const_cast<Dictionary&>(static_cast<const Dictionary&>(*this)[QueryKey]);
     }
 
-    ///@brief Get the List to the given Key (exception version, const version).
-    ///       This version is very fast, as it does not check the given type. This should be used on C++ level.
-    ///@tparam TKeyType
-    ///@param QueryKey
-    ///@return const std::vector<Dictionary>&
-    ///@see GetList() <- Version with exception handling. Sould be used e.g. in Python.
+    /// @brief Returns ref to subdictionary corresponding to given key provided as std::string.
+    ///        This function should only be used in Python. The Version: [Enum Key] is much faster.
+    /// @param rQueryKeyName
+    /// @return Dictionary&
+    Dictionary& operator[] (const std::string& rQueryKeyName) {
+        // Lets search for the key name.
+        const auto it = std::find_if(mSubDictionaries.begin(), mSubDictionaries.end(),
+            [&rQueryKeyName](const Dictionary& rDict)
+                { return rQueryKeyName == rDict.GetKeyName();});
+        if( it == mSubDictionaries.end() ){
+            QuESo_ERROR << "Given Key (" << rQueryKeyName << ") was not found.\n";
+        }
+        IndexType index = it - mSubDictionaries.begin();
+        return mSubDictionaries[index];
+    }
+
+    /// @brief Get the List to the given Key provided as Enum (const version).
+    /// @tparam TKeyType
+    /// @param QueryKey
+    /// @return const std::vector<Dictionary>&
+    /// @note only throws in DEBUG mode.
     template<typename TKeyType>
-    const std::vector<Dictionary>& GetListNoCheck(TKeyType QueryKey) const noexcept(NOTDEBUG) {
-        assert( std::get_if<TKeyType>(&mChildrenDummyKey) != 0 );
+    const std::vector<Dictionary>& GetList(TKeyType QueryKey,
+                                           std::enable_if_t<is_scoped_int_enum<TKeyType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
+        QuESo_ASSERT( std::get_if<TKeyType>(&mChildrenDummyKey) != 0, "Given Key Type does not match stored Key type.\n" );
         const int index = static_cast<int>(QueryKey) - DictStarts::start_lists;
         return mListsOfDicts[index].GetList();
     }
 
-    ///@brief Get the List to the given Key (exception version, const version).
-    ///@tparam TKeyType
-    ///@param QueryKey
-    ///@return const std::vector<Dictionary>&
-    ///@see GetListNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
+    /// @brief Get the List to the given Key provided as Enum (non const version).
+    /// @tparam TKeyType
+    /// @param QueryKey
+    /// @return std::vector<Dictionary>&
+    /// @note only throws in DEBUG mode.
     template<typename TKeyType>
-    const std::vector<Dictionary>& GetList(TKeyType QueryKey) const {
-        if ( std::get_if<TKeyType>(&mChildrenDummyKey) ){
-            return mListsOfDicts[GetListIndex(QueryKey)].GetList();
-        }
-        QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mChildrenKeyTypeName << ").\n";
+    std::vector<Dictionary>& GetList(TKeyType QueryKey,
+                                     std::enable_if_t<is_scoped_int_enum<TKeyType>::value>* = nullptr ) noexcept(NOTDEBUG) {
+        return const_cast<std::vector<Dictionary>&>(static_cast<const Dictionary&>(*this).GetList(QueryKey));
     }
 
-    ///@brief Get the List to the given Key (exception version, non-const version).
-    ///@tparam TKeyType
-    ///@param QueryKey
-    ///@return const std::vector<Dictionary>&
-    ///@see GetListNoCheck() <- Fast version without exception handling. Should be used, if access Keys are hard-coded.
-    template<typename TKeyType>
-    std::vector<Dictionary>& GetList(TKeyType QueryKey) {
-        return const_cast<std::vector<Dictionary>&>(static_cast<const Dictionary&>(*this).GetList(QueryKey));
+    /// @brief Get the List to the given Key provided as std::string.
+    ///        This function should only be used in Python. The Version: [Enum Key] is much faster.
+    /// @param rQueryKeyName
+    /// @return std::vector<Dictionary>&
+    std::vector<Dictionary>& GetList(const std::string& rQueryKeyName) {
+        // Lets search for the key name.
+        const auto it = std::find_if(mListsOfDicts.begin(), mListsOfDicts.end(),
+            [&rQueryKeyName](const Dictionary& rDict)
+                { return rQueryKeyName == rDict.GetKeyName();});
+        if( it == mListsOfDicts.end() ){
+            QuESo_ERROR << "Given Key (" << rQueryKeyName << ") was not found.\n";
+        }
+        IndexType index = it - mListsOfDicts.begin();
+        return mListsOfDicts[index].GetList();
     }
 
     ///@brief Get the List Object to a given key. In contrast to GetList(), this functions returns the entire Dictionary,
@@ -481,90 +512,105 @@ public:
     ///@see GetList()
     template<typename TKeyType>
     Dictionary& GetListObject(TKeyType QueryKey) {
+        static_assert( is_scoped_int_enum<TKeyType>::value );
         if ( std::get_if<TKeyType>(&mChildrenDummyKey) ){
-            return mListsOfDicts[GetListIndex(QueryKey)];
+            const IndexType index = static_cast<IndexType>(QueryKey) - DictStarts::start_lists;
+            return mListsOfDicts[index];
         }
         QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mChildrenKeyTypeName << ").\n";
     }
 
-    /// @brief Returns value to given Key (no exception version).
-    ///        This version is very fast, as it does not check the given type. This should be used on C++ level.
+    /// @brief Returns the Value to the given Key provided as Enum.
     /// @tparam TValueType
     /// @tparam TKeyType
-    /// @param QueryKey
+    /// @param QueryKey (Enum)
     /// @return const TValueType&
-    /// @see GetValue() <- Version with exception handling. Sould be used e.g. in Python.
+    /// @note Only throws in DEBUG mode.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetValueNoCheck(TKeyType QueryKey) const noexcept(NOTDEBUG) {
-        assert( std::get_if<TKeyType>(&mChildrenDummyKey) != 0 ); // Given Key type does not match stored Key type.
+    const TValueType& GetValue(TKeyType QueryKey,
+                               std::enable_if_t<is_scoped_int_enum<TKeyType>::value>* = nullptr ) const noexcept(NOTDEBUG){
+        QuESo_ASSERT( std::get_if<TKeyType>(&mChildrenDummyKey) != 0, "Given Key Type does not match stored Key type.\n" );
         const int index = static_cast<int>(QueryKey) - DictStarts::start_values;
         return mData[index].template GetValueNoCheck<TValueType>();
     }
 
-    /// @brief Returns value to given Key (exception version).
+    /// @brief Returns the Value to the given Key provided as std::string.
+    ///        This function should only be used in Python. The Version: [Enum Key] is much faster.
     /// @tparam TValueType
-    /// @tparam TKeyType
-    /// @param QueryKey
+    /// @param QueryKey (std::string)
     /// @return const TValueType&
-    /// @see GetValueNoCheck() <- Version without exception handling. Should be used, if access Keys are hard-coded.
-    template<typename TValueType, typename TKeyType>
-    const TValueType& GetValue(TKeyType QueryKey) const {
-        if( std::get_if<TKeyType>(&mChildrenDummyKey) ) {
-            return mData[GetValueIndex(QueryKey)].template GetValue<TValueType>();
-        }
-        QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mChildrenKeyTypeName << ").\n";
+    template<typename TValueType>
+    const TValueType& GetValue(const std::string& rQueryKeyName) const {
+        IndexType index = FindIndexOfKeyValuePairByString(rQueryKeyName);
+        return mData[index].template GetValue<TValueType>();
     }
 
     ////////////////
     /// SetItems ///
     ////////////////
 
-    /// @brief Sets Value to given Key.
+    /// @brief Sets Value to given Key provided as Enum.
     /// @tparam TKeyType
     /// @tparam TValueType
-    /// @param QueryKey
+    /// @param QueryKey (Enum)
     /// @param NewValue
-    /// @see SetValueWithAmbiguousType() <- allows to cast ambiguous types, e.g., casts 0 -> 0.0, if possible.
+    /// @see Only throws in DEBUG mode.
     template<typename TKeyType, typename TValueType>
-    void SetValue(TKeyType QueryKey, TValueType NewValue) {
-        if( std::get_if<TKeyType>(&mChildrenDummyKey) ){
-            const IndexType index = GetValueIndex(QueryKey);
-            if constexpr(std::is_same_v<TValueType, int>
-                    || std::is_same_v<TValueType, unsigned int>
-                    || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
-                if constexpr (std::is_same_v<TValueType, int>) {
-                    QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
-                }
-                mData[index].SetValue(static_cast<IndexType>(NewValue));
-            } else {
-                mData[index].SetValue(NewValue);
+    void SetValue(TKeyType QueryKey, TValueType NewValue,
+                  std::enable_if_t<is_scoped_int_enum<TKeyType>::value>* = nullptr ) noexcept(NOTDEBUG) {
+        QuESo_ASSERT( std::get_if<TKeyType>(&mChildrenDummyKey) != 0, "Given Key Type does not match stored Key type.\n" );
+        const IndexType index = static_cast<IndexType>(QueryKey) - DictStarts::start_values;
+        if constexpr(std::is_same_v<TValueType, int>
+                  || std::is_same_v<TValueType, unsigned int>
+                  || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+            if constexpr (std::is_same_v<TValueType, int>) {
+                QuESo_ASSERT(NewValue >= 0, "Value must be non-negative.\n");
             }
+            mData[index].SetValueNoCheck(static_cast<IndexType>(NewValue));
         } else {
-            QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type ("
-                << mChildrenKeyTypeName << ").\n";
+            mData[index].SetValueNoCheck(NewValue);
         }
     }
 
-    /// @brief Sets Value to given Key. Casts 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
+    /// @brief Sets Value to given Key (given as string).
     /// @tparam TValueType
-    /// @tparam TKeyType
-    /// @param QueryKey
+    /// @param rQueryKeyName
+    /// @param NewValue
+    /// @see SetValueWithAmbiguousType() <- allows to cast ambiguous types, e.g., casts 0 -> 0.0, if possible.
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
+    template<typename TValueType>
+    void SetValue(const std::string& rQueryKeyName, TValueType NewValue) {
+        IndexType index = FindIndexOfKeyValuePairByString(rQueryKeyName);
+        if constexpr(std::is_same_v<TValueType, int>
+                || std::is_same_v<TValueType, unsigned int>
+                || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+            if constexpr (std::is_same_v<TValueType, int>) {
+                QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
+            }
+            mData[index].SetValue(static_cast<IndexType>(NewValue));
+        } else {
+            mData[index].SetValue(NewValue);
+        }
+    }
+
+    /// @brief Sets Value to given Key (given as string). Casts 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
+    /// @tparam TValueType
+    /// @param rQueryKeyName
     /// @param NewValue
     /// @param SetValue() <- Version without type casting.
-    template<typename TKeyType, typename TValueType>
-    void SetValueWithAmbiguousType(TKeyType QueryKey, TValueType NewValue) {
-        if( std::get_if<TKeyType>(&mChildrenDummyKey) ){
-            const IndexType index = GetValueIndex(QueryKey);
-            if constexpr(std::is_same_v<TValueType, int>
-                    || std::is_same_v<TValueType, unsigned int>
-                    || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
+    template<typename TValueType>
+    void SetValueWithAmbiguousType(const std::string& rQueryKeyName, TValueType NewValue) {
+        IndexType index = FindIndexOfKeyValuePairByString(rQueryKeyName);
+        if constexpr(std::is_same_v<TValueType, int>
+                || std::is_same_v<TValueType, unsigned int>
+                || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+            if constexpr (std::is_same_v<TValueType, int>) {
                 QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
-                mData[index].SetValueWithAmbiguousType(static_cast<IndexType>(NewValue));
-            } else {
-                mData[index].SetValueWithAmbiguousType(NewValue);
             }
+            mData[index].SetValueWithAmbiguousType(static_cast<IndexType>(NewValue));
         } else {
-            QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mChildrenKeyTypeName << ").\n";
+            mData[index].SetValueWithAmbiguousType(NewValue);
         }
     }
 
@@ -576,18 +622,22 @@ public:
     /// @tparam TKeyType.
     /// @param QueryKey
     /// @return bool
+    /// @note Only throws in DEBUG mode.
     template<typename TKeyType>
-    bool IsSet(TKeyType QueryKey) const {
-        if( std::get_if<TKeyType>(&mChildrenDummyKey) ){
-            return mData[GetValueIndex(QueryKey)].IsSet();
-        }
-        QuESo_ERROR << "Given Key type (" << GetTypeName<TKeyType>() << ") does not match stored Key type (" << mChildrenKeyTypeName << ").\n";
+    bool IsSet(TKeyType QueryKey,
+               std::enable_if_t<is_scoped_int_enum<TKeyType>::value>* = nullptr) const noexcept(NOTDEBUG) {
+               static_assert( is_scoped_int_enum<TKeyType>::value );
+        QuESo_ASSERT( std::get_if<TKeyType>(&mChildrenDummyKey) != 0, "Given Key Type does not match stored Key type.\n" );
+        const int index = static_cast<int>(QueryKey) - DictStarts::start_values;
+        return mData[index].IsSet();
     }
 
-    /// @brief Returns number of subdictionaries stored.
-    /// @return IndexType
-    IndexType NumberOfSubDictionaries() const {
-        return mSubDictionaries.size();
+    /// @brief Returns true if Value to given Key is set.
+    /// @param rQueryKeyName
+    /// @return bool
+    bool IsSet(const std::string& rQueryKeyName) const {
+        IndexType index = FindIndexOfKeyValuePairByString(rQueryKeyName);
+        return mData[index].IsSet();
     }
 
     /// @brief Throws error if any stored value on this level is not set.
@@ -628,9 +678,15 @@ private:
         return mKeyTypeName;
     }
 
-    ///@brief Get the List object.
+    ///@brief Get the List object (const version).
     ///@return const std::vector<Dictionary>&
     const std::vector<Dictionary>& GetList() const noexcept {
+        return mListsOfDicts;
+    }
+
+    ///@brief Get the List object (non-const version).
+    ///@return const std::vector<Dictionary>&
+    std::vector<Dictionary>& GetList() noexcept {
         return mListsOfDicts;
     }
 
@@ -641,49 +697,19 @@ private:
         return typeid(TType).name();
     }
 
-    ///@brief Returns the index for the Dictionary vector for a given key.
-    ///       Shifts the QueryKey according to DictStarts
-    ///@tparam TKeyType
-    ///@param QueryKey
+    ///@brief Returns index of KeyValuePair to given Key provided as std::string.
+    ///@param rQueryKeyName Key.
     ///@return IndexType
-    ///@see DictStarts
-    template<typename TKeyType>
-    inline IndexType GetDictIndex (TKeyType QueryKey) const {
-        const int index = static_cast<int>(QueryKey) - DictStarts::start_subdicts;
-        if( index > -1 && index < static_cast<int>(mSubDictionaries.size()) ){
-            return static_cast<IndexType>(index);
+    IndexType FindIndexOfKeyValuePairByString(const std::string& rQueryKeyName) const {
+        // Lets search for the key name.
+        const auto it = std::find_if(mData.begin(), mData.end(),
+            [&rQueryKeyName](const KeyValuePairType& rValue)
+                { return rQueryKeyName == rValue.GetKeyName();});
+        if( it != mData.end() ){
+            IndexType index = it - mData.begin();
+            return index;
         }
-        QuESo_ERROR << "Given key of type (" << GetTypeName<TKeyType>() << ") is not associated to a subdictionary. " << std::endl;
-    }
-
-    ///@brief Returns the index for the KeyValuePair vector for a given key.
-    ///       Shifts the QueryKey according to DictStarts
-    ///@tparam TKeyType
-    ///@param QueryKey
-    ///@return IndexType
-    ///@see DictStarts
-    template<typename TKeyType>
-    inline IndexType GetValueIndex (TKeyType QueryKey) const {
-        const int index = static_cast<int>(QueryKey) - DictStarts::start_values;
-        if( index > -1 && index < static_cast<int>(mData.size()) ){
-            return static_cast<IndexType>(index);
-        }
-        QuESo_ERROR << "Given key of type (" << GetTypeName<TKeyType>() << ") is not associated to a data value. " << std::endl;
-    }
-
-    ///@brief Returns the index for the List vector for a given key.
-    ///       Shifts the QueryKey according to DictStarts
-    ///@tparam TKeyType
-    ///@param QueryKey
-    ///@return IndexType
-    ///@see DictStarts
-    template<typename TKeyType>
-    inline IndexType GetListIndex (TKeyType QueryKey) const {
-        const int index = static_cast<int>(QueryKey) - DictStarts::start_lists;
-        if( index > -1 && index < static_cast<int>(mListsOfDicts.size()) ){
-            return static_cast<IndexType>(index);
-        }
-        QuESo_ERROR << "Given key of type (" << GetTypeName<TKeyType>() << ") is not associated to a list. " << std::endl;
+        QuESo_ERROR << "Given Key (" << rQueryKeyName << ") was not found.\n";
     }
 
     /// @brief Prints this dictionary in JSON format.
@@ -745,12 +771,6 @@ private:
     ///@name Private struct and function definitions to extract tuples.
     ///@{
 
-    template <typename>
-    struct is_tuple: std::false_type {};
-
-    template <typename ...T>
-    struct is_tuple<std::tuple<T...>>: std::true_type {};
-
     // Function to iterate through all values of the tuple. I equals number of values in tuple.
     template <size_t I = 0, typename TKeyType, typename... TValueTypes>
     typename std::enable_if<I == sizeof...(TValueTypes), void>::type
@@ -767,7 +787,7 @@ private:
             QuESo_ERROR << "Tuples are not given in correct order. \n";
         }
 
-        mData.push_back(KeyValuePair(TVariantKey(std::get<0>(r_tuple)), std::get<1>(r_tuple), std::get<2>(r_tuple), std::get<3>(r_tuple)));
+        mData.push_back(KeyValuePairType(TVariantKey(std::get<0>(r_tuple)), std::get<1>(r_tuple), std::get<2>(r_tuple), std::get<3>(r_tuple)));
         UnpackTuple<I+1>(Tuple); // Recursive call.
     }
 
@@ -786,7 +806,7 @@ private:
     std::string mChildrenKeyTypeName;
 
     /// Vector of KeyValuePairs.
-    std::vector<KeyValuePair<TVariantKey>> mData;
+    std::vector<KeyValuePairType> mData;
 
     /// Vector of Subdictionaries.
     std::vector<Dictionary<TEnumKeys...>> mSubDictionaries;
