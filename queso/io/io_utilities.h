@@ -30,6 +30,7 @@ namespace queso {
  * @class  IO
  * @author Manuel Messmer
  * @brief  Provides methods to parse data. Supports STL and VTK files.
+ * @todo Throw Exceptions instead of returning bool (success) value.
 */
 class IO{
 
@@ -68,8 +69,25 @@ public:
     /// @param Binary
     /// @return bool
     static bool WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
-                                        const char* Filename,
-                                        const bool Binary);
+                                       const char* Filename,
+                                       const bool Binary);
+
+    ///@brief Write dictionary to JSON file.
+    ///@tparam TDictType
+    ///@param rDictionary
+    ///@param Filename
+    ///@return bool
+    template<typename TDictType>
+    static bool WriteDictionaryToJSON(const TDictType& rDictionary, const char* Filename){
+        std::ofstream file(Filename, std::ios::out);
+        if(file.is_open()){
+            rDictionary.PrintInfo(file);
+            file.close();
+        } else {
+            QuESo_ERROR << "Warning :: IO::WriteDictionaryToJSON :: Could not create/open file: " << Filename << ".\n";
+        }
+        return true;
+    }
 
     /// @brief Write triangle mesh associated to given condition to STL-file.
     /// @tparam TElementType
