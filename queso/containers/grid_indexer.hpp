@@ -42,15 +42,15 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param rSettings
-    GridIndexer( const SettingsBaseType& rSettings ) :
-        mBoundXYZ( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
-                                  rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
-        mBoundUVW( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw),
-                                  rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw)) ),
-        mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) ),
+    /// @param rGridSettings
+    GridIndexer( const SettingsBaseType& rGridSettings ) :
+        mBoundXYZ( std::make_pair(rGridSettings.GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
+                                  rGridSettings.GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
+        mBoundUVW( std::make_pair(rGridSettings.GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw),
+                                  rGridSettings.GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw)) ),
+        mNumberOfElements(rGridSettings.GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) ),
         mGlobalPartition( std::make_pair(Vector3i({0, 0, 0}), Vector3i({mNumberOfElements[0]-1, mNumberOfElements[1]-1, mNumberOfElements[2]-1}) )),
-        mBSplineMesh( rSettings[MainSettings::background_grid_settings].GetValue<GridType>(BackgroundGridSettings::grid_type) ==  GridType::b_spline_grid )
+        mBSplineMesh( rGridSettings.GetValue<GridType>(BackgroundGridSettings::grid_type) ==  GridType::b_spline_grid )
     {
     }
 
