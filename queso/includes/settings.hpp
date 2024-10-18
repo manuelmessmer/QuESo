@@ -145,6 +145,17 @@ public:
         (*this)[MainSettings::trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
         (*this)[MainSettings::non_trimmed_quadrature_rule_settings].CheckIfValuesAreSet();
 
+        // condition_id and input_filename must be set for all conditions.
+        const auto& r_condition_settings_list = this->GetList(MainSettings::conditions_settings_list);
+        IndexType i = 0;
+        for( const auto& r_condition_settings : r_condition_settings_list ) {
+            QuESo_ERROR_IF( !r_condition_settings.IsSet(ConditionSettings::condition_id) )
+                << "'condition_id' of condition (" << i << ") is not set.\n";
+            QuESo_ERROR_IF( !r_condition_settings.IsSet(ConditionSettings::input_filename) )
+                << "'input_filename' of condition (" << i << ") is not set.\n";
+            ++i;
+        }
+
         const IndexType echo_level = (*this)[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
 
         // Check if polynomial_orders are feasible.
