@@ -76,7 +76,7 @@ public:
     ModelInfo() : BaseType(RootInfo::main_info, Str("model_info")) {
 
         /// Let's define the default model_info...
-        bool DontSet = false; // Given values are only dummy values used to deduced the associated type.
+        bool DontSet = false; // Given values are only dummy values used to deduce the associated type.
                               // However, calling IsSet() will return false.
 
         /// EmbeddedGeometryInfo
@@ -140,14 +140,14 @@ public:
 
     /// @brief Creates new condition settings.
     /// @return SettingsBaseType& Reference to dictionary that contains condition settings.
-    ModelInfoBaseType& CreateNewConditionInfos() {
+    ModelInfoBaseType& CreateNewConditionInfo() {
         bool DontSet = false; // Given values are only dummy values used to deduced the associated type.
 
         auto& r_conditions_infos = GetListObject(MainInfo::conditions_infos_list);
         auto& r_new_condition_info = r_conditions_infos.AddListItem(std::make_tuple(
             std::make_tuple(ConditionInfo::condition_id, Str("condition_id"), IndexType(0), DontSet ),
             std::make_tuple(ConditionInfo::surf_area, Str("surf_area"), 0.0, DontSet ),
-            std::make_tuple(ConditionInfo::perc_surf_area_in_active_domain, Str("perc_surf_area_in_active_domain"), std::string("dummy"), DontSet  )
+            std::make_tuple(ConditionInfo::perc_surf_area_in_active_domain, Str("perc_surf_area_in_active_domain"), 0.0, DontSet  )
         ));
 
         return r_new_condition_info;
@@ -156,7 +156,7 @@ public:
 private:
 
     /// Hide the following functions
-    /// @note Note making these functions protected in the Base class does not help, sine they are called here on
+    /// @note Note making these functions protected in the Base class does not help, since they are called here on
     /// a reference to base class instance.
     using BaseType::AddValues;
     using BaseType::AddListItem;
