@@ -15,7 +15,7 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
-#include <boost/test/execution_monitor.hpp>
+
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/settings.hpp"
