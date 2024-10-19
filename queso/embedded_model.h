@@ -33,6 +33,12 @@ namespace queso {
  * @class  EmbeddedModel
  * @author Manuel Messmer
  * @brief  Main class of QuESo.
+ *         Provides interface to create integration points for embedded volumes and embedded conditions (boundaries),
+ *         based in the setting provided in mSettings. EmbeddedModel aggregates a BackgroundGrid, which stores the
+ *         created active elements and conditions. Each element stores its integrations points. Each condition is
+ *         split into ConditionSegment's (that conform to the boundaries of the elements in the background grid).
+ *         The corresponding boundary integration points are stored on these ConditionSegments.
+ *         EmbeddedModel also stores some information regearding the created model in mModelInfo.
 */
 class EmbeddedModel
 {
@@ -45,6 +51,8 @@ public:
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
     typedef BackgroundGrid<ElementType> BackgroundGridType;
     typedef Condition<ElementType> ConditionType;
+
+    enum class TerminationStatus {successful, with_error};
 
     ///@}
     ///@name  Life Cycle
@@ -73,7 +81,11 @@ public:
     ///@name Operations
     ///@{
 
-    void CreateFromSettings() {
+    ///@brief Main function to create embedded model.
+    ///       Creates integration points for both the embedded volume and all embedded conditions.
+    ///       The respective geometries (TriangleMeshes) are taken from input STL files specified in mSettings.
+    ///@return TerminationStatus (option: successful, with_error)
+    TerminationStatus CreateFromSettings() {
         try {
             // Create volume
             const auto& r_general_settings = mSettings[MainSettings::general_settings];
@@ -106,25 +118,56 @@ public:
         }
         catch (const Exception& rException ){
             std::cerr << rException.what();
+            return TerminationStatus::with_error;
         }
+        catch ( const std::exception& rException) {
+            std::cerr << rException.what();
+            return TerminationStatus::with_error;
+        }
+        return TerminationStatus::successful;
     }
 
-    void CreateVolume(const TriangleMeshInterface& rTriangleMesh){
+    ///@brief Creates integration points for an embedded volume that is enclosed/defined by rTriangleMesh.
+    ///       This interface enables to pass a TriangleMeshInterface and, hence, facilitates other applications to
+    ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
+    ///@param rTriangleMesh
+    ///@return TerminationStatus (option: successful, with_error)
+    ///@see CreateFromSettings <- Create volume and condition directly from input files specified in mSettings.
+    TerminationStatus CreateVolume(const TriangleMeshInterface& rTriangleMesh){
         try {
             ComputeVolume(rTriangleMesh);
         }
         catch (const Exception& rException ){
             std::cerr << rException.what();
+            return TerminationStatus::with_error;
         }
+        catch ( const std::exception& rException) {
+            std::cerr << rException.what();
+            return TerminationStatus::with_error;
+        }
+        return TerminationStatus::successful;
     }
 
-    void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
+    ///@brief Creates integration points for an embedded condition defined by rTriangleMesh.
+    ///       This interface enables to pass a TriangleMeshInterface and, hence, facilitates other applications to
+    ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
+    ///@param rTriangleMesh
+    ///@param rConditionSettings
+    ///@return TerminationStatus (option: successful, with_error)
+    ///@see CreateFromSettings <- Create volume and condition directly from input files specified in mSettings.
+    TerminationStatus CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
         try {
             ComputeCondition(rTriangleMesh, rConditionSettings);
         }
         catch (const Exception& rException ){
             std::cerr << rException.what();
+            return TerminationStatus::with_error;
         }
+        catch ( const std::exception& rException) {
+            std::cerr << rException.what();
+            return TerminationStatus::with_error;
+        }
+        return TerminationStatus::successful;
     }
 
     /// @brief Get all active elements.
@@ -139,6 +182,8 @@ public:
         return mBackgroundGrid.GetConditions();
     }
 
+    ///@brief Returns the ModelInfo
+    ///@return const ModelInfo&
     const ModelInfo& GetModelInfo() const {
         return mModelInfo;
     }
@@ -150,18 +195,32 @@ private:
     ///@name Private Member Operations
     ///@{
 
+    ///@brief Main function to compute the integration points for a volume enclosed/defined by rTriangleMesh.
+    ///@param rTriangleMesh
     void ComputeVolume(const TriangleMeshInterface& rTriangleMesh);
 
+    ///@brief Main function to compute the integration points for a condition defined by rTriangleMesh.
+    ///@param rTriangleMesh
+    ///@param rConditionSettings
     void ComputeCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings);
 
+    ///@brief Prints a warning, if the rTriangleMesh is not fully contained within the bounding box defined
+    ///       by 'lower_bound_xyz' and 'upper_bound_xyz' in mSettings.
+    ///@param rTriangleMesh
     void CheckIfMeshIsWithinBoundingBox(const TriangleMeshInterface& rTriangleMesh) const;
 
+    ///@brief Prints some info to the console regarding the computed volume.
+    ///       Since only one volume per EmbeddedModel can be created no arguments have to be passed.
     void PrintVolumeInfo() const;
 
+    ///@brief Prints some info to the console regarding the computed condition.
+    ///@param rConditionInfo
     void PrintConditionInfo(const ModelInfoBaseType& rConditionInfo) const;
 
+    ///@brief Prints some info to the console regarding the elapsed computing times required to create the volume.
     void PrintVolumeElapsedTimeInfo() const;
 
+    ///@brief Prints some info to the console regarding the elapsed computing times required to create the conditions.
     void PrintConditionsElapsedTimeInfo() const;
 
     ///@}
@@ -172,11 +231,8 @@ private:
     BackgroundGridType mBackgroundGrid;
     ModelInfo mModelInfo;
     ///@}
-
 };
-
-///@}
-
+///@} End QuESo Classes
 } // End namespace queso
 
-#endif // QuESo_INCLUDE_H
+#endif // EMBEDDED_MODEL_INCLUDE_H

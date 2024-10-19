@@ -308,7 +308,7 @@ void EmbeddedModel::PrintVolumeElapsedTimeInfo() const {
         QuESo_INFO << "   -- Construction of GGQ rules:     " <<
             r_volume_time_info.GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules) << " sec\n";
     } else {
-        QuESo_INFO << "-- ElpasedTimeInfo (Create Volume) :: Elapsed time: " << r_volume_time_info.GetValue<double>(VolumeTimeInfo::total) << " sec\n";
+        QuESo_INFO_IF(echo_level > 0) << ":: ElpasedTimeInfo (Create Volume) :: Elapsed time: " << r_volume_time_info.GetValue<double>(VolumeTimeInfo::total) << " sec\n";
     }
 }
 
