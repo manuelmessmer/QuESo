@@ -162,22 +162,19 @@ public:
     }
 
     ///@brief Basic check of this TriangleMesh instance.
-    bool Check() const override {
+    void Check() const override {
         // Check if mTriangles and mNormals are of the same size.
         if( mTriangles.size() != BaseType::NumOfNormals() ){
-            std::cerr << "TriangleMesh :: Number of Triangles and Normals in mesh do not match.\n";
-            return false;
+            QuESo_ERROR << "Number of Triangles and Normals in mesh do not match.\n";
         }
         // Check if all vertex ids exist.
         for( IndexType i = 0; i < mTriangles.size(); ++i ){
             for(IndexType j = 0; j < 3; ++j){
                 if( mTriangles[i][j] >= mVertices.size() ){
-                    std::cerr << "TriangleMesh :: Triangle/Vertex mismatch.\n";
-                    return false;
+                    QuESo_ERROR << "Triangle/Vertex mismatch.\n";
                 }
             }
         }
-        return true;
     }
     ///@}
 
