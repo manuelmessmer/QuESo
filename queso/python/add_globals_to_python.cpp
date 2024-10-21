@@ -32,7 +32,6 @@ void AddGlobalsToPython(pybind11::module& m) {
         .value("GGQ_Optimal", IntegrationMethod::ggq_optimal)
         .value("GGQ_Reduced1", IntegrationMethod::ggq_reduced_1)
         .value("GGQ_Reduced2", IntegrationMethod::ggq_reduced_2)
-        .export_values()
     ;
 
     /// Export enum GridType

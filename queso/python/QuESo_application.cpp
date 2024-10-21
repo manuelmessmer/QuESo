@@ -19,6 +19,7 @@
 #include "queso/python/add_containers_to_python.h"
 #include "queso/python/add_globals_to_python.h"
 #include "queso/python/add_utilities_to_python.h"
+#include "queso/python/add_io_to_python.h"
 #include "queso/QuESo_main.h"
 
 namespace queso {
@@ -46,6 +47,7 @@ PYBIND11_MODULE(QuESo_Application,m) {
     AddModelInfoToPython(m);
     AddContainersToPython(m);
     AddUtilitiesToPython(m);
+    AddIoToPython(m);
 
 }
 
