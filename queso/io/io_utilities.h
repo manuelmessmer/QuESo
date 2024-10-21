@@ -40,75 +40,57 @@ public:
 
     /// @brief Write TriangleMeshInterface to VTK-File
     /// @param rTriangleMesh
-    /// @param Filename
-    /// @param Binary
-    /// @return bool
-    static bool WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
-                                const char* Filename,
+    /// @param rFilename
+    /// @param Binary If true, file is written in binary format.
+    static void WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
+                                const std::string& rFilename,
                                 const bool Binary);
 
     /// @brief Write TriangleMeshInterface to STL-File.
     /// @param rTriangleMesh
-    /// @param Filename
-    /// @param Binary
-    /// @return bool
-    static bool WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
-                                const char* Filename,
+    /// @param rFilename
+    /// @param Binary If true, file is written in binary format.
+    static void WriteMeshToSTL( const TriangleMeshInterface& rTriangleMesh,
+                                const std::string& rFilename,
                                 const bool Binary);
 
     /// @brief Read TriangleMeshInterface from STL.
     /// @param rTriangleMesh
-    /// @param Filename
-    /// @return bool
-    static bool ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
-                                const char* Filename);
-
-    /// @brief Write displacements to VTK-file. Append exisiting files, that contains vertices.
-    /// @param rDisplacement
-    /// @param Filename
-    /// @param Binary
-    /// @return bool
-    static bool WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
-                                       const char* Filename,
-                                       const bool Binary);
+    /// @param rFilename
+    static void ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
+                                const std::string& rFilename);
 
     ///@brief Write dictionary to JSON file.
     ///@tparam TDictType
     ///@param rDictionary
-    ///@param Filename
-    ///@return bool
+    ///@param rFilename
     template<typename TDictType>
-    static bool WriteDictionaryToJSON(const TDictType& rDictionary, const char* Filename){
-        std::ofstream file(Filename, std::ios::out);
+    static void WriteDictionaryToJSON(const TDictType& rDictionary, const std::string& rFilename){
+        std::ofstream file(rFilename, std::ios::out);
         if(file.is_open()){
             rDictionary.PrintInfo(file);
             file.close();
         } else {
-            QuESo_ERROR << "Warning :: IO::WriteDictionaryToJSON :: Could not create/open file: " << Filename << ".\n";
+            QuESo_ERROR << "Warning :: IO::WriteDictionaryToJSON :: Could not create/open file: " << rFilename << ".\n";
         }
-        return true;
     }
 
     /// @brief Write triangle mesh associated to given condition to STL-file.
     /// @tparam TElementType
     /// @param rCondition
-    /// @param Filename
-    /// @param Binary
-    /// @return bool
+    /// @param rFilename
+    /// @param Binary If true, file is written in binary format.
     template<typename TElementType>
-    static bool WriteConditionToSTL(const Condition<TElementType>& rCondition,
-                                    const char* Filename,
+    static void WriteConditionToSTL(const Condition<TElementType>& rCondition,
+                                    const std::string& rFilename,
                                     const bool Binary){
         std::ofstream file;
         if(Binary)
-            file.open(Filename, std::ios::out | std::ios::binary);
+            file.open(rFilename, std::ios::out | std::ios::binary);
         else
-            file.open(Filename);
+            file.open(rFilename);
 
-        if(!file.good()){
-            std::cerr << "Warning :: IO::WriteConditionsToVTk :: Could not open file: " << Filename << ".\n";
-            return false;
-        }
+        QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << ".\n";
 
         IndexType num_triangles = 0;
         for( const auto& p_segments : rCondition.GetSegments() ){
@@ -165,28 +147,27 @@ public:
             file << "endsolid"<<std::endl;
         }
         file.close();
-
-        return true;
     }
 
 
     /// @brief Write element container to VTK-file.
     /// @tparam TElementType
     /// @param rBackgroundGrid
-    /// @param Filename
-    /// @param Binary
-    /// @return bool
+    /// @param rFilename
+    /// @param Binary If true, file is written in binary format.
     template<typename TElementType>
-    static bool WriteElementsToVTK( const BackgroundGrid<TElementType>& rBackgroundGrid,
-                                    const char* Filename,
+    static void WriteElementsToVTK( const BackgroundGrid<TElementType>& rBackgroundGrid,
+                                    const std::string& rFilename,
                                     const bool Binary) {
         const SizeType num_elements = rBackgroundGrid.NumberOfActiveElements();
 
         std::ofstream file;
         if(Binary)
-            file.open(Filename, std::ios::out | std::ios::binary);
+            file.open(rFilename, std::ios::out | std::ios::binary);
         else
-            file.open(Filename);
+            file.open(rFilename);
+
+        QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << ".\n";
 
         file << "# vtk DataFile Version 4.1" << std::endl;
         file << "vtk output" << std::endl;
@@ -292,21 +273,19 @@ public:
         }
         file << std::endl;
         file.close();
-
-        return true;
     }
 
     /// @brief Write points to VTK. Interface for BackgroundGrid.
     /// @tparam TElementType
     /// @param rBackgroundGrid
     /// @param Type
-    /// @param Filename
-    /// @param Binary
-    /// @return bool
+    /// @param rFilename
+    /// @param Binary If true, file is written in binary format.
+    /// @todo Needs to be refactored.
     template<typename TElementType>
-    static bool WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
-                                const char* Type,
-                                const char* Filename,
+    static void WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
+                                const std::string& Type,
+                                const std::string& rFilename,
                                 const bool Binary) {
 
         QuESo_ERROR_IF( std::string(Type) != "All") << "Only integration points option 'All' is available. \n";
@@ -316,9 +295,11 @@ public:
 
         std::ofstream file;
         if(Binary)
-            file.open(Filename, std::ios::out | std::ios::binary);
+            file.open(rFilename, std::ios::out | std::ios::binary);
         else
-            file.open(Filename);
+            file.open(rFilename);
+
+        QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << ".\n";
 
         file << "# vtk DataFile Version 4.1" << std::endl;
         file << "vtk output" << std::endl;
@@ -396,19 +377,16 @@ public:
         }
         file << std::endl;
         file.close();
-
-        return true;
     }
 
     /// @brief Write points to VTK.
     /// @tparam Type
     /// @param pPoints
-    /// @param Filename
-    /// @param Binary
-    /// @return
+    /// @param rFilename
+    /// @param Binary If true, file is written in binary format.
     template<typename Type>
-    static bool WritePointsToVTK(const std::vector<Type>& rPoints,
-                                const char* Filename,
+    static void WritePointsToVTK(const std::vector<Type>& rPoints,
+                                const std::string& rFilename,
                                 const bool Binary) {
 
         const auto begin_points_it_ptr = rPoints.begin();
@@ -417,9 +395,11 @@ public:
 
         std::ofstream file;
         if(Binary)
-            file.open(Filename, std::ios::out | std::ios::binary);
+            file.open(rFilename, std::ios::out | std::ios::binary);
         else
-            file.open(Filename);
+            file.open(rFilename);
+
+        QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << ".\n";
 
         file << "# vtk DataFile Version 4.1" << std::endl;
         file << "vtk output" << std::endl;
@@ -427,7 +407,6 @@ public:
             file << "BINARY"<< std::endl;
         else
             file << "ASCII"<< std::endl;
-
 
         file << "DATASET UNSTRUCTURED_GRID" << std::endl;
         file << "POINTS " << num_points << " double" << std::endl;
@@ -492,8 +471,6 @@ public:
         }
         file << std::endl;
         file.close();
-
-        return true;
     }
 
 private:
@@ -502,11 +479,32 @@ private:
     ///@name Private Operations
     ///@{
 
+    ///@brief  Reads triangle mesh from STL in Ascii-format.
+    ///@param rTriangleMesh
+    ///@param rFilename
+    ///@see ReadMeshFromSTL_Binary()
+    static void ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
+                                      const std::string& rFilename);
+
+    ///@brief  Reads triangle mesh from STL in Binary-format.
+    ///@param rTriangleMesh
+    ///@param rFilename
+    ///@see ReadMeshFromSTL_Ascii()
+    static void ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
+                                       const std::string& rFilename);
+
+    ///@brief Returns true if given file in in ASCII-format.
+    ///@param rFilename
+    ///@return bool
+    static bool STLIsInASCIIFormat(const std::string& rFilename);
+
+    ////// Some Helper functions //////
+
     template<typename T>
     static void SwapEnd(T& var)
     {
         char* varArray = reinterpret_cast<char*>(&var);
-        for(long i = 0; i < static_cast<long>(sizeof(var)/2); i++)
+        for(long i = 0; i < static_cast<long>(sizeof(var)/2); ++i)
         std::swap(varArray[sizeof(var) - 1 - i],varArray[i]);
     }
 
@@ -515,13 +513,6 @@ private:
         SwapEnd(var);
         stream.write(reinterpret_cast<char*>(&var), sizeof(T));
     }
-
-    static bool ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
-                                        const char* Filename);
-    static bool ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
-                                        const char* Filename);
-
-    static bool STLIsInASCIIFormat(const char* Filename);
 
   ///@}
 }; // End class IO
