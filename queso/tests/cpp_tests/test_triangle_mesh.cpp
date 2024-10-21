@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOBindaryTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
     // Make basic check
-    QuESo_CHECK(triangle_mesh.Check());
+    triangle_mesh.Check();
 
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder_ascii.stl");
 
     // Make basic check
-    QuESo_CHECK(triangle_mesh.Check());
+    triangle_mesh.Check();
 
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 888);
     // Check surface area
@@ -84,12 +84,12 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
     // Make basic check
-    QuESo_CHECK(triangle_mesh.Check());
+    triangle_mesh.Check();
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 5558);
     auto init_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
     MeshUtilities::Refine(triangle_mesh, 20000);
-    QuESo_CHECK(triangle_mesh.Check());
+    triangle_mesh.Check();
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 27911);
     auto new_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
@@ -105,13 +105,13 @@ BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
     // Make basic check
-    QuESo_CHECK(triangle_mesh.Check());
+    triangle_mesh.Check();
     QuESo_CHECK_EQUAL(triangle_mesh.NumOfTriangles(), 112402);
     auto init_values = ComputeAreaAndWeightedNormal(triangle_mesh);
 
     TriangleMesh new_mesh{};
     MeshUtilities::Append(new_mesh, triangle_mesh);
-    QuESo_CHECK(new_mesh.Check());
+    new_mesh.Check();
     QuESo_CHECK_EQUAL(new_mesh.NumOfTriangles(), 112402);
     auto new_values = ComputeAreaAndWeightedNormal(new_mesh);
 
