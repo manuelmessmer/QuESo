@@ -52,8 +52,6 @@ public:
     typedef BackgroundGrid<ElementType> BackgroundGridType;
     typedef Condition<ElementType> ConditionType;
 
-    enum class TerminationStatus {successful, with_error};
-
     ///@}
     ///@name  Life Cycle
     ///@{
@@ -84,68 +82,47 @@ public:
     ///@brief Main function to create embedded model.
     ///       Creates integration points for both the embedded volume and all embedded conditions.
     ///       The respective geometries (TriangleMeshes) are taken from input STL files specified in mSettings.
-    ///@return TerminationStatus (option: successful, with_error)
-    TerminationStatus CreateFromSettings() {
-        try {
-            // Create volume
-            const auto& r_general_settings = mSettings[MainSettings::general_settings];
-            const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
-            QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume -------------------------------------- START" << std::endl;
+    ///@todo Add try{} catch{} plus error handler
+    void CreateAllFromSettings() {
 
-            const auto& r_filename = r_general_settings.GetValue<std::string>(GeneralSettings::input_filename);
-            TriangleMesh triangle_mesh{};
-            IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
+        // Create volume
+        const auto& r_general_settings = mSettings[MainSettings::general_settings];
+        const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+        QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume -------------------------------------- START" << std::endl;
 
-            ComputeVolume(triangle_mesh);
-            PrintVolumeElapsedTimeInfo();
+        const auto& r_filename = r_general_settings.GetValue<std::string>(GeneralSettings::input_filename);
+        TriangleMesh triangle_mesh{};
+        IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
 
-            QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume ---------------------------------------- End\n";
+        ComputeVolume(triangle_mesh);
+        PrintVolumeElapsedTimeInfo();
 
-            // Create conditions
-            const auto& r_conditions_settings_list = mSettings.GetList(MainSettings::conditions_settings_list);
-            if( r_conditions_settings_list.size() > 0 ){
+        QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume ---------------------------------------- End\n";
 
-                QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ---------------------------------- START" << std::endl;
-                for( const auto& r_condition_settings : r_conditions_settings_list ){
-                    const auto& r_filename = r_condition_settings.GetValue<std::string>(ConditionSettings::input_filename);
-                    TriangleMesh triangle_mesh{};
-                    IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
-                    ComputeCondition(triangle_mesh, r_condition_settings);
-                }
-                PrintConditionsElapsedTimeInfo();
-                QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;
+        // Create conditions
+        const auto& r_conditions_settings_list = mSettings.GetList(MainSettings::conditions_settings_list);
+        if( r_conditions_settings_list.size() > 0 ){
+
+            QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ---------------------------------- START" << std::endl;
+            for( const auto& r_condition_settings : r_conditions_settings_list ){
+                const auto& r_filename = r_condition_settings.GetValue<std::string>(ConditionSettings::input_filename);
+                TriangleMesh triangle_mesh{};
+                IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
+                ComputeCondition(triangle_mesh, r_condition_settings);
             }
+            PrintConditionsElapsedTimeInfo();
+            QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;
         }
-        catch (const Exception& rException ){
-            std::cerr << rException.what();
-            return TerminationStatus::with_error;
-        }
-        catch ( const std::exception& rException) {
-            std::cerr << rException.what();
-            return TerminationStatus::with_error;
-        }
-        return TerminationStatus::successful;
     }
 
     ///@brief Creates integration points for an embedded volume that is enclosed/defined by rTriangleMesh.
     ///       This interface enables to pass a TriangleMeshInterface and, hence, facilitates other applications to
     ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
     ///@param rTriangleMesh
-    ///@return TerminationStatus (option: successful, with_error)
-    ///@see CreateFromSettings <- Create volume and condition directly from input files specified in mSettings.
-    TerminationStatus CreateVolume(const TriangleMeshInterface& rTriangleMesh){
-        try {
-            ComputeVolume(rTriangleMesh);
-        }
-        catch (const Exception& rException ){
-            std::cerr << rException.what();
-            return TerminationStatus::with_error;
-        }
-        catch ( const std::exception& rException) {
-            std::cerr << rException.what();
-            return TerminationStatus::with_error;
-        }
-        return TerminationStatus::successful;
+    ///@see CreateAllFromSettings <- Create volume and condition directly from input files specified in mSettings.
+    ///@todo Add try{} catch{} plus error handler
+    void CreateVolume(const TriangleMeshInterface& rTriangleMesh){
+        ComputeVolume(rTriangleMesh);
     }
 
     ///@brief Creates integration points for an embedded condition defined by rTriangleMesh.
@@ -153,21 +130,10 @@ public:
     ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
     ///@param rTriangleMesh
     ///@param rConditionSettings
-    ///@return TerminationStatus (option: successful, with_error)
-    ///@see CreateFromSettings <- Create volume and condition directly from input files specified in mSettings.
-    TerminationStatus CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
-        try {
-            ComputeCondition(rTriangleMesh, rConditionSettings);
-        }
-        catch (const Exception& rException ){
-            std::cerr << rException.what();
-            return TerminationStatus::with_error;
-        }
-        catch ( const std::exception& rException) {
-            std::cerr << rException.what();
-            return TerminationStatus::with_error;
-        }
-        return TerminationStatus::successful;
+    ///@see CreateAllFromSettings <- Create volume and condition directly from input files specified in mSettings.
+    ///@todo Add try{} catch{} plus error handler
+    void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
+        ComputeCondition(rTriangleMesh, rConditionSettings);
     }
 
     /// @brief Get all active elements.
@@ -214,13 +180,15 @@ private:
     void PrintVolumeInfo() const;
 
     ///@brief Prints some info to the console regarding the computed condition.
-    ///@param rConditionInfo
+    ///@param rConditionInfo Info to be printed.
     void PrintConditionInfo(const ModelInfoBaseType& rConditionInfo) const;
 
     ///@brief Prints some info to the console regarding the elapsed computing times required to create the volume.
+    ///       Info to be printed is taken from mModelInfo[MainInfo::elapsed_time_info].
     void PrintVolumeElapsedTimeInfo() const;
 
     ///@brief Prints some info to the console regarding the elapsed computing times required to create the conditions.
+    ///       Info to be printed is taken from mModelInfo[MainInfo::elapsed_time_info].
     void PrintConditionsElapsedTimeInfo() const;
 
     ///@}
