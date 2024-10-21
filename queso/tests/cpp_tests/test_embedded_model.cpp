@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::gauss);
 
     EmbeddedModel embedded_model(settings);
-    embedded_model.CreateFromSettings();
+    embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
 
@@ -98,10 +98,11 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, rOrder);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
     EmbeddedModel embedded_model(settings);
-    embedded_model.CreateFromSettings();
+    embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
 
@@ -280,7 +281,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
     EmbeddedModel embedded_model(settings);
-    embedded_model.CreateFromSettings();
+    embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
 

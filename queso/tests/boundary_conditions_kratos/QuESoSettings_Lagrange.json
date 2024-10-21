@@ -19,6 +19,7 @@
         "integration_method" : "Gauss"
     },
     "conditions_settings_list"    :  [{
+            "condition_id" : 1,
             "condition_type" : "LagrangeSupportCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N3.stl",
             "value" : [0.0, 0.3, 0.0]
