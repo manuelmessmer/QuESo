@@ -47,7 +47,7 @@ void CheckTriangleOrientation(const TriangleMeshInterface& rTriangleMesh){
     }
 }
 
-void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
+void RunTest(const std::string& rFilename, const Settings& rSettings,
             const std::string& rResultsFilename, IndexType NumTrimmedElements){
 
     typedef IntegrationPoint IntegrationPointType;
@@ -252,7 +252,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     double volume = 0.0;
     double area = 0.0;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);

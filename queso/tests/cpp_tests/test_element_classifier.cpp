@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(r_grid_settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_cylinder.txt");
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(r_grid_settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_cube.txt");
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     std::vector<IndexType> result{};
     result.reserve(5376);
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(r_grid_settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(settings);
 
     QuESo_CHECK_EQUAL( result.size(), 5376);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_elephant.txt");
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(r_grid_settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_bunny.txt");

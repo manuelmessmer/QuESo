@@ -61,9 +61,9 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param rGridSettings
-    BackgroundGrid(const SettingsBaseType& rGridSettings) :
-        mGridIndexer(rGridSettings)
+    /// @param rSettings
+    BackgroundGrid(const Settings& rSettings) :
+        mGridIndexer(rSettings)
     {
     }
 

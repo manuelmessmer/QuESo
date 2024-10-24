@@ -114,9 +114,9 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         const IndexType min_num_triangles = 10;
 
         BRepOperator brep_operator(triangle_mesh);
-        FloodFill filler(&brep_operator, r_grid_settings);
+        FloodFill filler(&brep_operator, settings);
         auto p_states = filler.ClassifyElements();
-        GridIndexer grid_indexer(r_grid_settings);
+        GridIndexer grid_indexer(settings);
         for(IndexType i = 0; i < num_elements[0]; ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
         BRepOperator brep_operator(triangle_mesh);
-        FloodFillTester filler(&brep_operator, r_grid_settings);
+        FloodFillTester filler(&brep_operator, settings);
         auto result = filler.ClassifyElementsForTest();
 
         auto p_states = std::move(result.first);
@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
             BOOST_CHECK_EQUAL(group_inside_count, group_inside_count_single);
         }
 
-        GridIndexer grid_indexer(r_grid_settings);
+        GridIndexer grid_indexer(settings);
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(num_elements[0]); ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){

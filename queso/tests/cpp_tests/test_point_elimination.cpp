@@ -52,7 +52,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     const double min_vol_ratio = 1e-3;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);

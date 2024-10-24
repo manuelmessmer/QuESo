@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);

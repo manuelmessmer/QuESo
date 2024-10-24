@@ -41,7 +41,7 @@ Unique<BackgroundGridType> CreateTestBackgroundGrid(Vector3i rNumberOfElemnts){
     r_background_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
     r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
 
-    Unique<BackgroundGridType> p_grid = MakeUnique<BackgroundGridType>(r_background_grid_settings);
+    Unique<BackgroundGridType> p_grid = MakeUnique<BackgroundGridType>(settings);
 
     IndexType number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
     for( IndexType i = 1; i <= number_elements; ++i){

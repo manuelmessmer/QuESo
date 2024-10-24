@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     // Walk foward
     IndexType index = 0;
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     // Walk foward
     IndexType index = 0;
     GridIndexer::IndexInfo index_info;
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
     // Walk foward
     IndexType index = 0;
     GridIndexer::IndexInfo index_info;
@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
@@ -444,7 +444,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
@@ -539,7 +539,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(r_grid_settings);
+    GridIndexer grid_indexer(settings);
 
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
