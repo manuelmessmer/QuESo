@@ -173,7 +173,7 @@ void AddContainersToPython(pybind11::module& m) {
 
     /// Export BackgroundGrid
     py::class_<BackgroundGrid<ElementType>, Unique<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
-        .def(py::init<const SettingsBaseType&>())
+        .def(py::init<const Settings&>())
         .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
         .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
         .def("GetConditions", &BackgroundGrid<ElementType>::GetConditions, py::return_value_policy::reference_internal)
@@ -230,7 +230,6 @@ void AddContainersToPython(pybind11::module& m) {
     py::class_<EmbeddedModel>(m,"EmbeddedModel")
         .def(py::init<const Settings&>())
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
-        .def("GetTriangleMesh", &EmbeddedModel::GetTriangleMesh, py::return_value_policy::reference_internal)
         .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
         .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal )
     ;

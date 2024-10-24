@@ -24,8 +24,8 @@ class PyQuESo:
     def __init__(self, json_filename):
         """The constructor"""
         self.settings = JsonImport.ReadSettings(json_filename)
-        write_output_to_file = self.settings[QuESo_App.MainSettings.general_settings].GetBool(QuESo_App.GeneralSettings.write_output_to_file)
-        output_directory_name = self.settings[QuESo_App.MainSettings.general_settings].GetString(QuESo_App.GeneralSettings.output_directory_name)
+        write_output_to_file = self.settings["general_settings"].GetBool("write_output_to_file")
+        output_directory_name = self.settings["general_settings"].GetString("output_directory_name")
         if write_output_to_file:
             folder_path = "./" + output_directory_name + '/'
             if os.path.exists(folder_path):
@@ -34,21 +34,14 @@ class PyQuESo:
 
     def Run(self):
         """Run QuESo"""
-        self.queso = QuESo_App.QuESo(self.settings)
-        self.queso.Run()
-        self.elements = self.queso.GetElements()
-        self.conditions = self.queso.GetConditions()
-
-    def Clear(self):
-        self.queso.Clear()
-        self.elements = ""
-        self.conditions = ""
+        self.embedded_model = QuESo_App.EmbeddedModel(self.settings)
+        self.embedded_model.CreateAllFromSettings()
 
     def GetElements(self):
-        return self.elements
+        return self.embedded_model.GetElements()
 
     def GetConditions(self):
-        return self.conditions
+        return self.embedded_model.GetConditions()
 
     def GetSettings(self):
         return self.settings
@@ -74,7 +67,7 @@ class PyQuESo:
     def GetIntegrationPoints(self):
         integration_points = QuESo_App.IntegrationPointVector()
         # Gather all poitnts (TODO: make this in C++)
-        for element in self.elements:
+        for element in self.GetElements():
             if element.IsTrimmed():
                 for point_trimmed_reduced in element.GetIntegrationPoints():
                     weight = point_trimmed_reduced.Weight()
@@ -95,7 +88,7 @@ class PyQuESo:
         if kratos_available:
             ModelPartUtilities.RemoveAllElements(kratos_model_part)
             ModelPartUtilities.RemoveAllConditions(kratos_model_part)
-            ModelPartUtilities.AddElementsToModelPart(kratos_model_part, self.elements)
+            ModelPartUtilities.AddElementsToModelPart(kratos_model_part, self.GetElements())
             ModelPartUtilities.AddConditionsToModelPart(kratos_model_part, self.conditions, self.GetBoundsXYZ(), self.GetBoundsUVW())
         else:
             raise Exception("UpdateKratosNurbsVolumeModelPart :: Kratos is not available.")
@@ -103,6 +96,6 @@ class PyQuESo:
 
     def RunKratosAnalysis(self, kratos_settings="KratosParameters.json"):
         if kratos_available:
-            self.analysis = Analysis( self.settings, kratos_settings, self.elements, self.conditions, self.queso.GetTriangleMesh())
+            self.analysis = Analysis( self.settings, kratos_settings, self.GetElements(), self.GetConditions() )
         else:
             raise Exception("RunKratosAnalysis :: Kratos is not available.")
