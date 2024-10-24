@@ -15,6 +15,7 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+#include <numeric>      // std::accumulate
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/containers/grid_indexer.hpp"
@@ -280,9 +281,30 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{p, p, p});
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
+    auto& r_cond_settings_1 = settings.CreateNewConditionSettings();
+    r_cond_settings_1.SetValue(ConditionSettings::condition_id, 1u);
+    r_cond_settings_1.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    r_cond_settings_1.SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+
+    auto& r_cond_settings_2 = settings.CreateNewConditionSettings();
+    r_cond_settings_2.SetValue(ConditionSettings::condition_id, 2u);
+    r_cond_settings_2.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N1.stl"));
+    r_cond_settings_2.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+
+    auto& r_cond_settings_3 = settings.CreateNewConditionSettings();
+    r_cond_settings_3.SetValue(ConditionSettings::condition_id, 3u);
+    r_cond_settings_3.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N2.stl"));
+    r_cond_settings_3.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+
+    auto& r_cond_settings_4 = settings.CreateNewConditionSettings();
+    r_cond_settings_4.SetValue(ConditionSettings::condition_id, 4u);
+    r_cond_settings_4.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N3.stl"));
+    r_cond_settings_4.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+
     EmbeddedModel embedded_model(settings);
     embedded_model.CreateAllFromSettings();
 
+    /// Test volume
     const auto& elements = embedded_model.GetElements();
 
     // Compute total volume
@@ -331,11 +353,25 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
     const double ref_volume_tot = MeshUtilities::Volume(triangle_mesh);
     QuESo_CHECK_RELATIVE_NEAR(volume_tot, ref_volume_tot, Tolerance);
+
+    /// Test conditions
+    const auto& conditions = embedded_model.GetConditions();
+    QuESo_CHECK_EQUAL(conditions.size(), 4);
+    for( const auto& p_condition : conditions ){
+        TriangleMesh triangle_mesh{};
+        const auto& r_cond_setting = p_condition->GetSettings();
+        std::string filename = r_cond_setting.GetValue<std::string>(ConditionSettings::input_filename);
+        IO::ReadMeshFromSTL(triangle_mesh, filename);
+        const double ref_area = MeshUtilities::Area(triangle_mesh);
+        auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh()); };
+        const double area = std::accumulate(p_condition->SegmentsBegin(), p_condition->SegmentsEnd(), 0.0, lambda);
+        QuESo_CHECK_NEAR(ref_area, area, 1e-10);
+    }
 }
 
 // p=2
 BOOST_AUTO_TEST_CASE(SteeringKnuckle1Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Steering Knuckle Gauss (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -345,7 +381,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle1Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle2Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Steering Knuckle Gauss_Reduced1 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -355,7 +391,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle2Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle3Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Steering Knuckle Gauss_Reduced2 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -365,7 +401,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle3Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle4Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Steering Knuckle Optimal (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -373,14 +409,14 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle4Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle5Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Steering Knuckle GGQ_Reduced1 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_1, 2, 1320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_1, 2, 1320, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle6Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
