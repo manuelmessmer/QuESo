@@ -66,7 +66,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
 
     // Classify all elements.
     Timer timer_check_intersect{};
-    Unique<BRepOperator::StatusVectorType> p_classifications = brep_operator.pGetElementClassifications(mSettings[MainSettings::background_grid_settings]);
+    Unique<BRepOperator::StatusVectorType> p_classifications = brep_operator.pGetElementClassifications(mSettings);
     auto& r_volume_time_info = mModelInfo[MainInfo::elapsed_time_info][ElapsedTimeInfo::volume_time_info];
     r_volume_time_info.SetValue(VolumeTimeInfo::classification_of_elements, timer_check_intersect.Measure());
 

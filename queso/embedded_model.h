@@ -60,8 +60,8 @@ public:
     /// @param rParameters
     EmbeddedModel(const Settings& rSettings) :
         mSettings(rSettings.Check()),
-        mGridIndexer(mSettings[MainSettings::background_grid_settings]),
-        mBackgroundGrid(mSettings[MainSettings::background_grid_settings]),
+        mGridIndexer(mSettings),
+        mBackgroundGrid(mSettings),
         mModelInfo{}
     {
     }
