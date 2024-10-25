@@ -192,8 +192,12 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::tot_num_points, tot_num_points);
     mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::represented_volume, represented_volume);
     mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::percentage_of_geometry_volume, represented_volume/volume*100.0);
-    mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::num_of_points_per_full_element, ((double)tot_num_points_full)/num_full_elements);
-    mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::num_of_points_per_trimmed_element, ((double)tot_num_points_trimmed)/num_trimmed_elements);
+    const double num_of_points_per_full_element = (num_full_elements > 0) ?
+        static_cast<double>(tot_num_points_full)/static_cast<double>(num_full_elements) : 0.0;
+    mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::num_of_points_per_full_element, num_of_points_per_full_element);
+    const double num_of_points_per_trimmed_element = (num_trimmed_elements > 0) ?
+        static_cast<double>(tot_num_points_trimmed)/static_cast<double>(num_trimmed_elements) : 0.0;
+    mModelInfo[MainInfo::quadrature_info].SetValue(QuadratureInfo::num_of_points_per_trimmed_element, num_of_points_per_trimmed_element);
 
     PrintVolumeInfo();
 }
@@ -240,11 +244,17 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
     /// Set ModelInfo
     // ConditionInfo
     r_new_cond_info.SetValue(ConditionInfo::perc_surf_area_in_active_domain, surf_area_in_active_domain/surface_area*100.0);
-    auto& r_condition_time_info = mModelInfo[MainInfo::elapsed_time_info][ElapsedTimeInfo::conditions_time_info];
+    auto& r_time_info = mModelInfo[MainInfo::elapsed_time_info];
+    auto& r_condition_time_info = r_time_info[ElapsedTimeInfo::conditions_time_info];
     // ElapsedTimeInfo
-    const double total_time = (r_condition_time_info.IsSet(ConditionsTimeInfo::total)) ?
+    const double measured_time = timer_condition.Measure();
+    const double total_time_conditions = (r_condition_time_info.IsSet(ConditionsTimeInfo::total)) ?
         r_condition_time_info.GetValue<double>(ConditionsTimeInfo::total) : 0.0;
-    r_condition_time_info.SetValue(ConditionsTimeInfo::total, (total_time+timer_condition.Measure()) );
+    r_condition_time_info.SetValue(ConditionsTimeInfo::total, (total_time_conditions+measured_time) );
+
+    const double total_time = (r_time_info.IsSet(ElapsedTimeInfo::total)) ?
+        r_time_info.GetValue<double>(ElapsedTimeInfo::total) : 0.0;
+    r_time_info.SetValue(ElapsedTimeInfo::total, (total_time+measured_time) );
 
     PrintConditionInfo(r_new_cond_info);
 }
