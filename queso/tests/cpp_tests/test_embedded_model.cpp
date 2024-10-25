@@ -16,6 +16,7 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 #include <numeric>      // std::accumulate
+#include <memory>       //std::addressof
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/containers/grid_indexer.hpp"
@@ -420,6 +421,93 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle6Test) {
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
+}
+
+
+BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
+    QuESo_INFO << "Testing :: Test EmbeddedModel :: Model Info :: Steering Knuckle" << std::endl;
+
+    Vector3i num_elements = Vector3i{10, 20, 20};
+    GridTypeType grid_type = GridType::b_spline_grid;
+    std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
+
+    Settings settings;
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio,  0.0);
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method,  IntegrationMethod::ggq_optimal);
+
+    auto& r_cond_settings_1 = settings.CreateNewConditionSettings();
+    r_cond_settings_1.SetValue(ConditionSettings::condition_id, 1u);
+    r_cond_settings_1.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    r_cond_settings_1.SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+
+    EmbeddedModel embedded_model(settings);
+    embedded_model.CreateAllFromSettings();
+
+    /// Check model info
+    const auto& r_model_info = embedded_model.GetModelInfo();
+    // embedded_geometry_info
+    const auto& r_geo_info = r_model_info[MainInfo::embedded_geometry_info];
+    QuESo_CHECK(r_geo_info.GetValue<bool>(EmbeddedGeometryInfo::is_closed));
+    TriangleMesh triangle_mesh{};
+    IO::ReadMeshFromSTL(triangle_mesh, filename);
+    double volume_ref = MeshUtilities::VolumeOMP(triangle_mesh);
+    QuESo_CHECK_NEAR(r_geo_info.GetValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-10);
+    // quadrature_info
+    const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
+    QuESo_CHECK_EQUAL(r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points), 9508);
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5)
+    const double num_of_points_per_trimmed_element = r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_trimmed_element);
+    QuESo_CHECK_GT(num_of_points_per_trimmed_element, 26);
+    QuESo_CHECK_LT(num_of_points_per_trimmed_element, 27);
+    // background_grid_info
+    const auto& r_grid_info = r_model_info[MainInfo::background_grid_info];
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_active_elements), 354);
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_trimmed_elements), 349);
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_full_elements), 5);
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_inactive_elements), 3646);
+    // elapsed_time_info
+    const auto& r_elapsed_time_info = r_model_info[MainInfo::elapsed_time_info];
+    const double total_time = r_elapsed_time_info.GetValue<double>(ElapsedTimeInfo::total);
+
+    const auto& r_volume_time_info = r_elapsed_time_info[ElapsedTimeInfo::volume_time_info];
+    const double et_volume_total = r_volume_time_info.GetValue<double>(VolumeTimeInfo::total);
+    const double et_coe = r_volume_time_info.GetValue<double>(VolumeTimeInfo::classification_of_elements);
+    QuESo_CHECK_GT(et_coe, EPS1);
+    const double et_coi = r_volume_time_info.GetValue<double>(VolumeTimeInfo::computation_of_intersections);
+    QuESo_CHECK_GT(et_coi, EPS1);
+    const double et_somf = r_volume_time_info.GetValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs);
+    QuESo_CHECK_GT(et_somf, EPS1);
+    const double et_cogr = r_volume_time_info.GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules);
+    QuESo_CHECK_GT(et_cogr, EPS1);
+    QuESo_CHECK_GT( et_volume_total, (et_coe+et_coi+et_somf+et_cogr) );
+
+    const auto& r_condition_time_info = r_elapsed_time_info[ElapsedTimeInfo::conditions_time_info];
+    const double et_condition_total = r_condition_time_info.GetValue<double>(ConditionsTimeInfo::total);
+    QuESo_CHECK_GT(et_condition_total, EPS1);
+    QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total), 1e-5);
+
+    const auto& r_condition_info_1 = r_model_info.GetList(MainInfo::conditions_infos_list)[0];
+    const auto& r_condition_1 = embedded_model.GetConditions()[0];
+    const auto& r_condition_info_1_other = r_condition_1->GetInfo();
+    QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
+    QuESo_CHECK_EQUAL( r_condition_info_1.GetValue<IndexType>(ConditionInfo::condition_id), 1);
+    const std::string& r_filename = r_cond_settings_1.GetValue<std::string>(ConditionSettings::input_filename);
+    TriangleMesh triangle_mesh_cond{};
+    IO::ReadMeshFromSTL(triangle_mesh_cond, r_filename);
+    const double area_ref = MeshUtilities::Area(triangle_mesh_cond);
+    QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::surf_area), area_ref, 1e-10);
+    QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::perc_surf_area_in_active_domain), 100.0, 1e-5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
