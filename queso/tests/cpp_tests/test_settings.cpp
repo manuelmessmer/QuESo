@@ -295,8 +295,8 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
         QuESo_CHECK( !settings["background_grid_settings"].IsSet("lower_bound_uvw") );
         BOOST_REQUIRE_THROW( settings["background_grid_settings"].GetValue<PointType>("lower_bound_uvw"), std::exception );
 
-        QuESo_CHECK( !settings["background_grid_settings"].IsSet(BackgroundGridSettings::upper_bound_uvw) );
-        BOOST_REQUIRE_THROW( settings["background_grid_settings"].GetValue<PointType>(BackgroundGridSettings::upper_bound_uvw), std::exception );
+        QuESo_CHECK( !settings["background_grid_settings"].IsSet("upper_bound_uvw") );
+        BOOST_REQUIRE_THROW( settings["background_grid_settings"].GetValue<PointType>("upper_bound_uvw"), std::exception );
 
         QuESo_CHECK( !settings["background_grid_settings"].IsSet("polynomial_order") );
         BOOST_REQUIRE_THROW( settings["background_grid_settings"].GetValue<Vector3i>("polynomial_order"), std::exception );
