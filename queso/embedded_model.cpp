@@ -12,8 +12,6 @@
 //  Authors:    Manuel Messmer
 
 //// STL includes
-#include <fstream>
-#include <thread>
 #include <omp.h>
 
 //// Project includes
@@ -24,7 +22,6 @@
 #include "queso/quadrature/single_element.hpp"
 #include "queso/quadrature/trimmed_element.hpp"
 #include "queso/quadrature/multiple_elements.hpp"
-#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
 
@@ -40,7 +37,8 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     const bool is_closed = MeshUtilities::EstimateQuality(rTriangleMesh) < 1e-10;
     mModelInfo[MainInfo::embedded_geometry_info].SetValue(EmbeddedGeometryInfo::is_closed, is_closed);
 
-    // Get neccessary settings
+    /// Get neccessary settings
+    /// @todo Pass mSettings to all functions.
     const IntegrationMethod integration_method = mSettings[MainSettings::non_trimmed_quadrature_rule_settings]
         .GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
     const bool ggq_rule_ise_used =  static_cast<int>(integration_method) >= 3;
@@ -174,7 +172,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     SizeType tot_num_points_full = 0;
     SizeType tot_num_points_trimmed = 0;
     const auto el_it_ptr_begin = mBackgroundGrid.ElementsBegin();
-    #pragma omp parallel for reduction(+ : represented_volume) reduction(+ : tot_num_points_full) reduction(+ : tot_num_points_trimmed)
+    #pragma omp parallel for reduction(+ : represented_volume, tot_num_points_full, tot_num_points_trimmed)
     for( int i = 0; i < static_cast<int>(num_active_elements); ++i ){
         const auto& el_ptr = *(el_it_ptr_begin + i);
         const double det_j = el_ptr->DetJ();

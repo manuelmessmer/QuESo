@@ -21,6 +21,7 @@
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/io/io_utilities.h"
+#include "queso/includes/settings.hpp"
 #include "queso/includes/model_info.hpp"
 
 namespace queso {
@@ -33,13 +34,13 @@ namespace queso {
  * @class  EmbeddedModel
  * @author Manuel Messmer
  * @brief  Main class of QuESo.
- *         Provides interface to create integration points for embedded volumes and embedded conditions (boundaries),
- *         based in the setting provided in mSettings. EmbeddedModel aggregates a BackgroundGrid, which stores the
+ *         Provides interface to create integration points for embedded volumes and embedded conditions (boundaries)
+ *         based on the settings provided in mSettings. EmbeddedModel aggregates a BackgroundGrid, which stores the
  *         created active elements and conditions. Each element stores its integrations points. Each condition is
  *         split into ConditionSegment's (that conform to the boundaries of the elements in the background grid).
  *         The corresponding boundary integration points are stored on these ConditionSegments.
  *         EmbeddedModel also stores some information regearding the created model in mModelInfo.
-*/
+**/
 class EmbeddedModel
 {
 public:
@@ -57,7 +58,7 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param rParameters
+    /// @param rSettings
     EmbeddedModel(const Settings& rSettings) :
         mSettings(rSettings.Check()),
         mGridIndexer(mSettings),
@@ -67,13 +68,13 @@ public:
     }
 
     /// Copy Constructor
-    EmbeddedModel(const EmbeddedModel &m) = delete;
+    EmbeddedModel(const EmbeddedModel &rOther) = delete;
     /// Copy Assignement
-    EmbeddedModel & operator= (const EmbeddedModel &) = delete;
+    EmbeddedModel& operator= (const EmbeddedModel &rOther) = delete;
     /// Move constructor
-    EmbeddedModel(EmbeddedModel&& rOther) = delete;
+    EmbeddedModel(EmbeddedModel&& rOther) = default;
     /// Move assignement operator
-    EmbeddedModel& operator=(EmbeddedModel&& rOther) = delete;
+    EmbeddedModel& operator=(EmbeddedModel&& rOther) = default;
 
     ///@}
     ///@name Operations
@@ -136,13 +137,13 @@ public:
         ComputeCondition(rTriangleMesh, rConditionSettings);
     }
 
-    /// @brief Get all active elements.
+    /// @brief Returns all active elements.
     /// @return const Reference to ElementVectorPtrType
     const BackgroundGridType::ElementContainerType& GetElements() const {
         return mBackgroundGrid.GetElements();
     }
 
-    /// @brief Get all conditions.
+    /// @brief Returns all conditions.
     /// @return const Reference to ElementVectorPtrType
     const BackgroundGridType::ConditionContainerType& GetConditions() const {
         return mBackgroundGrid.GetConditions();
@@ -150,6 +151,7 @@ public:
 
     ///@brief Returns the ModelInfo
     ///@return const ModelInfo&
+    ///@see includes/model_info.hpp
     const ModelInfo& GetModelInfo() const {
         return mModelInfo;
     }
