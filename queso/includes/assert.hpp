@@ -26,7 +26,7 @@ namespace queso {
 #ifdef NDEBUG    // asserts disabled
 
 static constexpr bool NOTDEBUG = true;
-# define QuESo_ASSERT(Assertation, Message)		(__ASSERT_VOID_CAST (0))
+# define QuESo_ASSERT(Assertation, Message)		(assert(0))
 
 #else            // asserts enabled
 
