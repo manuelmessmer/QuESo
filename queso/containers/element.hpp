@@ -49,8 +49,8 @@ public:
     typedef TIntegrationPointType IntegrationPointType;
     typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
 
-    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
     typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
+    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
     typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
 
     ///@}
@@ -69,14 +69,14 @@ public:
 
     // Destructor
     ~Element() = default;
-    // Delete copy constructor
+    // Copy constructor
     Element(const Element& rOther) = delete;
     // Assignement operator
     Element& operator=(const Element& rOther) = delete;
     /// Move constructor
-    Element(Element&& rOther) = delete;
+    Element(Element&& rOther) = default;
     /// Move assignement operator
-    Element& operator=(Element&& rOther) = delete;
+    Element& operator=(Element&& rOther) = default;
 
     ///@}
     ///@name Operations
