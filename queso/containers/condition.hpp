@@ -16,6 +16,7 @@
 
 //// STL includes
 #include "queso/includes/settings.hpp"
+#include "queso/includes/model_info.hpp"
 #include "queso/containers/condition_segment.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 
@@ -27,10 +28,10 @@ namespace queso {
 /**
  * @class  Condition
  * @author Manuel Messmer
- * @brief  Interface for conditions. Stores respective triangle mesh, condition settings and a list of condition segments.
+ * @brief  Interface for conditions. Stores condition settings, some condition infos, and a list of condition segments.
  *         Each segment is clipped to the element boundaries in the background grid and holds the respective
  *         section of the triangle mesh.
- * @see    condition_segment.h
+ * @see    containers/condition_segment.h
 **/
 template<typename TElementType>
 class Condition {
@@ -49,12 +50,23 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param pTriangleMesh Ptr is moved. Ownership is passed to Condition.
     /// @param rConditionSettings
-    Condition(Unique<TriangleMeshInterface>& pTriangleMesh, const SettingsBaseType& rConditionSettings )
-        : mpTriangleMesh(std::move(pTriangleMesh)), mConditionSettings(rConditionSettings)
+    /// @param rConditionInfo
+    Condition( const SettingsBaseType& rConditionSettings, ModelInfoBaseType& rConditionInfo )
+        :  mConditionSettings(rConditionSettings), mConditionInfo(rConditionInfo)
     {
     }
+
+    // Destructor
+    ~Condition() = default;
+    // Copy constructor
+    Condition(const Condition& rOther) = delete;
+    // Assignement operator
+    Condition& operator=(const Condition& rOther) = delete;
+    /// Move constructor
+    Condition(Condition&& rOther) = default;
+    /// Move assignement operator
+    Condition& operator=(Condition&& rOther) = default;
 
     /// @brief Adds new ConditionSegment to this condition. Segment is moved into container.
     /// @param pNewSegment
@@ -68,16 +80,16 @@ public:
         return mSegments;
     }
 
-    /// @brief Returns triangle mesh.
-    /// @return const TriangleMeshInterface&
-    const TriangleMeshInterface& GetTriangleMesh() const {
-        return *mpTriangleMesh;
-    }
-
     /// @brief Returns condition settings.
     /// @return const SettingsBaseType&
     const SettingsBaseType& GetSettings() const {
         return mConditionSettings;
+    }
+
+    /// @brief Returns condition settings.
+    /// @return const SettingsBaseType&
+    const ModelInfoBaseType& GetInfo() const {
+        return mConditionInfo;
     }
 
     /// @brief Returns the number of segments.
@@ -147,12 +159,13 @@ public:
     }
 
 private:
+
     ///@}
     ///@name Private Members
     ///@{
 
-    Unique<TriangleMeshInterface> mpTriangleMesh;
     const SettingsBaseType& mConditionSettings;
+    ModelInfoBaseType& mConditionInfo;
     ConditionSegmentPtrVectorType mSegments;
 
     ///@}
