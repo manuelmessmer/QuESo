@@ -60,8 +60,8 @@ public:
     ///       (which this KeyValuePair is supposed to hold) can be deduced.
     ///       When later mValue is actually set, its type is checked against the type of the already stored dummy value.
     ///       This scenario can not be handled with std::monostate.
-    KeyValuePair(TVariantKeyType NewKey, std::string NewKeyName, VariantValueType NewValue, bool Set )
-        : mKey(NewKey), mKeyName(NewKeyName), mValue(NewValue), mIsSet(Set)
+    KeyValuePair(TVariantKeyType NewKey, const std::string& rNewKeyName, const VariantValueType& rNewValue, bool Set )
+        : mKey(NewKey), mKeyName(rNewKeyName), mValue(rNewValue), mIsSet(Set)
     {
     }
 
@@ -105,27 +105,27 @@ public:
 
     /// @brief Sets Value.
     /// @tparam TValueType of value.
-    /// @param NewValue.
+    /// @param rNewValue.
     /// @note Only throws in DEBUG mode.
     template<typename TValueType>
-    void SetValueNoCheck(TValueType NewValue) noexcept(NOTDEBUG) {
+    void SetValueNoCheck(const TValueType& rNewValue) noexcept(NOTDEBUG) {
         const TValueType* p_value = std::get_if<TValueType>(&mValue);
         QuESo_ASSERT(p_value != 0, "Given Value type does not match stored Value type.");
         if( p_value ) {
             mIsSet = true;
-            mValue = NewValue;
+            mValue = rNewValue;
         }
     }
 
     /// @brief Sets Value.
     /// @tparam TValueType of value.
-    /// @param NewValue.
+    /// @param rNewValue.
     /// @note Throws in DEBUG and NONBDEUG mode.
     template<typename TValueType>
-    void SetValue(TValueType NewValue) {
+    void SetValue(const TValueType& rNewValue) {
         if( std::get_if<TValueType>(&mValue) ){
             mIsSet = true;
-            mValue = NewValue;
+            mValue = rNewValue;
         } else {
             QuESo_ERROR << "For key: '" << GetKeyName() << "' - Given Value type (" << GetTypeName<TValueType>() << ") does not match stored Value type ("
                 << GetValueTypeName() << ").\n";
@@ -134,30 +134,30 @@ public:
 
     /// @brief Sets Value and casts 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
     /// @tparam TValueType of value.
-    /// @param NewValue
+    /// @param rNewValue
     /// @note This is useful for Python, where the values come from a JSON file.
     /// @see SetValue().
     template<typename TValueType>
-    void SetValueWithAmbiguousType(TValueType NewValue) {
+    void SetValueWithAmbiguousType(const TValueType& rNewValue) {
         bool is_set = false;
         if constexpr ( std::is_same<TValueType, IndexType>::value ) { // If incoming value is IndexType
             if( std::get_if<double>(&mValue) ){                       // If stored value is double
                 // Cast 0 -> 0.0
-                SetValue( static_cast<double>(NewValue) );
+                SetValue( static_cast<double>(rNewValue) );
                 is_set = true;
             }
         }
         else if constexpr ( std::is_same<TValueType, Vector3i>::value ) { // If incoming value is Vector3i
             if( std::get_if<Vector3d>(&mValue) ){                         // If stored value is Vector3d
                 // Cast [0, 0, 0] -> [0.0, 0.0, 0.0]
-                SetValue( Vector3d{ static_cast<double>(NewValue[0]),
-                                    static_cast<double>(NewValue[1]),
-                                    static_cast<double>(NewValue[2])} );
+                SetValue( Vector3d{ static_cast<double>(rNewValue[0]),
+                                    static_cast<double>(rNewValue[1]),
+                                    static_cast<double>(rNewValue[2])} );
                 is_set = true;
             }
         }
         if( !is_set ){ // Normal set
-            SetValue(NewValue);
+            SetValue(rNewValue);
         }
     }
 
@@ -335,7 +335,7 @@ public:
     /// @param rKeyName
     /// @return Dictionary&
     template<typename TKeyType>
-    Dictionary& AddEmptySubDictionary(TKeyType rKey, std::string rKeyName) {
+    Dictionary& AddEmptySubDictionary(TKeyType rKey, const std::string& rKeyName) {
         static_assert( is_scoped_int_enum<TKeyType>::value );
         // Check if key index fits the current dictionary size.
         const int index = static_cast<int>(rKey) - DictStarts::start_subdicts;
@@ -361,17 +361,17 @@ public:
     ///@brief Adds an item to the list.
     ///@tparam TKeyType
     ///@tparam TValueTypes
-    ///@param NewEntries
+    ///@param rNewEntries
     ///@return Dictionary&
     template<typename TKeyType, typename... TValueTypes>
-    Dictionary& AddListItem(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> NewEntries) {
+    Dictionary& AddListItem(const std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...>& rNewEntries) {
         static_assert( is_scoped_int_enum<TKeyType>::value );
         QuESo_ERROR_IF(!mIsList) << "Trying to add a ListItem to an object, which is not a list.\n";
         // A list item is again a list.
         std::string name = mKeyName + '[' + std::to_string(mListsOfDicts.size()) + ']';
         mListsOfDicts.push_back( Dictionary(std::monostate{}, name) );
         auto& r_new_list = mListsOfDicts.back();
-        r_new_list.AddValues(NewEntries);
+        r_new_list.AddValues(rNewEntries);
         return r_new_list;
     }
 
@@ -381,7 +381,7 @@ public:
     /// @param rKeyName
     /// @return Dictionary&
     template<typename TKeyType>
-    Dictionary& AddEmptyList(TKeyType rKey, std::string rKeyName) {
+    Dictionary& AddEmptyList(TKeyType rKey, const std::string& rKeyName) {
         static_assert( is_scoped_int_enum<TKeyType>::value );
         // Check if key index fits the current dictionary size.
         const int index = static_cast<int>(rKey) - DictStarts::start_lists;
@@ -410,16 +410,16 @@ public:
     ///        If IsSet=false, 'Value' is only used to deduce the associated type.
     /// @tparam TKeyType of keys. All keys within one level must have the same type (same enum).
     /// @tparam ...TValueTypes Parameter pack for types.
-    /// @param NewEntries
+    /// @param rNewEntries
     template<typename TKeyType, typename... TValueTypes>
-    void AddValues(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> NewEntries) {
+    void AddValues(const std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...>& rNewEntries) {
         static_assert( is_scoped_int_enum<TKeyType>::value );
         if( mChildrenDummyKey.index() == 0 ) { // Dummy key not set -> std::(monostate: index()==0).
             // We store one key, to be able to test for the Key Type.
-            mChildrenDummyKey = std::get<0>(std::get<0>(NewEntries));
+            mChildrenDummyKey = std::get<0>(std::get<0>(rNewEntries));
             mChildrenKeyTypeName = GetTypeName<TKeyType>();
         }
-        UnpackTuple(NewEntries);
+        UnpackTuple(rNewEntries);
     }
 
     ////////////////
@@ -567,10 +567,10 @@ public:
     /// @tparam TKeyType
     /// @tparam TValueType
     /// @param QueryKey (Enum)
-    /// @param NewValue
+    /// @param rNewValue
     /// @see Only throws in DEBUG mode.
     template<typename TKeyType, typename TValueType>
-    void SetValue(TKeyType QueryKey, TValueType NewValue,
+    void SetValue(TKeyType QueryKey, const TValueType& rNewValue,
                   std::enable_if_t<is_scoped_int_enum<TKeyType>::value>* = nullptr ) noexcept(NOTDEBUG) {
         QuESo_ASSERT( std::get_if<TKeyType>(&mChildrenDummyKey) != 0, "Given Key Type does not match stored Key type.\n" );
         const IndexType index = static_cast<IndexType>(QueryKey) - DictStarts::start_values;
@@ -578,53 +578,53 @@ public:
                   || std::is_same_v<TValueType, unsigned int>
                   || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
             if constexpr (std::is_same_v<TValueType, int>) {
-                QuESo_ASSERT(NewValue >= 0, "Value must be non-negative.\n");
+                QuESo_ASSERT(rNewValue >= 0, "Value must be non-negative.\n");
             }
-            mData[index].SetValueNoCheck(static_cast<IndexType>(NewValue));
+            mData[index].SetValueNoCheck(static_cast<IndexType>(rNewValue));
         } else {
-            mData[index].SetValueNoCheck(NewValue);
+            mData[index].SetValueNoCheck(rNewValue);
         }
     }
 
     /// @brief Sets Value to given Key (given as string).
     /// @tparam TValueType
     /// @param rQueryKeyName
-    /// @param NewValue
+    /// @param rNewValue
     /// @see SetValueWithAmbiguousType() <- allows to cast ambiguous types, e.g., casts 0 -> 0.0, if possible.
     /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     template<typename TValueType>
-    void SetValue(const std::string& rQueryKeyName, TValueType NewValue) {
+    void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
         IndexType index = FindIndexOfKeyValuePairByString(rQueryKeyName);
         if constexpr(std::is_same_v<TValueType, int>
                 || std::is_same_v<TValueType, unsigned int>
                 || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
             if constexpr (std::is_same_v<TValueType, int>) {
-                QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
+                QuESo_ERROR_IF(rNewValue < 0) << "Value must be non-negative.\n";
             }
-            mData[index].SetValue(static_cast<IndexType>(NewValue));
+            mData[index].SetValue(static_cast<IndexType>(rNewValue));
         } else {
-            mData[index].SetValue(NewValue);
+            mData[index].SetValue(rNewValue);
         }
     }
 
     /// @brief Sets Value to given Key (given as string). Casts 0 -> 0.0 and [0, 0, 0] -> [0.0, 0.0, 0.0] if possible.
     /// @tparam TValueType
     /// @param rQueryKeyName
-    /// @param NewValue
+    /// @param rNewValue
     /// @param SetValue() <- Version without type casting.
     /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     template<typename TValueType>
-    void SetValueWithAmbiguousType(const std::string& rQueryKeyName, TValueType NewValue) {
+    void SetValueWithAmbiguousType(const std::string& rQueryKeyName, const TValueType& rNewValue) {
         IndexType index = FindIndexOfKeyValuePairByString(rQueryKeyName);
         if constexpr(std::is_same_v<TValueType, int>
                 || std::is_same_v<TValueType, unsigned int>
                 || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
             if constexpr (std::is_same_v<TValueType, int>) {
-                QuESo_ERROR_IF(NewValue < 0) << "Value must be non-negative.\n";
+                QuESo_ERROR_IF(rNewValue < 0) << "Value must be non-negative.\n";
             }
-            mData[index].SetValueWithAmbiguousType(static_cast<IndexType>(NewValue));
+            mData[index].SetValueWithAmbiguousType(static_cast<IndexType>(rNewValue));
         } else {
-            mData[index].SetValueWithAmbiguousType(NewValue);
+            mData[index].SetValueWithAmbiguousType(rNewValue);
         }
     }
 
@@ -813,21 +813,21 @@ private:
     // Function to iterate through all values of the tuple. I equals number of values in tuple.
     template <size_t I = 0, typename TKeyType, typename... TValueTypes>
     typename std::enable_if<I == sizeof...(TValueTypes), void>::type
-    UnpackTuple(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> Tuple) {
+    UnpackTuple(const std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...>& rTuple) {
         return; // If iterated through all values of tuple, then simply return.
     }
 
     // Function to iterate through all values of the tuple. I equals number of values in tuple.
     template <size_t I = 0, typename TKeyType, typename... TValueTypes>
     typename std::enable_if<(I < sizeof...(TValueTypes)), void>::type
-    UnpackTuple(std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...> Tuple) {
-        auto& r_tuple = std::get<I>(Tuple);
+    UnpackTuple(const std::tuple<std::tuple<TKeyType, std::string, TValueTypes, bool>...>& rTuple) {
+        const auto& r_tuple = std::get<I>(rTuple);
         if(  (static_cast<int>(std::get<0>(r_tuple)) - DictStarts::start_values) != I ){
             QuESo_ERROR << "Tuples are not given in correct order. \n";
         }
 
         mData.push_back(KeyValuePairType(TVariantKey(std::get<0>(r_tuple)), std::get<1>(r_tuple), std::get<2>(r_tuple), std::get<3>(r_tuple)));
-        UnpackTuple<I+1>(Tuple); // Recursive call.
+        UnpackTuple<I+1>(rTuple); // Recursive call.
     }
 
     ///@}
