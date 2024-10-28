@@ -14,6 +14,8 @@
 #ifndef ASSERT_HPP_INCLUDE
 #define ASSERT_HPP_INCLUDE
 
+/// STL includes
+#include <assert.h>
 /// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/includes/exception.hpp"

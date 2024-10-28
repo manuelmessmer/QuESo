@@ -30,8 +30,7 @@ namespace queso {
  * @class  IO
  * @author Manuel Messmer
  * @brief  Provides methods to parse data. Supports STL and VTK files.
- * @todo Throw Exceptions instead of returning bool (success) value.
-*/
+**/
 class IO{
 
 public:

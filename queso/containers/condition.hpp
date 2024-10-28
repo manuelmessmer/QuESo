@@ -28,7 +28,7 @@ namespace queso {
 /**
  * @class  Condition
  * @author Manuel Messmer
- * @brief  Interface for conditions. Stores condition settings, some condition infos, and a list of condition segments.
+ * @brief  Interface for conditions. Stores condition settings, some condition info, and a list of condition segments.
  *         Each segment is clipped to the element boundaries in the background grid and holds the respective
  *         section of the triangle mesh.
  * @see    containers/condition_segment.h
@@ -87,7 +87,7 @@ public:
     }
 
     /// @brief Returns condition settings.
-    /// @return const SettingsBaseType&
+    /// @return const ModelInfoBaseType&
     const ModelInfoBaseType& GetInfo() const {
         return mConditionInfo;
     }

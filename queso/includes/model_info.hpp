@@ -20,8 +20,6 @@
 namespace queso {
 
 /// Definition of ModelInfo keys
-/// _D means that the keys leas to a subDictionary.
-/// _V mean that the keys lead to the storeed Values.
 enum class RootInfo {main_info=DictStarts::start_subdicts};
 enum class MainInfo {
     embedded_geometry_info=DictStarts::start_subdicts, quadrature_info, background_grid_info, elapsed_time_info,
