@@ -193,7 +193,7 @@ bool IO::STLIsInASCIIFormat(const std::string& rFilename) {
            message.find ("\n")     != std::string::npos;
 }
 
-
+/// @todo Check std::stof and std::stod
 void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                const std::string& rFilename){
     // Open file
