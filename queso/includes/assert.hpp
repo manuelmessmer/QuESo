@@ -26,6 +26,7 @@ namespace queso {
 #ifdef NDEBUG    // asserts disabled
 
 static constexpr bool NOTDEBUG = true;
+// Use empty assert from STL (Different for Win and GCC)
 # define QuESo_ASSERT(Assertation, Message)		(assert(0))
 
 #else            // asserts enabled
