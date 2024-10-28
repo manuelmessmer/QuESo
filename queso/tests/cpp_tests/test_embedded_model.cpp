@@ -29,7 +29,7 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( EmbeddedModelTestSuite )
 
 BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Intersected Element" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Intersected Element" << std::endl;
 
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
 
@@ -156,7 +156,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 
 // p=2
 BOOST_AUTO_TEST_CASE(VolumeElephant1Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Gauss (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 2, 2}, 2916, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 2, 2}, 2916, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
@@ -164,21 +164,21 @@ BOOST_AUTO_TEST_CASE(VolumeElephant1Test) {
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant2Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Optimal (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{2, 2, 2}, 1786, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{2, 2, 2}, 1786, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant3Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant GGQ_Reduced1 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{2, 2, 2}, 673, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{2, 2, 2}, 673, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant4Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant GGQ_Reduced2 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{2, 2, 2}, 406, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{2, 2, 2}, 406, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant4Test) {
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant5Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Gauss (p=3)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{3, 3, 3}, 320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
     TestElephant(IntegrationMethod::gauss, Vector3i{3, 3, 3}, 320, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant5Test) {
 
 // p=3
 BOOST_AUTO_TEST_CASE(VolumeElephant6Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant GGQ_Optimal (p=3)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Optimal (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{3, 3, 3}, 256, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{3, 3, 3}, 256, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant6Test) {
 
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant7Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Gauss (p=4)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{4, 4, 4}, 625, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
     TestElephant(IntegrationMethod::gauss, Vector3i{4, 4, 4}, 625, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
@@ -212,14 +212,14 @@ BOOST_AUTO_TEST_CASE(VolumeElephant7Test) {
 
 // p=4
 BOOST_AUTO_TEST_CASE(VolumeElephant8Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant GGQ_Optimal (p=4)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Optimal (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{4, 4, 4}, 525, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
 }
 
 // p=Mix
 BOOST_AUTO_TEST_CASE(VolumeElephant9Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Gauss (p=Mix)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 3, 4}, 6480, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss, Vector3i{3, 4, 2}, 6480, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant9Test) {
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant10Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Gauss_Reduced1 (p=Mix)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss_Reduced1 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss_reduced_1, Vector3i{2, 3, 4}, 2592, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss_reduced_1, Vector3i{3, 4, 2}, 2592, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(VolumeElephant10Test) {
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant11Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Gauss_Reduced2 (p=Mix)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss_Reduced2 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss_reduced_2, Vector3i{2, 3, 4}, 648, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss_reduced_2, Vector3i{3, 4, 2}, 648, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
@@ -243,21 +243,21 @@ BOOST_AUTO_TEST_CASE(VolumeElephant11Test) {
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant12Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant Optimal (p=Mix)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Optimal (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{2, 3, 4}, 3657, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{3, 4, 2}, 3682, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant13Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant GGQ_Reduced1 (p=Mix)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced1 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{2, 3, 4}, 1710, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{3, 4, 2}, 1713, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
 }
 
 BOOST_AUTO_TEST_CASE(VolumeElephant14Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume :: Elephant GGQ_Reduced2 (p=Mix)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced2 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{2, 3, 4}, 1166, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{3, 4, 2}, 1192, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
@@ -372,7 +372,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
 
 // p=2
 BOOST_AUTO_TEST_CASE(SteeringKnuckle1Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Gauss (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -382,7 +382,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle1Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle2Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced1 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -392,7 +392,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle2Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle3Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced2 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle3Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle4Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle Optimal (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -410,14 +410,14 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle4Test) {
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle5Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Steering Knuckle GGQ_Reduced1 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_1, 2, 1320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_1, 2, 1320, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
 }
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckle6Test) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Create Volume And Conditions :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -425,7 +425,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle6Test) {
 
 
 BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
-    QuESo_INFO << "Testing :: Test EmbeddedModel :: Model Info :: Steering Knuckle" << std::endl;
+    QuESo_INFO << "Testing :: Test Embedded Model :: Model Info :: Steering Knuckle" << std::endl;
 
     Vector3i num_elements = Vector3i{10, 20, 20};
     GridTypeType grid_type = GridType::b_spline_grid;
