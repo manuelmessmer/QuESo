@@ -18,7 +18,7 @@ rm -rf "${APP_BUILD}/${QUESO_BUILD_TYPE}/CMakeCache.txt"
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${QUESO_BUILD_TYPE}" \
--DQUESO_BUILD_TESTING=ON                                    \
+-DQUESO_BUILD_TESTING=OFF                                    \
 
 
 # Buid

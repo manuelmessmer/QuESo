@@ -157,11 +157,11 @@ public:
         }
 
         const IndexType echo_level = (*this)[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
+        // Orders
+        const Vector3i order = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
 
-        // Check if polynomial_orders are feasible.
-        Vector3i orders = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
-        IndexType min_order =  Math::Min( orders );
-        IndexType max_order =  Math::Max( orders );
+        const IndexType min_order =  Math::Min( order );
+        const IndexType max_order =  Math::Max( order );
         QuESo_ERROR_IF(min_order < 1) << "Invalid Input. The polynomial order must be p > 0. \n";
         QuESo_INFO_IF(max_order > 4) << "Warning :: QuESo is designed to construct efficient quadrature rules for 1 <= p <= 4. "
             << "For higher polynomial degrees, the process might become slow. It is recommended to use quadratic bases. Generally, they offer the best performance and accuracy.\n";
@@ -172,9 +172,9 @@ public:
             << "Thus, if you are integrating LINEAR finite elements, consider using '\"polynomial_order\" : [2, 2, 2]' and '\"integration_method\" : \"Gauss_Reduced1\"'. This will generate quadratic quadrature rules in all cut elements "
             << "and linear Gauss rules for all full/interior elements.\n";
 
-        // Check if num_elements are feasible.
-        Vector3i num_elements = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
-        IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
+        // Number of elements
+        const Vector3i num_elements = (*this)[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
+        const IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
         QuESo_INFO_IF( tot_num_elements < 2 && echo_level > 0 ) << "You are using only one single element.\n";
 
         const IntegrationMethod integration_method = (*this)[MainSettings::non_trimmed_quadrature_rule_settings]
