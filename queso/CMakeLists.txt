@@ -22,9 +22,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /W1 /std:c++17")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc /W1")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -std=c++17")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
-    set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wsuggest-override -std=c++17")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
 endif()
 
 # OMP support

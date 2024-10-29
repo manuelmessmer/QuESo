@@ -121,7 +121,7 @@ int nnls_( double *a, int *mda, int *m, int *n,
     extern /* Subroutine */ int h12_(int *mode, int *lpivot, int *l1, int *m,
                                      double *u, int *iue, double *up, double *c__,
                                      int *ice, int *icv, int *ncv);
-    int ii, jj, ip;
+    int ii, jj=0, ip;
     double sm;
     int iz, jz;
     double up, ss;
