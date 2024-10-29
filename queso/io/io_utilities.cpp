@@ -229,19 +229,11 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
         while( std::getline(ss, token, ' ') ){
             token.erase(remove_if(token.begin(), token.end(), isspace), token.end());
             if( token.size() > 0 && token.find("vertex") == std::string::npos ) {
-                float value = 0.0;
-                try {
-                    value = std::stof(token);
-                } catch (const std::invalid_argument& e) {
-                    std::cout << "Invalid argument: " << e.what() << 'n';
-                } catch (const std::out_of_range& e) {
-                    double test_value = std::stod(token);
-                    if( std::abs(test_value) > 1e-16 ){
-                        std::cout << "IO::ReadMeshFromSTL_Ascii :: Out-of-range-value of vertex: " << token << " is set to zero.\n";
-                    }
-                    value = 0.0;
-                }
-                vertex[j] = value;
+                // Read double to avoid out_of_range error.
+                // Intermediately cast to float (truncate double precision),
+                // since STLs are defined in single precision.
+                float value = static_cast<float>(std::stod(token));
+                vertex[j] = static_cast<double>(value);
                 ++j;
             }
         }
