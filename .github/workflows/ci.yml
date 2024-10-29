@@ -12,9 +12,10 @@ concurrency:
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
-    fail-fast: false
-    matrix:
-      build-type: [Release, FullDebug]
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Release, FullDebug]
     env:
       QUESO_BUILD_TYPE: ${{ matrix.build-type }}
     steps:
