@@ -55,7 +55,7 @@ jobs:
       run: ./TestExecutables/test_queso --log_level=test_suite
 
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       QUESO_BUILD_TYPE: Release
 
