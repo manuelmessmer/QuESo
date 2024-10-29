@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
             r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{1.0, 2.0, 3.0});
             BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
             BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, IndexType(2)), std::exception); // Wrong Value type
-            BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3d>(BackgroundGridSettings::lower_bound_xyz), std::exception); // Wrong Value type
+            BOOST_REQUIRE_THROW(r_mesh_settings.GetValue<Vector3i>(BackgroundGridSettings::lower_bound_xyz), std::exception); // Wrong Value type
             const PointType& r_lower_bound_xyz = r_mesh_settings.GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
             QuESo_CHECK_POINT_NEAR(r_lower_bound_xyz, PointType({1.0, 2.0, 3.0}), 1e-10);
 
