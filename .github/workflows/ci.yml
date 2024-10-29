@@ -9,18 +9,11 @@ concurrency:
   group: ci-${{ github.head_ref }}
   cancel-in-progress: true
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-  compiler: gcc
-
 jobs:
   ubuntu:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
-
+    env:
+      QUESO_BUILD_TYPE: Release
     steps:
     - uses: actions/checkout@v3
       with:
@@ -57,14 +50,48 @@ jobs:
       shell: bash
       run: ./TestExecutables/test_queso --log_level=test_suite
 
+  ubuntu:
+    runs-on: ubuntu-latest
+    env:
+      QUESO_BUILD_TYPE: FullDebug
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'false'
+
+    - name: Install Dependencies
+      run: sudo apt-get install -y libboost-test-dev
+
+    - name: Build
+      shell: bash
+      # Build your program with the given configuration
+      run: |
+        export CC=/usr/bin/gcc
+        export CXX=/usr/bin/g++
+        cp .github/workflows/configure.sh configure.sh
+        bash configure.sh
+
+    - name: Test py
+      shell: bash
+      run: |
+        pip3 install numpy
+        pip3 install scipy
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
+        python3 queso/tests/test_queso.py
+
+    - name: Test cpp
+      shell: bash
+      run: ./TestExecutables/test_queso --log_level=test_suite
+
   windows:
     runs-on: windows-latest
     env:
-      BUILD_TYPE: Release
+      QUESO_BUILD_TYPE: Release
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 
