@@ -495,7 +495,12 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     const auto& r_condition_time_info = r_elapsed_time_info[ElapsedTimeInfo::conditions_time_info];
     const double et_condition_total = r_condition_time_info.GetValue<double>(ConditionsTimeInfo::total);
     QuESo_CHECK_GT(et_condition_total, EPS1);
-    QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total), 1e-5);
+
+    const auto& r_write_file_time_info = r_elapsed_time_info[ElapsedTimeInfo::write_files_time_info];
+    const double et_write_file_total = r_write_file_time_info.GetValue<double>(WriteFilesTimeInfo::total);
+    QuESo_CHECK_GT(et_write_file_total, EPS1);
+
+    QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total+et_write_file_total), 1e-5);
 
     const auto& r_condition_info_1 = r_model_info.GetList(MainInfo::conditions_infos_list)[0];
     const auto& r_condition_1 = embedded_model.GetConditions()[0];
