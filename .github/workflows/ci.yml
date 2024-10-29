@@ -21,8 +21,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+      with:
+        node-version: '20'
 
     - name: Install Dependencies
       run: sudo apt-get install -y libboost-test-dev
@@ -63,8 +63,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+      with:
+        node-version: '20'
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
