@@ -100,26 +100,26 @@ class ModelPartUtilities:
         for bc in Conditions:
             if bc.IsWeakCondition():
                 condition_settings = bc.GetSettings()
-                type_name = condition_settings.GetString(QuESo_App.ConditionSettings.condition_type)
+                type_name = condition_settings.GetString("condition_type")
                 if( type_name == "PenaltySupportCondition" ):
-                    prescribed_displacement = condition_settings.GetDoubleVector(QuESo_App.ConditionSettings.value)
-                    penalty_factor = condition_settings.GetDouble(QuESo_App.ConditionSettings.penalty_factor)
+                    prescribed_displacement = condition_settings.GetDoubleVector("value")
+                    penalty_factor = condition_settings.GetDouble("penalty_factor")
                     for condition_segment in bc:
                         dirichlet_triangles = condition_segment.GetTriangleMesh()
                         boundary_conditions.append(PenaltySupport(dirichlet_triangles, BoundsXYZ, BoundsUVW, prescribed_displacement, penalty_factor) )
                 elif( type_name == "LagrangeSupportCondition" ):
-                    prescribed_displacement = condition_settings.GetDoubleVector(QuESo_App.ConditionSettings.value)
+                    prescribed_displacement = condition_settings.GetDoubleVector("value")
                     for condition_segment in bc:
                         dirichlet_triangles = condition_segment.GetTriangleMesh()
                         boundary_conditions.append(LagrangeSupport(dirichlet_triangles, BoundsXYZ, BoundsUVW, prescribed_displacement) )
                 elif( type_name == "SurfaceLoadCondition" ):
-                    modulus = condition_settings.GetDouble(QuESo_App.ConditionSettings.modulus)
-                    direction = condition_settings.GetDoubleVector(QuESo_App.ConditionSettings.direction)
+                    modulus = condition_settings.GetDouble("modulus")
+                    direction = condition_settings.GetDoubleVector("direction")
                     for condition_segment in bc:
                         neumann_triangles = condition_segment.GetTriangleMesh()
                         boundary_conditions.append(SurfaceLoad(neumann_triangles, BoundsXYZ, BoundsUVW, modulus, direction) )
                 elif( type_name == "PressureLoadCondition" ):
-                    modulus = condition_settings.GetDouble(QuESo_App.ConditionSettings.modulus)
+                    modulus = condition_settings.GetDouble("modulus")
                     for condition_segment in bc:
                         neumann_triangles = condition_segment.GetTriangleMesh()
                         boundary_conditions.append(PressureLoad(neumann_triangles, BoundsXYZ, BoundsUVW, modulus) )

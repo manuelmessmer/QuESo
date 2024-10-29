@@ -59,7 +59,7 @@ public:
     /// @brief Constructor of FloodFill.
     /// @param pBrepOperator
     /// @param rSettings
-    FloodFill(const BRepOperator* pBrepOperator, const SettingsBaseType& rSettings) :
+    FloodFill(const BRepOperator* pBrepOperator, const Settings& rSettings) :
         mpBrepOperator(pBrepOperator), mGridIndexer(rSettings),
         mNumberOfElements( rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) )
     {

@@ -19,7 +19,7 @@
 #include "queso/containers/background_grid.hpp"
 #include "queso/containers/condition.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "queso/QuESo_main.h"
+#include "queso/embedded_model.h"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 typedef std::vector<queso::PointType> PointVectorType;
@@ -173,7 +173,7 @@ void AddContainersToPython(pybind11::module& m) {
 
     /// Export BackgroundGrid
     py::class_<BackgroundGrid<ElementType>, Unique<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
-        .def(py::init<const SettingsBaseType&>())
+        .def(py::init<const Settings&>())
         .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
         .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
         .def("GetConditions", &BackgroundGrid<ElementType>::GetConditions, py::return_value_policy::reference_internal)
@@ -197,7 +197,6 @@ void AddContainersToPython(pybind11::module& m) {
     /// Export Condition
     py::class_<ConditionType, Unique<ConditionType>>(m,"Condition")
         .def("IsWeakCondition", [](const ConditionType& rCondition)->bool { return true; } )
-        .def("GetTriangleMesh", &ConditionType::GetTriangleMesh, py::return_value_policy::reference_internal )
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
         .def("NumberOfSegments", &ConditionType::NumberOfSegments )
@@ -209,7 +208,8 @@ void AddContainersToPython(pybind11::module& m) {
 
     // Export Condition Vector
     py::class_<ConditionVectorPtrType, Unique<ConditionVectorPtrType>>(m, "ConditionVector")
-        .def("__getitem__", [](const ConditionVectorPtrType &v, const IndexType i) { return &(*v[i]); })
+        .def("__getitem__", [](const ConditionVectorPtrType &v, const IndexType i)
+            { return &(*v[i]); }, py::return_value_policy::reference_internal)
         .def("__len__", [](const ConditionVectorPtrType &v) { return v.size(); })
         .def("__iter__", [](ConditionVectorPtrType &v) {
             return py::make_iterator( dereference_iterator(v.begin()), dereference_iterator(v.end()) );
@@ -227,12 +227,11 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export QuESo
-    py::class_<QuESo>(m,"QuESo")
+    py::class_<EmbeddedModel>(m,"EmbeddedModel")
         .def(py::init<const Settings&>())
-        .def("Run", &QuESo::Run)
-        .def("GetTriangleMesh", &QuESo::GetTriangleMesh, py::return_value_policy::reference_internal)
-        .def("GetElements", &QuESo::GetElements, py::return_value_policy::reference_internal)
-        .def("GetConditions", &QuESo::GetConditions, py::return_value_policy::reference_internal )
+        .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
+        .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
+        .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal )
     ;
 
 } // End AddContainersToPython

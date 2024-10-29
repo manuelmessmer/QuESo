@@ -12,13 +12,15 @@
 //  Authors:    Manuel Messmer
 
 //// Project includes
+#include "queso/includes/define.hpp"
 #include "queso/python/define_python.hpp"
 // To export
 #include "queso/python/add_settings_to_python.h"
+#include "queso/python/add_model_info_to_python.h"
 #include "queso/python/add_containers_to_python.h"
 #include "queso/python/add_globals_to_python.h"
 #include "queso/python/add_utilities_to_python.h"
-#include "queso/QuESo_main.h"
+#include "queso/python/add_io_to_python.h"
 
 namespace queso {
 namespace Python {
@@ -42,9 +44,10 @@ PYBIND11_MODULE(QuESo_Application,m) {
 
     AddGlobalsToPython(m);
     AddSettingsToPython(m);
+    AddModelInfoToPython(m);
     AddContainersToPython(m);
     AddUtilitiesToPython(m);
-
+    AddIoToPython(m);
 }
 
 }// End namespace Python

@@ -99,12 +99,13 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 
         Settings settings;
         settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+        auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, num_elements);
 
         double test_volume = 0.0;
         double test_area = 0.0;
@@ -240,12 +241,13 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
 
         Settings settings;
         settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
-        settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+        auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
+        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, num_elements);
 
         settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 10u);
         settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);

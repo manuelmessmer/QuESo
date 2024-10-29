@@ -155,9 +155,8 @@ public:
     }
 
     ///@brief Basic check of this TriangleMesh instance.
-    virtual bool Check() const{
+    virtual void Check() const{
         QuESo_ERROR << "Calling base class member\n";
-        return 0;
     }
 
     ///@}

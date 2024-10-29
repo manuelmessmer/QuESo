@@ -47,7 +47,7 @@ void CheckTriangleOrientation(const TriangleMeshInterface& rTriangleMesh){
     }
 }
 
-void RunTest(const std::string& rFilename, const SettingsBaseType& rSettings,
+void RunTest(const std::string& rFilename, const Settings& rSettings,
             const std::string& rResultsFilename, IndexType NumTrimmedElements){
 
     typedef IntegrationPoint IntegrationPointType;
@@ -222,13 +222,14 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
 
     Vector3i number_of_elements = {1, 1, 1};
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, rLowerBound);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, rUpperBound);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rLowerBound);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rUpperBound);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, rLowerBound);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, rUpperBound);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, rLowerBound);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, rUpperBound);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");

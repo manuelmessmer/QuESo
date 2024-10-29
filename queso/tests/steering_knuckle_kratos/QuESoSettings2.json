@@ -20,21 +20,25 @@
         "integration_method" : "GGQ_Optimal"
     },
     "conditions_settings_list"    :  [{
+            "condition_id" : 1,
             "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N1.stl",
             "modulus" : 2.0,
             "direction" : [-1.0, 0.0, 0.0]
         },{
+            "condition_id" : 2,
             "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N2.stl",
             "modulus" : 1.0,
             "direction" : [0.0, 0.0, 1.0]
         },{
+            "condition_id" : 3,
             "condition_type" : "SurfaceLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N3.stl",
             "modulus" : 0.3,
             "direction" : [0.0, 1.0, 0.0]
         },{
+            "condition_id" : 4,
             "condition_type" : "PenaltySupportCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/D1.stl",
             "value" : [0.0, 0.0, 0.0],

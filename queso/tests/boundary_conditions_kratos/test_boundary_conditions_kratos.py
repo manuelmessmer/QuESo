@@ -45,23 +45,23 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
             }]
             """)
 
-        grid_settings = QuESoSettings[QuESo_App.MainSettings.background_grid_settings]
+        grid_settings = QuESoSettings["background_grid_settings"]
 
         tmp_parameters = modeler_settings[0]["Parameters"]
         tmp_parameters.AddEmptyValue("lower_point_xyz")
-        tmp_parameters["lower_point_xyz"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz))
+        tmp_parameters["lower_point_xyz"].SetVector(grid_settings.GetDoubleVector("lower_bound_xyz"))
         tmp_parameters.AddEmptyValue("upper_point_xyz")
-        tmp_parameters["upper_point_xyz"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz))
+        tmp_parameters["upper_point_xyz"].SetVector(grid_settings.GetDoubleVector("upper_bound_xyz"))
 
         tmp_parameters.AddEmptyValue("lower_point_uvw")
-        tmp_parameters["lower_point_uvw"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw))
+        tmp_parameters["lower_point_uvw"].SetVector(grid_settings.GetDoubleVector("lower_bound_uvw"))
         tmp_parameters.AddEmptyValue("upper_point_uvw")
-        tmp_parameters["upper_point_uvw"].SetVector(grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw))
+        tmp_parameters["upper_point_uvw"].SetVector(grid_settings.GetDoubleVector("upper_bound_uvw"))
 
         tmp_parameters.AddEmptyValue("polynomial_order")
-        tmp_parameters["polynomial_order"].SetVector(grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.polynomial_order))
+        tmp_parameters["polynomial_order"].SetVector(grid_settings.GetIntVector("polynomial_order"))
         tmp_parameters.AddEmptyValue("number_of_knot_spans")
-        tmp_parameters["number_of_knot_spans"].SetVector(grid_settings.GetIntVector(QuESo_App.BackgroundGridSettings.number_of_elements))
+        tmp_parameters["number_of_knot_spans"].SetVector(grid_settings.GetIntVector("number_of_elements"))
 
         self.run_modelers(model, modeler_settings)
 
@@ -73,11 +73,11 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         model_part = model.CreateModelPart("NurbsMesh")
 
         settings = pyqueso.GetSettings()
-        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
-        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
-        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        grid_settings = settings["background_grid_settings"]
+        bounds_xyz = [grid_settings.GetDoubleVector("lower_bound_xyz"),
+                      grid_settings.GetDoubleVector("upper_bound_xyz") ]
+        bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
+                      grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
@@ -100,11 +100,11 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         model_part = model.CreateModelPart("NurbsMesh")
 
         settings = pyqueso.GetSettings()
-        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
-        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
-        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        grid_settings = settings["background_grid_settings"]
+        bounds_xyz = [grid_settings.GetDoubleVector("lower_bound_xyz"),
+                      grid_settings.GetDoubleVector("upper_bound_xyz") ]
+        bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
+                      grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
@@ -122,11 +122,11 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         model_part = model.CreateModelPart("NurbsMesh")
 
         settings = pyqueso.GetSettings()
-        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
-        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
-        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        grid_settings = settings["background_grid_settings"]
+        bounds_xyz = [grid_settings.GetDoubleVector("lower_bound_xyz"),
+                      grid_settings.GetDoubleVector("upper_bound_xyz") ]
+        bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
+                      grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
@@ -147,11 +147,11 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         model_part = model.CreateModelPart("NurbsMesh")
 
         settings = pyqueso.GetSettings()
-        grid_settings = settings[QuESo_App.MainSettings.background_grid_settings]
-        bounds_xyz = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_xyz),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_xyz) ]
-        bounds_uvw = [grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.lower_bound_uvw),
-                      grid_settings.GetDoubleVector(QuESo_App.BackgroundGridSettings.upper_bound_uvw) ]
+        grid_settings = settings["background_grid_settings"]
+        bounds_xyz = [grid_settings.GetDoubleVector("lower_bound_xyz"),
+                      grid_settings.GetDoubleVector("upper_bound_xyz") ]
+        bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
+                      grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
         ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 

@@ -62,7 +62,7 @@ public:
 
     /// @brief Constructor
     /// @param rSettings
-    BackgroundGrid(const SettingsBaseType& rSettings) :
+    BackgroundGrid(const Settings& rSettings) :
         mGridIndexer(rSettings)
     {
     }
@@ -314,7 +314,6 @@ public:
         }
         return volume;
     }
-
     /// @brief Returns total number of integration points.
     /// @return IndexType
     /// @todo Remove this function

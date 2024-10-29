@@ -56,7 +56,7 @@ include(pybind11Tools)
 
 # include source directories
 file(GLOB QuESo_ApplicationSource
-    ${CMAKE_CURRENT_SOURCE_DIR}/QuESo_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/embedded_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/embedding/*.cpp

@@ -31,19 +31,16 @@ struct PointComparison {
     };
 };
 
-bool IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
-                        const char* Filename,
+void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
+                        const std::string& rFilename,
                         const bool Binary){
     std::ofstream file;
     if(Binary)
-        file.open(Filename, std::ios::out | std::ios::binary);
+        file.open(rFilename, std::ios::out | std::ios::binary);
     else
-        file.open(Filename);
+        file.open(rFilename);
 
-    if(!file.good()){
-        std::cerr << "Warning :: IO::WriteMeshToSTL :: Could not open file: " << Filename << ".\n";
-        return false;
-    }
+    QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << ".\n";
 
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     if(Binary) {
@@ -87,23 +84,21 @@ bool IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
         file << "endsolid"<<std::endl;
     }
     file.close();
-
-    return true;
 }
 
-bool IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
-                         const char* Filename){
+void IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
+                         const std::string& rFilename){
 
     // Open file
-    if( STLIsInASCIIFormat(Filename) ) { // If the first 5 characters are "solid"
-        return ReadMeshFromSTL_Ascii(rTriangleMesh, Filename);
+    if( STLIsInASCIIFormat(rFilename) ) { // If the first 5 characters are "solid"
+        return ReadMeshFromSTL_Ascii(rTriangleMesh, rFilename);
     } else {
-        return ReadMeshFromSTL_Binary(rTriangleMesh, Filename);
+        return ReadMeshFromSTL_Binary(rTriangleMesh, rFilename);
     }
 }
 
-bool IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
-                        const char* Filename,
+void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
+                        const std::string& rFilename,
                         const bool Binary) {
 
     const SizeType num_elements = rTriangleMesh.NumOfTriangles();
@@ -111,9 +106,11 @@ bool IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
 
     std::ofstream file;
     if(Binary)
-        file.open(Filename, std::ios::out | std::ios::binary);
+        file.open(rFilename, std::ios::out | std::ios::binary);
     else
-        file.open(Filename);
+        file.open(rFilename);
+
+    QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << ".\n";
 
     file << "# vtk DataFile Version 4.1" << std::endl;
     file << "vtk output" << std::endl;
@@ -178,52 +175,13 @@ bool IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     }
     file << std::endl;
     file.close();
-
-    return true;
-}
-
-bool IO::WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
-                                const char* Filename,
-                                const bool Binary){
-
-    const SizeType num_points = rDisplacement.size();
-
-    std::ofstream file;
-    if(Binary)
-        file.open(Filename, std::ios::app | std::ios::binary);
-    else
-        file.open(Filename);
-
-    file << "POINT_DATA " << num_points << std::endl;
-    file << "VECTORS Displacement double" << std::endl;
-    for(IndexType i = 0; i < num_points; ++i){
-        if( Binary ){
-            double rw1 = rDisplacement[i][0];
-            WriteBinary(file, rw1);
-            double rw2 = rDisplacement[i][1];
-            WriteBinary(file, rw2);
-            double rw3 = rDisplacement[i][2];
-            WriteBinary(file, rw3);
-        }
-        else {
-            std::cerr << "Warning :: IO::DisplacementToVTK :: Ascii export not implemented yet. \n";
-            return false;
-        }
-    }
-    file << std::endl;
-    file.close();
-
-    return true;
 }
 
 ////// Private member functions //////
 
-bool IO::STLIsInASCIIFormat(const char* Filename) {
-    std::ifstream file(Filename, std::ios::in);
-
-    if( !file.good() ){
-        QuESo_ERROR << "Couldnt parse file: " << Filename << std::endl;
-    }
+bool IO::STLIsInASCIIFormat(const std::string& rFilename) {
+    std::ifstream file(rFilename, std::ios::in);
+    QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << std::endl;
 
     char chars [256];
     file.read(chars, 256);
@@ -235,15 +193,12 @@ bool IO::STLIsInASCIIFormat(const char* Filename) {
            message.find ("\n")     != std::string::npos;
 }
 
-
-bool IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
-                                const char* Filename){
+/// @todo Check std::stof and std::stod
+void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
+                               const std::string& rFilename){
     // Open file
-    std::ifstream file(Filename);
-    if( !file.good() ) {
-        QuESo_ERROR << "Couldnt parse file: " << Filename << ".\n";
-        return false;
-    }
+    std::ifstream file(rFilename);
+    QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << std::endl;
 
     // Initialize map
     int index = 0;
@@ -274,19 +229,11 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
         while( std::getline(ss, token, ' ') ){
             token.erase(remove_if(token.begin(), token.end(), isspace), token.end());
             if( token.size() > 0 && token.find("vertex") == std::string::npos ) {
-                float value = 0.0;
-                try {
-                    value = std::stof(token);
-                } catch (const std::invalid_argument& e) {
-                    std::cout << "Invalid argument: " << e.what() << 'n';
-                } catch (const std::out_of_range& e) {
-                    double test_value = std::stod(token);
-                    if( std::abs(test_value) > 1e-16 ){
-                        std::cout << "IO::ReadMeshFromSTL_Ascii :: Out-of-range-value of vertex: " << token << " is set to zero.\n";
-                    }
-                    value = 0.0;
-                }
-                vertex[j] = value;
+                // Read double to avoid out_of_range error.
+                // Intermediately cast to float (truncate double precision),
+                // since STLs are defined in single precision.
+                float value = static_cast<float>(std::stod(token));
+                vertex[j] = static_cast<double>(value);
                 ++j;
             }
         }
@@ -318,19 +265,15 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
         std::getline(file, message); // Ignore endfacet
     }
     file.close();
-    return rTriangleMesh.Check();
+    rTriangleMesh.Check();
 }
 
-bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
-                                const char* Filename){
+void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
+                                const std::string& rFilename){
 
     // Open file
-    std::ifstream file(Filename, std::ios::binary);
-
-    if( !file.good() ) {
-        QuESo_ERROR << "Couldnt parse file: " << Filename << ".\n";
-        return false;
-    }
+    std::ifstream file(rFilename, std::ios::binary);
+    QuESo_ERROR_IF( !file.is_open() ) << "Could not open file: " << rFilename << std::endl;
 
     // Ignore the first 80 chars of the header
     int position = 0;
@@ -345,12 +288,10 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
 
     if( test_binary_ascii == "solid" ) { // If the first 5 characters are "solid"
         QuESo_ERROR << "Warning :: File seems to be in Ascii format :: Please use IO::ReadMeshFromSTL_Binary.\n";
-        return false;
     }
 
     if(position != 80) {
-        QuESo_ERROR << "File " << Filename << " is empty.\n";
-        return false;
+        QuESo_ERROR << "File " << rFilename << " is empty.\n";
     }
 
     int index = 0;
@@ -360,7 +301,6 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
     unsigned int num_triangles;
     if(!(file.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles)))) {
         QuESo_ERROR << "Couldnt read number of triangles. \n";
-        return false;
     }
     rTriangleMesh.Clear();
     rTriangleMesh.Reserve(num_triangles);
@@ -372,8 +312,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
         if(!(file.read((char*)(&normal_tmp[0]), sizeof(normal_tmp[0]))) ||
                 !(file.read((char*)(&normal_tmp[1]), sizeof(normal_tmp[1]))) ||
                 !(file.read((char*)(&normal_tmp[2]), sizeof(normal_tmp[2])))) {
-            QuESo_ERROR << "Couldnt read normals. \n";
-            return false;
+            QuESo_ERROR << "Couldnt read triangle normal. \n";
         }
 
         // Read triangles and vertices. Each vertex is read seperately.
@@ -384,8 +323,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
             if(!(file.read((char*)(&x), sizeof(x))) ||
                     !(file.read((char*)(&y), sizeof(y))) ||
                     !(file.read((char*)(&z), sizeof(z)))) {
-                QuESo_ERROR << "Couldnt read coordinates. \n";
-                return false;
+                QuESo_ERROR << "Couldnt read triangle coordinates. \n";
             }
             Vector3d vertex = {x,y,z};
 
@@ -418,11 +356,10 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
             !(file.read((char*)(&c), sizeof(c)))) {
 
             QuESo_ERROR << "Couldnt read attribute byte count.\n";
-            return false;
         }
     }
     file.close();
-    return rTriangleMesh.Check();
+    rTriangleMesh.Check();
 }
 
 

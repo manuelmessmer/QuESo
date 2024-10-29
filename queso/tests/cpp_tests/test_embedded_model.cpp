@@ -15,19 +15,21 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+#include <numeric>      // std::accumulate
+#include <memory>       //std::addressof
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/containers/grid_indexer.hpp"
 #include "queso/io/io_utilities.h"
-#include "queso/QuESo_main.h"
+#include "queso/embedded_model.h"
 
 namespace queso {
 namespace Testing {
 
-BOOST_AUTO_TEST_SUITE( EmbeddingOperationsTestSuite )
+BOOST_AUTO_TEST_SUITE( EmbeddedModelTestSuite )
 
-BOOST_AUTO_TEST_CASE(Intersection) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Intersected Knot Span" << std::endl;
+BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Intersected Element" << std::endl;
 
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
 
@@ -45,10 +47,10 @@ BOOST_AUTO_TEST_CASE(Intersection) {
     settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 5000u);
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::gauss);
 
-    QuESo queso(settings);
-    queso.Run();
+    EmbeddedModel embedded_model(settings);
+    embedded_model.CreateAllFromSettings();
 
-    const auto& elements = queso.GetElements();
+    const auto& elements = embedded_model.GetElements();
 
     QuESo_CHECK_EQUAL(elements.size(), 1);
 
@@ -98,12 +100,13 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, rOrder);
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
-    QuESo queso(settings);
-    queso.Run();
+    EmbeddedModel embedded_model(settings);
+    embedded_model.CreateAllFromSettings();
 
-    const auto& elements = queso.GetElements();
+    const auto& elements = embedded_model.GetElements();
 
     // Compute total volume
     double volume_trimmed = 0.0;
@@ -152,38 +155,38 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 }
 
 // p=2
-BOOST_AUTO_TEST_CASE(VolumeElephant1) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant1Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 2, 2}, 2916, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 2, 2}, 2916, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 2, 2}, 2916, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant2) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant2Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{2, 2, 2}, 1786, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{2, 2, 2}, 1786, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant3) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant3Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{2, 2, 2}, 673, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{2, 2, 2}, 673, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant4) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant4Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{2, 2, 2}, 406, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{2, 2, 2}, 406, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
 }
 
 // p=3
-BOOST_AUTO_TEST_CASE(VolumeElephant5) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=3)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant5Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{3, 3, 3}, 320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
     TestElephant(IntegrationMethod::gauss, Vector3i{3, 3, 3}, 320, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
@@ -191,16 +194,16 @@ BOOST_AUTO_TEST_CASE(VolumeElephant5) {
 }
 
 // p=3
-BOOST_AUTO_TEST_CASE(VolumeElephant6) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=3)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant6Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Optimal (p=3)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{3, 3, 3}, 256, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{3, 3, 3}, 256, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
 }
 
 // p=4
-BOOST_AUTO_TEST_CASE(VolumeElephant7) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=4)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant7Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{4, 4, 4}, 625, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
     TestElephant(IntegrationMethod::gauss, Vector3i{4, 4, 4}, 625, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), false);
@@ -208,53 +211,53 @@ BOOST_AUTO_TEST_CASE(VolumeElephant7) {
 }
 
 // p=4
-BOOST_AUTO_TEST_CASE(VolumeElephant8) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Optimal (p=4)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant8Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Optimal (p=4)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{4, 4, 4}, 525, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), false);
 }
 
 // p=Mix
-BOOST_AUTO_TEST_CASE(VolumeElephant9) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss (p=Mix)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant9Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss, Vector3i{2, 3, 4}, 6480, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss, Vector3i{3, 4, 2}, 6480, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
     TestElephant(IntegrationMethod::gauss, Vector3i{4, 2, 3}, 6480, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant10) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss_Reduced1 (p=Mix)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant10Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss_Reduced1 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss_reduced_1, Vector3i{2, 3, 4}, 2592, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss_reduced_1, Vector3i{3, 4, 2}, 2592, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
     TestElephant(IntegrationMethod::gauss_reduced_1, Vector3i{4, 2, 3}, 2592, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant11) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Gauss_Reduced2 (p=Mix)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant11Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Gauss_Reduced2 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::gauss_reduced_2, Vector3i{2, 3, 4}, 648, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::gauss_reduced_2, Vector3i{3, 4, 2}, 648, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
     TestElephant(IntegrationMethod::gauss_reduced_2, Vector3i{4, 2, 3}, 648, 0.0002, false, MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant12) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant Optimal (p=Mix)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant12Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant Optimal (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{2, 3, 4}, 3657, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_optimal, Vector3i{3, 4, 2}, 3682, 0.0002, use_b_spline_mesh, MakeBox({-1.0, -5.5, -2.2}, {44.0, 1.12, 2.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant13) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced1 (p=Mix)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant13Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced1 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{2, 3, 4}, 1710, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_1, Vector3i{3, 4, 2}, 1713, 0.0002, use_b_spline_mesh, MakeBox({-6.0, -7.5, -1.2}, {22.0, 1.82, 2.8}), true);
 }
 
-BOOST_AUTO_TEST_CASE(VolumeElephant14) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=Mix)" << std::endl;
+BOOST_AUTO_TEST_CASE(VolumeElephant14Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Elephant GGQ_Reduced2 (p=Mix)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{2, 3, 4}, 1166, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestElephant(IntegrationMethod::ggq_reduced_2, Vector3i{3, 4, 2}, 1192, 0.0002, use_b_spline_mesh, MakeBox({-0.37, -0.55, -0.31}, {0.37, 0.55, 0.31}), true);
@@ -279,10 +282,31 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{p, p, p});
     settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
-    QuESo queso(settings);
-    queso.Run();
+    auto& r_cond_settings_1 = settings.CreateNewConditionSettings();
+    r_cond_settings_1.SetValue(ConditionSettings::condition_id, 1u);
+    r_cond_settings_1.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    r_cond_settings_1.SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
 
-    const auto& elements = queso.GetElements();
+    auto& r_cond_settings_2 = settings.CreateNewConditionSettings();
+    r_cond_settings_2.SetValue(ConditionSettings::condition_id, 2u);
+    r_cond_settings_2.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N1.stl"));
+    r_cond_settings_2.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+
+    auto& r_cond_settings_3 = settings.CreateNewConditionSettings();
+    r_cond_settings_3.SetValue(ConditionSettings::condition_id, 3u);
+    r_cond_settings_3.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N2.stl"));
+    r_cond_settings_3.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+
+    auto& r_cond_settings_4 = settings.CreateNewConditionSettings();
+    r_cond_settings_4.SetValue(ConditionSettings::condition_id, 4u);
+    r_cond_settings_4.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N3.stl"));
+    r_cond_settings_4.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+
+    EmbeddedModel embedded_model(settings);
+    embedded_model.CreateAllFromSettings();
+
+    /// Test volume
+    const auto& elements = embedded_model.GetElements();
 
     // Compute total volume
     double volume_trimmed = 0.0;
@@ -330,11 +354,25 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
     const double ref_volume_tot = MeshUtilities::Volume(triangle_mesh);
     QuESo_CHECK_RELATIVE_NEAR(volume_tot, ref_volume_tot, Tolerance);
+
+    /// Test conditions
+    const auto& conditions = embedded_model.GetConditions();
+    QuESo_CHECK_EQUAL(conditions.size(), 4);
+    for( const auto& p_condition : conditions ){
+        TriangleMesh triangle_mesh{};
+        const auto& r_cond_setting = p_condition->GetSettings();
+        std::string filename = r_cond_setting.GetValue<std::string>(ConditionSettings::input_filename);
+        IO::ReadMeshFromSTL(triangle_mesh, filename);
+        const double ref_area = MeshUtilities::Area(triangle_mesh);
+        auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh()); };
+        const double area = std::accumulate(p_condition->SegmentsBegin(), p_condition->SegmentsEnd(), 0.0, lambda);
+        QuESo_CHECK_NEAR(ref_area, area, 1e-10);
+    }
 }
 
 // p=2
-BOOST_AUTO_TEST_CASE(SteeringKnuckle1) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Steering Knuckle Gauss (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(SteeringKnuckle1Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Gauss (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -343,8 +381,8 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle1) {
     TestSteeringKnuckle(IntegrationMethod::gauss, 2, 5427, 0.0002, false, MakeBox({-2, -5.0, -10.0}, {3.0, 19.0, 10.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(SteeringKnuckle2) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Steering Knuckle Gauss_Reduced1 (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(SteeringKnuckle2Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -353,8 +391,8 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle2) {
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_1, 2, 1608, 0.0002, false, MakeBox({-2, -5.0, -10.0}, {3.0, 19.0, 10.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(SteeringKnuckle3) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Steering Knuckle Gauss_Reduced2 (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(SteeringKnuckle3Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Gauss_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
@@ -363,26 +401,118 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle3) {
     TestSteeringKnuckle(IntegrationMethod::gauss_reduced_2, 2, 201, 0.0002, false, MakeBox({-2, -5.0, -10.0}, {3.0, 19.0, 10.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(SteeringKnuckle4) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Steering Knuckle Optimal (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(SteeringKnuckle4Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle Optimal (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_optimal, 2, 3483, 0.0002, use_b_spline_mesh, MakeBox({-2.0, -5.0, -10.0}, {3.0, 19.0, 10.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(SteeringKnuckle5) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Steering Knuckle GGQ_Reduced1 (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(SteeringKnuckle5Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Steering Knuckle GGQ_Reduced1 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_1, 2, 1320, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_1, 2, 1320, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
 }
 
-BOOST_AUTO_TEST_CASE(SteeringKnuckle6) {
-    QuESo_INFO << "Testing :: Test Embedding Operations :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
+BOOST_AUTO_TEST_CASE(SteeringKnuckle6Test) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume And Conditions :: Volume Elephant GGQ_Reduced2 (p=2)" << std::endl;
     const bool use_b_spline_mesh = true;
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}), true);
     TestSteeringKnuckle(IntegrationMethod::ggq_reduced_2, 2, 804, 0.0002, use_b_spline_mesh, MakeBox({-130.0, -110.0, -110.0}, {20.0, 190.0, 190.0}), true);
+}
+
+
+BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
+    QuESo_INFO << "Testing :: Test Embedded Model :: Model Info :: Steering Knuckle" << std::endl;
+
+    Vector3i num_elements = Vector3i{10, 20, 20};
+    GridTypeType grid_type = GridType::b_spline_grid;
+    std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
+
+    Settings settings;
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
+    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio,  0.0);
+    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method,  IntegrationMethod::ggq_optimal);
+
+    auto& r_cond_settings_1 = settings.CreateNewConditionSettings();
+    r_cond_settings_1.SetValue(ConditionSettings::condition_id, 1u);
+    r_cond_settings_1.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    r_cond_settings_1.SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+
+    EmbeddedModel embedded_model(settings);
+    embedded_model.CreateAllFromSettings();
+
+    /// Check model info
+    const auto& r_model_info = embedded_model.GetModelInfo();
+    // embedded_geometry_info
+    const auto& r_geo_info = r_model_info[MainInfo::embedded_geometry_info];
+    QuESo_CHECK(r_geo_info.GetValue<bool>(EmbeddedGeometryInfo::is_closed));
+    TriangleMesh triangle_mesh{};
+    IO::ReadMeshFromSTL(triangle_mesh, filename);
+    double volume_ref = MeshUtilities::VolumeOMP(triangle_mesh);
+    QuESo_CHECK_NEAR(r_geo_info.GetValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-10);
+    // quadrature_info
+    const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
+    QuESo_CHECK_EQUAL(r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points), 9508);
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5)
+    const double num_of_points_per_trimmed_element = r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_trimmed_element);
+    QuESo_CHECK_GT(num_of_points_per_trimmed_element, 26);
+    QuESo_CHECK_LT(num_of_points_per_trimmed_element, 27);
+    // background_grid_info
+    const auto& r_grid_info = r_model_info[MainInfo::background_grid_info];
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_active_elements), 354);
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_trimmed_elements), 349);
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_full_elements), 5);
+    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_inactive_elements), 3646);
+    // elapsed_time_info
+    const auto& r_elapsed_time_info = r_model_info[MainInfo::elapsed_time_info];
+    const double total_time = r_elapsed_time_info.GetValue<double>(ElapsedTimeInfo::total);
+
+    const auto& r_volume_time_info = r_elapsed_time_info[ElapsedTimeInfo::volume_time_info];
+    const double et_volume_total = r_volume_time_info.GetValue<double>(VolumeTimeInfo::total);
+    const double et_coe = r_volume_time_info.GetValue<double>(VolumeTimeInfo::classification_of_elements);
+    QuESo_CHECK_GT(et_coe, EPS1);
+    const double et_coi = r_volume_time_info.GetValue<double>(VolumeTimeInfo::computation_of_intersections);
+    QuESo_CHECK_GT(et_coi, EPS1);
+    const double et_somf = r_volume_time_info.GetValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs);
+    QuESo_CHECK_GT(et_somf, EPS1);
+    const double et_cogr = r_volume_time_info.GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules);
+    QuESo_CHECK_GT(et_cogr, EPS1);
+    QuESo_CHECK_GT( et_volume_total, (et_coe+et_coi+et_somf+et_cogr) );
+
+    const auto& r_condition_time_info = r_elapsed_time_info[ElapsedTimeInfo::conditions_time_info];
+    const double et_condition_total = r_condition_time_info.GetValue<double>(ConditionsTimeInfo::total);
+    QuESo_CHECK_GT(et_condition_total, EPS1);
+
+    const auto& r_write_file_time_info = r_elapsed_time_info[ElapsedTimeInfo::write_files_time_info];
+    const double et_write_file_total = r_write_file_time_info.GetValue<double>(WriteFilesTimeInfo::total);
+    QuESo_CHECK_GT(et_write_file_total, EPS1);
+
+    QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total+et_write_file_total), 1e-5);
+
+    const auto& r_condition_info_1 = r_model_info.GetList(MainInfo::conditions_infos_list)[0];
+    const auto& r_condition_1 = embedded_model.GetConditions()[0];
+    const auto& r_condition_info_1_other = r_condition_1->GetInfo();
+    QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
+    QuESo_CHECK_EQUAL( r_condition_info_1.GetValue<IndexType>(ConditionInfo::condition_id), 1);
+    const std::string& r_filename = r_cond_settings_1.GetValue<std::string>(ConditionSettings::input_filename);
+    TriangleMesh triangle_mesh_cond{};
+    IO::ReadMeshFromSTL(triangle_mesh_cond, r_filename);
+    const double area_ref = MeshUtilities::Area(triangle_mesh_cond);
+    QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::surf_area), area_ref, 1e-10);
+    QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::perc_surf_area_in_active_domain), 100.0, 1e-5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

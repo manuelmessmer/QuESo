@@ -35,12 +35,13 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 13});
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 13});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
@@ -143,12 +144,13 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{-40, 10.0, 10.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 12, 12});
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{-40, 10.0, 10.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 12, 12});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/steering_knuckle.stl");
@@ -237,12 +239,13 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0,  1.0,  1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 12, 7});
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0,  1.0,  1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 12, 7});
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");

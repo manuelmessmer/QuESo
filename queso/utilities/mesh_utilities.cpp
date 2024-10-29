@@ -24,6 +24,7 @@ namespace queso {
 
 typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
 
+///@todo Needs to be refactored.
 void MeshUtilities::Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles){
     if( rTriangleMesh.NumOfTriangles() < MinNumberOfTriangles ){
         IndexType original_size = rTriangleMesh.NumOfTriangles();

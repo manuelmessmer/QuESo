@@ -27,7 +27,9 @@ namespace queso {
  * @class  ConditionSegment
  * @author Manuel Messmer
  * @brief  Segment of condition that is clipped to the element boundaries of the background grid.
- *         Stores a ptr to the parent element, the clipped section of the triangle mesh, and the corresponding boundary integration points.
+ *         Stores the index of the parent element (see: GridIndexer). If parent element is active, also stores a ptr to the parent element.
+ *         Additionally, stores the clipped section of the triangle mesh, and the corresponding boundary integration points (not yet).
+ * @todo   Add BoundaryIntegrationPoints that can eventually be used by a boundary MomentFitting scheme.
 **/
 template<typename TElementType>
 class ConditionSegment {
@@ -44,18 +46,38 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param pElement Ptr to parent element.
+    /// @param Index of BackgroundGrid @see GridIndexer.
     /// @param pTriangleMesh ptr to triangle mesh of this segment.
-    ConditionSegment(const ElementType* pElement, Unique<TriangleMeshInterface>& pTriangleMesh)
-        : mpParentElement(pElement), mpTriangleMesh(std::move(pTriangleMesh))
+    ConditionSegment(IndexType Index, Unique<TriangleMeshInterface>& pTriangleMesh)
+        : mBackgroundGridIndex(Index), mpParentElement(nullptr), mpTriangleMesh(std::move(pTriangleMesh))
     {
     }
+
+    /// @brief Constructor
+    /// @param Index of BackgroundGrid @see GridIndexer.
+    /// @param pElement Ptr to parent element.
+    /// @param pTriangleMesh ptr to triangle mesh of this segment.
+    ConditionSegment(IndexType Index, const ElementType* pElement, Unique<TriangleMeshInterface>& pTriangleMesh)
+        : mBackgroundGridIndex(Index), mpParentElement(pElement), mpTriangleMesh(std::move(pTriangleMesh))
+    {
+    }
+
+    // Destructor
+    ~ConditionSegment() = default;
+    // Copy constructor
+    ConditionSegment(const ConditionSegment& rOther) = delete;
+    // Assignement operator
+    ConditionSegment& operator=(const ConditionSegment& rOther) = delete;
+    /// Move constructor
+    ConditionSegment(ConditionSegment&& rOther) = default;
+    /// Move assignement operator
+    ConditionSegment& operator=(ConditionSegment&& rOther) = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// @brief Return const ref to the triangle mesh, representing the boundary.
+    /// @brief Return const ref to the triangle mesh, representing the condition segment.
     /// @return  const TriangleMeshInterface&
     const TriangleMeshInterface& GetTriangleMesh() const {
         return *mpTriangleMesh;
@@ -64,22 +86,8 @@ public:
     /// @brief Returns true if ConditionSegment is contained within in active parent element.
     /// @return bool
     bool IsInActiveElement() const {
-        return (mpParentElement) ? true : false;
+        return (mpParentElement) != 0;
     }
-
-    // Unique<std::vector<BoundaryIntegrationPointType>> pGetIntegrationPoints() const {
-    //     // Pointer to boundary integration points
-    //     auto p_boundary_ips = MakeUnique<BoundaryIntegrationPointVectorType>();
-
-    //     p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*12UL);
-    //     for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
-    //         IndexType method = 0;
-    //         auto p_new_points = mpTriangleMesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
-    //         p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
-    //     }
-
-    //     return p_boundary_ips;
-    // }
 
 private:
 
@@ -87,9 +95,10 @@ private:
     ///@name Private member variables
     ///@{
 
+    const IndexType mBackgroundGridIndex;
     const ElementType* mpParentElement;
     const Unique<TriangleMeshInterface> mpTriangleMesh;
-    BoundaryIntegrationPointVectorType mIntegrationPoints;
+    // BoundaryIntegrationPointVectorType mIntegrationPoints;
 
     ///@}
 }; // End class ConditionSegment

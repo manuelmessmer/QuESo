@@ -14,9 +14,6 @@
 #ifndef GRID_INDEXER_INCLUDE_HPP
 #define GRID_INDEXER_INCLUDE_HPP
 
-//// STL includes
-#include <cassert>
-
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/utilities/math_utilities.hpp"
@@ -43,7 +40,7 @@ public:
 
     /// @brief Constructor
     /// @param rSettings
-    GridIndexer( const SettingsBaseType& rSettings ) :
+    GridIndexer( const Settings& rSettings ) :
         mBoundXYZ( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
                                   rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
         mBoundUVW( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw),
@@ -172,7 +169,7 @@ public:
             case 5:
                 return GetPreviousIndexZ(Index);
             default:
-                assert(false);
+                QuESo_ASSERT(false, "Should no be reached");
                 return std::make_pair(0, IndexInfo::middle);
         }
     }
@@ -197,7 +194,7 @@ public:
             case 5:
                 return GetPreviousIndexZ(Index, rPartition);
             default:
-                assert(false);
+                QuESo_ASSERT(false, "Should no be reached");
                 return std::make_pair(0, IndexInfo::middle);
         }
     }
@@ -438,7 +435,7 @@ public:
         case 5: // Backward Z
             return (indices[2] == (rPartition.first[2]));
         default:
-            assert(false);
+            QuESo_ASSERT(false, "Should no be reached");
             return false;
         }
     }

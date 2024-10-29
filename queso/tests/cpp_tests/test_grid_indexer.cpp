@@ -34,12 +34,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
     const Vector3i number_of_elements{5, 10, 7};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
@@ -102,12 +103,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
     const Vector3i number_of_elements{5, 10, 7};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
@@ -176,12 +178,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
     const Vector3i number_of_elements{3, 4, 5};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
 
@@ -227,12 +230,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
     const Vector3i number_of_elements{3, 4, 5};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
     // Walk foward
@@ -282,12 +286,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
     const Vector3i number_of_elements{3, 4, 5};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
     // Walk foward
@@ -338,12 +343,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
     const Vector3i number_of_elements{3, 4, 5};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
 
@@ -430,12 +436,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
     const Vector3i number_of_elements{3, 4, 5};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
 
@@ -524,12 +531,13 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
     const Vector3i number_of_elements{3, 4, 5};
 
     Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(settings);
 
