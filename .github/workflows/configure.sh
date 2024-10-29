@@ -20,7 +20,8 @@ rm -rf "${APP_BUILD}/${QUESO_BUILD_TYPE}/CMakeFiles"
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${QUESO_BUILD_TYPE}" \
--DQUESO_BUILD_TESTING=ON
+-DQUESO_BUILD_TESTING=ON \
+-DCMAKE_CXX_FLAGS="${DCMAKE_CXX_FLAGS} -Og" \
 
 # Buid
 cmake --build "${APP_BUILD}/${QUESO_BUILD_TYPE}" --target install -- -j2
