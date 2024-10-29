@@ -257,6 +257,39 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
     PrintConditionInfo(r_new_cond_info);
 }
 
+void EmbeddedModel::WriteModelToFile() {
+    const auto& r_general_settings = mSettings[MainSettings::general_settings];
+    if( r_general_settings.GetValue<bool>(GeneralSettings::write_output_to_file) ) {
+        Timer timer_output{};
+        const std::string output_directory_name = r_general_settings.GetValue<std::string>(GeneralSettings::output_directory_name);
+        const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+        QuESo_INFO_IF(echo_level > 0) << ":: WriteFileInfo :: Output directory: '" << output_directory_name << "'\n";
+
+        // Write vtk files (binary = true)
+        IO::WriteElementsToVTK(mBackgroundGrid, (output_directory_name + "/elements.vtk"), true);
+        IO::WritePointsToVTK(mBackgroundGrid, (output_directory_name + "/integration_points.vtk"), true);
+        std::for_each(mBackgroundGrid.ConditionsBegin(), mBackgroundGrid.ConditionsEnd(),
+            [&output_directory_name](const auto& r_condition){
+                IndexType condition_id = r_condition.GetSettings().template GetValue<IndexType>(ConditionSettings::condition_id);
+                const std::string bc_filename = output_directory_name + "/condition_id_" + std::to_string(condition_id) + ".stl";
+                IO::WriteConditionToSTL(r_condition, bc_filename, true);
+        });
+
+        /// Set model info
+        const double measured_time = timer_output.Measure();
+        auto& r_time_info = mModelInfo[MainInfo::elapsed_time_info];
+        auto& r_write_files_time_info = r_time_info[ElapsedTimeInfo::write_files_time_info];
+        r_write_files_time_info.SetValue(WriteFilesTimeInfo::total, measured_time);
+
+        const double total_time = (r_time_info.IsSet(ElapsedTimeInfo::total)) ?
+            r_time_info.GetValue<double>(ElapsedTimeInfo::total) : 0.0;
+        r_time_info.SetValue(ElapsedTimeInfo::total, (total_time+measured_time) );
+
+        IO::WriteDictionaryToJSON(mModelInfo, (output_directory_name + "/model_info.json"));
+        QuESo_INFO_IF(echo_level > 0) << ":: ElapsedTimeInfo :: Elapsed time: " << measured_time << " sec\n";
+    }
+}
+
 void EmbeddedModel::CheckIfMeshIsWithinBoundingBox(const TriangleMeshInterface& rTriangleMesh) const {
     // Check if bounding box fully contains the triangle mesh.
     if( mSettings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level) > 0 ){

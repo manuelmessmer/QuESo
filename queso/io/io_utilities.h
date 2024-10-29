@@ -277,17 +277,13 @@ public:
     /// @brief Write points to VTK. Interface for BackgroundGrid.
     /// @tparam TElementType
     /// @param rBackgroundGrid
-    /// @param Type
     /// @param rFilename
     /// @param Binary If true, file is written in binary format.
     /// @todo Needs to be refactored.
     template<typename TElementType>
     static void WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
-                                const std::string& Type,
                                 const std::string& rFilename,
                                 const bool Binary) {
-
-        QuESo_ERROR_IF( std::string(Type) != "All") << "Only integration points option 'All' is available. \n";
 
         const IndexType num_points = rBackgroundGrid.NumberOfIntegrationPoints();
         const IndexType num_elements = num_points;

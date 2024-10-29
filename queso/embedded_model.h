@@ -114,6 +114,11 @@ public:
             PrintConditionsElapsedTimeInfo();
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;
         }
+
+        QuESo_INFO_IF(echo_level > 0) << "QuESo: Write Model To File -------------------------------- START\n";
+        WriteModelToFile();
+        QuESo_INFO_IF(echo_level > 0) << "QuESo: Write Model To File ---------------------------------- End\n" << std::endl;
+
     }
 
     ///@brief Creates integration points for an embedded volume that is enclosed/defined by rTriangleMesh.
@@ -136,6 +141,14 @@ public:
     void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
         ComputeCondition(rTriangleMesh, rConditionSettings);
     }
+
+    /// @brief Writes this model to file.
+    ///        Elements and integrations points are written to VTK files.
+    ///        Conditions are written to STL files.
+    ///        mModelInfo is written to JSON file.
+    /// @note This function is non-const, because the elpased time to write the files
+    ///       is measured and set in mModelInfo.
+    void WriteModelToFile();
 
     /// @brief Returns all active elements.
     /// @return const Reference to ElementVectorPtrType
