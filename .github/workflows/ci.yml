@@ -9,22 +9,20 @@ concurrency:
   group: ci-${{ github.head_ref }}
   cancel-in-progress: true
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-  compiler: gcc
-
 jobs:
   ubuntu:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Release, FullDebug]
+    env:
+      QUESO_BUILD_TYPE: ${{ matrix.build-type }}
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
-        submodules: 'false'
+        node-version: '20'
 
     - name: Install Dependencies
       run: sudo apt-get install -y libboost-test-dev
@@ -58,13 +56,16 @@ jobs:
       run: ./TestExecutables/test_queso --log_level=test_suite
 
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
-      BUILD_TYPE: Release
+      QUESO_BUILD_TYPE: Release
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 

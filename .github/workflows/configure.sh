@@ -8,8 +8,9 @@ export APP_SOURCE="${APP_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"}"
 export APP_BUILD="${APP_SOURCE}/../build/"
 
 # Set basic configuration
-export QUESO_BUILD_TYPE=${QUESO_BUILD_TYPE:-"Release"}
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
+
+echo "QuESo build type is ${QUESO_BUILD_TYPE}"
 
 # Clean
 clear
@@ -19,7 +20,8 @@ rm -rf "${APP_BUILD}/${QUESO_BUILD_TYPE}/CMakeFiles"
 
 # Configure
 cmake -H"${APP_SOURCE}" -B"${APP_BUILD}/${QUESO_BUILD_TYPE}" \
--DQUESO_BUILD_TESTING=ON
+-DQUESO_BUILD_TESTING=ON \
+-DCMAKE_CXX_FLAGS="${DCMAKE_CXX_FLAGS} -Og" \
 
 # Buid
 cmake --build "${APP_BUILD}/${QUESO_BUILD_TYPE}" --target install -- -j2
