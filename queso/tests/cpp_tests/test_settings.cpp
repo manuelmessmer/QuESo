@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
         /// Mesh settings
         QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::grid_type) );
         if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::grid_type), std::exception );
+            BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<bool>(BackgroundGridSettings::grid_type), std::exception );
         }
         QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::lower_bound_xyz) );
         if( !NOTDEBUG ) {
