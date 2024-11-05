@@ -1,6 +1,7 @@
 {
     "general_settings"   : {
         "input_filename"  : "queso/tests/steering_knuckle_kratos/data/steering_knuckle.stl",
+        "write_output_to_file" : false,
         "echo_level"      : 0
     },
     "background_grid_settings"     : {

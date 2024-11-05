@@ -1,4 +1,8 @@
 {
+    "general_settings"   : {
+        "write_output_to_file" : false,
+        "echo_level"      : 0
+    },
     "background_grid_settings"     : {
         "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-1.5, -1.5, -1.00],
