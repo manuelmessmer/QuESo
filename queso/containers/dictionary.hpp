@@ -663,8 +663,10 @@ public:
 
     /// @brief Prints this dictionary in JSON format.
     /// @param rOStream
+    /// @note Precision of doubles is set to 10.
     void PrintInfo(std::ostream& rOStream) const {
         std::string indent = "";
+        rOStream << std::setprecision(10);
         PrintInfo(rOStream, indent);
     }
 

@@ -36,6 +36,7 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     Settings settings;
     settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
     settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{2.0, 2.0, 1.0});
@@ -93,6 +94,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     Settings settings;
     settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
     settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.37, -0.55, -0.31});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.37, 0.55, 0.31});
@@ -273,6 +275,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     Settings settings;
     settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
     settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
@@ -434,6 +437,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     Settings settings;
     settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
     settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
@@ -498,7 +502,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     const auto& r_write_file_time_info = r_elapsed_time_info[ElapsedTimeInfo::write_files_time_info];
     const double et_write_file_total = r_write_file_time_info.GetValue<double>(WriteFilesTimeInfo::total);
-    QuESo_CHECK_GT(et_write_file_total, EPS1);
+    QuESo_CHECK_NEAR(et_write_file_total, 0.0, 1e-10);
 
     QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total+et_write_file_total), 1e-5);
 

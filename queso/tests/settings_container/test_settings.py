@@ -1,9 +1,10 @@
 # Project imports
 import QuESo_PythonApplication as QuESo
-from queso.python_scripts.json_import import JsonImport
+from queso.python_scripts.json_io import JsonIO
 from queso.python_scripts.QuESoUnittest import QuESoTestCase
 # External imports
 import unittest
+import os
 
 class TestSettingsContainer(QuESoTestCase):
     def check_customized_values(self, settings):
@@ -244,15 +245,37 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertFalse(settings.IsSet("penalty_factor"))
 
     def test_customized_values(self):
-        settings = JsonImport.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_1.json")
+        settings = JsonIO.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_1.json")
         self.check_customized_values(settings)
-        settings2 = JsonImport.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_2.json")
+
+        JsonIO.WriteSettings(settings, self.new_file_name_1)
+        settings_new = JsonIO.ReadSettings(self.new_file_name_1)
+        self.check_customized_values(settings_new)
+        os.remove(self.new_file_name_1)
+
+        settings2 = JsonIO.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_2.json")
         self.check_customized_values(settings2)
 
+        JsonIO.WriteSettings(settings2, self.new_file_name_2)
+        settings2_new = JsonIO.ReadSettings(self.new_file_name_2)
+        self.check_customized_values(settings2_new)
+        os.remove(self.new_file_name_2)
+
     def test_default_values(self):
-        settings = JsonImport.ReadSettings("queso/tests/settings_container/QuESoSettings_default.json")
+        settings = JsonIO.ReadSettings("queso/tests/settings_container/QuESoSettings_default.json")
         self.check_default_values(settings)
 
+    def setUp(self):
+        self.new_file_name_1 = "queso/tests/settings_container/QuESoSettings_custom_1_new.json"
+        self.new_file_name_2 = "queso/tests/settings_container/QuESoSettings_custom_2_new.json"
+
+    def tearDown(self):
+        self._remove_file(self.new_file_name_1)
+        self._remove_file(self.new_file_name_2)
+
+    def _remove_file(self, filename):
+        if os.path.isfile(filename):
+            os.remove(filename)
 
 if __name__ == "__main__":
     unittest.main()

@@ -83,39 +83,48 @@ BOOST_AUTO_TEST_CASE(ModelInfoDefaultValuesTest) {
 
         /// elapsed_time_info
         const auto& r_elpased_time_info = model_info[MainInfo::elapsed_time_info];
-        QuESo_CHECK( !r_elpased_time_info.IsSet(ElapsedTimeInfo::total) );
+        QuESo_CHECK( r_elpased_time_info.IsSet(ElapsedTimeInfo::total) );
+        QuESo_CHECK_NEAR(r_elpased_time_info.GetValue<double>(ElapsedTimeInfo::total), 0.0, EPS0);
         if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info.GetValue<double>(ElapsedTimeInfo::total), std::exception );
+            BOOST_REQUIRE_THROW( r_elpased_time_info.GetValue<IndexType>(ElapsedTimeInfo::total), std::exception ); // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info.GetValue<IndexType>(VolumeTimeInfo::total), std::exception ); // Wrong key
         }
 
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::total) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::total), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::total) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::total), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<IndexType>(VolumeTimeInfo::total), std::exception );
         }
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::classification_of_elements) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::classification_of_elements), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::classification_of_elements) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::classification_of_elements), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<IndexType>(VolumeTimeInfo::classification_of_elements), std::exception );
         }
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::computation_of_intersections) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::computation_of_intersections), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::computation_of_intersections) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::computation_of_intersections), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<IndexType>(VolumeTimeInfo::computation_of_intersections), std::exception );
         }
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::solution_of_moment_fitting_eqs) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::solution_of_moment_fitting_eqs) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<IndexType>(VolumeTimeInfo::solution_of_moment_fitting_eqs), std::exception );
         }
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::construction_of_ggq_rules) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].IsSet(VolumeTimeInfo::construction_of_ggq_rules) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::volume_time_info].GetValue<IndexType>(VolumeTimeInfo::construction_of_ggq_rules), std::exception );
         }
 
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::conditions_time_info].IsSet(ConditionsTimeInfo::total) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::conditions_time_info].GetValue<double>(ConditionsTimeInfo::total), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::conditions_time_info].IsSet(ConditionsTimeInfo::total) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::conditions_time_info].GetValue<double>(ConditionsTimeInfo::total), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::conditions_time_info].GetValue<IndexType>(ConditionsTimeInfo::total), std::exception );
         }
-        QuESo_CHECK( !r_elpased_time_info[ElapsedTimeInfo::write_files_time_info].IsSet(WriteFilesTimeInfo::total) );
-        if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::write_files_time_info].GetValue<double>(WriteFilesTimeInfo::total), std::exception );
+        QuESo_CHECK( r_elpased_time_info[ElapsedTimeInfo::write_files_time_info].IsSet(WriteFilesTimeInfo::total) );
+        QuESo_CHECK_NEAR(r_elpased_time_info[ElapsedTimeInfo::write_files_time_info].GetValue<double>(WriteFilesTimeInfo::total), 0.0, EPS0);
+        if( !NOTDEBUG ) { // Wrong type
+            BOOST_REQUIRE_THROW( r_elpased_time_info[ElapsedTimeInfo::write_files_time_info].GetValue<IndexType>(WriteFilesTimeInfo::total), std::exception );
         }
     }
     {   /// String access
@@ -153,23 +162,32 @@ BOOST_AUTO_TEST_CASE(ModelInfoDefaultValuesTest) {
         /// elapsed_time_info
         auto& r_elpased_time_info = model_info["elapsed_time_info"];
 
-        QuESo_CHECK( !r_elpased_time_info.IsSet("total") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info.GetValue<double>("total"), std::exception );
-        QuESo_CHECK( !r_elpased_time_info["volume_time_info"].IsSet("total") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<double>("total"), std::exception );
-        QuESo_CHECK( !r_elpased_time_info["volume_time_info"].IsSet("classification_of_elements") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<double>("classification_of_elements"), std::exception );
-        QuESo_CHECK( !r_elpased_time_info["volume_time_info"].IsSet("computation_of_intersections") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<double>("computation_of_intersections"), std::exception );
-        QuESo_CHECK( !r_elpased_time_info["volume_time_info"].IsSet("solution_of_moment_fitting_eqs") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<double>("solution_of_moment_fitting_eqs"), std::exception );
-        QuESo_CHECK( !r_elpased_time_info["volume_time_info"].IsSet("construction_of_ggq_rules") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<double>("construction_of_ggq_rules"), std::exception );
+        QuESo_CHECK( r_elpased_time_info.IsSet("total") );
+        QuESo_CHECK_NEAR(r_elpased_time_info.GetValue<double>("total"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info.GetValue<IndexType>("total"), std::exception ); // Wrong type
+        BOOST_REQUIRE_THROW( r_elpased_time_info.GetValue<double>("total2"), std::exception ); // Wrong key
+        QuESo_CHECK( r_elpased_time_info["volume_time_info"].IsSet("total") );
+        QuESo_CHECK_NEAR(r_elpased_time_info["volume_time_info"].GetValue<double>("total"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<IndexType>("total"), std::exception ); // Wrong type
+        QuESo_CHECK( r_elpased_time_info["volume_time_info"].IsSet("classification_of_elements") );
+        QuESo_CHECK_NEAR(r_elpased_time_info["volume_time_info"].GetValue<double>("classification_of_elements"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<IndexType>("classification_of_elements"), std::exception ); // Wrong type
+        QuESo_CHECK( r_elpased_time_info["volume_time_info"].IsSet("computation_of_intersections") );
+        QuESo_CHECK_NEAR( r_elpased_time_info["volume_time_info"].GetValue<double>("computation_of_intersections"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<IndexType>("computation_of_intersections"), std::exception ); // Wrong type
+        QuESo_CHECK( r_elpased_time_info["volume_time_info"].IsSet("solution_of_moment_fitting_eqs") );
+        QuESo_CHECK_NEAR( r_elpased_time_info["volume_time_info"].GetValue<double>("solution_of_moment_fitting_eqs"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<IndexType>("solution_of_moment_fitting_eqs"), std::exception );  // Wrong type
+        QuESo_CHECK( r_elpased_time_info["volume_time_info"].IsSet("construction_of_ggq_rules") );
+        QuESo_CHECK_NEAR( r_elpased_time_info["volume_time_info"].GetValue<double>("construction_of_ggq_rules"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["volume_time_info"].GetValue<IndexType>("construction_of_ggq_rules"), std::exception );  // Wrong type
 
-        QuESo_CHECK( !r_elpased_time_info["conditions_time_info"].IsSet("total") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["conditions_time_info"].GetValue<double>("total"), std::exception );
-        QuESo_CHECK( !r_elpased_time_info["write_files_time_info"].IsSet("total") );
-        BOOST_REQUIRE_THROW( r_elpased_time_info["write_files_time_info"].GetValue<double>("total"), std::exception );
+        QuESo_CHECK( r_elpased_time_info["conditions_time_info"].IsSet("total") );
+        QuESo_CHECK_NEAR( r_elpased_time_info["conditions_time_info"].GetValue<double>("total"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["conditions_time_info"].GetValue<IndexType>("total"), std::exception );  // Wrong type
+        QuESo_CHECK( r_elpased_time_info["write_files_time_info"].IsSet("total") );
+        QuESo_CHECK_NEAR( r_elpased_time_info["write_files_time_info"].GetValue<double>("total"), 0.0, EPS0);
+        BOOST_REQUIRE_THROW( r_elpased_time_info["write_files_time_info"].GetValue<IndexType>("total"), std::exception ); // Wrong type
     }
 }
 

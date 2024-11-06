@@ -1,6 +1,7 @@
 {
     "general_settings"   : {
         "input_filename"  : "queso/tests/ggq_cantilever_kratos/cylinder.stl",
+        "write_output_to_file" : false,
         "echo_level"      : 0
     },
     "background_grid_settings"     : {

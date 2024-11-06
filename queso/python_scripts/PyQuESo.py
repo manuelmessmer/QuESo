@@ -1,7 +1,7 @@
 import QuESo_PythonApplication as QuESo_App
 from queso.python_scripts.b_spline_volume import BSplineVolume
 from queso.python_scripts.helper import *
-from queso.python_scripts.json_import import JsonImport
+from queso.python_scripts.json_io import JsonIO
 import os
 import shutil
 
@@ -23,7 +23,7 @@ class PyQuESo:
     """
     def __init__(self, json_filename):
         """The constructor"""
-        self.settings = JsonImport.ReadSettings(json_filename)
+        self.settings = JsonIO.ReadSettings(json_filename)
         write_output_to_file = self.settings["general_settings"].GetBool("write_output_to_file")
         output_directory_name = self.settings["general_settings"].GetString("output_directory_name")
         if write_output_to_file:
@@ -38,28 +38,23 @@ class PyQuESo:
         self.embedded_model.CreateAllFromSettings()
 
     def GetElements(self):
+        """ Returns active elements"""
         return self.embedded_model.GetElements()
 
     def GetConditions(self):
+        """ Returns conditions
+        """
         return self.embedded_model.GetConditions()
 
     def GetSettings(self):
-        return self.settings
+        """ Returns settings dictionary
+        """
+        return self.embedded_model.GetSettings()
 
-    # def GetNumberElements(self):
-    #     return self.settings[].NumberOfElements()
-
-    # def GetLowerBoundDomainXYZ(self):
-    #     return self.settings[].LowerBoundXYZ()
-
-    # def GetUpperBoundDomainXYZ(self):
-    #     return self.settings[].UpperBoundXYZ()
-
-    # def GetBoundsXYZ(self):
-    #     return [self.settings[].LowerBoundXYZ(), self.settings[].UpperBoundXYZ()]
-
-    # def GetBoundsUVW(self):
-    #     return [self.settings[].LowerBoundUVW(), self.settings[].UpperBoundUVW()]
+    def GetModelInfo(self):
+        """ Return model info dictionary
+        """
+        return self.embedded_model.GetModelInfo()
 
     def GetBSplineVolume(self, knot_vector_type):
         return BSplineVolume(self.settings, knot_vector_type)
