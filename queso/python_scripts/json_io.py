@@ -4,7 +4,16 @@ import QuESo_PythonApplication as QuESo_Application
 # External imports
 import json
 
-class JsonImport():
+class JsonIO():
+    @classmethod
+    def WriteSettings(cls, settings, json_filename):
+        """ Write settings to json file.
+
+        @param settings
+        @param json_filename
+        """
+        QuESo_Application.IO.WriteSettingsToJSON(settings, json_filename)
+
     @classmethod
     def ReadSettings(cls, json_filename):
         ''' Reads settings from json file and returns QuESoApplication.Settings()
@@ -49,23 +58,24 @@ class JsonImport():
 
     @classmethod
     def _SetValue(cls, string_key, value, queso_settings):
-        if string_key == "integration_method":
-            # Convert string to enum
-            enum_value = cls._GetEnum(value, cls.string_to_enum_integration_method)
-            queso_settings.SetValue(string_key, enum_value )
-        elif string_key == "grid_type":
-            # Convert string to enum
-            enum_value = cls._GetEnum(value, cls.string_to_enum_grid_type)
-            queso_settings.SetValue(string_key, enum_value )
-        else:
-            queso_settings.SetValue(string_key, value )
+        if( value != "Not Set."):
+            if string_key == "integration_method":
+                # Convert string to enum
+                enum_value = cls._GetEnum(value, cls.string_to_enum_integration_method)
+                queso_settings.SetValue(string_key, enum_value )
+            elif string_key == "grid_type":
+                # Convert string to enum
+                enum_value = cls._GetEnum(value, cls.string_to_enum_grid_type)
+                queso_settings.SetValue(string_key, enum_value )
+            else:
+                queso_settings.SetValue(string_key, value )
 
     @classmethod
     def _GetEnum(cls, string_key, string_to_enum_dict):
         if string_key in string_to_enum_dict:
             return string_to_enum_dict[string_key]
 
-        error_msg = "JsonImport :: Given parameter (" + string_key + ") not available. Possible options: " + str(cls._GetAvailableKeys(string_to_enum_dict)) + '\n'
+        error_msg = "JsonIO :: Given parameter (" + string_key + ") not available. Possible options: " + str(cls._GetAvailableKeys(string_to_enum_dict)) + '\n'
         raise Exception(error_msg)
 
     @classmethod
