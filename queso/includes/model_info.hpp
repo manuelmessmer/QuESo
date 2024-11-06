@@ -74,7 +74,8 @@ public:
     ModelInfo() : BaseType(RootInfo::main_info, Str("model_info")) {
 
         /// Let's define the default model_info...
-        bool DontSet = false; // Given values are only dummy values used to deduce the associated type.
+        const bool Set = true; // Given values are set as default values.
+        const bool DontSet = false; // Given values are only dummy values used to deduce the associated type.
                               // However, calling IsSet() will return false.
 
         /// EmbeddedGeometryInfo
@@ -106,26 +107,26 @@ public:
         /// ElapsedTimeInfo
         auto& r_elapsed_time_info = AddEmptySubDictionary(MainInfo::elapsed_time_info, Str("elapsed_time_info"));
         r_elapsed_time_info.AddValues(std::make_tuple(
-            std::make_tuple(ElapsedTimeInfo::total, Str("total"), 0.0, DontSet )
+            std::make_tuple(ElapsedTimeInfo::total, Str("total"), 0.0, Set )
         ));
 
         auto& r_volume_time_info = r_elapsed_time_info.AddEmptySubDictionary(ElapsedTimeInfo::volume_time_info, Str("volume_time_info"));
         r_volume_time_info.AddValues(std::make_tuple(
-            std::make_tuple(VolumeTimeInfo::total, Str("total"), 0.0, DontSet ),
-            std::make_tuple(VolumeTimeInfo::classification_of_elements, Str("classification_of_elements"), 0.0, DontSet ),
-            std::make_tuple(VolumeTimeInfo::computation_of_intersections, Str("computation_of_intersections"), 0.0, DontSet ),
-            std::make_tuple(VolumeTimeInfo::solution_of_moment_fitting_eqs, Str("solution_of_moment_fitting_eqs"), 0.0, DontSet),
-            std::make_tuple(VolumeTimeInfo::construction_of_ggq_rules, Str("construction_of_ggq_rules"), 0.0, DontSet)
+            std::make_tuple(VolumeTimeInfo::total, Str("total"), 0.0, Set ),
+            std::make_tuple(VolumeTimeInfo::classification_of_elements, Str("classification_of_elements"), 0.0, Set ),
+            std::make_tuple(VolumeTimeInfo::computation_of_intersections, Str("computation_of_intersections"), 0.0, Set ),
+            std::make_tuple(VolumeTimeInfo::solution_of_moment_fitting_eqs, Str("solution_of_moment_fitting_eqs"), 0.0, Set),
+            std::make_tuple(VolumeTimeInfo::construction_of_ggq_rules, Str("construction_of_ggq_rules"), 0.0, Set)
         ));
 
         auto& r_conditions_time_info = r_elapsed_time_info.AddEmptySubDictionary(ElapsedTimeInfo::conditions_time_info, Str("conditions_time_info"));
         r_conditions_time_info.AddValues(std::make_tuple(
-            std::make_tuple(ConditionsTimeInfo::total, Str("total"), 0.0, DontSet )
+            std::make_tuple(ConditionsTimeInfo::total, Str("total"), 0.0, Set )
         ));
 
         auto& r_write_files_time_info = r_elapsed_time_info.AddEmptySubDictionary(ElapsedTimeInfo::write_files_time_info, Str("write_files_time_info"));
         r_write_files_time_info.AddValues(std::make_tuple(
-            std::make_tuple(WriteFilesTimeInfo::total, Str("total"), 0.0, DontSet )
+            std::make_tuple(WriteFilesTimeInfo::total, Str("total"), 0.0, Set )
         ));
 
         /// ConditionInfos
