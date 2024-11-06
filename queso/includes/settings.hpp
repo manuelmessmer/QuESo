@@ -68,8 +68,8 @@ public:
     Settings() : BaseType(Root::main_settings, Str("settings")) {
 
         /// Let's define the default dictionary...
-        bool Set = true; // Given values are set as default values.
-        bool DontSet = false; // Given values are only dummy values used to deduced the associated type.
+        const bool Set = true; // Given values are set as default values.
+        const bool DontSet = false; // Given values are only dummy values used to deduced the associated type.
                             // However, calling IsSet() will return false.
 
         /// GeneralSettings
