@@ -232,6 +232,8 @@ void AddContainersToPython(pybind11::module& m) {
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
         .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
         .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal )
+        .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
+        .def("GetModelInfo", &EmbeddedModel::GetModelInfo, py::return_value_policy::reference_internal)
     ;
 
 } // End AddContainersToPython

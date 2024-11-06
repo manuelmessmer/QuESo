@@ -162,6 +162,13 @@ public:
         return mBackgroundGrid.GetConditions();
     }
 
+    ///@brief Returns the Settings
+    ///@return const Settings&
+    ///@see includes/settings.hpp
+    const Settings& GetSettings() const {
+        return mSettings;
+    }
+
     ///@brief Returns the ModelInfo
     ///@return const ModelInfo&
     ///@see includes/model_info.hpp
