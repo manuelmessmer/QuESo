@@ -31,7 +31,7 @@ void AddIoToPython(pybind11::module& m) {
     py::class_<IO>(m,"IO")
         .def_static("ReadMeshFromSTL", &IO::ReadMeshFromSTL)
         .def_static("WriteSettingsToJSON", &(*pWriteSettingsToJSON))
-        .def_static("pWriteModelInfoToJSON", &(*pWriteModelInfoToJSON))
+        .def_static("WriteModelInfoToJSON", &(*pWriteModelInfoToJSON))
     ;
 
 } // End AddIoToPython
