@@ -43,9 +43,9 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
     // Get correct base rule points
     const Ip1DVectorVectorType& r_base_points = GetGGQBasePoints(PolynomialDegree, NumberKnotSpans, Method);
 
-    SizeType m1 = r_base_points[0].size(); // boundary nodes
-    SizeType m2 = r_base_points[1].size(); // internal nodes
-    SizeType m3 = r_base_points[2].size(); // center nodes
+    const SizeType m1 = r_base_points[0].size(); // boundary nodes
+    const SizeType m2 = r_base_points[1].size(); // internal nodes
+    const SizeType m3 = r_base_points[2].size(); // center nodes
 
     Ip1DVectorPtrType p_ggq_points = MakeUnique<Ip1DVectorType>(m);
     Ip1DVectorType& r_ggq_points = *p_ggq_points;
@@ -179,7 +179,7 @@ const Ip1DVectorVectorType& IntegrationPointFactory1D::GetGGQBasePoints(SizeType
     }
     else if( p == 4 && r == 1 ){
         if( e % 2 == 0 ){
-            int odd = m % 2;
+            const SizeType odd = m % 2;
             return mBasePointsReduced2[PolynomialDegree-2][odd];
         }
         else {
