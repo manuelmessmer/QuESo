@@ -72,13 +72,13 @@ public:
     /// @param Method Integration method: Default - Gauss.
     static void AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
                             const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss ) {
-        const auto p_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
-        const auto p_ip_list_v = IntegrationPointFactory1D::GetGauss(rOrder[1], Method);
-        const auto p_ip_list_w = IntegrationPointFactory1D::GetGauss(rOrder[2], Method);
+        const auto& r_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
+        const auto& r_ip_list_v = IntegrationPointFactory1D::GetGauss(rOrder[1], Method);
+        const auto& r_ip_list_w = IntegrationPointFactory1D::GetGauss(rOrder[2], Method);
 
-        const SizeType n_point_u = p_ip_list_u->size();
-        const SizeType n_point_v = p_ip_list_v->size();
-        const SizeType n_point_w = p_ip_list_w->size();
+        const SizeType n_point_u = r_ip_list_u.size();
+        const SizeType n_point_v = r_ip_list_v.size();
+        const SizeType n_point_w = r_ip_list_w.size();
 
         const SizeType n_point = (n_point_u)*(n_point_v)*(n_point_w);
         rIntegrationPoints.clear();
@@ -88,15 +88,15 @@ public:
         const double length_v = std::abs(rUpperBoundParam[1] - rLowerBoundParam[1]);
         const double length_w = std::abs(rUpperBoundParam[2] - rLowerBoundParam[2]);
 
-        for (SizeType u = 0; u < p_ip_list_u->size(); ++u) {
-            for (SizeType v = 0; v < p_ip_list_v->size(); ++v) {
-                for( SizeType w = 0; w < p_ip_list_w->size(); ++w) {
-                    rIntegrationPoints.push_back( IntegrationPointType( rLowerBoundParam[0] + length_u * (*p_ip_list_u)[u][0],
-                                                                        rLowerBoundParam[1] + length_v * (*p_ip_list_v)[v][0],
-                                                                        rLowerBoundParam[2] + length_w * (*p_ip_list_w)[w][0],
-                                                                        (*p_ip_list_u)[u][1] * length_u *
-                                                                        (*p_ip_list_v)[v][1] * length_v *
-                                                                        (*p_ip_list_w)[w][1] * length_w ) );
+        for (SizeType u = 0; u < n_point_u; ++u) {
+            for (SizeType v = 0; v < n_point_v; ++v) {
+                for( SizeType w = 0; w < n_point_w; ++w) {
+                    rIntegrationPoints.push_back( IntegrationPointType( rLowerBoundParam[0] + length_u * (r_ip_list_u)[u][0],
+                                                                        rLowerBoundParam[1] + length_v * (r_ip_list_v)[v][0],
+                                                                        rLowerBoundParam[2] + length_w * (r_ip_list_w)[w][0],
+                                                                        (r_ip_list_u)[u][1] * length_u *
+                                                                        (r_ip_list_v)[v][1] * length_v *
+                                                                        (r_ip_list_w)[w][1] * length_w ) );
                 }
             }
         }
