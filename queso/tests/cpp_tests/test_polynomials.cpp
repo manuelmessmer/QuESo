@@ -30,11 +30,11 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials1) {
     for(int order = 1; order <= 9; ++order){
         for( int order2 = 1; order2 <= 9; ++order2){
             if( order != order2){
-                const auto ips_1 = IntegrationPointFactory1D::GetGauss(order, IntegrationMethod::gauss);
-                const auto ips_2 = IntegrationPointFactory1D::GetGauss(order2, IntegrationMethod::gauss);
+                const auto& ips_1 = IntegrationPointFactory1D::GetGauss(order, IntegrationMethod::gauss);
+                const auto& ips_2 = IntegrationPointFactory1D::GetGauss(order2, IntegrationMethod::gauss);
                 double numerical_integral = 0.0;
-                for( auto& point1 : *ips_1){
-                    for( auto& point2 : *ips_2){
+                for( auto& point1 : ips_1){
+                    for( auto& point2 : ips_2){
                         double position1 = point1[0]* 0.2 + 0.1;
                         double position2 = point2[0]* 0.2 + 0.1;
                         numerical_integral += Polynomial::f_x(position1, order-1, 0.1, 0.3)*point1[1]
@@ -51,9 +51,9 @@ BOOST_AUTO_TEST_CASE(PolynomialsTestLegendrePolynomials2) {
     QuESo_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
     for(int order = 1; order <= 9; ++order){
 
-        const auto ips = IntegrationPointFactory1D::GetGauss(order, IntegrationMethod::gauss);
+        const auto& ips = IntegrationPointFactory1D::GetGauss(order, IntegrationMethod::gauss);
         double numerical_integral = 0.0;
-        for( auto& point : *ips){
+        for( auto& point : ips){
             double position = point[0]* 0.2 + 0.1;
             numerical_integral += Polynomial::f_x(position, order-1, 0.1, 0.3)*point[1]*0.2;
         }
