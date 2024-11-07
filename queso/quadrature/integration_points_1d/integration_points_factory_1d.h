@@ -58,7 +58,7 @@ public:
     /// @return Unique<Ip1DVectorType>. Points are defined on the interval (0,1).
     /// @note Depending on the function arguments, the returned points are either precomputed values (static variables) or
     ///       must be constructed first on a local variable. Thus, we have to return a Unique<Ip1DVectorType> instead of
-    ///       const Ip1DVectorType&.
+    ///       const Ip1DVectorType&. Consequenlty, the statik variables must be copied (Can this be avoided?).
     static Unique<Ip1DVectorType> GetGGQ(SizeType PolynomialDegree, SizeType NumberKnotSpans, IntegrationMethodType Method );
 
     /// @brief Get standard 1D Gauss-Legendre quadrature rules.
