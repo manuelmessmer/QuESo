@@ -75,7 +75,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
                 case IntegrationMethod::ggq_reduced_2:
                     return MakeUnique<Ip1DVectorType>(mPrecomputedPointsReduced2[PolynomialDegree-2][e-1]);
                 default:
-                    assert(false);
+                    QuESo_ERROR << "Method not available\n";
             }
         }
     }
@@ -109,7 +109,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
                 case IntegrationMethod::ggq_reduced_2:
                     return MakeUnique<Ip1DVectorType>(mPrecomputedPointsReduced2[PolynomialDegree-2][e-1]);
                 default:
-                    assert(false);
+                    QuESo_ERROR << "Method not available\n";
             }
         }
     }
@@ -131,7 +131,7 @@ const Ip1DVectorType& IntegrationPointFactory1D::GetGauss( SizeType PolynomialDe
         case IntegrationMethod::gauss_reduced_2:
             return mGaussLegendrePoints[PolynomialDegree-2];
         default:
-            assert(false);
+            QuESo_ERROR << "Method not available\n";
     }
 }
 
@@ -145,7 +145,7 @@ const std::pair<SizeType, SizeType> IntegrationPointFactory1D::GetSpaceDimension
         case IntegrationMethod::ggq_reduced_2:
             return {2*PolynomialDegre-2, PolynomialDegre-2};
         default:
-            assert(false);
+            QuESo_ERROR << "Method not available\n";
     }
 }
 
@@ -203,7 +203,7 @@ const Ip1DVectorVectorType& IntegrationPointFactory1D::GetGGQBasePoints(SizeType
             case IntegrationMethod::ggq_reduced_2:
                 return mBasePointsReduced2[PolynomialDegree-2][odd];
             default:
-                assert(false);
+                QuESo_ERROR << "Method not available\n";
         }
     }
 }
