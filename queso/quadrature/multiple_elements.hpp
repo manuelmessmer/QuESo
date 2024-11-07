@@ -310,12 +310,12 @@ private:
                 const double distance_global = global_upper_point_param[direction] - global_lower_point_param[direction];
                 const double length_global = std::abs(global_upper_point_param[direction] - global_lower_point_param[direction]);
 
-                const auto p_integration_point_list =
+                const IntegrationPointFactory1D::Ip1DVectorPtrType p_ggq_points =
                     IntegrationPointFactory1D::GetGGQ(rIntegrationOrder[direction], rNumberKnotspans[direction], Method);
-
-                for( IndexType j = 0; j < p_integration_point_list->size(); ++j){
-                    double position = global_lower_point_param[direction] + distance_global* (*p_integration_point_list)[j][0];
-                    double weight = length_global *  (*p_integration_point_list)[j][1];
+                const IntegrationPointFactory1D::Ip1DVectorType& r_ggq_points = *p_ggq_points;
+                for( IndexType j = 0; j < r_ggq_points.size(); ++j){
+                    const double position = global_lower_point_param[direction] + distance_global* (r_ggq_points)[j][0];
+                    const double weight = length_global *  (r_ggq_points)[j][1];
                     std::array<double, 2> tmp_point = {position, weight};
                     if( lower_point_param[direction]-EPS3 <= position && position < upper_point_param[direction]-EPS3){
                         if( lower_point_param[direction]+0.1*EPS3 > position) {
@@ -325,21 +325,20 @@ private:
                         tmp_integration_points[direction].push_back(tmp_point);
                     }
                 }
+            }
+            const SizeType PointsInU = tmp_integration_points[0].size();
+            const SizeType PointsInV = tmp_integration_points[1].size();
+            const SizeType PointsInW = tmp_integration_points[2].size();
 
-                const SizeType PointsInU = tmp_integration_points[0].size();
-                const SizeType PointsInV = tmp_integration_points[1].size();
-                const SizeType PointsInW = tmp_integration_points[2].size();
-
-                for (SizeType u = 0; u < PointsInU; ++u) {
-                    for (SizeType v = 0; v < PointsInV; ++v) {
-                        for( SizeType w = 0; w < PointsInW; ++w) {
-                            const double weight = tmp_integration_points[0][u][1]*tmp_integration_points[1][v][1]*tmp_integration_points[2][w][1];
-                            element_it->GetIntegrationPoints().push_back(
-                                                            IntegrationPoint( tmp_integration_points[0][u][0],
-                                                                            tmp_integration_points[1][v][0],
-                                                                            tmp_integration_points[2][w][0],
-                                                                            weight ) );
-                        }
+            for (SizeType u = 0; u < PointsInU; ++u) {
+                for (SizeType v = 0; v < PointsInV; ++v) {
+                    for( SizeType w = 0; w < PointsInW; ++w) {
+                        const double weight = tmp_integration_points[0][u][1]*tmp_integration_points[1][v][1]*tmp_integration_points[2][w][1];
+                        element_it->GetIntegrationPoints().push_back(
+                                                        IntegrationPoint( tmp_integration_points[0][u][0],
+                                                                          tmp_integration_points[1][v][0],
+                                                                          tmp_integration_points[2][w][0],
+                                                                          weight ) );
                     }
                 }
             }
