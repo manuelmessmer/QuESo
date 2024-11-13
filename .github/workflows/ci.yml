@@ -69,22 +69,10 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Download boost
-      run: |
-        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz"
-        (New-Object System.Net.WebClient).DownloadFile($url, "$env:RUNNER_TEMP\boost.tar.gz")
-        7z.exe x "$env:RUNNER_TEMP\boost.tar.gz" -o"$env:RUNNER_TEMP\boostArchive" -y | Out-Null
-        7z.exe x "$env:RUNNER_TEMP\boostArchive" -o"$env:RUNNER_TEMP\boost" -y | Out-Null
-    - name: Configure boost unit test framework
+    - name: Install boost
       shell: cmd
       run: |
-        cd "%RUNNER_TEMP%\boost\boost_1_81_0"
-        bootstrap.bat --with-toolset=msvc || goto :error
-    - name: Build boost unit test framework
-      shell: cmd
-      run: |
-        cd "%RUNNER_TEMP%\boost\boost_1_81_0"
-        b2 address-model=64 architecture=x86 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
+        vcpkg install boost-test
     - name: Installing dependencies
       shell: cmd
       run: |
