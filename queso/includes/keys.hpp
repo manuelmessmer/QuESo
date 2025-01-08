@@ -19,7 +19,7 @@
 #include "smart_enum/smartenum.hpp"
 
 /// STL includes
-#include <optional>
+#include <map> // Include map for ordered map
 
 
 namespace queso {
@@ -117,13 +117,14 @@ namespace key {
     /// Base class to access key information
     struct KeyInformation {
         virtual ~KeyInformation() = default;
-        virtual const std::string& EnumName(std::size_t Index) const = 0;
-        virtual std::size_t EnumValue(const std::string& rEnumName) const = 0;
-        virtual std::size_t EnumSize() const = 0;
-        virtual const std::type_info& GetEnumTypeInfo() const = 0;
+        virtual const std::string& GetKeyName(std::size_t Index) const = 0;
+        virtual std::size_t GetKeyValue(const std::string& rEnumName) const = 0;
+        virtual std::size_t GetNumberOfKeys() const = 0;
+        virtual const std::type_info& GetKeyTypeInfo() const = 0;
+        virtual std::string GetAllKeyNames() const = 0;
         
     };
-} // End namesapce key
+} // End namespace key
 } // End namespace queso
 
 
@@ -133,37 +134,41 @@ namespace key {
     namespace key {\
         struct KeyName##KeyType##KeyInfo;\
         struct KeyName##KeyType {\
-            using type = KeyType;\
+            using KeyToWhat = KeyType;\
             using KeyInfo = KeyName##KeyType##KeyInfo;\
         };\
         struct KeyName##KeyType##KeyInfo : public KeyInformation {\
-            const std::string& EnumName(std::size_t Index) const override {\
+            const std::string& GetKeyName(std::size_t Index) const override {\
                 auto it = EnumNames.find(Index);\
                 if (it != EnumNames.end()) {\
                     return it->second;\
                 }\
-                QuESo_ERROR << "Invalid index. Possible values are: " + GetAllEnumNames();\
+                QuESo_ERROR << "Invalid index. Possible values are: " + StaticGetAllKeyNames();\
             }\
-            std::size_t EnumValue(const std::string& rEnumName) const override {\
+            std::size_t GetKeyValue(const std::string& rEnumName) const override {\
                 auto it = EnumValues.find(rEnumName);\
                 if (it != EnumValues.end()) {\
                     return it->second;\
                 }\
-                QuESo_ERROR << "Invalid enum name. Possible values are: " + GetAllEnumNames();\
+                QuESo_ERROR << "Invalid enum name. Possible values are: " + StaticGetAllKeyNames();\
             }\
-            std::size_t EnumSize() const override {return Size;}\
-            const std::type_info& GetEnumTypeInfo() const override {\
+            std::size_t GetNumberOfKeys() const override {return Size;}\
+            const std::type_info& GetKeyTypeInfo() const override {\
                 return typeid(EnumType);\
             }\
-            static std::string GetAllEnumNames() {\
+            std::string GetAllKeyNames() const override {\
+                return StaticGetAllKeyNames();\
+            }\
+            static std::string StaticGetAllKeyNames() {\
                 std::string result;\
-                for (const auto& pair : EnumNames) {\
+                std::map<std::size_t, std::string> ordered_names(EnumNames.begin(), EnumNames.end());\
+                for (const auto& pair : ordered_names) {\
                     if (!result.empty()) {\
                         result += ", ";\
                     }\
                     result += pair.second;\
                 }\
-                return result;\
+                return result.insert(0, 1, '[') + ']';\
             }\
             inline static std::unordered_map<std::size_t, std::string> EnumNames = queso::detail::CreateEnumMap(#Params);\
             inline static std::unordered_map<std::string, std::size_t> EnumValues = queso::detail::CreateReverseEnumMap(EnumNames);\
@@ -176,11 +181,11 @@ namespace key {
             if (it != KeyName##KeyType##KeyInfo::EnumNames.end()) {\
                 return it->second;\
             }\
-            QuESo_ERROR << "Invalid enum value. Possible values are: " + KeyName##KeyType##KeyInfo::GetAllEnumNames();\
+            QuESo_ERROR << "Invalid enum value. Possible values are: " + KeyName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
         template<typename TType,\
                  typename = std::enable_if_t<std::is_same<TType, EnumType>::value>>\
-        inline KeyName##KeyType GetBaseType()\
+        inline KeyName##KeyType GetKeyBaseType()\
         {\
             return KeyName##KeyType{};\
         }\
@@ -198,10 +203,10 @@ namespace key {
             if (it != KeyName##KeyType##KeyInfo::EnumValues.end()) {\
                 return static_cast<EnumType>(it->second);\
             }\
-            QuESo_ERROR << "Invalid enum name. Possible values are: " + KeyName##KeyType##KeyInfo::GetAllEnumNames();\
+            QuESo_ERROR << "Invalid enum name. Possible values are: " + KeyName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
         inline bool IsCorrectType(Unique<KeyInformation>& pKeyInformation, EnumType Value) {\
-            return pKeyInformation->GetEnumTypeInfo() == typeid(Value);\
+            return pKeyInformation->GetKeyTypeInfo() == typeid(Value);\
         }\
     }
 
@@ -211,25 +216,32 @@ namespace key {
     };\
     QuESo_CREATE_KEYS(KeyName, KeyType, QuESo_LIST(Params), KeyName::KeyTo##KeyType ) \
 
-// #define QuESo_REGISTER_KEYS_2(KeyName, KeyType1, Params1, KeyType2, Params2) 
-//     namespace key {
-//     namespace detail {
-//     enum class CheckDuplicatedValuesOf##KeyName {Params1, Params2}; 
-//     }
-//     }
-//     QuESo_CREATE_KEYS(KeyName, KeyType1, QuESo_LIST(Params1)) 
-//     QuESo_CREATE_KEYS(KeyName, KeyType2, QuESo_LIST(Params2)) 
-//     struct KeyName : public key::KeyName##KeyType1, key::KeyName##KeyType2 {};
+#define QuESo_REGISTER_KEYS_2(KeyName, KeyType1, Params1, KeyType2, Params2) \
+    namespace key {\
+    namespace detail {\
+    enum class CheckDuplicatedValuesOf##KeyName {Params1, Params2};\
+    }\
+    }\
+    struct KeyName {\
+        enum KeyTo##KeyType1 {Params1};\
+        enum KeyTo##KeyType2 {Params2};\
+    };\
+    QuESo_CREATE_KEYS(KeyName, KeyType1, QuESo_LIST(Params1), KeyName::KeyTo##KeyType1)\
+    QuESo_CREATE_KEYS(KeyName, KeyType2, QuESo_LIST(Params2), KeyName::KeyTo##KeyType2)\
 
-// #define QuESo_REGISTER_KEYS_3(KeyName, KeyType1, Params1, KeyType2, Params2, KeyType3, Params3) 
-//     namespace key {
-//     namespace detail {
-//     enum class CheckDuplicatedValuesOf##KeyName {Params1, Params2, Params3};
-//     }
-//     }
-//     QuESo_CREATE_KEYS(KeyName, KeyType1, QuESo_LIST(Params1))
-//     QuESo_CREATE_KEYS(KeyName, KeyType2, QuESo_LIST(Params2))
-//     QuESo_CREATE_KEYS(KeyName, KeyType3, QuESo_LIST(Params3))
-//     struct KeyName : public key::KeyName##KeyType1, key::KeyName##KeyType2, key::KeyName##KeyType3 {};
+#define QuESo_REGISTER_KEYS_3(KeyName, KeyType1, Params1, KeyType2, Params2, KeyType3, Params3)\
+    namespace key {\
+    namespace detail {\
+    enum class CheckDuplicatedValuesOf##KeyName {Params1, Params2, Params3};\
+    }\
+    }\
+    struct KeyName {\
+        enum KeyTo##KeyType1 {Params1};\
+        enum KeyTo##KeyType2 {Params2};\
+        enum KeyTo##KeyType2 {Params3};\
+    };\
+    QuESo_CREATE_KEYS(KeyName, KeyType1, QuESo_LIST(Params1), KeyName::KeyTo##KeyType1)\
+    QuESo_CREATE_KEYS(KeyName, KeyType2, QuESo_LIST(Params2), KeyName::KeyTo##KeyType2)\
+    QuESo_CREATE_KEYS(KeyName, KeyType3, QuESo_LIST(Params3), KeyName::KeyTo##KeyType3)\
 
 #endif // End KEYS_INCLUDE_HPP
