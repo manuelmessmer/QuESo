@@ -24,6 +24,7 @@
 #include "queso/includes/exception.hpp"
 #include "queso/includes/assert.hpp"
 #include "queso/includes/timer.hpp"
+#include "queso/includes/keys.hpp"
 
 namespace queso {
 
