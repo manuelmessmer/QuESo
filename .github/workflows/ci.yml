@@ -48,7 +48,9 @@ jobs:
         pip3 install numpy
         pip3 install scipy
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
+        echo $PYTHONPATH
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
+        echo $LD_LIBRARY_PATH
         python3 queso/tests/test_queso.py
 
     - name: Test cpp
