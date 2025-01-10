@@ -77,7 +77,7 @@ public:
     EmbeddedModel& operator=(EmbeddedModel&& rOther) = default;
 
     ///@}
-    ///@name Operations
+    ///@name Operations (Test)
     ///@{
 
     ///@brief Main function to create embedded model.
