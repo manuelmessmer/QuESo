@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/includes/keys.hpp"
 
 namespace queso {
 namespace Testing {
