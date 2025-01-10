@@ -238,7 +238,7 @@ namespace key {
  * QuESo_REGISTER_KEYS_2(KesSetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5) )
  * @endcode
  */
-#define QuESo_REGISTER_KEYS_2(KesSetName, KeyType1, KeyNames1, KeyType2, KeyNames2) \
+#define QuESo_REGISTER_KEY_SET_2(KesSetName, KeyType1, KeyNames1, KeyType2, KeyNames2) \
     namespace key {\
     namespace detail {\
         enum class CheckDuplicatedValuesOf##KesSetName {KeyNames1, KeyNames2};\
@@ -274,7 +274,7 @@ namespace key {
  * QuESo_REGISTER_KEYS_3(KesSetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5), DataSet, QuESo_LIST(KeyName5, KeyName6 = 10) )
  * @endcode
  */
-#define QuESo_REGISTER_KEYS_3(KesSetName, KeyType1, KeyNames1, KeyType2, KeyNames2, KeyType3, KeyNames3)\
+#define QuESo_REGISTER_KEY_SET_3(KesSetName, KeyType1, KeyNames1, KeyType2, KeyNames2, KeyType3, KeyNames3)\
     namespace key {\
     namespace detail {\
         enum class CheckDuplicatedValuesOf##KesSetName {KeyNames1, KeyNames2, KeyNames3};\
@@ -283,7 +283,7 @@ namespace key {
     struct KesSetName {\
         enum KeyTo##KeyType1 {KeyNames1};\
         enum KeyTo##KeyType2 {KeyNames2};\
-        enum KeyTo##KeyType2 {KeyNames3};\
+        enum KeyTo##KeyType3 {KeyNames3};\
     };\
     QuESo_CREATE_KEY_INFO(KesSetName, KeyType1, QuESo_LIST(KeyNames1), KesSetName::KeyTo##KeyType1)\
     QuESo_CREATE_KEY_INFO(KesSetName, KeyType2, QuESo_LIST(KeyNames2), KesSetName::KeyTo##KeyType2)\
