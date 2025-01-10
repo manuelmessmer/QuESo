@@ -18,7 +18,13 @@
 /// STL includes
 #include <string>
 #include <unordered_map>
-#include <map> 
+#include <map>
+#include <sstream>
+#include <cctype>
+#include <typeinfo>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
 
 
 namespace queso {
