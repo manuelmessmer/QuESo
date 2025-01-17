@@ -24,12 +24,12 @@ namespace queso {
 namespace variable {
 namespace detail {
     template<typename TMap, typename TVector>
-    inline bool CheckIfAllKeysAreSet( const TMap& rEnumMap, const TVector& rVector ) {
-        if( rEnumMap.size() != rVector.size() ) {
+    inline bool CheckIfAllKeysAreSet( const TMap& rMap, const TVector& rVector ) {
+        if( rMap.size() != rVector.size() ) {
             return false;
         }
         for( IndexType i = 0; i < rVector.size(); ++i ) {
-            if( rEnumMap.find(i) == rEnumMap.end() ) {
+            if( rMap.find(i) == rMap.end() ) {
                 return false;
             }
         }
