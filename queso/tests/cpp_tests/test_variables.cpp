@@ -55,14 +55,16 @@ QuESo_REGISTER_DATASET_VARIABLES(TestKeys1,
 BOOST_AUTO_TEST_CASE(TestVariablesValueTypes1) {
     QuESo_INFO << "Testing :: Test Variables :: Chech Value Types Single Set" << std::endl;
   
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::zero)) == std::type_index(typeid(PointType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::one)) == std::type_index(typeid(Vector3i)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::two)) == std::type_index(typeid(bool)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::three)) == std::type_index(typeid(double)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::four)) == std::type_index(typeid(IndexType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::five)) == std::type_index(typeid(std::string)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::six)) == std::type_index(typeid(IntegrationMethodType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys1::seven)) == std::type_index(typeid(GridTypeType)) );
+    QuESo_CHECK( (variable::IsCorrectType<PointType>(TestKeys1::zero)) );
+    QuESo_CHECK( (variable::IsCorrectType<Vector3i>(TestKeys1::one)) );
+    QuESo_CHECK( (variable::IsCorrectType<bool>(TestKeys1::two)) );
+    QuESo_CHECK( (variable::IsCorrectType<double>(TestKeys1::three)) );
+    QuESo_CHECK( (variable::IsCorrectType<IndexType>(TestKeys1::four)) );
+    QuESo_CHECK( (variable::IsCorrectType<std::string>(TestKeys1::five)) );
+    QuESo_CHECK( (variable::IsCorrectType<IntegrationMethodType>(TestKeys1::six)) );
+    QuESo_CHECK( (variable::IsCorrectType<GridTypeType>(TestKeys1::seven)) );
+
+    QuESo_CHECK( !(variable::IsCorrectType<IntegrationMethodType>(TestKeys1::seven)) );
 }
 
 QuESo_REGISTER_KEY_SET_2( TestKeys2, SubDict, QuESo_LIST(zero, one),
@@ -82,14 +84,16 @@ QuESo_REGISTER_DATASET_VARIABLES(TestKeys2,
 BOOST_AUTO_TEST_CASE(TestVariablesValueTypes2) {
     QuESo_INFO << "Testing :: Test Variables :: Check Value Types Double Sets" << std::endl;
     
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::two)) == std::type_index(typeid(PointType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::three)) == std::type_index(typeid(Vector3i)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::four)) == std::type_index(typeid(bool)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::five)) == std::type_index(typeid(double)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::six)) == std::type_index(typeid(IndexType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::seven)) == std::type_index(typeid(std::string)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::eight)) == std::type_index(typeid(IntegrationMethodType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys2::nine)) == std::type_index(typeid(GridTypeType)) );
+    QuESo_CHECK( (variable::IsCorrectType<PointType>(TestKeys2::two)) );
+    QuESo_CHECK( (variable::IsCorrectType<Vector3i>(TestKeys2::three)) );
+    QuESo_CHECK( (variable::IsCorrectType<bool>(TestKeys2::four)) );
+    QuESo_CHECK( (variable::IsCorrectType<double>(TestKeys2::five)) );
+    QuESo_CHECK( (variable::IsCorrectType<IndexType>(TestKeys2::six)) );
+    QuESo_CHECK( (variable::IsCorrectType<std::string>(TestKeys2::seven)) );
+    QuESo_CHECK( (variable::IsCorrectType<IntegrationMethodType>(TestKeys2::eight)) );
+    QuESo_CHECK( (variable::IsCorrectType<GridTypeType>(TestKeys2::nine)) );
+
+    QuESo_CHECK( !(variable::IsCorrectType<IndexType>(TestKeys2::nine)) );
 }
 
 QuESo_REGISTER_KEY_SET_3( TestKeys3, SubDict, QuESo_LIST(zero, one),
@@ -110,14 +114,16 @@ QuESo_REGISTER_DATASET_VARIABLES(TestKeys3,
 BOOST_AUTO_TEST_CASE(TestVariablesValueTypes3) {
     QuESo_INFO << "Testing :: Test Variables :: Check Value Types Triple Set" << std::endl;
     
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::two)) == std::type_index(typeid(PointType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::three)) == std::type_index(typeid(Vector3i)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::four)) == std::type_index(typeid(bool)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::five)) == std::type_index(typeid(double)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::six)) == std::type_index(typeid(IndexType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::seven)) == std::type_index(typeid(std::string)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::eight)) == std::type_index(typeid(IntegrationMethodType)) );
-    QuESo_CHECK( (variable::GetValueTypeIndex(TestKeys3::nine)) == std::type_index(typeid(GridTypeType)) );
+    QuESo_CHECK( (variable::IsCorrectType<PointType>(TestKeys3::two)) );
+    QuESo_CHECK( (variable::IsCorrectType<Vector3i>(TestKeys3::three)) );
+    QuESo_CHECK( (variable::IsCorrectType<bool>(TestKeys3::four)) );
+    QuESo_CHECK( (variable::IsCorrectType<double>(TestKeys3::five)) );
+    QuESo_CHECK( (variable::IsCorrectType<IndexType>(TestKeys3::six)) );
+    QuESo_CHECK( (variable::IsCorrectType<std::string>(TestKeys3::seven)) );
+    QuESo_CHECK( (variable::IsCorrectType<IntegrationMethodType>(TestKeys3::eight)) );
+    QuESo_CHECK( (variable::IsCorrectType<GridTypeType>(TestKeys3::nine)) );
+
+    QuESo_CHECK( !(variable::IsCorrectType<double>(TestKeys3::two)) );
 }
 
 QuESo_REGISTER_KEY_SET_1( TestKeys4, DataSet, 
@@ -136,7 +142,7 @@ BOOST_AUTO_TEST_CASE(TestVariablesException1) {
     QuESo_INFO << "Testing :: Test Variables :: Check Exceptions 1" << std::endl;
 
     if( !NOTDEBUG ) {
-        BOOST_REQUIRE_THROW( variable::GetValueTypeIndex(TestKeys4::zero), std::exception );
+        BOOST_REQUIRE_THROW( variable::IsCorrectType<PointType>(TestKeys4::zero), std::exception );
     }
 }
 
@@ -158,7 +164,7 @@ BOOST_AUTO_TEST_CASE(TestVariablesException5) {
     QuESo_INFO << "Testing :: Test Variables :: Check Exceptions 2" << std::endl;
 
     if( !NOTDEBUG ) {
-        BOOST_REQUIRE_THROW( variable::GetValueTypeIndex(TestKeys5::six), std::exception );
+        BOOST_REQUIRE_THROW( variable::IsCorrectType<std::string>(TestKeys5::five), std::exception );
     }
 }
 

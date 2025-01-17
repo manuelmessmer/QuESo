@@ -23,18 +23,13 @@
 namespace queso {
 namespace variable {
 namespace detail {
-    template<typename TMap1, typename TMap2>
-    inline bool CheckIfAllKeysAreSet( const TMap1& rEnumMap, const TMap2& rIndexMap ) {
-        if( rEnumMap.size() != rIndexMap.size() ) {
+    template<typename TMap, typename TVector>
+    inline bool CheckIfAllKeysAreSet( const TMap& rEnumMap, const TVector& rVector ) {
+        if( rEnumMap.size() != rVector.size() ) {
             return false;
         }
-        for (const auto& pair : rEnumMap) {
-            if (rIndexMap.find(pair.first) == rIndexMap.end()) {
-                return false;
-            }
-        }
-        for (const auto& pair : rIndexMap) {
-            if (rEnumMap.find(pair.first) == rEnumMap.end()) {
+        for( IndexType i = 0; i < rVector.size(); ++i ) {
+            if( rEnumMap.find(i) == rEnumMap.end() ) {
                 return false;
             }
         }
@@ -46,12 +41,13 @@ namespace detail {
 
 #define QuESo_REGISTER_DATASET_VARIABLES(KeySet, ...) \
     namespace variable {\
-    inline std::type_index GetValueTypeIndex(KeySet::KeyToDataSet Key) noexcept(NOTDEBUG) {\
+    template<typename TType>\
+    inline bool IsCorrectType(KeySet::KeyToDataSet Key) {\
         static const std::unordered_map<IndexType, std::type_index> type_index_map = { __VA_ARGS__ }; \
         QuESo_ASSERT( variable::detail::CheckIfAllKeysAreSet(type_index_map, key::KeySet##DataSet##KeyInfo::msEnumNames), "Types of Keys are not set correctly." );\
         const auto map_it = type_index_map.find(static_cast<std::size_t>(Key));\
         if (map_it != type_index_map.end()) {\
-            return map_it->second;\
+            return map_it->second == std::type_index(typeid(TType));\
         }\
         QuESo_ERROR << "This should be unreachable.";\
     }\
