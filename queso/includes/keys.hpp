@@ -18,6 +18,7 @@
 /// STL includes
 #include <unordered_map>
 #include <map> 
+#include <typeindex>
 
 namespace queso {
 namespace key {
@@ -97,7 +98,7 @@ namespace key {
         virtual const std::string& GetKeyName(std::size_t Index) const = 0;
         virtual std::size_t GetKeyValue(const std::string& rEnumName) const = 0;
         virtual std::size_t GetNumberOfKeys() const noexcept = 0;
-        virtual const std::type_info& GetKeyTypeInfo() const = 0;
+        virtual std::type_index GetKeyTypeInfo() const = 0;
         virtual std::string GetAllKeyNames() const = 0;
         
     };
@@ -135,8 +136,8 @@ namespace key {
             std::size_t GetNumberOfKeys() const noexcept override {\
                 return msSize;\
             }\
-            const std::type_info& GetKeyTypeInfo() const override {\
-                return typeid(EnumType);\
+            std::type_index GetKeyTypeInfo() const override {\
+                return std::type_index(typeid(EnumType));\
             }\
             std::string GetAllKeyNames() const override {\
                 return StaticGetAllKeyNames();\
@@ -152,9 +153,9 @@ namespace key {
                 return result.insert(0, "['") + "']";\
             }\
             /* Static members that contain enum/key information, e.g., to map enum to string, etc. */\
-            inline static StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#KeyNames);\
-            inline static StringToIndexMapType msEnumValues = queso::key::detail::CreateStringToIndexMap(msEnumNames);\
-            inline static std::size_t msSize = msEnumNames.size();\
+            inline static const StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#KeyNames);\
+            inline static const StringToIndexMapType msEnumValues = queso::key::detail::CreateStringToIndexMap(msEnumNames);\
+            inline static const std::size_t msSize = msEnumNames.size();\
         };\
         inline const std::string& KeyToString(EnumType value) {\
             if( static_cast<std::size_t>(value) >= 0\
@@ -173,7 +174,7 @@ namespace key {
             QuESo_ERROR << "Invalid enum name. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
         inline bool IsCorrectType(Unique<KeyInformation>& pKeyInformation, EnumType Value) {\
-            return pKeyInformation->GetKeyTypeInfo() == typeid(Value);\
+            return pKeyInformation->GetKeyTypeInfo() == std::type_index(typeid(Value));\
         }\
         template<typename TType,\
                  typename = std::enable_if_t<std::is_same<TType, EnumType>::value>>\
