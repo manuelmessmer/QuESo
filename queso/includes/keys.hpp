@@ -58,10 +58,7 @@ inline EnumMapType CreateEnumMap(const std::string& rString) {
     while (std::getline(stream, token, ',')) {
         std::size_t pos = token.find('=');
         if (pos != std::string::npos) {
-            std::string name = token.substr(0, pos);
-            std::size_t value = std::stoul(token.substr(pos + 1));
-            enum_map[value] = name;
-            currentValue = value + 1;
+            QuESo_ERROR << "Keys must start at 0 and increment by 1. No custom values allowed.";
         } else {
             enum_map[currentValue] = token;
             currentValue++;
