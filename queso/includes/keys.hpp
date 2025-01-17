@@ -23,10 +23,10 @@ namespace queso {
 namespace key {
 namespace detail {
 
-typedef std::unordered_map<std::size_t, std::string> EnumMapType;
-typedef std::unordered_map<std::string, std::size_t> ReverseEnumMapType;
+typedef std::vector<std::string> StringVectorType;
+typedef std::unordered_map<std::string, std::size_t> StringToIndexMapType;
 
-inline std::string GetStringWithoutWithSpace(const std::string& rString) {
+inline std::string GetStringWithoutWhiteSpaces(const std::string& rString) {
     std::string result;
     result.reserve(rString.size());
     for (char ch : rString) {
@@ -48,29 +48,27 @@ inline void RemoveQuESoList(std::string& rString) {
     }
 }
 
-inline EnumMapType CreateEnumMap(const std::string& rString) {
-    EnumMapType enum_map;
-    std::string cleanedString = GetStringWithoutWithSpace(rString);
+inline StringVectorType CreateStringVector(const std::string& rString) {
+    StringVectorType enum_strings;
+    std::string cleanedString = GetStringWithoutWhiteSpaces(rString);
     RemoveQuESoList(cleanedString);
     std::istringstream stream(cleanedString);
     std::string token;
-    std::size_t currentValue = 0;
     while (std::getline(stream, token, ',')) {
         std::size_t pos = token.find('=');
         if (pos != std::string::npos) {
             QuESo_ERROR << "Keys must start at 0 and increment by 1. No custom values allowed.";
         } else {
-            enum_map[currentValue] = token;
-            currentValue++;
+            enum_strings.push_back(token);
         }
     }
-    return enum_map;
+    return enum_strings;
 }
 
-inline ReverseEnumMapType CreateReverseEnumMap(const EnumMapType& rEnumMap) {
-    ReverseEnumMapType reverse_enum_map;
-    for (const auto& r_pair : rEnumMap) {
-        reverse_enum_map[r_pair.second] = r_pair.first;
+inline StringToIndexMapType CreateStringToIndexMap(const StringVectorType& rStringVector) {
+    StringToIndexMapType reverse_enum_map;
+    for (std::size_t i = 0; i < rStringVector.size(); ++i) {
+        reverse_enum_map[rStringVector[i]] = i;
     }
     return reverse_enum_map;
 }
@@ -110,8 +108,8 @@ namespace key {
 #define QuESo_LIST(...) __VA_ARGS__
 
 #define QuESo_CREATE_KEY_INFO(KeySetName, KeyType, KeyNames, EnumType) \
-    typedef queso::key::detail::EnumMapType EnumMapType;\
-    typedef queso::key::detail::ReverseEnumMapType ReverseEnumMapType;\
+    typedef queso::key::detail::StringVectorType StringVectorType;\
+    typedef queso::key::detail::StringToIndexMapType StringToIndexMapType;\
     namespace key {\
         struct KeySetName##KeyType##KeyInfo; /* Forward declaration */\
         struct KeySetName##KeyType {\
@@ -122,9 +120,8 @@ namespace key {
         struct KeySetName##KeyType##KeyInfo : public KeyInformation {\
             /* Member function to access enum/key information*/\
             const std::string& GetKeyName(std::size_t Index) const override {\
-                const auto it = msEnumNames.find(Index);\
-                if (it != msEnumNames.end()) {\
-                    return it->second;\
+                if( Index >= 0 && Index < msSize ) {\
+                    return msEnumNames[Index];\
                 }\
                 QuESo_ERROR << "Invalid index. Possible values are: " + StaticGetAllKeyNames();\
             }\
@@ -146,24 +143,23 @@ namespace key {
             }\
             static std::string StaticGetAllKeyNames() {\
                 std::string result;\
-                std::map<std::size_t, std::string> ordered_names(msEnumNames.begin(), msEnumNames.end());\
-                for (const auto& pair : ordered_names) {\
+                for (const auto& r_name : msEnumNames) {\
                     if (!result.empty()) {\
                         result += "', '";\
                     }\
-                    result += pair.second;\
+                    result += r_name;\
                 }\
                 return result.insert(0, "['") + "']";\
             }\
             /* Static members that contain enum/key information, e.g., to map enum to string, etc. */\
-            inline static EnumMapType msEnumNames = queso::key::detail::CreateEnumMap(#KeyNames);\
-            inline static ReverseEnumMapType msEnumValues = queso::key::detail::CreateReverseEnumMap(msEnumNames);\
+            inline static StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#KeyNames);\
+            inline static StringToIndexMapType msEnumValues = queso::key::detail::CreateStringToIndexMap(msEnumNames);\
             inline static std::size_t msSize = msEnumNames.size();\
         };\
         inline const std::string& KeyToString(EnumType value) {\
-            auto it = KeySetName##KeyType##KeyInfo::msEnumNames.find(static_cast<std::size_t>(value));\
-            if (it != KeySetName##KeyType##KeyInfo::msEnumNames.end()) {\
-                return it->second;\
+            if( static_cast<std::size_t>(value) >= 0\
+                    && static_cast<std::size_t>(value) < KeySetName##KeyType##KeyInfo::msEnumNames.size() ) {\
+                return KeySetName##KeyType##KeyInfo::msEnumNames[static_cast<std::size_t>(value)];\
             }\
             QuESo_ERROR << "Invalid enum value. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
