@@ -43,7 +43,7 @@ inline void Assert(A assertion, const std::string& rMessage,
     }
 } // End namespace detail
 
-#define QuESo_ASSERT(Assertation, Message) detail::Assert(Assertation, Message, __FILE__, QuESo_CURRENT_FUNCTION, __LINE__)
+#define QuESo_ASSERT(Assertation, Message) queso::detail::Assert(Assertation, Message, __FILE__, QuESo_CURRENT_FUNCTION, __LINE__)
 
 } // End detail
 
