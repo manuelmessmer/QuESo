@@ -112,17 +112,17 @@ namespace key {
 
 #define QuESo_LIST(...) __VA_ARGS__
 
-#define QuESo_CREATE_KEY_INFO(KesSetName, KeyType, KeyNames, EnumType) \
+#define QuESo_CREATE_KEY_INFO(KeySetName, KeyType, KeyNames, EnumType) \
     typedef queso::key::detail::EnumMapType EnumMapType;\
     typedef queso::key::detail::ReverseEnumMapType ReverseEnumMapType;\
     namespace key {\
-        struct KesSetName##KeyType##KeyInfo; /* Forward declaration */\
-        struct KesSetName##KeyType {\
+        struct KeySetName##KeyType##KeyInfo; /* Forward declaration */\
+        struct KeySetName##KeyType {\
             using KeyToWhat = KeyType;\
-            using KeyInfo = KesSetName##KeyType##KeyInfo;\
+            using KeyInfo = KeySetName##KeyType##KeyInfo;\
         };\
-        /* KesSetName##KeyType##KeyInfo allos to access enum/key information. */\
-        struct KesSetName##KeyType##KeyInfo : public KeyInformation {\
+        /* KeySetName##KeyType##KeyInfo allos to access enum/key information. */\
+        struct KeySetName##KeyType##KeyInfo : public KeyInformation {\
             /* Member function to access enum/key information*/\
             const std::string& GetKeyName(std::size_t Index) const override {\
                 const auto it = msEnumNames.find(Index);\
@@ -164,28 +164,28 @@ namespace key {
             inline static std::size_t msSize = msEnumNames.size();\
         };\
         inline const std::string& KeyToString(EnumType value) {\
-            auto it = KesSetName##KeyType##KeyInfo::msEnumNames.find(static_cast<std::size_t>(value));\
-            if (it != KesSetName##KeyType##KeyInfo::msEnumNames.end()) {\
+            auto it = KeySetName##KeyType##KeyInfo::msEnumNames.find(static_cast<std::size_t>(value));\
+            if (it != KeySetName##KeyType##KeyInfo::msEnumNames.end()) {\
                 return it->second;\
             }\
-            QuESo_ERROR << "Invalid enum value. Possible values are: " + KesSetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
+            QuESo_ERROR << "Invalid enum value. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
         template<typename TType,\
-                 typename = std::enable_if_t<std::is_same<TType, KesSetName##KeyType>::value>>\
+                 typename = std::enable_if_t<std::is_same<TType, KeySetName##KeyType>::value>>\
         inline EnumType StringToKey(const std::string& rName) {\
-            const auto it = KesSetName##KeyType##KeyInfo::msEnumValues.find(rName);\
-            if (it != KesSetName##KeyType##KeyInfo::msEnumValues.end()) {\
+            const auto it = KeySetName##KeyType##KeyInfo::msEnumValues.find(rName);\
+            if (it != KeySetName##KeyType##KeyInfo::msEnumValues.end()) {\
                 return static_cast<EnumType>(it->second);\
             }\
-            QuESo_ERROR << "Invalid enum name. Possible values are: " + KesSetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
+            QuESo_ERROR << "Invalid enum name. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
         inline bool IsCorrectType(Unique<KeyInformation>& pKeyInformation, EnumType Value) {\
             return pKeyInformation->GetKeyTypeInfo() == typeid(Value);\
         }\
         template<typename TType,\
                  typename = std::enable_if_t<std::is_same<TType, EnumType>::value>>\
-        inline KesSetName##KeyType GetKeyBaseType() noexcept {\
-            return KesSetName##KeyType{};\
+        inline KeySetName##KeyType GetKeyBaseType() noexcept {\
+            return KeySetName##KeyType{};\
         }\
         inline std::ostream& operator<<(std::ostream& outStream, EnumType Value) {\
             outStream << KeyToString(Value);\
@@ -200,20 +200,20 @@ namespace key {
  * and creates the respective KeyInformation (QuESo_CREATE_KEY_INFO macro), which allows
  * to get more information about the enum/key set, e.g., KeyInformation allows to map from key to string.
  *
- * @param KesSetName The name of the key set.
+ * @param KeySetName The name of the key set.
  * @param KeyType The type of the key (possible options List, SubDict, DataSet).
  * @param KeyNames The names of the actual keys, specified as a QuESo_LIST (QuESo_LIST macro).
  *
  * Example usage:
  * @code
- * QuESo_REGISTER_KEYS_1(KesSetName, List, QuESo_LIST(KeyName1 = 0, KeyName2, KeyName3 = 5) )
+ * QuESo_REGISTER_KEYS_1(KeySetName, List, QuESo_LIST(KeyName1 = 0, KeyName2, KeyName3 = 5) )
  * @endcode
  */
-#define QuESo_REGISTER_KEY_SET_1(KesSetName, KeyType, KeyNames) \
-    struct KesSetName {\
+#define QuESo_REGISTER_KEY_SET_1(KeySetName, KeyType, KeyNames) \
+    struct KeySetName {\
         enum KeyTo##KeyType {KeyNames};\
     };\
-    QuESo_CREATE_KEY_INFO(KesSetName, KeyType, QuESo_LIST(KeyNames), KesSetName::KeyTo##KeyType ) \
+    QuESo_CREATE_KEY_INFO(KeySetName, KeyType, QuESo_LIST(KeyNames), KeySetName::KeyTo##KeyType ) \
 
 /**
  * @brief Macro to register a key set for a given key set name and two key types.
@@ -225,7 +225,7 @@ namespace key {
  * For each key type a different enum is created. This allows to distinguish between keys 
  * that access e.g. List or DataSets. 
  *
- * @param KesSetName The name of the key set.
+ * @param KeySetName The name of the key set.
  * @param KeyType1 The type of the first key collection (possible options List, SubDict, DataSet).
  * @param KeyNames1 The names of the actual keys for the first key collection, specified as a QuESo_LIST (QuESo_LIST macro).
  * @param KeyType2 The type of the second key (possible options List, SubDict, DataSet).
@@ -233,21 +233,21 @@ namespace key {
  *
  * Example usage:
  * @code
- * QuESo_REGISTER_KEYS_2(KesSetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5) )
+ * QuESo_REGISTER_KEYS_2(KeySetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5) )
  * @endcode
  */
-#define QuESo_REGISTER_KEY_SET_2(KesSetName, KeyType1, KeyNames1, KeyType2, KeyNames2) \
+#define QuESo_REGISTER_KEY_SET_2(KeySetName, KeyType1, KeyNames1, KeyType2, KeyNames2) \
     namespace key {\
     namespace detail {\
-        enum class CheckDuplicatedValuesOf##KesSetName {KeyNames1, KeyNames2};\
+        enum class CheckDuplicatedValuesOf##KeySetName {KeyNames1, KeyNames2};\
     }\
     }\
-    struct KesSetName {\
+    struct KeySetName {\
         enum KeyTo##KeyType1 {KeyNames1};\
         enum KeyTo##KeyType2 {KeyNames2};\
     };\
-    QuESo_CREATE_KEY_INFO(KesSetName, KeyType1, QuESo_LIST(KeyNames1), KesSetName::KeyTo##KeyType1)\
-    QuESo_CREATE_KEY_INFO(KesSetName, KeyType2, QuESo_LIST(KeyNames2), KesSetName::KeyTo##KeyType2)\
+    QuESo_CREATE_KEY_INFO(KeySetName, KeyType1, QuESo_LIST(KeyNames1), KeySetName::KeyTo##KeyType1)\
+    QuESo_CREATE_KEY_INFO(KeySetName, KeyType2, QuESo_LIST(KeyNames2), KeySetName::KeyTo##KeyType2)\
 
 /**
  * @brief Macro to register a key set for a given key set name and three key types.
@@ -259,7 +259,7 @@ namespace key {
  * For each key type a different enum is created. This allows to distinguish between keys 
  * that access e.g. a List or a DataSet. 
  *
- * @param KesSetName The name of the key set.
+ * @param KeySetName The name of the key set.
  * @param KeyType1 The type of the first key collection (possible options List, SubDict, DataSet).
  * @param KeyNames1 The names of the actual keys for the first key collection, specified as a QuESo_LIST (QuESo_LIST macro).
  * @param KeyType2 The type of the second key (possible options List, SubDict, DataSet).
@@ -269,22 +269,22 @@ namespace key {
  *
  * Example usage:
  * @code
- * QuESo_REGISTER_KEYS_3(KesSetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5), DataSet, QuESo_LIST(KeyName5, KeyName6 = 10) )
+ * QuESo_REGISTER_KEYS_3(KeySetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5), DataSet, QuESo_LIST(KeyName5, KeyName6 = 10) )
  * @endcode
  */
-#define QuESo_REGISTER_KEY_SET_3(KesSetName, KeyType1, KeyNames1, KeyType2, KeyNames2, KeyType3, KeyNames3)\
+#define QuESo_REGISTER_KEY_SET_3(KeySetName, KeyType1, KeyNames1, KeyType2, KeyNames2, KeyType3, KeyNames3)\
     namespace key {\
     namespace detail {\
-        enum class CheckDuplicatedValuesOf##KesSetName {KeyNames1, KeyNames2, KeyNames3};\
+        enum class CheckDuplicatedValuesOf##KeySetName {KeyNames1, KeyNames2, KeyNames3};\
     }\
     }\
-    struct KesSetName {\
+    struct KeySetName {\
         enum KeyTo##KeyType1 {KeyNames1};\
         enum KeyTo##KeyType2 {KeyNames2};\
         enum KeyTo##KeyType3 {KeyNames3};\
     };\
-    QuESo_CREATE_KEY_INFO(KesSetName, KeyType1, QuESo_LIST(KeyNames1), KesSetName::KeyTo##KeyType1)\
-    QuESo_CREATE_KEY_INFO(KesSetName, KeyType2, QuESo_LIST(KeyNames2), KesSetName::KeyTo##KeyType2)\
-    QuESo_CREATE_KEY_INFO(KesSetName, KeyType3, QuESo_LIST(KeyNames3), KesSetName::KeyTo##KeyType3)\
+    QuESo_CREATE_KEY_INFO(KeySetName, KeyType1, QuESo_LIST(KeyNames1), KeySetName::KeyTo##KeyType1)\
+    QuESo_CREATE_KEY_INFO(KeySetName, KeyType2, QuESo_LIST(KeyNames2), KeySetName::KeyTo##KeyType2)\
+    QuESo_CREATE_KEY_INFO(KeySetName, KeyType3, QuESo_LIST(KeyNames3), KeySetName::KeyTo##KeyType3)\
 
 #endif // End KEYS_INCLUDE_HPP
