@@ -11,15 +11,18 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef DEFINE_INCLUDE_HPP
-#define DEFINE_INCLUDE_HPP
+#ifndef REGISTER_KEYS_AND_VARIABLES
+#define REGISTER_KEYS_AND_VARIABLES
 
 //// Project includes
-#include "queso/includes/core_definitions.hpp"
-#include "queso/includes/logger.hpp"
-#include "queso/includes/exception.hpp"
-#include "queso/includes/assert.hpp"
-#include "queso/includes/timer.hpp"
-#include "queso/includes/register_keys_and_variables.hpp"
+#include "queso/includes/keys.hpp"
+#include "queso/includes/variables.hpp"
 
-#endif // DEFINE_INCLUDE_HPP
+namespace queso {
+
+// Here we will register all Keys and Variables used in QuESo
+QuESo_REGISTER_KEY_SET_1(DummyKey, DataSet, QuESo_LIST(zero, one) );
+
+} // End namespace queso
+
+#endif // REGISTER_KEYS_AND_VARIABLES

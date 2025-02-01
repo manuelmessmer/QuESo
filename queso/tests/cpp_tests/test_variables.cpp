@@ -17,26 +17,11 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/includes/keys.hpp"
-#include "queso/includes/variables.hpp"
 
 namespace queso {
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( VariablesTestSuite )
-
-// Due to the Testing namespace, we have to establish the following typedefs.
-namespace key {
-typedef queso::key::SubDict SubDict;
-typedef queso::key::List List;
-typedef queso::key::DataSet DataSet;
-typedef queso::key::KeyInformation KeyInformation;
-}
-namespace variable {
-namespace detail {
-using queso::variable::detail::CheckIfAllKeysAreSet;
-}
-}
 
 QuESo_REGISTER_KEY_SET_1( TestKeys1, DataSet, 
     QuESo_LIST(zero, one, two, three, four, five, six, seven) );
