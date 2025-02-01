@@ -16,6 +16,7 @@
 #define KEYS_INCLUDE_HPP
 
 /// STL includes
+#include <vector>
 #include <unordered_map>
 #include <map> 
 #include <typeindex>
@@ -111,14 +112,15 @@ namespace key {
 #define QuESo_CREATE_KEY_INFO(KeySetName, KeyType, KeyNames, EnumType) \
     typedef queso::key::detail::StringVectorType StringVectorType;\
     typedef queso::key::detail::StringToIndexMapType StringToIndexMapType;\
+    typedef queso::key::KeyInformation KeyInformationType;\
     namespace key {\
         struct KeySetName##KeyType##KeyInfo; /* Forward declaration */\
         struct KeySetName##KeyType {\
-            using KeyToWhat = KeyType;\
+            using KeyToWhat = queso::key::KeyType;\
             using KeyInfo = KeySetName##KeyType##KeyInfo;\
         };\
         /* KeySetName##KeyType##KeyInfo allos to access enum/key information. */\
-        struct KeySetName##KeyType##KeyInfo : public KeyInformation {\
+        struct KeySetName##KeyType##KeyInfo : public KeyInformationType {\
             /* Member function to access enum/key information*/\
             const std::string& GetKeyName(std::size_t Index) const override {\
                 if( Index >= 0 && Index < msSize ) {\
@@ -173,7 +175,7 @@ namespace key {
             }\
             QuESo_ERROR << "Invalid enum name. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
         }\
-        inline bool IsCorrectType(Unique<KeyInformation>& pKeyInformation, EnumType Value) {\
+        inline bool IsCorrectType(Unique<KeyInformationType>& pKeyInformation, EnumType Value) {\
             return pKeyInformation->GetKeyTypeInfo() == std::type_index(typeid(Value));\
         }\
         template<typename TType,\
