@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys1) {
     BOOST_REQUIRE_THROW( key::StringToKey<key::TestKeys1SubDict>("five"), std::exception);
 
     typedef decltype(key::GetKeyBaseType<TestKeys1::KeyToSubDict>()) BaseType;
-    static_assert( std::is_same<typename BaseType::KeyToWhat, queso::key::SubDict>::value );
+    static_assert( std::is_same<typename BaseType::KeyToWhat, queso::key::KeyToSubDict>::value );
     Unique<queso::key::KeyInformation> p_key_info_1 = MakeUnique<typename BaseType::KeyInfo>();
     
     QuESo_CHECK_EQUAL( p_key_info_1->GetKeyName(0), "zero");
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys2) {
     BOOST_REQUIRE_THROW( key::StringToKey<key::TestKeys2List>("four"), std::exception);
 
     typedef decltype(key::GetKeyBaseType<TestKeys2::KeyToList>()) BaseType;
-    static_assert( std::is_same<typename BaseType::KeyToWhat, queso::key::List>::value );
+    static_assert( std::is_same<typename BaseType::KeyToWhat, queso::key::KeyToList>::value );
     Unique<queso::key::KeyInformation> p_key_info_2 = MakeUnique<typename BaseType::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_2->GetKeyName(0), "zero");
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     BOOST_REQUIRE_THROW( key::StringToKey<key::TestKeys3DataSet>("two"), std::exception);
 
     typedef decltype(key::GetKeyBaseType<TestKeys3::KeyToDataSet>()) BaseType;
-    static_assert( std::is_same<typename BaseType::KeyToWhat, queso::key::DataSet>::value );
+    static_assert( std::is_same<typename BaseType::KeyToWhat, queso::key::KeyToDataSet>::value );
     Unique<queso::key::KeyInformation> p_key_info_3 = MakeUnique<typename BaseType::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_3->GetKeyName(0), "zero");
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     BOOST_REQUIRE_THROW( key::StringToKey<key::TestKeys4List>("eight"), std::exception);
 
     typedef decltype(key::GetKeyBaseType<TestKeys4::KeyToSubDict>()) BaseTypeSubDict;
-    static_assert( std::is_same<typename BaseTypeSubDict::KeyToWhat, queso::key::SubDict>::value );
+    static_assert( std::is_same<typename BaseTypeSubDict::KeyToWhat, queso::key::KeyToSubDict>::value );
     Unique<queso::key::KeyInformation> p_key_info_4_subdict = MakeUnique<typename BaseTypeSubDict::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_4_subdict->GetKeyName(0), "zero");
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     QuESo_CHECK_EQUAL( p_key_info_4_subdict->GetNumberOfKeys(), 5);
 
     typedef decltype(key::GetKeyBaseType<TestKeys4::KeyToList>()) BaseTypeList;
-    static_assert( std::is_same<typename BaseTypeList::KeyToWhat, queso::key::List>::value );
+    static_assert( std::is_same<typename BaseTypeList::KeyToWhat, queso::key::KeyToList>::value );
     Unique<queso::key::KeyInformation> p_key_info_4_list = MakeUnique<typename BaseTypeList::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_4_list->GetKeyName(0), "five");
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     BOOST_REQUIRE_THROW( key::StringToKey<key::TestKeys5DataSet>("eleven"), std::exception);
 
     typedef decltype(key::GetKeyBaseType<TestKeys5::KeyToSubDict>()) BaseTypeSubDict;
-    static_assert( std::is_same<typename BaseTypeSubDict::KeyToWhat, queso::key::SubDict>::value );
+    static_assert( std::is_same<typename BaseTypeSubDict::KeyToWhat, queso::key::KeyToSubDict>::value );
     Unique<queso::key::KeyInformation> p_key_info_5_subdict = MakeUnique<typename BaseTypeSubDict::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_5_subdict->GetKeyName(0), "one");
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     QuESo_CHECK_EQUAL( p_key_info_5_subdict->GetNumberOfKeys(), 4);
 
     typedef decltype(key::GetKeyBaseType<TestKeys5::KeyToList>()) BaseTypeList;
-    static_assert( std::is_same<typename BaseTypeList::KeyToWhat, queso::key::List>::value );
+    static_assert( std::is_same<typename BaseTypeList::KeyToWhat, queso::key::KeyToList>::value );
     Unique<queso::key::KeyInformation> p_key_info_5_list = MakeUnique<typename BaseTypeList::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_5_list->GetKeyName(0), "five");
@@ -358,7 +358,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     QuESo_CHECK_EQUAL( p_key_info_5_list->GetNumberOfKeys(), 3);
 
     typedef decltype(key::GetKeyBaseType<TestKeys5::KeyToDataSet>()) BaseTypeDataSet;
-    static_assert( std::is_same<typename BaseTypeDataSet::KeyToWhat, queso::key::DataSet>::value );
+    static_assert( std::is_same<typename BaseTypeDataSet::KeyToWhat, queso::key::KeyToDataSet>::value );
     Unique<queso::key::KeyInformation> p_key_info_5_dataset = MakeUnique<typename BaseTypeDataSet::KeyInfo>();
 
     QuESo_CHECK_EQUAL( p_key_info_5_dataset->GetKeyName(0), "eight");

@@ -84,13 +84,13 @@ namespace key {
     /// Type traits to distinguish between different key types(e.g., List, SubDict, DataSet).
     
     /// Key to list of DataSets. Each dataset (within one list) is accessed by Index not by key.
-    struct List {
+    struct KeyToList {
     };
     /// Key to subdictionary
-    struct SubDict {
+    struct KeyToSubDict {
     };
     /// Key to dataset.
-    struct DataSet {
+    struct KeyToDataSet {
     };
 
     /// Base class to store and access key information.
@@ -116,7 +116,7 @@ namespace key {
     namespace key {\
         struct KeySetName##KeyType##KeyInfo; /* Forward declaration */\
         struct KeySetName##KeyType {\
-            using KeyToWhat = queso::key::KeyType;\
+            using KeyToWhat = queso::key::KeyTo##KeyType;\
             using KeyInfo = KeySetName##KeyType##KeyInfo;\
         };\
         /* KeySetName##KeyType##KeyInfo allos to access enum/key information. */\
