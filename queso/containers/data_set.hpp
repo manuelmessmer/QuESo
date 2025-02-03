@@ -33,7 +33,7 @@ namespace queso {
  * @tparam TVariantKey. This should be an pack of enum classes, wrapped inside an std::variant<...enum class>.
  * @see    Dictionary, which uses DataSet.
 **/
-class Data_Set {
+class DataSet {
 public:
     ///@name Type definitions
     ///@{
@@ -41,11 +41,9 @@ public:
     typedef std::variant<std::monostate, PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType> VariantValueType;
 
     // Helper tag type
-    template<class T>
+    template<class TKeyType>
     struct TypeTag {
-        static auto GetKeyBaseType() -> decltype(queso::key::GetKeyBaseType<T>()) {
-        return queso::key::GetKeyBaseType<T>();
-        }
+        typedef TKeyType KeyType;
     };
 
     ///@}
@@ -62,13 +60,77 @@ public:
     ///       When later mValue is actually set, its type is checked against the type of the already stored dummy value.
     ///       This scenario can not be handled with std::monostate.
     template<typename TTypeTag>
-    Data_Set(TTypeTag) {
-        typedef decltype(TTypeTag::GetKeyBaseType()) BaseType;
-        static_assert( std::is_same<typename BaseType::KeyToWhat, key::DataSet>::value );
+    DataSet(TTypeTag) {
+        typedef decltype(key::GetKeyBaseType<typename TTypeTag::KeyType>()) BaseType;
+        static_assert( std::is_same<typename BaseType::KeyToWhat, key::KeyToDataSet>::value );
         mpKeyInformation = MakeUnique<typename BaseType::KeyInfo>();
+        mData.resize(mpKeyInformation->GetNumberOfKeys());
     }
 
-    
+    /// @brief Sets Value to given Key provided as Enum.
+    /// @tparam TKeyType
+    /// @tparam TValueType
+    /// @param QueryKey (Enum)
+    /// @param rNewValue
+    /// @see Only throws in DEBUG mode.
+    template<typename TKeyType, typename TValueType>
+    void SetValue(TKeyType QueryKey, const TValueType& rNewValue,
+                  std::enable_if_t<std::is_enum<TKeyType>::value>* = nullptr ) noexcept(NOTDEBUG) {
+        
+        QuESo_ASSERT( key::IsCorrectType(mpKeyInformation, QueryKey), "Wrong Key Type.\n" );
+        QuESo_ASSERT( variable::IsCorrectType<TValueType>(QueryKey), "Wrong Value Type.\n" );
+        
+        const IndexType index = static_cast<IndexType>(QueryKey);
+        if constexpr(std::is_same_v<TValueType, int>
+                  || std::is_same_v<TValueType, unsigned int>
+                  || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+            if constexpr (std::is_same_v<TValueType, int>) {
+                QuESo_ASSERT(rNewValue >= 0, "Value must be non-negative.\n");
+            }
+            mData[index] = static_cast<IndexType>(rNewValue);
+        } else {
+            mData[index] = rNewValue;
+        }
+    }
+
+    /// @brief Sets Value to given Key (given as string).
+    /// @tparam TValueType
+    /// @param rQueryKeyName
+    /// @param rNewValue
+    /// @see SetValueWithAmbiguousType() <- allows to cast ambiguous types, e.g., casts 0 -> 0.0, if possible.
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
+    template<typename TValueType>
+    void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
+        IndexType index = mpKeyInformation->GetKeyValue(rQueryKeyName);
+        
+        if constexpr(std::is_same_v<TValueType, int>
+                || std::is_same_v<TValueType, unsigned int>
+                || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
+            if constexpr (std::is_same_v<TValueType, int>) {
+                QuESo_ERROR_IF(rNewValue < 0) << "Value must be non-negative.\n";
+            }
+             mData[index] = static_cast<IndexType>(rNewValue);
+        } else {
+            mData[index] = rNewValue;
+        }
+    }
+
+    /// @brief Returns the Value to the given Key provided as Enum.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param QueryKey (Enum)
+    /// @return const TValueType&
+    /// @note Only throws in DEBUG mode.
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValue(TKeyType QueryKey,    
+                               std::enable_if_t<std::is_enum<TKeyType>::value>* = nullptr ) const noexcept(NOTDEBUG){
+        QuESo_ASSERT( key::IsCorrectType(mpKeyInformation, QueryKey), "Given Key Type does not match stored Key type.\n" );
+        const int index = static_cast<int>(QueryKey);
+        QuESo_ASSERT( std::get_if<std::monostate>(&mData[index]) == 0, "Value is not set.");
+        const TValueType* p_value = std::get_if<TValueType>(&mData[index]);
+        QuESo_ASSERT(p_value != 0, "Given Value type does not match stored Value type.");
+        return *p_value;
+    }
 
 private:
 

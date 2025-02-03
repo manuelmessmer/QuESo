@@ -23,6 +23,12 @@ namespace queso {
 // Here we will register all Keys and Variables used in QuESo
 QuESo_REGISTER_KEY_SET_1(DummyKey, DataSet, QuESo_LIST(zero, one) );
 
+QuESo_REGISTER_KEY_SET_1(TestKey, DataSet, QuESo_LIST(zero, one) );
+QuESo_REGISTER_DATASET_VARIABLES(TestKey, 
+    QuESo_VARIABLE(TestKey::zero, PointType),
+    QuESo_VARIABLE(TestKey::one, int),
+);
+
 } // End namespace queso
 
 #endif // REGISTER_KEYS_AND_VARIABLES
