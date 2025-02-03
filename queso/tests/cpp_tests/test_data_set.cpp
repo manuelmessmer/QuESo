@@ -25,24 +25,33 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( DataSetTestSuite )
 
-QuESo_REGISTER_KEY_SET_1(TestKeys19, DataSet, QuESo_LIST(zero, one) );
 
 // This customized tag is needed to get the correct namesapce of GetKeyBaseType().
-template<class T>
-struct TypeTagTester {
-    static auto GetKeyBaseType() -> decltype(queso::Testing::DataSetTestSuite::key::GetKeyBaseType<T>()) {
-    return queso::Testing::DataSetTestSuite::key::GetKeyBaseType<T>();
-    }
-};
+// template<class T>
+// struct FuncForwarder {
+//     static auto GetKeyBaseType() -> decltype(queso::Testing::DataSetTestSuite::key::GetKeyBaseType<T>()) {
+//     return queso::Testing::DataSetTestSuite::key::GetKeyBaseType<T>();
+//     }
+// };
+
+// struct FuncForwarder {
+//     template<typename TType>
+//     static auto GetKeyBaseType() -> decltype(queso::Testing::DataSetTestSuite::key::GetKeyBaseType<TType>()) {
+//         return queso::Testing::DataSetTestSuite::key::GetKeyBaseType<TType>();
+//     }
+// };
 
 BOOST_AUTO_TEST_CASE(TestDataSet) {
     QuESo_INFO << "Testing :: Test DataSet :: ..." << std::endl;
 
     //typedef decltype(queso::key::GetKeyBaseType<TestKeys19::KeyToDataSet>()) BaseType;
 
-    Data_Set data_set(TypeTagTester<TestKeys19::KeyToDataSet>{});
+    // DataSet data_set<DataSet::TypeTag<TestKeys19::KeyToDataSet>, FuncForwarder>(DataSet::TypeTag<TestKeys19::KeyToDataSet>{});
+    DataSet data_set(DataSet::TypeTag<TestKey::KeyToDataSet>{});
+    data_set.SetValue(TestKey::zero, PointType{0.0, 1.0, 2.0});
     // data_set.SetDefault();
-
+    auto a = data_set.GetValue<PointType>(TestKey::zero);
+    std::cout << a << std::endl;
     // Data_Set data_set2(Data_Set::TypeTag<Blabla::KeyToDataSet>{});
 }
 
