@@ -10,7 +10,7 @@ QuESo (formerly TIBRA) is a preprocessor to generate analysis-ready embedded fin
 * Point locations are restricted to the material domain.
 * The number of points per cut element is always $n \leq (p+1)^3$.
   
-QuESo is written in C++ and has a user-friendly Python interface. If you want to learn how to use QuESo, check out the [Wiki](https://github.com/manuelmessmer/QuESo/wiki/Getting-Started). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples). Please do not hesitate to contact me with questions about QuESo.
+QuESo is written in C++ and has a user-friendly Python interface. If you want to learn how to use QuESo, check out the [Wiki](https://github.com/manuelmessmer/QuESo/wiki). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples). Please do not hesitate to contact me with questions about QuESo.
 
 ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/input_output.png) 
 
