@@ -1,6 +1,9 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://github.com/manuelmessmer/QuESo/blob/main/docs/logo.png"></p>
 
-[![License: BSD4](https://img.shields.io/badge/License-BSD4-green.svg)](https://github.com/manuelmessmer/QuESo/blob/main/LICENSE) [![C++][c++-image]][c++standard] 
+[![License: BSD4](https://img.shields.io/badge/License-BSD4-yellow.svg)](https://github.com/manuelmessmer/QuESo/blob/main/LICENSE) [![C++][c++-image]][c++standard] 
+[![CI](https://github.com/manuelmessmer/QuESo/actions/workflows/ci.yml/badge.svg)](https://github.com/manuelmessmer/QuESo/actions)
+[![Docker](https://img.shields.io/badge/Docker-Repository-blue?style=flat-square)](https://github.com/manuelmessmer/docker-queso)
+![GitHub stars](https://img.shields.io/github/stars/manuelmessmer/QuESo?style=social)
 
 [c++-image]: https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B
 [c++standard]: https://isocpp.org/std/the-standard
@@ -10,7 +13,7 @@ QuESo (formerly TIBRA) is a preprocessor to generate analysis-ready embedded fin
 * Point locations are restricted to the material domain.
 * The number of points per cut element is always $n \leq (p+1)^3$.
   
-QuESo is written in C++ and has a user-friendly Python interface. If you want to learn how to use QuESo, check out the [Wiki](https://github.com/manuelmessmer/QuESo/wiki). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples). Please do not hesitate to contact me with questions about QuESo.
+QuESo is written in C++ and has a user-friendly Python interface. If you want to learn how to use QuESo, check out the [**Wiki**](https://github.com/manuelmessmer/QuESo/wiki). Additionally, there are several examples in [Examples](https://github.com/manuelmessmer/QuESo/tree/main/examples). Please do not hesitate to contact me with questions about QuESo.
 
 ![](https://github.com/manuelmessmer/QuESo/blob/main/docs/input_output.png) 
 
