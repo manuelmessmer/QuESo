@@ -6,7 +6,8 @@ if(NOT DEFINED ENV{QUESO_BUILD_TYPE})
     message(FATAL_ERROR "QUESO_BUILD_TYPE environment variable is not set! Please define it before running CMake.")
 endif()
 
-set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE})
+set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE} CACHE STRING "Build type")
+
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -18,33 +19,30 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libraries)
 # Compiler flags
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /W1 /std:c++17")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc /W1")
+    add_compile_options(/EHsc /W1 /std:c++17)
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wsuggest-override -std=c++17")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
+    add_compile_options(-funroll-loops -Wall -Wsuggest-override -std=c++17)
 endif()
 
 # OMP support
 find_package(OpenMP)
-
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 else()
-    message(STATUS "OMP was not found")
+    message(STATUS "OpenMP not found, disabling parallelization.")
 endif()
 
 # Print compiler flags
 message("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 message("-- C FLAGS: ${CMAKE_C_FLAGS}")
 
-# Try to use python executable from env variable
+# Use Python executable from environment if available
 if(DEFINED ENV{PYTHON_EXECUTABLE})
     set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
 
-# include source directories
+# Include source directories
 file(GLOB QuESo_ApplicationSource
     ${CMAKE_CURRENT_SOURCE_DIR}/embedded_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
@@ -64,21 +62,21 @@ file(GLOB QuESo_ApplicationSource
 # QuESo python interface sources
 file(GLOB_RECURSE QuESo_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
+# Create Core Library
 add_library(QuESo_ApplicationCore SHARED ${QuESo_ApplicationSource})
 target_link_libraries(QuESo_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
 set_target_properties(QuESo_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "QuESo_Application=EXPORT,API")
 
 # Find pybind11
-# Set QuESo specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(pybind11Tools)
 
-# Add pybind11 module
+# Create Python Module
 pybind11_add_module(QuESo_Application MODULE THIN_LTO ${QuESo_PYTHON_INTERFACE})
 target_link_libraries(QuESo_Application PRIVATE QuESo_ApplicationCore)
 set_target_properties(QuESo_Application PROPERTIES PREFIX "")
 
-# Testing
+# === TESTING ===
 if(${QUESO_BUILD_TESTING} MATCHES ON)
     # Find Boost
     if(DEFINED ENV{BOOST_ROOT})
@@ -90,11 +88,11 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
     file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
     file(GLOB TEST_THINGI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/thingi10k_tests/*.cpp)
 
-    # Extract the filename without an extension (NAME_WE)
+    # Extract test names
     get_filename_component(testName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso.cpp NAME_WE)
     get_filename_component(testThingiName ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso_thingi10k.cpp NAME_WE)
 
-    # Add compile target
+    # Add test executables
     add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso.cpp ${TEST_SRCS})
     add_executable(${testThingiName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso_thingi10k.cpp ${TEST_THINGI_SRCS})
 
@@ -107,19 +105,13 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
     target_link_libraries(${testThingiName} ${Boost_LIBRARIES} QuESo_ApplicationCore)
 
     # Move to TestExecutables
-    set_target_properties(${testName} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
-    set_target_properties(${testThingiName} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
+    set(TEST_EXECUTABLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
+    set_target_properties(${testName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_EXECUTABLE_DIR})
+    set_target_properties(${testThingiName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_EXECUTABLE_DIR})
 
     # Register tests
-    add_test(NAME ${testName}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testName})
-
-    add_test(NAME ${testThingiName}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables/${testThingiName})
+    add_test(NAME ${testName} COMMAND ${TEST_EXECUTABLE_DIR}/${testName})
+    add_test(NAME ${testThingiName} COMMAND ${TEST_EXECUTABLE_DIR}/${testThingiName})
 endif(${QUESO_BUILD_TESTING} MATCHES ON)
 
 # Setting the libs folder for the shared objects built in kratos
