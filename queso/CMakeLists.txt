@@ -82,6 +82,7 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
     if(DEFINED ENV{BOOST_ROOT})
         set(BOOST_ROOT $ENV{BOOST_ROOT})
     endif(DEFINED ENV{BOOST_ROOT})
+    option(Boost_USE_STATIC_LIBS "Use static versions of Boost libraries" OFF)
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
     # Add test sources
