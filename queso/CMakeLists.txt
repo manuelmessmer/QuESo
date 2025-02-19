@@ -80,15 +80,11 @@ set_target_properties(QuESo_Application PROPERTIES PREFIX "")
 
 # Testing
 if(${QUESO_BUILD_TESTING} MATCHES ON)
-    enable_testing()
-
     # Find Boost
     if(DEFINED ENV{BOOST_ROOT})
         set(BOOST_ROOT $ENV{BOOST_ROOT})
     endif(DEFINED ENV{BOOST_ROOT})
-    option(Boost_USE_STATIC_LIBS "Use static versions of Boost libraries" OFF)
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-    include_directories(${Boost_INCLUDE_DIRS})
 
     # Add test sources
     file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
