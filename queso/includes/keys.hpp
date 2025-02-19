@@ -15,7 +15,9 @@
 #ifndef KEYS_INCLUDE_HPP
 #define KEYS_INCLUDE_HPP
 
+#include "queso/includes/define.hpp"
 /// STL includes
+#include <string>
 #include <vector>
 #include <unordered_map>
 #include <map> 
@@ -26,7 +28,6 @@ namespace key {
 namespace detail {
 
 typedef std::vector<std::string> StringVectorType;
-typedef std::unordered_map<std::string, std::size_t> StringToIndexMapType;
 
 inline std::string GetStringWithoutWhiteSpaces(const std::string& rString) {
     std::string result;
@@ -67,10 +68,11 @@ inline StringVectorType CreateStringVector(const std::string& rString) {
     return enum_strings;
 }
 
-inline StringToIndexMapType CreateStringToIndexMap(const StringVectorType& rStringVector) {
-    StringToIndexMapType reverse_enum_map;
+template<typename TEnumType>
+inline std::unordered_map<std::string, TEnumType> CreateStringToEnumMap(const StringVectorType& rStringVector) {
+    std::unordered_map<std::string, TEnumType> reverse_enum_map;
     for (std::size_t i = 0; i < rStringVector.size(); ++i) {
-        reverse_enum_map[rStringVector[i]] = i;
+        reverse_enum_map[rStringVector[i]] = static_cast<TEnumType>(i);
     }
     return reverse_enum_map;
 }
@@ -90,59 +92,75 @@ namespace key {
     struct KeyToSubDict {
     };
     /// Key to dataset.
-    struct KeyToDataSet {
+    struct KeyToValue {
+    };
+
+    struct KeyBase {
+        virtual IndexType Index() const = 0;
+        virtual const std::string& Name() const = 0;
+        virtual std::type_index VariableTypeInfo() const = 0;
+    };
+
+    template<typename TKeyInfoType, typename TKeyToWhat = typename TKeyInfoType::KeyToWhat>
+    struct Key : KeyBase {
+        typedef TKeyInfoType KeyInfoType;
+        typedef TKeyToWhat KeyToWhat;
+        typedef typename KeyInfoType::EnumType KeyValueType;
+
+        Key(KeyValueType KeyValue) : mKeyValue(KeyValue) {
+        }
+
+        Key(const Key &rOther) = delete;
+
+        IndexType Index() const override{
+            return static_cast<IndexType>(mKeyValue);
+        }
+        
+        const std::string& Name() const override {
+            return KeyInfoType::msEnumNames[static_cast<IndexType>(mKeyValue)];
+        }
+
+        std::type_index VariableTypeInfo() const override {
+            return std::type_index(typeid(KeyToWhat));
+        }
+
+        KeyValueType Value(){
+            return mKeyValue;
+        }
+    private:
+        const KeyValueType mKeyValue;
     };
 
     /// Base class to store and access key information.
     struct KeyInformation {
         virtual ~KeyInformation() = default;
-        virtual const std::string& GetKeyName(std::size_t Index) const = 0;
-        virtual std::size_t GetKeyValue(const std::string& rEnumName) const = 0;
-        virtual std::size_t GetNumberOfKeys() const noexcept = 0;
-        virtual std::type_index GetKeyTypeInfo() const = 0;
-        virtual std::string GetAllKeyNames() const = 0;
-        
+        virtual const KeyBase* GetKey(const std::string& rName) const = 0;
+        virtual std::size_t GetNumberOfKeys() const noexcept = 0;        
     };
 } // End namespace key
 } // End namespace queso
 
-
 #define QuESo_LIST(...) __VA_ARGS__
 
-#define QuESo_CREATE_KEY_INFO(KeySetName, KeyType, KeyNames, EnumType) \
+#define QuESo_CREATE_KEY_INFO(KeySetName, KeyToWhat_, KeyNames) \
     typedef queso::key::detail::StringVectorType StringVectorType;\
-    typedef queso::key::detail::StringToIndexMapType StringToIndexMapType;\
     typedef queso::key::KeyInformation KeyInformationType;\
+    typedef queso::key::KeyBase KeyBaseType;\
     namespace key {\
-        struct KeySetName##KeyType##KeyInfo; /* Forward declaration */\
-        struct KeySetName##KeyType {\
-            using KeyToWhat = queso::key::KeyTo##KeyType;\
-            using KeyInfo = KeySetName##KeyType##KeyInfo;\
-        };\
         /* KeySetName##KeyType##KeyInfo allos to access enum/key information. */\
-        struct KeySetName##KeyType##KeyInfo : public KeyInformationType {\
+        struct KeySetName##KeyToWhat_##KeyInfo : public KeyInformationType {\
+            typedef queso::key::KeyToWhat_ KeyToWhat;\
+            enum class EnumType {KeyNames};\
             /* Member function to access enum/key information*/\
-            const std::string& GetKeyName(std::size_t Index) const override {\
-                if( Index >= 0 && Index < msSize ) {\
-                    return msEnumNames[Index];\
-                }\
-                QuESo_ERROR << "Invalid index. Possible values are: " + StaticGetAllKeyNames();\
-            }\
-            std::size_t GetKeyValue(const std::string& rEnumName) const override {\
-                const auto it = msEnumValues.find(rEnumName);\
-                if (it != msEnumValues.end()) {\
-                    return it->second;\
+            const KeyBaseType* GetKey(const std::string& rName) const override {\
+                const auto it = msStringToKeyMap.find(rName);\
+                if (it != msStringToKeyMap.end()) {\
+                    return (it->second);\
                 }\
                 QuESo_ERROR << "Invalid Key name. Possible names are: " + StaticGetAllKeyNames();\
             }\
             std::size_t GetNumberOfKeys() const noexcept override {\
-                return msSize;\
-            }\
-            std::type_index GetKeyTypeInfo() const override {\
-                return std::type_index(typeid(EnumType));\
-            }\
-            std::string GetAllKeyNames() const override {\
-                return StaticGetAllKeyNames();\
+                return msEnumNames.size();\
             }\
             static std::string StaticGetAllKeyNames() {\
                 std::string result;\
@@ -156,131 +174,39 @@ namespace key {
             }\
             /* Static members that contain enum/key information, e.g., to map enum to string, etc. */\
             inline static const StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#KeyNames);\
-            inline static const StringToIndexMapType msEnumValues = queso::key::detail::CreateStringToIndexMap(msEnumNames);\
-            inline static const std::size_t msSize = msEnumNames.size();\
+            static const std::unordered_map<std::string, KeyBaseType*> msStringToKeyMap; \
         };\
-        inline const std::string& KeyToString(EnumType value) {\
-            if( static_cast<std::size_t>(value) >= 0\
-                    && static_cast<std::size_t>(value) < KeySetName##KeyType##KeyInfo::msEnumNames.size() ) {\
-                return KeySetName##KeyType##KeyInfo::msEnumNames[static_cast<std::size_t>(value)];\
-            }\
-            QuESo_ERROR << "Invalid enum value. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
-        }\
-        template<typename TType,\
-                 typename = std::enable_if_t<std::is_same<TType, KeySetName##KeyType>::value>>\
-        inline EnumType StringToKey(const std::string& rName) {\
-            const auto it = KeySetName##KeyType##KeyInfo::msEnumValues.find(rName);\
-            if (it != KeySetName##KeyType##KeyInfo::msEnumValues.end()) {\
-                return static_cast<EnumType>(it->second);\
-            }\
-            QuESo_ERROR << "Invalid enum name. Possible values are: " + KeySetName##KeyType##KeyInfo::StaticGetAllKeyNames();\
-        }\
-        inline bool IsCorrectType(Unique<KeyInformationType>& pKeyInformation, EnumType Value) {\
-            return pKeyInformation->GetKeyTypeInfo() == std::type_index(typeid(Value));\
-        }\
-        template<typename TType,\
-                 typename = std::enable_if_t<std::is_same<TType, EnumType>::value>>\
-        inline KeySetName##KeyType GetKeyBaseType() noexcept {\
-            return KeySetName##KeyType{};\
-        }\
-        inline std::ostream& operator<<(std::ostream& outStream, EnumType Value) {\
-            outStream << KeyToString(Value);\
-            return outStream;\
-        }\
     }
 
-/**
- * @brief Macro to register a key set for a given key set name and key type.
- *
- * This macro defines an enum within a struct for the given key set name and key type
- * and creates the respective KeyInformation (QuESo_CREATE_KEY_INFO macro), which allows
- * to get more information about the enum/key set, e.g., KeyInformation allows to map from key to string.
- *
- * @param KeySetName The name of the key set.
- * @param KeyType The type of the key (possible options List, SubDict, DataSet).
- * @param KeyNames The names of the actual keys, specified as a QuESo_LIST (QuESo_LIST macro).
- *
- * Example usage:
- * @code
- * QuESo_REGISTER_KEYS_1(KeySetName, List, QuESo_LIST(KeyName1 = 0, KeyName2, KeyName3 = 5) )
- * @endcode
- */
-#define QuESo_REGISTER_KEY_SET_1(KeySetName, KeyType, KeyNames) \
-    struct KeySetName {\
-        enum KeyTo##KeyType {KeyNames};\
-    };\
-    QuESo_CREATE_KEY_INFO(KeySetName, KeyType, QuESo_LIST(KeyNames), KeySetName::KeyTo##KeyType ) \
+#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat, KeyNames) \
+    QuESo_CREATE_KEY_INFO(KeySetName, KeySetToWhat, QuESo_LIST(KeyNames)) \
 
-/**
- * @brief Macro to register a key set for a given key set name and two key types.
- * 
- * This macro defines two enums within a struct for the given key set name and key types
- * and creates the respective KeyInformation (QuESo_CREATE_KEY_INFO macro), which allows
- * to get more information about the enum/key set, e.g., KeyInformation allows to map 
- * from key to string. 
- * For each key type a different enum is created. This allows to distinguish between keys 
- * that access e.g. List or DataSets. 
- *
- * @param KeySetName The name of the key set.
- * @param KeyType1 The type of the first key collection (possible options List, SubDict, DataSet).
- * @param KeyNames1 The names of the actual keys for the first key collection, specified as a QuESo_LIST (QuESo_LIST macro).
- * @param KeyType2 The type of the second key (possible options List, SubDict, DataSet).
- * @param KeyNames2 The names of the actual keys for the second key type, specified as a QuESo_LIST (QuESo_LIST macro).
- *
- * Example usage:
- * @code
- * QuESo_REGISTER_KEYS_2(KeySetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5) )
- * @endcode
- */
-#define QuESo_REGISTER_KEY_SET_2(KeySetName, KeyType1, KeyNames1, KeyType2, KeyNames2) \
-    namespace key {\
-    namespace detail {\
-        enum class CheckDuplicatedValuesOf##KeySetName {KeyNames1, KeyNames2};\
+#define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeyToWhat) \
+    namespace KeySetName {\
+        inline const queso::key::Key<key::KeySetName##KeyToValue##KeyInfo, KeyToWhat> KeyName  = queso::key::Key<key::KeySetName##KeyToValue##KeyInfo, KeyToWhat>(\
+            key::KeySetName##KeyToValue##KeyInfo::EnumType::KeyName);\
     }\
-    }\
-    struct KeySetName {\
-        enum KeyTo##KeyType1 {KeyNames1};\
-        enum KeyTo##KeyType2 {KeyNames2};\
-    };\
-    QuESo_CREATE_KEY_INFO(KeySetName, KeyType1, QuESo_LIST(KeyNames1), KeySetName::KeyTo##KeyType1)\
-    QuESo_CREATE_KEY_INFO(KeySetName, KeyType2, QuESo_LIST(KeyNames2), KeySetName::KeyTo##KeyType2)\
 
-/**
- * @brief Macro to register a key set for a given key set name and three key types.
- * 
- * This macro defines three enums within a struct for the given key set name and key types
- * and creates the respective KeyInformation (QuESo_CREATE_KEY_INFO macro), which allows
- * to get more information about the enum/key set, e.g., KeyInformation allows to map 
- * from key to string. 
- * For each key type a different enum is created. This allows to distinguish between keys 
- * that access e.g. a List or a DataSet. 
- *
- * @param KeySetName The name of the key set.
- * @param KeyType1 The type of the first key collection (possible options List, SubDict, DataSet).
- * @param KeyNames1 The names of the actual keys for the first key collection, specified as a QuESo_LIST (QuESo_LIST macro).
- * @param KeyType2 The type of the second key (possible options List, SubDict, DataSet).
- * @param KeyNames2 The names of the actual keys for the second key type, specified as a QuESo_LIST (QuESo_LIST macro).
- * @param KeyType3 The type of the third key (possible options List, SubDict, DataSet).
- * @param KeyNames3 The names of the actual keys for the third key type, specified as a QuESo_LIST (QuESo_LIST macro).
- *
- * Example usage:
- * @code
- * QuESo_REGISTER_KEYS_3(KeySetName, List, QuESo_LIST(KeyName1 = 0, KeyName2), SubDict, QuESo_LIST(KeyName3, KeyName4 = 5), DataSet, QuESo_LIST(KeyName5, KeyName6 = 10) )
- * @endcode
- */
-#define QuESo_REGISTER_KEY_SET_3(KeySetName, KeyType1, KeyNames1, KeyType2, KeyNames2, KeyType3, KeyNames3)\
-    namespace key {\
-    namespace detail {\
-        enum class CheckDuplicatedValuesOf##KeySetName {KeyNames1, KeyNames2, KeyNames3};\
+#define QuESo_DEFINE_KEY_TO_SUBDICT(KeySetName, KeyName) \
+    namespace KeySetName {\
+        extern queso::key::Key<key::KeySetName##KeyToSubDict##KeyInfo> KeyName;\
     }\
+
+#define QuESo_DEFINE_KEY_TO_LIST(KeySetName, KeyName) \
+    namespace KeySetName {\
+        extern queso::key::Key<key::KeySetName##KeyToList##KeyInfo> KeyName;\
     }\
-    struct KeySetName {\
-        enum KeyTo##KeyType1 {KeyNames1};\
-        enum KeyTo##KeyType2 {KeyNames2};\
-        enum KeyTo##KeyType3 {KeyNames3};\
-    };\
-    QuESo_CREATE_KEY_INFO(KeySetName, KeyType1, QuESo_LIST(KeyNames1), KeySetName::KeyTo##KeyType1)\
-    QuESo_CREATE_KEY_INFO(KeySetName, KeyType2, QuESo_LIST(KeyNames2), KeySetName::KeyTo##KeyType2)\
-    QuESo_CREATE_KEY_INFO(KeySetName, KeyType3, QuESo_LIST(KeyNames3), KeySetName::KeyTo##KeyType3)\
+
+#define QuESo_CREATE_KEY(KeySetName, KeyName) \
+    namespace KeySetName {\
+        queso::key::Key<decltype(KeyName)::KeyInfoType, decltype(KeyName)::KeyToWhat> KeyName(decltype(KeyName)::KeyInfoType::EnumType::KeyName);\
+    }\
+
+#define QuESo_KEY(Key) {Key.Name(), &Key} \
+
+#define QuESo_REGISTER_KEY_SET(KeySet, KeySetToWhat, ...) \
+    const std::unordered_map<std::string, queso::key::KeyBase*> key::KeySet##KeySetToWhat##KeyInfo::msStringToKeyMap = { __VA_ARGS__ };\
+
+
 
 #endif // End KEYS_INCLUDE_HPP
