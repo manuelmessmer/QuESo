@@ -3,11 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(QuESo_Application)
 
 set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE})
-# If build type is not defined, set it to Release.
-if(NOT CMAKE_BUILD_TYPE)
-    message(CMAKE_BUILD_TYPE Release)
-endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include local directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -109,6 +106,10 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
     # Add compile target
     add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso.cpp ${TEST_SRCS})
     add_executable(${testThingiName} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_queso_thingi10k.cpp ${TEST_THINGI_SRCS})
+
+    # Target compile definitions
+    target_compile_definitions(${testName} PRIVATE QUESO_BUILD_TESTING=1)
+    target_compile_definitions(${testThingiName} PRIVATE QUESO_BUILD_TESTING=1)
 
     # Link to Boost libraries and QuESo
     target_link_libraries(${testName} ${Boost_LIBRARIES} QuESo_ApplicationCore)
