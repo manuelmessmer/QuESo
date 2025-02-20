@@ -1,12 +1,13 @@
 # This is the CMake script for compiling QuESo Python Module.
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16)
 project(QuESo_Application)
 
 if(NOT DEFINED ENV{QUESO_BUILD_TYPE})
-    message(FATAL_ERROR "QUESO_BUILD_TYPE environment variable is not set! Please define it before running CMake.")
+    message(WARNING "QUESO_BUILD_TYPE environment variable is not set! Defaulting to Release.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
+else()
+    set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE} CACHE STRING "Build type")
 endif()
-
-set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE} CACHE STRING "Build type")
 
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,6 +28,7 @@ endif()
 # OMP support
 find_package(OpenMP)
 if(OPENMP_FOUND)
+    message(STATUS "Using OpenMP for shared memory parallelization")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 else()
@@ -60,7 +62,7 @@ file(GLOB QuESo_ApplicationSource
 )
 
 # QuESo python interface sources
-file(GLOB_RECURSE QuESo_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
+file(GLOB QuESo_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 # Create Core Library
 add_library(QuESo_ApplicationCore SHARED ${QuESo_ApplicationSource})
@@ -83,7 +85,7 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
         set(BOOST_ROOT $ENV{BOOST_ROOT})
     endif(DEFINED ENV{BOOST_ROOT})
     option(Boost_USE_STATIC_LIBS "Use static versions of Boost libraries" OFF)
-    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
     # Add test sources
     file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
@@ -102,8 +104,8 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
     target_compile_definitions(${testThingiName} PRIVATE QUESO_BUILD_TESTING=1)
 
     # Link to Boost libraries and QuESo
-    target_link_libraries(${testName} ${Boost_LIBRARIES} QuESo_ApplicationCore)
-    target_link_libraries(${testThingiName} ${Boost_LIBRARIES} QuESo_ApplicationCore)
+    target_link_libraries(${testName} Boost::unit_test_framework QuESo_ApplicationCore)
+    target_link_libraries(${testThingiName} Boost::unit_test_framework QuESo_ApplicationCore)
 
     # Move to TestExecutables
     set(TEST_EXECUTABLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../TestExecutables)
