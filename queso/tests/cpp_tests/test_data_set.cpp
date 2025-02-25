@@ -82,6 +82,7 @@ BOOST_AUTO_TEST_CASE(TestDataSetValue) {
     QuESo_INFO << "Testing :: Test DataSet :: SetValue" << std::endl;
 
     DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+
     data_set.SetValue(TestKeys3::zero, PointType{1.0, 2.0, 3.0});
     data_set.SetValue(TestKeys3::one, Vector3i{1, 2, 3});
     data_set.SetValue(TestKeys3::two, true);
@@ -141,6 +142,17 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
     QuESo_INFO << "Testing :: Test DataSet :: Set/GetValue (Key)" << std::endl;
 
     DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+
+    // Values are not set.
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::zero) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::one) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::two) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::three) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::four) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::five) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::six) );
+    QuESo_CHECK( !data_set.IsSet(TestKeys3::seven) );
+
     // Values are not set.
     BOOST_REQUIRE_THROW( data_set.GetValue<PointType>(TestKeys3::zero), std::exception);
     BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>(TestKeys3::one), std::exception);
@@ -163,7 +175,7 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
         BOOST_REQUIRE_THROW( data_set.GetValueFast<GridTypeType>(TestKeys3::seven), std::exception);
     }
 
-    // Set Values
+    // Set values
     data_set.SetValue(TestKeys3::zero, PointType{1.0, 2.0, 3.0});
     data_set.SetValue(TestKeys3::one, Vector3i{1, 2, 3});
     data_set.SetValue(TestKeys3::two, true);
@@ -173,8 +185,20 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
     data_set.SetValue(TestKeys3::six, IntegrationMethod::gauss);
     data_set.SetValue(TestKeys3::seven, GridType::b_spline_grid);
 
+    // Values are set.
+    QuESo_CHECK( data_set.IsSet(TestKeys3::zero) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::one) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::two) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::three) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::four) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::five) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::six) );
+    QuESo_CHECK( data_set.IsSet(TestKeys3::seven) );
+
     // Wrong keys
     if constexpr (!NOTDEBUG) {
+        BOOST_REQUIRE_THROW( data_set.IsSet(TestKeys5::seven), std::exception );
+
         BOOST_REQUIRE_THROW( data_set.GetValue<double>(TestKeys5::seven), std::exception );
         BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>(TestKeys5::eight), std::exception );
         BOOST_REQUIRE_THROW( data_set.GetValue<PointType>(TestKeys5::nine), std::exception );
@@ -186,7 +210,7 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
         BOOST_REQUIRE_THROW( data_set.GetValueFast<IndexType>(TestKeys5::ten), std::exception );
     }
 
-    // Get Values
+    // Get values
     QuESo_CHECK_POINT_NEAR( data_set.GetValue<PointType>(TestKeys3::zero), PointType({1.0, 2.0, 3.0}), 1e-12);
     QuESo_CHECK_Vector3i_EQUAL( data_set.GetValue<Vector3i>(TestKeys3::one), Vector3i({1, 2, 3}) );
     QuESo_CHECK_EQUAL( data_set.GetValue<bool>(TestKeys3::two), true );
@@ -202,6 +226,17 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
     QuESo_INFO << "Testing :: Test DataSet :: Set/GetValue (KeyName)" << std::endl;
 
     DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+
+    // Values are not set.
+    QuESo_CHECK( !data_set.IsSet("zero") );
+    QuESo_CHECK( !data_set.IsSet("one") );
+    QuESo_CHECK( !data_set.IsSet("two") );
+    QuESo_CHECK( !data_set.IsSet("three") );
+    QuESo_CHECK( !data_set.IsSet("four") );
+    QuESo_CHECK( !data_set.IsSet("five") );
+    QuESo_CHECK( !data_set.IsSet("six") );
+    QuESo_CHECK( !data_set.IsSet("seven") );
+
     // Values are not set.
     BOOST_REQUIRE_THROW( data_set.GetValue<PointType>("zero"), std::exception);
     BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("one"), std::exception);
@@ -212,7 +247,7 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
     BOOST_REQUIRE_THROW( data_set.GetValue<IntegrationMethodType>("six"), std::exception);
     BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("seven"), std::exception);
 
-    // Set Values
+    // Set values
     data_set.SetValue("zero", PointType{1.0, 2.0, 3.0});
     data_set.SetValue("one", Vector3i{1, 2, 3});
     data_set.SetValue("two", true);
@@ -221,6 +256,19 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
     data_set.SetValue("five", std::string("Hallo"));
     data_set.SetValue("six", IntegrationMethod::gauss);
     data_set.SetValue("seven", GridType::b_spline_grid);
+
+    // Values are set.
+    QuESo_CHECK( data_set.IsSet("zero") );
+    QuESo_CHECK( data_set.IsSet("one") );
+    QuESo_CHECK( data_set.IsSet("two") );
+    QuESo_CHECK( data_set.IsSet("three") );
+    QuESo_CHECK( data_set.IsSet("four") );
+    QuESo_CHECK( data_set.IsSet("five") );
+    QuESo_CHECK( data_set.IsSet("six") );
+    QuESo_CHECK( data_set.IsSet("seven") );
+
+    // Wrong key
+    BOOST_REQUIRE_THROW( data_set.IsSet("zero_"), std::exception);
 
     // Wrong keys
     BOOST_REQUIRE_THROW( data_set.GetValue<PointType>("zero_"), std::exception);
@@ -242,7 +290,7 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
     BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("six"), std::exception);
     BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("seven"), std::exception);
 
-    // Get Values
+    // Get values
     QuESo_CHECK_POINT_NEAR( data_set.GetValue<PointType>("zero"), PointType({1.0, 2.0, 3.0}), 1e-12);
     QuESo_CHECK_Vector3i_EQUAL( data_set.GetValue<Vector3i>("one"), Vector3i({1, 2, 3}) );
     QuESo_CHECK_EQUAL( data_set.GetValue<bool>("two"), true );

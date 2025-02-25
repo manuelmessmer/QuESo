@@ -205,6 +205,21 @@ public:
         return std::get<TValueType>(mData[p_key->Index()]);
     }
 
+    template<typename TKeyType>
+    bool IsSet(const TKeyType& rQueryKey,
+               std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
+
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
+        QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key: '" + rQueryKey.Name() + "' is of wrong type.\n" );
+        return !std::get_if<std::monostate>(&mData[rQueryKey.Index()]);
+    }
+
+    bool IsSet(const std::string& rQueryKeyName) const {
+        // This will throw if the key does not exist.
+        const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
+        return !std::get_if<std::monostate>(&mData[p_key->Index()]);
+    }
+
 private:
 
     ///@}
