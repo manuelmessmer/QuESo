@@ -227,6 +227,19 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
 
     DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
 
+    // Has keys.
+    QuESo_CHECK( data_set.Has("zero") );
+    QuESo_CHECK( data_set.Has("one") );
+    QuESo_CHECK( data_set.Has("two") );
+    QuESo_CHECK( data_set.Has("three") );
+    QuESo_CHECK( data_set.Has("four") );
+    QuESo_CHECK( data_set.Has("five") );
+    QuESo_CHECK( data_set.Has("six") );
+    QuESo_CHECK( data_set.Has("seven") );
+
+    // Does not have key.
+    QuESo_CHECK( !data_set.Has("wrong_key") );
+
     // Values are not set.
     QuESo_CHECK( !data_set.IsSet("zero") );
     QuESo_CHECK( !data_set.IsSet("one") );

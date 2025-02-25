@@ -124,8 +124,9 @@ public:
     /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     template<typename TValueType>
     void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
-        // This will throw if the key does not exist.
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames();
+
         const auto variable_type_index = p_key->VariableTypeIndex();
 
         if constexpr( is_index_v<TValueType> ) { // Given type : convertable to 'IndexType' (Can be signed).
@@ -194,8 +195,8 @@ public:
 
     template<typename TValueType>
     const TValueType& GetValue(const std::string& rQueryKeyName) const {
-        // This will throw if the key does not exist.
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames();
 
         QuESo_ERROR_IF( std::get_if<std::monostate>(&mData[p_key->Index()]) ) << "Value to Key: '" + p_key->Name() + "' is not set.\n";
         QuESo_ERROR_IF( p_key->VariableTypeIndex() != std::type_index(typeid(TValueType)) ) << "The given key: '" << p_key->Name()
@@ -215,9 +216,14 @@ public:
     }
 
     bool IsSet(const std::string& rQueryKeyName) const {
-        // This will throw if the key does not exist.
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames();
+
         return !std::get_if<std::monostate>(&mData[p_key->Index()]);
+    }
+
+    bool Has(const std::string& rQueryKeyName) const {
+        return mpKeySetInfo->pGetKey(rQueryKeyName) != nullptr;
     }
 
 private:
