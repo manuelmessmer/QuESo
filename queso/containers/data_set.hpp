@@ -108,8 +108,8 @@ public:
                        (std::is_same<typename TKeyType::KeyToWhat, IndexType>::value &&
                         is_unsigned_index<TValueType>::value) );
 
-        QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key is of wrong type.\n" );
-        if constexpr( is_unsigned_index_v<TValueType> ) { // Accept different integer types.
+        QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key: '" + rQueryKey.Name() + "' is of wrong type.\n" );
+        if constexpr( is_unsigned_index_v<TValueType> ) { // Accept different unsigned integer types.
             mData[rQueryKey.Index()] = static_cast<IndexType>(rNewValue);
         } else {
             mData[rQueryKey.Index()] = rNewValue;
@@ -126,15 +126,16 @@ public:
     void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
         // This will throw if the key does not exist.
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
+        const auto variable_type_index = p_key->VariableTypeIndex();
 
         if constexpr( is_index_v<TValueType> ) { // Given type : convertable to 'IndexType' (Can be signed).
-            if( p_key->VariableTypeIndex() == std::type_index(typeid(double)) ){ // Target type: 'double'.
+            if( variable_type_index == std::type_index(typeid(double)) ){ // Target type: 'double'.
                 // Allow cast from double to IndexType.
                 mData[p_key->Index()] = static_cast<double>(rNewValue);
                 return;
             }
-            else if( p_key->VariableTypeIndex() == std::type_index(typeid(IndexType)) ) { // Target type: 'IndexType'.
-                if constexpr (std::is_signed<TValueType>::value) {
+            else if( variable_type_index == std::type_index(typeid(IndexType)) ) { // Target type: 'IndexType'.
+                if constexpr( std::is_signed_v<TValueType> ) {
                     QuESo_ERROR_IF(rNewValue < 0) << "Value for Key: '" << p_key->Name() << "' must be non-negative.\n";
                 }
                 mData[p_key->Index()] = static_cast<IndexType>(rNewValue);
@@ -142,75 +143,69 @@ public:
             }
             QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: 'std::size_t or int'.\n";
         } else if constexpr( std::is_same<TValueType, Vector3i>::value ) { // Given type is Vector3i.
-            if( p_key->VariableTypeIndex() == std::type_index(typeid(Vector3d)) ){ // Target type is 'Vector3d'.
+            if( variable_type_index == std::type_index(typeid(Vector3d)) ){ // Target type is 'Vector3d'.
                 // Allow cast from Vector3i to Vector3d.
                 mData[p_key->Index()] = Vector3d{ static_cast<double>(rNewValue[0]),
                                                   static_cast<double>(rNewValue[1]),
                                                   static_cast<double>(rNewValue[2]) };
                 return;
             }
-            else if ( p_key->VariableTypeIndex() == std::type_index(typeid(Vector3i)) ) { // Target type is 'Vector3i'.
+            else if ( variable_type_index == std::type_index(typeid(Vector3i)) ) { // Target type is 'Vector3i'.
                 mData[p_key->Index()] = rNewValue;
                 return;
             }
             QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: 'Vector3i'.\n";
         } else {
-            if( p_key->VariableTypeIndex() == std::type_index(typeid(TValueType)) ){ // Given type and target type match.
+            if( variable_type_index == std::type_index(typeid(TValueType)) ){ // Given type and target type match.
                 mData[p_key->Index()] = rNewValue;
                 return;
             }
-            QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: '"
-                << key::KeyToValue::template Visit<TValueType>::visit() << "'.\n";
+            QuESo_ERROR << "The given key: '" << p_key->Name() << "' accesses a variable of type: '" << p_key->VariableTypeName()
+                        << "'. However, the given value type is: '" << key::KeyToValue::template Visit<TValueType>::visit() << "'.\n";
         }
     }
 
-private:
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValueFast(const TKeyType& rQueryKey,
+                                   std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
 
-    ///@}
-    ///@name Private operations
-    ///@{
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
+        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
 
-    /// Returns type name of TType as const char*
-    template<typename TType>
-    const char* GetTypeName() const {
-        // Names are not really pretty, but abi::__cxa__demangle only works for gcc.
-        return typeid(TType).name();
+        QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key: '" + rQueryKey.Name() + "' is of wrong type.\n" );
+        QuESo_ASSERT( !std::get_if<std::monostate>(&mData[rQueryKey.Index()]),  "Value to Key: '" + rQueryKey.Name() + "' is not set.\n");
+
+        return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
 
-    /// Visit struct to get Type names.
-    struct GetTypeNameVisit {
-        std::string operator()(const PointType& rValue){return "PointType/std::array<double, 3>"; };
-        std::string operator()(const Vector3i& rValue){return "Vector3i/std::array<std::size_t, 3>"; };
-        std::string operator()(const IndexType& rValue){return "std::size_t"; };
-        std::string operator()(const double& rValue){return "double"; };
-        std::string operator()(const std::string& rValue){return "std::string"; };
-        std::string operator()(const bool& rValue){return "bool"; };
-        std::string operator()(const IntegrationMethodType& rValue){return "IntegrationMethod"; };
-        std::string operator()(const GridTypeType& rValue){return "GridType"; };
-    };
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValue(const TKeyType& rQueryKey,
+                               std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const {
 
-    /// Visit struct to print values in JSON format.
-    struct PrintVisit {
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
+        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
 
-        PrintVisit(std::ostream& rOStream) : mOstream(rOStream){}
-        void operator()(const PointType& rValue){mOstream << '[' << rValue[0] << ", " << rValue[1] << ", " << rValue[2] << ']'; };
-        void operator()(const Vector3i& rValue){mOstream << '[' << rValue[0] << ", " << rValue[1] << ", " << rValue[2] << ']';};
-        void operator()(const IndexType& rValue){ mOstream << rValue;};
-        void operator()(const double& rValue){mOstream << rValue;};
-        void operator()(const std::string& rValue){mOstream << '\"' << rValue << '\"';};
-        void operator()(const bool& rValue){std::string out = (rValue) ? "true" : "false"; mOstream << out; };
-        void operator()(const IntegrationMethodType& rValue){ mOstream << '\"' << rValue << '\"'; };
-        void operator()(const GridTypeType& rValue){ mOstream << '\"' << rValue << '\"'; };
+        QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key: '" + rQueryKey.Name() + "' is of wrong type.\n" );
+        QuESo_ERROR_IF( std::get_if<std::monostate>(&mData[rQueryKey.Index()]) ) << "Value to Key: '" + rQueryKey.Name() + "' is not set.\n";
 
-    private:
-        std::ostream& mOstream;
-    };
-
-    ///@}
-    ///@name Private struct and function definitions to extract tuples.
-    ///@{
+        return std::get<TValueType>(mData[rQueryKey.Index()]);
+    }
 
 
+    template<typename TValueType>
+    const TValueType& GetValue(const std::string& rQueryKeyName) const {
+        // This will throw if the key does not exist.
+        const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
+
+        QuESo_ERROR_IF( std::get_if<std::monostate>(&mData[p_key->Index()]) ) << "Value to Key: '" + p_key->Name() + "' is not set.\n";
+        QuESo_ERROR_IF( p_key->VariableTypeIndex() != std::type_index(typeid(TValueType)) ) << "The given key: '" << p_key->Name()
+            << "' accesses a variable of type: '" << p_key->VariableTypeName()
+            << "'. However, the given value type is: '" << key::KeyToValue::template Visit<TValueType>::visit() << "'.\n";
+
+        return std::get<TValueType>(mData[p_key->Index()]);
+    }
+
+private:
 
     ///@}
     ///@name Private member variables

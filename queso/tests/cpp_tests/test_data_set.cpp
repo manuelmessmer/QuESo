@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(TestDataSetTypeTraits) {
     static_assert( !DataSet::is_scoped_int_enum<IndexType>::value );
 }
 
-BOOST_AUTO_TEST_CASE(TestDataSet) {
+BOOST_AUTO_TEST_CASE(TestDataSetValue) {
     QuESo_INFO << "Testing :: Test DataSet :: SetValue" << std::endl;
 
     DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
@@ -94,12 +94,12 @@ BOOST_AUTO_TEST_CASE(TestDataSet) {
     data_set.SetValue(TestKeys3::six, IntegrationMethod::gauss);
     data_set.SetValue(TestKeys3::seven, GridType::b_spline_grid);
 
-    if constexpr (NOTDEBUG) {
+    if constexpr (!NOTDEBUG) {
         // Wrong keys
         BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::seven, 2.0), std::exception );
-        BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::eight, 2), std::exception );
+        BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::eight, IndexType(2)), std::exception );
         BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::nine, PointType{1.0, 2.0, 3.0}), std::exception );
-        BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::ten, 4), std::exception );
+        BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::ten, 4ul), std::exception );
     }
 
     data_set.SetValue("zero", PointType{1.0, 2.0, 3.0});
@@ -129,12 +129,128 @@ BOOST_AUTO_TEST_CASE(TestDataSet) {
     BOOST_REQUIRE_THROW( data_set.SetValue("five", 1), std::exception );
 
     data_set.SetValue("six", IntegrationMethod::gauss);
-    BOOST_REQUIRE_THROW( data_set.SetValue("six", 1), std::exception );
+    BOOST_REQUIRE_THROW( data_set.SetValue("six", Vector3i{0, 0, 0}), std::exception );
 
     data_set.SetValue("seven", GridType::b_spline_grid);
     BOOST_REQUIRE_THROW( data_set.SetValue("seven", 1), std::exception );
 
     BOOST_REQUIRE_THROW( data_set.SetValue("wrong_key", 1), std::exception );
+}
+
+BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
+    QuESo_INFO << "Testing :: Test DataSet :: Set/GetValue (Key)" << std::endl;
+
+    DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+    // Values are not set.
+    BOOST_REQUIRE_THROW( data_set.GetValue<PointType>(TestKeys3::zero), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>(TestKeys3::one), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<bool>(TestKeys3::two), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<double>(TestKeys3::three), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>(TestKeys3::four), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>(TestKeys3::five), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IntegrationMethodType>(TestKeys3::six), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>(TestKeys3::seven), std::exception);
+
+    // Values are not set.
+    if constexpr(!NOTDEBUG) {
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<PointType>(TestKeys3::zero), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<Vector3i>(TestKeys3::one), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<bool>(TestKeys3::two), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<double>(TestKeys3::three), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<IndexType>(TestKeys3::four), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<std::string>(TestKeys3::five), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<IntegrationMethodType>(TestKeys3::six), std::exception);
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<GridTypeType>(TestKeys3::seven), std::exception);
+    }
+
+    // Set Values
+    data_set.SetValue(TestKeys3::zero, PointType{1.0, 2.0, 3.0});
+    data_set.SetValue(TestKeys3::one, Vector3i{1, 2, 3});
+    data_set.SetValue(TestKeys3::two, true);
+    data_set.SetValue(TestKeys3::three, 2.0);
+    data_set.SetValue(TestKeys3::four, IndexType(5));
+    data_set.SetValue(TestKeys3::five, std::string("Hallo"));
+    data_set.SetValue(TestKeys3::six, IntegrationMethod::gauss);
+    data_set.SetValue(TestKeys3::seven, GridType::b_spline_grid);
+
+    // Wrong keys
+    if constexpr (!NOTDEBUG) {
+        BOOST_REQUIRE_THROW( data_set.GetValue<double>(TestKeys5::seven), std::exception );
+        BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>(TestKeys5::eight), std::exception );
+        BOOST_REQUIRE_THROW( data_set.GetValue<PointType>(TestKeys5::nine), std::exception );
+        BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>(TestKeys5::ten), std::exception );
+
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<double>(TestKeys5::seven), std::exception );
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<IndexType>(TestKeys5::eight), std::exception );
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<PointType>(TestKeys5::nine), std::exception );
+        BOOST_REQUIRE_THROW( data_set.GetValueFast<IndexType>(TestKeys5::ten), std::exception );
+    }
+
+    // Get Values
+    QuESo_CHECK_POINT_NEAR( data_set.GetValue<PointType>(TestKeys3::zero), PointType({1.0, 2.0, 3.0}), 1e-12);
+    QuESo_CHECK_Vector3i_EQUAL( data_set.GetValue<Vector3i>(TestKeys3::one), Vector3i({1, 2, 3}) );
+    QuESo_CHECK_EQUAL( data_set.GetValue<bool>(TestKeys3::two), true );
+    QuESo_CHECK_NEAR( data_set.GetValue<double>(TestKeys3::three), 2.0, 1e-12);
+    QuESo_CHECK_EQUAL( data_set.GetValue<IndexType>(TestKeys3::four), 5 );
+    QuESo_CHECK_EQUAL( data_set.GetValue<std::string>(TestKeys3::five), std::string("Hallo") );
+    QuESo_CHECK_EQUAL( data_set.GetValue<IntegrationMethodType>(TestKeys3::six), IntegrationMethod::gauss );
+    QuESo_CHECK_EQUAL( data_set.GetValue<GridTypeType>(TestKeys3::seven), GridType::b_spline_grid );
+}
+
+
+BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
+    QuESo_INFO << "Testing :: Test DataSet :: Set/GetValue (KeyName)" << std::endl;
+
+    DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+    // Values are not set.
+    BOOST_REQUIRE_THROW( data_set.GetValue<PointType>("zero"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("one"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<bool>("two"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<double>("three"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("four"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("five"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IntegrationMethodType>("six"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("seven"), std::exception);
+
+    // Set Values
+    data_set.SetValue("zero", PointType{1.0, 2.0, 3.0});
+    data_set.SetValue("one", Vector3i{1, 2, 3});
+    data_set.SetValue("two", true);
+    data_set.SetValue("three", 2.0);
+    data_set.SetValue("four", IndexType(5));
+    data_set.SetValue("five", std::string("Hallo"));
+    data_set.SetValue("six", IntegrationMethod::gauss);
+    data_set.SetValue("seven", GridType::b_spline_grid);
+
+    // Wrong keys
+    BOOST_REQUIRE_THROW( data_set.GetValue<PointType>("zero_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("one_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<bool>("two_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<double>("three_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("four_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("five_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IntegrationMethodType>("six_"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("seven_"), std::exception);
+
+    // Wrong variable types
+    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("zero"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<bool>("one"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<double>("two"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("three"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<double>("four"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("five"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("six"), std::exception);
+    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("seven"), std::exception);
+
+    // Get Values
+    QuESo_CHECK_POINT_NEAR( data_set.GetValue<PointType>("zero"), PointType({1.0, 2.0, 3.0}), 1e-12);
+    QuESo_CHECK_Vector3i_EQUAL( data_set.GetValue<Vector3i>("one"), Vector3i({1, 2, 3}) );
+    QuESo_CHECK_EQUAL( data_set.GetValue<bool>("two"), true );
+    QuESo_CHECK_NEAR( data_set.GetValue<double>("three"), 2.0, 1e-12);
+    QuESo_CHECK_EQUAL( data_set.GetValue<IndexType>("four"), 5 );
+    QuESo_CHECK_EQUAL( data_set.GetValue<std::string>("five"), std::string("Hallo") );
+    QuESo_CHECK_EQUAL( data_set.GetValue<IntegrationMethodType>("six"), IntegrationMethod::gauss );
+    QuESo_CHECK_EQUAL( data_set.GetValue<GridTypeType>("seven"), GridType::b_spline_grid );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
