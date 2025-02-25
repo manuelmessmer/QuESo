@@ -41,55 +41,78 @@ public:
     typedef std::variant<std::monostate, PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType> VariantValueType;
 
     // Helper tag type
-    template<class TKeyType>
+    template<class TKeySetInfoType>
     struct TypeTag {
-        typedef TKeyType KeyType;
+        typedef TKeySetInfoType KeySetInfoType;
     };
+
+    /// Helper to check for scoped int enums
+    template<typename TType>
+    using is_scoped_int_enum = std::integral_constant<bool, !std::is_convertible<TType,int>::value &&
+                                                             std::is_enum<TType>::value>;
+
+
+    // Helper to check if TType can be cast to std::size_t
+    template<typename TType, typename = void>
+    struct is_castable_to_size_t : std::false_type {};
+
+    template<typename TType>
+    struct is_castable_to_size_t<TType, std::void_t<decltype(static_cast<std::size_t>(std::declval<TType>()))>> : std::true_type {};
+
+
+    // Helper to check if TType is_index (allows signed integers, but no bool and char types)
+    template<typename TType>
+    using is_index = std::integral_constant<bool, is_castable_to_size_t<TType>::value &&
+                                                  std::is_integral<TType>::value &&
+                                                  !std::is_same<TType, bool>::value &&
+                                                  !std::is_same<TType, char>::value &&
+                                                  !std::is_same<TType, unsigned char>::value &&
+                                                  !std::is_same<TType, signed char>::value >;
+
+    // Helper to check if TType is_index (allows signed integers, but no bool and char types)
+    template<typename TType>
+    static constexpr bool is_index_v = is_index<TType>::value;
+
+    // Helper to check if TType is_index (only accepts unsigned integers, also no bool and char types)
+    template<typename TType>
+    using is_unsigned_index = std::integral_constant<bool, is_index_v<TType> &&
+                                                           std::is_unsigned<TType>::value>;
+
+    // Helper to check if TType is_index (only accepts unsigned integers, also no bool and char types)
+    template<typename TType>
+    static constexpr bool is_unsigned_index_v = is_unsigned_index<TType>::value;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    /// @brief Constructor.
-    /// @param NewKey Key. Is stored as TVariantKeyType.
-    /// @param NewKeyName std::string (Is stored to be able to print Key).
-    /// @param NewValue Value. Is stored as VariantValueType.
-    /// @param Set True, if value should be set.
-    /// @note Even if DataSet is not set, NewValue must be given such that the underlying type
-    ///       (which this DataSet is supposed to hold) can be deduced.
-    ///       When later mValue is actually set, its type is checked against the type of the already stored dummy value.
-    ///       This scenario can not be handled with std::monostate.
     template<typename TTypeTag>
     DataSet(TTypeTag) {
-        typedef decltype(key::GetKeyBaseType<typename TTypeTag::KeyType>()) BaseType;
-        static_assert( std::is_same<typename BaseType::KeyToWhat, key::KeyToDataSet>::value );
-        mpKeyInformation = MakeUnique<typename BaseType::KeyInfo>();
-        mData.resize(mpKeyInformation->GetNumberOfKeys());
+        static_assert( std::is_same<typename TTypeTag::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
+        mpKeySetInfo = MakeUnique<typename TTypeTag::KeySetInfoType>();
+        mData.resize(mpKeySetInfo->GetNumberOfKeys());
     }
 
-    /// @brief Sets Value to given Key provided as Enum.
+    /// @brief Sets Value to given Key.
     /// @tparam TKeyType
     /// @tparam TValueType
     /// @param QueryKey (Enum)
     /// @param rNewValue
     /// @see Only throws in DEBUG mode.
     template<typename TKeyType, typename TValueType>
-    void SetValue(TKeyType QueryKey, const TValueType& rNewValue,
-                  std::enable_if_t<std::is_enum<TKeyType>::value>* = nullptr ) noexcept(NOTDEBUG) {
-        
-        QuESo_ASSERT( key::IsCorrectType(mpKeyInformation, QueryKey), "Wrong Key Type.\n" );
-        QuESo_ASSERT( variable::IsCorrectType<TValueType>(QueryKey), "Wrong Value Type.\n" );
-        
-        const IndexType index = static_cast<IndexType>(QueryKey);
-        if constexpr(std::is_same_v<TValueType, int>
-                  || std::is_same_v<TValueType, unsigned int>
-                  || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
-            if constexpr (std::is_same_v<TValueType, int>) {
-                QuESo_ASSERT(rNewValue >= 0, "Value must be non-negative.\n");
-            }
-            mData[index] = static_cast<IndexType>(rNewValue);
+    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue,
+                  std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) noexcept(NOTDEBUG) {
+
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
+        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value ||
+                       (std::is_same<typename TKeyType::KeyToWhat, IndexType>::value &&
+                        is_unsigned_index<TValueType>::value) );
+
+        QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key is of wrong type.\n" );
+        if constexpr( is_unsigned_index_v<TValueType> ) { // Accept different integer types.
+            mData[rQueryKey.Index()] = static_cast<IndexType>(rNewValue);
         } else {
-            mData[index] = rNewValue;
+            mData[rQueryKey.Index()] = rNewValue;
         }
     }
 
@@ -101,35 +124,44 @@ public:
     /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     template<typename TValueType>
     void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
-        IndexType index = mpKeyInformation->GetKeyValue(rQueryKeyName);
-        
-        if constexpr(std::is_same_v<TValueType, int>
-                || std::is_same_v<TValueType, unsigned int>
-                || std::is_same_v<TValueType, unsigned long>) { // Accept different integer types.
-            if constexpr (std::is_same_v<TValueType, int>) {
-                QuESo_ERROR_IF(rNewValue < 0) << "Value must be non-negative.\n";
-            }
-             mData[index] = static_cast<IndexType>(rNewValue);
-        } else {
-            mData[index] = rNewValue;
-        }
-    }
+        // This will throw if the key does not exist.
+        const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
 
-    /// @brief Returns the Value to the given Key provided as Enum.
-    /// @tparam TValueType
-    /// @tparam TKeyType
-    /// @param QueryKey (Enum)
-    /// @return const TValueType&
-    /// @note Only throws in DEBUG mode.
-    template<typename TValueType, typename TKeyType>
-    const TValueType& GetValue(TKeyType QueryKey,    
-                               std::enable_if_t<std::is_enum<TKeyType>::value>* = nullptr ) const noexcept(NOTDEBUG){
-        QuESo_ASSERT( key::IsCorrectType(mpKeyInformation, QueryKey), "Given Key Type does not match stored Key type.\n" );
-        const int index = static_cast<int>(QueryKey);
-        QuESo_ASSERT( std::get_if<std::monostate>(&mData[index]) == 0, "Value is not set.");
-        const TValueType* p_value = std::get_if<TValueType>(&mData[index]);
-        QuESo_ASSERT(p_value != 0, "Given Value type does not match stored Value type.");
-        return *p_value;
+        if constexpr( is_index_v<TValueType> ) { // Given type : convertable to 'IndexType' (Can be signed).
+            if( p_key->VariableTypeIndex() == std::type_index(typeid(double)) ){ // Target type: 'double'.
+                // Allow cast from double to IndexType.
+                mData[p_key->Index()] = static_cast<double>(rNewValue);
+                return;
+            }
+            else if( p_key->VariableTypeIndex() == std::type_index(typeid(IndexType)) ) { // Target type: 'IndexType'.
+                if constexpr (std::is_signed<TValueType>::value) {
+                    QuESo_ERROR_IF(rNewValue < 0) << "Value for Key: '" << p_key->Name() << "' must be non-negative.\n";
+                }
+                mData[p_key->Index()] = static_cast<IndexType>(rNewValue);
+                return;
+            }
+            QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: 'std::size_t or int'.\n";
+        } else if constexpr( std::is_same<TValueType, Vector3i>::value ) { // Given type is Vector3i.
+            if( p_key->VariableTypeIndex() == std::type_index(typeid(Vector3d)) ){ // Target type is 'Vector3d'.
+                // Allow cast from Vector3i to Vector3d.
+                mData[p_key->Index()] = Vector3d{ static_cast<double>(rNewValue[0]),
+                                                  static_cast<double>(rNewValue[1]),
+                                                  static_cast<double>(rNewValue[2]) };
+                return;
+            }
+            else if ( p_key->VariableTypeIndex() == std::type_index(typeid(Vector3i)) ) { // Target type is 'Vector3i'.
+                mData[p_key->Index()] = rNewValue;
+                return;
+            }
+            QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: 'Vector3i'.\n";
+        } else {
+            if( p_key->VariableTypeIndex() == std::type_index(typeid(TValueType)) ){ // Given type and target type match.
+                mData[p_key->Index()] = rNewValue;
+                return;
+            }
+            QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: '"
+                << key::KeyToValue::template Visit<TValueType>::visit() << "'.\n";
+        }
     }
 
 private:
@@ -184,7 +216,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    Unique<key::KeyInformation> mpKeyInformation;
+    Unique<key::KeySetInfo> mpKeySetInfo;
     std::vector<VariantValueType> mData;
     ///@}
 }; // End class DataSet
