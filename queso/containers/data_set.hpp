@@ -86,6 +86,9 @@ public:
     ///@name Life cycle
     ///@{
 
+    /// @brief Constructor
+    /// @tparam TTypeTag
+    /// @param TTypeTag contains typedef to KeySetInfoType.
     template<typename TTypeTag>
     DataSet(TTypeTag) {
         static_assert( std::is_same<typename TTypeTag::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
@@ -96,9 +99,9 @@ public:
     /// @brief Sets Value to given Key.
     /// @tparam TKeyType
     /// @tparam TValueType
-    /// @param QueryKey (Enum)
+    /// @param rQueryKey
     /// @param rNewValue
-    /// @see Only throws in DEBUG mode.
+    /// @param Only throws in DEBUG mode.
     template<typename TKeyType, typename TValueType>
     void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue,
                   std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) noexcept(NOTDEBUG) {
@@ -120,7 +123,6 @@ public:
     /// @tparam TValueType
     /// @param rQueryKeyName
     /// @param rNewValue
-    /// @see SetValueWithAmbiguousType() <- allows to cast ambiguous types, e.g., casts 0 -> 0.0, if possible.
     /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     template<typename TValueType>
     void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
@@ -166,6 +168,13 @@ public:
         }
     }
 
+    /// @brief Returns value associated to the given Key (fast version).
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return const TValueType&
+    /// @note Only throws in debug mode. In realese it does not check if value is set and if the given key is of correct type.
+    /// @see GetValue(): checks if value is set.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValueFast(const TKeyType& rQueryKey,
                                    std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
@@ -179,6 +188,13 @@ public:
         return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
 
+    /// @brief Returns value associated to the given Key.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return const TValueType&
+    /// @note In debug mode it throws if the given key is not of correct type. In debug mode it also throws if value is not set.
+    /// @see GetValueFast(): Only throws in debug.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValue(const TKeyType& rQueryKey,
                                std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const {
@@ -193,6 +209,11 @@ public:
     }
 
 
+    /// @brief Returns value associated to the given Key (given as std::string).
+    /// @tparam TValueType
+    /// @param rQueryKeyName
+    /// @return const TValueType&
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     template<typename TValueType>
     const TValueType& GetValue(const std::string& rQueryKeyName) const {
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
@@ -206,6 +227,11 @@ public:
         return std::get<TValueType>(mData[p_key->Index()]);
     }
 
+    /// @brief Returns true if the value to the given Key is set.
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return bool
+    /// @note Only throws in debug mode.
     template<typename TKeyType>
     bool IsSet(const TKeyType& rQueryKey,
                std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
@@ -215,6 +241,11 @@ public:
         return !std::get_if<std::monostate>(&mData[rQueryKey.Index()]);
     }
 
+    /// @brief Returns true if the value to the given Key (given as std::string) is set.
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return bool
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
     bool IsSet(const std::string& rQueryKeyName) const {
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
         QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames();
@@ -222,6 +253,10 @@ public:
         return !std::get_if<std::monostate>(&mData[p_key->Index()]);
     }
 
+    /// @brief Returns true if given key (given as std::string) exists.
+    /// @param rQueryKeyName
+    /// @return bool
+    /// @note Should only be used in Python. In C++ the correct key types must be known.
     bool Has(const std::string& rQueryKeyName) const {
         return mpKeySetInfo->pGetKey(rQueryKeyName) != nullptr;
     }
@@ -234,6 +269,7 @@ private:
 
     Unique<key::KeySetInfo> mpKeySetInfo;
     std::vector<VariantValueType> mData;
+
     ///@}
 }; // End class DataSet
 
