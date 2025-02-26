@@ -28,10 +28,10 @@ namespace queso {
 /**
  * @class  DataSet
  * @author Manuel Messmer
- * @brief  Stores Key/Value pairs. Keys are stored as TVariantKeyType. Values are stored as VariantValueType, which is hard-coded to:
- *         std::variant<PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType>.
- * @tparam TVariantKey. This should be an pack of enum classes, wrapped inside an std::variant<...enum class>.
- * @see    Dictionary, which uses DataSet.
+ * @brief  Stores values that can be accessed with Keys from a KeySet. The size of the DataSet depends on the size of the KeySet.
+ *         The KeySet must be registered in "includes/register_keys.hpp".
+ *         The respective values are stored in a std::vector<VariantValueType> instance. Possible VariantValueTypes are:
+ *         PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType.
 **/
 class DataSet {
 public:
@@ -40,19 +40,13 @@ public:
 
     typedef std::variant<std::monostate, PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType> VariantValueType;
 
-    // Helper tag type
-    template<class TKeySetInfoType>
-    struct TypeTag {
-        typedef TKeySetInfoType KeySetInfoType;
-    };
-
-    /// Helper to check for scoped int enums
+    /// Helper to check for TType is a scoped int enum.
     template<typename TType>
     using is_scoped_int_enum = std::integral_constant<bool, !std::is_convertible<TType,int>::value &&
                                                              std::is_enum<TType>::value>;
 
 
-    // Helper to check if TType can be cast to std::size_t
+    // Helper to check if TType can be cast to std::size_t.
     template<typename TType, typename = void>
     struct is_castable_to_size_t : std::false_type {};
 
@@ -60,7 +54,7 @@ public:
     struct is_castable_to_size_t<TType, std::void_t<decltype(static_cast<std::size_t>(std::declval<TType>()))>> : std::true_type {};
 
 
-    // Helper to check if TType is_index (allows signed integers, but no bool and char types)
+    // Helper to check if TType is_index (allows signed integers, but no bool and char types).
     template<typename TType>
     using is_index = std::integral_constant<bool, is_castable_to_size_t<TType>::value &&
                                                   std::is_integral<TType>::value &&
@@ -69,16 +63,16 @@ public:
                                                   !std::is_same<TType, unsigned char>::value &&
                                                   !std::is_same<TType, signed char>::value >;
 
-    // Helper to check if TType is_index (allows signed integers, but no bool and char types)
+    // Helper to check if TType is_index (allows signed integers, but no bool and char types).
     template<typename TType>
     static constexpr bool is_index_v = is_index<TType>::value;
 
-    // Helper to check if TType is_index (only accepts unsigned integers, also no bool and char types)
+    // Helper to check if TType is_unsigned_index (only accepts unsigned integers, also no bool and char types).
     template<typename TType>
     using is_unsigned_index = std::integral_constant<bool, is_index_v<TType> &&
                                                            std::is_unsigned<TType>::value>;
 
-    // Helper to check if TType is_index (only accepts unsigned integers, also no bool and char types)
+    // Helper to check if TType is_unsigned_index (only accepts unsigned integers, also no bool and char types).
     template<typename TType>
     static constexpr bool is_unsigned_index_v = is_unsigned_index<TType>::value;
 
@@ -86,22 +80,27 @@ public:
     ///@name Life cycle
     ///@{
 
+    // Helper type tag to templetize the constructor of DataSet.
+    template<class TKeySetInfoType>
+    struct TypeTag {
+        typedef TKeySetInfoType KeySetInfoType;
+    };
+
     /// @brief Constructor
     /// @tparam TTypeTag
-    /// @param TTypeTag contains typedef to KeySetInfoType.
+    /// @param TTypeTag contains typedef to KeySetInfoType: TTypeTag<KeySetInfoType>.
     template<typename TTypeTag>
-    DataSet(TTypeTag) {
+    DataSet(TTypeTag) : mpKeySetInfo( MakeUnique<typename TTypeTag::KeySetInfoType>() ) {
         static_assert( std::is_same<typename TTypeTag::KeySetInfoType::KeyToWhat, key::KeyToValue>::value );
-        mpKeySetInfo = MakeUnique<typename TTypeTag::KeySetInfoType>();
         mData.resize(mpKeySetInfo->GetNumberOfKeys());
     }
 
-    /// @brief Sets Value to given Key.
+    /// @brief Sets the value to the given Key.
     /// @tparam TKeyType
     /// @tparam TValueType
     /// @param rQueryKey
     /// @param rNewValue
-    /// @param Only throws in DEBUG mode.
+    /// @note Only throws in DEBUG mode.
     template<typename TKeyType, typename TValueType>
     void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue,
                   std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) noexcept(NOTDEBUG) {
@@ -113,13 +112,14 @@ public:
 
         QuESo_ASSERT( mpKeySetInfo->IsCorrectKeyType(rQueryKey), "Given Key: '" + rQueryKey.Name() + "' is of wrong type.\n" );
         if constexpr( is_unsigned_index_v<TValueType> ) { // Accept different unsigned integer types.
+            // is_unsigned_index_v implies that rNewValue is castable to IndexType.
             mData[rQueryKey.Index()] = static_cast<IndexType>(rNewValue);
         } else {
             mData[rQueryKey.Index()] = rNewValue;
         }
     }
 
-    /// @brief Sets Value to given Key (given as string).
+    /// @brief Sets the value to the given Key (given as string).
     /// @tparam TValueType
     /// @param rQueryKeyName
     /// @param rNewValue
@@ -130,7 +130,6 @@ public:
         QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames();
 
         const auto variable_type_index = p_key->VariableTypeIndex();
-
         if constexpr( is_index_v<TValueType> ) { // Given type : convertable to 'IndexType' (Can be signed).
             if( variable_type_index == std::type_index(typeid(double)) ){ // Target type: 'double'.
                 // Allow cast from double to IndexType.
@@ -168,13 +167,13 @@ public:
         }
     }
 
-    /// @brief Returns value associated to the given Key (fast version).
+    /// @brief Returns the value to the given Key (fast version, does not throw).
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-    /// @note Only throws in debug mode. In realese it does not check if value is set and if the given key is of correct type.
-    /// @see GetValue(): checks if value is set.
+    /// @note Only throws in debug mode. In realese it does not check if the value is set and if TKeyType is of correct type.
+    /// @see GetValue(): Thorws if value is not set.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValueFast(const TKeyType& rQueryKey,
                                    std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
@@ -188,13 +187,14 @@ public:
         return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
 
-    /// @brief Returns value associated to the given Key.
+    /// @brief Returns the value to the given Key.
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-    /// @note In debug mode it throws if the given key is not of correct type. In debug mode it also throws if value is not set.
-    /// @see GetValueFast(): Only throws in debug.
+    /// @note In release mode it throws if the given key is not set. In debug mode it also throws if TKeyType is of wrong type.
+    ///       TKeyType should be known and therefore always be correct.
+    /// @see GetValueFast(): Never throws in release.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValue(const TKeyType& rQueryKey,
                                std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const {
@@ -209,7 +209,7 @@ public:
     }
 
 
-    /// @brief Returns value associated to the given Key (given as std::string).
+    /// @brief Returns the value the given Key (given as std::string).
     /// @tparam TValueType
     /// @param rQueryKeyName
     /// @return const TValueType&
