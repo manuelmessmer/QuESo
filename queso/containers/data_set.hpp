@@ -127,38 +127,47 @@ public:
     template<typename TValueType>
     void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
-        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames();
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
+                               << "'. Possible names are: " + mpKeySetInfo->GetAllKeyNames() << "\n.";
 
-        const auto variable_type_index = p_key->VariableTypeIndex();
-        if constexpr( is_index_v<TValueType> ) { // Given type : convertable to 'IndexType' (Can be signed).
-            if( variable_type_index == std::type_index(typeid(double)) ){ // Target type: 'double'.
-                // Allow cast from double to IndexType.
+        const auto target_type_index = p_key->VariableTypeIndex();
+
+        // Case 1: Handling TValueTypes that are convertible to 'IndexType'. (signed and unsigned types are allowed.)
+        if constexpr( is_index_v<TValueType> ) {
+            if( target_type_index == std::type_index(typeid(double)) ){ // Target type: 'double'.
+                // Allow cast from IndexType to double.
                 mData[p_key->Index()] = static_cast<double>(rNewValue);
                 return;
             }
-            else if( variable_type_index == std::type_index(typeid(IndexType)) ) { // Target type: 'IndexType'.
-                if constexpr( std::is_signed_v<TValueType> ) {
+            else if( target_type_index == std::type_index(typeid(IndexType)) ) { // Target type: 'IndexType'.
+                if constexpr( std::is_signed_v<TValueType> ) { // Now, TValueType must be unsigned.
                     QuESo_ERROR_IF(rNewValue < 0) << "Value for Key: '" << p_key->Name() << "' must be non-negative.\n";
                 }
                 mData[p_key->Index()] = static_cast<IndexType>(rNewValue);
                 return;
             }
-            QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: 'std::size_t or int'.\n";
-        } else if constexpr( std::is_same<TValueType, Vector3i>::value ) { // Given type is Vector3i.
-            if( variable_type_index == std::type_index(typeid(Vector3d)) ){ // Target type is 'Vector3d'.
+            QuESo_ERROR << "The given key: '" << p_key->Name() << "' accesses a variable of type: '" << p_key->VariableTypeName()
+                        << "'. However, the given value type is: 'std::size_t / int'.\n";
+        }
+        // Case 2: TValueType is Vector3i.
+        else if constexpr( std::is_same<TValueType, Vector3i>::value ) {
+            if( target_type_index == std::type_index(typeid(Vector3d)) ){ // Target type is 'Vector3d'.
                 // Allow cast from Vector3i to Vector3d.
                 mData[p_key->Index()] = Vector3d{ static_cast<double>(rNewValue[0]),
                                                   static_cast<double>(rNewValue[1]),
                                                   static_cast<double>(rNewValue[2]) };
                 return;
             }
-            else if ( variable_type_index == std::type_index(typeid(Vector3i)) ) { // Target type is 'Vector3i'.
+            else if ( target_type_index == std::type_index(typeid(Vector3i)) ) { // Target type is 'Vector3i'.
                 mData[p_key->Index()] = rNewValue;
                 return;
             }
-            QuESo_ERROR << "The given key accesses: '" << p_key->VariableTypeName() << "'. However, the given value is: 'Vector3i'.\n";
-        } else {
-            if( variable_type_index == std::type_index(typeid(TValueType)) ){ // Given type and target type match.
+            QuESo_ERROR << "The given key: '" << p_key->Name() << "' accesses a variable of type: '" << p_key->VariableTypeName()
+                        << "'. However, the given value type is: 'Vector3i / std::array<double,3>'.\n";
+        }
+        else {
+            // Case 3: Target type and given type match.
+            if( target_type_index == std::type_index(typeid(TValueType)) ){
                 mData[p_key->Index()] = rNewValue;
                 return;
             }
@@ -166,6 +175,8 @@ public:
                         << "'. However, the given value type is: '" << key::KeyToValue::template Visit<TValueType>::visit() << "'.\n";
         }
     }
+
+
 
     /// @brief Returns the value to the given Key (fast version, does not throw).
     /// @tparam TValueType
