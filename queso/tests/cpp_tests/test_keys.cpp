@@ -31,7 +31,7 @@ void CheckKey(const TKeyType& rKey, IndexType Index, const std::string& rName) {
     QuESo_CHECK(rKey.VariableTypeIndex() == std::type_index(typeid(TKeyToWhat)));
 
     static_assert( std::is_same<typename TKeyType::KeyToWhat, TKeyToWhat>::value );
-    static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeyToWhat, TKeySetToWhat>::value );
+    static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetToWhat>::value );
     typename TKeyType::KeySetInfoType key_set_info;
     key_set_info.IsCorrectKeyType(rKey);
 
@@ -45,11 +45,11 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys1) {
     QuESo_INFO << "Testing :: Test Keys :: Register Single Key Set 1" << std::endl;
 
     /// TestKeys1
-    CheckKey<queso::key::KeyToSubDict>(TestKeys1::zero, 0, "zero");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys1::one, 1, "one");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys1::two, 2, "two");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys1::three, 3, "three");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys1::four, 4, "four");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys1::zero, 0, "zero");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys1::one, 1, "one");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys1::two, 2, "two");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys1::three, 3, "three");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys1::four, 4, "four");
 
     typedef decltype(TestKeys1::zero)::KeySetInfoType KeySetInfoType;
     KeySetInfoType key_set_info{};
@@ -62,10 +62,10 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys2) {
     QuESo_INFO << "Testing :: Test Keys :: Register Single Key Set 2" << std::endl;
 
     /// TestKeys2
-    CheckKey<queso::key::KeyToList>(TestKeys2::zero, 0, "zero");
-    CheckKey<queso::key::KeyToList>(TestKeys2::one, 1, "one");
-    CheckKey<queso::key::KeyToList>(TestKeys2::two, 2, "two");
-    CheckKey<queso::key::KeyToList>(TestKeys2::three, 3, "three");
+    CheckKey<queso::key::ListTypeTag>(TestKeys2::zero, 0, "zero");
+    CheckKey<queso::key::ListTypeTag>(TestKeys2::one, 1, "one");
+    CheckKey<queso::key::ListTypeTag>(TestKeys2::two, 2, "two");
+    CheckKey<queso::key::ListTypeTag>(TestKeys2::three, 3, "three");
 
     typedef decltype(TestKeys2::zero)::KeySetInfoType KeySetInfoType;
     KeySetInfoType key_set_info{};
@@ -78,14 +78,14 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     QuESo_INFO << "Testing :: Test Keys :: Register Single Key Set 3" << std::endl;
 
     /// TestKeys3
-    CheckKey<queso::key::KeyToValue, PointType>(TestKeys3::zero, 0, "zero");
-    CheckKey<queso::key::KeyToValue, Vector3i>(TestKeys3::one, 1, "one");
-    CheckKey<queso::key::KeyToValue, bool>(TestKeys3::two, 2, "two");
-    CheckKey<queso::key::KeyToValue, double>(TestKeys3::three, 3, "three");
-    CheckKey<queso::key::KeyToValue, IndexType>(TestKeys3::four, 4, "four");
-    CheckKey<queso::key::KeyToValue, std::string>(TestKeys3::five, 5, "five");
-    CheckKey<queso::key::KeyToValue, IntegrationMethodType>(TestKeys3::six, 6, "six");
-    CheckKey<queso::key::KeyToValue, GridTypeType>(TestKeys3::seven, 7, "seven");
+    CheckKey<queso::key::MainValuesTypeTag, PointType>(TestKeys3::zero, 0, "zero");
+    CheckKey<queso::key::MainValuesTypeTag, Vector3i>(TestKeys3::one, 1, "one");
+    CheckKey<queso::key::MainValuesTypeTag, bool>(TestKeys3::two, 2, "two");
+    CheckKey<queso::key::MainValuesTypeTag, double>(TestKeys3::three, 3, "three");
+    CheckKey<queso::key::MainValuesTypeTag, IndexType>(TestKeys3::four, 4, "four");
+    CheckKey<queso::key::MainValuesTypeTag, std::string>(TestKeys3::five, 5, "five");
+    CheckKey<queso::key::MainValuesTypeTag, IntegrationMethodType>(TestKeys3::six, 6, "six");
+    CheckKey<queso::key::MainValuesTypeTag, GridTypeType>(TestKeys3::seven, 7, "seven");
 
     typedef decltype(TestKeys3::zero)::KeySetInfoType KeySetInfoType;
     KeySetInfoType key_set_info{};
@@ -97,11 +97,11 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
 BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     QuESo_INFO << "Testing :: Test Keys :: Register Double Key Set" << std::endl;
 
-    /// TestKeys4 :: KeyToSubDict
-    CheckKey<queso::key::KeyToSubDict>(TestKeys4::zero, 0, "zero");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys4::one, 1, "one");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys4::two, 2, "two");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys4::three, 3, "three");
+    /// TestKeys4 :: SubDictTypeTag
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys4::zero, 0, "zero");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys4::one, 1, "one");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys4::two, 2, "two");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys4::three, 3, "three");
 
     typedef decltype(TestKeys4::zero)::KeySetInfoType KeySetInfoTypeSubDict;
     KeySetInfoTypeSubDict key_set_info_subdict{};
@@ -109,10 +109,10 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     QuESo_CHECK_EQUAL( KeySetInfoTypeSubDict::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three']" );
     BOOST_REQUIRE_THROW( key_set_info_subdict.pGetKey("twelve"), std::exception );
 
-    /// TestKeys4 :: KeyToList
-    CheckKey<queso::key::KeyToList>(TestKeys4::five, 0, "five");
-    CheckKey<queso::key::KeyToList>(TestKeys4::six, 1, "six");
-    CheckKey<queso::key::KeyToList>(TestKeys4::seven, 2, "seven");
+    /// TestKeys4 :: ListTypeTag
+    CheckKey<queso::key::ListTypeTag>(TestKeys4::five, 0, "five");
+    CheckKey<queso::key::ListTypeTag>(TestKeys4::six, 1, "six");
+    CheckKey<queso::key::ListTypeTag>(TestKeys4::seven, 2, "seven");
 
     typedef decltype(TestKeys4::five)::KeySetInfoType KeySetInfoTypeList;
     KeySetInfoTypeList key_set_info_list{};
@@ -124,9 +124,9 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
 BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     QuESo_INFO << "Testing :: Test Keys :: Register Triple Key Set" << std::endl;
 
-    /// TestKeys5 :: KeyToSubDict
-    CheckKey<queso::key::KeyToSubDict>(TestKeys5::zero, 0, "zero");
-    CheckKey<queso::key::KeyToSubDict>(TestKeys5::one, 1, "one");
+    /// TestKeys5 :: SubDictTypeTag
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys5::zero, 0, "zero");
+    CheckKey<queso::key::SubDictTypeTag>(TestKeys5::one, 1, "one");
 
     typedef decltype(TestKeys5::zero)::KeySetInfoType KeySetInfoTypeSubDict;
     KeySetInfoTypeSubDict key_set_info_subdict{};
@@ -134,9 +134,9 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     QuESo_CHECK_EQUAL( KeySetInfoTypeSubDict::StaticGetAllKeyNames(), "['zero', 'one']" );
     BOOST_REQUIRE_THROW( key_set_info_subdict.pGetKey("twelve"), std::exception );
 
-    /// TestKeys5 :: KeyToList
-    CheckKey<queso::key::KeyToList>(TestKeys5::five, 0, "five");
-    CheckKey<queso::key::KeyToList>(TestKeys5::six, 1, "six");
+    /// TestKeys5 :: ListTypeTag
+    CheckKey<queso::key::ListTypeTag>(TestKeys5::five, 0, "five");
+    CheckKey<queso::key::ListTypeTag>(TestKeys5::six, 1, "six");
 
     typedef decltype(TestKeys5::five)::KeySetInfoType KeySetInfoTypeList;
     KeySetInfoTypeList key_set_info_list{};
@@ -144,11 +144,11 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     QuESo_CHECK_EQUAL( KeySetInfoTypeList::StaticGetAllKeyNames(), "['five', 'six']" );
     BOOST_REQUIRE_THROW( key_set_info_list.pGetKey("twelve"), std::exception );
 
-    /// TestKeys5 :: KeyToList
-    CheckKey<queso::key::KeyToValue, double>(TestKeys5::seven, 0, "seven");
-    CheckKey<queso::key::KeyToValue, IndexType>(TestKeys5::eight, 1, "eight");
-    CheckKey<queso::key::KeyToValue, PointType>(TestKeys5::nine, 2, "nine");
-    CheckKey<queso::key::KeyToValue, IndexType>(TestKeys5::ten, 3, "ten");
+    /// TestKeys5 :: ListTypeTag
+    CheckKey<queso::key::MainValuesTypeTag, double>(TestKeys5::seven, 0, "seven");
+    CheckKey<queso::key::MainValuesTypeTag, IndexType>(TestKeys5::eight, 1, "eight");
+    CheckKey<queso::key::MainValuesTypeTag, PointType>(TestKeys5::nine, 2, "nine");
+    CheckKey<queso::key::MainValuesTypeTag, IndexType>(TestKeys5::ten, 3, "ten");
 
     typedef decltype(TestKeys5::nine)::KeySetInfoType KeySetInfoTypeValue;
     KeySetInfoTypeValue key_set_info_value{};
