@@ -15,7 +15,9 @@
 #ifndef KEYS_INCLUDE_HPP
 #define KEYS_INCLUDE_HPP
 
+// When Keys are released: remove this include!!
 #include "queso/includes/define.hpp"
+
 /// STL includes
 #include <string>
 #include <vector>
@@ -45,11 +47,11 @@ inline std::string GetStringWithoutWhiteSpaces(const std::string& rString) {
 /// @brief Helper function to remove 'QuESo_KEY_LIST(' and ')' from a string.
 /// @param rString
 inline void RemoveQuESoList(std::string& rString) {
-    std::size_t start_pos = rString.find("QuESo_KEY_LIST(");
+    IndexType start_pos = rString.find("QuESo_KEY_LIST(");
     if (start_pos != std::string::npos) {
         rString.erase(start_pos, std::string("QuESo_KEY_LIST(").length());
     }
-    std::size_t end_pos = rString.find(")", start_pos);
+    IndexType end_pos = rString.find(")", start_pos);
     if (end_pos != std::string::npos) {
         rString.erase(end_pos, 1);
     }
@@ -65,7 +67,7 @@ inline StringVectorType CreateStringVector(const std::string& rString) {
     std::istringstream stream(cleanedString);
     std::string token;
     while (std::getline(stream, token, ',')) {
-        std::size_t pos = token.find('=');
+        IndexType pos = token.find('=');
         if (pos != std::string::npos) {
             QuESo_ERROR << "Keys must start at 0 and increment by 1. No custom values allowed.";
         } else {
@@ -219,7 +221,7 @@ struct KeySetInfo {
     virtual ~KeySetInfo() = default;
 
     virtual const KeyBase* pGetKey(const std::string& rName) const = 0;
-    virtual std::size_t GetNumberOfKeys() const noexcept = 0;
+    virtual IndexType GetNumberOfKeys() const noexcept = 0;
     virtual bool IsCorrectKeyType(const KeyBase& rKey) const noexcept = 0;
 };
 
@@ -251,7 +253,7 @@ namespace key {\
 
 #define QuESo_KEY_LIST(...) __VA_ARGS__
 
-#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat_, ...) \
+#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat_, KeyNames) \
     typedef queso::key::detail::StringVectorType StringVectorType;\
     typedef queso::key::KeySetInfo KeySetInfoType;\
     typedef queso::key::KeyBase KeyBaseType;\
@@ -259,7 +261,7 @@ namespace key {\
         /* KeySetName##KeyType##KeySetInfo allos to access key set information. */\
         struct KeySetName##KeySetToWhat_##KeySetInfo : public KeySetInfoType {\
             typedef queso::key::KeySetToWhat_ KeySetToWhat;\
-            enum class EnumType {__VA_ARGS__};\
+            enum class EnumType {KeyNames};\
             /* Member function to access key information*/\
             const KeyBaseType* pGetKey(const std::string& rName) const override {\
                 const auto it = msStringToKeyMap.find(rName);\
@@ -268,7 +270,7 @@ namespace key {\
                 }\
                 QuESo_ERROR << "Invalid Key name. Possible names are: " + StaticGetAllKeyNames();\
             }\
-            std::size_t GetNumberOfKeys() const noexcept override {\
+            IndexType GetNumberOfKeys() const noexcept override {\
                 return msEnumNames.size();\
             }\
             bool IsCorrectKeyType(const KeyBaseType& rKey) const noexcept override {\
@@ -284,7 +286,7 @@ namespace key {\
                 }\
                 return result.insert(0, "['") + "']";\
             }\
-            inline static const StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#__VA_ARGS__);\
+            inline static const StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#KeyNames);\
             static const std::unordered_map<std::string, const KeyBaseType* const> msStringToKeyMap; \
         };\
     }
