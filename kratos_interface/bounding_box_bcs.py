@@ -11,7 +11,7 @@ class BoundingBox():
 
     Derived classes must override the 'apply()' method to implement specific boundary condition logic.
     """
-    def __init__(self, lower_point: List[float], upper_point: List[float]):
+    def __init__(self, lower_point: List[float], upper_point: List[float]) -> None:
         """
         Constructor for the boundary condition base class.
 
@@ -22,7 +22,7 @@ class BoundingBox():
         self.lower_point = lower_point
         self.upper_point = upper_point
 
-    def IsWeakCondition(self) -> bool:
+    def is_weak_condition(self) -> bool:
         """
         Indicates whether the boundary condition is weak.
 
@@ -31,12 +31,12 @@ class BoundingBox():
         """
         return False
 
-    def apply(self, model_part) -> None:
+    def apply(self, model_part: KM.ModelPart) -> None:
         """
         Applies the boundary condition to the given model part.
 
         Args:
-            model_part (ModelPart): The model or part of the model to apply the condition to.
+            model_part (KM.ModelPart): The model or part of the model to apply the condition to.
 
         Raises:
             Exception: Raises an exception because this method must be overridden in derived classes.
@@ -63,7 +63,7 @@ class DirichletCondition(BoundingBox):
     fix the displacement of nodes inside the bounding box, based on the
     provided displacement vector.
     """
-    def __init__(self, lower_point: List[float], upper_point: List[float], disp: List[bool]):
+    def __init__(self, lower_point: List[float], upper_point: List[float], disp: List[bool]) -> None:
         """
         Initializes the DirichletCondition with bounding box corners and displacement vector.
 
@@ -76,22 +76,21 @@ class DirichletCondition(BoundingBox):
         super(DirichletCondition, self).__init__(lower_point, upper_point)
         self.disp = disp
 
-    def apply(self, model_part):
+    def apply(self, model_part: KM.ModelPart) -> None:
         """
         Applies the Dirichlet boundary condition to the given model part by fixing displacements
         of nodes that lie within the bounding box.
 
         Args:
-            model_part (ModelPart): Kratos model part.
+            model_part (KM.ModelPart): Kratos model part.
         """
         for node in model_part.Nodes:
-            point = [node.X0, node.Y0, node.Z0]
-            if( self._is_inside(point) ):
-                if self.disp[0] == 1:
+            if( self._is_inside([node.X0, node.Y0, node.Z0]) ):
+                if self.disp[0]:
                     node.Fix(KM.DISPLACEMENT_X)
-                if self.disp[1] == 1:
+                if self.disp[1]:
                     node.Fix(KM.DISPLACEMENT_Y)
-                if self.disp[2] == 1:
+                if self.disp[2]:
                     node.Fix(KM.DISPLACEMENT_Z)
 
 class NeumannCondition(BoundingBox):
@@ -102,7 +101,7 @@ class NeumannCondition(BoundingBox):
     to the nodes inside the bounding box. The applied force is distributed equally among
     the nodes within the bounding box.
     """
-    def __init__(self, lower_point: List[float], upper_point: List[float], force: List[float] ):
+    def __init__(self, lower_point: List[float], upper_point: List[float], force: List[float] ) -> None:
         """
         Initializes the NeumannCondition with bounding box corners and a force vector.
 
@@ -115,13 +114,13 @@ class NeumannCondition(BoundingBox):
         super(NeumannCondition, self).__init__(lower_point, upper_point)
         self.force = force
 
-    def apply(self, model_part):
+    def apply(self, model_part: KM.ModelPart) -> None:
         """
         Applies the Neumann boundary condition to the given model part by distributing
         the force across the nodes inside the bounding box.
 
         Args:
-            model_part (ModelPart): The model or part of the model to apply the boundary condition to.
+            model_part (KM.ModelPart): The model or part of the model to apply the boundary condition to.
 
         Warnings:
             If no nodes are inside the bounding box, a warning is raised.
