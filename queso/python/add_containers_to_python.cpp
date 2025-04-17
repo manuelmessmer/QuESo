@@ -196,7 +196,7 @@ void AddContainersToPython(pybind11::module& m) {
 
     /// Export Condition
     py::class_<ConditionType, Unique<ConditionType>>(m,"Condition")
-        .def("IsWeakCondition", [](const ConditionType& rCondition)->bool { return true; } )
+        .def("is_weak_condition", [](const ConditionType& rCondition)->bool { return true; } )
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
         .def("NumberOfSegments", &ConditionType::NumberOfSegments )
