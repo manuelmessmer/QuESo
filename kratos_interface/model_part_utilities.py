@@ -51,7 +51,7 @@ class ModelPartUtilities:
 
         Args:
             KratosModelPart (KM.ModelPart): The Kratos ModelPart to populate with data from the triangle mesh.
-            TriangleMesh (TriangleMesh): The QuESo triangle mesh from which the model part is read.
+            TriangleMesh (QuESo.TriangleMesh): The QuESo triangle mesh from which the model part is read.
         """
         vertices = TriangleMesh.GetVertices()
         for v_id, vertex in enumerate(vertices):
@@ -191,7 +191,7 @@ class ModelPartUtilities:
 
         boundary_conditions = []
         for bc in Conditions:
-            if bc.IsWeakCondition():
+            if bc.is_weak_condition():
                 condition_settings = bc.GetSettings()
                 type_name = condition_settings.GetString("condition_type")
 
