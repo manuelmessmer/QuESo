@@ -1,4 +1,6 @@
-import QuESo_PythonApplication as QuESo_App
+# Import QuESo
+import QuESo_PythonApplication as QuESo
+
 # Import Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
@@ -12,7 +14,13 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
     This class overrides the `StructuralMechanicsAnalysis` stage from Kratos to include custom
     behavior specific to the needs of a QuESo-based analysis.
     """
-    def __init__(self, model, queso_settings, kratos_settings_filename, elements, boundary_conditions):
+    def __init__(self,
+            model: KM.Model,
+            queso_settings: QuESo.Settings,
+            kratos_settings_filename: str,
+            elements: QuESo.ElementVector,
+            boundary_conditions: QuESo.ConditionVector
+        ) -> None:
         """
         Constructor for CustomAnalysisStage.
 
@@ -20,35 +28,35 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         elements, and sets up the model part.
 
         Args:
-            model (Model): The Kratos model to be used for the analysis.
-            queso_settings (Parameters): The settings for the analysis, including conditions and grid settings.
+            model (KM.Model): The Kratos model to be used for the analysis.
+            queso_settings (QuESo.Settings): The settings for the analysis, including conditions and grid settings.
             kratos_settings_filename (str): Path to the Kratos settings JSON file.
-            elements (list): List of elements to be added to the model part.
-            boundary_conditions (list): List of boundary conditions to be applied to the model.
+            elements (QuESo.ElementVector): List of elements to be added to the model part.
+            boundary_conditions (QuESo.ConditionVector): List of boundary conditions to be applied to the model.
         """
 
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
             analysis_parameters = KM.Parameters(parameter_file.read())
 
+        # Initialize members
         self.boundary_conditions = boundary_conditions
         self.elements = elements
         self.queso_settings = queso_settings
-
         self.lagrange_dofs_required = False
+
+        # Set up model part
         for condition_param in self.queso_settings.GetList("conditions_settings_list"):
             if( condition_param.GetString("condition_type") == "LagrangeSupportCondition" ):
                 self.lagrange_dofs_required = True
-
         nurbs_model_part = model.CreateModelPart("NurbsMesh")
         nurbs_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         nurbs_model_part.AddNodalSolutionStepVariable(KM.REACTION)
-
         if self.lagrange_dofs_required:
             nurbs_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
             nurbs_model_part.AddNodalSolutionStepVariable(IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
-        #Override the NurbsGeometryModeler input parameters
+        # Override the NurbsGeometryModeler input parameters
         grid_settings = self.queso_settings["background_grid_settings"]
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
@@ -84,10 +92,10 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         embedded_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
         filename = self.queso_settings["general_settings"].GetString("input_filename")
-        self.triangle_mesh = QuESo_App.TriangleMesh()
-        QuESo_App.IO.ReadMeshFromSTL(self.triangle_mesh, filename)
+        self.triangle_mesh = QuESo.TriangleMesh()
+        QuESo.IO.ReadMeshFromSTL(self.triangle_mesh, filename)
         ModelPartUtilities.ReadModelPartFromTriangleMesh(embedded_model_part, self.triangle_mesh)
-        # Convert the geometry model or import analysis suitable models.
+
         for modeler in self._GetListOfModelers():
             if self.echo_level > 1:
                 KM.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart started.")
