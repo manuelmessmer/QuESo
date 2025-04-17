@@ -6,12 +6,27 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 from kratos_interface.model_part_utilities import ModelPartUtilities
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):
-    """Customized Kratos Analysis Stage.
+    """
+    Customized Kratos Analysis Stage.
 
-    Overrides the StructuralMechanicsAnalysis Stage from Kratos.
+    This class overrides the `StructuralMechanicsAnalysis` stage from Kratos to include custom
+    behavior specific to the needs of a QuESo-based analysis.
     """
     def __init__(self, model, queso_settings, kratos_settings_filename, elements, boundary_conditions):
-        """The constructor."""
+        """
+        Constructor for CustomAnalysisStage.
+
+        Initializes the class, reads the Kratos settings, configures the boundary conditions and
+        elements, and sets up the model part.
+
+        Args:
+            model (Model): The Kratos model to be used for the analysis.
+            queso_settings (Parameters): The settings for the analysis, including conditions and grid settings.
+            kratos_settings_filename (str): Path to the Kratos settings JSON file.
+            elements (list): List of elements to be added to the model part.
+            boundary_conditions (list): List of boundary conditions to be applied to the model.
+        """
+
         # Read kratos settings
         with open(kratos_settings_filename,'r') as parameter_file:
             analysis_parameters = KM.Parameters(parameter_file.read())
@@ -33,8 +48,8 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             nurbs_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
             nurbs_model_part.AddNodalSolutionStepVariable(IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
-        grid_settings = self.queso_settings["background_grid_settings"]
         #Override the NurbsGeometryModeler input parameters
+        grid_settings = self.queso_settings["background_grid_settings"]
         for modeler in analysis_parameters["modelers"].values():
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
@@ -57,8 +72,13 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         super().__init__(model, analysis_parameters)
 
 
-    def _ModelersSetupModelPart(self):
-        """Override BaseClass to run NURBS modelers."""
+    def _ModelersSetupModelPart(self) -> None:
+        """
+        Override BaseClass to run NURBS modelers.
+
+        This method creates a new model part for the embedded mesh, adds necessary variables,
+        reads the mesh, and sets up modelers.
+        """
         embedded_model_part = self.model.CreateModelPart('EmbeddedModelPart')
         embedded_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
@@ -74,11 +94,16 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             modeler.SetupModelPart()
             if self.echo_level > 1:
                 KM.Logger.PrintInfo(self._GetSimulationName(), "Modeler: ", str(modeler), " Setup ModelPart finished.")
-        return super()._ModelersSetupModelPart()
+        super()._ModelersSetupModelPart()
 
 
-    def ModifyInitialGeometry(self):
-        """Override BaseClass to pass integration points to Kratos."""
+    def ModifyInitialGeometry(self) -> None:
+        """
+        Override BaseClass to pass integration points to Kratos.
+
+        This method modifies the initial geometry by clearing existing elements and conditions
+        from the model part, adding new ones (with QuESo's integration points), and setting up DOFs (degrees of freedom).
+        """
         model_part = self.model.GetModelPart('NurbsMesh')
         ModelPartUtilities.RemoveAllElements(model_part)
         ModelPartUtilities.RemoveAllConditions(model_part)
