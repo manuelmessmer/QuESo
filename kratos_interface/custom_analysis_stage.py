@@ -111,7 +111,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         Override BaseClass to pass integration points to Kratos.
 
         This method modifies the initial geometry by clearing existing elements and conditions
-        from the model part, adding new ones (with QuESo's integration points), and setting up DOFs (degrees of freedom).
+        from the model part, adding new ones (with QuESo's integration points), and setting up DOFs.
         """
         model_part = self.model.GetModelPart('NurbsMesh')
         ModelPartUtilities.RemoveAllElements(model_part)

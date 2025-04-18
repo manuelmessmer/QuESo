@@ -24,7 +24,7 @@ class WeakBcsBase():
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh of boundary.
             bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
         """
         self.bcs_triangles = bcs_triangles
         self.bounds_xyz = bounds_xyz
@@ -67,7 +67,7 @@ class PenaltySupport(WeakBcsBase):
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh for BC.
             bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             prescribed (List[float]): Prescribed displacement vector.
             penalty (float): Penalty factor.
         """
@@ -130,12 +130,12 @@ class LagrangeSupport(WeakBcsBase):
             bounds_uvw: List[List[float]],
             prescribed: List[float]
         ) -> None:
-        """Initializes LagrangeSupport.
+        """Initializes LagrangeMultiplierSupport.
 
         Args:
             bcs_triangles (QuESo.TriangleMes): Triangle mesh.
             bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             prescribed (List[float]): Prescribed displacement.
         """
         super(LagrangeSupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
@@ -204,7 +204,7 @@ class SurfaceLoad(WeakBcsBase):
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh.
             bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             modulus (float): Load magnitude.
             direction (List[float]): Load direction vector.
         """
@@ -242,8 +242,8 @@ class SurfaceLoad(WeakBcsBase):
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
                 weight = point.Weight() # Weight contains all mapping terms.
-                if weight < 1e-14: # Skip insignificant weights
-                    continue
+                if weight < 1e-14:
+                    continue # Skip insignificant weights
 
                 condition = model_part.CreateNewCondition(
                     "LoadCondition",
@@ -251,7 +251,7 @@ class SurfaceLoad(WeakBcsBase):
                     quadrature_point_geometries_boundary[0],
                     properties
                 )
-                force = weight * np.array(self.force)  # Vectorized calculation
+                force = weight * np.array(self.force)
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0])
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1])
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2])
@@ -273,7 +273,7 @@ class PressureLoad(WeakBcsBase):
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh.
             bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             modulus (float): Pressure value (magnitude).
         """
         super(PressureLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)

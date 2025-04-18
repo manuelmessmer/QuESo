@@ -7,7 +7,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 
 class BoundingBox():
     """
-    Base class to provide interface for the application of boundary conditions.
+    Base class to provide interface for the application of boundary conditions via boundaing boxes.
 
     Derived classes must override the 'apply()' method to implement specific boundary condition logic.
     """
@@ -22,21 +22,12 @@ class BoundingBox():
         self.lower_point = lower_point
         self.upper_point = upper_point
 
-    def is_weak_condition(self) -> bool:
-        """
-        Indicates whether the boundary condition is weak.
-
-        Returns:
-            bool: False by default. Override in derived class if needed.
-        """
-        return False
-
     def apply(self, model_part: KM.ModelPart) -> None:
         """
         Applies the boundary condition to the given model part.
 
         Args:
-            model_part (KM.ModelPart): The model or part of the model to apply the condition to.
+            model_part (KM.ModelPart): The model part to apply the condition to.
 
         Raises:
             Exception: Raises an exception because this method must be overridden in derived classes.
@@ -54,6 +45,16 @@ class BoundingBox():
             bool: True if the point lies within the bounding box; False otherwise.
         """
         return all(self.lower_point[i] < point[i] < self.upper_point[i] for i in range(3))
+
+    @staticmethod
+    def is_weak_condition() -> bool:
+        """
+        Indicates whether the boundary condition is weak.
+
+        Returns:
+            bool: Always False.
+        """
+        return False
 
 class DirichletCondition(BoundingBox):
     """

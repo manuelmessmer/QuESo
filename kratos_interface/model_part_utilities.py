@@ -10,7 +10,7 @@ from kratos_interface.weak_bcs import PressureLoad
 
 class ModelPartUtilities:
     """
-    Utility class for managing Kratos ModelPart operations related to QuESo triangle meshes and elements.
+    Utility class for managing Kratos ModelPart operations related to QuESo triangle meshes, elements, and conditions.
 
     This class provides various static methods to interact with Kratos model parts, including reading from and writing
     to STL files, transferring triangle meshes between QuESo and Kratos, and adding elements and conditions to Kratos
@@ -126,22 +126,25 @@ class ModelPartUtilities:
 
         el_count = 0
         for element in Elements:
-            integration_points = []
-            if element.IsTrimmed():
-                for point in element.GetIntegrationPoints():
-                    weight = point.Weight()
-                    if( weight > 0):
-                        integration_points.append([point.X(), point.Y(), point.Z(), point.Weight()])
-            else:
-                for point in element.GetIntegrationPoints():
-                    integration_points.append([point.X(), point.Y(), point.Z(), point.Weight()])
+            # Collect valid integration points
+            integration_points = [
+                [point.X(), point.Y(), point.Z(), point.Weight()]
+                for point in element.GetIntegrationPoints()
+                if(point.Weight() > 0)
+            ]
 
-            if( len(integration_points) > 0 ):
+            # Create elements
+            if integration_points:
                 el_count += 1
                 # Create quadrature_point_geometries
                 quadrature_point_geometries = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
-                KratosNurbsVolumeModelPart.CreateNewElement('SmallDisplacementElement3D8N', el_count, quadrature_point_geometries[0], volume_properties)
+                KratosNurbsVolumeModelPart.CreateNewElement(
+                    'SmallDisplacementElement3D8N',
+                    el_count,
+                    quadrature_point_geometries[0],
+                    volume_properties
+                )
 
     @staticmethod
     def AddConditionsToModelPart(
