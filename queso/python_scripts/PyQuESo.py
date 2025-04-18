@@ -105,7 +105,7 @@ class PyQuESo:
                     integration_points.append(point_inside)
         return integration_points
 
-    def GetAnalysis(self) -> Analysis:
+    def GetAnalysis(self):
         """Returns the Kratos analysis object.
 
         Returns:
@@ -121,7 +121,7 @@ class PyQuESo:
     #########################################
     #### Kratos related member functions ####
     #########################################
-    def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part: KM.ModelPart) -> None:
+    def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part) -> None:
         """Updates a Kratos model part with QuESo geometry and conditions.
 
         Args:
