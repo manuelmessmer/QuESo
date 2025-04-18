@@ -87,8 +87,9 @@ class ModelPartUtilities:
         elif(type == "Conditions"):
             entity_list = KratosModelPart.Conditions
         else:
-            message = "ModelPartUtilities :: ReadTriangleMeshFromModelPart :: Given type: '" + str(type)
-            message += "' not valid. Available options are: 'Elements' and 'Conditions'."
+            message = (
+                f"Given condition type '{type_name}' is not available. "
+                f"Available options are: 'Elements' and 'Conditions'.")
             raise Exception(message)
 
         for entity in entity_list:
@@ -196,7 +197,14 @@ class ModelPartUtilities:
                 type_name = condition_settings.GetString("condition_type")
 
                 if type_name not in condition_handlers:
-                    raise Exception(f"Given condition type '{type_name}' is not available.")
+                    available_conditions = (
+                        "PenaltySupportCondition",
+                        "LagrangeSupportCondition",
+                        "SurfaceLoadCondition",
+                        "PressureLoadCondition"
+                    )
+                    options = ', '.join(f'"{cond}"' for cond in available_conditions)
+                    raise Exception(f"Given condition type '{type_name}' is not available. Available options are: {options}.")
 
                 handler = condition_handlers[type_name]
                 for segment in bc:
