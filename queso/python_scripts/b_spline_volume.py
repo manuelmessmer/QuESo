@@ -64,7 +64,7 @@ class BSplineVolume:
         else:
             raise Exception("BSplineVolume :: GetSpline :: Index out of scope.")
 
-    def ControlPoints(self) -> list[list[float]]:
+    def ControlPoints(self) -> List[List[float]]:
         ''' Returns control points of B-Spline volume in a list.
 
             The point indices are linearized and can be accessed the following:
