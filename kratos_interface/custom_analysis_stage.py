@@ -4,6 +4,7 @@ import QuESo_PythonApplication as QuESo
 # Import Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
+import KratosMultiphysics.LinearSolversApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 from kratos_interface.model_part_utilities import ModelPartUtilities
 
