@@ -107,19 +107,20 @@ class PenaltySupport(WeakBcsBase):
             surface_in_nurbs_volume = KM.SurfaceInNurbsVolumeGeometry(nurbs_volume, geom)
             surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
-            if surface_in_nurbs_volume.Area().Area() <= 1e-14:
+            if surface_in_nurbs_volume.Area() <= 1e-14:
                 continue  # Skip negligible surfaces
 
             condition = model_part.CreateNewCondition(
                 'SupportPenaltyCondition',
-                id_counter+triangle_id,
+                id_counter,
                 quadrature_point_geometries[0],
                 properties
             )
             condition.SetValue(KM.DISPLACEMENT, kratos_prescribed)
+            id_counter += 1
 
 class LagrangeSupport(WeakBcsBase):
-    """PenaltySupport.
+    """LagrangeMultiplierSupport.
 
     Derived from WeakBcsBase.
     """
@@ -179,11 +180,12 @@ class LagrangeSupport(WeakBcsBase):
             # Create condition
             condition = model_part.CreateNewCondition(
                 'SupportLagrangeCondition',
-                id_counter+triangle_id,
+                id_counter,
                 quadrature_point_geometries[0],
                 properties
             )
             condition.SetValue(KM.DISPLACEMENT, kratos_prescribed)
+            id_counter += 1
 
 class SurfaceLoad(WeakBcsBase):
     """SurfaceLoad.
@@ -245,7 +247,7 @@ class SurfaceLoad(WeakBcsBase):
 
                 condition = model_part.CreateNewCondition(
                     "LoadCondition",
-                    id_counter+triangle_id,
+                    id_counter,
                     quadrature_point_geometries_boundary[0],
                     properties
                 )
@@ -253,6 +255,7 @@ class SurfaceLoad(WeakBcsBase):
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0])
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1])
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2])
+                id_counter += 1
 
 class PressureLoad(WeakBcsBase):
     """PressureLoad.
@@ -306,7 +309,12 @@ class PressureLoad(WeakBcsBase):
                 if weight < 1e-14:
                     continue  # Skip insignificant weights
 
-                condition = model_part.CreateNewCondition("LoadCondition", id_counter+triangle_id, quadrature_point_geometries_boundary[0], properties)
+                condition = model_part.CreateNewCondition(
+                    "LoadCondition",
+                    id_counter,
+                    quadrature_point_geometries_boundary[0],
+                    properties
+                )
 
                 normal = point.Normal()
                 force = -1.0 * weight * self.modulus * np.array(normal)
@@ -314,3 +322,4 @@ class PressureLoad(WeakBcsBase):
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0])
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1])
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2])
+                id_counter += 1
