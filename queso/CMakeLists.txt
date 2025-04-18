@@ -4,12 +4,13 @@ project(QuESo_Application)
 
 if(NOT DEFINED ENV{QUESO_BUILD_TYPE})
     message(WARNING "QUESO_BUILD_TYPE environment variable is not set! Defaulting to Release.")
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
+    set(CMAKE_BUILD_TYPE Release)
 else()
-    set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE} CACHE STRING "Build type")
+    set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE})
 endif()
+message("-- CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
+set(CMAKE_CXX_STANDARD)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include local directories
