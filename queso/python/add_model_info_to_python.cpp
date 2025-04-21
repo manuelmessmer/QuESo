@@ -18,10 +18,6 @@
 // To export
 #include "queso/includes/model_info.hpp"
 
-// Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
-typedef std::vector<queso::ModelInfoBaseType> ModelInfoDictionaryVectorType;
-PYBIND11_MAKE_OPAQUE(ModelInfoDictionaryVectorType);
-
 namespace queso {
 namespace Python {
 
@@ -29,15 +25,15 @@ namespace py = pybind11;
 
 void AddModelInfoToPython(pybind11::module& m) {
 
+    using ModelInfoDictionaryVectorType = std::vector<queso::ModelInfoBaseType>;
+
     /// Export ModelInfoDictionary
     py::class_<ModelInfoBaseType> model_info_base_type_binder(m,"ModelInfoDictionary");
 
     DictionaryBinderHelper<ModelInfoBaseType>(model_info_base_type_binder);
 
     /// Export ModelInfoDictionaryVectorType (Required for list of subdicionaries)
-    py::bind_vector<ModelInfoDictionaryVectorType, Unique<ModelInfoDictionaryVectorType>>
-        (m, "ModelInfoDictionaryVector")
-    ;
+    py::bind_vector<ModelInfoDictionaryVectorType>(m, "ModelInfoDictionaryVector");
 
     /// Export ModelInfo
     // Note: ModelInfo is always created within C++. Therefore, no constructor required.
