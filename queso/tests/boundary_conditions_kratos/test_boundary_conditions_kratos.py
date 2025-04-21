@@ -3,7 +3,7 @@ import QuESo_PythonApplication as QuESo_App
 from QuESo_PythonApplication.PyQuESo import PyQuESo
 from queso.python_scripts.helper import *
 from kratos_interface.model_part_utilities import ModelPartUtilities
-from queso.python_scripts.QuESoUnittest import QuESoTestCase
+from queso.python_scripts.queso_unit_test import QuESoTestCase
 # Kratos imports
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IGA
@@ -79,7 +79,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
                       grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
-        ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
+        ModelPartUtilities.add_conditions_to_model_part(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         properties = model_part.GetProperties()[1]
         process_info = KM.ProcessInfo()
@@ -106,7 +106,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
                       grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
-        ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
+        ModelPartUtilities.add_conditions_to_model_part(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         for condition in model_part.Conditions:
             value = condition.GetValue(KM.DISPLACEMENT)
@@ -128,7 +128,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
                       grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
-        ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
+        ModelPartUtilities.add_conditions_to_model_part(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         force = [0.0, 0.0, 0.0]
         for condition in model_part.Conditions:
@@ -153,7 +153,7 @@ class TestBoundaryConditionsKratos(QuESoTestCase):
         bounds_uvw = [grid_settings.GetDoubleVector("lower_bound_uvw"),
                       grid_settings.GetDoubleVector("upper_bound_uvw") ]
         self.construct_b_spline_volume(model, settings)
-        ModelPartUtilities.AddConditionsToModelPart(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
+        ModelPartUtilities.add_conditions_to_model_part(model_part, pyqueso.GetConditions(), bounds_xyz, bounds_uvw)
 
         force = [0.0, 0.0, 0.0]
         for condition in model_part.Conditions:
