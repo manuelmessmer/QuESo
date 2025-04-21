@@ -171,7 +171,7 @@ class BSplineVolume:
         """
         return len(self.spline_w.c)
 
-    def __construct_b_spline(self,
+    def _construct_b_spline(self,
             Order: int,
             NumElements: int,
             LowerBoundX: float,
