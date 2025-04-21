@@ -18,14 +18,17 @@
 // To export
 #include "queso/includes/settings.hpp"
 
+
+// Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
+using SettingsDictionaryVectorType = std::vector<queso::SettingsBaseType>;
+PYBIND11_MAKE_OPAQUE(SettingsDictionaryVectorType);
+
 namespace queso {
 namespace Python {
 
 namespace py = pybind11;
 
 void AddSettingsToPython(pybind11::module& m) {
-
-    using SettingsDictionaryVectorType = std::vector<queso::SettingsBaseType>;
 
     /// Export Dictionary
     py::class_<SettingsBaseType> settings_base_type_binder(m,"SettingsDictionary");
