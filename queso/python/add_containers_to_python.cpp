@@ -181,7 +181,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Element
-    py::class_<ElementType>(m,"Element")
+    py::class_<ElementType, ElementPtrType>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (ElementType::*)() const>(&ElementType::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
         .def("LowerBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().first; })
@@ -215,7 +215,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Condition Segment
-    py::class_<ConditionSegmentType>(m,"ConditionSegment")
+    py::class_<ConditionSegmentType, ConditionSegmentPtrType>(m,"ConditionSegment")
         .def("GetTriangleMesh", &ConditionSegmentType::GetTriangleMesh , py::return_value_policy::reference_internal )
     ;
 
@@ -230,7 +230,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Condition
-    py::class_<ConditionType>(m,"Condition")
+    py::class_<ConditionType, ConditionPtrType>(m,"Condition")
         .def_static("is_weak_condition", []()->bool { return true; } )
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
