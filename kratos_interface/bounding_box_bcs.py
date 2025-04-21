@@ -96,7 +96,7 @@ class DirichletCondition(BoundingBoxBC):
             model_part (KM.ModelPart): Kratos model part.
         """
         for node in model_part.Nodes:
-            if( self._is_inside([node.X0, node.Y0, node.Z0]) ):
+            if( self._is_inside((node.X0, node.Y0, node.Z0)) ):
                 if self.disp[0]:
                     node.Fix(KM.DISPLACEMENT_X)
                 if self.disp[1]:
@@ -141,7 +141,7 @@ class NeumannCondition(BoundingBoxBC):
             If no nodes are inside the bounding box, a warning is raised.
         """
 
-        node_ids_with_force = [node.Id for node in model_part.Nodes if self._is_inside([node.X0, node.Y0, node.Z0])]
+        node_ids_with_force = [node.Id for node in model_part.Nodes if self._is_inside((node.X0, node.Y0, node.Z0))]
 
         if node_ids_with_force:
             num_nodes = len(node_ids_with_force)
@@ -151,9 +151,9 @@ class NeumannCondition(BoundingBoxBC):
             properties = model_part.GetProperties()[1]
             for i, node_id in enumerate(node_ids_with_force):
                 model_part.CreateNewCondition('PointLoadCondition3D1N', id_counter+i, [node_id], properties)
-                model_part.GetNode(node_id).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_X, nodal_force_x)
-                model_part.GetNode(node_id).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_Y, nodal_force_y)
-                model_part.GetNode(node_id).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_Z, nodal_force_z)
+                model_part.GetNode(node_id).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_X, nodal_force_x) # type: ignore
+                model_part.GetNode(node_id).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_Y, nodal_force_y) # type: ignore
+                model_part.GetNode(node_id).SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD_Z, nodal_force_z) # type: ignore
         else:
             warnings.warn("There are no nodes within this bounding box.")
 

@@ -1,10 +1,13 @@
-from typing import List
+from typing import Tuple, cast
+
+# Type definitions
+Point3D = Tuple[float, float, float]
 
 def PointFromGlobalToParamSpace(
-        point: List[float],
-        bound_xyz: List[List[float]],
-        bound_uvw: List[List[float]]
-    ) -> List[float]:
+        point: Point3D,
+        bound_xyz: Tuple[Point3D, Point3D],
+        bound_uvw: Tuple[Point3D, Point3D]
+    ) -> Point3D:
     """
     Maps a point from global Cartesian space to parametric space.
 
@@ -24,16 +27,18 @@ def PointFromGlobalToParamSpace(
     lower_xyz, upper_xyz = bound_xyz
     lower_uvw, upper_uvw = bound_uvw
 
-    return [
+    result = tuple(
         (point[i] - lower_xyz[i]) * abs(upper_uvw[i] - lower_uvw[i]) / abs(upper_xyz[i] - lower_xyz[i]) + lower_uvw[i]
         for i in range(3)
-    ]
+    )
+
+    return cast(Point3D, result)
 
 def PointFromParamToGlobalSpace(
-        point: List[float],
-        bound_xyz: List[List[float]],
-        bound_uvw: List[List[float]]
-    ) -> List[float]:
+        point: Point3D,
+        bound_xyz: Tuple[Point3D, Point3D],
+        bound_uvw: Tuple[Point3D, Point3D]
+    ) -> Point3D:
     """
     Maps a point from parametric space to global Cartesian space.
 
@@ -53,7 +58,8 @@ def PointFromParamToGlobalSpace(
     lower_xyz, upper_xyz = bound_xyz
     lower_uvw, upper_uvw = bound_uvw
 
-    return [
+    result = tuple(
         (point[i] - lower_uvw[i]) * abs(upper_xyz[i] - lower_xyz[i]) / abs(upper_uvw[i] - lower_uvw[i]) + lower_xyz[i]
         for i in range(3)
-    ]
+    )
+    return cast(Point3D, result)

@@ -6,17 +6,6 @@ from queso.python_scripts.b_spline_volume import BSplineVolume
 from queso.python_scripts.helper import *
 from queso.python_scripts.json_io import JsonIO
 
-try:
-    # TODO: Move to analysis
-    import KratosMultiphysics as KM
-    kratos_available = True
-except:
-    kratos_available = False
-
-if kratos_available:
-    from kratos_interface.kratos_analysis import Analysis
-    from kratos_interface.model_part_utilities import ModelPartUtilities
-
 class PyQuESo:
     """Main QuESo Python class.
 
@@ -40,10 +29,10 @@ class PyQuESo:
     def Run(self) -> None:
         """Runs the QuESo embedded model initialization and generation.
         """
-        self.embedded_model = QuESo_App.EmbeddedModel(self.settings)
+        self.embedded_model = QuESo_App.EmbeddedModel(self.settings) # type: ignore (TODO: add .pyi)
         self.embedded_model.CreateAllFromSettings()
 
-    def GetElements(self) -> QuESo_App.ElementVector:
+    def GetElements(self) -> QuESo_App.ElementVector: # type: ignore (TODO: add .pyi)
         """Returns a list of active elements from the embedded model.
 
         Returns:
@@ -51,7 +40,7 @@ class PyQuESo:
         """
         return self.embedded_model.GetElements()
 
-    def GetConditions(self) -> QuESo_App.ConditionVector:
+    def GetConditions(self) -> QuESo_App.ConditionVector: # type: ignore (TODO: add .pyi)
         """Returns a list of conditions from the embedded model.
 
         Returns:
@@ -59,7 +48,7 @@ class PyQuESo:
         """
         return self.embedded_model.GetConditions()
 
-    def GetSettings(self) -> QuESo_App.Settings:
+    def GetSettings(self) -> QuESo_App.Settings: # type: ignore (TODO: add .pyi)
         """Returns the QuESo settings used for initialization.
 
         Returns:
@@ -67,7 +56,7 @@ class PyQuESo:
         """
         return self.embedded_model.GetSettings()
 
-    def GetModelInfo(self) -> QuESo_App.ModelInfo:
+    def GetModelInfo(self) -> QuESo_App.ModelInfo: # type: ignore (TODO: add .pyi)
         """Returns information about the current embedded model.
 
         Returns:
@@ -86,13 +75,13 @@ class PyQuESo:
         """
         return BSplineVolume(self.settings, knot_vector_type)
 
-    def GetIntegrationPoints(self) -> QuESo_App.IntegrationPointVector:
+    def GetIntegrationPoints(self) -> QuESo_App.IntegrationPointVector: # type: ignore (TODO: add .pyi)
         """Retrieves all integration points used for numerical computations.
 
         Returns:
             QuESo_App.IntegrationPointVector: Collection of integration points.
         """
-        integration_points = QuESo_App.IntegrationPointVector()
+        integration_points = QuESo_App.IntegrationPointVector() # type: ignore (TODO: add .pyi)
         # Gather all poitnts (TODO: make this in C++)
         for element in self.GetElements():
             if element.IsTrimmed():
@@ -121,24 +110,6 @@ class PyQuESo:
     #########################################
     #### Kratos related member functions ####
     #########################################
-    def UpdateKratosNurbsVolumeModelPart(self, kratos_model_part) -> None:
-        """Updates a Kratos model part with QuESo geometry and conditions.
-
-        Args:
-            kratos_model_part (KM.ModelPart): Kratos model part to update.
-
-        Raises:
-            Exception: If Kratos is not available.
-        """
-        if kratos_available:
-            ModelPartUtilities.RemoveAllElements(kratos_model_part)
-            ModelPartUtilities.RemoveAllConditions(kratos_model_part)
-            ModelPartUtilities.AddElementsToModelPart(kratos_model_part, self.GetElements())
-            ModelPartUtilities.AddConditionsToModelPart(kratos_model_part, self.conditions, self.GetBoundsXYZ(), self.GetBoundsUVW())
-        else:
-            raise Exception("UpdateKratosNurbsVolumeModelPart :: Kratos is not available.")
-
-
     def RunKratosAnalysis(self, kratos_settings_filename: str="KratosParameters.json") -> None:
         """Runs a Kratos-based analysis using the QuESo model and Kratos parameters.
 
@@ -148,7 +119,11 @@ class PyQuESo:
         Raises:
             Exception: If Kratos is not available.
         """
-        if kratos_available:
-            self.analysis = Analysis( self.settings, kratos_settings_filename, self.GetElements(), self.GetConditions() )
-        else:
-            raise Exception("RunKratosAnalysis :: Kratos is not available.")
+        try:
+            import KratosMultiphysics as KM
+        except ImportError:
+            raise ImportError("RunKratosAnalysis :: Kratos is not available.")
+
+        from kratos_interface.kratos_analysis import Analysis
+        self.analysis = Analysis( self.settings, kratos_settings_filename, self.GetElements(), self.GetConditions() )
+

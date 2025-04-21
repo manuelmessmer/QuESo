@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal, Tuple
 # Import Kratos
 import KratosMultiphysics as KM
 # Import QuESo modules
@@ -7,6 +7,9 @@ from kratos_interface.weak_bcs import PenaltySupport
 from kratos_interface.weak_bcs import LagrangeSupport
 from kratos_interface.weak_bcs import SurfaceLoad
 from kratos_interface.weak_bcs import PressureLoad
+
+# Type definition
+Point3D = Tuple[float, float, float]
 
 class ModelPartUtilities:
     """
@@ -38,13 +41,13 @@ class ModelPartUtilities:
                 "new_entity_type" : "geometry"
             }""")
 
-        stl_io = KM.StlIO(Filename, io_settings)
+        stl_io = KM.StlIO(Filename, io_settings) # type: ignore
         stl_io.WriteModelPart(KratosModelPart)
 
     @staticmethod
     def ReadModelPartFromTriangleMesh(
             KratosModelPart: KM.ModelPart,
-            TriangleMesh: QuESo.TriangleMesh
+            TriangleMesh: QuESo.TriangleMesh # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Reads a Kratos ModelPart from a QuESo triangle mesh.
@@ -63,7 +66,7 @@ class ModelPartUtilities:
 
     @staticmethod
     def ReadTriangleMeshFromModelPart(
-            TriangleMesh: QuESo.TriangleMesh,
+            TriangleMesh: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
             KratosModelPart: KM.ModelPart,
             type: Literal["Elements", "Conditions"] ="Elements"
         ) -> None:
@@ -79,7 +82,7 @@ class ModelPartUtilities:
             Exception: If the type is not one of the allowed options or if the geometry does not consist of triangles.
         """
         id_map = {node.Id: queso_id for queso_id, node in enumerate(KratosModelPart.Nodes)}
-        for node in KratosModelPart.Nodes:
+        for node in KratosModelPart.Nodes: # type: ignore
             TriangleMesh.AddVertex([node.X, node.Y, node.Z])
 
         if( type == "Elements"):
@@ -92,7 +95,7 @@ class ModelPartUtilities:
                 f"Available options are: 'Elements' and 'Conditions'.")
             raise Exception(message)
 
-        for entity in entity_list:
+        for entity in entity_list: # type: ignore
             geometry = entity.GetGeometry()
 
             # Ensure the geometry is a triangle
@@ -104,7 +107,7 @@ class ModelPartUtilities:
             TriangleMesh.AddTriangle(node_ids)
 
             # Compute the normal for the triangle
-            normal = QuESo.Triangle.NormalStatic(
+            normal = QuESo.Triangle.NormalStatic( # type: ignore (TODO: add .pyi)
                 [node.X, node.Y, node.Z] for node in geometry
             )
             TriangleMesh.AddNormal(normal)
@@ -112,7 +115,7 @@ class ModelPartUtilities:
     @staticmethod
     def AddElementsToModelPart(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Elements: QuESo.ElementVector
+            Elements: QuESo.ElementVector # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Adds the QuESo elements to the Kratos NurbsVolume ModelPart.
@@ -149,9 +152,9 @@ class ModelPartUtilities:
     @staticmethod
     def AddConditionsToModelPart(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Conditions: QuESo.ConditionVector,
-            BoundsXYZ: List[List[float]],
-            BoundsUVW: List[List[float]]
+            Conditions: QuESo.ConditionVector, # type: ignore (TODO: add .pyi)
+            BoundsXYZ: Tuple[Point3D, Point3D],
+            BoundsUVW: Tuple[Point3D, Point3D]
         ) -> None:
         """
         Adds the QuESo conditions to the Kratos NurbsVolume ModelPart.
@@ -159,8 +162,8 @@ class ModelPartUtilities:
         Args:
             KratosNurbsVolumeModelPart (KM.ModelPart): The Kratos model part to which the conditions will be added.
             Conditions (QuESo.ConditionVector): List of QuESo boundary conditions to add to the model part.
-            BoundsXYZ (List[List[float]]): Lower and upper bounds in XYZ coordinates for the conditions.
-            BoundsUVW (List[List[float]]): Lower and upper bounds in UVW coordinates for the conditions.
+            BoundsXYZ (Tuple[Point3D, Point3D]): Lower and upper bounds in XYZ coordinates for the conditions.
+            BoundsUVW (Tuple[Point3D, Point3D]): Lower and upper bounds in UVW coordinates for the conditions.
         """
 
         # Define a mapping of condition types to their handlers
