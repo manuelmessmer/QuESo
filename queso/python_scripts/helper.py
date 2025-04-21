@@ -3,7 +3,7 @@ from typing import Tuple, cast
 # Type definitions
 Point3D = Tuple[float, float, float]
 
-def PointFromGlobalToParamSpace(
+def point_from_global_to_param_space(
         point: Point3D,
         bound_xyz: Tuple[Point3D, Point3D],
         bound_uvw: Tuple[Point3D, Point3D]
@@ -34,7 +34,7 @@ def PointFromGlobalToParamSpace(
 
     return cast(Point3D, result)
 
-def PointFromParamToGlobalSpace(
+def point_from_param_to_global_space(
         point: Point3D,
         bound_xyz: Tuple[Point3D, Point3D],
         bound_uvw: Tuple[Point3D, Point3D]

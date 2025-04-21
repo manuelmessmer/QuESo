@@ -11,7 +11,7 @@ class JsonIO():
     Utility class for reading and writing QuESo settings to and from JSON files.
     """
     @staticmethod
-    def WriteSettings(
+    def write_settings(
             settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
             json_filename: str
         ) -> None:
@@ -25,7 +25,7 @@ class JsonIO():
         QuESo.IO.WriteSettingsToJSON(settings, json_filename) # type: ignore (TODO: add .pyi)
 
     @classmethod
-    def ReadSettings(cls, json_filename: str) -> QuESo.Settings: # type: ignore (TODO: add .pyi)
+    def read_settings(cls, json_filename: str) -> QuESo.Settings: # type: ignore (TODO: add .pyi)
         """
         Read QuESo settings from a JSON file.
 
@@ -39,12 +39,12 @@ class JsonIO():
             dictionary = json.load(file)
 
         queso_settings = QuESo.Settings() # type: ignore (TODO: add .pyi)
-        cls._ReadDict(dictionary, queso_settings )
+        cls._read_dict(dictionary, queso_settings )
 
         return queso_settings
 
     @classmethod
-    def _ReadDict(cls,
+    def _read_dict(cls,
             dictionary: Dict,
             queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
         ) -> None:
@@ -58,14 +58,14 @@ class JsonIO():
         for string_key, value in dictionary.items():
             if isinstance(value, dict):
                 queso_sub_settings = queso_settings[string_key]
-                cls._ReadDict( value, queso_sub_settings ) # Got to next level
+                cls._read_dict( value, queso_sub_settings ) # Got to next level
             elif isinstance(value, list):
-                cls._ReadList( string_key, value, queso_settings )
+                cls._read_list( string_key, value, queso_settings )
             else:
-                cls._SetValue( string_key, value, queso_settings )
+                cls._set_value( string_key, value, queso_settings )
 
     @classmethod
-    def _ReadList(cls,
+    def _read_list(cls,
             string_key: str,
             value: List[Any],
             queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
@@ -80,12 +80,12 @@ class JsonIO():
         """
         if( isinstance(value[0], dict) ):
             queso_settings.GetList(string_key) # Just called to check key, and throw an error if necessary.
-            cls._ReadConditionsSettingsList(value, queso_settings)
+            cls._read_conditions_settings_list(value, queso_settings)
         else:
             queso_settings.SetValue(string_key, value )
 
     @classmethod
-    def _ReadConditionsSettingsList(cls,
+    def _read_conditions_settings_list(cls,
             condition_settings_list: List[Dict],
             queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
         ) -> None:
@@ -98,10 +98,10 @@ class JsonIO():
         """
         for condition_settings in condition_settings_list:
             new_cond_settings = queso_settings.CreateNewConditionSettings()
-            cls._ReadDict(condition_settings, new_cond_settings)
+            cls._read_dict(condition_settings, new_cond_settings)
 
     @classmethod
-    def _SetValue(cls,
+    def _set_value(cls,
             string_key: str,
             value: Any,
             queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
@@ -117,17 +117,17 @@ class JsonIO():
         if( value != "Not Set."):
             if string_key == "integration_method":
                 # Convert string to enum
-                enum_value = cls._GetEnum(value, cls.string_to_enum_integration_method)
+                enum_value = cls._get_enum(value, cls.string_to_enum_integration_method)
                 queso_settings.SetValue(string_key, enum_value )
             elif string_key == "grid_type":
                 # Convert string to enum
-                enum_value = cls._GetEnum(value, cls.string_to_enum_grid_type)
+                enum_value = cls._get_enum(value, cls.string_to_enum_grid_type)
                 queso_settings.SetValue(string_key, enum_value )
             else:
                 queso_settings.SetValue(string_key, value )
 
     @classmethod
-    def _GetEnum(cls,
+    def _get_enum(cls,
             string_key: str,
             string_to_enum_dict: Dict[str, Any]
         ) -> Any:
@@ -149,12 +149,12 @@ class JsonIO():
 
         error_msg = (
             f"JsonIO :: Given parameter ({string_key}) not available. "
-            f"Possible options: {cls._GetAvailableKeys(string_to_enum_dict)}\n"
+            f"Possible options: {cls._get_available_keys(string_to_enum_dict)}\n"
         )
         raise Exception(error_msg)
 
     @classmethod
-    def _GetAvailableKeys(cls, string_to_enum_dict: Dict[str, Any]) -> Any:
+    def _get_available_keys(cls, string_to_enum_dict: Dict[str, Any]) -> Any:
         """
         Get available keys from a string-to-enum mapping, excluding `_values` suffixes.
 

@@ -92,9 +92,9 @@ class PenaltySupport(WeakBcsBase):
         for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
             # Map triangle points to parametric space
             params = [
-                PointFromGlobalToParamSpace(self.bcs_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                PointFromGlobalToParamSpace(self.bcs_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                PointFromGlobalToParamSpace(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.bcs_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.bcs_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
             ]
 
             if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8: # type: ignore (TODO: add .pyi)
@@ -158,9 +158,9 @@ class LagrangeSupport(WeakBcsBase):
         for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
             # Map triangle vertices to parametric space
             params = [
-                PointFromGlobalToParamSpace(self.bcs_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                PointFromGlobalToParamSpace(self.bcs_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                PointFromGlobalToParamSpace(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.bcs_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.bcs_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
             ]
 
             # Skip bad quality triangles
@@ -237,7 +237,7 @@ class SurfaceLoad(WeakBcsBase):
             for point in points:
                 global_point = (point.X(), point.Y(), point.Z())
                 #Map points to local space of B-Spline box
-                local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
+                local_point = point_from_global_to_param_space(global_point, self.bounds_xyz, self.bounds_uvw)
 
                 # Create quadrature points
                 integration_points = [[local_point[0], local_point[1], local_point[2], point.Weight()]]
@@ -301,7 +301,7 @@ class PressureLoad(WeakBcsBase):
                 global_point = (point.X(), point.Y(), point.Z())
 
                 # Map points to local space of B-Spline box
-                local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
+                local_point = point_from_global_to_param_space(global_point, self.bounds_xyz, self.bounds_uvw)
 
                 # Create quadrature points
                 integration_points = [[local_point[0], local_point[1], local_point[2], point.Weight()]]

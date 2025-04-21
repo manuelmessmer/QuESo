@@ -25,13 +25,13 @@
 
 // Point types
 using PointVectorType = std::vector<queso::PointType>;
+PYBIND11_MAKE_OPAQUE(PointVectorType)
 using IntegrationPointType = queso::IntegrationPoint;
 using BoundaryIntegrationPointType = queso::BoundaryIntegrationPoint;
 
 // Element related types
 using ElementType = queso::Element<IntegrationPointType, BoundaryIntegrationPointType>;
 using ElementPtrType = queso::Unique<ElementType>;
-PYBIND11_MAKE_OPAQUE(ElementPtrType);
 using ElementVectorPtrType = std::vector<ElementPtrType>;
 PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 
@@ -44,20 +44,17 @@ PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
 // Condition segments related types
 using ConditionSegmentType = queso::ConditionSegment<ElementType>;
 using ConditionSegmentPtrType = queso::Unique<ConditionSegmentType>;
-PYBIND11_MAKE_OPAQUE(ConditionSegmentPtrType)
 using ConditionSegmentVectorPtrType = std::vector<ConditionSegmentPtrType>;
 PYBIND11_MAKE_OPAQUE(ConditionSegmentVectorPtrType)
 
 // Point / integration point vector types
 using IntegrationPointVectorType = ElementType::IntegrationPointVectorType;
+PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType)
+
 using BoundaryIpVectorType = ElementType::BoundaryIntegrationPointVectorType;
-// We need opaque-type, since IntegrationPoint1DVectorType is returned as unique_ptr.
-// TODO: Do not return unique_ptr -> use (RVO/NRVO)
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 
 using IntegrationPoint1DVectorType = std::vector<std::array<double,2>>;
-// We need opaque-type, since IntegrationPoint1DVectorType is returned as unique_ptr.
-// TODO: Do not return unique_ptr -> use (RVO/NRVO)
 PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 
 namespace queso {
@@ -109,7 +106,7 @@ void AddContainersToPython(pybind11::module& m) {
         ;
 
     /// Export Integration Points
-    py::class_<IntegrationPointType, Shared<IntegrationPointType>>(m, "IntegrationPoint")
+    py::class_<IntegrationPointType>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
         .def("X", [](const IntegrationPointType& self){return self[0];} )
         .def("Y", [](const IntegrationPointType& self){return self[1];} )
@@ -133,7 +130,7 @@ void AddContainersToPython(pybind11::module& m) {
     py::bind_vector<IntegrationPointVectorType>(m, "IntegrationPointVector");
 
     /// Export BoundaryIntegrationPoint
-    py::class_<BoundaryIntegrationPointType, Shared<BoundaryIntegrationPointType>, IntegrationPointType>(m, "BoundaryIntegrationPoint")
+    py::class_<BoundaryIntegrationPointType, IntegrationPointType>(m, "BoundaryIntegrationPoint")
         .def(py::init<double, double, double, double, const std::array<double,3>& >())
         .def("Normal", &BoundaryIntegrationPointType::Normal )
         .def("__repr__", [](const BoundaryIntegrationPointType& self) {
@@ -149,11 +146,11 @@ void AddContainersToPython(pybind11::module& m) {
     py::bind_vector<BoundaryIpVectorType>(m, "BoundaryIPVector");
 
     /// Export TriangleMeshInterface
-    py::class_<TriangleMeshInterface, Shared<TriangleMeshInterface>>(m,"TriangleMeshInterface")
+    py::class_<TriangleMeshInterface, Unique<TriangleMeshInterface>>(m,"TriangleMeshInterface")
     ;
 
     /// Export TriangleMesh
-    py::class_<TriangleMesh, Shared<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
+    py::class_<TriangleMesh, Unique<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
         .def(py::init<>())
         .def("Center", &TriangleMesh::Center)
         .def("Normal", [](TriangleMesh& self, IndexType Id){
@@ -184,7 +181,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Element
-    py::class_<ElementType, Shared<ElementType>>(m,"Element")
+    py::class_<ElementType, ElementPtrType>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (ElementType::*)() const>(&ElementType::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
         .def("LowerBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().first; })
@@ -199,7 +196,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     // Export Element Vector
-    py::class_<ElementVectorPtrType, Shared<ElementVectorPtrType>>(m, "ElementVector")
+    py::class_<ElementVectorPtrType>(m, "ElementVector")
         .def("__getitem__", [](const ElementVectorPtrType &self, const IndexType i)
             { return &(*self[i]); }, py::return_value_policy::reference_internal)
         .def("__len__", [](const ElementVectorPtrType &self) { return self.size(); })
@@ -209,7 +206,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export BackgroundGrid
-    py::class_<BackgroundGrid<ElementType>, Shared<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
+    py::class_<BackgroundGrid<ElementType>>(m, "BackgroundGrid")
         .def(py::init<const Settings&>())
         .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
         .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
@@ -218,12 +215,12 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Condition Segment
-    py::class_<ConditionSegmentType, Shared<ConditionSegmentType>>(m,"ConditionSegment")
+    py::class_<ConditionSegmentType, ConditionSegmentPtrType>(m,"ConditionSegment")
         .def("GetTriangleMesh", &ConditionSegmentType::GetTriangleMesh , py::return_value_policy::reference_internal )
     ;
 
     // Export ConditionSegment Vector
-    py::class_<ConditionSegmentVectorPtrType, Shared<ConditionSegmentVectorPtrType>>(m, "ConditionSegmentVector")
+    py::class_<ConditionSegmentVectorPtrType>(m, "ConditionSegmentVector")
         .def("__getitem__", [](const ConditionSegmentVectorPtrType &self, const IndexType i)
             { return &(*self[i]); }, py::return_value_policy::reference_internal)
         .def("__len__", [](const ConditionSegmentVectorPtrType &self) { return self.size(); })
@@ -233,7 +230,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Condition
-    py::class_<ConditionType, Shared<ConditionType>>(m,"Condition")
+    py::class_<ConditionType, ConditionPtrType>(m,"Condition")
         .def_static("is_weak_condition", []()->bool { return true; } )
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
@@ -247,7 +244,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     // Export Condition Vector
-    py::class_<ConditionVectorPtrType, Shared<ConditionVectorPtrType>>(m, "ConditionVector")
+    py::class_<ConditionVectorPtrType>(m, "ConditionVector")
         .def("__getitem__", [](const ConditionVectorPtrType &self, const IndexType i)
             { return &(*self[i]); }, py::return_value_policy::reference_internal)
         .def("__len__", [](const ConditionVectorPtrType &self) { return self.size(); })
@@ -264,7 +261,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export EmbeddedModel
-    py::class_<EmbeddedModel, Shared<EmbeddedModel>>(m,"EmbeddedModel")
+    py::class_<EmbeddedModel>(m,"EmbeddedModel")
         .def(py::init<const Settings&>())
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
         .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())

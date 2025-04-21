@@ -1,6 +1,6 @@
 # Project imports
 from QuESo_PythonApplication.PyQuESo import PyQuESo
-from queso.python_scripts.QuESoUnittest import QuESoTestCase
+from queso.python_scripts.queso_unit_test import QuESoTestCase
 # Kratos imports
 import KratosMultiphysics
 # External imports

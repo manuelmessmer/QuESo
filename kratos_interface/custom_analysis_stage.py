@@ -97,7 +97,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         filename = self.queso_settings["general_settings"].GetString("input_filename")
         self.triangle_mesh = QuESo.TriangleMesh() # type: ignore (TODO: add .pyi)
         QuESo.IO.ReadMeshFromSTL(self.triangle_mesh, filename) # type: ignore (TODO: add .pyi)
-        ModelPartUtilities.ReadModelPartFromTriangleMesh(embedded_model_part, self.triangle_mesh)
+        ModelPartUtilities.read_model_part_from_triangle_mesh(embedded_model_part, self.triangle_mesh)
 
         for modeler in self._GetListOfModelers():
             if self.echo_level > 1:
@@ -116,15 +116,15 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         from the model part, adding new ones (with QuESo's integration points), and setting up DOFs.
         """
         model_part = self.model.GetModelPart('NurbsMesh')
-        ModelPartUtilities.RemoveAllElements(model_part)
-        ModelPartUtilities.RemoveAllConditions(model_part)
-        ModelPartUtilities.AddElementsToModelPart(model_part, self.elements)
+        ModelPartUtilities.remove_all_elements(model_part)
+        ModelPartUtilities.remove_all_conditions(model_part)
+        ModelPartUtilities.add_elements_to_model_part(model_part, self.elements)
         grid_settings = self.queso_settings["background_grid_settings"]
         bounds_xyz = (grid_settings.GetDoubleVector("lower_bound_xyz"),
                       grid_settings.GetDoubleVector("upper_bound_xyz"))
         bounds_uvw = (grid_settings.GetDoubleVector("lower_bound_uvw"),
                       grid_settings.GetDoubleVector("upper_bound_uvw"))
-        ModelPartUtilities.AddConditionsToModelPart(model_part, self.boundary_conditions, bounds_xyz, bounds_uvw)
+        ModelPartUtilities.add_conditions_to_model_part(model_part, self.boundary_conditions, bounds_xyz, bounds_uvw)
 
         # Add Dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
