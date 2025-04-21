@@ -61,32 +61,46 @@ namespace py = pybind11;
 void AddContainersToPython(pybind11::module& m) {
 
     /// Export PointType
-    py::class_<PointType, Unique<PointType>>(m,"Point")
+    py::class_<PointType, Shared<PointType>>(m,"Point")
         .def(py::init<std::array<double,3>>())
         .def(py::init<double, double, double>())
         .def("X", [](const PointType& self){return self[0];} )
         .def("Y", [](const PointType& self){return self[1];} )
         .def("Z", [](const PointType& self){return self[2];} )
-        .def("__getitem__",  [](const PointType &v, IndexType i){return v[i];} )
+        .def("__getitem__",  [](const PointType &self, IndexType i){return self[i];} )
+        .def("__len__", [](const PointType&) { return 3; })
+        .def("__iter__", [](const PointType &self) {
+                return py::make_iterator(self.begin(), self.end());
+            }, py::keep_alive<0, 1>())  // Keep PointType alive while iterator is used
+        .def("__repr__", [](const PointType &self) {
+                return "<Point(" + std::to_string(self[0]) + ", " + std::to_string(self[1]) + ", " + std::to_string(self[2]) + ")>";
+            })
         ;
 
     /// Export PointVector
-    py::bind_vector<PointVectorType, Unique<PointVectorType>>
+    py::bind_vector<PointVectorType, Shared<PointVectorType>>
         (m, "PointVector")
     ;
 
     /// Export Vector3i
-    py::class_<Vector3i, Unique<Vector3i>>(m,"Vector3i")
+    py::class_<Vector3i, Shared<Vector3i>>(m,"Vector3i")
         .def(py::init<std::array<IndexType,3>>())
         .def(py::init<IndexType, IndexType, IndexType>())
         .def("X", [](const Vector3i& self){return self[0];} )
         .def("Y", [](const Vector3i& self){return self[1];} )
         .def("Z", [](const Vector3i& self){return self[2];} )
-        .def("__getitem__",  [](const Vector3i &v, IndexType i){return v[i];} )
+        .def("__getitem__",  [](const Vector3i &self, IndexType i){return self[i];} )
+        .def("__len__", [](const Vector3i&) { return 3; })
+        .def("__iter__", [](const Vector3i &self) {
+                return py::make_iterator(self.begin(), self.end());
+            }, py::keep_alive<0, 1>())  // Keep Vector3i alive while iterator is used
+        .def("__repr__", [](const Vector3i &self) {
+                return "<Vector3i(" + std::to_string(self[0]) + ", " + std::to_string(self[1]) + ", " + std::to_string(self[2]) + ")>";
+            })
         ;
 
     /// Export Integration Points
-    py::class_<IntegrationPointType, Unique<IntegrationPointType>>(m, "IntegrationPoint")
+    py::class_<IntegrationPointType, Shared<IntegrationPointType>>(m, "IntegrationPoint")
         .def(py::init<double, double, double, double>())
         .def("X", [](const IntegrationPointType& self){return self[0];} )
         .def("Y", [](const IntegrationPointType& self){return self[1];} )
@@ -97,27 +111,27 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export IntegrationPoint Vector
-    py::bind_vector<IntegrationPointVectorType, Unique<IntegrationPointVectorType>>
+    py::bind_vector<IntegrationPointVectorType, Shared<IntegrationPointVectorType>>
         (m, "IntegrationPointVector")
     ;
 
     /// Export BoundaryIntegrationPoint
-    py::class_<BoundaryIntegrationPointType, Unique<BoundaryIntegrationPointType>, IntegrationPointType>(m, "BoundaryIntegrationPoint")
+    py::class_<BoundaryIntegrationPointType, Shared<BoundaryIntegrationPointType>, IntegrationPointType>(m, "BoundaryIntegrationPoint")
         .def(py::init<double, double, double, double, const std::array<double,3>& >())
         .def("Normal", &BoundaryIntegrationPointType::Normal )
     ;
 
     /// Export BoundaryIntegrationPoint Vector
-    py::bind_vector<BoundaryIpVectorType, Unique<BoundaryIpVectorType>>
+    py::bind_vector<BoundaryIpVectorType, Shared<BoundaryIpVectorType>>
         (m, "BoundaryIPVector")
     ;
 
     /// Export TriangleMeshInterface
-    py::class_<TriangleMeshInterface, Unique<TriangleMeshInterface>>(m,"TriangleMeshInterface")
+    py::class_<TriangleMeshInterface, Shared<TriangleMeshInterface>>(m,"TriangleMeshInterface")
     ;
 
     /// Export TriangleMesh
-    py::class_<TriangleMesh, Unique<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
+    py::class_<TriangleMesh, Shared<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
         .def(py::init<>())
         .def("Center", &TriangleMesh::Center)
         .def("Normal", [](TriangleMesh& self, IndexType Id){
@@ -148,7 +162,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Element
-    py::class_<ElementType, Unique<ElementType>>(m,"Element")
+    py::class_<ElementType, Shared<ElementType>>(m,"Element")
         .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (ElementType::*)() const>(&ElementType::GetIntegrationPoints)
             ,py::return_value_policy::reference_internal ) // Export const version
         .def("LowerBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().first; })
@@ -163,7 +177,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     // Export Element Vector
-    py::class_<ElementVectorPtrType, Unique<ElementVectorPtrType>>(m, "ElementVector")
+    py::class_<ElementVectorPtrType, Shared<ElementVectorPtrType>>(m, "ElementVector")
         .def("__getitem__", [](const ElementVectorPtrType &v, const IndexType i) { return &(*v[i]); })
         .def("__len__", [](const ElementVectorPtrType &v) { return v.size(); })
         .def("__iter__", [](ElementVectorPtrType &v) {
@@ -172,7 +186,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export BackgroundGrid
-    py::class_<BackgroundGrid<ElementType>, Unique<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
+    py::class_<BackgroundGrid<ElementType>, Shared<BackgroundGrid<ElementType>>>(m, "BackgroundGrid")
         .def(py::init<const Settings&>())
         .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
         .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
@@ -181,12 +195,12 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Condition Segment
-    py::class_<ConditionSegmentType, Unique<ConditionSegmentType>>(m,"ConditionSegment")
+    py::class_<ConditionSegmentType, Shared<ConditionSegmentType>>(m,"ConditionSegment")
         .def("GetTriangleMesh", &ConditionSegmentType::GetTriangleMesh , py::return_value_policy::reference_internal )
     ;
 
     // Export ConditionSegment Vector
-    py::class_<ConditionSegmentVectorPtrType, Unique<ConditionSegmentVectorPtrType>>(m, "ConditionSegmentVector")
+    py::class_<ConditionSegmentVectorPtrType, Shared<ConditionSegmentVectorPtrType>>(m, "ConditionSegmentVector")
         .def("__getitem__", [](const ConditionSegmentVectorPtrType &v, const IndexType i) { return &(*v[i]); })
         .def("__len__", [](const ConditionSegmentVectorPtrType &v) { return v.size(); })
         .def("__iter__", [](ConditionSegmentVectorPtrType &v) {
@@ -195,29 +209,29 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Condition
-    py::class_<ConditionType, Unique<ConditionType>>(m,"Condition")
-        .def("is_weak_condition", [](const ConditionType& rCondition)->bool { return true; } )
+    py::class_<ConditionType, Shared<ConditionType>>(m,"Condition")
+        .def_static("is_weak_condition", [](const ConditionType& rCondition)->bool { return true; } )
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
         .def("NumberOfSegments", &ConditionType::NumberOfSegments )
-        .def("__len__", [](const ConditionType &v) { return v.NumberOfSegments(); })
-        .def("__iter__", [](ConditionType &v) {
+        .def("__len__", [](const ConditionType &self) { return self.NumberOfSegments(); })
+        .def("__iter__", [](ConditionType &self) {
             return py::make_iterator( v.SegmentsBegin(), v.SegmentsEnd() );
         }, py::keep_alive<0, 1>())
     ;
 
     // Export Condition Vector
-    py::class_<ConditionVectorPtrType, Unique<ConditionVectorPtrType>>(m, "ConditionVector")
-        .def("__getitem__", [](const ConditionVectorPtrType &v, const IndexType i)
-            { return &(*v[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const ConditionVectorPtrType &v) { return v.size(); })
-        .def("__iter__", [](ConditionVectorPtrType &v) {
-            return py::make_iterator( dereference_iterator(v.begin()), dereference_iterator(v.end()) );
-        })
+    py::class_<ConditionVectorPtrType, Shared<ConditionVectorPtrType>>(m, "ConditionVector")
+        .def("__getitem__", [](const ConditionVectorPtrType &self, const IndexType i)
+            { return &(*self[i]); }, py::return_value_policy::reference_internal)
+        .def("__len__", [](const ConditionVectorPtrType &self) { return v.size(); })
+        .def("__iter__", [](ConditionVectorPtrType &self) {
+            return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
+        }, py::keep_alive<0, 1>())
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)
-    py::bind_vector<IntegrationPoint1DVectorType, Unique<IntegrationPoint1DVectorType>>
+    py::bind_vector<IntegrationPoint1DVectorType, Shared<IntegrationPoint1DVectorType>>
         (m, "IntegrationPoint1DVector")
     ;
 
