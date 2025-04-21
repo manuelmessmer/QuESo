@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Tuple
 # Import QuESo
 import QuESo_PythonApplication as QuESo
 from queso.python_scripts.helper import *
@@ -8,6 +8,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
+# Type definition
+Point3D = Tuple[float, float, float]
 
 class WeakBcsBase():
     """Base class for applying weak boundary conditions.
@@ -15,16 +17,16 @@ class WeakBcsBase():
     Derived classes must override `apply()`.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh,
-            bounds_xyz: List[List[float]],
-            bounds_uvw: List[List[float]]
+            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bounds_xyz: Tuple[Point3D, Point3D],
+            bounds_uvw: Tuple[Point3D, Point3D]
         ) -> None:
         """Initializes WeakBcsBase.
 
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh of boundary.
-            bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
         """
         self.bcs_triangles = bcs_triangles
         self.bounds_xyz = bounds_xyz
@@ -56,19 +58,19 @@ class PenaltySupport(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh,
-            bounds_xyz: List[List[float]],
-            bounds_uvw: List[List[float]],
-            prescribed: List[float],
+            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bounds_xyz: Tuple[Point3D, Point3D],
+            bounds_uvw: Tuple[Point3D, Point3D],
+            prescribed: Tuple[float, float, float],
             penalty: float
         ) -> None:
         """Initializes PenaltySupport.
 
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh for BC.
-            bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            prescribed (List[float]): Prescribed displacement vector.
+            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            prescribed (Tuple[float, float, float]): Prescribed displacement vector.
             penalty (float): Penalty factor.
         """
         super(PenaltySupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
@@ -83,7 +85,7 @@ class PenaltySupport(WeakBcsBase):
         """
         id_counter = model_part.NumberOfConditions() + 1
         properties = model_part.GetProperties()[1]
-        properties.SetValue(IgaApplication.PENALTY_FACTOR, self.penalty)
+        properties.SetValue(IgaApplication.PENALTY_FACTOR, self.penalty) # type: ignore
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
         kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
 
@@ -95,7 +97,7 @@ class PenaltySupport(WeakBcsBase):
                 PointFromGlobalToParamSpace(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
             ]
 
-            if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8:
+            if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8: # type: ignore (TODO: add .pyi)
                 continue  # Skip badly shaped triangles
 
             # Create triangle geometry
@@ -125,18 +127,18 @@ class LagrangeSupport(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh,
-            bounds_xyz: List[List[float]],
-            bounds_uvw: List[List[float]],
-            prescribed: List[float]
+            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bounds_xyz: Tuple[Point3D, Point3D],
+            bounds_uvw: Tuple[Point3D, Point3D],
+            prescribed: Tuple[float, float, float]
         ) -> None:
         """Initializes LagrangeMultiplierSupport.
 
         Args:
             bcs_triangles (QuESo.TriangleMes): Triangle mesh.
-            bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            prescribed (List[float]): Prescribed displacement.
+            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            prescribed (Tuple[float, float, float]): Prescribed displacement.
         """
         super(LagrangeSupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
         self.prescribed = prescribed
@@ -162,7 +164,7 @@ class LagrangeSupport(WeakBcsBase):
             ]
 
             # Skip bad quality triangles
-            if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8:
+            if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8: # type: ignore (TODO: add .pyi)
                 continue
 
             # Create triangle geometry
@@ -193,27 +195,28 @@ class SurfaceLoad(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh,
-            bounds_xyz: List[List[float]],
-            bounds_uvw: List[List[float]],
+            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bounds_xyz: Tuple[Point3D, Point3D],
+            bounds_uvw: Tuple[Point3D, Point3D],
             modulus: float,
-            direction: List[float]
+            direction: Tuple[float, float, float]
         ) -> None:
         """Initializes SurfaceLoad.
 
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh.
-            bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             modulus (float): Load magnitude.
-            direction (List[float]): Load direction vector.
+            direction (Tuple[float, float, float]): Load direction vector.
         """
         super(SurfaceLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
 
-        norm_direction = np.linalg.norm(direction)
+        direction_array = np.array(direction)
+        norm_direction = np.linalg.norm(direction_array)
         if norm_direction < 1e-10:
             Exception("SurfaceLoad :: Norm of 'direction' is close to zero.")
-        normalized_direction = direction / norm_direction
+        normalized_direction = direction_array / norm_direction
         self.force = modulus * normalized_direction
 
     def apply(self, model_part: KM.ModelPart) -> None:
@@ -232,7 +235,7 @@ class SurfaceLoad(WeakBcsBase):
 
             #Create kratos condition on each point.
             for point in points:
-                global_point = [point.X(), point.Y(), point.Z()]
+                global_point = (point.X(), point.Y(), point.Z())
                 #Map points to local space of B-Spline box
                 local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
 
@@ -252,9 +255,9 @@ class SurfaceLoad(WeakBcsBase):
                     properties
                 )
                 force = weight * np.array(self.force)
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0])
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1])
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2])
+                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0]) # type: ignore
+                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1]) # type: ignore
+                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2]) # type: ignore
                 id_counter += 1
 
 class PressureLoad(WeakBcsBase):
@@ -263,17 +266,17 @@ class PressureLoad(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh,
-            bounds_xyz: List[List[float]],
-            bounds_uvw: List[List[float]],
+            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bounds_xyz: Tuple[Point3D, Point3D],
+            bounds_uvw: Tuple[Point3D, Point3D],
             modulus: float
         ) -> None:
         """Initializes PressureLoad.
 
         Args:
             bcs_triangles (QuESo.TriangleMesh): Triangle mesh.
-            bounds_xyz (List[List[float]]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (List[List[float]]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
+            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             modulus (float): Pressure value (magnitude).
         """
         super(PressureLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
@@ -295,7 +298,7 @@ class PressureLoad(WeakBcsBase):
 
             #Create kratos condition on each point.
             for point in points:
-                global_point = [point.X(), point.Y(), point.Z()]
+                global_point = (point.X(), point.Y(), point.Z())
 
                 # Map points to local space of B-Spline box
                 local_point = PointFromGlobalToParamSpace(global_point, self.bounds_xyz, self.bounds_uvw)
@@ -319,7 +322,7 @@ class PressureLoad(WeakBcsBase):
                 normal = point.Normal()
                 force = -1.0 * weight * self.modulus * np.array(normal)
 
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0])
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1])
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2])
+                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0]) # type: ignore
+                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1]) # type: ignore
+                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2]) # type: ignore
                 id_counter += 1

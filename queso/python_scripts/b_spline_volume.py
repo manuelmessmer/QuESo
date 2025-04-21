@@ -8,7 +8,7 @@ class BSplineVolume:
     """Class to construct a 3D B-Spline volume using the QuESo settings.
     """
     def __init__(self,
-            settings: QuESo.Settings,
+            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
             knot_vector_type: str
         ) -> None:
         """Initializes the BSplineVolume.
@@ -36,11 +36,11 @@ class BSplineVolume:
             message = "BSplineVolume :: __init__ :: Given 'knot_vector_type': '" + knot_vector_type
             message += "' not valid. Available options are: 'open_knot_vector' and 'non_open_knot_vector'."
             raise Exception(message)
-        self.spline_u = self.__construct_b_spline(
+        self.spline_u = self._construct_b_spline(
            self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0], open_knot_vector)
-        self.spline_v = self.__construct_b_spline(
+        self.spline_v = self._construct_b_spline(
             self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1], open_knot_vector)
-        self.spline_w = self.__construct_b_spline(
+        self.spline_w = self._construct_b_spline(
             self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2], open_knot_vector)
 
     def GetSpline(self, Index: int) -> si.BSpline:
@@ -121,7 +121,7 @@ class BSplineVolume:
         Returns:
             list: Knot vector along u (x) direction.
         """
-        return self.spline_u.t.tolist()
+        return self.spline_u.t.flatten().tolist()
 
     def KnotsV(self) -> List[float]:
         """Returns knot vector along the v-direction.
@@ -129,7 +129,7 @@ class BSplineVolume:
         Returns:
             list: Knot vector along v (y) direction.
         """
-        return self.spline_v.t.tolist()
+        return self.spline_v.t.flatten().tolist()
 
     def KnotsW(self) -> List[float]:
         """Returns knot vector along the w-direction.
@@ -137,7 +137,7 @@ class BSplineVolume:
         Returns:
             list: Knot vector along w (z) direction.
         """
-        return self.spline_w.t.tolist()
+        return self.spline_w.t.flatten().tolist()
 
     def PolynomialOrder(self) -> List[float]:
         """Returns the polynomial order in each direction.
@@ -171,7 +171,7 @@ class BSplineVolume:
         """
         return len(self.spline_w.c)
 
-    def __construct_b_spline(self,
+    def _construct_b_spline(self,
             Order: int,
             NumElements: int,
             LowerBoundX: float,
@@ -210,11 +210,13 @@ class BSplineVolume:
         if not OpenKnotVector:
             cps_x = [ val - (Order-1)*(center-val) / (NumElements) for val in cps_x  ]
 
-        spline_u = si.BSpline(knots_u, cps_x, Order, extrapolate=False)
+        spline_u: si.BSpline = si.BSpline(knots_u, cps_x, Order, extrapolate=False)
         knots_u_to_insert = np.arange(LowerBoundU+delta_u, UpperBoundU-0.5*delta_u, delta_u)
 
         for knot in knots_u_to_insert:
-            spline_u = si.insert(knot, spline_u)
+            # (TODO: change this to spline_u = spline_u.insert_knot(knot))
+            # Requires more recent scipy version (Requires windows CI to be updated).
+            spline_u = si.insert(knot, spline_u) # type: ignore
 
         num_cps = len(spline_u.t) - Order - 1
         spline_u.c = spline_u.c[:num_cps]

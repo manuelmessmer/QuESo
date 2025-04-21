@@ -12,7 +12,7 @@ class JsonIO():
     """
     @staticmethod
     def WriteSettings(
-            settings: QuESo.Settings,
+            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
             json_filename: str
         ) -> None:
         """
@@ -22,10 +22,10 @@ class JsonIO():
             settings (QuESo.Settings): The settings object to write.
             json_filename (str): The path to the output JSON file.
         """
-        QuESo.IO.WriteSettingsToJSON(settings, json_filename)
+        QuESo.IO.WriteSettingsToJSON(settings, json_filename) # type: ignore (TODO: add .pyi)
 
     @classmethod
-    def ReadSettings(cls, json_filename: str) -> QuESo.Settings:
+    def ReadSettings(cls, json_filename: str) -> QuESo.Settings: # type: ignore (TODO: add .pyi)
         """
         Read QuESo settings from a JSON file.
 
@@ -38,7 +38,7 @@ class JsonIO():
         with open(json_filename, 'r') as file:
             dictionary = json.load(file)
 
-        queso_settings = QuESo.Settings()
+        queso_settings = QuESo.Settings() # type: ignore (TODO: add .pyi)
         cls._ReadDict(dictionary, queso_settings )
 
         return queso_settings
@@ -46,7 +46,7 @@ class JsonIO():
     @classmethod
     def _ReadDict(cls,
             dictionary: Dict,
-            queso_settings: QuESo.Settings
+            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Recursively populate a QuESo settings object from a dictionary.
@@ -68,7 +68,7 @@ class JsonIO():
     def _ReadList(cls,
             string_key: str,
             value: List[Any],
-            queso_settings: QuESo.Settings
+            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Read a list-type setting entry.
@@ -87,7 +87,7 @@ class JsonIO():
     @classmethod
     def _ReadConditionsSettingsList(cls,
             condition_settings_list: List[Dict],
-            queso_settings: QuESo.Settings
+            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Read a list of condition settings from JSON.
@@ -104,7 +104,7 @@ class JsonIO():
     def _SetValue(cls,
             string_key: str,
             value: Any,
-            queso_settings: QuESo.Settings
+            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Set a single value in the settings, with type conversion for enums.
@@ -171,16 +171,16 @@ class JsonIO():
         return keys
 
     string_to_enum_integration_method = {
-        "Gauss"  : QuESo.IntegrationMethod.Gauss,
-        "Gauss_Reduced1"  : QuESo.IntegrationMethod.Gauss_Reduced1,
-        "Gauss_Reduced2"  : QuESo.IntegrationMethod.Gauss_Reduced2,
-        "GGQ_Optimal"  : QuESo.IntegrationMethod.GGQ_Optimal,
-        "GGQ_Reduced1"  : QuESo.IntegrationMethod.GGQ_Reduced1,
-        "GGQ_Reduced2"  : QuESo.IntegrationMethod.GGQ_Reduced2,
+        "Gauss"  : QuESo.IntegrationMethod.Gauss, # type: ignore (TODO: add .pyi)
+        "Gauss_Reduced1"  : QuESo.IntegrationMethod.Gauss_Reduced1, # type: ignore (TODO: add .pyi)
+        "Gauss_Reduced2"  : QuESo.IntegrationMethod.Gauss_Reduced2, # type: ignore (TODO: add .pyi)
+        "GGQ_Optimal"  : QuESo.IntegrationMethod.GGQ_Optimal, # type: ignore (TODO: add .pyi)
+        "GGQ_Reduced1"  : QuESo.IntegrationMethod.GGQ_Reduced1, # type: ignore (TODO: add .pyi)
+        "GGQ_Reduced2"  : QuESo.IntegrationMethod.GGQ_Reduced2, # type: ignore (TODO: add .pyi)
     }
 
     string_to_enum_grid_type = {
-        "b_spline_grid"  : QuESo.GridType.b_spline_grid,
-        "hexahedral_fe_grid"  : QuESo.GridType.hexahedral_fe_grid
+        "b_spline_grid"  : QuESo.GridType.b_spline_grid, # type: ignore (TODO: add .pyi)
+        "hexahedral_fe_grid"  : QuESo.GridType.hexahedral_fe_grid # type: ignore (TODO: add .pyi)
     }
 

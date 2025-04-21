@@ -17,10 +17,10 @@ class Analysis():
     It sets up the model, creates the elements, applies the boundary conditions, and executes the analysis.
     """
     def __init__(self,
-            settings: QuESo.Settings,
+            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
             kratos_settings_filename: str,
-            elements: QuESo.ElementVector,
-            boundary_conditions: QuESo.ConditionVector
+            elements: QuESo.ElementVector, # type: ignore (TODO: add .pyi)
+            boundary_conditions: QuESo.ConditionVector # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Constructor for the `Analysis` class.
@@ -38,7 +38,7 @@ class Analysis():
         analysis = CustomAnalysisStage(self.model, settings, kratos_settings_filename, elements, boundary_conditions)
         analysis.Run()
 
-    def GetModelPart(self) -> None:
+    def GetModelPart(self) -> KM.ModelPart:
         """
         Returns the Kratos model part created in the analysis.
 
