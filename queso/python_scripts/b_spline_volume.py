@@ -36,11 +36,11 @@ class BSplineVolume:
             message = "BSplineVolume :: __init__ :: Given 'knot_vector_type': '" + knot_vector_type
             message += "' not valid. Available options are: 'open_knot_vector' and 'non_open_knot_vector'."
             raise Exception(message)
-        self.spline_u = self.__construct_b_spline(
+        self.spline_u = self._construct_b_spline(
            self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0], open_knot_vector)
-        self.spline_v = self.__construct_b_spline(
+        self.spline_v = self._construct_b_spline(
             self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1], open_knot_vector)
-        self.spline_w = self.__construct_b_spline(
+        self.spline_w = self._construct_b_spline(
             self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2], open_knot_vector)
 
     def GetSpline(self, Index: int) -> si.BSpline:
