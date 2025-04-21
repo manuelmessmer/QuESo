@@ -61,7 +61,7 @@ namespace py = pybind11;
 void AddContainersToPython(pybind11::module& m) {
 
     /// Export PointType
-    py::class_<PointType, Shared<PointType>>(m,"Point")
+    py::class_<PointType>(m,"Point")
         .def(py::init<std::array<double,3>>())
         .def(py::init<double, double, double>())
         .def("X", [](const PointType& self){return self[0];} )
@@ -73,7 +73,9 @@ void AddContainersToPython(pybind11::module& m) {
                 return py::make_iterator(self.begin(), self.end());
             }, py::keep_alive<0, 1>())  // Keep PointType alive while iterator is used
         .def("__repr__", [](const PointType &self) {
-                return "<Point(" + std::to_string(self[0]) + ", " + std::to_string(self[1]) + ", " + std::to_string(self[2]) + ")>";
+                return "Point(" + std::to_string(self[0])
+                    + ", " + std::to_string(self[1])
+                    + ", " + std::to_string(self[2]) + ")";
             })
         ;
 
@@ -83,7 +85,7 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Vector3i
-    py::class_<Vector3i, Shared<Vector3i>>(m,"Vector3i")
+    py::class_<Vector3i>(m,"Vector3i")
         .def(py::init<std::array<IndexType,3>>())
         .def(py::init<IndexType, IndexType, IndexType>())
         .def("X", [](const Vector3i& self){return self[0];} )
@@ -95,7 +97,9 @@ void AddContainersToPython(pybind11::module& m) {
                 return py::make_iterator(self.begin(), self.end());
             }, py::keep_alive<0, 1>())  // Keep Vector3i alive while iterator is used
         .def("__repr__", [](const Vector3i &self) {
-                return "<Vector3i(" + std::to_string(self[0]) + ", " + std::to_string(self[1]) + ", " + std::to_string(self[2]) + ")>";
+                return "Vector3i(" + std::to_string(self[0]) + ", "
+                    + std::to_string(self[1]) + ", "
+                    + std::to_string(self[2]) + ")";
             })
         ;
 
@@ -105,9 +109,19 @@ void AddContainersToPython(pybind11::module& m) {
         .def("X", [](const IntegrationPointType& self){return self[0];} )
         .def("Y", [](const IntegrationPointType& self){return self[1];} )
         .def("Z", [](const IntegrationPointType& self){return self[2];} )
-        .def("__getitem__",  [](const IntegrationPointType &v, IndexType i){return v[i];} )
         .def("Weight", &IntegrationPointType::Weight)
         .def("SetWeight", &IntegrationPointType::SetWeight)
+        .def("__getitem__",  [](const IntegrationPointType &v, IndexType i){return v[i];} )
+        .def("__len__", [](const IntegrationPointType&) { return 3; })
+        .def("__iter__", [](const IntegrationPointType &self) {
+            return py::make_iterator(self.data().begin(), self.data().end());
+        }, py::keep_alive<0, 1>())
+        .def("__repr__", [](const IntegrationPointType& self) {
+            return "IntegrationPoint(" + std::to_string(self[0]) + ", "
+                 + std::to_string(self[1]) + ", "
+                 + std::to_string(self[2]) + ", "
+                 + "Weight=" + std::to_string(self.Weight()) + ")";
+        });
     ;
 
     /// Export IntegrationPoint Vector
@@ -214,9 +228,11 @@ void AddContainersToPython(pybind11::module& m) {
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
         .def("NumberOfSegments", &ConditionType::NumberOfSegments )
+        .def("__getitem__", [](const ConditionType &self, const IndexType i)
+            { return &(*self.GetSegments()[i]); }, py::return_value_policy::reference_internal)
         .def("__len__", [](const ConditionType &self) { return self.NumberOfSegments(); })
         .def("__iter__", [](ConditionType &self) {
-            return py::make_iterator( v.SegmentsBegin(), v.SegmentsEnd() );
+            return py::make_iterator( self.SegmentsBegin(), self.SegmentsEnd() );
         }, py::keep_alive<0, 1>())
     ;
 
@@ -224,7 +240,7 @@ void AddContainersToPython(pybind11::module& m) {
     py::class_<ConditionVectorPtrType, Shared<ConditionVectorPtrType>>(m, "ConditionVector")
         .def("__getitem__", [](const ConditionVectorPtrType &self, const IndexType i)
             { return &(*self[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const ConditionVectorPtrType &self) { return v.size(); })
+        .def("__len__", [](const ConditionVectorPtrType &self) { return self.size(); })
         .def("__iter__", [](ConditionVectorPtrType &self) {
             return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
         }, py::keep_alive<0, 1>())
@@ -241,13 +257,13 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export QuESo
-    py::class_<EmbeddedModel>(m,"EmbeddedModel")
+    py::class_<EmbeddedModel, Shared<EmbeddedModel>>(m,"EmbeddedModel")
         .def(py::init<const Settings&>())
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
-        .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
-        .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal )
-        .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
-        .def("GetModelInfo", &EmbeddedModel::GetModelInfo, py::return_value_policy::reference_internal)
+        .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
+        .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal, py::keep_alive<0, 1>() )
+        .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
+        .def("GetModelInfo", &EmbeddedModel::GetModelInfo, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
     ;
 
 } // End AddContainersToPython
