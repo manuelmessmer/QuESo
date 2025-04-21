@@ -22,16 +22,13 @@ namespace Python {
 
 namespace py = pybind11;
 
-constexpr auto pWriteSettingsToJSON = &IO::WriteDictionaryToJSON<Settings>;
-constexpr auto pWriteModelInfoToJSON = &IO::WriteDictionaryToJSON<ModelInfo>;
-
 void AddIoToPython(pybind11::module& m) {
 
     /// Export MeshUtilites
     py::class_<IO>(m,"IO")
         .def_static("ReadMeshFromSTL", &IO::ReadMeshFromSTL)
-        .def_static("WriteSettingsToJSON", &(*pWriteSettingsToJSON))
-        .def_static("WriteModelInfoToJSON", &(*pWriteModelInfoToJSON))
+        .def_static("WriteSettingsToJSON", &IO::WriteDictionaryToJSON<Settings>)
+        .def_static("WriteModelInfoToJSON", &IO::WriteDictionaryToJSON<ModelInfo>)
     ;
 
 } // End AddIoToPython
