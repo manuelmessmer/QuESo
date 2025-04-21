@@ -146,11 +146,11 @@ void AddContainersToPython(pybind11::module& m) {
     py::bind_vector<BoundaryIpVectorType>(m, "BoundaryIPVector");
 
     /// Export TriangleMeshInterface
-    py::class_<TriangleMeshInterface>(m,"TriangleMeshInterface")
+    py::class_<TriangleMeshInterface, Unique<TriangleMeshInterface>>(m,"TriangleMeshInterface")
     ;
 
     /// Export TriangleMesh
-    py::class_<TriangleMesh, TriangleMeshInterface>(m,"TriangleMesh")
+    py::class_<TriangleMesh, Unique<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
         .def(py::init<>())
         .def("Center", &TriangleMesh::Center)
         .def("Normal", [](TriangleMesh& self, IndexType Id){
