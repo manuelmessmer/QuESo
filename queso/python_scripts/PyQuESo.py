@@ -17,7 +17,7 @@ class PyQuESo:
         Args:
             json_filename (str): Path to the JSON configuration file.
         """
-        self.settings = JsonIO.ReadSettings(json_filename)
+        self.settings = JsonIO.read_settings(json_filename)
         write_output_to_file = self.settings["general_settings"].GetBool("write_output_to_file")
         output_directory_name = self.settings["general_settings"].GetString("output_directory_name")
         if write_output_to_file:

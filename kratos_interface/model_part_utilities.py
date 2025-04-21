@@ -21,7 +21,7 @@ class ModelPartUtilities:
     """
 
     @staticmethod
-    def _WriteModelPartToSTL(
+    def _write_model_part_to_stl(
             KratosModelPart: KM.ModelPart,
             Filename: str
         ) -> None:
@@ -45,7 +45,7 @@ class ModelPartUtilities:
         stl_io.WriteModelPart(KratosModelPart)
 
     @staticmethod
-    def ReadModelPartFromTriangleMesh(
+    def read_model_part_from_triangle_mesh(
             KratosModelPart: KM.ModelPart,
             TriangleMesh: QuESo.TriangleMesh # type: ignore (TODO: add .pyi)
         ) -> None:
@@ -65,7 +65,7 @@ class ModelPartUtilities:
             KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, [triangle[0]+1, triangle[1]+1, triangle[2]+1], KratosModelPart.GetProperties()[1])
 
     @staticmethod
-    def ReadTriangleMeshFromModelPart(
+    def read_triangle_mesh_grom_model_part(
             TriangleMesh: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
             KratosModelPart: KM.ModelPart,
             type: Literal["Elements", "Conditions"] ="Elements"
@@ -100,7 +100,7 @@ class ModelPartUtilities:
 
             # Ensure the geometry is a triangle
             if( len(geometry) != 3 ):
-                raise Exception("ModelPartUtilities :: ReadTriangleMeshFromModelPart :: Queso only allows triangles.")
+                raise Exception("ModelPartUtilities :: read_triangle_mesh_grom_model_part :: Queso only allows triangles.")
 
             # Get the node ids for the triangle
             node_ids = [id_map[node.Id] for node in geometry]
@@ -113,7 +113,7 @@ class ModelPartUtilities:
             TriangleMesh.AddNormal(normal)
 
     @staticmethod
-    def AddElementsToModelPart(
+    def add_elements_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
             Elements: QuESo.ElementVector # type: ignore (TODO: add .pyi)
         ) -> None:
@@ -150,7 +150,7 @@ class ModelPartUtilities:
                 )
 
     @staticmethod
-    def AddConditionsToModelPart(
+    def add_conditions_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
             Conditions: QuESo.ConditionVector, # type: ignore (TODO: add .pyi)
             BoundsXYZ: Tuple[Point3D, Point3D],
@@ -222,7 +222,7 @@ class ModelPartUtilities:
             bc.apply(KratosNurbsVolumeModelPart)
 
     @staticmethod
-    def RemoveAllElements(KratosModelPart: KM.ModelPart) -> None:
+    def remove_all_elements(KratosModelPart: KM.ModelPart) -> None:
         """
         Removes all elements from the Kratos ModelPart.
 
@@ -234,7 +234,7 @@ class ModelPartUtilities:
         KratosModelPart.RemoveElements(KM.TO_ERASE)
 
     @staticmethod
-    def RemoveAllConditions(KratosModelPart: KM.ModelPart) -> None:
+    def remove_all_conditions(KratosModelPart: KM.ModelPart) -> None:
         """
         Removes all conditions from the Kratos ModelPart.
 
