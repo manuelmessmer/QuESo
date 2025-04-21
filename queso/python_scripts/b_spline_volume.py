@@ -214,7 +214,9 @@ class BSplineVolume:
         knots_u_to_insert = np.arange(LowerBoundU+delta_u, UpperBoundU-0.5*delta_u, delta_u)
 
         for knot in knots_u_to_insert:
-            spline_u = spline_u.insert_knot(knot)
+            # (TODO: change this to spline_u = spline_u.insert_knot(knot))
+            # Requires more recent scipy version (Requires windows CI to be updated).
+            spline_u = si.insert(knot, spline_u) # type: ignore
 
         num_cps = len(spline_u.t) - Order - 1
         spline_u.c = spline_u.c[:num_cps]
