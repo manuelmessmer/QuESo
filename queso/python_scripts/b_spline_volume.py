@@ -214,7 +214,7 @@ class BSplineVolume:
         knots_u_to_insert = np.arange(LowerBoundU+delta_u, UpperBoundU-0.5*delta_u, delta_u)
 
         for knot in knots_u_to_insert:
-            spline_u = si.BSpline.insert_knot(spline_u, knot)
+            spline_u = spline_u.insert_knot(knot)
 
         num_cps = len(spline_u.t) - Order - 1
         spline_u.c = spline_u.c[:num_cps]
