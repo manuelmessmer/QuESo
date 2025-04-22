@@ -52,10 +52,19 @@ public:
     ///@name Life cycle
     ///@{
 
+    /// Constructor
     TriangleMesh() = default;
+    /// Destructor
     ~TriangleMesh() = default;
-    TriangleMesh(const TriangleMesh& rVal) = default;
-    TriangleMesh& operator = (const TriangleMesh& rOther) = default;
+
+    /// Copy Constructor
+    TriangleMesh(TriangleMesh const& rOther) = default;
+    /// Assignement Operator
+    TriangleMesh& operator=(TriangleMesh const& rOther) = default;
+    /// Move constructor
+    TriangleMesh(TriangleMesh&& rOther) noexcept = default;
+    /// Move assignement operator
+    TriangleMesh& operator=(TriangleMesh&& rOther) noexcept = default;
 
     ///@}
     ///@name Pure virtual Operations

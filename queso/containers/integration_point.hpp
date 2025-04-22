@@ -66,18 +66,13 @@ public:
     virtual ~IntegrationPoint() = default;
 
     /// Copy Constructor
-    IntegrationPoint(const IntegrationPoint& rOther)
-        : mPoint(rOther.data()), mWeight(rOther.mWeight)
-    {
-    }
-
-    /// Assignement operator
-    IntegrationPoint& operator=(const IntegrationPoint& rOther)
-    {
-        mPoint = rOther.mPoint;
-        mWeight = rOther.mWeight;
-        return *this;
-    }
+    IntegrationPoint(IntegrationPoint const& rOther) = default;
+    /// Assignement Operator
+    IntegrationPoint& operator=(IntegrationPoint const& rOther) = default;
+    /// Move constructor
+    IntegrationPoint(IntegrationPoint&& rOther) noexcept = default;
+    /// Move assignement operator
+    IntegrationPoint& operator=(IntegrationPoint&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
