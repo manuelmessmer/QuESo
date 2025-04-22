@@ -21,6 +21,7 @@ try:
     PrintLogo()
     from QuESo_Application import *
 except ImportError as e:
-    raise ImportError(f"Failed to import QuESo_Application modules: {e}")
+    additional_message = "Make sure LD_LIBRARY_PATH (linux) or PATH (windows) point to '/path/to/QuESo/libs'."
+    raise ImportError(f"Failed to import QuESo_Application modules: {e}\n{additional_message}")
 
 
