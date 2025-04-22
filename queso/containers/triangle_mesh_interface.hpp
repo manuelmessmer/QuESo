@@ -53,10 +53,19 @@ public:
     ///@name Life cycle
     ///@{
 
+    /// Constructor
     TriangleMeshInterface() = default;
+    /// Destructor
     virtual ~TriangleMeshInterface() = default;
-    TriangleMeshInterface(const TriangleMeshInterface& rVal) = default;
-    TriangleMeshInterface& operator = (const TriangleMeshInterface& rOther) = default;
+
+    /// Copy Constructor
+    TriangleMeshInterface(TriangleMeshInterface const& rOther) = default;
+    /// Assignement Operator
+    TriangleMeshInterface& operator=(TriangleMeshInterface const& rOther) = default;
+    /// Move constructor
+    TriangleMeshInterface(TriangleMeshInterface&& rOther) noexcept = default;
+    /// Move assignement operator
+    TriangleMeshInterface& operator=(TriangleMeshInterface&& rOther) noexcept = default;
 
     ///@}
     ///@name Pure virtual operations

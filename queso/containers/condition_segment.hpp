@@ -69,9 +69,9 @@ public:
     // Assignement operator
     ConditionSegment& operator=(const ConditionSegment& rOther) = delete;
     /// Move constructor
-    ConditionSegment(ConditionSegment&& rOther) = default;
+    ConditionSegment(ConditionSegment&& rOther) noexcept = default;
     /// Move assignement operator
-    ConditionSegment& operator=(ConditionSegment&& rOther) = default;
+    ConditionSegment& operator=(ConditionSegment&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
