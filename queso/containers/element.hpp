@@ -67,16 +67,16 @@ public:
     {
     }
 
-    // Destructor
+    /// Destructor
     ~Element() = default;
-    // Copy constructor
+    /// Copy constructor
     Element(const Element& rOther) = delete;
-    // Assignement operator
+    /// Assignement operator
     Element& operator=(const Element& rOther) = delete;
     /// Move constructor
-    Element(Element&& rOther) = default;
+    Element(Element&& rOther) noexcept = default;
     /// Move assignement operator
-    Element& operator=(Element&& rOther) = default;
+    Element& operator=(Element&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
