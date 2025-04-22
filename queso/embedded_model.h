@@ -72,9 +72,9 @@ public:
     /// Copy Assignement
     EmbeddedModel& operator= (const EmbeddedModel &rOther) = delete;
     /// Move constructor
-    EmbeddedModel(EmbeddedModel&& rOther) = default;
+    EmbeddedModel(EmbeddedModel&& rOther) noexcept = default;
     /// Move assignement operator
-    EmbeddedModel& operator=(EmbeddedModel&& rOther) = default;
+    EmbeddedModel& operator=(EmbeddedModel&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
@@ -85,7 +85,6 @@ public:
     ///       The respective geometries (TriangleMeshes) are taken from input STL files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
     void CreateAllFromSettings() {
-
         // Create volume
         const auto& r_general_settings = mSettings[MainSettings::general_settings];
         const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
@@ -118,14 +117,13 @@ public:
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Write Model To File -------------------------------- START\n";
         WriteModelToFile();
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Write Model To File ---------------------------------- End\n" << std::endl;
-
     }
 
     ///@brief Creates integration points for an embedded volume that is enclosed/defined by rTriangleMesh.
     ///       This interface enables to pass a TriangleMeshInterface and, hence, facilitates other applications to
     ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
     ///@param rTriangleMesh
-    ///@see CreateAllFromSettings <- Create volume and condition directly from input files specified in mSettings.
+    ///@see CreateAllFromSettings <- Creates volume and condition directly from input files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
     void CreateVolume(const TriangleMeshInterface& rTriangleMesh){
         ComputeVolume(rTriangleMesh);
@@ -136,7 +134,7 @@ public:
     ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
     ///@param rTriangleMesh
     ///@param rConditionSettings
-    ///@see CreateAllFromSettings <- Create volume and condition directly from input files specified in mSettings.
+    ///@see CreateAllFromSettings <- Creates volume and condition directly from input files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
     void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
         ComputeCondition(rTriangleMesh, rConditionSettings);
@@ -146,9 +144,7 @@ public:
     ///        Elements and integrations points are written to VTK files.
     ///        Conditions are written to STL files.
     ///        mModelInfo is written to JSON file.
-    /// @note This function is non-const, because the elpased time to write the files
-    ///       is measured and set in mModelInfo.
-    void WriteModelToFile();
+    void WriteModelToFile() const;
 
     /// @brief Returns all active elements.
     /// @return const Reference to ElementVectorPtrType
@@ -219,7 +215,7 @@ private:
     const Settings mSettings;
     const GridIndexer mGridIndexer;
     BackgroundGridType mBackgroundGrid;
-    ModelInfo mModelInfo;
+    mutable ModelInfo mModelInfo;
     ///@}
 };
 ///@} End QuESo Classes
