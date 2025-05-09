@@ -49,21 +49,14 @@ public:
     ~BoundaryIntegrationPoint() = default;
 
     /// Copy Constructor
-    BoundaryIntegrationPoint(const BoundaryIntegrationPoint& rOther)
-        : IntegrationPoint(rOther), mNormal(rOther.mNormal)
-    {
-    }
+    BoundaryIntegrationPoint(BoundaryIntegrationPoint const& rOther) = default;
+    /// Assignement Operator
+    BoundaryIntegrationPoint& operator=(BoundaryIntegrationPoint const& rOther) = default;
+    /// Move constructor
+    BoundaryIntegrationPoint(BoundaryIntegrationPoint&& rOther) noexcept = default;
+    /// Move assignement operator
+    BoundaryIntegrationPoint& operator=(BoundaryIntegrationPoint&& rOther) noexcept = default;
 
-    /// Assignement operator
-    BoundaryIntegrationPoint& operator=(const BoundaryIntegrationPoint& rOther)
-    {
-        IntegrationPoint::operator=(rOther);
-        mNormal[0] = rOther.mNormal[0];
-        mNormal[1] = rOther.mNormal[1];
-        mNormal[2] = rOther.mNormal[2];
-
-        return *this;
-    }
 
     ///@}
     ///@name Operations

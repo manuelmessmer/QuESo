@@ -44,8 +44,9 @@ std::vector<IndexType> AABB_tree::Query(const AABB_primitive_base& rAABB_primiti
         IndexType node = stack.back();
         stack.pop_back();
 
-        // Copy the AABB_base and cast it to AABB_primitive.
-        const auto& aabb = static_cast<const AABB_primitive&>(BaseTreeType::Nodes()[node].aabb_base);
+        /// TODO: remove this copy (pass lower_bound and upper_bound to intersect())
+        const auto& r_aabb_base = BaseTreeType::Nodes()[node].aabb_base;
+        const AABB_primitive aabb{r_aabb_base.lowerBound, r_aabb_base.upperBound};
 
         if (node == NULL_NODE) continue;
 

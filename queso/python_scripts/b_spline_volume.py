@@ -1,12 +1,26 @@
-import QuESo_PythonApplication as QuESo_App
+from typing import List
 import numpy as np
 import scipy.interpolate as si
+# import QuESo
+import QuESo_PythonApplication as QuESo
 
 class BSplineVolume:
-    def __init__(self, settings, knot_vector_type):
-        ''' Constructor of BSplineVolume \n
-        Takes QuESo::Settings as input.
-        '''
+    """Class to construct a 3D B-Spline volume using the QuESo settings.
+    """
+    def __init__(self,
+            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
+            knot_vector_type: str
+        ) -> None:
+        """Initializes the BSplineVolume.
+
+        Args:
+            settings (QuESo.Settings) object containing background grid settings.
+            knot_vector_type (str): Type of knot vector. Must be either
+                "open_knot_vector" or "non_open_knot_vector".
+
+        Raises:
+            Exception: If an invalid `knot_vector_type` is provided.
+        """
         grid_settings = settings["background_grid_settings"]
         self.Order = grid_settings.GetIntVector("polynomial_order")
         NumElements = grid_settings.GetIntVector("number_of_elements")
@@ -22,14 +36,25 @@ class BSplineVolume:
             message = "BSplineVolume :: __init__ :: Given 'knot_vector_type': '" + knot_vector_type
             message += "' not valid. Available options are: 'open_knot_vector' and 'non_open_knot_vector'."
             raise Exception(message)
-        self.spline_u = self.__construct_b_spline(
+        self.spline_u = self._construct_b_spline(
            self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0], open_knot_vector)
-        self.spline_v = self.__construct_b_spline(
+        self.spline_v = self._construct_b_spline(
             self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1], open_knot_vector)
-        self.spline_w = self.__construct_b_spline(
+        self.spline_w = self._construct_b_spline(
             self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2], open_knot_vector)
 
-    def GetSpline(self, Index):
+    def GetSpline(self, Index: int) -> si.BSpline:
+        """Returns the B-spline along the specified direction.
+
+        Args:
+            Index (int): 0 for u-direction, 1 for v-direction, 2 for w-direction.
+
+        Returns:
+            si.BSpline: The corresponding spline object.
+
+        Raises:
+            Exception: If index is out of the valid range.
+        """
         if( Index == 0 ):
             return self.spline_u
         elif( Index == 1 ):
@@ -39,8 +64,9 @@ class BSplineVolume:
         else:
             raise Exception("BSplineVolume :: GetSpline :: Index out of scope.")
 
-    def ControlPoints(self):
+    def ControlPoints(self) -> List[List[float]]:
         ''' Returns control points of B-Spline volume in a list.
+
             The point indices are linearized and can be accessed the following:
 
             cps = self.ControlPoints() \n
@@ -50,6 +76,10 @@ class BSplineVolume:
                     for i_u in range(NumberControlPointsInU()):
                         point = cps[count] \n
                         count += 1
+
+
+            Returns:
+                list[list[float]]: A list of control points as [[x, y, z]] coordinates.
         '''
         cps = []
         for z in self.spline_w.c:
@@ -58,8 +88,9 @@ class BSplineVolume:
                     cps.append( [x, y, z] )
         return cps
 
-    def ControlPointsMatrix(self):
+    def ControlPointsMatrix(self) -> np.ndarray:
         ''' Returns control points of B-Spline volume in a matrix.
+
             Points can be accessed as:
 
             cps = self.ControlPoints() \n
@@ -67,6 +98,9 @@ class BSplineVolume:
                 for i_v in range(NumberControlPointsInV()):
                     for i_u in range(NumberControlPointsInU()):
                         point = cps[i_u, i_v, i_w]
+
+            Returns:
+                np.ndarray: A NumPy array of shape (n_u, n_v, n_w, 3) containing control points.
         '''
         n_cps_u = self.NumberControlPointsInU()
         n_cps_v = self.NumberControlPointsInV()
@@ -81,49 +115,85 @@ class BSplineVolume:
 
         return cps
 
-    def KnotsU(self):
-        ''' KnotsU \n
-        Returns knot vector along u- (x) direction.
-        '''
-        return self.spline_u.t.tolist()
+    def KnotsU(self) -> List[float]:
+        """Returns knot vector along the u-direction.
 
-    def KnotsV(self):
-        ''' KnotsV \n
-        Returns knot vector along v- (y) direction.
-        '''
-        return self.spline_v.t.tolist()
+        Returns:
+            list: Knot vector along u (x) direction.
+        """
+        return self.spline_u.t.flatten().tolist()
 
-    def KnotsW(self):
-        ''' KnotsW \n
-        Returns knot vector along w- (z) direction.
-        '''
-        return self.spline_w.t.tolist()
+    def KnotsV(self) -> List[float]:
+        """Returns knot vector along the v-direction.
 
-    def PolynomialOrder(self):
-        ''' PolynomialOrder \n
-        Returns polynomial order of b-spline volume: [p_x, p_y, p_z]
-        '''
+        Returns:
+            list: Knot vector along v (y) direction.
+        """
+        return self.spline_v.t.flatten().tolist()
+
+    def KnotsW(self) -> List[float]:
+        """Returns knot vector along the w-direction.
+
+        Returns:
+            list: Knot vector along w (z) direction.
+        """
+        return self.spline_w.t.flatten().tolist()
+
+    def PolynomialOrder(self) -> List[float]:
+        """Returns the polynomial order in each direction.
+
+        Returns:
+            List[float]: [order_u, order_v, order_w]
+        """
         return self.Order
 
-    def NumberControlPointsInU(self):
-        ''' NumberControlPointsInU \n
-        Returns number of control points in u- (x) direction.
-        '''
+    def NumberControlPointsInU(self) -> int:
+        """Returns number of control points in u-direction.
+
+        Returns:
+            int: Number of control points in u (x) direction.
+        """
         return len(self.spline_u.c)
 
-    def NumberControlPointsInV(self):
-        ''' NumberControlPointsInV \n
-        Returns number of control points in v- (y) direction.
-        '''
+    def NumberControlPointsInV(self) -> int:
+        """Returns number of control points in v-direction.
+
+        Returns:
+            int: Number of control points in v (y) direction.
+        """
         return len(self.spline_v.c)
 
-    def NumberControlPointsInW(self):
-        ''' NumberControlPointsInW \n
-        Returns number of control points in w- (z) direction.
-        '''
+    def NumberControlPointsInW(self) -> int:
+        """Returns number of control points in w-direction.
+
+        Returns:
+            int: Number of control points in w (z) direction.
+        """
         return len(self.spline_w.c)
 
-    def __construct_b_spline(self, Order, NumElements, LowerBoundX, UpperBoundX, LowerBoundU, UpperBoundU, OpenKnotVector=False):
+    def _construct_b_spline(self,
+            Order: int,
+            NumElements: int,
+            LowerBoundX: float,
+            UpperBoundX: float,
+            LowerBoundU: float,
+            UpperBoundU: float,
+            OpenKnotVector: bool=False
+        ) -> si.BSpline:
+        """Constructs a B-spline curve in a single parametric direction.
+
+        Args:
+            Order (int): Polynomial order of the spline.
+            NumElements (int): Number of elements in the parametric space.
+            LowerBoundX (float): Lower bound in physical space.
+            UpperBoundX (float): Upper bound in physical space.
+            LowerBoundU (float): Lower bound in parametric space.
+            UpperBoundU (float): Upper bound in parametric space.
+            OpenKnotVector (bool, optional): Whether to use open knot vector. Defaults to False.
+
+        Returns:
+            scipy.interpolate.BSpline: Constructed B-spline object.
+        """
         delta_u = (UpperBoundU-LowerBoundU)/NumElements
 
         if OpenKnotVector:
@@ -140,11 +210,13 @@ class BSplineVolume:
         if not OpenKnotVector:
             cps_x = [ val - (Order-1)*(center-val) / (NumElements) for val in cps_x  ]
 
-        spline_u = si.BSpline(knots_u, cps_x, Order, extrapolate=False)
+        spline_u: si.BSpline = si.BSpline(knots_u, cps_x, Order, extrapolate=False)
         knots_u_to_insert = np.arange(LowerBoundU+delta_u, UpperBoundU-0.5*delta_u, delta_u)
 
         for knot in knots_u_to_insert:
-            spline_u = si.insert(knot, spline_u)
+            # (TODO: change this to spline_u = spline_u.insert_knot(knot))
+            # Requires more recent scipy version (Requires windows CI to be updated).
+            spline_u = si.insert(knot, spline_u) # type: ignore
 
         num_cps = len(spline_u.t) - Order - 1
         spline_u.c = spline_u.c[:num_cps]

@@ -1,7 +1,7 @@
 # Project imports
 import QuESo_PythonApplication as QuESo
 from queso.python_scripts.json_io import JsonIO
-from queso.python_scripts.QuESoUnittest import QuESoTestCase
+from queso.python_scripts.queso_unit_test import QuESoTestCase
 # External imports
 import unittest
 import os
@@ -245,24 +245,24 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertFalse(settings.IsSet("penalty_factor"))
 
     def test_customized_values(self):
-        settings = JsonIO.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_1.json")
+        settings = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_1.json")
         self.check_customized_values(settings)
 
-        JsonIO.WriteSettings(settings, self.new_file_name_1)
-        settings_new = JsonIO.ReadSettings(self.new_file_name_1)
+        JsonIO.write_settings(settings, self.new_file_name_1)
+        settings_new = JsonIO.read_settings(self.new_file_name_1)
         self.check_customized_values(settings_new)
         os.remove(self.new_file_name_1)
 
-        settings2 = JsonIO.ReadSettings("queso/tests/settings_container/QuESoSettings_custom_2.json")
+        settings2 = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_2.json")
         self.check_customized_values(settings2)
 
-        JsonIO.WriteSettings(settings2, self.new_file_name_2)
-        settings2_new = JsonIO.ReadSettings(self.new_file_name_2)
+        JsonIO.write_settings(settings2, self.new_file_name_2)
+        settings2_new = JsonIO.read_settings(self.new_file_name_2)
         self.check_customized_values(settings2_new)
         os.remove(self.new_file_name_2)
 
     def test_default_values(self):
-        settings = JsonIO.ReadSettings("queso/tests/settings_container/QuESoSettings_default.json")
+        settings = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_default.json")
         self.check_default_values(settings)
 
     def setUp(self):
