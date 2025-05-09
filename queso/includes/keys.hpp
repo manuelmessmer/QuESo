@@ -146,6 +146,7 @@ private:
 template<typename TEnumType>
 struct KeyData {
     constexpr KeyData(TEnumType KeyValue) : mKeyValue(KeyValue) {}
+protected:
     TEnumType mKeyValue;
 };
 
@@ -320,17 +321,31 @@ namespace key {\
     QuESo_CREATE_KEY_SET_INFO(KeySetName, KeySetToWhat, KeyNames) \
 
 #define QuESo_DEFINE_KEY_TO_OBJECT(KeySetName, KeyName, KeySetToWhat) \
-namespace KeySetName {\
-    inline const queso::key::detail::Key<key::detail::KeySetName##KeySetToWhat##KeySetInfo> KeyName(\
-        key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
-}\
+    namespace key {\
+    namespace detail {\
+    namespace KeySetName {\
+        inline const queso::key::detail::Key<key::detail::KeySetName##KeySetToWhat##KeySetInfo> KeyName##_Dynamic(\
+            key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
+    }\
+    }\
+    }\
+    namespace KeySetName {\
+        inline constexpr queso::key::detail::KeyConstexpr<key::detail::KeySetName##KeySetToWhat##KeySetInfo> KeyName(\
+            key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
+    }\
 
 #define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat) \
+    static_assert(queso::key::KeySetToWhat::is_valid_value_type_v<KeyToWhat>, "Given KeyToWhat-type is invalid.");\
+    namespace key {\
+    namespace detail {\
     namespace KeySetName {\
-        static_assert(queso::key::KeySetToWhat::is_valid_value_type_v<KeyToWhat>, "Given KeyToWhat-type is invalid.");\
-        inline const queso::key::detail::Key<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName(\
+        inline const queso::key::detail::Key<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName##_Dynamic(\
             key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
-        inline constexpr queso::key::detail::KeyConstexpr<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName##2(\
+    }\
+    }\
+    }\
+    namespace KeySetName {\
+        inline constexpr queso::key::detail::KeyConstexpr<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName(\
             key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
     }\
 
@@ -363,7 +378,7 @@ inline StringToKeyMapType InitializeStringToKeyMap(const StringToKeyMapType& rKe
 } // End namespace key
 } // End namespace queso
 
-#define QuESo_KEY(Key) {Key.Name(), &Key} \
+#define QuESo_KEY(Key) {key::detail::Key##_Dynamic.Name(), &key::detail::Key##_Dynamic} \
 
 #define QuESo_REGISTER_KEY_SET(KeySet, KeySetToWhat, ...) \
     inline const queso::key::detail::StringToKeyMapType key::detail::KeySet##KeySetToWhat##KeySetInfo::msStringToKeyMap =\
