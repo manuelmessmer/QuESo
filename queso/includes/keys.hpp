@@ -28,56 +28,42 @@ namespace queso {
 namespace key {
 namespace detail {
 
-typedef std::vector<std::string> StringVectorType;
+// Count how many commas in the string (i.e., number of items = commas + 1)
+constexpr IndexType CountItemsDelimitedByComma(std::string_view str) {
+    IndexType count = 1;
+    for (char c : str) {
+        if (c == ',') ++count;
+    }
+    return count;
+}
 
-/// @brief Helper function to remove white spaces from a string.
-/// @param rString
-/// @return std::string
-inline std::string GetStringWithoutWhiteSpaces(const std::string& rString) {
-    std::string result;
-    result.reserve(rString.size());
-    for (char ch : rString) {
-        if (!std::isspace(static_cast<unsigned char>(ch))) {
-            result.push_back(ch);
+// Split a comma-separated string_view into a constexpr std::array
+template<IndexType N>
+constexpr std::array<std::string_view, N> SplitConstexprStringView(std::string_view str) {
+    std::array<std::string_view, N> result{};
+    IndexType start = 0;
+    IndexType index = 0;
+
+    for (IndexType i = 0; i <= str.size(); ++i) {
+        if( str.data()[i] == ' ' || str.data()[i] == '\t' ){ // Skip spaces
+            start = i + 1;
+        }
+        else if (i == str.size() || str.data()[i] == ',') {
+            result[index++] = str.substr(start, i - start);
+            start = i + 1;
         }
     }
+
     return result;
 }
 
-/// @brief Helper function to remove 'QuESo_KEY_LIST(' and ')' from a string.
-/// @param rString
-inline void RemoveQuESoList(std::string& rString) {
-    IndexType start_pos = rString.find("QuESo_KEY_LIST(");
-    if (start_pos != std::string::npos) {
-        rString.erase(start_pos, std::string("QuESo_KEY_LIST(").length());
-    }
-    IndexType end_pos = rString.find(")", start_pos);
-    if (end_pos != std::string::npos) {
-        rString.erase(end_pos, 1);
-    }
+// Helper to combine counting and splitting
+template<IndexType N, const char* TStr>
+constexpr auto CreateConstexprStringArray() {
+    return SplitConstexprStringView<N>(TStr);
 }
 
-/// @brief  Helper function to create a vector of strings from a string. ',' is used a delimiter.
-/// @param rString
-/// @return StringVectorType
-inline StringVectorType CreateStringVector(const std::string& rString) {
-    StringVectorType enum_strings;
-    std::string cleanedString = GetStringWithoutWhiteSpaces(rString);
-    RemoveQuESoList(cleanedString);
-    std::istringstream stream(cleanedString);
-    std::string token;
-    while (std::getline(stream, token, ',')) {
-        IndexType pos = token.find('=');
-        if (pos != std::string::npos) {
-            QuESo_ERROR << "Keys must start at 0 and increment by 1. No custom values allowed.";
-        } else {
-            enum_strings.push_back(token);
-        }
-    }
-    return enum_strings;
-}
-
-// Helper struct
+/// @brief Helper struct: Allows to define a list of types.
 template<typename... Types>
 struct ValuesTypeList {
 };
@@ -86,12 +72,18 @@ struct ValuesTypeList {
 template<typename TDerived, typename TTypeList>
 struct KeyToWhatTypeTag;
 
-/// @brief This class acts as a type tag to static_assert, if a key is suiteable for certain objects.
-/// @tparam TDerived - Curiously Recurring Template Pattern. This must be the derived class.
+/// @brief This class acts as a type tag to be used for "static_assert". It allows to check to what a
+///        specific key leads to.
+/// @tparam TDerived - CRTP: Curiously Recurring Template Pattern. This must be the derived class.
 /// @tparam TTypeList - List of possible types for the underyling values. Example: You may create a
-///         KeyToValues type tag that allows int and double as underlying values.
-template<typename TDerived, typename... PossibleTypes>
-struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleTypes...>> {
+///         KeyToValues type tag that allows int and double as underlying values: -> ValuesTypeList<int, double>
+///         However, you can also create a KeyToSubDict type tag. Since the key always leads to a SubDict,
+///         The ValuesTypeList must be kept empty -> ValuesTypeList<>.
+template<typename TDerived, typename... PossibleValueTypes>
+struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleValueTypes...>> {
+    // This is a pure static class.
+    // Delete constructor
+    KeyToWhatTypeTag() = delete;
 
     // Delete copy/move constructor and assignment operator
     KeyToWhatTypeTag(const KeyToWhatTypeTag&) = delete;
@@ -99,23 +91,26 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleTypes...>> {
     KeyToWhatTypeTag(KeyToWhatTypeTag&&) = delete;
     KeyToWhatTypeTag& operator=(KeyToWhatTypeTag&&) = delete;
 
-    // Type traits to check the if a given type is a possible value type.
+    // Type traits to check, if a given type is a possible value type.
     template<typename TType>
-    using is_valid_value_type = std::disjunction<std::is_same<TType, PossibleTypes>...>;
+    using is_valid_value_type = std::disjunction<std::is_same<TType, PossibleValueTypes>...>;
 
     template<typename TType>
     static constexpr bool is_valid_value_type_v = is_valid_value_type<TType>::value;
 
     /// @brief Returns the name of a given type.
+    /// @return std::string
+    static constexpr std::string_view GetTypeTagName() {
+        return TDerived::msTypeName;
+    }
+
+    /// @brief Returns the name of a given type.
     /// @tparam TType
     /// @return std::string
     template<typename TType>
-    static std::string GetTypeName() {
-        if constexpr(std::is_same_v<TType, TDerived>){ // To print name of derived class.
-            return TDerived::msTypeName;
-        }
-        else if constexpr(KeyToWhatTypeTag::is_valid_value_type_v<TType>){ // To print name of values.
-            return ValuesTypeList<PossibleTypes...>::msTypeNames[IndexOfType<TType, PossibleTypes...>::msIndex];
+    static constexpr std::string_view GetBaseTypeName() {
+        if constexpr(KeyToWhatTypeTag::is_valid_value_type_v<TType>){ // To print name of values.
+            return ValuesTypeList<PossibleValueTypes...>::msTypeNames[IndexOfType<TType, PossibleValueTypes...>::msIndex];
         }
         else {
             static_assert(KeyToWhatTypeTag::is_valid_value_type_v<TType>, "Invalid type provided to GetTypeName");
@@ -124,10 +119,6 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleTypes...>> {
     }
 
 private:
-    // This is a pure static class.
-    KeyToWhatTypeTag() {}
-    ~KeyToWhatTypeTag() {}
-
     // Primary template, which is not defined.
     template <typename T, typename... Types>
     struct IndexOfType;
@@ -151,19 +142,19 @@ private:
     };
 };
 
-} // End namespace detail
-} // End namespace key
-} // End namespace queso
-
-namespace queso {
-namespace key {
+// Non-template base struct with just the data
+template<typename TEnumType>
+struct KeyData {
+    constexpr KeyData(TEnumType KeyValue) : mKeyValue(KeyValue) {}
+    TEnumType mKeyValue;
+};
 
 /// Base class of keys.
 struct KeyBase {
     virtual ~KeyBase() = default;
 
     virtual IndexType Index() const = 0;
-    virtual const std::string& Name() const = 0;
+    virtual std::string_view Name() const = 0;
     virtual std::type_index VariableTypeIndex() const = 0;
     virtual std::type_index KeySetInfoTypeIndex() const = 0;
 };
@@ -172,7 +163,7 @@ struct KeyBase {
 /// @tparam TKeySetInfoType
 /// @tparam TKeyToWhat
 template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
-struct Key : KeyBase {
+struct KeyConstexpr : private KeyData<typename TKeySetInfoType::EnumType> {
     /// The following typedefs can be used for static type assertion.
     typedef TKeySetInfoType KeySetInfoType;
     typedef TKeyToWhat KeyToWhat;
@@ -180,19 +171,48 @@ struct Key : KeyBase {
 
     /// @brief  Constructor.
     /// @param KeyValue
-    Key(KeyValueType KeyValue) : mKeyValue(KeyValue) {
+    constexpr KeyConstexpr(KeyValueType KeyValue) : KeyData<KeyValueType>(KeyValue) {
+    }
+
+    /// @brief Returns value/index of Key.
+    /// @return IndexType
+    constexpr IndexType Index() const noexcept {
+        return static_cast<IndexType>(this->mKeyValue);
+    }
+
+    /// @brief Returns name of Key.
+    /// @return const std::string&
+    constexpr std::string_view Name() const noexcept {
+        return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
+    }
+};
+
+
+/// @brief Key class to define global keys.
+/// @tparam TKeySetInfoType
+/// @tparam TKeyToWhat
+template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
+struct Key : public KeyBase, private KeyData<typename TKeySetInfoType::EnumType> {
+    // Typedefs
+    typedef TKeySetInfoType KeySetInfoType;
+    typedef TKeyToWhat KeyToWhat;
+    typedef typename KeySetInfoType::EnumType KeyValueType;
+
+    /// @brief  Constructor.
+    /// @param KeyValue
+    Key(KeyValueType KeyValue) : KeyData<KeyValueType>(KeyValue) {
     }
 
     /// @brief Returns value/index of Key.
     /// @return IndexType
     IndexType Index() const override{
-        return static_cast<IndexType>(mKeyValue);
+        return static_cast<IndexType>(this->mKeyValue);
     }
 
     /// @brief Returns name of Key.
     /// @return const std::string&
-    const std::string& Name() const override {
-        return KeySetInfoType::msEnumNames[static_cast<IndexType>(mKeyValue)];
+    std::string_view Name() const override {
+        return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
     }
 
     /// The following functions can be used for dynamic type checks.
@@ -209,22 +229,18 @@ struct Key : KeyBase {
         return std::type_index(typeid(KeySetInfoType));
     }
 
-private:
-    /// Private member
-
-    ///@brief Actual value of the key.
-    const KeyValueType mKeyValue;
 };
 
 /// Base class to store and access information about a key set.
 struct KeySetInfo {
     virtual ~KeySetInfo() = default;
 
-    virtual const KeyBase* pGetKey(const std::string& rName) const = 0;
+    virtual const KeyBase* pGetKey(std::string_view rName) const = 0;
     virtual IndexType GetNumberOfKeys() const noexcept = 0;
     virtual bool IsCorrectKeyType(const KeyBase& rKey) const noexcept = 0;
 };
 
+} // End namespace detail
 } // End namespace key
 } // End namespace queso
 
@@ -232,7 +248,11 @@ struct KeySetInfo {
 namespace key {\
     template<> \
     struct detail::ValuesTypeList<__VA_ARGS__> { \
-        inline static const std::vector<std::string> msTypeNames = queso::key::detail::CreateStringVector(#__VA_ARGS__); \
+    private:\
+        static constexpr char msTypeNamesRaw[] = #__VA_ARGS__; \
+        static constexpr std::size_t msSize = queso::key::detail::CountItemsDelimitedByComma(msTypeNamesRaw); \
+    public:\
+        static constexpr std::array<std::string_view, msSize> msTypeNames = queso::key::detail::CreateConstexprStringArray<msSize, msTypeNamesRaw>();\
     }; \
     typedef detail::ValuesTypeList<__VA_ARGS__> ValuesTypeListName; \
 }\
@@ -240,30 +260,30 @@ namespace key {\
 #define QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(TypeTagName) \
 namespace key {\
     struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, detail::ValuesTypeList<>> {\
-        inline static const std::string msTypeName = #TypeTagName;\
+        static constexpr char msTypeName[] = #TypeTagName;\
     };\
 }\
 
 #define QuESo_CREATE_KEY_SET_TO_VALUE_TYPE_TAG(TypeTagName, ValueTypeList_) \
 namespace key {\
     struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, ValueTypeList_> {\
-        inline static const std::string msTypeName = #TypeTagName;\
+        static constexpr char msTypeName[] = #TypeTagName;\
     };\
 }\
 
 #define QuESo_KEY_LIST(...) __VA_ARGS__
 
-#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat_, KeyNames) \
-    typedef queso::key::detail::StringVectorType StringVectorType;\
-    typedef queso::key::KeySetInfo KeySetInfoType;\
-    typedef queso::key::KeyBase KeyBaseType;\
+#define QuESo_CREATE_KEY_SET_INFO(KeySetName, KeySetToWhat_, ...) \
+    typedef queso::key::detail::KeySetInfo KeySetInfoType;\
+    typedef queso::key::detail::KeyBase KeyBaseType;\
     namespace key {\
+    namespace detail {\
         /* KeySetName##KeyType##KeySetInfo allos to access key set information. */\
         struct KeySetName##KeySetToWhat_##KeySetInfo : public KeySetInfoType {\
             typedef queso::key::KeySetToWhat_ KeySetToWhat;\
-            enum class EnumType {KeyNames};\
+            enum class EnumType {__VA_ARGS__};\
             /* Member function to access key information*/\
-            const KeyBaseType* pGetKey(const std::string& rName) const override {\
+            const KeyBaseType* pGetKey(std::string_view rName) const override {\
                 const auto it = msStringToKeyMap.find(rName);\
                 if (it != msStringToKeyMap.end()) {\
                     return (it->second);\
@@ -271,7 +291,7 @@ namespace key {\
                 QuESo_ERROR << "Invalid Key name. Possible names are: " + StaticGetAllKeyNames();\
             }\
             IndexType GetNumberOfKeys() const noexcept override {\
-                return msEnumNames.size();\
+                return msNumOfEnums;\
             }\
             bool IsCorrectKeyType(const KeyBaseType& rKey) const noexcept override {\
                 return (std::type_index(typeid(KeySetName##KeySetToWhat_##KeySetInfo)) == rKey.KeySetInfoTypeIndex() );\
@@ -286,32 +306,39 @@ namespace key {\
                 }\
                 return result.insert(0, "['") + "']";\
             }\
-            inline static const StringVectorType msEnumNames = queso::key::detail::CreateStringVector(#KeyNames);\
-            static const std::unordered_map<std::string, const KeyBaseType* const> msStringToKeyMap; \
+        private:\
+            static constexpr char msEnumNamesRaw[] = #__VA_ARGS__; \
+            static constexpr std::size_t msNumOfEnums = queso::key::detail::CountItemsDelimitedByComma(msEnumNamesRaw); \
+        public:\
+            static constexpr std::array<std::string_view, msNumOfEnums> msEnumNames = queso::key::detail::CreateConstexprStringArray<msNumOfEnums, msEnumNamesRaw>();\
+            static const queso::key::detail::StringToKeyMapType msStringToKeyMap; \
         };\
-    }
+    }\
+    }\
 
-#define QuESo_CREATE_KEY_SET_INFO(KeySetName, KeySetToWhat, KeyNames) \
-    QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat, KeyNames) \
+#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat, KeyNames) \
+    QuESo_CREATE_KEY_SET_INFO(KeySetName, KeySetToWhat, KeyNames) \
 
 #define QuESo_DEFINE_KEY_TO_OBJECT(KeySetName, KeyName, KeySetToWhat) \
 namespace KeySetName {\
-    inline const queso::key::Key<key::KeySetName##KeySetToWhat##KeySetInfo> KeyName = queso::key::Key<key::KeySetName##KeySetToWhat##KeySetInfo>(\
-        key::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
+    inline const queso::key::detail::Key<key::detail::KeySetName##KeySetToWhat##KeySetInfo> KeyName(\
+        key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
 }\
 
 #define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat) \
     namespace KeySetName {\
         static_assert(queso::key::KeySetToWhat::is_valid_value_type_v<KeyToWhat>, "Given KeyToWhat-type is invalid.");\
-        inline const queso::key::Key<key::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName  = queso::key::Key<key::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat>(\
-            key::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
+        inline const queso::key::detail::Key<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName(\
+            key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
+        inline constexpr queso::key::detail::KeyConstexpr<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName##2(\
+            key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
     }\
 
 namespace queso {
 namespace key {
 namespace detail {
 
-typedef std::unordered_map<std::string, const queso::key::KeyBase* const> StringToKeyMapType;
+typedef std::unordered_map<std::string_view, const queso::key::detail::KeyBase* const> StringToKeyMapType;
 
 /// @brief Helper functions to check if all keys are correctly defined.
 /// @tparam TKeySetInfoType
@@ -326,7 +353,7 @@ inline StringToKeyMapType InitializeStringToKeyMap(const StringToKeyMapType& rKe
     for( const auto& r_key_name : TKeySetInfoType::msEnumNames ) {
         const auto it = rKeyMap.find(r_key_name);
         if (it == rKeyMap.end()) {
-            QuESo_ERROR << "Key '" + r_key_name + "' not found in key map. Check: REGISTER_KEYS_HPP.";
+            QuESo_ERROR << "Key '" << r_key_name << "' not found in key map. Check: REGISTER_KEYS_HPP.";
         }
     }
     return rKeyMap;
@@ -339,7 +366,8 @@ inline StringToKeyMapType InitializeStringToKeyMap(const StringToKeyMapType& rKe
 #define QuESo_KEY(Key) {Key.Name(), &Key} \
 
 #define QuESo_REGISTER_KEY_SET(KeySet, KeySetToWhat, ...) \
-    inline const queso::key::detail::StringToKeyMapType key::KeySet##KeySetToWhat##KeySetInfo::msStringToKeyMap =\
-        queso::key::detail::InitializeStringToKeyMap<key::KeySet##KeySetToWhat##KeySetInfo>( {__VA_ARGS__} );\
+    inline const queso::key::detail::StringToKeyMapType key::detail::KeySet##KeySetToWhat##KeySetInfo::msStringToKeyMap =\
+        queso::key::detail::InitializeStringToKeyMap<key::detail::KeySet##KeySetToWhat##KeySetInfo>( {__VA_ARGS__} );\
+
 
 #endif // End KEYS_INCLUDE_HPP
