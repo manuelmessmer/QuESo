@@ -112,22 +112,11 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleValueTypes...>> {
     /// @return std::string
     template<typename TType>
     static constexpr std::string_view GetValueTypeName() {
-        if constexpr(KeyToWhatTypeTag::is_valid_value_type_v<TType>){ // To print name of values.
-            return ValuesTypeList<PossibleValueTypes...>::msTypeNames[IndexOfType<TType, PossibleValueTypes...>::msIndex];
-        }
-        else {
-            static_assert(delayed_false<TType>, "Invalid type provided to GetValueTypeName");
-            return "";
-        }
+        static_assert(KeyToWhatTypeTag::is_valid_value_type_v<TType>, "Invalid type provided to GetValueTypeName");
+        return ValuesTypeList<PossibleValueTypes...>::msTypeNames[IndexOfType<TType, PossibleValueTypes...>::msIndex];
     }
 
 private:
-    /// Delays evaluation until the template parameter is known.
-    /// This can be used in combination with static_assert for constexpr branches that are illegal.
-    /// Note that static_assert(false) does not work, since both branches of if constexpr must be well-formed.
-    template<typename T>
-    static constexpr bool delayed_false = false;
-
     /// Primary template, which is not defined.
     template <typename T, typename... Types>
     struct IndexOfType;
@@ -166,7 +155,7 @@ struct DynamicKeyBase {
 
     virtual IndexType Index() const = 0;
     virtual std::string_view Name() const = 0;
-    virtual std::type_index VariableTypeIndex() const = 0;
+    virtual std::type_index TargetTypeIndex() const = 0;
     virtual std::type_index KeySetInfoTypeIndex() const = 0;
 };
 
@@ -178,9 +167,9 @@ struct DynamicKeyBase {
 template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
 struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoType::EnumType> {
     // Typedefs
-    typedef TKeySetInfoType KeySetInfoType;
-    typedef TKeyToWhat KeyToWhat;
-    typedef typename KeySetInfoType::EnumType KeyValueType;
+    using KeySetInfoType = TKeySetInfoType;
+    using KeyToWhat = TKeyToWhat;
+    using KeyValueType = typename KeySetInfoType::EnumType;
 
     /// @brief  Constructor.
     /// @param KeyValue
@@ -189,7 +178,7 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
 
     /// @brief Returns value/index of Key.
     /// @return IndexType
-    IndexType Index() const override{
+    IndexType Index() const override {
         return static_cast<IndexType>(this->mKeyValue);
     }
 
@@ -203,7 +192,7 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
 
     /// @brief Returns std::type_index of type this key points to.
     /// @return std::type_index
-    std::type_index VariableTypeIndex() const override {
+    std::type_index TargetTypeIndex() const override {
         return std::type_index(typeid(KeyToWhat));
     }
 
@@ -220,9 +209,9 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
 template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
 struct ConstexprKey : private KeyData<typename TKeySetInfoType::EnumType> {
     /// The following typedefs can be used for static type assertion.
-    typedef TKeySetInfoType KeySetInfoType;
-    typedef TKeyToWhat KeyToWhat;
-    typedef typename KeySetInfoType::EnumType KeyValueType;
+    using KeySetInfoType = TKeySetInfoType;
+    using KeyToWhat = TKeyToWhat;
+    using KeyValueType = typename KeySetInfoType::EnumType;
 
     /// @brief  Constructor.
     /// @param KeyValue
@@ -257,15 +246,15 @@ struct KeySetInfo {
 
 #define QuESo_CREATE_VALUE_TYPE_LIST(ValuesTypeListName, ...) \
 namespace key {\
-    template<> \
-    struct detail::ValuesTypeList<__VA_ARGS__> { \
+    template<>\
+    struct detail::ValuesTypeList<__VA_ARGS__> {\
     private:\
-        static constexpr char msTypeNamesRaw[] = #__VA_ARGS__; \
-        static constexpr std::size_t msSize = queso::key::detail::CountItemsDelimitedByComma(msTypeNamesRaw); \
+        static constexpr char msTypeNamesRaw[] = #__VA_ARGS__;\
+        static constexpr std::size_t msSize = queso::key::detail::CountItemsDelimitedByComma(msTypeNamesRaw);\
     public:\
         static constexpr std::array<std::string_view, msSize> msTypeNames = queso::key::detail::CreateConstexprStringArray<msSize>(msTypeNamesRaw);\
-    }; \
-    typedef detail::ValuesTypeList<__VA_ARGS__> ValuesTypeListName; \
+    };\
+    using ValuesTypeListName = detail::ValuesTypeList<__VA_ARGS__>; \
 }\
 
 #define QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(TypeTagName) \
@@ -285,13 +274,13 @@ namespace key {\
 #define QuESo_KEY_LIST(...) __VA_ARGS__
 
 #define QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat_, ...) \
-    typedef queso::key::detail::KeySetInfo KeySetInfoType;\
-    typedef queso::key::detail::DynamicKeyBase KeyBaseType;\
+    using KeySetInfoType = queso::key::detail::KeySetInfo;\
+    using KeyBaseType = queso::key::detail::DynamicKeyBase;\
     namespace key {\
     namespace detail {\
         /* KeySetName##KeyType##KeySetInfo allows to access key set information dynamically. */\
         struct KeySetName##KeySetToWhat_##KeySetInfo : public KeySetInfoType {\
-            typedef queso::key::KeySetToWhat_ KeySetToWhat;\
+            using KeySetToWhat = queso::key::KeySetToWhat_;\
             enum class EnumType {__VA_ARGS__};\
             /* Member function to access key information*/\
             const KeyBaseType* pGetKey(std::string_view rName) const override {\

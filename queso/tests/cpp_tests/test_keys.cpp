@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys1) {
 BOOST_AUTO_TEST_CASE(TestRegisterKeys2) {
     QuESo_INFO << "Testing :: Test Keys :: Register Single Key Set 2" << std::endl;
 
-    typedef decltype(TestKeys2::zero) KeyType;
+    using KeyType = decltype(TestKeys2::zero);
 
     /// TestKeys2
     static_assert( CheckKeyStatic<KeyType, queso::key::ListTypeTag>(TestKeys2::zero, 0, "zero") );
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys2) {
     CheckKeyDynamic<KeyType, queso::key::ListTypeTag>(TestKeys2::two, 2, "two");
     CheckKeyDynamic<KeyType, queso::key::ListTypeTag>(TestKeys2::three, 3, "three");
 
-    typedef KeyType::KeySetInfoType KeySetInfoType;
+    using KeySetInfoType = KeyType::KeySetInfoType;
     KeySetInfoType key_set_info{};
     QuESo_CHECK_EQUAL( key_set_info.GetNumberOfKeys(), 4);
     QuESo_CHECK_EQUAL( KeySetInfoType::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three']" );
@@ -131,8 +131,8 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     CheckKeyDynamic<decltype(TestKeys3::six), IntegrationMethodType>(TestKeys3::six, 6, "six");
     CheckKeyDynamic<decltype(TestKeys3::seven), GridTypeType>(TestKeys3::seven, 7, "seven");
 
-    typedef decltype(TestKeys3::zero)::KeySetInfoType KeySetInfoType;
-    typedef decltype(TestKeys3::one)::KeySetInfoType KeySetInfoType_2;
+    using KeySetInfoType = decltype(TestKeys3::zero)::KeySetInfoType;
+    using KeySetInfoType_2 = decltype(TestKeys3::one)::KeySetInfoType;
     // Note that TestKeys3::zero and TestKeys3::one are not of the same type.
     static_assert( !std::is_same_v<decltype(TestKeys3::zero), decltype(TestKeys3::one)> );
     // Check if both lead to the same KeySetInfo.
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     QuESo_CHECK_EQUAL( KeySetInfoType::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven']" );
     BOOST_REQUIRE_THROW( key_set_info.pGetKey("twelve"), std::exception );
 
-    typedef decltype(TestKeys3::two) KeyType;
+    using KeyType = decltype(TestKeys3::two);
 
     static_assert( KeyType::KeySetInfoType::KeySetToWhat::GetTypeTagName() == "MainValuesTypeTag" );
     static_assert( KeyType::KeySetInfoType::KeySetToWhat::GetValueTypeName<PointType>() == "PointType" );
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     CheckKeyDynamic<decltype(TestKeys4::two), queso::key::SubDictTypeTag>(TestKeys4::two, 2, "two");
     CheckKeyDynamic<decltype(TestKeys4::three), queso::key::SubDictTypeTag>(TestKeys4::three, 3, "three");
 
-    typedef decltype(TestKeys4::zero)::KeySetInfoType KeySetInfoTypeSubDict;
+    using KeySetInfoTypeSubDict = decltype(TestKeys4::zero)::KeySetInfoType;
     static_assert( KeySetInfoTypeSubDict::KeySetToWhat::GetTypeTagName() == "SubDictTypeTag" );
 
     KeySetInfoTypeSubDict key_set_info_subdict{};
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     CheckKeyDynamic<decltype(TestKeys4::six), queso::key::ListTypeTag>(TestKeys4::six, 1, "six");
     CheckKeyDynamic<decltype(TestKeys4::seven), queso::key::ListTypeTag>(TestKeys4::seven, 2, "seven");
 
-    typedef decltype(TestKeys4::five)::KeySetInfoType KeySetInfoTypeList;
+    using KeySetInfoTypeList = decltype(TestKeys4::five)::KeySetInfoType;
     static_assert( KeySetInfoTypeList::KeySetToWhat::GetTypeTagName() == "ListTypeTag" );
 
     KeySetInfoTypeList key_set_info_list{};
@@ -206,8 +206,8 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     CheckKeyDynamic<decltype(TestKeys5::zero), queso::key::SubDictTypeTag>(TestKeys5::zero, 0, "zero");
     CheckKeyDynamic<decltype(TestKeys5::one), queso::key::SubDictTypeTag>(TestKeys5::one, 1, "one");
 
-    typedef decltype(TestKeys5::zero)::KeySetInfoType KeySetInfoTypeSubDict;
-    typedef decltype(TestKeys5::one)::KeySetInfoType KeySetInfoTypeSubDict_2;
+    using KeySetInfoTypeSubDict = decltype(TestKeys5::zero)::KeySetInfoType;
+    using KeySetInfoTypeSubDict_2 = decltype(TestKeys5::one)::KeySetInfoType;
     static_assert( std::is_same_v<decltype(TestKeys5::zero), decltype(TestKeys5::one)> );
     static_assert( std::is_same_v<KeySetInfoTypeSubDict, KeySetInfoTypeSubDict_2> );
 
@@ -225,8 +225,8 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     CheckKeyDynamic<decltype(TestKeys5::five), queso::key::ListTypeTag>(TestKeys5::five, 0, "five");
     CheckKeyDynamic<decltype(TestKeys5::six), queso::key::ListTypeTag>(TestKeys5::six, 1, "six");
 
-    typedef decltype(TestKeys5::five)::KeySetInfoType KeySetInfoTypeList;
-    typedef decltype(TestKeys5::six)::KeySetInfoType KeySetInfoTypeList_2;
+    using KeySetInfoTypeList = decltype(TestKeys5::five)::KeySetInfoType;
+    using KeySetInfoTypeList_2 = decltype(TestKeys5::six)::KeySetInfoType;
     static_assert( std::is_same_v<decltype(TestKeys5::five), decltype(TestKeys5::six)> );
     static_assert( std::is_same_v<KeySetInfoTypeList, KeySetInfoTypeList_2> );
 
@@ -248,8 +248,8 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     CheckKeyDynamic<decltype(TestKeys5::nine), PointType>(TestKeys5::nine, 2, "nine");
     CheckKeyDynamic<decltype(TestKeys5::ten), IndexType>(TestKeys5::ten, 3, "ten");
 
-    typedef decltype(TestKeys5::nine)::KeySetInfoType KeySetInfoTypeValue;
-    typedef decltype(TestKeys5::ten)::KeySetInfoType KeySetInfoTypeValue_2;
+    using KeySetInfoTypeValue = decltype(TestKeys5::nine)::KeySetInfoType;
+    using KeySetInfoTypeValue_2 = decltype(TestKeys5::ten)::KeySetInfoType;
     static_assert( !std::is_same_v<decltype(TestKeys5::nine), decltype(TestKeys5::ten)> );
     static_assert( std::is_same_v<KeySetInfoTypeValue, KeySetInfoTypeValue_2> );
 
