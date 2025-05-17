@@ -20,7 +20,6 @@
 
 /// STL includes
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include <typeindex>
 
@@ -146,7 +145,7 @@ template<typename TEnumType>
 struct KeyData {
     constexpr KeyData(TEnumType KeyValue) : mKeyValue(KeyValue) {}
 protected:
-    TEnumType mKeyValue;
+    const TEnumType mKeyValue;
 };
 
 /// @brief KeyBase: Base class for dynamic keys.
@@ -244,7 +243,7 @@ struct KeySetInfo {
 } // End namespace key
 } // End namespace queso
 
-#define QuESo_CREATE_VALUE_TYPE_LIST(ValuesTypeListName, ...) \
+#define QuESo_CREATE_VALUE_TYPE_LIST(ValuesTypeListName, ...)\
 namespace key {\
     template<>\
     struct detail::ValuesTypeList<__VA_ARGS__> {\
@@ -254,17 +253,17 @@ namespace key {\
     public:\
         static constexpr std::array<std::string_view, msSize> msTypeNames = queso::key::detail::CreateConstexprStringArray<msSize>(msTypeNamesRaw);\
     };\
-    using ValuesTypeListName = detail::ValuesTypeList<__VA_ARGS__>; \
+    using ValuesTypeListName = detail::ValuesTypeList<__VA_ARGS__>;\
 }\
 
-#define QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(TypeTagName) \
+#define QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(TypeTagName)\
 namespace key {\
     struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, detail::ValuesTypeList<>> {\
         static constexpr char msTypeName[] = #TypeTagName;\
     };\
 }\
 
-#define QuESo_CREATE_KEY_SET_TO_VALUE_TYPE_TAG(TypeTagName, ValueTypeList_) \
+#define QuESo_CREATE_KEY_SET_TO_VALUE_TYPE_TAG(TypeTagName, ValueTypeList_)\
 namespace key {\
     struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, ValueTypeList_> {\
         static constexpr char msTypeName[] = #TypeTagName;\
@@ -273,7 +272,7 @@ namespace key {\
 
 #define QuESo_KEY_LIST(...) __VA_ARGS__
 
-#define QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat_, ...) \
+#define QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat_, ...)\
     using KeySetInfoType = queso::key::detail::KeySetInfo;\
     using KeyBaseType = queso::key::detail::DynamicKeyBase;\
     namespace key {\
@@ -308,18 +307,18 @@ namespace key {\
             }\
         private:\
             static constexpr char msEnumNamesRaw[] = #__VA_ARGS__; \
-            static constexpr std::size_t msNumOfEnums = queso::key::detail::CountItemsDelimitedByComma(msEnumNamesRaw); \
+            static constexpr std::size_t msNumOfEnums = queso::key::detail::CountItemsDelimitedByComma(msEnumNamesRaw);\
         public:\
             static constexpr std::array<std::string_view, msNumOfEnums> msEnumNames = queso::key::detail::CreateConstexprStringArray<msNumOfEnums>(msEnumNamesRaw);\
-            static const queso::key::detail::StringToKeyMapType msStringToKeyMap; \
+            static const queso::key::detail::StringToKeyMapType msStringToKeyMap;\
         };\
     }\
     }\
 
-#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat, KeyNames) \
-    QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat, KeyNames) \
+#define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat, KeyNames)\
+    QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat, KeyNames)\
 
-#define QuESo_DEFINE_KEY_TO_OBJECT(KeySetName, KeyName, KeySetToWhat) \
+#define QuESo_DEFINE_KEY_TO_OBJECT(KeySetName, KeyName, KeySetToWhat)\
     namespace key {\
     namespace detail {\
     namespace KeySetName {/* Define dynamic key */\
@@ -331,7 +330,7 @@ namespace key {\
             key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
     }\
 
-#define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat) \
+#define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat)\
     static_assert(queso::key::KeySetToWhat::is_valid_value_type_v<KeyToWhat>, "Given KeyToWhat-type is invalid.");\
     namespace key {\
     namespace detail {\
@@ -373,9 +372,9 @@ inline StringToKeyMapType InitializeStringToKeyMap(const StringToKeyMapType& rKe
 } // End namespace key
 } // End namespace queso
 
-#define QuESo_KEY(Key) {key::detail::Key##_Dynamic.Name(), &key::detail::Key##_Dynamic} \
+#define QuESo_KEY(Key) {key::detail::Key##_Dynamic.Name(), &key::detail::Key##_Dynamic}\
 
-#define QuESo_REGISTER_KEY_SET(KeySet, KeySetToWhat, ...) \
+#define QuESo_REGISTER_KEY_SET(KeySet, KeySetToWhat, ...)\
     inline const queso::key::detail::StringToKeyMapType key::detail::KeySet##KeySetToWhat##KeySetInfo::msStringToKeyMap =\
         queso::key::detail::InitializeStringToKeyMap<key::detail::KeySet##KeySetToWhat##KeySetInfo>( {__VA_ARGS__} );\
 
