@@ -21,15 +21,14 @@
 namespace queso {
 
 // Create value type lists
-QuESo_CREATE_VALUE_TYPE_LIST(MainValueTypeList, PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType);
+QuESo_CREATE_VALUE_TYPE_LIST(MainValueTypeList,
+    PointType, Vector3i, bool, double, IndexType, std::string, IntegrationMethodType, GridTypeType);
 
-/// Create type tags.
-// We could create different KeySetToValues's here. However, for now, one ("Main") seems sufficient.
+// Create type tags. These can be used to with 'static_assert' to check if a given key is of correct type.
+// We could create different ValuesTypeTag's here. However, for now, one ("Main") seems sufficient.
 QuESo_CREATE_KEY_SET_TO_VALUE_TYPE_TAG(MainValuesTypeTag, MainValueTypeList);
 QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(ListTypeTag);
 QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(SubDictTypeTag);
-
-// Here, we will add all global keys.
 
 #if QUESO_BUILD_TESTING
 namespace Testing {
