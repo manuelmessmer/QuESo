@@ -27,10 +27,11 @@ namespace queso {
 namespace key {
 namespace detail {
 
-/// @brief Return the number of items in a string delimited by a comma (i.e., number of items = commas + 1).
-/// @param str
+/// @brief Returns the number of items in a string delimited by a comma
+///        (i.e., number of items = commas + 1).
+/// @param StrView
 /// @return IndexType
-constexpr IndexType CountItemsDelimitedByComma(std::string_view StrView) {
+constexpr IndexType NumberOfItemsDelimitedByComma(std::string_view StrView) {
     IndexType count = 1;
     for (char c : StrView) {
         if (c == ',') ++count;
@@ -38,7 +39,7 @@ constexpr IndexType CountItemsDelimitedByComma(std::string_view StrView) {
     return count;
 }
 
-/// @brief Splits a string into a array of strings using ',' as delimiter.
+/// @brief Splits a string into an array of strings using ',' as delimiter.
 /// @tparam TSize
 /// @param StrView
 /// @return std::array<std::string_view, TSize>
@@ -57,7 +58,6 @@ constexpr std::array<std::string_view, TSize> CreateConstexprStringArray(std::st
             start = i + 1;
         }
     }
-
     return result;
 }
 
@@ -70,7 +70,7 @@ struct ValuesTypeList {
 template<typename TDerived, typename TTypeList>
 struct KeyToWhatTypeTag;
 
-/// @brief This class acts as a type tag to be used for "static_assert". It allows to check to what a
+/// @brief This class acts as a type tag to be used for "static_assert". It allows to check to what type a
 ///        specific key leads to.
 /// @tparam TDerived - CRTP: Curiously Recurring Template Pattern. This must be the derived class.
 ///         TDerived is the actual type tag, e.g., KeyToExampleValuesTypeTag or KeyToSubDictTypeTag.
@@ -101,12 +101,14 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleValueTypes...>> {
     static constexpr bool is_valid_value_type_v = is_valid_value_type<TType>::value;
 
     /// @brief Returns the name of this type tag.
+    ///        msTypeName must be specified in derived class.
     /// @return std::string_view
     static constexpr std::string_view GetTypeTagName() {
         return TDerived::msTypeName;
     }
 
     /// @brief Returns the name the underlying type (if applicable).
+    ///        msTypeNames must be defined in ValuesTypeList<>.
     /// @tparam TType
     /// @return std::string
     template<typename TType>
@@ -148,10 +150,11 @@ protected:
     const TEnumType mKeyValue;
 };
 
-/// @brief KeyBase: Base class for dynamic keys.
+/// @brief DynamicKeyBase: Base class for dynamic keys.
 struct DynamicKeyBase {
     virtual ~DynamicKeyBase() = default;
 
+    /// Pure virtual functions.
     virtual IndexType Index() const = 0;
     virtual std::string_view Name() const = 0;
     virtual std::type_index TargetTypeIndex() const = 0;
@@ -159,13 +162,13 @@ struct DynamicKeyBase {
 };
 
 /// @brief Dynamic key class.
-///        Derives publicly from DynamicKeyBase to allow dynamic polyhmorphism.
+///        Derives publicly from DynamicKeyBase to allow dynamic polymorphism.
 ///        Derives privately from KeyData to access the respective key value.
 /// @tparam TKeySetInfoType
-/// @tparam TKeyToWhat
+/// @tparam TKeyToWhat (Default: TKeyToWhat = TKeySetInfoType::KeySetToWhat )
 template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
 struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoType::EnumType> {
-    // Typedefs
+    /// Typedefs
     using KeySetInfoType = TKeySetInfoType;
     using KeyToWhat = TKeyToWhat;
     using KeyValueType = typename KeySetInfoType::EnumType;
@@ -175,34 +178,35 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
     DynamicKey(KeyValueType KeyValue) : KeyData<KeyValueType>(KeyValue) {
     }
 
-    /// @brief Returns value/index of Key.
+    /// @brief Returns the value/index of this Key.
     /// @return IndexType
     IndexType Index() const override {
         return static_cast<IndexType>(this->mKeyValue);
     }
 
-    /// @brief Returns name of Key.
+    /// @brief Returns the name of this Key.
     /// @return const std::string&
     std::string_view Name() const override {
         return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
     }
 
-    /// The following functions can be used for dynamic type checks.
+    /* The following functions can be used for dynamic type checks. */
 
-    /// @brief Returns std::type_index of type this key points to.
+    /// @brief Returns std::type_index of type this key points to (KeyToWhat).
     /// @return std::type_index
     std::type_index TargetTypeIndex() const override {
         return std::type_index(typeid(KeyToWhat));
     }
 
-    /// @brief  Returns std::type_index of type of the key set info, to which this key belongs.
+    /// @brief  Returns std::type_index of type of the KeySetInfo, to which this key belongs.
     /// @return std::type_index
     std::type_index KeySetInfoTypeIndex() const override {
         return std::type_index(typeid(KeySetInfoType));
     }
 };
 
-/// @brief Key class to define global keys.
+/// @brief ConstexprKey. All members are constexpr.
+///        Derives privately from KeyData to access the respective key value.
 /// @tparam TKeySetInfoType
 /// @tparam TKeyToWhat
 template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
@@ -212,18 +216,18 @@ struct ConstexprKey : private KeyData<typename TKeySetInfoType::EnumType> {
     using KeyToWhat = TKeyToWhat;
     using KeyValueType = typename KeySetInfoType::EnumType;
 
-    /// @brief  Constructor.
+    /// @brief  Constructor (constexpr).
     /// @param KeyValue
     constexpr ConstexprKey(KeyValueType KeyValue) : KeyData<KeyValueType>(KeyValue) {
     }
 
-    /// @brief Returns value/index of Key.
+    /// @brief Returns the value/index of this Key.
     /// @return IndexType
     constexpr IndexType Index() const noexcept {
         return static_cast<IndexType>(this->mKeyValue);
     }
 
-    /// @brief Returns name of Key.
+    /// @brief Returns the name of this Key.
     /// @return const std::string&
     constexpr std::string_view Name() const noexcept {
         return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
@@ -243,19 +247,28 @@ struct KeySetInfo {
 } // End namespace key
 } // End namespace queso
 
+/// @brief Macro to define a value type list with associated string names.
+/// @param ValuesTypeListName The typedef name for the list.
+/// @param ... Variadic list of types (e.g., int, double, std::string).
+/// @details Generates a specialization of `ValuesTypeList` that includes
+///          a constexpr array of type names as string_view entries for type
+///          introspection.
 #define QuESo_CREATE_VALUE_TYPE_LIST(ValuesTypeListName, ...)\
 namespace key {\
     template<>\
     struct detail::ValuesTypeList<__VA_ARGS__> {\
     private:\
         static constexpr char msTypeNamesRaw[] = #__VA_ARGS__;\
-        static constexpr std::size_t msSize = queso::key::detail::CountItemsDelimitedByComma(msTypeNamesRaw);\
+        static constexpr std::size_t msSize = queso::key::detail::NumberOfItemsDelimitedByComma(msTypeNamesRaw);\
     public:\
         static constexpr std::array<std::string_view, msSize> msTypeNames = queso::key::detail::CreateConstexprStringArray<msSize>(msTypeNamesRaw);\
     };\
     using ValuesTypeListName = detail::ValuesTypeList<__VA_ARGS__>;\
 }\
 
+/// @brief Macro to define a type tag for keys that point to objects (e.g., dicstionaries or lists).
+/// @param TypeTagName Name of the type tag struct.
+/// @details Defines a type tag inheriting from `KeyToWhatTypeTag` with an empty value type list.
 #define QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(TypeTagName)\
 namespace key {\
     struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, detail::ValuesTypeList<>> {\
@@ -263,21 +276,32 @@ namespace key {\
     };\
 }\
 
-#define QuESo_CREATE_KEY_SET_TO_VALUE_TYPE_TAG(TypeTagName, ValueTypeList_)\
+/// @brief Macro to define a type tag for keys that point to typed values.
+/// @param TypeTagName Name of the type tag struct.
+/// @param ValueTypeList The value type list (e.g., created with `QuESo_CREATE_VALUE_TYPE_LIST`).
+/// @details Defines a type tag using the specified list of acceptable types.
+#define QuESo_CREATE_KEY_SET_TO_VALUE_TYPE_TAG(TypeTagName, ValueTypeList)\
 namespace key {\
-    struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, ValueTypeList_> {\
+    struct TypeTagName : public detail::KeyToWhatTypeTag<TypeTagName, ValueTypeList> {\
         static constexpr char msTypeName[] = #TypeTagName;\
     };\
 }\
 
+/// @brief Utility macro to simplify writing variadic key lists.
+/// @param ... List of key names.
+/// @details Meant for syntactic convenience when passing multiple key names.
 #define QuESo_KEY_LIST(...) __VA_ARGS__
 
+/// @brief Declares metadata and interfaces for a key set.
+/// @param KeySetName Name of the key set.
+/// @param KeySetToWhat_ Associated type tag.
+/// @param ... List of key names (enum values).
+/// @details Defines an enum of keys and a class providing runtime access to key names and validation.
 #define QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat_, ...)\
     using KeySetInfoType = queso::key::detail::KeySetInfo;\
     using KeyBaseType = queso::key::detail::DynamicKeyBase;\
     namespace key {\
     namespace detail {\
-        /* KeySetName##KeyType##KeySetInfo allows to access key set information dynamically. */\
         struct KeySetName##KeySetToWhat_##KeySetInfo : public KeySetInfoType {\
             using KeySetToWhat = queso::key::KeySetToWhat_;\
             enum class EnumType {__VA_ARGS__};\
@@ -307,7 +331,7 @@ namespace key {\
             }\
         private:\
             static constexpr char msEnumNamesRaw[] = #__VA_ARGS__; \
-            static constexpr std::size_t msNumOfEnums = queso::key::detail::CountItemsDelimitedByComma(msEnumNamesRaw);\
+            static constexpr std::size_t msNumOfEnums = queso::key::detail::NumberOfItemsDelimitedByComma(msEnumNamesRaw);\
         public:\
             static constexpr std::array<std::string_view, msNumOfEnums> msEnumNames = queso::key::detail::CreateConstexprStringArray<msNumOfEnums>(msEnumNamesRaw);\
             static const queso::key::detail::StringToKeyMapType msStringToKeyMap;\
@@ -315,9 +339,19 @@ namespace key {\
     }\
     }\
 
+/// @brief Convenience macro to define a complete key set with enum and associated metadata.
+/// @param KeySetName Name of the key set.
+/// @param KeySetToWhat The type tag.
+/// @param KeyNames List of keys, passed via `QuESo_KEY_LIST(...)`.
+/// @details Internally calls `QuESo_DECLARE_KEY_SET_INFO`.
 #define QuESo_DEFINE_KEY_SET(KeySetName, KeySetToWhat, KeyNames)\
     QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat, KeyNames)\
 
+/// @brief Defines a key that points to an object (e.g., dictionary).
+/// @param KeySetName Name of the key set.
+/// @param KeyName The key identifier (enum entry).
+/// @param KeySetToWhat Type tag this key set maps to.
+/// @details Creates both a dynamic and a constexpr version of the key.
 #define QuESo_DEFINE_KEY_TO_OBJECT(KeySetName, KeyName, KeySetToWhat)\
     namespace key {\
     namespace detail {\
@@ -330,6 +364,12 @@ namespace key {\
             key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
     }\
 
+/// @brief Defines a key that points to a value of a specific type.
+/// @param KeySetName Name of the key set.
+/// @param KeyName The key identifier (enum entry).
+/// @param KeySetToWhat The key set's type tag (value category).
+/// @param KeyToWhat The specific value type the key maps to (e.g., int, double).
+/// @details Generates dynamic and constexpr keys. Includes a static assert to ensure the type is valid.
 #define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat)\
     static_assert(queso::key::KeySetToWhat::is_valid_value_type_v<KeyToWhat>, "Given KeyToWhat-type is invalid.");\
     namespace key {\
@@ -347,9 +387,10 @@ namespace queso {
 namespace key {
 namespace detail {
 
+/// Typedef
 using StringToKeyMapType = std::unordered_map<std::string_view, const queso::key::detail::DynamicKeyBase*>;
 
-/// @brief Helper functions to check if all keys are correctly defined.
+/// @brief Helper function to check if all keys are correctly defined.
 /// @tparam TKeySetInfoType
 /// @param rKeyMap
 /// @return StringToKeyMapType
@@ -372,8 +413,16 @@ inline StringToKeyMapType InitializeStringToKeyMap(const StringToKeyMapType& rKe
 } // End namespace key
 } // End namespace queso
 
+/// @brief Defines a key entry for use in the key map registration.
+/// @param Key The key name.
+/// @details Creates a mapping from string name to pointer to dynamic key object.
 #define QuESo_KEY(Key) {key::detail::Key##_Dynamic.Name(), &key::detail::Key##_Dynamic}\
 
+/// @brief Registers a key set's dynamic key map.
+/// @param KeySet Name of the key set.
+/// @param KeySetToWhat The associated type tag.
+/// @param ... List of key mappings created with `QuESo_KEY(...)`.
+/// @details Initializes the key map and performs runtime consistency checks.
 #define QuESo_REGISTER_KEY_SET(KeySet, KeySetToWhat, ...)\
     inline const queso::key::detail::StringToKeyMapType key::detail::KeySet##KeySetToWhat##KeySetInfo::msStringToKeyMap =\
         queso::key::detail::InitializeStringToKeyMap<key::detail::KeySet##KeySetToWhat##KeySetInfo>( {__VA_ARGS__} );\
