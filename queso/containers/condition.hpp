@@ -57,16 +57,16 @@ public:
     {
     }
 
-    // Destructor
+    /// Destructor
     ~Condition() = default;
-    // Copy constructor
+    /// Copy constructor
     Condition(const Condition& rOther) = delete;
-    // Assignement operator
+    /// Assignement operator
     Condition& operator=(const Condition& rOther) = delete;
     /// Move constructor
-    Condition(Condition&& rOther) = default;
+    Condition(Condition&& rOther) noexcept = default;
     /// Move assignement operator
-    Condition& operator=(Condition&& rOther) = default;
+    Condition& operator=(Condition&& rOther) noexcept = default;
 
     /// @brief Adds new ConditionSegment to this condition. Segment is moved into container.
     /// @param pNewSegment

@@ -64,14 +64,14 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     {
         if(max_tri[dimension] > rLowerBound[dimension] )
         {
-            Ptr::swap(p_prev_poly, p_current_poly);
+            std::swap(p_prev_poly, p_current_poly);
             // Plane is oriented in negative direction.
             Plane plane(2 * dimension + 0, rLowerBound[dimension]);
             ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);
         }
         if(min_tri[dimension] < rUpperBound[dimension])
         {
-            Ptr::swap(p_prev_poly, p_current_poly);
+            std::swap(p_prev_poly, p_current_poly);
             // Plane is positive in negative direction.
             Plane plane(2 * dimension + 1, rUpperBound[dimension]);
             ClipPolygonByPlane(p_prev_poly.get(), p_current_poly.get(), plane);

@@ -1,23 +1,65 @@
-def PointFromGlobalToParamSpace(point, bound_xyz, bound_uvw):
-    tmp_point = [0.0, 0.0, 0.0]
-    lower_point_xyz = bound_xyz[0]
-    upper_point_xyz = bound_xyz[1]
-    lower_point_uvw = bound_uvw[0]
-    upper_point_uvw = bound_uvw[1]
-    tmp_point[0] = (point[0] - lower_point_xyz[0]) * abs(upper_point_uvw[0] - lower_point_uvw[0]) / abs(upper_point_xyz[0]-lower_point_xyz[0]) + lower_point_uvw[0]
-    tmp_point[1] = (point[1] - lower_point_xyz[1]) * abs(upper_point_uvw[1] - lower_point_uvw[1]) / abs(upper_point_xyz[1]-lower_point_xyz[1]) + lower_point_uvw[1]
-    tmp_point[2] = (point[2] - lower_point_xyz[2]) * abs(upper_point_uvw[2] - lower_point_uvw[2]) / abs(upper_point_xyz[2]-lower_point_xyz[2]) + lower_point_uvw[2]
+from typing import Tuple, cast
 
-    return tmp_point
+# Type definitions
+Point3D = Tuple[float, float, float]
 
-def PointFromParamToGlobalSpace(point, bound_xyz, bound_uvw):
-    tmp_point = [0.0, 0.0, 0.0]
-    lower_point_xyz = bound_xyz[0]
-    upper_point_xyz = bound_xyz[1]
-    lower_point_uvw = bound_uvw[0]
-    upper_point_uvw = bound_uvw[1]
-    tmp_point[0] = (point[0] - lower_point_uvw[0]) * abs(upper_point_xyz[0] - lower_point_xyz[0]) / abs(upper_point_uvw[0]-lower_point_uvw[0]) + lower_point_xyz[0]
-    tmp_point[1] = (point[1] - lower_point_uvw[1]) * abs(upper_point_xyz[1] - lower_point_xyz[1]) / abs(upper_point_uvw[1]-lower_point_uvw[1]) + lower_point_xyz[1]
-    tmp_point[2] = (point[2] - lower_point_uvw[2]) * abs(upper_point_xyz[2] - lower_point_xyz[2]) / abs(upper_point_uvw[2]-lower_point_uvw[2]) + lower_point_xyz[2]
+def point_from_global_to_param_space(
+        point: Point3D,
+        bound_xyz: Tuple[Point3D, Point3D],
+        bound_uvw: Tuple[Point3D, Point3D]
+    ) -> Point3D:
+    """
+    Maps a point from global Cartesian space to parametric space.
 
-    return tmp_point
+    Performs a linear transformation of a point from the physical domain
+    defined by `bound_xyz` to the parametric domain defined by `bound_uvw`.
+
+    Args:
+        point (List[float]): A list of 3 floats representing the Cartesian coordinates [x, y, z].
+        bound_xyz (List[List[float]]): A list of two 3D points [[x_min, y_min, z_min], [x_max, y_max, z_max]]
+            representing the bounds in physical space.
+        bound_uvw (List[List[float]]): A list of two 3D points [[u_min, v_min, w_min], [u_max, v_max, w_max]]
+            representing the bounds in parametric space.
+
+    Returns:
+        List[float]: A list of 3 floats representing the corresponding parametric coordinates [u, v, w].
+    """
+    lower_xyz, upper_xyz = bound_xyz
+    lower_uvw, upper_uvw = bound_uvw
+
+    result = tuple(
+        (point[i] - lower_xyz[i]) * abs(upper_uvw[i] - lower_uvw[i]) / abs(upper_xyz[i] - lower_xyz[i]) + lower_uvw[i]
+        for i in range(3)
+    )
+
+    return cast(Point3D, result)
+
+def point_from_param_to_global_space(
+        point: Point3D,
+        bound_xyz: Tuple[Point3D, Point3D],
+        bound_uvw: Tuple[Point3D, Point3D]
+    ) -> Point3D:
+    """
+    Maps a point from parametric space to global Cartesian space.
+
+    Performs a linear transformation of a point from the parametric domain
+    defined by `bound_uvw` to the physical domain defined by `bound_xyz`.
+
+    Args:
+        point (List[float]): A list of 3 floats representing the parametric coordinates [u, v, w].
+        bound_xyz (List[List[float]]): A list of two 3D points [[x_min, y_min, z_min], [x_max, y_max, z_max]]
+            representing the bounds in physical space.
+        bound_uvw (List[List[float]]): A list of two 3D points [[u_min, v_min, w_min], [u_max, v_max, w_max]]
+            representing the bounds in parametric space.
+
+    Returns:
+        List[float]: A list of 3 floats representing the corresponding Cartesian coordinates [x, y, z].
+    """
+    lower_xyz, upper_xyz = bound_xyz
+    lower_uvw, upper_uvw = bound_uvw
+
+    result = tuple(
+        (point[i] - lower_uvw[i]) * abs(upper_xyz[i] - lower_xyz[i]) / abs(upper_uvw[i] - lower_uvw[i]) + lower_xyz[i]
+        for i in range(3)
+    )
+    return cast(Point3D, result)

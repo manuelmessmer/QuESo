@@ -2,7 +2,7 @@
 import QuESo_PythonApplication as QuESo_APP
 from queso.python_scripts.helper import *
 from queso.python_scripts.json_import import JsonImport
-from queso.python_scripts.QuESoUnittest import QuESoTestCase
+from queso.python_scripts.queso_unit_test import QuESoTestCase
 
 try:
     import KratosMultiphysics as KM
@@ -25,7 +25,7 @@ import numpy as np
 #        Test ist currently disabled.
 def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
-        settings = JsonImport.ReadSettings("queso/tests/ggq_cantilever_kratos/QuESoSettings.json")
+        settings = JsonImport.read_settings("queso/tests/ggq_cantilever_kratos/QuESoSettings.json")
 
         grid_settings = settings[QuESo_APP.MainSettings.background_grid_settings]
 

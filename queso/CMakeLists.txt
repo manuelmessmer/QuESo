@@ -4,12 +4,13 @@ project(QuESo_Application)
 
 if(NOT DEFINED ENV{QUESO_BUILD_TYPE})
     message(WARNING "QUESO_BUILD_TYPE environment variable is not set! Defaulting to Release.")
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
+    set(CMAKE_BUILD_TYPE Release)
 else()
-    set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE} CACHE STRING "Build type")
+    set(CMAKE_BUILD_TYPE $ENV{QUESO_BUILD_TYPE})
 endif()
+message("-- CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ version selection")
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include local directories
@@ -66,6 +67,7 @@ file(GLOB QuESo_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 # Create Core Library
 add_library(QuESo_ApplicationCore SHARED ${QuESo_ApplicationSource})
+target_compile_definitions(QuESo_ApplicationCore PRIVATE QUESO_BUILD_TESTING=0)
 target_link_libraries(QuESo_ApplicationCore PUBLIC ${PYTHON_LIBRARIES})
 set_target_properties(QuESo_ApplicationCore PROPERTIES COMPILE_DEFINITIONS "QuESo_Application=EXPORT,API")
 
@@ -79,7 +81,14 @@ target_link_libraries(QuESo_Application PRIVATE QuESo_ApplicationCore)
 set_target_properties(QuESo_Application PROPERTIES PREFIX "")
 
 # === TESTING ===
-if(${QUESO_BUILD_TESTING} MATCHES ON)
+option(QUESO_BUILD_TESTING "Enable unit testing framework" OFF)
+if(QUESO_BUILD_TESTING)
+    message("-- QuESo C++ unit testing framework: enabled.")
+else()
+    message("-- QuESo C++ unit testing framework: disabled.")
+endif()
+
+if(QUESO_BUILD_TESTING)
     # Find Boost
     if(DEFINED ENV{BOOST_ROOT})
         set(BOOST_ROOT $ENV{BOOST_ROOT})
@@ -115,7 +124,7 @@ if(${QUESO_BUILD_TESTING} MATCHES ON)
     # Register tests
     add_test(NAME ${testName} COMMAND ${TEST_EXECUTABLE_DIR}/${testName})
     add_test(NAME ${testThingiName} COMMAND ${TEST_EXECUTABLE_DIR}/${testThingiName})
-endif(${QUESO_BUILD_TESTING} MATCHES ON)
+endif()
 
 # Setting the libs folder for the shared objects built in kratos
 install(TARGETS QuESo_Application DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
