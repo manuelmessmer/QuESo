@@ -29,59 +29,67 @@ BOOST_AUTO_TEST_SUITE( DataSetTestSuite )
 BOOST_AUTO_TEST_CASE(TestDataSetTypeTraits) {
     QuESo_INFO << "Testing :: Test DataSet :: Type Traits" << std::endl;
 
+    using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
+
     enum PlainIntEnum {a1, a2, a3};
     enum class ClassIntEnum {a1, a2, a3};
 
     // Check is_index for
-    static_assert( DataSet::is_index_v<IndexType> );
-    static_assert( DataSet::is_index_v<unsigned int> );
-    static_assert( DataSet::is_index_v<unsigned short> );
-    static_assert( DataSet::is_index_v<unsigned long> );
-    static_assert( DataSet::is_index_v<int> );
-    static_assert( DataSet::is_index_v<short> );
-    static_assert( DataSet::is_index_v<long> );
+    static_assert( DataSetType::is_index_v<IndexType> );
+    static_assert( DataSetType::is_index_v<unsigned int> );
+    static_assert( DataSetType::is_index_v<unsigned short> );
+    static_assert( DataSetType::is_index_v<unsigned long> );
+    static_assert( DataSetType::is_index_v<int> );
+    static_assert( DataSetType::is_index_v<short> );
+    static_assert( DataSetType::is_index_v<long> );
 
-    static_assert( !DataSet::is_index_v<PlainIntEnum> );
-    static_assert( !DataSet::is_index_v<ClassIntEnum> );
-    static_assert( !DataSet::is_index_v<float> );
-    static_assert( !DataSet::is_index_v<double> );
-    static_assert( !DataSet::is_index_v<bool> );
-    static_assert( !DataSet::is_index_v<char> );
-    static_assert( !DataSet::is_index_v<signed char> );
-    static_assert( !DataSet::is_index_v<unsigned char> );
-    static_assert( !DataSet::is_index_v<std::string> );
+    static_assert( !DataSetType::is_index_v<PlainIntEnum> );
+    static_assert( !DataSetType::is_index_v<ClassIntEnum> );
+    static_assert( !DataSetType::is_index_v<float> );
+    static_assert( !DataSetType::is_index_v<double> );
+    static_assert( !DataSetType::is_index_v<bool> );
+    static_assert( !DataSetType::is_index_v<char> );
+    static_assert( !DataSetType::is_index_v<signed char> );
+    static_assert( !DataSetType::is_index_v<unsigned char> );
+    static_assert( !DataSetType::is_index_v<std::string> );
 
     // Check is_unsigned_index
-    static_assert( DataSet::is_unsigned_index_v<IndexType> );
-    static_assert( DataSet::is_unsigned_index_v<unsigned int> );
-    static_assert( DataSet::is_unsigned_index_v<unsigned short> );
-    static_assert( DataSet::is_unsigned_index_v<unsigned long> );
+    static_assert( DataSetType::is_unsigned_index_v<IndexType> );
+    static_assert( DataSetType::is_unsigned_index_v<unsigned int> );
+    static_assert( DataSetType::is_unsigned_index_v<unsigned short> );
+    static_assert( DataSetType::is_unsigned_index_v<unsigned long> );
 
-    static_assert( !DataSet::is_unsigned_index_v<int> );
-    static_assert( !DataSet::is_unsigned_index_v<short> );
-    static_assert( !DataSet::is_unsigned_index_v<long> );
-    static_assert( !DataSet::is_unsigned_index_v<PlainIntEnum> );
-    static_assert( !DataSet::is_unsigned_index_v<ClassIntEnum> );
-    static_assert( !DataSet::is_unsigned_index_v<float> );
-    static_assert( !DataSet::is_unsigned_index_v<double> );
-    static_assert( !DataSet::is_unsigned_index_v<bool> );
-    static_assert( !DataSet::is_unsigned_index_v<char> );
-    static_assert( !DataSet::is_unsigned_index_v<signed char> );
-    static_assert( !DataSet::is_unsigned_index_v<unsigned char> );
-    static_assert( !DataSet::is_unsigned_index_v<std::string> );
+    static_assert( !DataSetType::is_unsigned_index_v<int> );
+    static_assert( !DataSetType::is_unsigned_index_v<short> );
+    static_assert( !DataSetType::is_unsigned_index_v<long> );
+    static_assert( !DataSetType::is_unsigned_index_v<PlainIntEnum> );
+    static_assert( !DataSetType::is_unsigned_index_v<ClassIntEnum> );
+    static_assert( !DataSetType::is_unsigned_index_v<float> );
+    static_assert( !DataSetType::is_unsigned_index_v<double> );
+    static_assert( !DataSetType::is_unsigned_index_v<bool> );
+    static_assert( !DataSetType::is_unsigned_index_v<char> );
+    static_assert( !DataSetType::is_unsigned_index_v<signed char> );
+    static_assert( !DataSetType::is_unsigned_index_v<unsigned char> );
+    static_assert( !DataSetType::is_unsigned_index_v<std::string> );
 
     // Check is_scoped_int_enum
-    static_assert( DataSet::is_scoped_int_enum<ClassIntEnum>::value );
+    static_assert( DataSetType::is_scoped_int_enum<ClassIntEnum>::value );
 
-    static_assert( !DataSet::is_scoped_int_enum<PlainIntEnum>::value );
-    static_assert( !DataSet::is_scoped_int_enum<int>::value );
-    static_assert( !DataSet::is_scoped_int_enum<IndexType>::value );
+    static_assert( !DataSetType::is_scoped_int_enum<PlainIntEnum>::value );
+    static_assert( !DataSetType::is_scoped_int_enum<int>::value );
+    static_assert( !DataSetType::is_scoped_int_enum<IndexType>::value );
 }
 
 BOOST_AUTO_TEST_CASE(TestDataSetValue) {
     QuESo_INFO << "Testing :: Test DataSet :: SetValue" << std::endl;
 
-    DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+    using DataSetType2 = DataSet<queso::key::ElementValuesTypeTag>;
+    DataSetType2 data_set2(DataSetType2::KeySetInfoTypeTag<key::detail::TestKeysElementElementValuesTypeTagKeySetInfo>{});
+
+    using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
+    DataSetType data_set(DataSetType::KeySetInfoTypeTag<key::detail::TestKeys3MainValuesTypeTagKeySetInfo>{});
+
+    std::cout << sizeof(DataSetType) << std::endl;
 
     data_set.SetValue(TestKeys3::zero, PointType{1.0, 2.0, 3.0});
     data_set.SetValue(TestKeys3::one, Vector3i{1, 2, 3});
@@ -141,7 +149,8 @@ BOOST_AUTO_TEST_CASE(TestDataSetValue) {
 BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
     QuESo_INFO << "Testing :: Test DataSet :: Set/GetValue (Key)" << std::endl;
 
-    DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+    using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
+    DataSetType data_set(DataSetType::KeySetInfoTypeTag<key::detail::TestKeys3MainValuesTypeTagKeySetInfo>{});
 
     // Values are not set.
     QuESo_CHECK( !data_set.IsSet(TestKeys3::zero) );
@@ -225,7 +234,8 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
 BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
     QuESo_INFO << "Testing :: Test DataSet :: Set/GetValue (KeyName)" << std::endl;
 
-    DataSet data_set(DataSet::TypeTag<key::TestKeys3KeyToValueKeySetInfo>{});
+    using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
+    DataSetType data_set(DataSetType::KeySetInfoTypeTag<key::detail::TestKeys3MainValuesTypeTagKeySetInfo>{});
 
     // Has keys.
     QuESo_CHECK( data_set.Has("zero") );
