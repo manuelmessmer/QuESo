@@ -79,6 +79,9 @@ BOOST_AUTO_TEST_CASE(TestDataSetTypeTraits) {
     static_assert( !DataSetType::is_key_v<PlainIntEnum> );
     static_assert( !DataSetType::is_key_v<int> );
     static_assert( !DataSetType::is_key_v<IndexType> );
+
+    // Runtime dummy check
+    QuESo_CHECK(true);
 }
 
 BOOST_AUTO_TEST_CASE(TestDataSetValue) {
