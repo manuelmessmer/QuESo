@@ -22,16 +22,22 @@
 
 namespace queso {
 
+/// Forward declaration
+template<typename DataSetType>
+class DataSetStringAccess;
+
 ///@name QuESo Classes
 ///@{
 
 /// @class  DataSet
 /// @author Manuel Messmer
 /// @tparam TValuesTypeTag
-/// @brief  Stores values that can be accessed with Keys from a KeySet. The size of the DataSet
-///         depends on the size of the KeySet. The KeySet must be registered in "includes/register_keys.hpp".
-///         TValuesTypeTag specifies the possible types. The respective values are stored in a
-///         std::vector<typename TValuesTypeTag::VariantType> instance.
+/// @brief  Static DataSet for fast data access. 'TValuesTypeTag' must be registered in 'register_keys.hpp'.
+/// @details The DataSet allows to access data quickly by ConstexprKeys -> 'register_keys.hpp', also see 'keys.hpp'.
+///          The DataSet also provides methods to access the data via std::strings. Given the KeyName a DynamicKey
+///          is deduced from KeySetInfo (which is passed to the constructor). The respective KeySetInfo must also
+///          be registered in 'register_keys.hpp'.
+/// @see 'register_keys.hpp' and 'keys.hpp'.
 template<typename TValuesTypeTag>
 class DataSet {
 public:
@@ -42,9 +48,7 @@ public:
 
     /// Helper to check for TType is a scoped int enum.
     template<typename TType>
-    using is_scoped_int_enum = std::integral_constant<bool, !std::is_convertible<TType,int>::value &&
-                                                             std::is_enum<TType>::value>;
-
+    static constexpr bool is_key_v = TValuesTypeTag::template is_key_v<TType>;
 
     // Helper to check if TType can be cast to std::size_t.
     template<typename TType, typename = void>
@@ -94,9 +98,11 @@ public:
         using KeySetInfoType = typename TKeySetInfoTypeTag::KeySetInfoType;
         static_assert( std::is_same_v<typename KeySetInfoType::KeySetToWhat, TValuesTypeTag> );
         mData.resize(mpKeySetInfo->GetNumberOfKeys());
-        std::cout << "Data: " << sizeof(mData) << std::endl;
-        std::cout << "Each: " << sizeof(mData[0]) << std::endl;
     }
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /// @brief Sets the value to the given Key.
     /// @tparam TKeyType
@@ -106,7 +112,7 @@ public:
     /// @note Only throws in DEBUG mode.
     template<typename TKeyType, typename TValueType>
     void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue,
-                  std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) noexcept(NOTDEBUG) {
+                  std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) noexcept(NOTDEBUG) {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value ||
@@ -121,6 +127,76 @@ public:
             mData[rQueryKey.Index()] = rNewValue;
         }
     }
+
+    /// @brief Returns the value to the given Key (fast version, does not throw).
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return const TValueType&
+    /// @note Only throws in debug mode. In realese it does not check if the value is set and if TKeyType is of correct type.
+    /// @see GetValue(): Thorws if value is not set.
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValueFast(const TKeyType& rQueryKey,
+                                   std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
+
+        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        QuESo_ASSERT( !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]),  "Value to Key: '" + std::string(rQueryKey.Name()) + "' is not set.\n");
+
+        return std::get<TValueType>(mData[rQueryKey.Index()]);
+    }
+
+    /// @brief Returns the value to the given Key.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return const TValueType&
+    /// @note In release mode it throws if the given key is not set. In debug mode it also throws if TKeyType is of wrong type.
+    ///       TKeyType should be known and therefore always be correct.
+    /// @see GetValueFast(): Never throws in release.
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValue(const TKeyType& rQueryKey,
+                               std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const {
+
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
+
+        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]) ) << "Value to Key: '" << rQueryKey.Name() << "' is not set.\n";
+
+        return std::get<TValueType>(mData[rQueryKey.Index()]);
+    }
+
+    /// @brief Returns true if the value to the given Key is set.
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return bool
+    /// @note Only throws in debug mode.
+    template<typename TKeyType>
+    bool IsSet(const TKeyType& rQueryKey,
+               std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
+    }
+
+
+private:
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    /// The following operations allow to access the data via KeyNames (std::string).
+    /// These functions should only be used in Python. Therefore, they are made private here
+    /// and can only be used via the friend class DataSetStringAccess.
+    friend class DataSetStringAccess<DataSet>;
 
     /// @brief Sets the value to the given Key (given as string).
     /// @tparam TValueType
@@ -179,50 +255,6 @@ public:
         }
     }
 
-    /// @brief Returns the value to the given Key (fast version, does not throw).
-    /// @tparam TValueType
-    /// @tparam TKeyType
-    /// @param rQueryKey
-    /// @return const TValueType&
-    /// @note Only throws in debug mode. In realese it does not check if the value is set and if TKeyType is of correct type.
-    /// @see GetValue(): Thorws if value is not set.
-    template<typename TValueType, typename TKeyType>
-    const TValueType& GetValueFast(const TKeyType& rQueryKey,
-                                   std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
-
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
-        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
-
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ASSERT( !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]),  "Value to Key: '" + std::string(rQueryKey.Name()) + "' is not set.\n");
-
-        return std::get<TValueType>(mData[rQueryKey.Index()]);
-    }
-
-    /// @brief Returns the value to the given Key.
-    /// @tparam TValueType
-    /// @tparam TKeyType
-    /// @param rQueryKey
-    /// @return const TValueType&
-    /// @note In release mode it throws if the given key is not set. In debug mode it also throws if TKeyType is of wrong type.
-    ///       TKeyType should be known and therefore always be correct.
-    /// @see GetValueFast(): Never throws in release.
-    template<typename TValueType, typename TKeyType>
-    const TValueType& GetValue(const TKeyType& rQueryKey,
-                               std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const {
-
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
-        static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
-
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]) ) << "Value to Key: '" << rQueryKey.Name() << "' is not set.\n";
-
-        return std::get<TValueType>(mData[rQueryKey.Index()]);
-    }
-
-
     /// @brief Returns the value the given Key (given as std::string).
     /// @tparam TValueType
     /// @param rQueryKeyName
@@ -239,21 +271,6 @@ public:
             << "'. However, the given value type is: '" << TValuesTypeTag::template GetValueTypeName<TValueType>() << "'.\n";
 
         return std::get<TValueType>(mData[p_key->Index()]);
-    }
-
-    /// @brief Returns true if the value to the given Key is set.
-    /// @tparam TKeyType
-    /// @param rQueryKey
-    /// @return bool
-    /// @note Only throws in debug mode.
-    template<typename TKeyType>
-    bool IsSet(const TKeyType& rQueryKey,
-               std::enable_if_t<is_scoped_int_enum<typename TKeyType::KeyValueType>::value>* = nullptr ) const noexcept(NOTDEBUG) {
-
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
     }
 
     /// @brief Returns true if the value to the given Key (given as std::string) is set.
@@ -276,8 +293,6 @@ public:
         return mpKeySetInfo->pGetKey(rQueryKeyName) != nullptr;
     }
 
-private:
-
     ///@}
     ///@name Private member variables
     ///@{
@@ -287,6 +302,58 @@ private:
 
     ///@}
 }; // End class DataSet
+
+/// @class DataSetStringAccess (FOR USE IN PYTHON ONLY)
+/// @brief Allows to access the data of DataSet via KeyNames (std::strings).
+///        The respective members are private within DataSet and made public here.
+/// @tparam DataSetType
+/// @details DataSetStringAccess is friend of DataSet
+template<typename DataSetType>
+class DataSetStringAccess {
+public:
+    ///@name Static operations
+    ///@{
+
+    /// @brief Wrapper for DataSet::SetValue
+    /// @tparam TValueType
+    /// @param rDataSet
+    /// @param rQueryKeyName (std::string)
+    /// @param rNewValue
+    template<typename TValueType>
+    static void SetValue(DataSetType& rDataSet, const std::string& rQueryKeyName, const TValueType& rNewValue) {
+        rDataSet.SetValue(rQueryKeyName, rNewValue);
+    }
+
+    /// @brief Wrapper for DataSet::GetValue
+    /// @tparam TValueType
+    /// @param rDataSet
+    /// @param rQueryKeyName (std::string)
+    /// @return const TValueType&
+    template<typename TValueType>
+    static const TValueType& GetValue(const DataSetType& rDataSet, const std::string& rQueryKeyName) {
+        return rDataSet.template GetValue<TValueType>(rQueryKeyName);
+    }
+
+    /// @brief Wrapper for DataSet::IsSet
+    /// @param rDataSet
+    /// @param rQueryKeyName (std::string)
+    /// @return bool
+    static bool IsSet(const DataSetType& rDataSet, const std::string& rQueryKeyName) {
+        return rDataSet.IsSet(rQueryKeyName);
+    }
+
+    /// @brief Wrapper for DataSet::Has
+    /// @param rDataSet
+    /// @param rQueryKeyName (std::string)
+    /// @return bool
+    static bool Has(const DataSetType& rDataSet, const std::string& rQueryKeyName) {
+        return rDataSet.Has(rQueryKeyName);
+    }
+
+    ///@}
+}; // End class DataSetStringAccess<>
+
+///@} QuESo classes
 
 } // End queso namespace
 
