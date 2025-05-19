@@ -26,39 +26,43 @@ namespace queso {
 template<typename DataSetType>
 class DataSetStringAccess;
 
-///@name QuESo Classes
+///@name QuESo classes
 ///@{
 
 /// @class  DataSet
 /// @author Manuel Messmer
-/// @tparam TValuesTypeTag
-/// @brief  Static DataSet for fast data access. 'TValuesTypeTag' must be registered in 'register_keys.hpp'.
+/// @tparam TKeySetValuesTypeTag
+/// @brief  Static DataSet for fast data access. 'TKeySetValuesTypeTag' must be registered in 'register_keys.hpp'.
 /// @details The DataSet allows to access data quickly by ConstexprKeys -> 'register_keys.hpp', also see 'keys.hpp'.
 ///          The DataSet also provides methods to access the data via std::strings. Given the KeyName a DynamicKey
 ///          is deduced from KeySetInfo (which is passed to the constructor). The respective KeySetInfo must also
 ///          be registered in 'register_keys.hpp'.
+///          The main idea is to access the data via ConstexprKeys in C++. The std::string access is meant to be used
+///          in Python only. Therefore, the respective functions are private and made available via DataSetStringAccess.
+///          This is just a safety guard that these functions are not accidentally used in C++.
 /// @see 'register_keys.hpp' and 'keys.hpp'.
-template<typename TValuesTypeTag>
+template<typename TKeySetValuesTypeTag>
 class DataSet {
 public:
     ///@name Type definitions
     ///@{
 
-    using VariantValueType = typename TValuesTypeTag::VariantType;
+    using VariantValueType = typename TKeySetValuesTypeTag::VariantType;
 
-    /// Helper to check for TType is a scoped int enum.
+    /// Helper to check if TType is a key.
     template<typename TType>
-    static constexpr bool is_key_v = TValuesTypeTag::template is_key_v<TType>;
+    static constexpr bool is_key_v = TKeySetValuesTypeTag::template is_key_v<TType>;
 
     // Helper to check if TType can be cast to std::size_t.
     template<typename TType, typename = void>
     struct is_castable_to_size_t : std::false_type {};
 
+    // Helper to check if TType can be cast to std::size_t.
     template<typename TType>
     struct is_castable_to_size_t<TType, std::void_t<decltype(static_cast<std::size_t>(std::declval<TType>()))>> : std::true_type {};
 
 
-    // Helper to check if TType is_index (allows signed integers, but no bool and char types).
+    // Helper to check if TType is_index (allows signed integers, but no bool and chars).
     template<typename TType>
     using is_index = std::integral_constant<bool, is_castable_to_size_t<TType>::value &&
                                                   std::is_integral<TType>::value &&
@@ -67,16 +71,16 @@ public:
                                                   !std::is_same<TType, unsigned char>::value &&
                                                   !std::is_same<TType, signed char>::value >;
 
-    // Helper to check if TType is_index (allows signed integers, but no bool and char types).
+    // Helper to check if TType is_index (allows signed integers, but no bool and chars).
     template<typename TType>
     static constexpr bool is_index_v = is_index<TType>::value;
 
-    // Helper to check if TType is_unsigned_index (only accepts unsigned integers, also no bool and char types).
+    // Helper to check if TType is_unsigned_index (only accepts unsigned integers, also no bool and no chars).
     template<typename TType>
     using is_unsigned_index = std::integral_constant<bool, is_index_v<TType> &&
                                                            std::is_unsigned<TType>::value>;
 
-    // Helper to check if TType is_unsigned_index (only accepts unsigned integers, also no bool and char types).
+    // Helper to check if TType is_unsigned_index (only accepts unsigned integers, also no bool and no chars).
     template<typename TType>
     static constexpr bool is_unsigned_index_v = is_unsigned_index<TType>::value;
 
@@ -84,7 +88,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    // Helper type tag to templetize the constructor of DataSet.
+    // Helper type tag to use a constructor template.
     template<class TKeySetInfoType>
     struct KeySetInfoTypeTag {
         using KeySetInfoType = TKeySetInfoType;
@@ -92,11 +96,11 @@ public:
 
     /// @brief Constructor
     /// @tparam TKeySetInfoTypeTag
-    /// @param TKeySetInfoTypeTag contains typedef to KeySetInfoType: TKeySetInfoTypeTag<KeySetInfoType>.
+    /// @param TKeySetInfoTypeTag (must be: TKeySetInfoTypeTag<KeySetInfoType>) contains typedef to KeySetInfoType.
     template<typename TKeySetInfoTypeTag>
     DataSet(TKeySetInfoTypeTag) : mpKeySetInfo( MakeUnique<typename TKeySetInfoTypeTag::KeySetInfoType>() ) {
         using KeySetInfoType = typename TKeySetInfoTypeTag::KeySetInfoType;
-        static_assert( std::is_same_v<typename KeySetInfoType::KeySetToWhat, TValuesTypeTag> );
+        static_assert( std::is_same_v<typename KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag> );
         mData.resize(mpKeySetInfo->GetNumberOfKeys());
     }
 
@@ -104,7 +108,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief Sets the value to the given Key.
+    /// @brief Sets the value associated with the given key.
     /// @tparam TKeyType
     /// @tparam TValueType
     /// @param rQueryKey
@@ -114,64 +118,66 @@ public:
     void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue,
                   std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) noexcept(NOTDEBUG) {
 
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value ||
                        (std::is_same<typename TKeyType::KeyToWhat, IndexType>::value && is_unsigned_index<TValueType>::value) );
 
         QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+
         if constexpr( is_unsigned_index_v<TValueType> ) { // Accept different unsigned integer types.
-            // is_unsigned_index_v implies that rNewValue is castable to IndexType.
+            // Note: is_unsigned_index_v implies that rNewValue is castable to IndexType.
             mData[rQueryKey.Index()] = static_cast<IndexType>(rNewValue);
         } else {
             mData[rQueryKey.Index()] = rNewValue;
         }
     }
 
-    /// @brief Returns the value to the given Key (fast version, does not throw).
+    /// @brief Returns the value associated with the given Key (fast version, does not throw).
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
     /// @note Only throws in debug mode. In realese it does not check if the value is set and if TKeyType is of correct type.
-    /// @see GetValue(): Thorws if value is not set.
+    /// @see GetValue(): Throws if value is not set.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValueFast(const TKeyType& rQueryKey,
                                    std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
 
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
 
         QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ASSERT( !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]),  "Value to Key: '" + std::string(rQueryKey.Name()) + "' is not set.\n");
+        QuESo_ASSERT( !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]),
+            "Value to Key: '" + std::string(rQueryKey.Name()) + "' is not set.\n");
 
         return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
 
-    /// @brief Returns the value to the given Key.
+    /// @brief Returns the value associated with the given Key.
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-    /// @note In release mode it throws if the given key is not set. In debug mode it also throws if TKeyType is of wrong type.
-    ///       TKeyType should be known and therefore always be correct.
+    /// @note In release mode it throws if the given key is not set. In debug mode it addionally throws if TKeyType is of wrong type.
     /// @see GetValueFast(): Never throws in release.
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValue(const TKeyType& rQueryKey,
                                std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const {
 
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
 
         QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]) ) << "Value to Key: '" << rQueryKey.Name() << "' is not set.\n";
+        QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]) )
+            << "Value to Key: '" << rQueryKey.Name() << "' is not set.\n";
 
         return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
 
-    /// @brief Returns true if the value to the given Key is set.
+    /// @brief Returns true if the value associated with the given Key is set.
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return bool
@@ -180,16 +186,15 @@ public:
     bool IsSet(const TKeyType& rQueryKey,
                std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
 
-        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TValuesTypeTag>::value );
+        static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+
         return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
     }
-
+    ///@}
 
 private:
-
-    ///@}
     ///@name Private operations
     ///@{
 
@@ -198,11 +203,11 @@ private:
     /// and can only be used via the friend class DataSetStringAccess.
     friend class DataSetStringAccess<DataSet>;
 
-    /// @brief Sets the value to the given Key (given as string).
+    /// @brief Sets the value associated with the given Key (given as string).
     /// @tparam TValueType
     /// @param rQueryKeyName
     /// @param rNewValue
-    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a std::string.
     template<typename TValueType>
     void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
@@ -211,7 +216,7 @@ private:
 
         const auto target_type_index = p_key->TargetTypeIndex();
 
-        // Case 1: Handling TValueTypes that are convertible to 'IndexType'. (signed and unsigned types are allowed.)
+        // Case 1: TValueType is convertible to 'IndexType' (signed and unsigned types are allowed).
         if constexpr( is_index_v<TValueType> ) {
             if( target_type_index == std::type_index(typeid(double)) ){ // Target type: 'double'.
                 // Allow cast from IndexType to double.
@@ -219,7 +224,7 @@ private:
                 return;
             }
             else if( target_type_index == std::type_index(typeid(IndexType)) ) { // Target type: 'IndexType'.
-                if constexpr( std::is_signed_v<TValueType> ) { // Now, TValueType must be unsigned.
+                if constexpr( std::is_signed_v<TValueType> ) { // Now, TValueType must be non-negative.
                     QuESo_ERROR_IF(rNewValue < 0) << "Value for Key: '" << p_key->Name() << "' must be non-negative.\n";
                 }
                 mData[p_key->Index()] = static_cast<IndexType>(rNewValue);
@@ -251,41 +256,43 @@ private:
                 return;
             }
             QuESo_ERROR << "The given key: '" << p_key->Name() << "' accesses a variable of type: '" << p_key->TargetTypeName()
-                        << "'. However, the given value type is: '" << TValuesTypeTag::template GetValueTypeName<TValueType>() << "'.\n";
+                        << "'. However, the given value type is: '" << TKeySetValuesTypeTag::template GetValueTypeName<TValueType>() << "'.\n";
         }
     }
 
-    /// @brief Returns the value the given Key (given as std::string).
+    /// @brief Returns the value associated with the given Key (given as std::string).
     /// @tparam TValueType
     /// @param rQueryKeyName
     /// @return const TValueType&
-    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a std::string.
     template<typename TValueType>
     const TValueType& GetValue(const std::string& rQueryKeyName) const {
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
-        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " << mpKeySetInfo->GetAllKeyNames();
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
+                               << "'. Possible names are: " << mpKeySetInfo->GetAllKeyNames() << "\n.";
 
         QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[p_key->Index()]) ) << "Value to Key: '" << p_key->Name() << "' is not set.\n";
         QuESo_ERROR_IF( p_key->TargetTypeIndex() != std::type_index(typeid(TValueType)) ) << "The given key: '" << p_key->Name()
             << "' accesses a variable of type: '" << p_key->TargetTypeName()
-            << "'. However, the given value type is: '" << TValuesTypeTag::template GetValueTypeName<TValueType>() << "'.\n";
+            << "'. However, the given value type is: '" << TKeySetValuesTypeTag::template GetValueTypeName<TValueType>() << "'.\n";
 
         return std::get<TValueType>(mData[p_key->Index()]);
     }
 
-    /// @brief Returns true if the value to the given Key (given as std::string) is set.
+    /// @brief Returns true if the value associated with the given Key (given as std::string) is set.
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return bool
-    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a string.
+    /// @note Should only be used in Python. There is also a version that takes an actual KeyType instead of a std::string.
     bool IsSet(const std::string& rQueryKeyName) const {
         const auto p_key = mpKeySetInfo->pGetKey(rQueryKeyName);
-        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName << "'. Possible names are: " << mpKeySetInfo->GetAllKeyNames();
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
+                               << "'. Possible names are: " << mpKeySetInfo->GetAllKeyNames() << "\n.";
 
         return !std::holds_alternative<std::monostate>(mData[p_key->Index()]);
     }
 
-    /// @brief Returns true if given key (given as std::string) exists.
+    /// @brief Returns true if the given key (given as std::string) exists.
     /// @param rQueryKeyName
     /// @return bool
     /// @note Should only be used in Python. In C++ the correct key types must be known.
@@ -303,18 +310,18 @@ private:
     ///@}
 }; // End class DataSet
 
-/// @class DataSetStringAccess (FOR USE IN PYTHON ONLY)
+/// @class DataSetStringAccess (FOR USE IN PYTHON ONLY).
 /// @brief Allows to access the data of DataSet via KeyNames (std::strings).
 ///        The respective members are private within DataSet and made public here.
 /// @tparam DataSetType
-/// @details DataSetStringAccess is friend of DataSet
+/// @details DataSetStringAccess is a friend of DataSet
 template<typename DataSetType>
 class DataSetStringAccess {
 public:
     ///@name Static operations
     ///@{
 
-    /// @brief Wrapper for DataSet::SetValue
+    /// @brief Wrapper for DataSet::SetValue.
     /// @tparam TValueType
     /// @param rDataSet
     /// @param rQueryKeyName (std::string)
@@ -324,7 +331,7 @@ public:
         rDataSet.SetValue(rQueryKeyName, rNewValue);
     }
 
-    /// @brief Wrapper for DataSet::GetValue
+    /// @brief Wrapper for DataSet::GetValue.
     /// @tparam TValueType
     /// @param rDataSet
     /// @param rQueryKeyName (std::string)
@@ -334,7 +341,7 @@ public:
         return rDataSet.template GetValue<TValueType>(rQueryKeyName);
     }
 
-    /// @brief Wrapper for DataSet::IsSet
+    /// @brief Wrapper for DataSet::IsSet.
     /// @param rDataSet
     /// @param rQueryKeyName (std::string)
     /// @return bool
@@ -342,7 +349,7 @@ public:
         return rDataSet.IsSet(rQueryKeyName);
     }
 
-    /// @brief Wrapper for DataSet::Has
+    /// @brief Wrapper for DataSet::Has.
     /// @param rDataSet
     /// @param rQueryKeyName (std::string)
     /// @return bool
