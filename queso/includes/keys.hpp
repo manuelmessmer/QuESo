@@ -208,7 +208,8 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
         return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
     }
 
-    /// @brief Returns the name of the target type, e.g., 'double'.
+    /// @brief Returns the name of the target type.
+    ///        This can be a value, e.g., 'double', 'IndexType', etc. or a KeySetTypeTag, e.g., 'SubDictTypeTag'.
     /// @return std::string_view
     std::string_view TargetTypeName() const noexcept override {
         using KeySetTypeTag = typename KeySetInfoType::KeySetToWhat;
