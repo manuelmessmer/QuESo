@@ -45,7 +45,7 @@ void CheckKeyDynamic(const TKeyType& rKey, IndexType Index, const char* rName) {
     QuESo_CHECK(p_key->TargetTypeIndex() == std::type_index(typeid(TKeyToWhat)));
     QuESo_CHECK(p_key->KeySetInfoTypeIndex() == std::type_index(typeid(typename TKeyType::KeySetInfoType)));
 
-    QuESo_CHECK( key_set_info.IsCorrectKeyType(*p_key) );
+    QuESo_CHECK( key_set_info.IsPartOfKeySet(*p_key) );
 
     QuESo_CHECK_EQUAL(p_key->Name(), rKey.Name());
     QuESo_CHECK_EQUAL(p_key->Index(), rKey.Index());
@@ -75,13 +75,13 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys1) {
     KeySetInfoType key_set_info{};
     QuESo_CHECK_EQUAL( key_set_info.GetNumberOfKeys(), 5);
     QuESo_CHECK_EQUAL( KeySetInfoType::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three', 'four']" );
-    BOOST_REQUIRE_THROW( key_set_info.pGetKey("five"), std::exception );
+    QuESo_CHECK( key_set_info.pGetKey("five") == nullptr );
     static_assert( queso::key::SubDictTypeTag::GetTypeTagName() == "SubDictTypeTag" );
 
     using KeySetInfoTypeWrong = decltype(TestKeys2::zero)::KeySetInfoType;
     KeySetInfoTypeWrong key_set_info_wrong{};
     auto p_wrong_key = key_set_info_wrong.pGetKey("zero");
-    QuESo_CHECK( !key_set_info.IsCorrectKeyType(*p_wrong_key) );
+    QuESo_CHECK( !key_set_info.IsPartOfKeySet(*p_wrong_key) );
 }
 
 BOOST_AUTO_TEST_CASE(TestRegisterKeys2) {
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys2) {
     KeySetInfoType key_set_info{};
     QuESo_CHECK_EQUAL( key_set_info.GetNumberOfKeys(), 4);
     QuESo_CHECK_EQUAL( KeySetInfoType::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three']" );
-    BOOST_REQUIRE_THROW( key_set_info.pGetKey("four"), std::exception );
+    QuESo_CHECK( key_set_info.pGetKey("four") == nullptr );
 
     static_assert( queso::key::ListTypeTag::GetTypeTagName() == "ListTypeTag" );
 }
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     KeySetInfoType key_set_info{};
     QuESo_CHECK_EQUAL( key_set_info.GetNumberOfKeys(), 8);
     QuESo_CHECK_EQUAL( KeySetInfoType::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven']" );
-    BOOST_REQUIRE_THROW( key_set_info.pGetKey("twelve"), std::exception );
+    QuESo_CHECK( key_set_info.pGetKey("twelve") == nullptr );
 
     using KeyType = decltype(TestKeys3::two);
 
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     KeySetInfoTypeSubDict key_set_info_subdict{};
     QuESo_CHECK_EQUAL( key_set_info_subdict.GetNumberOfKeys(), 4);
     QuESo_CHECK_EQUAL( KeySetInfoTypeSubDict::StaticGetAllKeyNames(), "['zero', 'one', 'two', 'three']" );
-    BOOST_REQUIRE_THROW( key_set_info_subdict.pGetKey("twelve"), std::exception );
+    QuESo_CHECK( key_set_info_subdict.pGetKey("twelve") == nullptr );
 
     /// TestKeys4 :: ListTypeTag
     static_assert( CheckKeyStatic<decltype(TestKeys4::five), queso::key::ListTypeTag>(TestKeys4::five, 0, "five") );
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
     KeySetInfoTypeList key_set_info_list{};
     QuESo_CHECK_EQUAL( key_set_info_list.GetNumberOfKeys(), 3);
     QuESo_CHECK_EQUAL( KeySetInfoTypeList::StaticGetAllKeyNames(), "['five', 'six', 'seven']" );
-    BOOST_REQUIRE_THROW( key_set_info_list.pGetKey("twelve"), std::exception );
+    QuESo_CHECK( key_set_info_list.pGetKey("twelve") == nullptr );
 }
 
 BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     KeySetInfoTypeSubDict key_set_info_subdict{};
     QuESo_CHECK_EQUAL( key_set_info_subdict.GetNumberOfKeys(), 2);
     QuESo_CHECK_EQUAL( KeySetInfoTypeSubDict::StaticGetAllKeyNames(), "['zero', 'one']" );
-    BOOST_REQUIRE_THROW( key_set_info_subdict.pGetKey("twelve"), std::exception );
+    QuESo_CHECK( key_set_info_subdict.pGetKey("twelve") == nullptr );
 
     /// TestKeys5 :: ListTypeTag
     static_assert( CheckKeyStatic<decltype(TestKeys5::five), queso::key::ListTypeTag>(TestKeys5::five, 0, "five") );
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     KeySetInfoTypeList key_set_info_list{};
     QuESo_CHECK_EQUAL( key_set_info_list.GetNumberOfKeys(), 2);
     QuESo_CHECK_EQUAL( KeySetInfoTypeList::StaticGetAllKeyNames(), "['five', 'six']" );
-    BOOST_REQUIRE_THROW( key_set_info_list.pGetKey("twelve"), std::exception );
+    QuESo_CHECK( key_set_info_list.pGetKey("twelve") == nullptr );
 
     /// TestKeys5 :: MainValuesTypeTag
     static_assert( CheckKeyStatic<decltype(TestKeys5::seven), queso::key::MainValuesTypeTag, double>(TestKeys5::seven, 0, "seven") );
@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     KeySetInfoTypeValue key_set_info_value{};
     QuESo_CHECK_EQUAL( key_set_info_value.GetNumberOfKeys(), 4);
     QuESo_CHECK_EQUAL( KeySetInfoTypeValue::StaticGetAllKeyNames(), "['seven', 'eight', 'nine', 'ten']" );
-    BOOST_REQUIRE_THROW( key_set_info_value.pGetKey("one"), std::exception );
+    QuESo_CHECK( key_set_info_value.pGetKey("one") == nullptr );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
