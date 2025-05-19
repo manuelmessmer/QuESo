@@ -73,23 +73,19 @@ BOOST_AUTO_TEST_CASE(TestDataSetTypeTraits) {
     static_assert( !DataSetType::is_unsigned_index_v<std::string> );
 
     // Check is_scoped_int_enum
-    static_assert( DataSetType::is_scoped_int_enum<ClassIntEnum>::value );
+    static_assert( DataSetType::is_key_v<decltype(TestKeys3::zero)> );
 
-    static_assert( !DataSetType::is_scoped_int_enum<PlainIntEnum>::value );
-    static_assert( !DataSetType::is_scoped_int_enum<int>::value );
-    static_assert( !DataSetType::is_scoped_int_enum<IndexType>::value );
+    static_assert( !DataSetType::is_key_v<ClassIntEnum> );
+    static_assert( !DataSetType::is_key_v<PlainIntEnum> );
+    static_assert( !DataSetType::is_key_v<int> );
+    static_assert( !DataSetType::is_key_v<IndexType> );
 }
 
 BOOST_AUTO_TEST_CASE(TestDataSetValue) {
     QuESo_INFO << "Testing :: Test DataSet :: SetValue" << std::endl;
 
-    using DataSetType2 = DataSet<queso::key::ElementValuesTypeTag>;
-    DataSetType2 data_set2(DataSetType2::KeySetInfoTypeTag<key::detail::TestKeysElementElementValuesTypeTagKeySetInfo>{});
-
     using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
     DataSetType data_set(DataSetType::KeySetInfoTypeTag<key::detail::TestKeys3MainValuesTypeTagKeySetInfo>{});
-
-    std::cout << sizeof(DataSetType) << std::endl;
 
     data_set.SetValue(TestKeys3::zero, PointType{1.0, 2.0, 3.0});
     data_set.SetValue(TestKeys3::one, Vector3i{1, 2, 3});
@@ -111,39 +107,41 @@ BOOST_AUTO_TEST_CASE(TestDataSetValue) {
         BOOST_REQUIRE_THROW( data_set.SetValue(TestKeys5::ten, 4ul), std::exception );
     }
 
-    data_set.SetValue("zero", PointType{1.0, 2.0, 3.0});
-    data_set.SetValue("zero", Vector3i{1, 2, 3}); // The conversion from Vector3i to PointType is legal.
-    BOOST_REQUIRE_THROW( data_set.SetValue("zero", 1.0), std::exception );
+    using StringAccess = DataSetStringAccess<DataSetType>;
 
-    data_set.SetValue("one", Vector3i{1, 2, 3});
-    BOOST_REQUIRE_THROW( data_set.SetValue("one", PointType{1.0, 2.0, 3.0}), std::exception );
+    StringAccess::SetValue(data_set, "zero", PointType{1.0, 2.0, 3.0});
+    StringAccess::SetValue(data_set, "zero", Vector3i{1, 2, 3}); // The conversion from Vector3i to PointType is legal.
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "zero", 1.0), std::exception );
 
-    data_set.SetValue("two", false);
-    BOOST_REQUIRE_THROW( data_set.SetValue("two", 1), std::exception );
+    StringAccess::SetValue( data_set, "one", Vector3i{1, 2, 3});
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "one", PointType{1.0, 2.0, 3.0}), std::exception );
 
-    data_set.SetValue("three", 3.0);
-    data_set.SetValue("three", 3); // The conversion from int to double is legal.
-    data_set.SetValue("three", IndexType(3)); // The conversion from int to double is legal.
-    BOOST_REQUIRE_THROW( data_set.SetValue("three", true), std::exception );
+    StringAccess::SetValue(data_set, "two", false);
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "two", 1), std::exception );
 
-    data_set.SetValue("four", (int)1);
-    data_set.SetValue("four", (unsigned int)1 );
-    data_set.SetValue("four", IndexType(1));
-    data_set.SetValue("four", (long)1 );
-    data_set.SetValue("four", (short)1 );
-    BOOST_REQUIRE_THROW( data_set.SetValue("four", -1), std::exception );
-    BOOST_REQUIRE_THROW( data_set.SetValue("four", 1.0), std::exception );
+    StringAccess::SetValue(data_set, "three", 3.0);
+    StringAccess::SetValue(data_set, "three", 3); // The conversion from int to double is legal.
+    StringAccess::SetValue(data_set, "three", IndexType(3)); // The conversion from int to double is legal.
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "three", true), std::exception );
 
-    data_set.SetValue("five", std::string("hallo"));
-    BOOST_REQUIRE_THROW( data_set.SetValue("five", 1), std::exception );
+    StringAccess::SetValue(data_set, "four", (int)1);
+    StringAccess::SetValue(data_set, "four", (unsigned int)1 );
+    StringAccess::SetValue(data_set, "four", IndexType(1));
+    StringAccess::SetValue(data_set, "four", (long)1 );
+    StringAccess::SetValue(data_set, "four", (short)1 );
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "four", -1), std::exception );
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "four", 1.0), std::exception );
 
-    data_set.SetValue("six", IntegrationMethod::gauss);
-    BOOST_REQUIRE_THROW( data_set.SetValue("six", Vector3i{0, 0, 0}), std::exception );
+    StringAccess::SetValue(data_set, "five", std::string("hallo"));
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "five", 1), std::exception );
 
-    data_set.SetValue("seven", GridType::b_spline_grid);
-    BOOST_REQUIRE_THROW( data_set.SetValue("seven", 1), std::exception );
+    StringAccess::SetValue(data_set, "six", IntegrationMethod::gauss);
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "six", Vector3i{0, 0, 0}), std::exception );
 
-    BOOST_REQUIRE_THROW( data_set.SetValue("wrong_key", 1), std::exception );
+    StringAccess::SetValue(data_set, "seven", GridType::b_spline_grid);
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "seven", 1), std::exception );
+
+    BOOST_REQUIRE_THROW( StringAccess::SetValue(data_set, "wrong_key", 1), std::exception );
 }
 
 BOOST_AUTO_TEST_CASE(TestDataSetGetValueKey) {
@@ -237,91 +235,93 @@ BOOST_AUTO_TEST_CASE(TestDataSetGetValueKeyName) {
     using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
     DataSetType data_set(DataSetType::KeySetInfoTypeTag<key::detail::TestKeys3MainValuesTypeTagKeySetInfo>{});
 
+    using StringAccess = DataSetStringAccess<DataSetType>;
+
     // Has keys.
-    QuESo_CHECK( data_set.Has("zero") );
-    QuESo_CHECK( data_set.Has("one") );
-    QuESo_CHECK( data_set.Has("two") );
-    QuESo_CHECK( data_set.Has("three") );
-    QuESo_CHECK( data_set.Has("four") );
-    QuESo_CHECK( data_set.Has("five") );
-    QuESo_CHECK( data_set.Has("six") );
-    QuESo_CHECK( data_set.Has("seven") );
+    QuESo_CHECK( StringAccess::Has(data_set, "zero") );
+    QuESo_CHECK( StringAccess::Has(data_set, "one") );
+    QuESo_CHECK( StringAccess::Has(data_set, "two") );
+    QuESo_CHECK( StringAccess::Has(data_set, "three") );
+    QuESo_CHECK( StringAccess::Has(data_set, "four") );
+    QuESo_CHECK( StringAccess::Has(data_set, "five") );
+    QuESo_CHECK( StringAccess::Has(data_set, "six") );
+    QuESo_CHECK( StringAccess::Has(data_set, "seven") );
 
     // Does not have key.
-    QuESo_CHECK( !data_set.Has("wrong_key") );
+    QuESo_CHECK( !StringAccess::Has(data_set, "wrong_key") );
 
     // Values are not set.
-    QuESo_CHECK( !data_set.IsSet("zero") );
-    QuESo_CHECK( !data_set.IsSet("one") );
-    QuESo_CHECK( !data_set.IsSet("two") );
-    QuESo_CHECK( !data_set.IsSet("three") );
-    QuESo_CHECK( !data_set.IsSet("four") );
-    QuESo_CHECK( !data_set.IsSet("five") );
-    QuESo_CHECK( !data_set.IsSet("six") );
-    QuESo_CHECK( !data_set.IsSet("seven") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "zero") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "one") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "two") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "three") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "four") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "five") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "six") );
+    QuESo_CHECK( !StringAccess::IsSet(data_set, "seven") );
 
     // Values are not set.
-    BOOST_REQUIRE_THROW( data_set.GetValue<PointType>("zero"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("one"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<bool>("two"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<double>("three"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("four"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("five"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<IntegrationMethodType>("six"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("seven"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<PointType>(data_set, "zero"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<Vector3i>(data_set, "one"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<bool>(data_set, "two"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<double>(data_set, "three"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<IndexType>(data_set, "four"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<std::string>(data_set, "five"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<IntegrationMethodType>(data_set, "six"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<GridTypeType>(data_set, "seven"), std::exception);
 
     // Set values
-    data_set.SetValue("zero", PointType{1.0, 2.0, 3.0});
-    data_set.SetValue("one", Vector3i{1, 2, 3});
-    data_set.SetValue("two", true);
-    data_set.SetValue("three", 2.0);
-    data_set.SetValue("four", IndexType(5));
-    data_set.SetValue("five", std::string("Hallo"));
-    data_set.SetValue("six", IntegrationMethod::gauss);
-    data_set.SetValue("seven", GridType::b_spline_grid);
+    StringAccess::SetValue(data_set, "zero", PointType{1.0, 2.0, 3.0});
+    StringAccess::SetValue(data_set, "one", Vector3i{1, 2, 3});
+    StringAccess::SetValue(data_set, "two", true);
+    StringAccess::SetValue(data_set, "three", 2.0);
+    StringAccess::SetValue(data_set, "four", IndexType(5));
+    StringAccess::SetValue(data_set, "five", std::string("Hallo"));
+    StringAccess::SetValue(data_set, "six", IntegrationMethod::gauss);
+    StringAccess::SetValue(data_set, "seven", GridType::b_spline_grid);
 
     // Values are set.
-    QuESo_CHECK( data_set.IsSet("zero") );
-    QuESo_CHECK( data_set.IsSet("one") );
-    QuESo_CHECK( data_set.IsSet("two") );
-    QuESo_CHECK( data_set.IsSet("three") );
-    QuESo_CHECK( data_set.IsSet("four") );
-    QuESo_CHECK( data_set.IsSet("five") );
-    QuESo_CHECK( data_set.IsSet("six") );
-    QuESo_CHECK( data_set.IsSet("seven") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "zero") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "one") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "two") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "three") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "four") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "five") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "six") );
+    QuESo_CHECK( StringAccess::IsSet(data_set, "seven") );
 
     // Wrong key
-    BOOST_REQUIRE_THROW( data_set.IsSet("zero_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::IsSet(data_set, "zero_"), std::exception);
 
     // Wrong keys
-    BOOST_REQUIRE_THROW( data_set.GetValue<PointType>("zero_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("one_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<bool>("two_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<double>("three_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("four_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("five_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<IntegrationMethodType>("six_"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("seven_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<PointType>(data_set, "zero_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<Vector3i>(data_set, "one_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<bool>(data_set, "two_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<double>(data_set, "three_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<IndexType>(data_set, "four_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<std::string>(data_set, "five_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<IntegrationMethodType>(data_set, "six_"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<GridTypeType>(data_set, "seven_"), std::exception);
 
     // Wrong variable types
-    BOOST_REQUIRE_THROW( data_set.GetValue<Vector3i>("zero"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<bool>("one"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<double>("two"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("three"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<double>("four"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<GridTypeType>("five"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<std::string>("six"), std::exception);
-    BOOST_REQUIRE_THROW( data_set.GetValue<IndexType>("seven"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<Vector3i>(data_set, "zero"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<bool>(data_set, "one"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<double>(data_set, "two"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<IndexType>(data_set, "three"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<double>(data_set, "four"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<GridTypeType>(data_set, "five"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<std::string>(data_set, "six"), std::exception);
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<IndexType>(data_set, "seven"), std::exception);
 
     // Get values
-    QuESo_CHECK_POINT_NEAR( data_set.GetValue<PointType>("zero"), PointType({1.0, 2.0, 3.0}), 1e-12);
-    QuESo_CHECK_Vector3i_EQUAL( data_set.GetValue<Vector3i>("one"), Vector3i({1, 2, 3}) );
-    QuESo_CHECK_EQUAL( data_set.GetValue<bool>("two"), true );
-    QuESo_CHECK_NEAR( data_set.GetValue<double>("three"), 2.0, 1e-12);
-    QuESo_CHECK_EQUAL( data_set.GetValue<IndexType>("four"), 5 );
-    QuESo_CHECK_EQUAL( data_set.GetValue<std::string>("five"), std::string("Hallo") );
-    QuESo_CHECK_EQUAL( data_set.GetValue<IntegrationMethodType>("six"), IntegrationMethod::gauss );
-    QuESo_CHECK_EQUAL( data_set.GetValue<GridTypeType>("seven"), GridType::b_spline_grid );
+    QuESo_CHECK_POINT_NEAR( StringAccess::GetValue<PointType>(data_set, "zero"), PointType({1.0, 2.0, 3.0}), 1e-12);
+    QuESo_CHECK_Vector3i_EQUAL( StringAccess::GetValue<Vector3i>(data_set, "one"), Vector3i({1, 2, 3}) );
+    QuESo_CHECK_EQUAL( StringAccess::GetValue<bool>(data_set, "two"), true );
+    QuESo_CHECK_NEAR( StringAccess::GetValue<double>(data_set, "three"), 2.0, 1e-12);
+    QuESo_CHECK_EQUAL( StringAccess::GetValue<IndexType>(data_set, "four"), 5 );
+    QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(data_set, "five"), std::string("Hallo") );
+    QuESo_CHECK_EQUAL( StringAccess::GetValue<IntegrationMethodType>(data_set, "six"), IntegrationMethod::gauss );
+    QuESo_CHECK_EQUAL( StringAccess::GetValue<GridTypeType>(data_set, "seven"), GridType::b_spline_grid );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
