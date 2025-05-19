@@ -19,6 +19,7 @@
 #include "queso/includes/define.hpp"
 
 /// STL includes
+#include <variant>
 #include <string>
 #include <unordered_map>
 #include <typeindex>
@@ -93,6 +94,22 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleValueTypes...>> {
     KeyToWhatTypeTag(KeyToWhatTypeTag&&) = delete;
     KeyToWhatTypeTag& operator=(KeyToWhatTypeTag&&) = delete;
 
+    /// Typedef
+    using VariantType = std::variant<std::monostate, PossibleValueTypes...>;
+
+    /// Type traits to check, if a given type is a actually a key.
+    template<typename, typename = void>
+    struct is_key : std::false_type {};
+
+    template<typename TKeyType>
+    struct is_key<TKeyType, std::void_t<typename TKeyType::KeyValueType>>
+        : std::integral_constant<bool,
+            !std::is_convertible_v<typename TKeyType::KeyValueType, int> &&
+            std::is_enum_v<typename TKeyType::KeyValueType>> {};
+
+    template<typename TKeyType>
+    static constexpr bool is_key_v = is_key<TKeyType>::value;
+
     /// Type traits to check, if a given type is a possible value type.
     template<typename TType>
     using is_valid_value_type = std::disjunction<std::is_same<TType, PossibleValueTypes>...>;
@@ -103,7 +120,7 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleValueTypes...>> {
     /// @brief Returns the name of this type tag.
     ///        msTypeName must be specified in derived class.
     /// @return std::string_view
-    static constexpr std::string_view GetTypeTagName() {
+    static constexpr std::string_view GetTypeTagName() noexcept {
         return TDerived::msTypeName;
     }
 
@@ -112,7 +129,7 @@ struct KeyToWhatTypeTag<TDerived, ValuesTypeList<PossibleValueTypes...>> {
     /// @tparam TType
     /// @return std::string
     template<typename TType>
-    static constexpr std::string_view GetValueTypeName() {
+    static constexpr std::string_view GetValueTypeName() noexcept {
         static_assert(KeyToWhatTypeTag::is_valid_value_type_v<TType>, "Invalid type provided to GetValueTypeName");
         return ValuesTypeList<PossibleValueTypes...>::msTypeNames[IndexOfType<TType, PossibleValueTypes...>::msIndex];
     }
@@ -155,10 +172,11 @@ struct DynamicKeyBase {
     virtual ~DynamicKeyBase() = default;
 
     /// Pure virtual functions.
-    virtual IndexType Index() const = 0;
-    virtual std::string_view Name() const = 0;
-    virtual std::type_index TargetTypeIndex() const = 0;
-    virtual std::type_index KeySetInfoTypeIndex() const = 0;
+    virtual IndexType Index() const noexcept = 0;
+    virtual std::string_view Name() const noexcept = 0;
+    virtual std::string_view TargetTypeName() const noexcept = 0;
+    virtual std::type_index TargetTypeIndex() const noexcept = 0;
+    virtual std::type_index KeySetInfoTypeIndex() const noexcept = 0;
 };
 
 /// @brief Dynamic key class.
@@ -180,27 +198,38 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
 
     /// @brief Returns the value/index of this Key.
     /// @return IndexType
-    IndexType Index() const override {
+    IndexType Index() const noexcept override {
         return static_cast<IndexType>(this->mKeyValue);
     }
 
     /// @brief Returns the name of this Key.
     /// @return const std::string&
-    std::string_view Name() const override {
+    std::string_view Name() const noexcept override {
         return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
+    }
+
+    /// @brief Returns the name of the target type, e.g., 'double'.
+    /// @return std::string_view
+    std::string_view TargetTypeName() const noexcept override {
+        using KeySetTypeTag = typename KeySetInfoType::KeySetToWhat;
+        if constexpr ( KeySetTypeTag::template is_valid_value_type_v<KeyToWhat> ) {
+            return KeySetTypeTag::template GetValueTypeName<KeyToWhat>();
+        } else {
+            return KeySetTypeTag::GetTypeTagName();
+        }
     }
 
     /* The following functions can be used for dynamic type checks. */
 
     /// @brief Returns std::type_index of type this key points to (KeyToWhat).
     /// @return std::type_index
-    std::type_index TargetTypeIndex() const override {
+    std::type_index TargetTypeIndex() const noexcept override {
         return std::type_index(typeid(KeyToWhat));
     }
 
     /// @brief  Returns std::type_index of type of the KeySetInfo, to which this key belongs.
     /// @return std::type_index
-    std::type_index KeySetInfoTypeIndex() const override {
+    std::type_index KeySetInfoTypeIndex() const noexcept override {
         return std::type_index(typeid(KeySetInfoType));
     }
 };
@@ -232,6 +261,12 @@ struct ConstexprKey : private KeyData<typename TKeySetInfoType::EnumType> {
     constexpr std::string_view Name() const noexcept {
         return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
     }
+
+    /// @brief  Returns std::type_index of type of the KeySetInfo, to which this key belongs.
+    /// @return std::type_index
+    constexpr std::type_index KeySetInfoTypeIndex() const noexcept {
+        return std::type_index(typeid(KeySetInfoType));
+    }
 };
 
 /// Base class to store and access information about a key set.
@@ -240,7 +275,9 @@ struct KeySetInfo {
 
     virtual const DynamicKeyBase* pGetKey(std::string_view rName) const = 0;
     virtual IndexType GetNumberOfKeys() const noexcept = 0;
-    virtual bool IsCorrectKeyType(const DynamicKeyBase& rKey) const noexcept = 0;
+    virtual bool IsSameKeySet(std::type_index TypeIndex) const noexcept = 0;
+    virtual bool IsPartOfKeySet(const DynamicKeyBase& rKey) const noexcept = 0;
+    virtual std::string GetAllKeyNames() const = 0;
 };
 
 } // End namespace detail
@@ -311,14 +348,18 @@ namespace key {\
                 if (it != msStringToKeyMap.end()) {\
                     return (it->second);\
                 }\
-                QuESo_ERROR << "Invalid Key name. Possible names are: " + StaticGetAllKeyNames();\
+                return nullptr;\
             }\
             IndexType GetNumberOfKeys() const noexcept override {\
                 return msNumOfEnums;\
             }\
-            bool IsCorrectKeyType(const KeyBaseType& rKey) const noexcept override {\
+            bool IsSameKeySet(std::type_index TypeIndex) const noexcept override {\
+                return (std::type_index(typeid(KeySetName##KeySetToWhat_##KeySetInfo)) == TypeIndex);\
+            }\
+            bool IsPartOfKeySet(const KeyBaseType& rKey) const noexcept override {\
                 return (std::type_index(typeid(KeySetName##KeySetToWhat_##KeySetInfo)) == rKey.KeySetInfoTypeIndex() );\
             }\
+            std::string GetAllKeyNames() const override {return StaticGetAllKeyNames(); }\
             static std::string StaticGetAllKeyNames() {\
                 std::string result;\
                 for (const auto& r_name : msEnumNames) {\
