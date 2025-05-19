@@ -32,6 +32,7 @@ constexpr bool CheckKeyStatic(const TKeyType& rKey, IndexType Index, const char*
 
     static_assert( std::is_same_v<typename TKeyType::KeyToWhat, TKeyToWhat> );
     static_assert( std::is_same_v<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetToWhat> );
+    static_assert( TKeySetToWhat::template is_key_v<TKeyType> );
 
     return true;
 }
