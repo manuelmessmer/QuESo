@@ -127,12 +127,15 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
         BOOST_REQUIRE_THROW( r_subdict_1.GetValue<PointType>(TestKeys3::zero), std::exception );
         // Wrong key.
         BOOST_REQUIRE_THROW( r_subdict_1[TestKeys4::zero], std::exception );
+        // Dict not set.
+        BOOST_REQUIRE_THROW( r_subdict_1[TestKeys1::one], std::exception );
     }
 
     const auto& r_subdict_2 = r_subdict_1[TestKeys1::zero];
     if constexpr (!NOTDEBUG) {
         // Dictionary does not contain any subdictionaries.
         BOOST_REQUIRE_THROW( r_subdict_2[TestKeys1::zero], std::exception );
+
     }
 
     QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::zero) );
@@ -170,6 +173,15 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
 
     using StringAccess = DictionaryStringAccess<DictionaryType>;
 
+    // Check has
+    QuESo_CHECK( StringAccess::Has(test_dict, "zero") )
+    QuESo_CHECK( StringAccess::Has(test_dict, "one") )
+    QuESo_CHECK( StringAccess::Has(test_dict, "five") )
+    QuESo_CHECK( StringAccess::Has(test_dict, "six") )
+    QuESo_CHECK( StringAccess::Has(test_dict, "seven") )
+
+    QuESo_CHECK( !StringAccess::Has(test_dict, "two") )
+
     // Add some values
     QuESo_CHECK( !StringAccess::IsSet(test_dict, "seven") );
     QuESo_CHECK( !StringAccess::IsSet(test_dict, "eight") );
@@ -187,11 +199,9 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
             key::detail::TestKeys1SubDictTypeTagKeySetInfo,
             std::false_type>{} );
 
-        if constexpr (!NOTDEBUG) {
-            // Dictionary has an empty data set.
-            BOOST_REQUIRE_THROW( StringAccess::IsSet(*p_subdict_1, "zero"), std::exception );
-            BOOST_REQUIRE_THROW( StringAccess::SetValue(*p_subdict_1, "zero", PointType({2.0, 3.2, 1.1})), std::exception );
-        }
+        // Dictionary has an empty data set.
+        BOOST_REQUIRE_THROW( StringAccess::IsSet(*p_subdict_1, "zero"), std::exception );
+        BOOST_REQUIRE_THROW( StringAccess::SetValue(*p_subdict_1, "zero", PointType({2.0, 3.2, 1.1})), std::exception );
 
         { // Add SubDictionary 2.
             auto p_subdict_2 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
@@ -199,19 +209,16 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
                 std::false_type,
                 std::false_type>{} );
 
-            if constexpr (!NOTDEBUG) {
-                // Dictionary does not contain any subdictionaries.
-                BOOST_REQUIRE_THROW( StringAccess::SetSubDictionary(*p_subdict_2, "zero", std::move(p_subdict_2)), std::exception );
-            }
+            // Dictionary does not contain any subdictionaries.
+            BOOST_REQUIRE_THROW( StringAccess::SetSubDictionary(*p_subdict_2, "zero", std::move(p_subdict_2)), std::exception );
 
             StringAccess::SetValue(*p_subdict_2, "zero", PointType({2.0, 3.2, 1.1}));
             StringAccess::SetValue(*p_subdict_2, "one", Vector3i({1, 2, 3}));
             StringAccess::SetValue(*p_subdict_2, "two", false);
 
-            if constexpr (!NOTDEBUG) {
-                // Wrong key type.
-                BOOST_REQUIRE_THROW( StringAccess::SetSubDictionary(*p_subdict_1, "zero", std::move(p_subdict_2)), std::exception );
-            }
+            // Wrong key type.
+            BOOST_REQUIRE_THROW( StringAccess::SetSubDictionary(*p_subdict_1, "wrong_key", std::move(p_subdict_2)), std::exception );
+
             StringAccess::SetSubDictionary(*p_subdict_1, "zero", std::move(p_subdict_2));
         }
 
@@ -227,32 +234,13 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
         StringAccess::SetValue(*p_subdict_3, "four", 3u);
         StringAccess::SetValue(*p_subdict_3, "five", std::string("Hello"));
 
-        if constexpr (!NOTDEBUG) {
-            // Dictionary does not contain any list.
-            BOOST_REQUIRE_THROW( StringAccess::GetList(*p_subdict_3, "five"), std::exception );
-            // Wrong key type.
-            BOOST_REQUIRE_THROW( StringAccess::GetList(test_dict, "five"), std::exception );
-        }
+
+        // Dictionary does not contain any list.
+        BOOST_REQUIRE_THROW( StringAccess::GetList(*p_subdict_3, "five"), std::exception );
+        // Wrong key type.
+        BOOST_REQUIRE_THROW( StringAccess::GetList(test_dict, "wrong_key"), std::exception );
+
         auto& list_a = StringAccess::GetList(test_dict, "five");
-        list_a.push_back(std::move(p_subdict_3));
-
-        // Add List  containig SubDictionary 3.
-        auto p_subdict_3 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
-            key::detail::TestKeys3MainValuesTypeTagKeySetInfo,
-            std::false_type,
-            std::false_type>{} );
-
-        StringAccess::SetValue(*p_subdict_3, "three", 3.0);
-        StringAccess::SetValue(*p_subdict_3, "four", 3u);
-        StringAccess::SetValue(*p_subdict_3, "five", std::string("Hello"));
-
-        if constexpr (!NOTDEBUG) {
-            // Dictionary does not contain any list.
-            BOOST_REQUIRE_THROW( p_subdict_3->GetList(TestKeys5::five), std::exception );
-            // Wrong key type.
-            BOOST_REQUIRE_THROW( test_dict.GetList(TestKeys4::five), std::exception );
-        }
-        auto& list_a = test_dict.GetList(TestKeys5::five);
         list_a.push_back(std::move(p_subdict_3));
     }
 
@@ -270,21 +258,20 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
     QuESo_CHECK( !StringAccess::IsSet(test_dict, "ten") );
 
     // Check Subdictionary.
-    auto& r_subdict_1 = test_dict[TestKeys5::zero];
+    auto& r_subdict_1 = StringAccess::GetSubDictionary(test_dict, "zero");
 
-    if constexpr (!NOTDEBUG) {
-        // Dictionary has an empty data set.
-        BOOST_REQUIRE_THROW( StringAccess::IsSet(r_subdict_1, "zero"), std::exception );
-        BOOST_REQUIRE_THROW( StringAccess::GetValue<PointType>(r_subdict_1, "zero"), std::exception );
-        // Wrong key.
-        BOOST_REQUIRE_THROW( r_subdict_1[TestKeys4::zero], std::exception );
-    }
+    // Dictionary has an empty data set.
+    BOOST_REQUIRE_THROW( StringAccess::IsSet(r_subdict_1, "zero"), std::exception );
+    BOOST_REQUIRE_THROW( StringAccess::GetValue<PointType>(r_subdict_1, "zero"), std::exception );
+    // Wrong key.
+    BOOST_REQUIRE_THROW( StringAccess::GetSubDictionary(r_subdict_1, "wrong_key"), std::exception );
+    // Dict not set.
+    BOOST_REQUIRE_THROW( StringAccess::GetSubDictionary(r_subdict_1, "one"), std::exception );
 
-    const auto& r_subdict_2 = r_subdict_1[TestKeys1::zero];
-    if constexpr (!NOTDEBUG) {
-        // Dictionary does not contain any subdictionaries.
-        BOOST_REQUIRE_THROW( r_subdict_2[TestKeys1::zero], std::exception );
-    }
+    auto& r_subdict_2 = StringAccess::GetSubDictionary(r_subdict_1, "zero");
+
+    // Dictionary does not contain any subdictionaries.
+    BOOST_REQUIRE_THROW( StringAccess::GetSubDictionary(r_subdict_2, "zero"), std::exception );
 
     QuESo_CHECK( StringAccess::IsSet(r_subdict_2, "zero") );
     QuESo_CHECK( StringAccess::IsSet(r_subdict_2, "one") );
