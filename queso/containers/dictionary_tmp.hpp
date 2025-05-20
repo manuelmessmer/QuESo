@@ -117,7 +117,7 @@ public:
     ///@name Operations
     ///@{
 
-     template<typename TKeyType, typename TValueType>
+    template<typename TKeyType, typename TValueType>
     void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue) noexcept(NOTDEBUG) {
         QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
         mpDataSet->SetValue(rQueryKey, rNewValue);
@@ -222,6 +222,87 @@ public:
     // }
 
 private:
+    ///@}
+    ///@name Type definitions
+    ///@{
+
+    using DataStringAccess = DataSetStringAccess<DataSetType>;
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    void SetSubDictionary(const std::string& rQueryKeyName, Unique<Dictionary>&& rNewDictionary) {
+
+        QuESo_ERROR_IF( !mpSubDictKeySetInfo )  << "This dictionary does not contain any sub-dictionaries.\n";
+
+        const auto p_key = mpSubDictKeySetInfo->pGetKey(rQueryKeyName);
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
+                               << "'. Possible names are: " << mpSubDictKeySetInfo->GetAllKeyNames() << "\n.";
+
+        QuESo_ASSERT( p_key->Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n");
+
+        mSubDictionaries[p_key->Index()] = std::move(rNewDictionary);
+    }
+
+
+    /// @brief Returns ref to subdictionary corresponding to given key provided as std::string.
+    ///        This function should only be used in Python. The Version: [Enum Key] is much faster.
+    /// @param rQueryKeyName
+    /// @return Dictionary&
+    Dictionary& operator[] (const std::string& rQueryKeyName) {
+
+        QuESo_ERROR_IF( !mpSubDictKeySetInfo )  << "This dictionary does not contain any sub-dictionaries.\n";
+
+        const auto p_key = mpSubDictKeySetInfo->pGetKey(rQueryKeyName);
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
+                               << "'. Possible names are: " << mpSubDictKeySetInfo->GetAllKeyNames() << "\n.";
+
+        QuESo_ASSERT( p_key->Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n");
+
+        QuESo_ERROR_IF( !mSubDictionaries[p_key->Index()] )
+            << "Dictionary associated with Key: " << std::string( p_key->Name() ) << " is not set.\n";
+
+        return mSubDictionaries[p_key->Index()];
+    }
+
+
+    ListType& GetList(const std::string& rQueryKeyName) {
+
+        QuESo_ERROR_IF( !mpListKeySetInfo ) << "This dictionary does not contain any lists.\n";
+
+        const auto p_key = mpListKeySetInfo->pGetKey(rQueryKeyName);
+        QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
+                               << "'. Possible names are: " << mpListKeySetInfo->GetAllKeyNames() << "\n.";
+
+        QuESo_ASSERT( p_key->Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mListsOfDicts'.\n");
+
+        return mListsOfDicts[p_key->Index()];
+    }
+
+    template<typename TValueType>
+    void SetValue(const std::string& rQueryKeyName, const TValueType& rNewValue) {
+        QuESo_ERROR_IF( !mpDataSet ) << "This dictionary has an empty data set.\n";
+        return DataStringAccess::SetValue(*mpDataSet, rQueryKeyName, rNewValue);
+    }
+
+    template<typename TValueType>
+    const TValueType& GetValue(const std::string& rQueryKeyName) const {
+        QuESo_ERROR_IF( !mpDataSet ) << "This dictionary has an empty data set.\n";
+        return DataStringAccess::template GetValue<TValueType>(*mpDataSet, rQueryKeyName);
+    }
+
+    bool IsSet(const std::string& rQueryKeyName) const {
+        QuESo_ERROR_IF( !mpDataSet ) << "This dictionary has an empty data set.\n";
+        return DataStringAccess::IsSet(rQueryKeyName);
+    }
+
+    bool Has(const std::string& rQueryKeyName) const noexcept {
+        const bool has = (!mpDataSet && mpDataSet->Has(rQueryKeyName) )
+                         || ( mpSubDictKeySetInfo && (mpSubDictKeySetInfo->pGetKey(rQueryKeyName) != nullptr) )
+                         || ( mpListKeySetInfo && (mpListKeySetInfo->pGetKey(rQueryKeyName) != nullptr) );
+        return has;
+    }
 
     // /// @brief Prints this dictionary in JSON format.
     // /// @param rOStream
@@ -303,6 +384,65 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     return rOStream;
 // }
+
+/// @class DictionaryStringAccess (FOR USE IN PYTHON ONLY).
+/// @brief Allows to access the data of Dictionary via KeyNames (std::strings).
+///        The respective members are private within Dictionary and made public here.
+/// @tparam DictionaryType
+/// @details DictionaryStringAccess is a friend of Dictionary
+template<typename DictionaryType>
+class DictionaryStringAccess {
+public:
+    ///@name Static operations
+    ///@{
+
+    /// @brief Wrapper for Dictionary::SetSubDictionary
+    /// @param rDictionary
+    /// @param rQueryKeyName (std::string)
+    /// @param rNewDictionary
+    static void SetSubDictionary(DictionaryType& rDictionary, const std::string& rQueryKeyName, Unique<DictionaryType>&& rNewDictionary) {
+        rDictionary.SetSubDictionary(rQueryKeyName, std::move(rNewDictionary));
+    }
+
+    /// @brief Wrapper for Dictionary::SetValue.
+    /// @tparam TValueType
+    /// @param rDictionary
+    /// @param rQueryKeyName (std::string)
+    /// @param rNewValue
+    template<typename TValueType>
+    static void SetValue(DictionaryType& rDictionary, const std::string& rQueryKeyName, const TValueType& rNewValue) {
+        rDictionary.SetValue(rQueryKeyName, rNewValue);
+    }
+
+    /// @brief Wrapper for Dictionary::GetValue.
+    /// @tparam TValueType
+    /// @param rDictionary
+    /// @param rQueryKeyName (std::string)
+    /// @return const TValueType&
+    template<typename TValueType>
+    static const TValueType& GetValue(const DictionaryType& rDictionary, const std::string& rQueryKeyName) {
+        return rDictionary.template GetValue<TValueType>(rQueryKeyName);
+    }
+
+    /// @brief Wrapper for Dictionary::IsSet.
+    /// @param rDictionary
+    /// @param rQueryKeyName (std::string)
+    /// @return bool
+    static bool IsSet(const DictionaryType& rDictionary, const std::string& rQueryKeyName) {
+        return rDictionary.IsSet(rQueryKeyName);
+    }
+
+    /// @brief Wrapper for Dictionary::Has.
+    /// @param rDictionary rDictionary
+    /// @param rQueryKeyName (std::string)
+    /// @return bool
+    static bool Has(const DictionaryType& rDictionary, const std::string& rQueryKeyName) noexcept {
+        return rDictionary.Has(rQueryKeyName);
+    }
+    ///@}
+
+}; // End class DictionaryStringAccess<>
+
 ///@} // End QuESo Classes
 } // End queso namespace.
 
