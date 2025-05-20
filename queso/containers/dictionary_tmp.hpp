@@ -216,14 +216,16 @@ public:
         return const_cast<ListType&>(static_cast<const Dictionary&>(*this).GetList(rQueryKey));
     }
 
-    // /// @brief Prints this dictionary in JSON format.
-    // /// @param rOStream
-    // /// @note Precision of doubles is set to 10.
-    // void PrintInfo(std::ostream& rOStream) const {
-    //     std::string indent = "";
-    //     rOStream << std::setprecision(10);
-    //     PrintInfo(rOStream, indent);
-    // }
+    /// @brief Prints this dictionary in JSON format.
+    /// @param rOStream
+    /// @note Precision of doubles is set to 10.
+    void PrintInfo(std::ostream& rOStream) const {
+        std::string indent = "";
+        rOStream << std::setprecision(10);
+        rOStream << "{\n";
+        PrintInfo(rOStream, indent);
+        rOStream << '}';
+    }
 
 private:
     ///@}
@@ -235,6 +237,83 @@ private:
     ///@}
     ///@name Private operations
     ///@{
+
+    /// @brief Prints this dictionary in JSON format.
+    /// @param rOStream
+    /// @param rIndent This variable is used for recursive function calls.
+    /// @param IsLastItem This variable is used for recursive function calls.
+    void PrintInfo(std::ostream& rOStream, std::string& rIndent, bool IsLastItem=false) const {
+        std::string new_indent = rIndent + "\t";
+        if( mpDataSet ) {
+            const auto& r_data_key_set_info = mpDataSet->GetKeySetInfo();
+            const auto& r_map = r_data_key_set_info.GetStringKeyMap();
+            auto it = r_map.begin();
+
+            while (it != r_map.end()) {
+                const auto& [name, p_key] = *it;
+
+                rOStream << new_indent << "\"" << name << "\" : ";
+                mpDataSet->PrintValue(p_key, rOStream);
+
+                if (++it == r_map.end()) {
+                    rOStream << '\n'; // last element
+                } else {
+                    rOStream << ",\n";
+                }
+            }
+        }
+
+        /// Write mSubDictionaries with new indent.
+        if( mpSubDictKeySetInfo ) {
+            const auto& r_map = mpSubDictKeySetInfo->GetStringKeyMap();
+            auto it = r_map.begin();
+
+            while (it != r_map.end()) {
+                const auto& [r_name, p_key] = *it;
+                const auto& p_sub_dict = mSubDictionaries[p_key->Index()];
+                ++it;
+                if( p_sub_dict ) {
+                    rOStream << new_indent << '\"' << r_name << "\" : {\n"; // Start dictionary
+                    p_sub_dict->PrintInfo(rOStream, new_indent, true);
+                    if( it == r_map.end() && mListsOfDicts.size() == 0) {
+                        rOStream << (new_indent + "}\n");
+                    } else {
+                        rOStream << (new_indent + "},\n");
+                    }
+                }
+            }
+        }
+
+        /// Write mSubDictionaries with new indent.
+        if( mpListKeySetInfo ) {
+            const auto& r_map = mpListKeySetInfo->GetStringKeyMap();
+            auto it = r_map.begin();
+
+            while (it != r_map.end()) {
+                const auto& [r_name, p_key] = *it;
+                const auto& r_list = mListsOfDicts[p_key->Index()];
+
+                rOStream << new_indent << '\"' << r_name << "\" : [\n"; // Start List
+                std::string inner_indent = new_indent + "\t";
+                for( IndexType i = 0; i < r_list.size() ; ++i){
+                    rOStream << inner_indent << "{\n"; // Start list item
+                    r_list[i]->PrintInfo(rOStream, inner_indent, true);
+                    if( i == r_list.size() - 1) {
+                        rOStream << (inner_indent + "}\n");
+                    } else {
+                        rOStream << (inner_indent + "},\n");
+                    }
+                }
+
+                if( ++it == r_map.end() ) {
+                    rOStream << (new_indent + "}\n");
+                } else {
+                    rOStream << (new_indent + "},\n");
+                }
+
+            }
+        }
+    }
 
     /// The following operations allow to access the data via KeyNames (std::string).
     /// These functions should only be used in Python. Therefore, they are made private here
@@ -313,60 +392,7 @@ private:
         return has;
     }
 
-    // /// @brief Prints this dictionary in JSON format.
-    // /// @param rOStream
-    // /// @param rIndent This variable is used for recursive function calls.
-    // /// @param IsLastItem This variable is used for recursive function calls.
-    // void PrintInfo(std::ostream& rOStream, std::string& rIndent, bool IsLastItem=false) const {
-    //     /// Add proper header (with old indent).
-    //     if( rIndent == "" ){
-    //         rOStream << "{\n"; // Start root
-    //     } else if (mKey.index() == 0) { // Key is in std::monostate
-    //         rOStream << rIndent << "{\n"; // Start list item
-    //     } else if (mIsList) {
-    //         rOStream << rIndent << '\"' << mKeyName << "\" : [\n"; // Start List
-    //     } else {
-    //         rOStream << rIndent << '\"' << mKeyName << "\" : {\n"; // Start dictionary
-    //     }
 
-    //     std::string new_indent = rIndent + "\t";
-    //     /// Write KeyValuePairs with new indent.
-    //     for( IndexType i = 0; i < mData.size(); ++i){
-    //         const auto& r_key_value_pair = mData[i];
-    //         rOStream << new_indent << "\"" << r_key_value_pair.GetKeyName() << "\" : ";
-    //         r_key_value_pair.PrintValue(rOStream);
-    //         if( i == mData.size() - 1 && mSubDictionaries.size() == 0 && mListsOfDicts.size() == 0){
-    //             rOStream << '\n';
-    //         } else {
-    //             rOStream << ",\n";
-    //         }
-    //     }
-
-    //     /// Write mSubDictionaries with new indent.
-    //     for( IndexType i = 0; i < mSubDictionaries.size(); ++i){
-    //         if( i == mSubDictionaries.size() - 1 && mListsOfDicts.size() == 0) {
-    //             mSubDictionaries[i].PrintInfo(rOStream, new_indent, true);
-    //         } else {
-    //             mSubDictionaries[i].PrintInfo(rOStream, new_indent, false);
-    //         }
-    //     }
-
-    //     /// Write mListsOfDicts with new indent.
-    //     for( IndexType i = 0; i < mListsOfDicts.size(); ++i){
-    //         if( i == mListsOfDicts.size() - 1) {
-    //             mListsOfDicts[i].PrintInfo(rOStream, new_indent, true);
-    //         } else {
-    //             mListsOfDicts[i].PrintInfo(rOStream, new_indent, false);
-    //         }
-    //     }
-
-    //     /// Close with old indent.
-    //     if( rIndent == "" || IsLastItem ){ // End list or dict item.
-    //         rOStream << ((mIsList) ? (rIndent + "]") : (rIndent + "}")) << "\n"; // Needs to be encapsulated!
-    //     } else {
-    //         rOStream << ((mIsList) ? (rIndent + "],") : (rIndent + "},")) << "\n";
-    //     }
-    // }
 
     ///@}
     ///@name Private member variables.
@@ -388,11 +414,12 @@ private:
 };
 
 /// Output stream functions
-// template<typename... TEnumKeys>
-// inline std::ostream& operator<< (std::ostream& rOStream, const Dictionary<TEnumKeys ...>& rThis) {
-//     rThis.PrintInfo(rOStream);
-//     return rOStream;
-// }
+/// Make friend
+template<typename... TEnumKeys>
+inline std::ostream& operator<< (std::ostream& rOStream, const Dictionary<TEnumKeys ...>& rThis) {
+    rThis.PrintInfo(rOStream);
+    return rOStream;
+}
 
 /// @class DictionaryStringAccess (FOR USE IN PYTHON ONLY).
 /// @brief Allows to access the data of Dictionary via KeyNames (std::strings).
