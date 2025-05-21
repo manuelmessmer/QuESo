@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
 
     // Create dictionary
     using DictionaryType = Dictionary<queso::key::MainValuesTypeTag>;
-    DictionaryType test_dict( DictionaryType::KeySetInfoTypeTag<
+    DictionaryType test_dict( DictionaryType::KeySetInfosTypeTag<
         key::detail::TestKeys5MainValuesTypeTagKeySetInfo,
         key::detail::TestKeys5SubDictTypeTagKeySetInfo,
         key::detail::TestKeys5ListTypeTagKeySetInfo>{} );
@@ -48,10 +48,10 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
     /*---- Fill dictionary ----*/
     {
         // Add SubDictionary 1.
-        auto p_subdict_1 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
-            std::false_type,
+        auto p_subdict_1 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
+            DictionaryType::EmptyKeySetType,
             key::detail::TestKeys1SubDictTypeTagKeySetInfo,
-            std::false_type>{} );
+            DictionaryType::EmptyKeySetType>{} );
 
         if constexpr (!NOTDEBUG) {
             // Dictionary has an empty data set.
@@ -60,10 +60,10 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
         }
 
         { // Add SubDictionary 2.
-            auto p_subdict_2 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
+            auto p_subdict_2 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
                 key::detail::TestKeys3MainValuesTypeTagKeySetInfo,
-                std::false_type,
-                std::false_type>{} );
+                DictionaryType::EmptyKeySetType,
+                DictionaryType::EmptyKeySetType>{} );
 
             if constexpr (!NOTDEBUG) {
                 // Dictionary does not contain any subdictionaries.
@@ -84,10 +84,10 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
         test_dict.SetSubDictionary(TestKeys5::zero, std::move(p_subdict_1) );
 
         // Add List  containig SubDictionary 3.
-        auto p_subdict_3 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
+        auto p_subdict_3 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
             key::detail::TestKeys3MainValuesTypeTagKeySetInfo,
-            std::false_type,
-            std::false_type>{} );
+            DictionaryType::EmptyKeySetType,
+            DictionaryType::EmptyKeySetType>{} );
 
         p_subdict_3->SetValue(TestKeys3::three, 3.0);
         p_subdict_3->SetValue(TestKeys3::four, 3u);
@@ -158,15 +158,63 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
         QuESo_CHECK_EQUAL( items->GetValueFast<IndexType>(TestKeys3::four), 3u);
         QuESo_CHECK_EQUAL( items->GetValueFast<std::string>(TestKeys3::five), "Hello");
     }
-}
 
+    // Check operator<<
+    std::ostringstream ref_oss;
+    ref_oss << R"({
+    "ten" : "Not Set.",
+    "nine" : "Not Set.",
+    "eight" : 3,
+    "seven" : 2,
+    "one" : {
+    },
+    "zero" : {
+        "four" : {
+        },
+        "three" : {
+        },
+        "two" : {
+        },
+        "one" : {
+        },
+        "zero" : {
+            "seven" : "Not Set.",
+            "six" : "Not Set.",
+            "five" : "Not Set.",
+            "four" : "Not Set.",
+            "three" : "Not Set.",
+            "two" : false,
+            "one" : [1, 2, 3],
+            "zero" : [2, 3.2, 1.1]
+        }
+    },
+    "six" : [
+    ],
+    "five" : [
+        {
+            "seven" : "Not Set.",
+            "six" : "Not Set.",
+            "five" : "Hello",
+            "four" : 3,
+            "three" : 3,
+            "two" : "Not Set.",
+            "one" : "Not Set.",
+            "zero" : "Not Set."
+        }
+    ]
+})";
+
+    std::ostringstream oss;
+    oss << test_dict;
+    QuESo_CHECK_EQUAL( oss.str(), ref_oss.str() );
+}
 
 BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
     QuESo_INFO << "Testing :: Test Dictionary :: String access" << std::endl;
 
     // Create dictionary
     using DictionaryType = Dictionary<queso::key::MainValuesTypeTag>;
-    DictionaryType test_dict( DictionaryType::KeySetInfoTypeTag<
+    DictionaryType test_dict( DictionaryType::KeySetInfosTypeTag<
         key::detail::TestKeys5MainValuesTypeTagKeySetInfo,
         key::detail::TestKeys5SubDictTypeTagKeySetInfo,
         key::detail::TestKeys5ListTypeTagKeySetInfo>{} );
@@ -194,20 +242,20 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
     /*---- Fill dictionary ----*/
     {
         // Add SubDictionary 1.
-        auto p_subdict_1 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
-            std::false_type,
+        auto p_subdict_1 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
+            DictionaryType::EmptyKeySetType,
             key::detail::TestKeys1SubDictTypeTagKeySetInfo,
-            std::false_type>{} );
+            DictionaryType::EmptyKeySetType>{} );
 
         // Dictionary has an empty data set.
         BOOST_REQUIRE_THROW( StringAccess::IsSet(*p_subdict_1, "zero"), std::exception );
         BOOST_REQUIRE_THROW( StringAccess::SetValue(*p_subdict_1, "zero", PointType({2.0, 3.2, 1.1})), std::exception );
 
         { // Add SubDictionary 2.
-            auto p_subdict_2 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
+            auto p_subdict_2 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
                 key::detail::TestKeys3MainValuesTypeTagKeySetInfo,
-                std::false_type,
-                std::false_type>{} );
+                DictionaryType::EmptyKeySetType,
+                DictionaryType::EmptyKeySetType>{} );
 
             // Dictionary does not contain any subdictionaries.
             BOOST_REQUIRE_THROW( StringAccess::SetSubDictionary(*p_subdict_2, "zero", std::move(p_subdict_2)), std::exception );
@@ -225,10 +273,10 @@ BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
         StringAccess::SetSubDictionary(test_dict, "zero", std::move(p_subdict_1) );
 
         // Add List  containig SubDictionary 3.
-        auto p_subdict_3 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfoTypeTag<
+        auto p_subdict_3 = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
             key::detail::TestKeys3MainValuesTypeTagKeySetInfo,
-            std::false_type,
-            std::false_type>{} );
+            DictionaryType::EmptyKeySetType,
+            DictionaryType::EmptyKeySetType>{} );
 
         StringAccess::SetValue(*p_subdict_3, "three", 3.0);
         StringAccess::SetValue(*p_subdict_3, "four", 3u);
