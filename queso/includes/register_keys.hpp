@@ -32,22 +32,6 @@ QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(SubDictTypeTag);
 
 /* --- Keys for Settings --- */
 
-// Old layout
-// enum class Root {main_settings=DictStarts::start_subdicts};
-// enum class MainSettings {
-//     general_settings=DictStarts::start_subdicts, background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings,
-//     conditions_settings_list=DictStarts::start_lists };
-// enum class GeneralSettings {
-//     input_filename=DictStarts::start_values, output_directory_name, echo_level, write_output_to_file};
-// enum class BackgroundGridSettings {
-//     grid_type=DictStarts::start_values, lower_bound_xyz, upper_bound_xyz, lower_bound_uvw, upper_bound_uvw, polynomial_order, number_of_elements};
-// enum class TrimmedQuadratureRuleSettings {
-//     moment_fitting_residual=DictStarts::start_values, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed };
-// enum class NonTrimmedQuadratureRuleSettings {
-//     integration_method=DictStarts::start_values};
-// enum class ConditionSettings {
-//     condition_id=DictStarts::start_values, condition_type, input_filename, modulus, direction, value, penalty_factor};
-
 // --- MainSettings ---
 // SubDicts
 QuESo_DEFINE_KEY_SET( MainSettings, SubDictTypeTag,
@@ -57,6 +41,7 @@ QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, background_grid_settings, SubDictTypeTa
 QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, trimmed_quadrature_rule_settings, SubDictTypeTag);
 QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, non_trimmed_quadrature_rule_settings, SubDictTypeTag);
 QuESo_REGISTER_KEY_SET(MainSettings, SubDictTypeTag,
+    QuESo_KEY(MainSettings::general_settings),
     QuESo_KEY(MainSettings::background_grid_settings),
     QuESo_KEY(MainSettings::trimmed_quadrature_rule_settings),
     QuESo_KEY(MainSettings::non_trimmed_quadrature_rule_settings)
@@ -150,31 +135,138 @@ QuESo_REGISTER_KEY_SET(ConditionSettings, MainValuesTypeTag,
 
 /* --- Keys for ModelInfo --- */
 
-// Old layout.
-// enum class RootInfo {main_info=DictStarts::start_subdicts};
-// enum class MainInfo {
-//     embedded_geometry_info=DictStarts::start_subdicts, quadrature_info, background_grid_info, elapsed_time_info,
-//     conditions_infos_list=DictStarts::start_lists};
-// enum class EmbeddedGeometryInfo {
-//     is_closed=DictStarts::start_values, volume};
-// enum class QuadratureInfo {
-//     represented_volume=DictStarts::start_values, percentage_of_geometry_volume, tot_num_points, num_of_points_per_full_element, num_of_points_per_trimmed_element};
-// enum class BackgroundGridInfo {
-//     num_active_elements=DictStarts::start_values, num_trimmed_elements, num_full_elements, num_inactive_elements};
-// enum class ConditionInfo {
-//     condition_id=DictStarts::start_values, surf_area, perc_surf_area_in_active_domain};
+// --- MainInfo ---
+// SubDicts
+QuESo_DEFINE_KEY_SET( MainInfo, SubDictTypeTag,
+    QuESo_KEY_LIST(embedded_geometry_info, quadrature_info, background_grid_info, elapsed_time_info) );
+QuESo_DEFINE_KEY_TO_OBJECT(MainInfo, embedded_geometry_info, SubDictTypeTag);
+QuESo_DEFINE_KEY_TO_OBJECT(MainInfo, quadrature_info, SubDictTypeTag);
+QuESo_DEFINE_KEY_TO_OBJECT(MainInfo, background_grid_info, SubDictTypeTag);
+QuESo_DEFINE_KEY_TO_OBJECT(MainInfo, elapsed_time_info, SubDictTypeTag);
+QuESo_REGISTER_KEY_SET(MainInfo, SubDictTypeTag,
+    QuESo_KEY(MainInfo::embedded_geometry_info),
+    QuESo_KEY(MainInfo::quadrature_info),
+    QuESo_KEY(MainInfo::background_grid_info),
+    QuESo_KEY(MainInfo::elapsed_time_info)
+);
+// Lists
+QuESo_DEFINE_KEY_SET( MainInfo, ListTypeTag,
+    QuESo_KEY_LIST(conditions_infos_list) );
+QuESo_DEFINE_KEY_TO_OBJECT(MainInfo, conditions_infos_list, ListTypeTag);
+QuESo_REGISTER_KEY_SET(MainInfo, ListTypeTag,
+    QuESo_KEY(MainInfo::conditions_infos_list)
+);
 
-// enum class ElapsedTimeInfo {
-//     total=DictStarts::start_values,
-//     volume_time_info=DictStarts::start_subdicts, conditions_time_info, write_files_time_info,
-//     };
-// enum class VolumeTimeInfo {
-//     total=DictStarts::start_values, classification_of_elements, computation_of_intersections, solution_of_moment_fitting_eqs, construction_of_ggq_rules};
-// enum class ConditionsTimeInfo {
-//     total=DictStarts::start_values};
-// enum class WriteFilesTimeInfo {
-//     total=DictStarts::start_values};
+// --- EmbeddedGeometryInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( EmbeddedGeometryInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(is_closed, volume) );
+QuESo_DEFINE_KEY_TO_VALUE(EmbeddedGeometryInfo, is_closed, MainValuesTypeTag, bool);
+QuESo_DEFINE_KEY_TO_VALUE(EmbeddedGeometryInfo, volume, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(EmbeddedGeometryInfo, MainValuesTypeTag,
+    QuESo_KEY(EmbeddedGeometryInfo::is_closed),
+    QuESo_KEY(EmbeddedGeometryInfo::volume)
+);
 
+// --- QuadratureInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( QuadratureInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(represented_volume, percentage_of_geometry_volume, tot_num_points, num_of_points_per_full_element, num_of_points_per_trimmed_element) );
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, represented_volume, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, percentage_of_geometry_volume, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, tot_num_points, MainValuesTypeTag, IndexType);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, num_of_points_per_full_element, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, num_of_points_per_trimmed_element, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(QuadratureInfo, MainValuesTypeTag,
+    QuESo_KEY(QuadratureInfo::represented_volume),
+    QuESo_KEY(QuadratureInfo::percentage_of_geometry_volume),
+    QuESo_KEY(QuadratureInfo::tot_num_points),
+    QuESo_KEY(QuadratureInfo::num_of_points_per_full_element),
+    QuESo_KEY(QuadratureInfo::num_of_points_per_trimmed_element)
+);
+
+// --- BackgroundGridInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( BackgroundGridInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(num_active_elements, num_trimmed_elements, num_full_elements, num_inactive_elements) );
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_active_elements, MainValuesTypeTag, IndexType);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_trimmed_elements, MainValuesTypeTag, IndexType);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_full_elements, MainValuesTypeTag, IndexType);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_inactive_elements, MainValuesTypeTag, IndexType);
+QuESo_REGISTER_KEY_SET(BackgroundGridInfo, MainValuesTypeTag,
+    QuESo_KEY(BackgroundGridInfo::num_active_elements),
+    QuESo_KEY(BackgroundGridInfo::num_trimmed_elements),
+    QuESo_KEY(BackgroundGridInfo::num_full_elements),
+    QuESo_KEY(BackgroundGridInfo::num_inactive_elements)
+);
+
+// --- ConditionInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( ConditionInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(condition_id, surf_area, perc_surf_area_in_active_domain) );
+QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, condition_id, MainValuesTypeTag, IndexType);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, surf_area, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, perc_surf_area_in_active_domain, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(ConditionInfo, MainValuesTypeTag,
+    QuESo_KEY(ConditionInfo::condition_id),
+    QuESo_KEY(ConditionInfo::surf_area),
+    QuESo_KEY(ConditionInfo::perc_surf_area_in_active_domain)
+);
+
+// --- ElapsedTimeInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( ElapsedTimeInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(total) );
+QuESo_DEFINE_KEY_TO_VALUE(ElapsedTimeInfo, total, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(ElapsedTimeInfo, MainValuesTypeTag,
+    QuESo_KEY(ElapsedTimeInfo::total)
+);
+// SubDicts
+QuESo_DEFINE_KEY_SET( ElapsedTimeInfo, SubDictTypeTag,
+    QuESo_KEY_LIST(volume_time_info, conditions_time_info, write_files_time_info) );
+QuESo_DEFINE_KEY_TO_OBJECT(ElapsedTimeInfo, volume_time_info, SubDictTypeTag);
+QuESo_DEFINE_KEY_TO_OBJECT(ElapsedTimeInfo, conditions_time_info, SubDictTypeTag);
+QuESo_DEFINE_KEY_TO_OBJECT(ElapsedTimeInfo, write_files_time_info, SubDictTypeTag);
+QuESo_REGISTER_KEY_SET(ElapsedTimeInfo, SubDictTypeTag,
+    QuESo_KEY(ElapsedTimeInfo::volume_time_info),
+    QuESo_KEY(ElapsedTimeInfo::conditions_time_info),
+    QuESo_KEY(ElapsedTimeInfo::write_files_time_info)
+);
+
+// --- VolumeTimeInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( VolumeTimeInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(total, classification_of_elements, computation_of_intersections, solution_of_moment_fitting_eqs, construction_of_ggq_rules) );
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, total, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, classification_of_elements, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, computation_of_intersections, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, solution_of_moment_fitting_eqs, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, construction_of_ggq_rules, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(VolumeTimeInfo, MainValuesTypeTag,
+    QuESo_KEY(VolumeTimeInfo::total),
+    QuESo_KEY(VolumeTimeInfo::classification_of_elements),
+    QuESo_KEY(VolumeTimeInfo::computation_of_intersections),
+    QuESo_KEY(VolumeTimeInfo::solution_of_moment_fitting_eqs),
+    QuESo_KEY(VolumeTimeInfo::construction_of_ggq_rules)
+);
+
+// --- ConditionsTimeInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( ConditionsTimeInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(total) );
+QuESo_DEFINE_KEY_TO_VALUE(ConditionsTimeInfo, total, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(ConditionsTimeInfo, MainValuesTypeTag,
+    QuESo_KEY(ConditionsTimeInfo::total)
+);
+
+// --- WriteFilesTimeInfo ---
+// Values
+QuESo_DEFINE_KEY_SET( WriteFilesTimeInfo, MainValuesTypeTag,
+    QuESo_KEY_LIST(total) );
+QuESo_DEFINE_KEY_TO_VALUE(WriteFilesTimeInfo, total, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(WriteFilesTimeInfo, MainValuesTypeTag,
+    QuESo_KEY(WriteFilesTimeInfo::total)
+);
 
 /* --- Keys for Testing --- */
 #if QUESO_BUILD_TESTING
