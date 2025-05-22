@@ -170,19 +170,18 @@ public:
         return *mpModelInfo;
     }
 
-
-    ///@}
-
-private:
-
-    ///@name Private Member Operations
-    ///@{
-
     ///@brief Returns the ModelInfo (const version).
     ///@return const MainDictionaryType&
     MainDictionaryType& GetModelInfo() {
         return *mpModelInfo;
     }
+
+    ///@}
+private:
+
+    ///@name Private Member Operations
+    ///@{
+
 
     ///@brief Returns the ModelInfo.
     ///@return const MainDictionaryType&
