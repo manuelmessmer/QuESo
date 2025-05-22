@@ -21,8 +21,7 @@
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/io/io_utilities.h"
-#include "queso/includes/settings.hpp"
-#include "queso/includes/model_info.hpp"
+#include "queso/includes/dictionary_factory.hpp"
 
 namespace queso {
 
@@ -47,23 +46,24 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-    typedef BackgroundGrid<ElementType> BackgroundGridType;
-    typedef Condition<ElementType> ConditionType;
+    using IntegrationPointType = IntegrationPoint;
+    using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
+    using ElementType = Element<IntegrationPointType, BoundaryIntegrationPointType>;
+    using BackgroundGridType = BackgroundGrid<ElementType>;
+    using ConditionType = Condition<ElementType>;
+    using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@}
     ///@name  Life Cycle
     ///@{
 
     /// @brief Constructor
-    /// @param rSettings
-    EmbeddedModel(const Settings& rSettings) :
-        mSettings(rSettings.Check()),
-        mGridIndexer(mSettings),
-        mBackgroundGrid(mSettings),
-        mModelInfo{}
+    /// @param pSettings (EmbeddedModel takes unique ownership).
+    EmbeddedModel(Unique<MainDictionaryType>&& pSettings) :
+        mpSettings(std::move(pSettings)),
+        mGridIndexer(*mpSettings),
+        mBackgroundGrid(*mpSettings),
+        mpModelInfo(DictionaryFactory<key::MainValuesTypeTag>::Create("ModelInfo"))
     {
     }
 
@@ -86,7 +86,7 @@ public:
     ///@todo Add try{} catch{} plus error handler
     void CreateAllFromSettings() {
         // Create volume
-        const auto& r_general_settings = mSettings[MainSettings::general_settings];
+        const auto& r_general_settings = GetSettings()[MainSettings::general_settings];
         const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume -------------------------------------- START" << std::endl;
 
@@ -100,15 +100,15 @@ public:
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume ---------------------------------------- End\n";
 
         // Create conditions
-        const auto& r_conditions_settings_list = mSettings.GetList(MainSettings::conditions_settings_list);
+        const auto& r_conditions_settings_list = GetSettings().GetList(MainSettings::conditions_settings_list);
         if( r_conditions_settings_list.size() > 0 ){
 
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ---------------------------------- START" << std::endl;
-            for( const auto& r_condition_settings : r_conditions_settings_list ){
-                const auto& r_filename = r_condition_settings.GetValue<std::string>(ConditionSettings::input_filename);
+            for( const auto& p_condition_settings : r_conditions_settings_list ){
+                const auto& r_filename = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
                 TriangleMesh triangle_mesh{};
                 IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
-                ComputeCondition(triangle_mesh, r_condition_settings);
+                ComputeCondition(triangle_mesh, *p_condition_settings);
             }
             PrintConditionsElapsedTimeInfo();
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;
@@ -136,14 +136,14 @@ public:
     ///@param rConditionSettings
     ///@see CreateAllFromSettings <- Creates volume and condition directly from input files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
-    void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings){
+    void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const MainDictionaryType& rConditionSettings){
         ComputeCondition(rTriangleMesh, rConditionSettings);
     }
 
     /// @brief Writes this model to file.
     ///        Elements and integrations points are written to VTK files.
     ///        Conditions are written to STL files.
-    ///        mModelInfo is written to JSON file.
+    ///        mpModelInfo is written to JSON file.
     void WriteModelToFile() const;
 
     /// @brief Returns all active elements.
@@ -159,18 +159,17 @@ public:
     }
 
     ///@brief Returns the Settings
-    ///@return const Settings&
-    ///@see includes/settings.hpp
-    const Settings& GetSettings() const {
-        return mSettings;
+    ///@return const MainDictionaryType&
+    const MainDictionaryType& GetSettings() const {
+        return *mpSettings;
     }
 
-    ///@brief Returns the ModelInfo
-    ///@return const ModelInfo&
-    ///@see includes/model_info.hpp
-    const ModelInfo& GetModelInfo() const {
-        return mModelInfo;
+    ///@brief Returns the ModelInfo (const version).
+    ///@return const MainDictionaryType&
+    const MainDictionaryType& GetModelInfo() const {
+        return *mpModelInfo;
     }
+
 
     ///@}
 
@@ -179,6 +178,18 @@ private:
     ///@name Private Member Operations
     ///@{
 
+    ///@brief Returns the ModelInfo (const version).
+    ///@return const MainDictionaryType&
+    MainDictionaryType& GetModelInfo() {
+        return *mpModelInfo;
+    }
+
+    ///@brief Returns the ModelInfo.
+    ///@return const MainDictionaryType&
+    MainDictionaryType& GetModelInfoMutable() const {
+        return *mpModelInfo;
+    }
+
     ///@brief Main function to compute the integration points for a volume enclosed/defined by rTriangleMesh.
     ///@param rTriangleMesh
     void ComputeVolume(const TriangleMeshInterface& rTriangleMesh);
@@ -186,7 +197,7 @@ private:
     ///@brief Main function to compute the integration points for a condition defined by rTriangleMesh.
     ///@param rTriangleMesh
     ///@param rConditionSettings
-    void ComputeCondition(const TriangleMeshInterface& rTriangleMesh, const SettingsBaseType& rConditionSettings);
+    void ComputeCondition(const TriangleMeshInterface& rTriangleMesh, const MainDictionaryType& rConditionSettings);
 
     ///@brief Prints a warning, if the rTriangleMesh is not fully contained within the bounding box defined
     ///       by 'lower_bound_xyz' and 'upper_bound_xyz' in mSettings.
@@ -199,7 +210,7 @@ private:
 
     ///@brief Prints some info to the console regarding the computed condition.
     ///@param rConditionInfo Info to be printed.
-    void PrintConditionInfo(const ModelInfoBaseType& rConditionInfo) const;
+    void PrintConditionInfo(const MainDictionaryType& rConditionInfo) const;
 
     ///@brief Prints some info to the console regarding the elapsed computing times required to create the volume.
     ///       Info to be printed is taken from mModelInfo[MainInfo::elapsed_time_info].
@@ -212,10 +223,10 @@ private:
     ///@}
     ///@name Private Members Variables
     ///@{
-    const Settings mSettings;
+    const Unique<MainDictionaryType> mpSettings;
     const GridIndexer mGridIndexer;
     BackgroundGridType mBackgroundGrid;
-    mutable ModelInfo mModelInfo;
+    Unique<MainDictionaryType> mpModelInfo;
     ///@}
 };
 ///@} End QuESo Classes
