@@ -120,6 +120,7 @@ QuESo_DEFINE_KEY_SET( ConditionSettings, MainValuesTypeTag,
     QuESo_KEY_LIST(condition_id, condition_type, input_filename, modulus, direction, value, penalty_factor) );
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_id, MainValuesTypeTag, IndexType);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_type, MainValuesTypeTag, std::string);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, input_filename, MainValuesTypeTag, std::string);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, modulus, MainValuesTypeTag, double);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, direction, MainValuesTypeTag, PointType);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, value, MainValuesTypeTag, PointType);
@@ -127,6 +128,7 @@ QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, penalty_factor, MainValuesTypeTag, 
 QuESo_REGISTER_KEY_SET(ConditionSettings, MainValuesTypeTag,
     QuESo_KEY(ConditionSettings::condition_id),
     QuESo_KEY(ConditionSettings::condition_type),
+    QuESo_KEY(ConditionSettings::input_filename),
     QuESo_KEY(ConditionSettings::modulus),
     QuESo_KEY(ConditionSettings::direction),
     QuESo_KEY(ConditionSettings::value),
