@@ -22,7 +22,6 @@
 
 namespace queso {
 
-
 namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( ModelInfoTestSuite )
