@@ -14,9 +14,7 @@
 #ifndef CONDITION_INCLUDE_HPP
 #define CONDITION_INCLUDE_HPP
 
-//// STL includes
-#include "queso/includes/settings.hpp"
-#include "queso/includes/model_info.hpp"
+//// Project includes
 #include "queso/containers/condition_segment.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 
