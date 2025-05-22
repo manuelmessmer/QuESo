@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
@@ -58,8 +59,10 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
@@ -69,7 +72,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
@@ -82,7 +85,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_cylinder.txt");
@@ -103,8 +106,10 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.5});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 1.5});
@@ -114,7 +119,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
@@ -125,7 +130,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_cube.txt");
@@ -146,8 +151,10 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
@@ -157,7 +164,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     std::vector<IndexType> result{};
     result.reserve(5376);
@@ -167,7 +174,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), 5376);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_elephant.txt");
@@ -188,8 +195,10 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24, -43, 5});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
@@ -199,7 +208,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     const SizeType num_of_elements = grid_indexer.NumberOfElements();
     std::vector<IndexType> result{};
@@ -210,7 +219,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     }
 
     // Get flood fill solution
-    const auto p_classification = brep_operator.pGetElementClassifications(settings);
+    const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
     std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_bunny.txt");

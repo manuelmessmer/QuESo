@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
@@ -35,15 +36,17 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 26});
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -51,7 +54,7 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -86,14 +89,15 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
 
-    Settings settings;
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.0, 1.0, 1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.0, 1.0, 1.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -142,15 +146,17 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{16, 24, 14});
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -158,7 +164,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -193,8 +199,10 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24, -43, 5});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
@@ -208,7 +216,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);

@@ -18,7 +18,7 @@
 
 //// Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/containers/dictionary_tmp.hpp"
+#include "queso/containers/dictionary.hpp"
 
 namespace queso {
 

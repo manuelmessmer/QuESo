@@ -183,22 +183,25 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
 
         /// General settings
         QuESo_CHECK( !settings[MainSettings::general_settings].IsSet(GeneralSettings::input_filename) );
-        BOOST_REQUIRE_THROW( settings[MainSettings::general_settings].GetValueFast<std::string>(GeneralSettings::input_filename), std::exception );
+        BOOST_REQUIRE_THROW( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::exception );
         if( !NOTDEBUG ) {
-            BOOST_REQUIRE_THROW( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::input_filename), std::exception );
+            BOOST_REQUIRE_THROW( settings[MainSettings::general_settings].GetValueFast<std::string>(GeneralSettings::input_filename), std::exception );
         }
         QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::output_directory_name) );
         QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValueFast<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
-
+        if( !NOTDEBUG ) {
+            QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValueFast<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
+        }
         QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::echo_level) );
         QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level), 1u);
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValueFast<IndexType>(GeneralSettings::echo_level), 1u);
-
+        if( !NOTDEBUG ) {
+            QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValueFast<IndexType>(GeneralSettings::echo_level), 1u);
+        }
         QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::write_output_to_file) );
         QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValue<bool>(GeneralSettings::write_output_to_file), true);
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValueFast<bool>(GeneralSettings::write_output_to_file), true);
-
+        if( !NOTDEBUG ) {
+            QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetValueFast<bool>(GeneralSettings::write_output_to_file), true);
+        }
         /// Mesh settings
         QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::grid_type) );
         BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].GetValue<GridType>(BackgroundGridSettings::grid_type), std::exception );

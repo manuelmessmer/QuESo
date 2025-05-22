@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/grid_indexer.hpp"
 #include "queso/utilities/math_utilities.hpp"
 
@@ -33,8 +34,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
 
     const Vector3i number_of_elements{5, 10, 7};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -42,7 +45,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
@@ -102,8 +105,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
 
     const Vector3i number_of_elements{5, 10, 7};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -111,7 +116,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
@@ -177,8 +182,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
 
     const Vector3i number_of_elements{3, 4, 5};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -186,7 +193,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     // Walk foward
     IndexType index = 0;
@@ -229,8 +236,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
 
     const Vector3i number_of_elements{3, 4, 5};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -238,7 +247,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     // Walk foward
     IndexType index = 0;
     GridIndexer::IndexInfo index_info;
@@ -285,8 +294,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
 
     const Vector3i number_of_elements{3, 4, 5};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -294,7 +305,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
     // Walk foward
     IndexType index = 0;
     GridIndexer::IndexInfo index_info;
@@ -342,8 +353,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
 
     const Vector3i number_of_elements{3, 4, 5};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -351,7 +364,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
@@ -435,8 +448,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
 
     const Vector3i number_of_elements{3, 4, 5};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -444,7 +459,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
@@ -530,8 +545,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
 
     const Vector3i number_of_elements{3, 4, 5};
 
-    Settings settings;
-    auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
+
+    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
@@ -539,7 +556,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
-    GridIndexer grid_indexer(settings);
+    GridIndexer grid_indexer(r_settings);
 
     PartitionBoxType local_partition_1 = std::make_pair(Vector3i({1, 1, 1}), Vector3i({2, 3, 3}));
     // Walk foward
