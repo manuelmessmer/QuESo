@@ -39,11 +39,12 @@ public:
 
     ///@name Type Definitions
     ///@{
-    typedef TElementType ElementType;
+    using ElementType = TElementType;
 
-    typedef ConditionSegment<ElementType> ConditionSegmentType;
-    typedef Unique<ConditionSegmentType> ConditionSegmentPtrType;
-    typedef std::vector<ConditionSegmentPtrType> ConditionSegmentPtrVectorType;
+    using ConditionSegmentType = ConditionSegment<ElementType>;
+    using ConditionSegmentPtrType = Unique<ConditionSegmentType>;
+    using ConditionSegmentPtrVectorType = std::vector<ConditionSegmentPtrType>;
+    using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@}
     ///@name Life Cycle
@@ -52,7 +53,7 @@ public:
     /// @brief Constructor
     /// @param rConditionSettings
     /// @param rConditionInfo
-    Condition( const SettingsBaseType& rConditionSettings, ModelInfoBaseType& rConditionInfo )
+    Condition( const MainDictionaryType& rConditionSettings, MainDictionaryType& rConditionInfo )
         :  mConditionSettings(rConditionSettings), mConditionInfo(rConditionInfo)
     {
     }
@@ -82,13 +83,13 @@ public:
 
     /// @brief Returns condition settings.
     /// @return const SettingsBaseType&
-    const SettingsBaseType& GetSettings() const {
+    const MainDictionaryType& GetSettings() const {
         return mConditionSettings;
     }
 
     /// @brief Returns condition settings.
     /// @return const ModelInfoBaseType&
-    const ModelInfoBaseType& GetInfo() const {
+    const MainDictionaryType& GetInfo() const {
         return mConditionInfo;
     }
 
@@ -164,8 +165,8 @@ private:
     ///@name Private Members
     ///@{
 
-    const SettingsBaseType& mConditionSettings;
-    ModelInfoBaseType& mConditionInfo;
+    const MainDictionaryType& mConditionSettings;
+    MainDictionaryType& mConditionInfo;
     ConditionSegmentPtrVectorType mSegments;
 
     ///@}

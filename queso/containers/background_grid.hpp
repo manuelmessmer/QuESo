@@ -21,7 +21,6 @@
 #include "queso/containers/grid_indexer.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/condition.hpp"
-#include "queso/includes/settings.hpp"
 
 namespace queso {
 
@@ -56,13 +55,16 @@ public:
     typedef Unique<ConditionType> ConditionPtrType;
     typedef std::vector<ConditionPtrType> ConditionContainerType;
 
+    typedef Dictionary<key::MainValuesTypeTag> MainDictionaryType;
+
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// @brief Constructor
     /// @param rSettings
-    BackgroundGrid(const Settings& rSettings) :
+    BackgroundGrid(const MainDictionaryType& rSettings) :
         mGridIndexer(rSettings)
     {
     }
