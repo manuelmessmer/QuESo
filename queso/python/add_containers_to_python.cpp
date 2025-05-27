@@ -60,6 +60,8 @@ PYBIND11_MAKE_OPAQUE(IntegrationPoint1DVectorType);
 namespace queso {
 namespace Python {
 
+using MainDictionaryHolderType = UniqueHolder<MainDictionaryType>;
+
 namespace py = pybind11;
 
 void AddContainersToPython(pybind11::module& m) {
@@ -207,7 +209,7 @@ void AddContainersToPython(pybind11::module& m) {
 
     /// Export BackgroundGrid
     py::class_<BackgroundGrid<ElementType>>(m, "BackgroundGrid")
-        .def(py::init<const Settings&>())
+        .def(py::init<const BackgroundGrid<ElementType>::MainDictionaryType&>())
         .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
         .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
         .def("GetConditions", &BackgroundGrid<ElementType>::GetConditions, py::return_value_policy::reference_internal)
@@ -262,12 +264,15 @@ void AddContainersToPython(pybind11::module& m) {
 
     /// Export EmbeddedModel
     py::class_<EmbeddedModel>(m,"EmbeddedModel")
-        .def(py::init<const Settings&>())
+        .def(py::init([](MainDictionaryHolderType& rSettings) {
+            return MakeUnique<EmbeddedModel>(std::move(rSettings.TakeOwnership()));
+        }))
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
-        .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
-        .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal, py::keep_alive<0, 1>() )
-        .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
-        .def("GetModelInfo", &EmbeddedModel::GetModelInfo, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
+        .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
+        .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal)
+        .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
+        .def("GetModelInfo", static_cast<const EmbeddedModel::MainDictionaryType& (EmbeddedModel::*)() const>(&EmbeddedModel::GetModelInfo),
+            py::return_value_policy::reference_internal)
     ;
 
 } // End AddContainersToPython

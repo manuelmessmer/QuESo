@@ -17,9 +17,30 @@
 /// External includes
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
+#include <pybind11/functional.h>
+
+/// Project includes
+#include "queso/includes/define.hpp"
 
 namespace queso {
 namespace Python {
+
+template<typename TType>
+struct UniqueHolder {
+    UniqueHolder(Unique<TType> NewData) : mpData(std::move(NewData))
+    {
+    }
+
+    TType& Get(){
+        return *mpData;
+    }
+
+    Unique<TType> TakeOwnership() {
+        return std::move(mpData);
+    }
+
+    Unique<TType> mpData;
+};
 
 template<class TType>
 std::string PrintObject(const TType& rObject)

@@ -59,7 +59,7 @@ public:
 
     /// @brief Constructor
     /// @param pSettings (EmbeddedModel takes unique ownership).
-    EmbeddedModel(Unique<MainDictionaryType>&& pSettings) :
+    EmbeddedModel(Unique<MainDictionaryType> pSettings) :
         mpSettings(std::move(pSettings)),
         mGridIndexer(*mpSettings),
         mBackgroundGrid(*mpSettings),
