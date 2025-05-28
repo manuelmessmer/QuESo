@@ -25,31 +25,42 @@
 namespace queso {
 namespace Python {
 
+/// @brief Allows to pass unique ownership from Python to C++.
+/// @tparam TType
 template<typename TType>
 struct UniqueHolder {
+    /// @brief Constructor (Takes ownership).
+    /// @param NewData
     UniqueHolder(Unique<TType> NewData) : mpData(std::move(NewData))
     {
     }
 
+    /// @brief Returns reference to the underlying object.
+    /// @return TType&
     TType& Get(){
         return *mpData;
     }
 
+    /// @brief Returns unique ptr to the underlying object.
+    /// @return Unique<TType>
     Unique<TType> TakeOwnership() {
         return std::move(mpData);
     }
 
+    /// Ptr to object.
     Unique<TType> mpData;
 };
 
+/// @brief Helper function to print an object to a string using stringstream.
+/// @tparam TType
+/// @param rObject
+/// @return std::string
 template<class TType>
-std::string PrintObject(const TType& rObject)
-{
+std::string PrintObject(const TType& rObject) {
     std::stringstream ss;
     ss << rObject;
     return ss.str();
 }
-
 
 } // End namespace Python
 } // End namespace queso
