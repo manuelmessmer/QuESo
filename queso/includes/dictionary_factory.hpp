@@ -215,15 +215,13 @@ inline Unique<MainDictionaryType> CreateConditionInfo() {
 
 namespace detail {
 
-/// Typdef.
+/// Typdefs.
 template<typename TKeySetValuesTypeTag>
 using RegistryType = std::unordered_map<std::string, std::function<Unique<Dictionary<TKeySetValuesTypeTag>>()>>;
 
 /// Template declaration.
 template<typename TKeySetValuesTypeTag>
 inline RegistryType<TKeySetValuesTypeTag> RegisterAll();
-
-
 
 /// @brief Registers all possible dictionaries in DictionaryFactory<key::MainValuesTypeTag>.
 ///        Template specialization for key::MainValuesTypeTag. We may add other specialization,
