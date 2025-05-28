@@ -18,10 +18,22 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/containers/data_set.hpp"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/utilities/mapping_utilities.hpp"
 
 namespace queso {
+
+/* --- Keys for Element --- */
+// Values
+QuESo_DEFINE_KEY_SET(ElementValues, MainValuesTypeTag,
+    QuESo_KEY_LIST(is_visited, neighbor_coefficient) );
+QuESo_DEFINE_KEY_TO_VALUE(ElementValues, is_visited, MainValuesTypeTag, bool);
+QuESo_DEFINE_KEY_TO_VALUE(ElementValues, neighbor_coefficient, MainValuesTypeTag, double);
+QuESo_REGISTER_KEY_SET(ElementValues, MainValuesTypeTag,
+    QuESo_KEY(ElementValues::is_visited),
+    QuESo_KEY(ElementValues::neighbor_coefficient)
+);
 
 ///@name QuESo Classes
 ///@{
@@ -46,12 +58,14 @@ public:
 
     /// The following point definitions are the general definitions for IntegrationPoint
     /// and BoundaryIntegrationPoint used everywhere else.
-    typedef TIntegrationPointType IntegrationPointType;
-    typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
+    using IntegrationPointType = TIntegrationPointType;
+    using BoundaryIntegrationPointType = TBoundaryIntegrationPointType;
 
-    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
-    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
-    typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
+    using IntegrationPointVectorType = std::vector<IntegrationPointType>;
+    using BoundaryIntegrationPointVectorType = std::vector<BoundaryIntegrationPointType>;
+    using TrimmedDomainPtrType = Unique<TrimmedDomain>;
+
+    using DataSetType = DataSet<key::MainValuesTypeTag>;
 
     ///@}
     ///@name Life Cycle
@@ -62,9 +76,11 @@ public:
     ///@param rBoundXYZ Bounds of Element in physical space.
     ///@param rBoundUVW Bounds of Element in parametric space.
     Element(IndexType ElementId, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW) :
-                mElementId(ElementId), mIsTrimmed(false), mIsVisited(false), mBoundsXYZ(rBoundXYZ),
-                mBoundsUVW(rBoundUVW), mpTrimmedDomain(nullptr)
+        mId(ElementId), mBoundsXYZ(rBoundXYZ), mBoundsUVW(rBoundUVW), mpTrimmedDomain(nullptr),
+        mpValues(MakeUnique<DataSetType>(DataSetType::KeySetInfoTypeTag<key::detail::ElementValuesMainValuesTypeTagKeySetInfo>{}))
     {
+        mpValues->SetValue(ElementValues::is_visited, false);
+        mpValues->SetValue(ElementValues::neighbor_coefficient, 1.0);
     }
 
     /// Destructor
@@ -82,28 +98,23 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief Set Element as trimmed.
-    /// @param Value
-    void SetIsTrimmed(bool Value){
-        mIsTrimmed = Value;
-    }
-
-    /// @brief Set Id
-    /// @param Value
-    void SetId(IndexType Value){
-        mElementId = Value;
-    }
 
     /// @brief Return Id of this element.
     /// @return IndexType
     const IndexType GetId() const {
-        return mElementId;
+        return mId;
     }
 
-    /// @brief Returns true if element is trimmed.
-    /// @return bool
-    bool IsTrimmed() const {
-        return mIsTrimmed;
+    /// @brief Get bounds of element in physical/global coordinates.
+    /// @return BoundingBoxType
+    const BoundingBoxType& GetBoundsXYZ() const {
+        return mBoundsXYZ;
+    }
+
+    /// @brief Get bounds of element in parametric coordinates.
+    /// @return BoundingBoxType
+    const BoundingBoxType& GetBoundsUVW() const{
+        return mBoundsUVW;
     }
 
     /// @brief Returns Vector of integration points. (non-const)
@@ -118,17 +129,6 @@ public:
         return mIntegrationPoints;
     }
 
-    /// @brief Get bounds of element in physical/global coordinates.
-    /// @return BoundingBoxType
-    const BoundingBoxType& GetBoundsXYZ() const {
-        return mBoundsXYZ;
-    }
-
-    /// @brief Get bounds of element in parametric coordinates.
-    /// @return BoundingBoxType
-    const BoundingBoxType& GetBoundsUVW() const{
-        return mBoundsUVW;
-    }
 
     /// @brief Map point from global space to parametric space.
     /// @param rGlobalCoord
@@ -158,6 +158,12 @@ public:
         mpTrimmedDomain = std::move(pTrimmedDomain);
     }
 
+    /// @brief Returns true if element is trimmed.
+    /// @return bool
+    bool IsTrimmed() const {
+        return mpTrimmedDomain != nullptr;
+    }
+
     /// @brief Get ptr to trimmed domain of element.
     /// @note Return raw ptr. No transfer of ownership. Element owns trimmed domain.
     /// @return const TrimmedDomain*
@@ -165,62 +171,43 @@ public:
         if( !IsTrimmed() ){
             QuESo_ERROR << "Element is not Trimmed.\n";
         }
-        if( !mpTrimmedDomain ){
-            QuESo_ERROR << "Trimmed Domain Pointer has not been set.\n";
-        }
         return mpTrimmedDomain.get();
     }
 
-    /// @brief Clear trimmed domain of element.
-    void ClearTrimmedDomain(){
-        mpTrimmedDomain = nullptr;
+    /// @brief Sets the value in the element dataset associated with the given key.
+    /// @tparam TKeyType
+    /// @tparam TValueType
+    /// @param rQueryKey
+    /// @param rNewValue
+    template<typename TKeyType, typename TValueType>
+    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue) noexcept(NOTDEBUG) {
+        mpValues->SetValue(rQueryKey, rNewValue);
     }
 
-    /// @brief Set neighbour coefficient. Required for assembly of GGQ rule. See: multiple_elements.hpp.
-    /// @param Value New Value.
-    /// @param Direction Space Direction: 0-x, 1-y, 2-z.
-    /// @todo Remove this function.
-    void SetNeighbourCoefficient(double Value, IndexType Direction){
-        mNumberOfNeighbours[Direction] = Value;
+    /// @brief Returns the value in the element dataset associated with the given key.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return const TValueType&
+    template<typename TValueType, typename TKeyType>
+    const TValueType& GetValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
+        // We can use the fast version. The values are always set, see Constructor.
+        return mpValues->GetValueFast<TValueType>(rQueryKey);
     }
-
-    /// @brief Get neighbour coeefficient of this element. Required for assembly of GGQ rule. See: multiple_elements.hpp.
-    /// @return double
-    /// @todo Remove this function.
-    double NeighbourCoefficient() const {
-        return mNumberOfNeighbours[0]*mNumberOfNeighbours[1]*mNumberOfNeighbours[2];
-    }
-
-    /// @brief Set Flag.
-    /// @param Value
-    void SetVisited(bool Value){
-        mIsVisited = Value;
-    }
-
-    /// @brief Returns Flag. (see. SetVisited(value)).
-    /// @return bool
-    bool IsVisited(){
-        return mIsVisited;
-    }
-
     ///@}
 private:
 
     ///@name Private member variables
     ///@{
-    IntegrationPointVectorType mIntegrationPoints;
 
-    const IndexType mElementId;
-    bool mIsTrimmed;
-    bool mIsVisited;
-
+    const IndexType mId;
     const BoundingBoxType mBoundsXYZ;
     const BoundingBoxType mBoundsUVW;
 
+    IntegrationPointVectorType mIntegrationPoints;
     TrimmedDomainPtrType mpTrimmedDomain;
 
-    /// @todo Remove this member
-    PointType mNumberOfNeighbours;
+    Unique<DataSetType> mpValues;
     ///@}
 }; // End class Element
 ///@} // QuESo classes
