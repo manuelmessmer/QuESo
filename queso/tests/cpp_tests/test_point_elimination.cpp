@@ -77,7 +77,6 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 ++number_trimmed_elements;
 
                 // Add trimmed domain to element.
-                element.SetIsTrimmed(true);
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
@@ -188,7 +187,6 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 ++number_trimmed_elements;
 
                 // Add trimmed domain to element.
-                element.SetIsTrimmed(true);
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination
@@ -285,7 +283,6 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 ++number_trimmed_elements;
 
                 // Add trimmed domain to element.
-                element.SetIsTrimmed(true);
                 element.pSetTrimmedDomain(p_trimmed_domain);
 
                 // Run point elimination

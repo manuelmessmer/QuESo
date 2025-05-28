@@ -114,7 +114,7 @@ public:
         const auto element_it_begin = rElements.ElementsBegin();
         for( IndexType i = 0; i < rElements.NumberOfActiveElements(); ++i){
             auto element_it = element_it_begin + i;
-            (*element_it)->SetVisited(false);
+            (*element_it)->SetValue(ElementValues::is_visited, false);
         }
 
         std::vector<ElementType*> box_neighbours{};
@@ -133,8 +133,8 @@ public:
         // Sort according to NeighbourCoefficient().
         std::sort( sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](auto &rLHs, auto &rRHS) -> bool
                     // If value is equal, sort according to ElementId(). This is done to keep same test results.
-                    { if( std::abs((rLHs)->NeighbourCoefficient() - (rRHS)->NeighbourCoefficient()) < ZEROTOL){ return rLHs->GetId() <= rRHS->GetId();}
-                    else { return (rLHs)->NeighbourCoefficient() > (rRHS)->NeighbourCoefficient(); }
+                    { if( std::abs((rLHs)->template GetValue<double>(ElementValues::neighbor_coefficient) - (rRHS)->template GetValue<double>(ElementValues::neighbor_coefficient)) < ZEROTOL){ return rLHs->GetId() <= rRHS->GetId();}
+                    else { return (rLHs)->template GetValue<double>(ElementValues::neighbor_coefficient) > (rRHS)->template GetValue<double>(ElementValues::neighbor_coefficient); }
                     });
 
         const std::array<int,6> direction_to_dimension = {0, 0, 1, 1, 2, 2};
@@ -144,7 +144,7 @@ public:
         while( sorted_univisited_elements.size() > 0 && !stop ){
 
             max_element_it = sorted_univisited_elements.begin();
-            (*max_element_it)->SetVisited(true);
+            (*max_element_it)->SetValue(ElementValues::is_visited, true);
             box_neighbours.push_back(*max_element_it);
 
             double max_neighbour_coefficient = 1.0;
@@ -163,8 +163,8 @@ public:
                     for( int direction = 0; direction < 6; ++direction){
                         if( !rElements.IsEnd(current_id, direction) ){
                             neighbour = NextElement(rElements, current_id, direction);
-                            if( neighbour && !neighbour->IsVisited() && !neighbour->IsTrimmed() ){
-                                neighbour_coeff[direction] += neighbour->NeighbourCoefficient();
+                            if( neighbour && !neighbour->template GetValue<bool>(ElementValues::is_visited) && !neighbour->IsTrimmed() ){
+                                neighbour_coeff[direction] += neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
                                 tmp_neighbours[direction].push_back(neighbour);
                             }
                         }
@@ -191,7 +191,7 @@ public:
                         auto element_it_begin = tmp_neighbours[max_neighbour_coefficient_index].begin();
                         for(  IndexType i = 0; i < tmp_neighbours[max_neighbour_coefficient_index].size(); ++i){
                             auto element_it = element_it_begin + i;
-                            (*element_it)->SetVisited(true);
+                            (*element_it)->SetValue(ElementValues::is_visited, true);
                             box_neighbours.push_back(*element_it);
                             valid_direction_found = true;
                         }
@@ -227,7 +227,7 @@ public:
             box_neighbours.clear();
             // Erase all visiteed element to make search in next iteration faster.
             sorted_univisited_elements.erase(std::remove_if(sorted_univisited_elements.begin(), sorted_univisited_elements.end(), [](const auto& rValue) {
-                    return rValue->IsVisited(); }), sorted_univisited_elements.end());
+                    return rValue->template GetValue<bool>(ElementValues::is_visited); }), sorted_univisited_elements.end());
         }
     }
 
@@ -240,10 +240,11 @@ private:
 
         for(int i = 0; i < number_neighbours; ++i){
             auto element_it = element_it_begin + i;
+            const double old_value = (*element_it)->template GetValue<double>(ElementValues::neighbor_coefficient);
             if( number_neighbours > 1)
-                (*element_it)->SetNeighbourCoefficient(LinearFunction(i,number_neighbours), direction);
+                (*element_it)->SetValue(ElementValues::neighbor_coefficient, old_value*LinearFunction(i,number_neighbours));
             else
-                (*element_it)->SetNeighbourCoefficient(number_neighbours, direction);
+                (*element_it)->SetValue(ElementValues::neighbor_coefficient, old_value*number_neighbours);
         }
     }
 
@@ -350,7 +351,8 @@ private:
         const int number_neighbours = rElements.size();
         for(int i = 0; i < number_neighbours; ++i){
             auto element_it = element_it_begin + i;
-            if( !(*element_it)->IsTrimmed() && !(*element_it)->IsVisited() ){
+            bool is_visited = (*element_it)->template GetValue<bool>(ElementValues::is_visited);
+            if( !(*element_it)->IsTrimmed() && !is_visited ){
                 return false;
             }
         }
