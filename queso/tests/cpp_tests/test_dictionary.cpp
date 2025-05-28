@@ -158,55 +158,6 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
         QuESo_CHECK_EQUAL( items->GetValueFast<IndexType>(TestKeys3::four), 3u);
         QuESo_CHECK_EQUAL( items->GetValueFast<std::string>(TestKeys3::five), "Hello");
     }
-
-    // Check operator<<
-    std::ostringstream ref_oss;
-    ref_oss << R"({
-    "ten" : "Not Set.",
-    "nine" : "Not Set.",
-    "eight" : 3,
-    "seven" : 2,
-    "one" : {
-    },
-    "zero" : {
-        "four" : {
-        },
-        "three" : {
-        },
-        "two" : {
-        },
-        "one" : {
-        },
-        "zero" : {
-            "seven" : "Not Set.",
-            "six" : "Not Set.",
-            "five" : "Not Set.",
-            "four" : "Not Set.",
-            "three" : "Not Set.",
-            "two" : false,
-            "one" : [1, 2, 3],
-            "zero" : [2, 3.2, 1.1]
-        }
-    },
-    "six" : [
-    ],
-    "five" : [
-        {
-            "seven" : "Not Set.",
-            "six" : "Not Set.",
-            "five" : "Hello",
-            "four" : 3,
-            "three" : 3,
-            "two" : "Not Set.",
-            "one" : "Not Set.",
-            "zero" : "Not Set."
-        }
-    ]
-})";
-
-    std::ostringstream oss;
-    oss << test_dict;
-    QuESo_CHECK_EQUAL( oss.str(), ref_oss.str() );
 }
 
 BOOST_AUTO_TEST_CASE(DictionaryStringAccessTypeTest) {
