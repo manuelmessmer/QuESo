@@ -110,7 +110,6 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
 
             // Distinguish between trimmed and non-trimmed elements.
             if( status == IntersectionState::trimmed) {
-                p_new_element->SetIsTrimmed(true);
                 // Compute intersection between element and embedded geometry.
                 Timer timer_compute_intersection{};
                 auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
