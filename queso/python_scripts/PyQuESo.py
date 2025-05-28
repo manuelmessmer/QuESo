@@ -17,9 +17,10 @@ class PyQuESo:
         Args:
             json_filename (str): Path to the JSON configuration file.
         """
-        self.settings = JsonIO.read_settings(json_filename)
-        write_output_to_file = self.settings["general_settings"].GetBool("write_output_to_file")
-        output_directory_name = self.settings["general_settings"].GetString("output_directory_name")
+        self._settings_holder = JsonIO.read_settings(json_filename)
+        settings = self._settings_holder.Get()
+        write_output_to_file = settings["general_settings"].GetBool("write_output_to_file")
+        output_directory_name = settings["general_settings"].GetString("output_directory_name")
         if write_output_to_file:
             folder_path = "./" + output_directory_name + '/'
             if os.path.exists(folder_path):
@@ -29,8 +30,9 @@ class PyQuESo:
     def Run(self) -> None:
         """Runs the QuESo embedded model initialization and generation.
         """
-        self.embedded_model = QuESo_App.EmbeddedModel(self.settings) # type: ignore (TODO: add .pyi)
-        self.embedded_model.CreateAllFromSettings()
+        self._embedded_model = QuESo_App.EmbeddedModel(self._settings_holder) # type: ignore (TODO: add .pyi)
+        self._settings_holder = None
+        self._embedded_model.CreateAllFromSettings()
 
     def GetElements(self) -> QuESo_App.ElementVector: # type: ignore (TODO: add .pyi)
         """Returns a list of active elements from the embedded model.
@@ -38,7 +40,7 @@ class PyQuESo:
         Returns:
             QuESo_App.ElementVector: List of active elements.
         """
-        return self.embedded_model.GetElements()
+        return self._embedded_model.GetElements()
 
     def GetConditions(self) -> QuESo_App.ConditionVector: # type: ignore (TODO: add .pyi)
         """Returns a list of conditions from the embedded model.
@@ -46,23 +48,26 @@ class PyQuESo:
         Returns:
             list: List of boundary or loading conditions.
         """
-        return self.embedded_model.GetConditions()
+        return self._embedded_model.GetConditions()
 
-    def GetSettings(self) -> QuESo_App.Settings: # type: ignore (TODO: add .pyi)
+    def GetSettings(self) -> QuESo_App.Dictionary: # type: ignore (TODO: add .pyi)
         """Returns the QuESo settings used for initialization.
 
         Returns:
             QuESo_App.Settings: QuESo configuration settings.
         """
-        return self.embedded_model.GetSettings()
+        if self._settings_holder and self._settings_holder.Get():
+            return self._settings_holder.Get()
+        else:
+            return self._embedded_model.GetSettings()
 
-    def GetModelInfo(self) -> QuESo_App.ModelInfo: # type: ignore (TODO: add .pyi)
+    def GetModelInfo(self) -> QuESo_App.Dictionary: # type: ignore (TODO: add .pyi)
         """Returns information about the current embedded model.
 
         Returns:
             QuESo_App.ModelInfo: A dictionary containing model metadata.
         """
-        return self.embedded_model.GetModelInfo()
+        return self._embedded_model.GetModelInfo()
 
     def GetBSplineVolume(self, knot_vector_type: str) -> BSplineVolume:
         """Generates a B-Spline volume from current settings.
@@ -73,7 +78,7 @@ class PyQuESo:
         Returns:
             BSplineVolume: The generated B-Spline volume object.
         """
-        return BSplineVolume(self.settings, knot_vector_type)
+        return BSplineVolume(self.GetSettings(), knot_vector_type)
 
     def GetIntegrationPoints(self) -> QuESo_App.IntegrationPointVector: # type: ignore (TODO: add .pyi)
         """Retrieves all integration points used for numerical computations.
@@ -125,5 +130,5 @@ class PyQuESo:
             raise ImportError("RunKratosAnalysis :: Kratos is not available.")
 
         from kratos_interface.kratos_analysis import Analysis
-        self.analysis = Analysis( self.settings, kratos_settings_filename, self.GetElements(), self.GetConditions() )
+        self.analysis = Analysis( self.GetSettings(), kratos_settings_filename, self.GetElements(), self.GetConditions() )
 

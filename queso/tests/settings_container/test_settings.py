@@ -32,7 +32,7 @@ class TestSettingsContainer(QuESoTestCase):
 
         self.assertTrue(background_grid_settings.IsSet("grid_type"))
         grid_type = background_grid_settings.GetGridType("grid_type")
-        self.assertEqual(grid_type, QuESo.GridType.b_spline_grid)
+        self.assertEqual(grid_type, QuESo.GridType.b_spline_grid) # type: ignore (TODO: add .pyi)
 
         self.assertTrue(background_grid_settings.IsSet("lower_bound_xyz"))
         lower_bound_xyz = background_grid_settings.GetDoubleVector("lower_bound_xyz")
@@ -78,7 +78,7 @@ class TestSettingsContainer(QuESoTestCase):
 
         self.assertTrue(non_trimmed_quadrature_rule_settings.IsSet("integration_method"))
         integration_method = non_trimmed_quadrature_rule_settings.GetIntegrationMethod("integration_method")
-        self.assertEqual(integration_method, QuESo.IntegrationMethod.GGQ_Optimal)
+        self.assertEqual(integration_method, QuESo.IntegrationMethod.GGQ_Optimal) # type: ignore (TODO: add .pyi)
 
         conditions_settings_list = settings.GetList("conditions_settings_list")
         self.assertEqual(len(conditions_settings_list), 4)
@@ -226,7 +226,7 @@ class TestSettingsContainer(QuESoTestCase):
 
         self.assertTrue(non_trimmed_quadrature_rule_settings.IsSet("integration_method"))
         integration_method = non_trimmed_quadrature_rule_settings.GetIntegrationMethod("integration_method")
-        self.assertEqual(integration_method, QuESo.IntegrationMethod.Gauss)
+        self.assertEqual(integration_method, QuESo.IntegrationMethod.Gauss) # type: ignore (TODO: add .pyi)
 
         conditions_settings_list = settings.GetList("conditions_settings_list")
         self.assertEqual(len(conditions_settings_list), 4)
@@ -245,24 +245,29 @@ class TestSettingsContainer(QuESoTestCase):
         self.assertFalse(settings.IsSet("penalty_factor"))
 
     def test_customized_values(self):
-        settings = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_1.json")
+        settings_holder = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_1.json")
+        settings = settings_holder.Get()
         self.check_customized_values(settings)
 
         JsonIO.write_settings(settings, self.new_file_name_1)
-        settings_new = JsonIO.read_settings(self.new_file_name_1)
+        settings_holder_new = JsonIO.read_settings(self.new_file_name_1)
+        settings_new = settings_holder_new.Get()
         self.check_customized_values(settings_new)
         os.remove(self.new_file_name_1)
 
-        settings2 = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_2.json")
+        settings_holder2 = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_2.json")
+        settings2 = settings_holder2.Get()
         self.check_customized_values(settings2)
 
         JsonIO.write_settings(settings2, self.new_file_name_2)
-        settings2_new = JsonIO.read_settings(self.new_file_name_2)
+        settings_holder2_new = JsonIO.read_settings(self.new_file_name_2)
+        settings2_new = settings_holder2_new.Get()
         self.check_customized_values(settings2_new)
         os.remove(self.new_file_name_2)
 
     def test_default_values(self):
-        settings = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_default.json")
+        settings_holder = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_default.json")
+        settings = settings_holder.Get()
         self.check_default_values(settings)
 
     def setUp(self):

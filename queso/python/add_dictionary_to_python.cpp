@@ -52,13 +52,16 @@ void AddDictionaryToPython(pybind11::module& m) {
             py::return_value_policy::move );
 
     // Export vector
-    py::class_<DictionaryVectorPtrType>(m, "DictionaryVector")
+    py::class_<DictionaryVectorPtrType>(m, "DictionaryList")
         .def("__getitem__", [](DictionaryVectorPtrType &self, IndexType i)
             { return &(*self[i]); }, py::return_value_policy::reference_internal)
         .def("__len__", [](const DictionaryVectorPtrType &self) { return self.size(); })
         .def("__iter__", [](DictionaryVectorPtrType &self) {
             return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
         }, py::keep_alive<0, 1>() )
+        .def("append", [](DictionaryVectorPtrType& self, MainDictionaryHolderType& rDictionaryHolder){
+            self.push_back(std::move(rDictionaryHolder.TakeOwnership()));
+        } )
     ;
 
 } // End AddDictionaryToPython

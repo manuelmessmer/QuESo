@@ -8,13 +8,13 @@ class BSplineVolume:
     """Class to construct a 3D B-Spline volume using the QuESo settings.
     """
     def __init__(self,
-            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
+            settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
             knot_vector_type: str
         ) -> None:
         """Initializes the BSplineVolume.
 
         Args:
-            settings (QuESo.Settings) object containing background grid settings.
+            settings (QuESo.Dictionary) object containing background grid settings.
             knot_vector_type (str): Type of knot vector. Must be either
                 "open_knot_vector" or "non_open_knot_vector".
 

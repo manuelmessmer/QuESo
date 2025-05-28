@@ -19,7 +19,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
     """
     def __init__(self,
             model: KM.Model,
-            queso_settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
+            queso_settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
             kratos_settings_filename: str,
             elements: QuESo.ElementVector, # type: ignore (TODO: add .pyi)
             boundary_conditions: QuESo.ConditionVector # type: ignore (TODO: add .pyi)
@@ -32,7 +32,7 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
 
         Args:
             model (KM.Model): The Kratos model to be used for the analysis.
-            queso_settings (QuESo.Settings): The settings for the analysis, including conditions and grid settings.
+            queso_settings (QuESo.Dictionary): The settings for the analysis, including conditions and grid settings.
             kratos_settings_filename (str): Path to the Kratos settings JSON file.
             elements (QuESo.ElementVector): List of elements to be added to the model part.
             boundary_conditions (QuESo.ConditionVector): List of boundary conditions to be applied to the model.
