@@ -37,13 +37,15 @@ struct UniqueHolder {
 
     /// @brief Returns reference to the underlying object.
     /// @return TType&
-    TType& Get(){
+    TType& GetObject(){
+        QuESo_ERROR_IF(!mpData) << "The underlying data has been released already.\n";
         return *mpData;
     }
 
-    /// @brief Returns unique ptr to the underlying object.
+    /// @brief Releases the ownership of the underlying object.
     /// @return Unique<TType>
-    Unique<TType> TakeOwnership() {
+    Unique<TType> Release() {
+        QuESo_ERROR_IF(!mpData) << "The underlying data has been released already.\n";
         return std::move(mpData);
     }
 

@@ -18,7 +18,7 @@ class PyQuESo:
             json_filename (str): Path to the JSON configuration file.
         """
         self._settings_holder = JsonIO.read_settings(json_filename)
-        settings = self._settings_holder.Get()
+        settings = self._settings_holder.GetObject()
         write_output_to_file = settings["general_settings"].GetBool("write_output_to_file")
         output_directory_name = settings["general_settings"].GetString("output_directory_name")
         if write_output_to_file:
@@ -56,8 +56,8 @@ class PyQuESo:
         Returns:
             QuESo_App.Settings: QuESo configuration settings.
         """
-        if self._settings_holder and self._settings_holder.Get():
-            return self._settings_holder.Get()
+        if self._settings_holder and self._settings_holder.GetObject():
+            return self._settings_holder.GetObject()
         else:
             return self._embedded_model.GetSettings()
 

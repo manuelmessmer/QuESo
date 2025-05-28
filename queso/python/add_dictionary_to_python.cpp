@@ -36,7 +36,7 @@ void AddDictionaryToPython(pybind11::module& m) {
 
     // Export DictionaryHolder
     py::class_<MainDictionaryHolderType>(m,"DictionaryHolder")
-        .def("Get", &MainDictionaryHolderType::Get, py::return_value_policy::reference_internal)
+        .def("GetObject", &MainDictionaryHolderType::GetObject, py::return_value_policy::reference_internal)
     ;
 
     // Export Dictionary
@@ -60,7 +60,7 @@ void AddDictionaryToPython(pybind11::module& m) {
             return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
         }, py::keep_alive<0, 1>() )
         .def("append", [](DictionaryVectorPtrType& self, MainDictionaryHolderType& rDictionaryHolder){
-            self.push_back(std::move(rDictionaryHolder.TakeOwnership()));
+            self.push_back(std::move(rDictionaryHolder.Release()));
         } )
     ;
 

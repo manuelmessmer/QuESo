@@ -246,28 +246,28 @@ class TestSettingsContainer(QuESoTestCase):
 
     def test_customized_values(self):
         settings_holder = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_1.json")
-        settings = settings_holder.Get()
+        settings = settings_holder.GetObject()
         self.check_customized_values(settings)
 
         JsonIO.write_settings(settings, self.new_file_name_1)
         settings_holder_new = JsonIO.read_settings(self.new_file_name_1)
-        settings_new = settings_holder_new.Get()
+        settings_new = settings_holder_new.GetObject()
         self.check_customized_values(settings_new)
         os.remove(self.new_file_name_1)
 
         settings_holder2 = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_2.json")
-        settings2 = settings_holder2.Get()
+        settings2 = settings_holder2.GetObject()
         self.check_customized_values(settings2)
 
         JsonIO.write_settings(settings2, self.new_file_name_2)
         settings_holder2_new = JsonIO.read_settings(self.new_file_name_2)
-        settings2_new = settings_holder2_new.Get()
+        settings2_new = settings_holder2_new.GetObject()
         self.check_customized_values(settings2_new)
         os.remove(self.new_file_name_2)
 
     def test_default_values(self):
         settings_holder = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_default.json")
-        settings = settings_holder.Get()
+        settings = settings_holder.GetObject()
         self.check_default_values(settings)
 
     def setUp(self):

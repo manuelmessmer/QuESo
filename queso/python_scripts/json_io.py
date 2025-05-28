@@ -39,7 +39,7 @@ class JsonIO():
             dictionary = json.load(file)
 
         queso_settings_holder = QuESo.Dictionary.Create("Settings") # type: ignore (TODO: add .pyi)
-        cls._read_dict(dictionary, queso_settings_holder.Get() )
+        cls._read_dict(dictionary, queso_settings_holder.GetObject() )
 
         return queso_settings_holder
 
@@ -98,7 +98,7 @@ class JsonIO():
         """
         for condition_settings in condition_settings_list:
             new_cond_settings_holder = QuESo.Dictionary.Create("ConditionSettings") # type: ignore (TODO: add .pyi)
-            cls._read_dict(condition_settings, new_cond_settings_holder.Get())
+            cls._read_dict(condition_settings, new_cond_settings_holder.GetObject())
             queso_dict_list.append(new_cond_settings_holder)
 
 
