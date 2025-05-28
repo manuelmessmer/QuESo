@@ -84,6 +84,23 @@ public:
     template<typename TType>
     static constexpr bool is_unsigned_index_v = is_unsigned_index<TType>::value;
 
+    /// Visit struct to print values in JSON format.
+    struct PrintValueVisit {
+        PrintValueVisit(std::ostream& rOStream) : mOstream(rOStream){}
+        void operator()(const std::monostate&){mOstream << "\"Not Set.\"";};
+        void operator()(const PointType& rValue){mOstream << '[' << rValue[0] << ", " << rValue[1] << ", " << rValue[2] << ']'; };
+        void operator()(const Vector3i& rValue){mOstream << '[' << rValue[0] << ", " << rValue[1] << ", " << rValue[2] << ']';};
+        void operator()(const IndexType& rValue){ mOstream << rValue;};
+        void operator()(const double& rValue){mOstream << rValue;};
+        void operator()(const std::string& rValue){mOstream << '\"' << rValue << '\"';};
+        void operator()(const bool& rValue){std::string out = (rValue) ? "true" : "false"; mOstream << out; };
+        void operator()(const IntegrationMethodType& rValue){ mOstream << '\"' << rValue << '\"'; };
+        void operator()(const GridTypeType& rValue){ mOstream << '\"' << rValue << '\"'; };
+
+    private:
+        std::ostream& mOstream;
+    };
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -94,7 +111,11 @@ public:
         using KeySetInfoType = TKeySetInfoType;
     };
 
-    /// @brief Constructor
+    /// @brief Constructor.
+    ///        Example use:
+    ///            using DataSetType = DataSet<key::ValuesTypeTag>;
+    ///            DataSetType dataset( DataSetType::KeySetInfoTypeTag<
+    ///                 key::detail::KeySetNameValuesTypeTagKeySetInfo>{});
     /// @tparam TKeySetInfoTypeTag
     /// @param TKeySetInfoTypeTag (must be: TKeySetInfoTypeTag<KeySetInfoType>) contains typedef to KeySetInfoType.
     template<typename TKeySetInfoTypeTag>
@@ -103,6 +124,17 @@ public:
         static_assert( std::is_same_v<typename KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag> );
         mData.resize(mpKeySetInfo->GetNumberOfKeys());
     }
+
+    /// Destructor
+    ~DataSet() = default;
+    /// Copy Constructor
+    DataSet(const DataSet& rDataSet) = delete;
+    /// Assignement operator
+    DataSet& operator=(const DataSet& rDataSet) = delete;
+    /// Move constructor
+    DataSet(DataSet&& rDataSet) = default;
+    /// Move assignement operator
+    DataSet& operator=(DataSet&& rDataSet) = default;
 
     ///@}
     ///@name Operations
@@ -192,8 +224,24 @@ public:
 
         return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
     }
-    ///@}
 
+    /// @brief Returns the KeySetInfo associated with this DataSet.
+    /// @return const key::detail::KeySetInfo&
+    const key::detail::KeySetInfo& GetKeySetInfo() const {
+        return *mpKeySetInfo;
+    }
+
+    /// @brief Prints the value associated with the given Key in JSON format.
+    /// @param rOstream
+    void PrintValue(const key::detail::DynamicKeyBase* pQueryKey, std::ostream& rOstream ) const {
+
+        QuESo_ERROR_IF( !mpKeySetInfo->IsPartOfKeySet(*pQueryKey) ) << "The given key: '" << pQueryKey->Name()
+            << "' is not part of the key set.\n";
+
+        std::visit( PrintValueVisit(rOstream), mData[pQueryKey->Index()] );
+    }
+
+    ///@}
 private:
     ///@name Private operations
     ///@{
@@ -272,9 +320,6 @@ private:
                                << "'. Possible names are: " << mpKeySetInfo->GetAllKeyNames() << "\n.";
 
         QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[p_key->Index()]) ) << "Value to Key: '" << p_key->Name() << "' is not set.\n";
-        QuESo_ERROR_IF( p_key->TargetTypeIndex() != std::type_index(typeid(TValueType)) ) << "The given key: '" << p_key->Name()
-            << "' accesses a variable of type: '" << p_key->TargetTypeName()
-            << "'. However, the given value type is: '" << TKeySetValuesTypeTag::template GetValueTypeName<TValueType>() << "'.\n";
 
         return std::get<TValueType>(mData[p_key->Index()]);
     }
@@ -296,7 +341,7 @@ private:
     /// @param rQueryKeyName
     /// @return bool
     /// @note Should only be used in Python. In C++ the correct key types must be known.
-    bool Has(const std::string& rQueryKeyName) const {
+    bool Has(const std::string& rQueryKeyName) const noexcept {
         return mpKeySetInfo->pGetKey(rQueryKeyName) != nullptr;
     }
 
@@ -353,7 +398,7 @@ public:
     /// @param rDataSet
     /// @param rQueryKeyName (std::string)
     /// @return bool
-    static bool Has(const DataSetType& rDataSet, const std::string& rQueryKeyName) {
+    static bool Has(const DataSetType& rDataSet, const std::string& rQueryKeyName) noexcept {
         return rDataSet.Has(rQueryKeyName);
     }
 

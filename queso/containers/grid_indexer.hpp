@@ -17,7 +17,7 @@
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/utilities/math_utilities.hpp"
-#include "queso/includes/settings.hpp"
+#include "queso/containers/dictionary.hpp"
 
 namespace queso {
 
@@ -33,14 +33,15 @@ class GridIndexer {
 public:
 
     enum class IndexInfo {middle, local_end, global_end};
-    typedef std::pair<IndexType, IndexInfo> IndexReturnType;
+    using IndexReturnType = std::pair<IndexType, IndexInfo>;
+    using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@name Life Cycle
     ///@{
 
     /// @brief Constructor
     /// @param rSettings
-    GridIndexer( const Settings& rSettings ) :
+    GridIndexer( const MainDictionaryType& rSettings ) :
         mBoundXYZ( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
                                   rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
         mBoundUVW( std::make_pair(rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_uvw),

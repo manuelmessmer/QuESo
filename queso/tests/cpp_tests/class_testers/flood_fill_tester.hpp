@@ -23,7 +23,7 @@ namespace Testing {
 // This class shall only be used for testing!
 class FloodFillTester : public FloodFill {
 public:
-    FloodFillTester(BRepOperator* pBrepOperator, const Settings& rSettings)
+    FloodFillTester(BRepOperator* pBrepOperator, const Dictionary<queso::key::MainValuesTypeTag>& rSettings)
         : FloodFill(pBrepOperator, rSettings)
     {
     }

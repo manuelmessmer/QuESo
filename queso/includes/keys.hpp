@@ -15,9 +15,6 @@
 #ifndef KEYS_INCLUDE_HPP
 #define KEYS_INCLUDE_HPP
 
-// When Keys are released: remove this include!!
-#include "queso/includes/define.hpp"
-
 /// STL includes
 #include <variant>
 #include <string>
@@ -270,11 +267,15 @@ struct ConstexprKey : private KeyData<typename TKeySetInfoType::EnumType> {
     }
 };
 
+/// Typedef
+using StringToKeyMapType = std::unordered_map<std::string_view, const queso::key::detail::DynamicKeyBase*>;
+
 /// Base class to store and access information about a key set.
 struct KeySetInfo {
     virtual ~KeySetInfo() = default;
 
-    virtual const DynamicKeyBase* pGetKey(std::string_view rName) const = 0;
+    virtual const DynamicKeyBase* pGetKey(std::string_view rName) const noexcept = 0;
+    virtual const StringToKeyMapType& GetStringKeyMap() const noexcept = 0;
     virtual IndexType GetNumberOfKeys() const noexcept = 0;
     virtual bool IsSameKeySet(std::type_index TypeIndex) const noexcept = 0;
     virtual bool IsPartOfKeySet(const DynamicKeyBase& rKey) const noexcept = 0;
@@ -344,12 +345,15 @@ namespace key {\
             using KeySetToWhat = queso::key::KeySetToWhat_;\
             enum class EnumType {__VA_ARGS__};\
             /* Member function to access key information*/\
-            const KeyBaseType* pGetKey(std::string_view rName) const override {\
+            const KeyBaseType* pGetKey(std::string_view rName) const noexcept override {\
                 const auto it = msStringToKeyMap.find(rName);\
                 if (it != msStringToKeyMap.end()) {\
                     return (it->second);\
                 }\
                 return nullptr;\
+            }\
+            const queso::key::detail::StringToKeyMapType& GetStringKeyMap() const noexcept override {\
+                return msStringToKeyMap;\
             }\
             IndexType GetNumberOfKeys() const noexcept override {\
                 return msNumOfEnums;\
@@ -428,9 +432,6 @@ namespace key {\
 namespace queso {
 namespace key {
 namespace detail {
-
-/// Typedef
-using StringToKeyMapType = std::unordered_map<std::string_view, const queso::key::detail::DynamicKeyBase*>;
 
 /// @brief Helper function to check if all keys are correctly defined.
 /// @tparam TKeySetInfoType

@@ -19,6 +19,7 @@
 #include <memory>       //std::addressof
 //// Project includes
 #include "queso/includes/checks.hpp"
+#include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/grid_indexer.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedded_model.h"
@@ -33,22 +34,24 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
 
     std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
 
-    Settings settings;
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{2.0, 2.0, 1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{4.0, 5.0, 3.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-8);
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 5000u);
-    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::gauss);
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
 
-    EmbeddedModel embedded_model(settings);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{0.0, 0.0, 0.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{2.0, 2.0, 1.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{4.0, 5.0, 3.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-8);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 5000u);
+    r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::gauss);
+
+    EmbeddedModel embedded_model(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
@@ -91,21 +94,23 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     GridTypeType grid_type = (BSplineMesh) ? GridType::b_spline_grid : GridType::hexahedral_fe_grid;
     std::string filename = "queso/tests/cpp_tests/data/elephant.stl";
 
-    Settings settings;
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.37, -0.55, -0.31});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.37, 0.55, 0.31});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, rOrder);
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
-    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
 
-    EmbeddedModel embedded_model(settings);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.37, -0.55, -0.31});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.37, 0.55, 0.31});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, rOrder);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
+    r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
+
+    EmbeddedModel embedded_model(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
@@ -272,40 +277,48 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     GridTypeType grid_type = (BSplineMesh) ? GridType::b_spline_grid : GridType::hexahedral_fe_grid;
     std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
 
-    Settings settings;
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{p, p, p});
-    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
 
-    auto& r_cond_settings_1 = settings.CreateNewConditionSettings();
-    r_cond_settings_1.SetValue(ConditionSettings::condition_id, 1u);
-    r_cond_settings_1.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
-    r_cond_settings_1.SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{p, p, p});
+    r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
-    auto& r_cond_settings_2 = settings.CreateNewConditionSettings();
-    r_cond_settings_2.SetValue(ConditionSettings::condition_id, 2u);
-    r_cond_settings_2.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N1.stl"));
-    r_cond_settings_2.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+    auto& r_cond_settings_list = r_settings.GetList(MainSettings::conditions_settings_list);
 
-    auto& r_cond_settings_3 = settings.CreateNewConditionSettings();
-    r_cond_settings_3.SetValue(ConditionSettings::condition_id, 3u);
-    r_cond_settings_3.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N2.stl"));
-    r_cond_settings_3.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+    auto p_cond_settings_1 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
+    p_cond_settings_1->SetValue(ConditionSettings::condition_id, 1u);
+    p_cond_settings_1->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    p_cond_settings_1->SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+    r_cond_settings_list.push_back(std::move(p_cond_settings_1));
 
-    auto& r_cond_settings_4 = settings.CreateNewConditionSettings();
-    r_cond_settings_4.SetValue(ConditionSettings::condition_id, 4u);
-    r_cond_settings_4.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N3.stl"));
-    r_cond_settings_4.SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+    auto p_cond_settings_2 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
+    p_cond_settings_2->SetValue(ConditionSettings::condition_id, 2u);
+    p_cond_settings_2->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N1.stl"));
+    p_cond_settings_2->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+    r_cond_settings_list.push_back(std::move(p_cond_settings_2));
 
-    EmbeddedModel embedded_model(settings);
+    auto p_cond_settings_3 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
+    p_cond_settings_3->SetValue(ConditionSettings::condition_id, 3u);
+    p_cond_settings_3->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N2.stl"));
+    p_cond_settings_3->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+    r_cond_settings_list.push_back(std::move(p_cond_settings_3));
+
+    auto p_cond_settings_4 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
+    p_cond_settings_4->SetValue(ConditionSettings::condition_id, 4u);
+    p_cond_settings_4->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N3.stl"));
+    p_cond_settings_4->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
+    r_cond_settings_list.push_back(std::move(p_cond_settings_4));
+
+    EmbeddedModel embedded_model(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     /// Test volume
@@ -434,26 +447,31 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     GridTypeType grid_type = GridType::b_spline_grid;
     std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
 
-    Settings settings;
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
-    settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
-    settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio,  0.0);
-    settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method,  IntegrationMethod::ggq_optimal);
+    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+    auto& r_settings = *p_settings;
 
-    auto& r_cond_settings_1 = settings.CreateNewConditionSettings();
-    r_cond_settings_1.SetValue(ConditionSettings::condition_id, 1u);
-    r_cond_settings_1.SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
-    r_cond_settings_1.SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
+    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio,  0.0);
+    r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method,  IntegrationMethod::ggq_optimal);
 
-    EmbeddedModel embedded_model(settings);
+    auto& r_cond_setttings_list = r_settings.GetList(MainSettings::conditions_settings_list);
+
+    auto p_cond_settings_1 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
+    p_cond_settings_1->SetValue(ConditionSettings::condition_id, 1u);
+    p_cond_settings_1->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    p_cond_settings_1->SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
+    r_cond_setttings_list.push_back(std::move(p_cond_settings_1));
+
+    EmbeddedModel embedded_model(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     /// Check model info
@@ -506,11 +524,14 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total+et_write_file_total), 1e-5);
 
-    const auto& r_condition_info_1 = r_model_info.GetList(MainInfo::conditions_infos_list)[0];
+    const auto& r_condition_info_1 = *r_model_info.GetList(MainInfo::conditions_infos_list)[0];
     const auto& r_condition_1 = embedded_model.GetConditions()[0];
     const auto& r_condition_info_1_other = r_condition_1->GetInfo();
     QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
     QuESo_CHECK_EQUAL( r_condition_info_1.GetValue<IndexType>(ConditionInfo::condition_id), 1);
+
+    const auto& r_settings_obtained = embedded_model.GetSettings();
+    const auto& r_cond_settings_1 = *r_settings_obtained.GetList(MainSettings::conditions_settings_list)[0];
     const std::string& r_filename = r_cond_settings_1.GetValue<std::string>(ConditionSettings::input_filename);
     TriangleMesh triangle_mesh_cond{};
     IO::ReadMeshFromSTL(triangle_mesh_cond, r_filename);

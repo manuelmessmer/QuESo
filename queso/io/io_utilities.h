@@ -67,7 +67,7 @@ public:
     static void WriteDictionaryToJSON(const TDictType& rDictionary, const std::string& rFilename){
         std::ofstream file(rFilename, std::ios::out);
         if(file.is_open()){
-            rDictionary.PrintInfo(file);
+            file << rDictionary;
             file.close();
         } else {
             QuESo_ERROR << "Warning :: IO::WriteDictionaryToJSON :: Could not create/open file: " << rFilename << ".\n";

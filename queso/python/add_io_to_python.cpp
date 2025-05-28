@@ -23,12 +23,12 @@ namespace Python {
 namespace py = pybind11;
 
 void AddIoToPython(pybind11::module& m) {
+    using DictionaryType = Dictionary<key::MainValuesTypeTag>;
 
-    /// Export MeshUtilites
+    /// Export IoUtilities
     py::class_<IO>(m,"IO")
         .def_static("ReadMeshFromSTL", &IO::ReadMeshFromSTL)
-        .def_static("WriteSettingsToJSON", &IO::WriteDictionaryToJSON<Settings>)
-        .def_static("WriteModelInfoToJSON", &IO::WriteDictionaryToJSON<ModelInfo>)
+        .def_static("WriteDictionaryToJSON", &IO::WriteDictionaryToJSON<DictionaryType>)
     ;
 
 } // End AddIoToPython

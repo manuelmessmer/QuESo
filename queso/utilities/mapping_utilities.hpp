@@ -16,7 +16,6 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/includes/settings.hpp"
 
 namespace queso {
 

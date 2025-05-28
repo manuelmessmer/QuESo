@@ -19,6 +19,7 @@
 //// STL includes
 #include <string>
 //// Project includes
+#include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
@@ -97,9 +98,11 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         upper_bound[1] = lower_bound[1] + num_elements[1]*h;
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
 
-        Settings settings;
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+        auto& r_settings = *p_settings;
+
+        r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
         r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
         r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
@@ -114,9 +117,9 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         const IndexType min_num_triangles = 10;
 
         BRepOperator brep_operator(triangle_mesh);
-        FloodFill filler(&brep_operator, settings);
+        FloodFill filler(&brep_operator, r_settings);
         auto p_states = filler.ClassifyElements();
-        GridIndexer grid_indexer(settings);
+        GridIndexer grid_indexer(r_settings);
         for(IndexType i = 0; i < num_elements[0]; ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){
                 for(IndexType k = 0; k < num_elements[2]; ++k ){
@@ -239,9 +242,11 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         upper_bound[1] = lower_bound[1] + num_elements[1]*h;
         upper_bound[2] = lower_bound[2] + num_elements[2]*h;
 
-        Settings settings;
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        auto& r_grid_settings = settings[MainSettings::background_grid_settings];
+        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+        auto& r_settings = *p_settings;
+
+        r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
         r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
         r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
@@ -249,11 +254,11 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
         r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, num_elements);
 
-        settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 10u);
-        settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 10u);
+        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
         BRepOperator brep_operator(triangle_mesh);
-        FloodFillTester filler(&brep_operator, settings);
+        FloodFillTester filler(&brep_operator, r_settings);
         auto result = filler.ClassifyElementsForTest();
 
         auto p_states = std::move(result.first);
@@ -288,7 +293,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
             BOOST_CHECK_EQUAL(group_inside_count, group_inside_count_single);
         }
 
-        GridIndexer grid_indexer(settings);
+        GridIndexer grid_indexer(r_settings);
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(num_elements[0]); ++i ){
             for(IndexType j = 0; j < num_elements[1]; ++j ){

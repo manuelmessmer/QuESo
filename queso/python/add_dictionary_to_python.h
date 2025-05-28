@@ -11,8 +11,8 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef ADD_MODEL_INFO_TO_PYTHON_INCLUDE_H
-#define ADD_MODEL_INFO_TO_PYTHON_INCLUDE_H
+#ifndef ADD_DICTIONARY_TO_PYTHON_INCLUDE_H
+#define ADD_DICTIONARY_TO_PYTHON_INCLUDE_H
 
 // External includes
 #include <pybind11/pybind11.h>
@@ -20,9 +20,9 @@
 namespace queso {
 namespace Python {
 
-    void AddModelInfoToPython(pybind11::module& m);
+    void AddDictionaryToPython(pybind11::module& m);
 
 } // End namespace Python
 } // End namespace queso
 
-#endif // ADD_MODEL_INFO_TO_PYTHON_INCLUDE_H
+#endif // ADD_DICTIONARY_TO_PYTHON_INCLUDE_H

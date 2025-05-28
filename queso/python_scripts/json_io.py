@@ -12,20 +12,20 @@ class JsonIO():
     """
     @staticmethod
     def write_settings(
-            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
+            settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
             json_filename: str
         ) -> None:
         """
         Write QuESo settings to a JSON file.
 
         Args:
-            settings (QuESo.Settings): The settings object to write.
+            settings (QuESo.Dictionary): The settings object to write.
             json_filename (str): The path to the output JSON file.
         """
-        QuESo.IO.WriteSettingsToJSON(settings, json_filename) # type: ignore (TODO: add .pyi)
+        QuESo.IO.WriteDictionaryToJSON(settings, json_filename) # type: ignore (TODO: add .pyi)
 
     @classmethod
-    def read_settings(cls, json_filename: str) -> QuESo.Settings: # type: ignore (TODO: add .pyi)
+    def read_settings(cls, json_filename: str) -> QuESo.DictionaryHolder: # type: ignore (TODO: add .pyi)
         """
         Read QuESo settings from a JSON file.
 
@@ -33,27 +33,27 @@ class JsonIO():
             json_filename (str): The path to the JSON file to read.
 
         Returns:
-            QuESo.Settings: Parsed QuESo settings object.
+            QuESo.DictionaryHolder: QuESo dictionary holder object that contains the parsed settings.
         """
         with open(json_filename, 'r') as file:
             dictionary = json.load(file)
 
-        queso_settings = QuESo.Settings() # type: ignore (TODO: add .pyi)
-        cls._read_dict(dictionary, queso_settings )
+        queso_settings_holder = QuESo.Dictionary.Create("Settings") # type: ignore (TODO: add .pyi)
+        cls._read_dict(dictionary, queso_settings_holder.GetObject() )
 
-        return queso_settings
+        return queso_settings_holder
 
     @classmethod
     def _read_dict(cls,
             dictionary: Dict,
-            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
+            queso_settings: QuESo.Dictionary # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Recursively populate a QuESo settings object from a dictionary.
 
         Args:
             dictionary (Dict): Parsed JSON dictionary.
-            queso_settings (QuESo.Settings): The settings object to populate.
+            queso_settings (QuESo.Dictionary): The settings object to populate.
         """
         for string_key, value in dictionary.items():
             if isinstance(value, dict):
@@ -68,7 +68,7 @@ class JsonIO():
     def _read_list(cls,
             string_key: str,
             value: List[Any],
-            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
+            queso_settings: QuESo.Dictionary # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Read a list-type setting entry.
@@ -76,35 +76,37 @@ class JsonIO():
         Args:
             string_key (str): The setting key.
             value (list): The list of values from JSON.
-            queso_settings (QuESo.Settings): The settings object to modify.
+            queso_settings (QuESo.Dictionary): The settings object to modify.
         """
         if( isinstance(value[0], dict) ):
-            queso_settings.GetList(string_key) # Just called to check key, and throw an error if necessary.
-            cls._read_conditions_settings_list(value, queso_settings)
+            queso_list = queso_settings.GetList(string_key) # Just called to check key, and throw an error if necessary.
+            cls._read_conditions_settings_list(value, queso_list)
         else:
             queso_settings.SetValue(string_key, value )
 
     @classmethod
     def _read_conditions_settings_list(cls,
             condition_settings_list: List[Dict],
-            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
+            queso_dict_list: QuESo.DictionaryList # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Read a list of condition settings from JSON.
 
         Args:
             condition_settings_list (List[Dict]): List of condition dictionaries.
-            queso_settings (QuESo.Settings): The settings object to populate.
+            queso_dict_list (QuESo.DictionaryList): The settings list object to populate.
         """
         for condition_settings in condition_settings_list:
-            new_cond_settings = queso_settings.CreateNewConditionSettings()
-            cls._read_dict(condition_settings, new_cond_settings)
+            new_cond_settings_holder = QuESo.Dictionary.Create("ConditionSettings") # type: ignore (TODO: add .pyi)
+            cls._read_dict(condition_settings, new_cond_settings_holder.GetObject())
+            queso_dict_list.append(new_cond_settings_holder)
+
 
     @classmethod
     def _set_value(cls,
             string_key: str,
             value: Any,
-            queso_settings: QuESo.Settings # type: ignore (TODO: add .pyi)
+            queso_settings: QuESo.Dictionary # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Set a single value in the settings, with type conversion for enums.
@@ -112,7 +114,7 @@ class JsonIO():
         Args:
             string_key (str): The setting key.
             value (any): The value from JSON.
-            queso_settings (QuESo.Settings): The settings object to modify.
+            queso_settings (QuESo.Dictionary): The settings object to modify.
         """
         if( value != "Not Set."):
             if string_key == "integration_method":

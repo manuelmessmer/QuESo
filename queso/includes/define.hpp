@@ -20,5 +20,6 @@
 #include "queso/includes/exception.hpp"
 #include "queso/includes/assert.hpp"
 #include "queso/includes/timer.hpp"
+#include "queso/includes/register_keys.hpp"
 
 #endif // DEFINE_INCLUDE_HPP

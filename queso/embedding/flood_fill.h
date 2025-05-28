@@ -51,6 +51,7 @@ public:
     typedef std::vector<PartitionBoxType> PartitionBoxVectorType;
     typedef std::pair<int, int> Partition1DBoxType;
     typedef std::vector<std::vector<std::set<IndexType>>> BoundaryIndicesVectorType;
+    typedef Dictionary<key::MainValuesTypeTag> MainDictionaryType;
 
     ///@}
     ///@name Life cycle
@@ -59,7 +60,7 @@ public:
     /// @brief Constructor of FloodFill.
     /// @param pBrepOperator
     /// @param rSettings
-    FloodFill(const BRepOperator* pBrepOperator, const Settings& rSettings) :
+    FloodFill(const BRepOperator* pBrepOperator, const MainDictionaryType& rSettings) :
         mpBrepOperator(pBrepOperator), mGridIndexer(rSettings),
         mNumberOfElements( rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) )
     {

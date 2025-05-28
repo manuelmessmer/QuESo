@@ -43,8 +43,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
-    typedef std::vector<IntersectionStateType> StatusVectorType;
+    using TrimmedDomainPtrType = Unique<TrimmedDomain>;
+    using StatusVectorType = std::vector<IntersectionStateType>;
+    using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@}
     ///@name Life Cycle
@@ -95,7 +96,7 @@ public:
     ///        element is tested via local ray tracing and marked as inside or outside. The majority vote decides about the classification of each group.
     /// @param rSettings
     /// @return Unique<StatusVectorType>.
-    Unique<StatusVectorType> pGetElementClassifications(const Settings& rSettings) const;
+    Unique<StatusVectorType> pGetElementClassifications(const MainDictionaryType& rSettings) const;
 
     /// @brief Returns ptr to trimmed domain. Trimmed domain contains intersection mesh.(see: GetTriangleMesh())
     /// @param rLowerBound Lower bound of AABB.

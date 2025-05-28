@@ -17,7 +17,7 @@ class Analysis():
     It sets up the model, creates the elements, applies the boundary conditions, and executes the analysis.
     """
     def __init__(self,
-            settings: QuESo.Settings, # type: ignore (TODO: add .pyi)
+            settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
             kratos_settings_filename: str,
             elements: QuESo.ElementVector, # type: ignore (TODO: add .pyi)
             boundary_conditions: QuESo.ConditionVector # type: ignore (TODO: add .pyi)
@@ -29,7 +29,7 @@ class Analysis():
         settings, elements, and boundary conditions. It then runs the analysis.
 
         Args:
-            settings (QuESo.Settings): The settings for the analysis, including elements and boundary conditions.
+            settings (QuESo.Dictionary): The settings for the analysis, including elements and boundary conditions.
             kratos_settings_filename (str): The path to the Kratos settings file in JSON format.
             elements (QuESo.ElementVector): A list of elements to be added to the model part.
             boundary_conditions (QuESo.ConditionVector): A list of boundary conditions to be applied to the model.

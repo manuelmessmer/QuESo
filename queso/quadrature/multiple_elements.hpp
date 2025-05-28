@@ -318,9 +318,9 @@ private:
                     const double weight = length_global *  (r_ggq_points)[j][1];
                     std::array<double, 2> tmp_point = {position, weight};
                     if( lower_point_param[direction]-EPS3 <= position && position < upper_point_param[direction]-EPS3){
-                        if( lower_point_param[direction]+0.1*EPS3 > position) {
+                        if( lower_point_param[direction]+EPS2 > position) {
                             // Make sure point is clearly inside one element.
-                            tmp_point[0] = lower_point_param[direction]+0.1*EPS3;
+                            tmp_point[0] = lower_point_param[direction]+2*EPS3;
                         }
                         tmp_integration_points[direction].push_back(tmp_point);
                     }
