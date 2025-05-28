@@ -48,7 +48,7 @@ void AddDictionaryToPython(pybind11::module& m) {
 
     // Export static methods
     dictionary_base_type_binder.def_static("Create", [](const std::string& rName) -> MainDictionaryHolderType {
-        return MainDictionaryHolderType(std::move(DictionaryFactory<DictionaryType::KeySetValuesTypeTag>::Create(rName))); },
+        return MainDictionaryHolderType(DictionaryFactory<DictionaryType::KeySetValuesTypeTag>::Create(rName)); },
             py::return_value_policy::move );
 
     // Export vector
