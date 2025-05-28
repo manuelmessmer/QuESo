@@ -45,30 +45,22 @@ public:
     using ElementType = TElementType;
     using BackgroundGridType = BackgroundGrid<ElementType>;
     using Direction = GridIndexer::Direction;
+
     ///@}
     ///@name Operations
     ///@{
 
-    struct CompareByCoefficient {
-        bool operator()(const ElementType* a, const ElementType* b) const {
-            auto av = a->template GetValue<double>(ElementValues::neighbor_coefficient);
-            auto bv = b->template GetValue<double>(ElementValues::neighbor_coefficient);
-            if (std::abs(av - bv) < ZEROTOL) return a->GetId() > b->GetId();
-            return av < bv; // max-heap behavior (largest comes first)
-        }
-    };
-
     /// @brief Assemble tensor product quadrature rules.
     /// @param rGrid
-    /// @param rNumberOfElements
     /// @param rIntegrationOrder
     /// @param Method Integration method
-    static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
-        // Loop over all 3 space dimensions
+    static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
+
+        using ElementVectorType = std::vector<ElementType*>;
 
         ComputeNeighborCoefficients(rGrid);
 
-        std::priority_queue<ElementType*, std::vector<ElementType*>, CompareByCoefficient> unvisited_elements;
+        std::priority_queue<ElementType*, ElementVectorType, CompareByCoefficient> unvisited_elements;
         for( auto& r_el : rGrid.Elements() ) {
             r_el.SetValue(ElementValues::is_visited, false);
             if( !r_el.IsTrimmed() ){
@@ -76,95 +68,104 @@ public:
             }
         }
 
-        std::vector<ElementType*> current_box{};
-        current_box.reserve(10000);
-
         // Repeat until all elements are visited.
         while( !unvisited_elements.empty()  ){
-
             auto* p_max_el = unvisited_elements.top();
             unvisited_elements.pop();
-
             if( p_max_el->template GetValue<bool>(ElementValues::is_visited) ) {
-                continue;
+                continue; // Skip already visited elements.
             }
             p_max_el->SetValue(ElementValues::is_visited, true);
 
-            // Repetively increase current_box if possible.
+            // Repetively try to increase current_box.
+            ElementVectorType current_box{};
+            current_box.reserve(10000);
             current_box.push_back(p_max_el);
             Vector3i current_box_sizes = {1, 1, 1};
             BoundingBoxType current_box_bounds = p_max_el->GetBoundsUVW();
-            while( true ){
-                // Find neighbors of current_box.
-                std::array<std::vector<ElementType*>,6> neighbours{}; // <- List of neighbors for each direction.
-                std::array<double, 6> neighbour_coeffs = {0.0}; // <- Coefficients in each direction.
-                for( auto* p_element : current_box ){
-                    IndexType current_id = p_element->GetId();
-                    for( auto direction : GridIndexer::GetDirections() ){
-                        const IndexType dir_index = static_cast<IndexType>(direction);
-                        const auto p_neighbour = NextElement(rGrid, current_id, direction );
-                        if( p_neighbour ){
-                            const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
-                            if( !is_visited && !p_neighbour->IsTrimmed() ){
-                                const double coeff = p_neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
-                                neighbour_coeffs[dir_index] += coeff;
-                                neighbours[dir_index].push_back(p_neighbour);
-                            }
-                        }
-                    }
-                }
-
-                // Lets move towards the direction with the highest coefficient.
-                bool successful_move = false;
-                IndexType tried_directions = 0;
-                while( !successful_move && tried_directions++ < 6 ){
-
-                    IndexType move_dir_index = std::distance(neighbour_coeffs.begin(),
-                        std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())); // <- Index of move direction.
-                    const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
-
-                    // Get the number of neighbors on the plane orthogonal to the move direction.
-                    IndexType dimension_index = move_dir_index / 2;
-                    constexpr std::array<std::pair<IndexType, IndexType>, 3> dimension_index_map = {{
-                        {1, 2}, // for dimension_index 0
-                        {0, 2}, // for dimension_index 1
-                        {0, 1}  // for dimension_index 2
-                    }};
-                    const auto [i, j] = dimension_index_map[dimension_index];
-                    IndexType required_number_neighbors = current_box_sizes[i] * current_box_sizes[j];
-
-                    // Add candidates if their inclusion preserves the box shape.
-                    if( candidates_to_add.size() == required_number_neighbors){
-                        for (auto* p_element : candidates_to_add) {
-                            p_element->SetValue(ElementValues::is_visited, true);
-                            current_box.push_back(p_element);
-                            // Update bounds of current box
-                            const auto& r_el_bounds = p_element->GetBoundsUVW();
-                            for (IndexType i = 0; i < 3; ++i) {
-                                current_box_bounds.first[i]  = std::min(current_box_bounds.first[i], r_el_bounds.first[i]);
-                                current_box_bounds.second[i] = std::max(current_box_bounds.second[i], r_el_bounds.second[i]);
-                            }
-                        }
-                        successful_move = true;
-                        current_box_sizes[dimension_index]++;
-                    }
-                    else { // No valid move direction.
-                        neighbour_coeffs[move_dir_index] = 0.0;
-                    }
-                }
-
-                if( tried_directions >= 6){
-                    break;
-                }
-
+            while(TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds)){
             }
 
-            StoreIntegrationPoints( current_box, current_box_sizes, current_box_bounds, rIntegrationOrder, Method);
-            current_box.clear();
+            AssembleGGQRules(current_box, current_box_sizes, current_box_bounds, rIntegrationOrder, Method);
         }
     }
 
 private:
+
+
+    using ElementVectorType = std::vector<ElementType*>;
+
+    struct CompareByCoefficient {
+        bool operator()(const ElementType* pA, const ElementType* pB) const {
+            auto a_value = pA->template GetValue<double>(ElementValues::neighbor_coefficient);
+            auto b_value = pB->template GetValue<double>(ElementValues::neighbor_coefficient);
+            if (std::abs(a_value - b_value) < ZEROTOL) return pA->GetId() > pB->GetId();
+            return a_value < b_value;
+        }
+    };
+
+    static bool TryToExpandCurrentBox(BackgroundGridType& rGrid,
+                                      ElementVectorType& rCurrentBox,
+                                      Vector3i& rBoxSize,
+                                      BoundingBoxType& rBoxBounds) {
+        // Find neighbors of rCurrentBox.
+        std::array<ElementVectorType,6> neighbours{}; // <- List of neighbors for each direction.
+        std::array<double, 6> neighbour_coeffs = {0.0}; // <- Coefficients in each direction.
+        for( auto* p_element : rCurrentBox ){
+            IndexType current_id = p_element->GetId();
+            for( auto direction : GridIndexer::GetDirections() ){
+                const IndexType dir_index = static_cast<IndexType>(direction);
+                const auto p_neighbour = NextElement(rGrid, current_id, direction );
+                if( p_neighbour ){
+                    const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
+                    if( !is_visited && !p_neighbour->IsTrimmed() ){
+                        const double coeff = p_neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
+                        neighbour_coeffs[dir_index] += coeff;
+                        neighbours[dir_index].push_back(p_neighbour);
+                    }
+                }
+            }
+        }
+
+        // Lets move towards the direction with the highest coefficient.
+        // There are six possible directions, e.i., six attempts.
+        for( IndexType attempts = 0; attempts < 6; ++attempts ){
+
+            IndexType move_dir_index = std::distance(neighbour_coeffs.begin(),
+                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())); // <- Index of move direction.
+            const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
+
+            // Get the number of neighbors on the plane orthogonal to the move direction.
+            IndexType dimension_index = move_dir_index / 2;
+            constexpr std::array<std::pair<IndexType, IndexType>, 3> dimension_index_map = {{
+                {1, 2}, // for dimension_index 0
+                {0, 2}, // for dimension_index 1
+                {0, 1}  // for dimension_index 2
+            }};
+            const auto [i, j] = dimension_index_map[dimension_index];
+            IndexType required_number_neighbors = rBoxSize[i] * rBoxSize[j];
+
+            // Add candidates if their inclusion preserves the box shape.
+            if( candidates_to_add.size() == required_number_neighbors){
+                for (auto* p_element : candidates_to_add) {
+                    p_element->SetValue(ElementValues::is_visited, true);
+                    rCurrentBox.push_back(p_element);
+                    // Update bounds of current box
+                    const auto& r_el_bounds = p_element->GetBoundsUVW();
+                    for (IndexType i = 0; i < 3; ++i) {
+                        rBoxBounds.first[i]  = std::min(rBoxBounds.first[i], r_el_bounds.first[i]);
+                        rBoxBounds.second[i] = std::max(rBoxBounds.second[i], r_el_bounds.second[i]);
+                    }
+                }
+                rBoxSize[dimension_index]++;
+                return true;
+            }
+            else { // No valid move direction.
+                neighbour_coeffs[move_dir_index] = 0.0; // <- Exclude this one from the potential move directions.
+            }
+        }
+        return false;
+    }
 
     static void ComputeNeighborCoefficients(BackgroundGridType& rElements) {
 
@@ -173,7 +174,7 @@ private:
             bool local_end = false;
             IndexType current_id = 1;
             IndexType next_id = 0;
-            std::vector<ElementType*> neighbors;
+            ElementVectorType neighbors;
             neighbors.reserve(20);
             // Check if element with index=1 is part of rElements.
             const auto first_element = rElements.pGetElement(1);
@@ -204,8 +205,7 @@ private:
         }
     }
 
-    ///@todo Refactor this
-    static void AssignNeighborCoefficients(std::vector<ElementType*>& rElements) {
+    static void AssignNeighborCoefficients(ElementVectorType& rElements) {
         const auto element_it_begin = rElements.begin();
         const IndexType number_neighbours = rElements.size();
 
@@ -225,7 +225,7 @@ private:
         return rElements.GetNextElement(CurrentId, Dir, dummy_next_id, dummy_local_end);
     }
 
-    static void StoreIntegrationPoints(std::vector<ElementType*>& rElements, const Vector3i& rNumberKnotspans,
+    static void AssembleGGQRules(ElementVectorType& rElements, const Vector3i& rNumberKnotspans,
             const BoundingBoxType& rBounds, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
 
         // Loop over all elements
