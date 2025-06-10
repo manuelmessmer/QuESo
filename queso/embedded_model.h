@@ -22,6 +22,7 @@
 #include "queso/containers/background_grid.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/utilities/check_dictionary_utilities.hpp"
 
 namespace queso {
 
@@ -57,6 +58,15 @@ public:
     ///@name  Life Cycle
     ///@{
 
+    /// @brief Helper to create EmbeddedModel.
+    /// @param pSettings (EmbeddedModel takes unique ownership).
+    /// @return EmbeddedModel.
+    static EmbeddedModel Create(Unique<MainDictionaryType> pSettings) {
+        CheckDictionaryUtilities::CheckSettings(*pSettings);
+        return EmbeddedModel(std::move(pSettings));
+    }
+
+private:
     /// @brief Constructor
     /// @param pSettings (EmbeddedModel takes unique ownership).
     EmbeddedModel(Unique<MainDictionaryType> pSettings) :
@@ -67,6 +77,7 @@ public:
     {
     }
 
+public:
     /// Copy Constructor
     EmbeddedModel(const EmbeddedModel &rOther) = delete;
     /// Copy Assignement
@@ -222,7 +233,7 @@ private:
     ///@}
     ///@name Private Members Variables
     ///@{
-    const Unique<MainDictionaryType> mpSettings;
+    Unique<const MainDictionaryType> mpSettings;
     const GridIndexer mGridIndexer;
     BackgroundGridType mBackgroundGrid;
     Unique<MainDictionaryType> mpModelInfo;
