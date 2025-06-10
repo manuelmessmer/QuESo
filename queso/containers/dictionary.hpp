@@ -101,9 +101,6 @@ public:
     ///@name Life cycle
     ///@{
 
-    // Remove before published.
-    Dictionary() {}
-
     /// @brief Constructor. Dictionary takes one, two, or three KeySetInfoType's. These can be passed using
     ///        KeySetInfosTypeTag. Each KeySetInfoType contains the keys to access Values, SubDictionaries and Lists.
     ///        Each group can also be empty (use EmptyKeySetType for the respective KeySetInfoType).
