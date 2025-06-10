@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 5000u);
     r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod::gauss);
 
-    EmbeddedModel embedded_model(std::move(p_settings));
+    EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
@@ -110,7 +110,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
     r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
-    EmbeddedModel embedded_model(std::move(p_settings));
+    EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     const auto& elements = embedded_model.GetElements();
@@ -318,7 +318,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     p_cond_settings_4->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
     r_cond_settings_list.push_back(std::move(p_cond_settings_4));
 
-    EmbeddedModel embedded_model(std::move(p_settings));
+    EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     /// Test volume
@@ -471,7 +471,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     p_cond_settings_1->SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
     r_cond_setttings_list.push_back(std::move(p_cond_settings_1));
 
-    EmbeddedModel embedded_model(std::move(p_settings));
+    EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
     /// Check model info
