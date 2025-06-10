@@ -15,6 +15,7 @@
 #define DEREFERENCE_ITERATOR_INCLUDE_HPP
 
 //// STL includes
+#include <iterator>
 #include <stddef.h>
 
 namespace queso {
@@ -26,10 +27,14 @@ namespace queso {
 /// @brief This iterator is intended to be used for containers like
 ///        std::vector<std::unique_ptr<Type>>. It allows to iterate through the container
 ///        without the need of dereferencing the unique_ptr.
-/// @tparam BaseIterator
+/// @tparam BaseIterator (must be random access iterator).
 template <class BaseIterator>
 class DereferenceIterator {
 public:
+    static_assert(std::is_same_v<typename std::iterator_traits<BaseIterator>::iterator_category,
+                  std::random_access_iterator_tag>,
+                  "DereferenceIterator requires BaseIterator to be a random access iterator.");
+
     static constexpr bool is_const = std::is_const<
         std::remove_reference_t<decltype(*std::declval<BaseIterator>())>
     >::value;
@@ -45,7 +50,18 @@ public:
         value_type&                             // Otherwise, use non-const reference
     >::type;
 
+    constexpr DereferenceIterator() noexcept = default;
     explicit constexpr DereferenceIterator(const BaseIterator &rOther) : mIt(rOther) {}
+
+    template <class OtherIterator,
+        std::enable_if_t<std::is_convertible_v<OtherIterator, BaseIterator>, int> = 0>
+    constexpr DereferenceIterator(const DereferenceIterator<OtherIterator>& rOther)
+        : mIt(rOther.base()) {}
+
+    constexpr DereferenceIterator(const DereferenceIterator&) = default;
+    constexpr DereferenceIterator(DereferenceIterator&&) = default;
+    constexpr DereferenceIterator& operator=(const DereferenceIterator&) = default;
+    constexpr DereferenceIterator& operator=(DereferenceIterator&&) = default;
 
     [[nodiscard]] constexpr reference operator*() const noexcept {
         return *(*mIt);
