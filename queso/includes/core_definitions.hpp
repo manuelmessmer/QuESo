@@ -127,7 +127,7 @@ inline constexpr BoundingBoxType MakeBox( const PointType& rL, const PointType& 
 }
 
 ///@}
-///@name QuESo POINTER DEFINITIONS
+///@name QuESo pointer definitions
 ///@{
 
 /// Shared Ptr
@@ -149,89 +149,10 @@ inline auto MakeUnique(Args&&... args) -> decltype(std::make_unique<T>(std::forw
 }
 
 ///@}
-///@name QuESo ITERATOR DEFINITIONS
+///@name QuESo ostream definitions
 ///@{
 
-// DereferenceIterator
-template <class BaseIterator> class DereferenceIterator : public BaseIterator {
-public:
-
-    static constexpr bool is_const = std::is_const<
-        std::remove_reference_t<decltype(*std::declval<BaseIterator>())>
-    >::value;
-    using value_type = typename BaseIterator::value_type::element_type;
-
-    using pointer = typename std::conditional<is_const,
-        const value_type*,                    // If so, use const pointer
-        value_type*                           // Otherwise, use non-const pointer
-    >::type;
-
-    using reference = typename std::conditional<is_const,
-        const value_type&,                      // If so, use const reference
-        value_type&                             // Otherwise, use non-const reference
-    >::type;
-
-    DereferenceIterator(const BaseIterator &rOther) : BaseIterator(rOther) {}
-
-    [[nodiscard]] constexpr reference operator*() const noexcept {
-        return *(BaseIterator::operator*());
-    }
-    [[nodiscard]] constexpr pointer operator->() const noexcept {
-        return BaseIterator::operator*().get();
-    }
-    [[nodiscard]] constexpr reference operator[](IndexType n) const noexcept {
-        return *(BaseIterator::operator[](n));
-    }
-};
-
-template <typename Iterator>
-[[nodiscard]] inline DereferenceIterator<Iterator> dereference_iterator(Iterator t) noexcept {
-    return DereferenceIterator<Iterator>(t);
-}
-
-// RawPointerIterator
-template <class BaseIterator> class RawPointerIterator : public BaseIterator {
-public:
-    static constexpr bool is_const = std::is_const<
-        std::remove_reference_t<decltype(*std::declval<BaseIterator>())>
-    >::value;
-    using value_type = typename BaseIterator::value_type::element_type;
-
-    using pointer = typename std::conditional<is_const,
-        const value_type*,                    // If so, use const pointer
-        value_type*                           // Otherwise, use non-const pointer
-    >::type;
-
-
-    RawPointerIterator(const BaseIterator &rOther) : BaseIterator(rOther) {}
-
-    [[nodiscard]] constexpr pointer operator*() const noexcept {
-        return (BaseIterator::operator*()).get();
-    }
-    [[nodiscard]] constexpr pointer operator->() const noexcept {
-        return BaseIterator::operator*().get();
-    }
-    [[nodiscard]] constexpr pointer operator[](IndexType n) const noexcept {
-        return (BaseIterator::operator[](n)).get();
-    }
-};
-
-template <typename Iterator>
-[[nodiscard]] inline RawPointerIterator<Iterator> raw_pointer_iterator(Iterator t) noexcept {
-    return RawPointerIterator<Iterator>(t);
-}
-
-// Ranges
-template<class TIterator>
-struct Range {
-    using iterator = TIterator;
-
-    iterator mBegin, mEnd;
-
-    [[nodiscard]] constexpr iterator begin() const noexcept { return mBegin; }
-    [[nodiscard]] constexpr iterator end() const noexcept { return mEnd; }
-};
-
+/// std::array<type, 3>
 template<typename type>
 inline std::ostream& operator<<(std::ostream& rOStream, const std::array<type, 3>& rThis)  {
     rOStream << '(' << rThis[0] << ", " << rThis[1] << ", " << rThis[2] << ')';

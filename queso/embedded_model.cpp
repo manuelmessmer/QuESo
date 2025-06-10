@@ -192,7 +192,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     const auto el_it_ptr_begin = mBackgroundGrid.ElementsBegin();
     #pragma omp parallel for reduction(+ : represented_volume, tot_num_points_full, tot_num_points_trimmed) schedule(guided)
     for( int i = 0; i < static_cast<int>(num_active_elements); ++i ){
-        const auto& el_ptr = *(el_it_ptr_begin + i);
+        const auto el_ptr = (el_it_ptr_begin + i);
         const double det_j = el_ptr->DetJ();
         const auto& r_points = el_ptr->GetIntegrationPoints();
         represented_volume += std::accumulate(r_points.begin(), r_points.end(), 0.0,
