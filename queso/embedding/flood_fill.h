@@ -52,6 +52,7 @@ public:
     typedef std::pair<int, int> Partition1DBoxType;
     typedef std::vector<std::vector<std::set<IndexType>>> BoundaryIndicesVectorType;
     typedef Dictionary<key::MainValuesTypeTag> MainDictionaryType;
+    typedef GridIndexer::Direction Direction;
 
     ///@}
     ///@name Life cycle
@@ -127,13 +128,13 @@ private:
     ///        If next is trimmed, it is marked in rStates. And Is_inside cout of 'rGroupSet' is increased/decreased.
     ///        If next index is not already visited and not trimmed, it is returned. Otherwise -1 is returned.
     /// @param Index Current index.
-    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Dir Move Direction.
     /// @param rGroupSet Current group.
     /// @param rPartition Current partition.
     /// @param rStates Global classification vector.
     /// @param rVisited Vector<bool> for all elements.
     /// @return NextIndex.
-    int Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSet,
+    int Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
         const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
 
     /// @brief Merge groups that emerged from PartitionedFill.
@@ -171,9 +172,9 @@ private:
 
     /// @brief Returns the offset for a given direction, which is used to extend the size of the next element towards the direction
     ///        of the start element to catch trimming surfaces that are exactly on the boundary.
-    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Dir Move Direction.
     /// @return BoundingBoxType
-    BoundingBoxType GetOffsets(IndexType Direction ) const;
+    BoundingBoxType GetOffsets(Direction Dir) const;
 
 
     ///@}

@@ -163,8 +163,8 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
         while( !index_stack.empty() ){
             /// 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
             const IndexType current_index = index_stack.top();
-            for( IndexType direction = 0; direction < 6; ++direction){
-                new_indices[direction] = Move(current_index, direction, rGroupSet, rPartition, rStates, rVisited );
+            for( auto direction : GridIndexer::GetDirections()){
+                new_indices[static_cast<int>(direction)] = Move(current_index, direction, rGroupSet, rPartition, rStates, rVisited );
             }
 
             index_stack.pop();
@@ -178,13 +178,13 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
 
 }
 
-int FloodFill::Move(IndexType Index, IndexType Direction, GroupSetType& rGroupSet,
+int FloodFill::Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
         const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const {
 
     const IndexType index = Index;
 
-    const auto [lower_perturb, upper_perturb] = GetOffsets(Direction);
-    const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, Direction, rPartition);
+    const auto [lower_perturb, upper_perturb] = GetOffsets(Dir);
+    const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, Dir, rPartition);
 
     // Check if out-of-range
     if( index_info != GridIndexer::IndexInfo::middle ) {
@@ -226,7 +226,8 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
     const IndexType num_groups = rGroups.size();
 
     // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
-    const std::array<IndexType, 2> walk_directions = {2*PartitionDir, (2*PartitionDir)+1};
+    const std::array<Direction, 2> walk_directions = {static_cast<Direction>(2*PartitionDir),
+                                                      static_cast<Direction>((2*PartitionDir)+1)};
 
     // Compute bounding box for each group (only along PartitionDir).
     std::vector<Partition1DBoxType> group_bounding_boxes(num_groups);
@@ -318,7 +319,8 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
         const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, StatusVectorType& rStates, BoolVectorType& rVisited ) const {
 
     // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
-    const std::array<IndexType, 2> walk_directions = {2*PartitionDir, (2*PartitionDir)+1};
+    const std::array<Direction, 2> walk_directions = {static_cast<Direction>(2*PartitionDir),
+                                                      static_cast<Direction>((2*PartitionDir)+1)};
 
     // Set index as visited
     rVisited[GroupIndex] = true;
@@ -328,9 +330,6 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
     index_stack.push( GroupIndex );
 
     rMergedGroups.push_back( rGroupSetVector[GroupIndex] );
-
-    // Map forward to backward direction.
-    const std::array<IndexType, 6> map_direction = {1, 0, 3, 2, 5, 4};
 
     // Loop over stack and perform group flood fill.
     while( !index_stack.empty() ){
@@ -348,10 +347,11 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
                     if( are_neighbours ){
                         break;
                     }
-                    for( auto& iii : current_boundary_indices[map_direction[direction] % 2] ) { // -1{
+                    for( auto& iii : current_boundary_indices[static_cast<int>(GridIndexer::ReverseDirection(direction)) % 2] ) {
                         const auto [next_index, index_info] = mGridIndexer.GetNextIndex(iii, direction);
                         if( index_info != GridIndexer::IndexInfo::middle ) { break; }
-                        if( other_boundary_indices[direction % 2].find(next_index) != other_boundary_indices[direction % 2].end() ){
+                        if( other_boundary_indices[static_cast<int>(direction) % 2].find(next_index)
+                                != other_boundary_indices[static_cast<int>(direction) % 2].end() ){
                             are_neighbours = true;
                             break;
                         }
@@ -387,20 +387,20 @@ int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const Poi
 }
 
 
-BoundingBoxType FloodFill::GetOffsets(IndexType Direction ) const {
+BoundingBoxType FloodFill::GetOffsets(Direction Dir ) const {
     const double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
-    switch(Direction){
-        case 0:
+    switch(Dir){
+        case Direction::x_forward:
             return std::make_pair(PointType{-tolerance, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
-        case 1:
+        case Direction::x_backward:
             return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{tolerance, 0.0, 0.0});
-        case 2:
+        case Direction::y_forward:
             return std::make_pair(PointType{0.0, -tolerance, 0.0}, PointType{0.0, 0.0, 0.0});
-        case 3:
+        case Direction::y_backward:
             return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, tolerance, 0.0});
-        case 4:
+        case Direction::z_forward:
             return std::make_pair(PointType{0.0, 0.0, -tolerance}, PointType{0.0, 0.0, 0.0});
-        case 5:
+        case Direction::z_backward:
             return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, tolerance});
         default:
             assert(false);
