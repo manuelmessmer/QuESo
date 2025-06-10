@@ -30,7 +30,7 @@ namespace queso {
 /// @class  QuadratureMultipleElements.
 /// @author Manuel Messmer
 /// @brief  Provides assembly operations for tensor-product quadrature rules that can be used for multiple non-trimmed elements.
-///         Available Quadrature rules: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
+///         Available quadrature rules: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
 /// @details Implements algorithm from Section 3.2.1 in 10.1016/j.cma.2022.115584.
 template<typename TElementType>
 class QuadratureMultipleElements {
@@ -54,9 +54,9 @@ public:
     /// @param rIntegrationOrder
     /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
     static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
-
         using ElementVectorType = std::vector<ElementType*>;
 
+        // Initialize
         ComputeNeighborCoefficients(rGrid);
 
         // Create priority queue for all non-trimmed elements. The element with the highest neighbor coefficient is
@@ -78,13 +78,13 @@ public:
             }
             p_max_el->SetValue(ElementValues::is_visited, true);
 
-            // Repetively try to increase current_box.
+            // Repetively try to expand current_box.
             ElementVectorType current_box{};
             current_box.reserve(10000);
             current_box.push_back(p_max_el);
             Vector3i current_box_sizes = {1, 1, 1};
             BoundingBoxType current_box_bounds = p_max_el->GetBoundsUVW();
-            while(TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds)){
+            while( TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds) ){
             }
 
             // Assemble integration points.
@@ -99,12 +99,14 @@ private:
 
     using ElementVectorType = std::vector<ElementType*>;
 
-    /// Helper struct to define order in priority queue.
+    /// Helper struct to define the order in the priority queue.
     struct CompareByCoefficient {
         bool operator()(const ElementType* pLHS, const ElementType* pRHS) const {
-            auto l_value = pLHS->template GetValue<double>(ElementValues::neighbor_coefficient);
-            auto r_value = pRHS->template GetValue<double>(ElementValues::neighbor_coefficient);
-            if (std::abs(l_value - r_value) < ZEROTOL) return pLHS->GetId() > pRHS->GetId();
+            double l_value = pLHS->template GetValue<double>(ElementValues::neighbor_coefficient);
+            double r_value = pRHS->template GetValue<double>(ElementValues::neighbor_coefficient);
+            if(std::abs(l_value - r_value) < ZEROTOL) {
+                return (pLHS->GetId() > pRHS->GetId());
+            }
             return l_value < r_value;
         }
     };
@@ -113,11 +115,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// @brief Computes the neighbor coefficient of each full element in the given grid.
+    /// @brief Computes the neighbor coefficients for each full element in the given grid.
     /// @details Implements algorithm from Fig. 8 in 10.1016/j.cma.2022.115584.
     /// @param rElements
     static void ComputeNeighborCoefficients(BackgroundGridType& rElements) {
-
+        // Loop over all forward directions.
         constexpr std::array<Direction, 3> directions = {Direction::x_forward, Direction::y_forward, Direction::z_forward};
         for( auto dir : directions ){
             bool local_end = false;
@@ -133,7 +135,7 @@ private:
             IndexType el_counter = 1;
             // Loop until all elements in rElements have beend visited/found
             while( el_counter < rElements.NumberOfActiveElements() ){
-                ElementType* neighbour = rElements.GetNextElement(current_id, dir, next_id, local_end);
+                ElementType* neighbour = rElements.pGetNextElement(current_id, dir, next_id, local_end);
                 if( neighbour ){
                     el_counter++;
                     if(neighbour->IsTrimmed()){
@@ -186,7 +188,7 @@ private:
             IndexType current_id = p_element->GetId();
             for( auto direction : GridIndexer::GetDirections() ){
                 const IndexType dir_index = static_cast<IndexType>(direction);
-                ElementType* p_neighbour = NextElement(rGrid, current_id, direction );
+                ElementType* p_neighbour = pNextElement(rGrid, current_id, direction );
                 if( p_neighbour ){
                     const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
                     if( !is_visited && !p_neighbour->IsTrimmed() ){
@@ -306,11 +308,11 @@ private:
     /// @param CurrentId
     /// @param Dir
     /// @return ElementType*
-    static ElementType* NextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
+    static ElementType* pNextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
         IndexType dummy_next_id;
         bool dummy_local_end;
 
-        return rElements.GetNextElement(CurrentId, Dir, dummy_next_id, dummy_local_end);
+        return rElements.pGetNextElement(CurrentId, Dir, dummy_next_id, dummy_local_end);
     }
 
     /// @brief Helper function to compute the neighbor coefficient using a linear function.
