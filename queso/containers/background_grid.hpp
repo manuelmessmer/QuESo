@@ -76,9 +76,9 @@ public:
     /// Assignement Operator
     BackgroundGrid& operator=(BackgroundGrid const& rOther) = delete;
     /// Move constructor
-    BackgroundGrid(BackgroundGrid&& rOther) noexcept = delete;
+    BackgroundGrid(BackgroundGrid&& rOther) noexcept = default;
     /// Move assignement operator
-    BackgroundGrid& operator=(BackgroundGrid&& rOther) noexcept = delete;
+    BackgroundGrid& operator=(BackgroundGrid&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
