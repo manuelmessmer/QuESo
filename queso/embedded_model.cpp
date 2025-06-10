@@ -63,7 +63,6 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     // MainSettings::background_grid_settings.
     const auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     const Vector3i polynomial_order = r_grid_settings.GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
-    const Vector3i number_of_elements = r_grid_settings.GetValue<Vector3i>(BackgroundGridSettings::number_of_elements);
 
     /* End: Get neccessary settings */
 
@@ -156,7 +155,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     if( ggq_rule_is_used ){
         // Construct Generalized Gaussian quadrature rules.
         Timer timer_ggq_rules{};
-        QuadratureMultipleElements<ElementType>::AssembleIPs(mBackgroundGrid, number_of_elements, polynomial_order, integration_method);
+        QuadratureMultipleElements<ElementType>::AssembleIPs(mBackgroundGrid, polynomial_order, integration_method);
         et_ggq_rules = timer_ggq_rules.Measure();
     }
 
