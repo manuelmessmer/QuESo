@@ -43,20 +43,20 @@ public:
     ///@name Type Defintitions
     ///@{
 
-    typedef TElementType ElementType;
-    typedef typename ElementType::IntegrationPointType IntegrationPointType;
-    typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
+    using ElementType = TElementType;
+    using IntegrationPointType = typename ElementType::IntegrationPointType;
+    using BoundaryIntegrationPointType = typename ElementType::BoundaryIntegrationPointType;
 
-    typedef Unique<ElementType> ElementPtrType;
-    typedef std::vector<ElementPtrType> ElementContainerType;
-    typedef std::unordered_map<IndexType, IndexType> ElementIdMapType;
+    using ElementPtrType = Unique<ElementType>;
+    using ElementContainerType = std::vector<ElementPtrType>;
+    using ElementIdMapType = std::unordered_map<IndexType, IndexType>;
 
-    typedef Condition<ElementType> ConditionType;
-    typedef Unique<ConditionType> ConditionPtrType;
-    typedef std::vector<ConditionPtrType> ConditionContainerType;
+    using ConditionType = Condition<ElementType>;
+    using ConditionPtrType = Unique<ConditionType>;
+    using ConditionContainerType = std::vector<ConditionPtrType>;
 
-    typedef Dictionary<key::MainValuesTypeTag> MainDictionaryType;
-
+    using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
+    using Direction = GridIndexer::Direction;
 
     ///@}
     ///@name Life Cycle
@@ -291,12 +291,39 @@ public:
         return p_element;
     }
 
+    /// @brief Returns raw ptr to next element.
+    /// @param CurrentId element id to start from.
+    /// @param Dir Move direction.
+    /// @param[out] rNextId
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @return ElementType*
+    ElementType* pGetNextElement(IndexType CurrentId, Direction Dir, IndexType& rNextId, bool& rIsEnd ) {
+        switch( Dir )
+        {
+        case Direction::x_forward:
+            return pGetNextElementInX(CurrentId, rNextId, rIsEnd);
+        case Direction::x_backward:
+            return pGetPreviousElementInX(CurrentId, rNextId, rIsEnd);
+        case Direction::y_forward:
+            return pGetNextElementInY(CurrentId, rNextId, rIsEnd);
+        case Direction::y_backward:
+            return pGetPreviousElementInY(CurrentId, rNextId, rIsEnd);
+        case Direction::z_forward:
+            return pGetNextElementInZ(CurrentId, rNextId, rIsEnd);
+        case Direction::z_backward:
+            return pGetPreviousElementInZ(CurrentId, rNextId, rIsEnd);
+        default:
+            QuESo_ASSERT(false, "There are only 6 different directions.\n");
+            return nullptr;
+        }
+    }
+
     /// @brief Returns true if CurrentId is a local or global end. That means we can not move towards the given direction.
     /// @param CurrentId
-    /// @param Direction – Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Direction – Move Direction.
     /// @return bool
-    bool IsEnd(IndexType CurrentId, IndexType Direction ){
-        return mGridIndexer.IsEnd(CurrentId-1, Direction);
+    bool IsEnd(IndexType CurrentId, Direction Dir ){
+        return mGridIndexer.IsEnd(CurrentId-1, Dir);
     }
 
     /// @brief Returns the volume stored on all integration points.
@@ -335,10 +362,6 @@ public:
     ///@name Get Iterators
     ///@{
 
-    ///@}
-    ///@name Iterators
-    ///@{
-
     //////////////////
     //// Elements ////
     //////////////////
@@ -346,57 +369,43 @@ public:
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ElementContainerType::iterator> ElementsBegin() {
-        return dereference_iterator(mElements.begin());
+    auto ElementsBegin() {
+        return dereference_iterator<typename ElementContainerType::iterator>(mElements.begin());
     }
 
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ElementContainerType::const_iterator> ElementsBegin() const {
-        return dereference_iterator(mElements.begin());
+    auto ElementsBegin() const {
+        return dereference_iterator<typename ElementContainerType::const_iterator>(mElements.begin());
     }
 
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ElementContainerType::iterator> ElementsEnd() {
-        return dereference_iterator(mElements.end());
+    auto ElementsEnd() {
+        return dereference_iterator<typename ElementContainerType::iterator>(mElements.end());
     }
 
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ElementContainerType::const_iterator> ElementsEnd() const {
-        return dereference_iterator(mElements.end());
+    auto ElementsEnd() const {
+        return dereference_iterator<typename ElementContainerType::const_iterator>(mElements.end());
     }
 
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ElementContainerType::iterator> ElementsBeginToPtr() {
-        return raw_pointer_iterator(mElements.begin());
+    /// @brief Returns range of dereferenced iterators for the elements container (non-const version).
+    /// @return Range.
+    auto Elements() {
+        using IteratorType = DereferenceIterator<typename ElementContainerType::iterator>;
+        return Range<IteratorType>{ ElementsBegin(), ElementsEnd() };
     }
 
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ElementContainerType::const_iterator> ElementsBeginToPtr() const {
-        return raw_pointer_iterator(mElements.begin());
-    }
-
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ElementContainerType::iterator> ElementsEndToPtr() {
-        return raw_pointer_iterator(mElements.end());
-    }
-
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ElementContainerType::const_iterator> ElementsEndToPtr() const {
-        return raw_pointer_iterator(mElements.end());
+    /// @brief Returns range of dereferenced iterators for the elements container (const version).
+    /// @return Range.
+    auto Elements() const {
+        using IteratorType = DereferenceIterator<typename ElementContainerType::const_iterator>;
+        return Range<IteratorType>{ ElementsBegin(), ElementsEnd() };
     }
 
     ////////////////////
@@ -431,32 +440,18 @@ public:
         return dereference_iterator(mConditions.end());
     }
 
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionContainerType::iterator> ConditionsBeginToPtr() {
-        return raw_pointer_iterator(mConditions.begin());
+    /// @brief Returns range of dereferenced iterators for the condition container (non-const version).
+    /// @return Range.
+    auto Conditions() {
+        using IteratorType = DereferenceIterator<typename ConditionContainerType::iterator>;
+        return Range<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
     }
 
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionContainerType::const_iterator> ConditionsBeginToPtr() const {
-        return raw_pointer_iterator(mConditions.begin());
-    }
-
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionContainerType::iterator> CondiitonsEndToPtr() {
-        return raw_pointer_iterator(mConditions.end());
-    }
-
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionContainerType::const_iterator> CondiitonsEndToPtr() const {
-        return raw_pointer_iterator(mConditions.end());
+    /// @brief Returns range of dereferenced iterators for the condition container (const version).
+    /// @return Range.
+    auto Conditions() const {
+        using IteratorType = DereferenceIterator<typename ConditionContainerType::const_iterator>;
+        return Range<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
     }
 
 private:
@@ -470,8 +465,8 @@ private:
     ElementContainerType mElements;
     ElementIdMapType mElementIdMap;
 
-    ElementContainerType mInvalidElements;
-    ElementIdMapType mInvalidElementIdMap;
+    // ElementContainerType mInvalidElements;
+    // ElementIdMapType mInvalidElementIdMap;
 
     ConditionContainerType mConditions;
 
