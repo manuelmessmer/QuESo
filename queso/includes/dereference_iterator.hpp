@@ -71,7 +71,20 @@ public:
         return *this;
     }
 
-    // Provide access to the underlying iterator for operator+
+    constexpr DereferenceIterator& operator--() noexcept {
+        --mIt;
+        return *this;
+    }
+    constexpr DereferenceIterator operator--(int) noexcept {
+        DereferenceIterator tmp(*this);
+        --mIt;
+        return tmp;
+    }
+    constexpr DereferenceIterator& operator-=(ptrdiff_t dec) noexcept {
+        mIt -= dec;
+        return *this;
+    }
+
     [[nodiscard]] constexpr const BaseIterator& base() const noexcept {
         return mIt;
     }
@@ -95,6 +108,61 @@ template <class BaseIterator>
 [[nodiscard]] constexpr DereferenceIterator<BaseIterator> operator+(
         ptrdiff_t n, const DereferenceIterator<BaseIterator>& it) noexcept {
     return DereferenceIterator<BaseIterator>(n + it.base());
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr DereferenceIterator<BaseIterator> operator-(
+        const DereferenceIterator<BaseIterator>& it, ptrdiff_t n) noexcept {
+    return DereferenceIterator<BaseIterator>(it.base() - n);
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr ptrdiff_t operator-(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() - rhs.base();
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr bool operator==(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() == rhs.base();
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr bool operator!=(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() != rhs.base();
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr bool operator<(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() < rhs.base();
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr bool operator<=(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() <= rhs.base();
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr bool operator>(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() > rhs.base();
+}
+
+template <class BaseIterator>
+[[nodiscard]] constexpr bool operator>=(
+        const DereferenceIterator<BaseIterator>& lhs,
+        const DereferenceIterator<BaseIterator>& rhs) noexcept {
+    return lhs.base() >= rhs.base();
 }
 
 /// @brief Enables to use range-based for loops with DereferenceIterator.
