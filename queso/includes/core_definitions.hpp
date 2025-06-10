@@ -221,6 +221,17 @@ template <typename Iterator>
     return RawPointerIterator<Iterator>(t);
 }
 
+// Ranges
+template<class TIterator>
+struct Range {
+    using iterator = TIterator;
+
+    iterator mBegin, mEnd;
+
+    [[nodiscard]] constexpr iterator begin() const noexcept { return mBegin; }
+    [[nodiscard]] constexpr iterator end() const noexcept { return mEnd; }
+};
+
 template<typename type>
 inline std::ostream& operator<<(std::ostream& rOStream, const std::array<type, 3>& rThis)  {
     rOStream << '(' << rThis[0] << ", " << rThis[1] << ", " << rThis[2] << ')';
