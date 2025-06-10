@@ -33,6 +33,8 @@ class GridIndexer {
 public:
 
     enum class IndexInfo {middle, local_end, global_end};
+    enum class Direction {x_forward, x_backward, y_forward, y_backward, z_forward, z_backward};
+
     using IndexReturnType = std::pair<IndexType, IndexInfo>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
@@ -153,46 +155,30 @@ public:
 
     /// @brief Returns next index in given direction.
     /// @param Index current index.
-    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Direction Move Direction.
     /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
-    inline IndexReturnType GetNextIndex(IndexType Index, IndexType Direction) const {
-        switch(Direction){
-            case 0:
-                return GetNextIndexX(Index);
-            case 1:
-                return GetPreviousIndexX(Index);
-            case 2:
-                return GetNextIndexY(Index);
-            case 3:
-                return GetPreviousIndexY(Index);
-            case 4:
-                return GetNextIndexZ(Index);
-            case 5:
-                return GetPreviousIndexZ(Index);
-            default:
-                QuESo_ASSERT(false, "Should no be reached");
-                return std::make_pair(0, IndexInfo::middle);
-        }
+    inline IndexReturnType GetNextIndex(IndexType Index, Direction Dir) const {
+        return GetNextIndex(Index, Dir, mGlobalPartition);
     }
 
     /// @brief Returns next index in given direction and partition.
     /// @param Index current index.
-    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Direction Move Direction.
     /// @param rPartition active partition.
     /// @return std::pair<IndexType, IndexInfo>: IndexInfo relates to the CURRENT Index and can be: middle, local_end, global_end.
-    inline IndexReturnType GetNextIndex(IndexType Index, IndexType Direction, const PartitionBoxType& rPartition) const {
-        switch(Direction){
-            case 0:
+    inline IndexReturnType GetNextIndex(IndexType Index, Direction Dir, const PartitionBoxType& rPartition) const {
+        switch(Dir){
+            case Direction::x_forward:
                 return GetNextIndexX(Index, rPartition);
-            case 1:
+            case Direction::x_backward:
                 return GetPreviousIndexX(Index, rPartition);
-            case 2:
+            case Direction::y_forward:
                 return GetNextIndexY(Index, rPartition);
-            case 3:
+            case Direction::y_backward:
                 return GetPreviousIndexY(Index, rPartition);
-            case 4:
+            case Direction::z_forward:
                 return GetNextIndexZ(Index, rPartition);
-            case 5:
+            case Direction::z_backward:
                 return GetPreviousIndexZ(Index, rPartition);
             default:
                 QuESo_ASSERT(false, "Should no be reached");
@@ -202,7 +188,6 @@ public:
 
     /// @brief Returns next index in x-direction.
     /// @param i current index.
-    /// @param[out] LocalEnd True if current index is a local end.
     /// @return IndexType
     inline IndexReturnType GetNextIndexX(IndexType i) const {
         return GetNextIndexX(i, mGlobalPartition);
@@ -408,32 +393,32 @@ public:
 
     /// @brief Returns true if current index is a local end w.r.t. the given direction.
     /// @param i current index
-    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Direction Move Direction.
     /// @return bool
-    bool IsEnd(IndexType i, IndexType Direction){
-        return IsEnd(i, Direction, mGlobalPartition);
+    bool IsEnd(IndexType i, Direction Dir){
+        return IsEnd(i, Dir, mGlobalPartition);
     }
 
     /// @brief Returns true if current index is a local end w.r.t. the given direction.
     /// @param i current index
-    /// @param Direction Move Direction: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
+    /// @param Direction Move Direction.
     /// @param rPartition active Partition
     /// @return bool
-    bool IsEnd(IndexType i, IndexType Direction, const PartitionBoxType& rPartition ){
+    bool IsEnd(IndexType i, Direction Dir, const PartitionBoxType& rPartition ){
         auto indices = GetMatrixIndicesFromVectorIndex(i);
-        switch( Direction )
+        switch( Dir )
         {
-        case 0: // Forward x
+        case Direction::x_forward:
             return (indices[0] == (rPartition.second[0]));
-        case 1: // Backward X
+        case Direction::x_backward:
             return (indices[0] == (rPartition.first[0]));
-        case 2: // Forward Y
+        case Direction::y_forward:
             return (indices[1] == (rPartition.second[1]));
-        case 3: // Backward Y
+        case Direction::y_backward:
             return (indices[1] == (rPartition.first[1]));
-        case 4: // Forward Z
+        case Direction::z_forward:
             return (indices[2] == (rPartition.second[2]));
-        case 5: // Backward Z
+        case Direction::z_backward:
             return (indices[2] == (rPartition.first[2]));
         default:
             QuESo_ASSERT(false, "Should no be reached");
@@ -441,9 +426,28 @@ public:
         }
     }
 
+    /// @brief Helper function that returns an array of all valid directions.
+    /// @return std::array<Direction, 6>
+    static constexpr std::array<Direction, 6> GetDirections() {
+        return {Direction::x_forward, Direction::x_backward,
+                Direction::y_forward, Direction::y_backward,
+                Direction::z_forward, Direction::z_backward};
+    }
+
+    /// @brief Helper function that returns an array of all valid directions in reverse order.
+    /// @return std::array<Direction, 6>
+    static constexpr Direction ReverseDirection(Direction Dir) {
+        constexpr std::array<Direction, 6> map_direction = {
+            Direction::x_backward, Direction::x_forward,
+            Direction::y_backward, Direction::y_forward,
+            Direction::z_backward, Direction::z_forward
+        };
+        return map_direction[static_cast<int>(Dir)];
+    }
     ///@}
 private:
 
+    /// Helper function.
     inline BoundingBoxType GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k, const PointType& rLowerBound, const PointType& rUpperBound) const {
         const PointType indices_d{ static_cast<double>(i), static_cast<double>(j), static_cast<double>(k) };
         PointType delta;

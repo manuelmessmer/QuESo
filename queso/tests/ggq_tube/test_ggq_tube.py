@@ -47,6 +47,7 @@ class TestGGQTube(unittest.TestCase):
 
         for ref_id, ref_el in ref_ips.items():
             el = ips[int(ref_id)]
+            self.assertEqual(len(ref_el), len(el))
             for ref_point, point in zip(ref_el, el):
                 self.assertLess( abs(ref_point[0]-point[0])/ref_point[0], 1e-11 )
                 self.assertLess( abs(ref_point[1]-point[1])/ref_point[1], 1e-11 )
