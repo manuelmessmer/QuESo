@@ -21,5 +21,6 @@
 #include "queso/includes/assert.hpp"
 #include "queso/includes/timer.hpp"
 #include "queso/includes/register_keys.hpp"
+#include "queso/includes/dereference_iterator.hpp"
 
 #endif // DEFINE_INCLUDE_HPP

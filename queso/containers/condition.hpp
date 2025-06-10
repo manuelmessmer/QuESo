@@ -41,7 +41,7 @@ public:
 
     using ConditionSegmentType = ConditionSegment<ElementType>;
     using ConditionSegmentPtrType = Unique<ConditionSegmentType>;
-    using ConditionSegmentPtrVectorType = std::vector<ConditionSegmentPtrType>;
+    using ConditionSegmentContainerType = std::vector<ConditionSegmentPtrType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@}
@@ -74,8 +74,8 @@ public:
     }
 
     /// @brief Returns all stored ConditionSegments.
-    /// @return const ConditionSegmentPtrVectorType&
-    const ConditionSegmentPtrVectorType& GetSegments() const {
+    /// @return const ConditionSegmentContainerType&
+    const ConditionSegmentContainerType& GetSegments() const {
         return mSegments;
     }
 
@@ -104,57 +104,43 @@ public:
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionSegmentPtrVectorType::iterator> SegmentsBegin() {
-        return dereference_iterator(mSegments.begin());
+    auto SegmentsBegin() {
+        return dereference_iterator<typename ConditionSegmentContainerType::iterator>(mSegments.begin());
     }
 
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionSegmentPtrVectorType::const_iterator> SegmentsBegin() const {
-        return dereference_iterator(mSegments.begin());
+    auto SegmentsBegin() const {
+        return dereference_iterator<typename ConditionSegmentContainerType::const_iterator>(mSegments.begin());
     }
 
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionSegmentPtrVectorType::iterator> SegmentsEnd() {
-        return dereference_iterator(mSegments.end());
+    auto SegmentsEnd() {
+        return dereference_iterator<typename ConditionSegmentContainerType::iterator>(mSegments.end());
     }
 
     /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionSegmentPtrVectorType::const_iterator> SegmentsEnd() const {
-        return dereference_iterator(mSegments.end());
+    auto SegmentsEnd() const {
+        return dereference_iterator<typename ConditionSegmentContainerType::const_iterator>(mSegments.end());
     }
 
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionSegmentPtrVectorType::iterator> SegmentsBeginToPtr() {
-        return raw_pointer_iterator(mSegments.begin());
+    /// @brief Returns range of dereferenced iterators for the segments container (non-const version).
+    /// @return Range.
+    auto Segments() {
+        using IteratorType = DereferenceIterator<typename ConditionSegmentContainerType::iterator>;
+        return DereferenceRange<IteratorType>{ SegmentsBegin(), SegmentsEnd() };
     }
 
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionSegmentPtrVectorType::const_iterator> SegmentsBeginToPtr() const {
-        return raw_pointer_iterator(mSegments.begin());
-    }
-
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionSegmentPtrVectorType::iterator> SegmentsEndToPtr() {
-        return raw_pointer_iterator(mSegments.end());
-    }
-
-    /// @brief Returns iterator to raw ptr. This means iterator does not point to UniquePtr<Object>,
-    ///        but to Object*.
-    /// @return DereferenceIterator
-    RawPointerIterator<typename ConditionSegmentPtrVectorType::const_iterator> SegmentsEndToPtr() const {
-        return raw_pointer_iterator(mSegments.end());
+    /// @brief Returns range of dereferenced iterators for the segments container (const version).
+    /// @return Range.
+    auto Segments() const {
+        using IteratorType = DereferenceIterator<typename ConditionSegmentContainerType::const_iterator>;
+        return DereferenceRange<IteratorType>{ SegmentsBegin(), SegmentsEnd() };
     }
 
 private:
@@ -165,7 +151,7 @@ private:
 
     const MainDictionaryType& mConditionSettings;
     MainDictionaryType& mConditionInfo;
-    ConditionSegmentPtrVectorType mSegments;
+    ConditionSegmentContainerType mSegments;
 
     ///@}
 }; // End class Condition

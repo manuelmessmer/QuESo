@@ -334,7 +334,7 @@ public:
         const auto el_it_ptr_begin = ElementsBegin();
         #pragma omp parallel for reduction(+ : volume)
         for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
-            const auto& el_ptr = *(el_it_ptr_begin + i);
+            const auto el_ptr = el_it_ptr_begin + i;
             const double det_j = el_ptr->DetJ();
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
@@ -351,7 +351,7 @@ public:
         const auto el_it_ptr_begin = ElementsBegin();
         #pragma omp parallel for reduction(+ : number)
         for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
-            const auto& el_ptr = *(el_it_ptr_begin + i);
+            const auto el_ptr = el_it_ptr_begin + i;
             const auto& r_points = el_ptr->GetIntegrationPoints();
             number += r_points.size();
         }
@@ -398,14 +398,14 @@ public:
     /// @return Range.
     auto Elements() {
         using IteratorType = DereferenceIterator<typename ElementContainerType::iterator>;
-        return Range<IteratorType>{ ElementsBegin(), ElementsEnd() };
+        return DereferenceRange<IteratorType>{ ElementsBegin(), ElementsEnd() };
     }
 
     /// @brief Returns range of dereferenced iterators for the elements container (const version).
     /// @return Range.
     auto Elements() const {
         using IteratorType = DereferenceIterator<typename ElementContainerType::const_iterator>;
-        return Range<IteratorType>{ ElementsBegin(), ElementsEnd() };
+        return DereferenceRange<IteratorType>{ ElementsBegin(), ElementsEnd() };
     }
 
     ////////////////////
@@ -444,14 +444,14 @@ public:
     /// @return Range.
     auto Conditions() {
         using IteratorType = DereferenceIterator<typename ConditionContainerType::iterator>;
-        return Range<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
+        return DereferenceRange<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
     }
 
     /// @brief Returns range of dereferenced iterators for the condition container (const version).
     /// @return Range.
     auto Conditions() const {
         using IteratorType = DereferenceIterator<typename ConditionContainerType::const_iterator>;
-        return Range<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
+        return DereferenceRange<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
     }
 
 private:

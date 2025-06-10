@@ -180,7 +180,7 @@ public:
 
         const auto begin_el_itr = rBackgroundGrid.ElementsBegin();
         for( IndexType i = 0; i < num_elements; ++i){
-            const auto& el_itr = *(begin_el_itr + i);
+            const auto el_itr = (begin_el_itr + i);
             const auto& lower_point = el_itr->GetBoundsXYZ().first;
             const auto& upper_point = el_itr->GetBoundsXYZ().second;
 
@@ -309,7 +309,7 @@ public:
 
         const auto el_it_ptr_begin = rBackgroundGrid.ElementsBegin();
         for( IndexType i = 0; i < rBackgroundGrid.NumberOfActiveElements(); ++i){
-            const auto& el_ptr = (*(el_it_ptr_begin + i));
+            const auto el_ptr = (el_it_ptr_begin + i);
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
                 auto point_global = el_ptr->PointFromParamToGlobal(r_point.data());
@@ -358,7 +358,7 @@ public:
         file << "SCALARS Weights double 1" << std::endl;
         file << "LOOKUP_TABLE default" << std::endl;
         for( IndexType i = 0; i < rBackgroundGrid.NumberOfActiveElements(); ++i){
-            const auto& el_ptr = (*(el_it_ptr_begin + i));
+            const auto el_ptr = (el_it_ptr_begin + i);
             const auto& points = el_ptr->GetIntegrationPoints();
             for( const auto& point : points ){
                 if( Binary ){
