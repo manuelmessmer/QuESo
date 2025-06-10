@@ -27,14 +27,11 @@ namespace queso {
 ///@name QuESo Classes
 ///@{
 
-/**
- * @class  QuadratureMultipleElements. Provides assembly opeartions for tensor-product quadrature rules of multiple non-trimmed elements.
- * @author Manuel Messmer
- * @brief  Provides assembly for 3D quadrature rules.
- * @details Available Quadrature rules:
- *          {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
- * @todo   This class requires major refactoring. Implementation should be similar to FloodFill.
-*/
+/// @class  QuadratureMultipleElements.
+/// @author Manuel Messmer
+/// @brief  Provides assembly operations for tensor-product quadrature rules that can be used for multiple non-trimmed elements.
+///         Available Quadrature rules: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
+/// @details Implements algorithm from Section 3.2.1 in 10.1016/j.cma.2022.115584.
 template<typename TElementType>
 class QuadratureMultipleElements {
 
@@ -50,16 +47,20 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief Assemble tensor product quadrature rules.
+    /// @brief Assembles integration points for all non-trimmed elements using tensor-product quadrature rules.
+    ///        These rules require less integration points by exploiting the coninuity property of B-Splines and NURBS.
+    /// @details Implements algorithm from Section 3.2.1 in 10.1016/j.cma.2022.115584.
     /// @param rGrid
     /// @param rIntegrationOrder
-    /// @param Method Integration method
+    /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
     static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
 
         using ElementVectorType = std::vector<ElementType*>;
 
         ComputeNeighborCoefficients(rGrid);
 
+        // Create priority queue for all non-trimmed elements. The element with the highest neighbor coefficient is
+        // always at front.
         std::priority_queue<ElementType*, ElementVectorType, CompareByCoefficient> unvisited_elements;
         for( auto& r_el : rGrid.Elements() ) {
             r_el.SetValue(ElementValues::is_visited, false);
@@ -70,7 +71,7 @@ public:
 
         // Repeat until all elements are visited.
         while( !unvisited_elements.empty()  ){
-            auto* p_max_el = unvisited_elements.top();
+            ElementType* p_max_el = unvisited_elements.top();
             unvisited_elements.pop();
             if( p_max_el->template GetValue<bool>(ElementValues::is_visited) ) {
                 continue; // Skip already visited elements.
@@ -86,87 +87,35 @@ public:
             while(TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds)){
             }
 
-            AssembleGGQRules(current_box, current_box_sizes, current_box_bounds, rIntegrationOrder, Method);
+            // Assemble integration points.
+            AssembleGGQRulesOnBox(current_box, current_box_sizes, current_box_bounds, rIntegrationOrder, Method);
         }
     }
 
 private:
-
+    ///@}
+    ///@name Type Defintions
+    ///@{
 
     using ElementVectorType = std::vector<ElementType*>;
 
+    /// Helper struct to define order in priority queue.
     struct CompareByCoefficient {
-        bool operator()(const ElementType* pA, const ElementType* pB) const {
-            auto a_value = pA->template GetValue<double>(ElementValues::neighbor_coefficient);
-            auto b_value = pB->template GetValue<double>(ElementValues::neighbor_coefficient);
-            if (std::abs(a_value - b_value) < ZEROTOL) return pA->GetId() > pB->GetId();
-            return a_value < b_value;
+        bool operator()(const ElementType* pLHS, const ElementType* pRHS) const {
+            auto l_value = pLHS->template GetValue<double>(ElementValues::neighbor_coefficient);
+            auto r_value = pRHS->template GetValue<double>(ElementValues::neighbor_coefficient);
+            if (std::abs(l_value - r_value) < ZEROTOL) return pLHS->GetId() > pRHS->GetId();
+            return l_value < r_value;
         }
     };
 
-    static bool TryToExpandCurrentBox(BackgroundGridType& rGrid,
-                                      ElementVectorType& rCurrentBox,
-                                      Vector3i& rBoxSize,
-                                      BoundingBoxType& rBoxBounds) {
-        // Find neighbors of rCurrentBox.
-        std::array<ElementVectorType,6> neighbours{}; // <- List of neighbors for each direction.
-        std::array<double, 6> neighbour_coeffs = {0.0}; // <- Coefficients in each direction.
-        for( auto* p_element : rCurrentBox ){
-            IndexType current_id = p_element->GetId();
-            for( auto direction : GridIndexer::GetDirections() ){
-                const IndexType dir_index = static_cast<IndexType>(direction);
-                const auto p_neighbour = NextElement(rGrid, current_id, direction );
-                if( p_neighbour ){
-                    const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
-                    if( !is_visited && !p_neighbour->IsTrimmed() ){
-                        const double coeff = p_neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
-                        neighbour_coeffs[dir_index] += coeff;
-                        neighbours[dir_index].push_back(p_neighbour);
-                    }
-                }
-            }
-        }
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-        // Lets move towards the direction with the highest coefficient.
-        // There are six possible directions, e.i., six attempts.
-        for( IndexType attempts = 0; attempts < 6; ++attempts ){
-
-            IndexType move_dir_index = std::distance(neighbour_coeffs.begin(),
-                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())); // <- Index of move direction.
-            const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
-
-            // Get the number of neighbors on the plane orthogonal to the move direction.
-            IndexType dimension_index = move_dir_index / 2;
-            constexpr std::array<std::pair<IndexType, IndexType>, 3> dimension_index_map = {{
-                {1, 2}, // for dimension_index 0
-                {0, 2}, // for dimension_index 1
-                {0, 1}  // for dimension_index 2
-            }};
-            const auto [i, j] = dimension_index_map[dimension_index];
-            IndexType required_number_neighbors = rBoxSize[i] * rBoxSize[j];
-
-            // Add candidates if their inclusion preserves the box shape.
-            if( candidates_to_add.size() == required_number_neighbors){
-                for (auto* p_element : candidates_to_add) {
-                    p_element->SetValue(ElementValues::is_visited, true);
-                    rCurrentBox.push_back(p_element);
-                    // Update bounds of current box
-                    const auto& r_el_bounds = p_element->GetBoundsUVW();
-                    for (IndexType i = 0; i < 3; ++i) {
-                        rBoxBounds.first[i]  = std::min(rBoxBounds.first[i], r_el_bounds.first[i]);
-                        rBoxBounds.second[i] = std::max(rBoxBounds.second[i], r_el_bounds.second[i]);
-                    }
-                }
-                rBoxSize[dimension_index]++;
-                return true;
-            }
-            else { // No valid move direction.
-                neighbour_coeffs[move_dir_index] = 0.0; // <- Exclude this one from the potential move directions.
-            }
-        }
-        return false;
-    }
-
+    /// @brief Computes the neighbor coefficient of each full element in the given grid.
+    /// @details Implements algorithm from Fig. 8 in 10.1016/j.cma.2022.115584.
+    /// @param rElements
     static void ComputeNeighborCoefficients(BackgroundGridType& rElements) {
 
         constexpr std::array<Direction, 3> directions = {Direction::x_forward, Direction::y_forward, Direction::z_forward};
@@ -185,7 +134,6 @@ private:
             // Loop until all elements in rElements have beend visited/found
             while( el_counter < rElements.NumberOfActiveElements() ){
                 ElementType* neighbour = rElements.GetNextElement(current_id, dir, next_id, local_end);
-
                 if( neighbour ){
                     el_counter++;
                     if(neighbour->IsTrimmed()){
@@ -195,7 +143,6 @@ private:
                         neighbors.push_back(neighbour);
                     }
                 }
-
                 if( local_end ){
                     AssignNeighborCoefficients(neighbors);
                 }
@@ -205,28 +152,103 @@ private:
         }
     }
 
-    static void AssignNeighborCoefficients(ElementVectorType& rElements) {
-        const auto element_it_begin = rElements.begin();
-        const IndexType number_neighbours = rElements.size();
-
-        for(IndexType i = 0; i < number_neighbours; ++i){
-            auto el_ptr = *(element_it_begin + i);
-            const double old_value = el_ptr->template GetValue<double>(ElementValues::neighbor_coefficient);
-            if( number_neighbours > 1)
+    /// @brief Assigns the neighbor coefficients.
+    /// @details Implements algorithm from Fig. 8 in 10.1016/j.cma.2022.115584.
+    /// @param rNeighbors (Neighboring elements in a row/column).
+    static void AssignNeighborCoefficients(ElementVectorType& rNeighbors) {
+        const IndexType number_neighbours = rNeighbors.size();
+        if( number_neighbours > 1) {
+            const auto el_it_begin = rNeighbors.begin();
+            for(IndexType i = 0; i < number_neighbours; ++i){
+                auto el_ptr = *(el_it_begin + i);
+                const double old_value = el_ptr->template GetValue<double>(ElementValues::neighbor_coefficient);
                 el_ptr->SetValue(ElementValues::neighbor_coefficient, old_value*LinearFunction(i, number_neighbours));
+            }
         }
-        rElements.clear();
+        rNeighbors.clear();
     }
 
-    static ElementType* NextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
-        IndexType dummy_next_id;
-        bool dummy_local_end;
+    /// @brief Expands the current box while preserving the box-like shape.
+    /// @details Implements algorithm from Fig. 9 in 10.1016/j.cma.2022.115584.
+    /// @param rGrid
+    /// @param [out] rCurrentBox
+    /// @param [out] rBoxSize of current box.
+    /// @param [out] rBoxBounds of current box.
+    /// @return true if expansion was successful.
+    static bool TryToExpandCurrentBox(BackgroundGridType& rGrid,
+                                      ElementVectorType& rCurrentBox,
+                                      Vector3i& rBoxSize,
+                                      BoundingBoxType& rBoxBounds) {
+        // Find neighbors of rCurrentBox.
+        std::array<ElementVectorType,6> neighbours{}; // <- List of neighbors for each direction.
+        std::array<double, 6> neighbour_coeffs = {0.0}; // <- Coefficients in each direction.
+        for( const auto* p_element : rCurrentBox ){
+            IndexType current_id = p_element->GetId();
+            for( auto direction : GridIndexer::GetDirections() ){
+                const IndexType dir_index = static_cast<IndexType>(direction);
+                ElementType* p_neighbour = NextElement(rGrid, current_id, direction );
+                if( p_neighbour ){
+                    const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
+                    if( !is_visited && !p_neighbour->IsTrimmed() ){
+                        double coeff = p_neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
+                        neighbour_coeffs[dir_index] += coeff; // <- Sum up coefficients.
+                        neighbours[dir_index].push_back(p_neighbour);
+                    }
+                }
+            }
+        }
 
-        return rElements.GetNextElement(CurrentId, Dir, dummy_next_id, dummy_local_end);
+        // Lets move towards the direction with the highest coefficient.
+        // There are six possible directions, e.i., six attempts.
+        for( IndexType attempts = 0; attempts < 6; ++attempts ){
+            IndexType move_dir_index = std::distance(neighbour_coeffs.begin(),
+                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())); // <- Index of move direction.
+            const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
+
+            // Get the number of neighbors on the plane orthogonal to the move direction.
+            IndexType dimension_index = move_dir_index / 2;
+            constexpr std::array<std::pair<IndexType, IndexType>, 3> dimension_index_map = {{
+                {1, 2}, // for dimension_index 0
+                {0, 2}, // for dimension_index 1
+                {0, 1}  // for dimension_index 2
+            }};
+            const auto [i, j] = dimension_index_map[dimension_index];
+            IndexType required_number_neighbors = rBoxSize[i] * rBoxSize[j];
+
+            // Add candidates if their inclusion preserves the box shape.
+            if( candidates_to_add.size() == required_number_neighbors ){
+                for( auto* p_element : candidates_to_add ) {
+                    p_element->SetValue(ElementValues::is_visited, true);
+                    rCurrentBox.push_back(p_element);
+                    // Update bounds of current box
+                    const auto& r_el_bounds = p_element->GetBoundsUVW();
+                    for (IndexType i = 0; i < 3; ++i) {
+                        rBoxBounds.first[i]  = std::min(rBoxBounds.first[i], r_el_bounds.first[i]);
+                        rBoxBounds.second[i] = std::max(rBoxBounds.second[i], r_el_bounds.second[i]);
+                    }
+                }
+                rBoxSize[dimension_index]++;
+                return true;
+            }
+            else { // No valid move direction.
+                neighbour_coeffs[move_dir_index] = 0.0; // <- Exclude this one from the potential move directions
+                // in next iteration.
+            }
+        }
+        return false;
     }
 
-    static void AssembleGGQRules(ElementVectorType& rElements, const Vector3i& rNumberKnotspans,
-            const BoundingBoxType& rBounds, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
+    /// @brief Assembles the GGQ rules on the given box.
+    /// @param rElements Elements within the box.
+    /// @param rNumberKnotspans Dimensions of the box.
+    /// @param rBounds Bounds of the box in parametric space.
+    /// @param rIntegrationOrder
+    /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
+    static void AssembleGGQRulesOnBox(ElementVectorType& rElements,
+                                      const Vector3i& rNumberKnotspans,
+                                      const BoundingBoxType& rBounds,
+                                      const Vector3i& rIntegrationOrder,
+                                      IntegrationMethodType Method) {
 
         // Loop over all elements
         for( auto* p_el : rElements ){
@@ -237,7 +259,7 @@ private:
 
             std::array<std::vector<std::array<double,2>>, 3> tmp_integration_points{};
 
-            for( int direction = 0; direction < 3; ++direction){
+            for( IndexType direction = 0; direction < 3; ++direction){
                 const double distance_global = rBounds.second[direction] - rBounds.first[direction];
                 const double length_global = std::abs(rBounds.second[direction] - rBounds.first[direction]);
 
@@ -279,6 +301,22 @@ private:
         }
     }
 
+    /// @brief Helper function to move within the background grid.
+    /// @param rElements
+    /// @param CurrentId
+    /// @param Dir
+    /// @return ElementType*
+    static ElementType* NextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
+        IndexType dummy_next_id;
+        bool dummy_local_end;
+
+        return rElements.GetNextElement(CurrentId, Dir, dummy_next_id, dummy_local_end);
+    }
+
+    /// @brief Helper function to compute the neighbor coefficient using a linear function.
+    /// @param X Value
+    /// @param NumNeighbors
+    /// @return double.
     static double LinearFunction(IndexType X, IndexType NumNeighbors) {
         const double center = static_cast<double>(NumNeighbors-1) / 2.0;
         const double delta = std::abs(center - X);
@@ -289,10 +327,13 @@ private:
 
         return value;
     }
-}; // End Class QuadratureMultipleElements
 
-///@}
+    ///@}
 
-} // End namespace queso
+}; // End Class QuadratureMultipleElements.
+
+///@} End QuESo Classes.
+
+} // End namespace queso.
 
 #endif // MULITPLE_ELEMENTS_INCLUDE_HPP
