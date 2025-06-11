@@ -15,10 +15,12 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+
+//// STL includes
 #include <numeric>
 
 //// Project includes
-#include "queso/includes/checks.hpp"
+#include "queso/includes/checks.hpp" // <- Already includes 'dereference_iterator'.
 
 namespace queso {
 namespace Testing {
