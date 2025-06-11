@@ -27,20 +27,16 @@ namespace queso {
 ///@name QuESo Classes
 ///@{
 
-/**
- * @class  BackgroundGrid
- * @author Manuel Messmer
- * @brief  Stores active elements and conditions.
- *         Indexing is based on GridIndexer.
- * @tparam TElementType must provide the following typedefs: IntegrationPointType, BoundaryIntegrationPointType.
- * @see    grid_indexer.hpp
-**/
+/// @class  BackgroundGrid
+/// @author Manuel Messmer
+/// @brief  Container for active elements and conditions.
+///         BackgroundGrid uses GridIndexer to index the grid and to 'move' through the grid.
+/// @tparam TElementType must provide the following typedefs: IntegrationPointType, BoundaryIntegrationPointType.
+/// @see    grid_indexer.hpp
 template<typename TElementType>
 class BackgroundGrid {
-
 public:
-
-    ///@name Type Defintitions
+    ///@name Type defintitions
     ///@{
 
     using ElementType = TElementType;
@@ -59,7 +55,7 @@ public:
     using Direction = GridIndexer::Direction;
 
     ///@}
-    ///@name Life Cycle
+    ///@name Life cycle
     ///@{
 
     /// @brief Constructor
@@ -87,7 +83,7 @@ public:
     /// @brief Returns reference to element with given Id.
     /// @param ElementId
     /// @return const ElementType&
-    const ElementType& GetElement(IndexType ElementId) const{
+    const ElementType& GetElement(IndexType ElementId) const {
         return *pGetElement(ElementId);
     }
 
@@ -104,61 +100,33 @@ public:
 
     /// @brief Returns raw pointer to element with given Id (non-const version).
     /// @param ElementId
-    /// @return const ElementType*
-    ElementType* pGetElement(IndexType ElementId){
-        auto found_key = mElementIdMap.find(ElementId);
-        if( found_key != mElementIdMap.end() ){
-            return mElements[found_key->second].get();
-        }
-        return nullptr;
+    /// @return ElementType*
+    ElementType* pGetElement(IndexType ElementId) {
+        return const_cast<ElementType*>(
+            static_cast<const BackgroundGrid*>(this)->pGetElement(ElementId));
     }
 
     /// @brief Returns all active elements.
     /// @return const std::vector<Unique<Element>>&
-    const ElementContainerType& GetElements() const{
+    const ElementContainerType& GetElements() const {
         return mElements;
     }
 
     /// @brief Returns all conditions.
     /// @return const std::vector<Unique<Element>>&
-    const ConditionContainerType& GetConditions() const{
+    const ConditionContainerType& GetConditions() const {
         return mConditions;
     }
 
     /// @brief Adds a new condition to the background grid.
     /// @param ConditionPtrType
-    void AddCondition(ConditionPtrType& pCondition){
+    void AddCondition(ConditionPtrType pCondition) {
         mConditions.push_back(std::move(pCondition));
     }
 
-    /// @todo Add the following functions for invalid elements.
-    // /// @brief Returns raw pointer to a potentially stored invalid element with given Id (non-const version).
-    // /// @param ElementId
-    // ///@return const ElementType*
-    // const ElementType* pGetInvalidElement(IndexType ElementId) const{
-    //     auto found_key = mInvalidElementIdMap.find(ElementId);
-    //     if( found_key != mInvalidElementIdMap.end() ){
-    //         return mInvalidElements[found_key->second].get();
-    //     }
-    //     return nullptr;
-    // }
-
-    // /// @brief Moves element into container.
-    // void AddInvalidElement(ElementPtrType& pElement){
-    //     const IndexType current_id = pElement->GetId();
-    //     const auto found_key = mInvalidElementIdMap.find(current_id);
-    //     if( found_key == mInvalidElementIdMap.end() ){
-    //         mInvalidElementIdMap.insert(std::pair<IndexType, IndexType>(pElement->GetId(), mInvalidElements.size()));
-    //         mInvalidElements.push_back(std::move(pElement));
-    //     }
-    //     else {
-    //         QuESo_ERROR << "ID already exists.\n";
-    //     }
-    // }
-
     /// @brief Adds element to container. Element is moved into container.
     /// @param pElement
-    void AddElement(ElementPtrType& pElement){
+    void AddElement(ElementPtrType pElement) {
         const IndexType current_id = pElement->GetId();
         const auto found_key = mElementIdMap.find(current_id);
         if( found_key == mElementIdMap.end() ){
@@ -166,7 +134,7 @@ public:
             mElements.push_back(std::move(pElement));
         }
         else {
-            QuESo_ERROR << "ID already exists.\n"; // Make this assert instead?
+            QuESo_ERROR << "Element ID '" << current_id << "' already exists.\n";
         }
     }
 
@@ -184,21 +152,22 @@ public:
 
     /// @brief Adjusts capacity of element container.
     /// @param NewCapacity.
-    void ReserveElements(IndexType NewCapacity){
+    void ReserveElements(IndexType NewCapacity) {
         mElements.reserve(NewCapacity);
         mElementIdMap.reserve(NewCapacity);
     }
 
     /// @brief Adjusts capacity of condition container.
     /// @param NewCapacity.
-    void ReserveConditions(IndexType NewCapacity){
+    void ReserveConditions(IndexType NewCapacity) {
         mConditions.reserve(NewCapacity);
     }
 
     /// @brief Returns raw ptr to next element in x-direction.
     /// @param CurrentId element id to start from.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the given direction.
     /// @return ElementType*
     ElementType* pGetNextElementInX(IndexType CurrentId, IndexType& rNextId, bool& rIsEnd) {
         const auto [next_index, index_info] = mGridIndexer.GetNextIndexX(CurrentId-1);
@@ -214,7 +183,8 @@ public:
     /// @brief Returns raw ptr to next element in y-direction.
     /// @param CurrentId element id to start from.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the given direction.
     /// @return ElementType*
     ElementType* pGetNextElementInY(IndexType CurrentId, IndexType& rNextId, bool& rIsEnd) {
         const auto [next_index, index_info] = mGridIndexer.GetNextIndexY(CurrentId-1);
@@ -230,7 +200,8 @@ public:
     /// @brief Returns raw ptr to next element in z-direction.
     /// @param CurrentId element id to start from.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the given direction.
     /// @return ElementType*
     ElementType* pGetNextElementInZ(IndexType CurrentId, IndexType& rNextId, bool& rIsEnd) {
         const auto [next_index, index_info] = mGridIndexer.GetNextIndexZ(CurrentId-1);
@@ -246,7 +217,8 @@ public:
     /// @brief Returns raw ptr to previous element in x-direction.
     /// @param CurrentId element id to start from.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the given direction.
     /// @return ElementType*
     ElementType* pGetPreviousElementInX(IndexType CurrentId, IndexType& rNextId, bool& rIsEnd) {
         const auto [next_index, index_info] = mGridIndexer.GetPreviousIndexX(CurrentId-1);
@@ -262,7 +234,8 @@ public:
     /// @brief Returns raw ptr to previous element in y-direction.
     /// @param CurrentId element id to start from.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the given direction.
     /// @return ElementType*
     ElementType* pGetPreviousElementInY(IndexType CurrentId, IndexType& rNextId, bool& rIsEnd) {
         const auto [next_index, index_info] = mGridIndexer.GetPreviousIndexY(CurrentId-1);
@@ -278,7 +251,8 @@ public:
     /// @brief Returns raw ptr to previous element in z-direction.
     /// @param CurrentId element id to start from.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the given direction.
     /// @return ElementType*
     ElementType* pGetPreviousElementInZ(IndexType CurrentId, IndexType& rNextId, bool& rIsEnd) {
         const auto [next_index, index_info] = mGridIndexer.GetPreviousIndexZ(CurrentId-1);
@@ -295,7 +269,9 @@ public:
     /// @param CurrentId element id to start from.
     /// @param Dir Move direction.
     /// @param[out] rNextId
-    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @param[out] rIsEnd true if CurrentId is a local or global end. That means we can not move towards
+    ///             the
+    ///             given direction.
     /// @return ElementType*
     ElementType* pGetNextElement(IndexType CurrentId, Direction Dir, IndexType& rNextId, bool& rIsEnd ) {
         switch( Dir )
@@ -318,44 +294,13 @@ public:
         }
     }
 
-    /// @brief Returns true if CurrentId is a local or global end. That means we can not move towards the given direction.
+    /// @brief Returns true if CurrentId is a local or global end. That means we can not move towards
+    ///        the given direction.
     /// @param CurrentId
     /// @param Direction – Move Direction.
     /// @return bool
-    bool IsEnd(IndexType CurrentId, Direction Dir ){
+    bool IsEnd(IndexType CurrentId, Direction Dir) {
         return mGridIndexer.IsEnd(CurrentId-1, Dir);
-    }
-
-    /// @brief Returns the volume stored on all integration points.
-    /// @return double.
-    /// @todo Remove this function
-    double GetVolumeOfAllIPs() const {
-        double volume = 0.0;
-        const auto el_it_ptr_begin = ElementsBegin();
-        #pragma omp parallel for reduction(+ : volume)
-        for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
-            const auto el_ptr = el_it_ptr_begin + i;
-            const double det_j = el_ptr->DetJ();
-            const auto& r_points = el_ptr->GetIntegrationPoints();
-            for( const auto& r_point : r_points ){
-                volume += r_point.Weight()*det_j;
-            }
-        }
-        return volume;
-    }
-    /// @brief Returns total number of integration points.
-    /// @return IndexType
-    /// @todo Remove this function
-    IndexType NumberOfIntegrationPoints() const {
-        IndexType number = 0;
-        const auto el_it_ptr_begin = ElementsBegin();
-        #pragma omp parallel for reduction(+ : number)
-        for( int i = 0; i < static_cast<int>(NumberOfActiveElements()); ++i ){
-            const auto el_ptr = el_it_ptr_begin + i;
-            const auto& r_points = el_ptr->GetIntegrationPoints();
-            number += r_points.size();
-        }
-        return number;
     }
 
     ///@}
@@ -451,7 +396,6 @@ public:
     }
 
 private:
-
     ///@}
     ///@name Private member variables
     ///@{
@@ -460,9 +404,6 @@ private:
 
     ElementContainerType mElements;
     ElementIdMapType mElementIdMap;
-
-    // ElementContainerType mInvalidElements;
-    // ElementIdMapType mInvalidElementIdMap;
 
     ConditionContainerType mConditions;
 

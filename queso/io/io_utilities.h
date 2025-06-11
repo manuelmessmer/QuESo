@@ -16,6 +16,8 @@
 
 //// STL includes
 #include <fstream>
+#include <numeric>
+
 //// Project includes
 #include "queso/containers/background_grid.hpp"
 #include "queso/containers/triangle_mesh.hpp"
@@ -285,7 +287,9 @@ public:
                                 const std::string& rFilename,
                                 const bool Binary) {
 
-        const IndexType num_points = rBackgroundGrid.NumberOfIntegrationPoints();
+        const IndexType num_points = std::accumulate(
+            rBackgroundGrid.ElementsBegin(), rBackgroundGrid.ElementsEnd(), IndexType{0}, [](IndexType Acc, const auto& rElement) {
+                return Acc += rElement.GetIntegrationPoints().size(); } );
         const IndexType num_elements = num_points;
 
         std::ofstream file;
