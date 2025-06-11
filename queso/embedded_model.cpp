@@ -145,7 +145,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
 
                 // Add p_new_element to the background grid.
                 #pragma omp critical
-                mBackgroundGrid.AddElement(p_new_element); // After this p_new_element is a null_ptr. It is std::moved to container.
+                mBackgroundGrid.AddElement(std::move(p_new_element));
             }
         }
     } // #pragma parallel omp for reduction.
@@ -253,11 +253,10 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
     BRepOperator brep_operator(rTriangleMesh);
 
     /// Initialize info variables.
-    double surf_area_segments = 0.0;
     double surf_area_in_active_domain = 0.0;
 
     // Loop over background grid.
-    #pragma omp parallel for reduction(+ : surf_area_segments, surf_area_in_active_domain) schedule(dynamic)
+    #pragma omp parallel for reduction(+ : surf_area_in_active_domain) schedule(dynamic)
     for( int index = 0; index < static_cast<int>(mGridIndexer.NumberOfElements()); ++index ) {
         // Clip embedded geoemetry with the current element (bounding box).
         const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
@@ -266,7 +265,6 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
         if( p_new_mesh->NumOfTriangles() > 0 ) {
             const auto p_el = mBackgroundGrid.pGetElement(index+1);
             const double surf_area_segment = MeshUtilities::Area(*p_new_mesh);
-            surf_area_segments += surf_area_segment;
 
             // If p_el != nullptr, the current condition is within an active element.
             // Otherwise, the current condition is outside the active domain.
@@ -281,7 +279,7 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
     }
 
     // Add condition to background grid.
-    mBackgroundGrid.AddCondition(p_new_condition);
+    mBackgroundGrid.AddCondition(std::move(p_new_condition));
 
     /* Begin: Write to ModelInfo */
 

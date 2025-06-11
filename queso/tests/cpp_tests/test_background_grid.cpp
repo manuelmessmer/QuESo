@@ -53,7 +53,7 @@ Unique<BackgroundGridType> CreateTestBackgroundGrid(Vector3i rNumberOfElemnts){
         Unique<ElementType> tmp_element = MakeUnique<ElementType>(i, MakeBox(tmp_point_A, tmp_point_B),
                                                              MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
         if( i != 17)
-            p_grid->AddElement(tmp_element);
+            p_grid->AddElement(std::move(tmp_element));
     }
 
     return p_grid;
