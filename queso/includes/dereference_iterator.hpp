@@ -24,11 +24,13 @@ namespace queso {
 ///@name QuESo Classes
 ///@{
 
+/// @class  DereferenceIterator
+/// @author Manuel Messmer
 /// @brief This iterator is intended to be used for containers like
 ///        std::vector<std::unique_ptr<Type>>. It allows to iterate through the container
 ///        without the need of dereferencing the unique_ptr.
 /// @tparam TBaseIterator (must be random access iterator).
-template <class TBaseIterator>
+template<typename TBaseIterator>
 class DereferenceIterator {
 private:
     ///@}
@@ -76,14 +78,14 @@ public:
     constexpr DereferenceIterator() noexcept = default;
     explicit constexpr DereferenceIterator( const TBaseIterator &rOther );
 
-    template <class OtherIterator,
+    template<typename OtherIterator,
         std::enable_if_t<std::is_convertible_v<OtherIterator, TBaseIterator>, int> = 0>
     constexpr DereferenceIterator( const DereferenceIterator<OtherIterator>& rOther ) noexcept;
 
     constexpr DereferenceIterator( const DereferenceIterator& ) = default;
-    constexpr DereferenceIterator( DereferenceIterator&& ) = default;
+    constexpr DereferenceIterator( DereferenceIterator&& ) noexcept = default;
     constexpr DereferenceIterator& operator=( const DereferenceIterator& ) = default;
-    constexpr DereferenceIterator& operator=( DereferenceIterator&& ) = default;
+    constexpr DereferenceIterator& operator=( DereferenceIterator&& ) noexcept = default;
 
     ///@}
     ///@name Operations
@@ -114,54 +116,54 @@ private:
 };
 
 // Life cycle
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator>::DereferenceIterator( const TBaseIterator &rOther )
     : mIt( rOther ) {
 }
 
-template<class TBaseIterator>
-template<class TOtherIterator, std::enable_if_t<std::is_convertible_v<TOtherIterator, TBaseIterator>, int>>
+template<typename TBaseIterator>
+template<typename TOtherIterator, std::enable_if_t<std::is_convertible_v<TOtherIterator, TBaseIterator>, int>>
 constexpr DereferenceIterator<TBaseIterator>::DereferenceIterator( const DereferenceIterator<TOtherIterator>& rOther ) noexcept
     : mIt( rOther.base() ) {
 }
 
 // Member operations
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr auto DereferenceIterator<TBaseIterator>::operator[]( difference_type Inc ) const noexcept -> reference {
     return *(*(mIt + Inc));
 }
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr auto DereferenceIterator<TBaseIterator>::operator*() const noexcept -> reference {
     return *(*mIt);
 }
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr auto DereferenceIterator<TBaseIterator>::operator->() const noexcept -> pointer {
     return mIt->get();
 }
 
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator>& DereferenceIterator<TBaseIterator>::operator++() noexcept {
     ++mIt;
     return *this;
 }
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator> DereferenceIterator<TBaseIterator>::operator++(int) noexcept {
     DereferenceIterator tmp(*this);
     ++mIt;
     return tmp;
 }
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator>& DereferenceIterator<TBaseIterator>::operator--() noexcept {
     --mIt;
     return *this;
 }
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator> DereferenceIterator<TBaseIterator>::operator--(int) noexcept {
     DereferenceIterator tmp(*this);
     --mIt;
@@ -169,7 +171,7 @@ constexpr DereferenceIterator<TBaseIterator> DereferenceIterator<TBaseIterator>:
 }
 
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator>&
     DereferenceIterator<TBaseIterator>::operator+=( difference_type Inc ) noexcept
 {
@@ -177,7 +179,7 @@ constexpr DereferenceIterator<TBaseIterator>&
     return *this;
 }
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr DereferenceIterator<TBaseIterator>&
     DereferenceIterator<TBaseIterator>::operator-=( difference_type Dec ) noexcept
 {
@@ -186,76 +188,76 @@ constexpr DereferenceIterator<TBaseIterator>&
 }
 
 
-template<class TBaseIterator>
+template<typename TBaseIterator>
 constexpr const TBaseIterator& DereferenceIterator<TBaseIterator>::base() const noexcept {
     return mIt;
 }
 
 // Non-member operators and utility functions
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr bool
     operator==(const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs) noexcept
 {
     return rLhs.base() == rRhs.base();
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr bool
     operator!=(const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs) noexcept
 {
     return rLhs.base() != rRhs.base();
 }
 
-template <class TBaseIterator>
-[[nodiscard]] constexpr
-    bool operator<( const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs ) noexcept
+template<typename TBaseIterator>
+[[nodiscard]] constexpr bool
+    operator<( const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs ) noexcept
 {
     return rLhs.base() < rRhs.base();
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr bool
     operator<=( const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs ) noexcept
 {
     return rLhs.base() <= rRhs.base();
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr bool
     operator>( const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs) noexcept
 {
     return rLhs.base() > rRhs.base();
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr bool
     operator>=( const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs) noexcept
 {
     return rLhs.base() >= rRhs.base();
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr DereferenceIterator<TBaseIterator>
     operator+( const DereferenceIterator<TBaseIterator>& rIt, ptrdiff_t Inc ) noexcept
 {
     return DereferenceIterator<TBaseIterator>(rIt.base() + Inc);
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr DereferenceIterator<TBaseIterator>
     operator+( ptrdiff_t Inc, const DereferenceIterator<TBaseIterator>& rIt ) noexcept
 {
     return DereferenceIterator<TBaseIterator>(Inc + rIt.base());
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr DereferenceIterator<TBaseIterator>
     operator-( const DereferenceIterator<TBaseIterator>& rIt, ptrdiff_t Dec ) noexcept
 {
     return DereferenceIterator<TBaseIterator>(rIt.base() - Dec);
 }
 
-template <class TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr ptrdiff_t
     operator-( const DereferenceIterator<TBaseIterator>& rLhs, const DereferenceIterator<TBaseIterator>& rRhs ) noexcept
 {
@@ -266,14 +268,14 @@ template <class TBaseIterator>
 /// @tparam TBaseIterator
 /// @param It
 /// @return DereferenceIterator<TBaseIterator>
-template <typename TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr DereferenceIterator<TBaseIterator> dereference_iterator(TBaseIterator It) noexcept {
     return DereferenceIterator<TBaseIterator>(It);
 }
 
 /// @brief Enables to use range-based for loops with DereferenceIterator.
 /// @tparam TBaseIterator
-template<class TBaseIterator>
+template<typename TBaseIterator>
 struct DereferenceRange {
     using iterator = DereferenceIterator<TBaseIterator>;
 
@@ -287,7 +289,7 @@ struct DereferenceRange {
 /// @tparam TBaseIterator
 /// @param It
 /// @return DereferenceRange<TBaseIterator>
-template <typename TBaseIterator>
+template<typename TBaseIterator>
 [[nodiscard]] constexpr DereferenceRange<TBaseIterator>
     dereference_range(TBaseIterator Begin, TBaseIterator End) noexcept
 {
