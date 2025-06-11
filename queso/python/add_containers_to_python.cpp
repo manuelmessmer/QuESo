@@ -265,7 +265,7 @@ void AddContainersToPython(pybind11::module& m) {
     /// Export EmbeddedModel
     py::class_<EmbeddedModel>(m,"EmbeddedModel")
         .def(py::init([](MainDictionaryHolderType& rSettings) {
-            return MakeUnique<EmbeddedModel>(std::move(EmbeddedModel::Create(std::move(rSettings.Release()))));
+            return MakeUnique<EmbeddedModel>(EmbeddedModel::Create(rSettings.Release()));
         }))
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
         .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
