@@ -288,7 +288,7 @@ public:
                                 const bool Binary) {
 
         const IndexType num_points = std::accumulate(
-            rBackgroundGrid.ElementsBegin(), rBackgroundGrid.ElementsEnd(), 0, [](IndexType Acc, const auto& rElement) {
+            rBackgroundGrid.ElementsBegin(), rBackgroundGrid.ElementsEnd(), IndexType{0}, [](IndexType Acc, const auto& rElement) {
                 return Acc += rElement.GetIntegrationPoints().size(); } );
         const IndexType num_elements = num_points;
 
