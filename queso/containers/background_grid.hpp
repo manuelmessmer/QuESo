@@ -359,7 +359,7 @@ public:
     }
 
     ///@}
-    ///@name Get Iterators
+    ///@name Iterators
     ///@{
 
     //////////////////
