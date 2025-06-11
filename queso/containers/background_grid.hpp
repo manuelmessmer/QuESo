@@ -359,99 +359,95 @@ public:
     }
 
     ///@}
-    ///@name Get Iterators
+    ///@name Iterators
     ///@{
 
     //////////////////
     //// Elements ////
     //////////////////
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto ElementsBegin() {
-        return dereference_iterator<typename ElementContainerType::iterator>(mElements.begin());
+    auto ElementsBegin() -> DereferenceIterator<typename ElementContainerType::iterator> {
+        return dereference_iterator(mElements.begin());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto ElementsBegin() const {
-        return dereference_iterator<typename ElementContainerType::const_iterator>(mElements.begin());
+    auto ElementsBegin() const -> DereferenceIterator<typename ElementContainerType::const_iterator> {
+        return dereference_iterator(mElements.begin());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto ElementsEnd() {
-        return dereference_iterator<typename ElementContainerType::iterator>(mElements.end());
+    auto ElementsEnd() -> DereferenceIterator<typename ElementContainerType::iterator> {
+        return dereference_iterator(mElements.end());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto ElementsEnd() const {
-        return dereference_iterator<typename ElementContainerType::const_iterator>(mElements.end());
+    auto ElementsEnd() const -> DereferenceIterator<typename ElementContainerType::const_iterator> {
+        return dereference_iterator(mElements.end());
     }
 
-    /// @brief Returns range of dereferenced iterators for the elements container (non-const version).
-    /// @return Range.
-    auto Elements() {
-        using IteratorType = DereferenceIterator<typename ElementContainerType::iterator>;
-        return DereferenceRange<IteratorType>{ ElementsBegin(), ElementsEnd() };
+    /// @brief Returns dereference range for the elements container (non-const version).
+    /// @return DereferenceRange.
+    auto Elements() -> DereferenceRange<typename ElementContainerType::iterator> {
+        return dereference_range(mElements.begin(), mElements.end());
     }
 
-    /// @brief Returns range of dereferenced iterators for the elements container (const version).
-    /// @return Range.
-    auto Elements() const {
-        using IteratorType = DereferenceIterator<typename ElementContainerType::const_iterator>;
-        return DereferenceRange<IteratorType>{ ElementsBegin(), ElementsEnd() };
+    /// @brief Returns dereference range for the elements container (const version).
+    /// @return DereferenceRange.
+    auto Elements() const -> DereferenceRange<typename ElementContainerType::const_iterator> {
+        return dereference_range(mElements.begin(), mElements.end());
     }
 
     ////////////////////
     //// Conditions ////
     ////////////////////
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionContainerType::iterator> ConditionsBegin() {
+    auto ConditionsBegin() -> DereferenceIterator<typename ConditionContainerType::iterator> {
         return dereference_iterator(mConditions.begin());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionContainerType::const_iterator> ConditionsBegin() const {
+    auto ConditionsBegin() const -> DereferenceIterator<typename ConditionContainerType::const_iterator> {
         return dereference_iterator(mConditions.begin());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionContainerType::iterator> ConditionsEnd() {
+    auto ConditionsEnd() -> DereferenceIterator<typename ConditionContainerType::iterator> {
         return dereference_iterator(mConditions.end());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    DereferenceIterator<typename ConditionContainerType::const_iterator> ConditionsEnd() const {
+    auto ConditionsEnd() const -> DereferenceIterator<typename ConditionContainerType::const_iterator> {
         return dereference_iterator(mConditions.end());
     }
 
-    /// @brief Returns range of dereferenced iterators for the condition container (non-const version).
-    /// @return Range.
-    auto Conditions() {
-        using IteratorType = DereferenceIterator<typename ConditionContainerType::iterator>;
-        return DereferenceRange<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
+    /// @brief Returns dereference range for the condition container (non-const version).
+    /// @return DereferenceRange.
+    auto Conditions() -> DereferenceRange<typename ConditionContainerType::iterator> {
+        return dereference_range(mConditions.begin(), mConditions.end());
     }
 
-    /// @brief Returns range of dereferenced iterators for the condition container (const version).
-    /// @return Range.
-    auto Conditions() const {
-        using IteratorType = DereferenceIterator<typename ConditionContainerType::const_iterator>;
-        return DereferenceRange<IteratorType>{ ConditionsBegin(), ConditionsEnd() };
+    /// @brief Returns dereference range for the condition container (const version).
+    /// @return DereferenceRange.
+    auto Conditions() const -> DereferenceRange<typename ConditionContainerType::const_iterator> {
+        return dereference_range(ConditionsBegin(), ConditionsEnd());
     }
 
 private:
