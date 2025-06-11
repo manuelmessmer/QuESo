@@ -101,46 +101,44 @@ public:
     ///@name Iterators
     ///@{
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto SegmentsBegin() {
-        return dereference_iterator<typename ConditionSegmentContainerType::iterator>(mSegments.begin());
+    auto SegmentsBegin() -> DereferenceIterator<typename ConditionSegmentContainerType::iterator> {
+        return dereference_iterator(mSegments.begin());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto SegmentsBegin() const {
-        return dereference_iterator<typename ConditionSegmentContainerType::const_iterator>(mSegments.begin());
+    auto SegmentsBegin() const -> DereferenceIterator<typename ConditionSegmentContainerType::const_iterator> {
+        return dereference_iterator(mSegments.begin());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto SegmentsEnd() {
-        return dereference_iterator<typename ConditionSegmentContainerType::iterator>(mSegments.end());
+    auto SegmentsEnd() -> DereferenceIterator<typename ConditionSegmentContainerType::iterator> {
+        return dereference_iterator(mSegments.end());
     }
 
-    /// @brief Returns dereferenced iterator. This means iterator does not point to UniquePtr,
+    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
     ///        but directly to the actual object.
     /// @return DereferenceIterator
-    auto SegmentsEnd() const {
-        return dereference_iterator<typename ConditionSegmentContainerType::const_iterator>(mSegments.end());
+    auto SegmentsEnd() const -> DereferenceIterator<typename ConditionSegmentContainerType::const_iterator> {
+        return dereference_iterator(mSegments.end());
     }
 
-    /// @brief Returns range of dereferenced iterators for the segments container (non-const version).
-    /// @return Range.
-    auto Segments() {
-        using IteratorType = DereferenceIterator<typename ConditionSegmentContainerType::iterator>;
-        return DereferenceRange<IteratorType>{ SegmentsBegin(), SegmentsEnd() };
+    /// @brief Returns dereference range for the segments container (non-const version).
+    /// @return DereferenceRange.
+    auto Segments() -> DereferenceRange<typename ConditionSegmentContainerType::iterator> {
+        return dereference_range( mSegments.begin(), mSegments.end() );
     }
 
-    /// @brief Returns range of dereferenced iterators for the segments container (const version).
-    /// @return Range.
-    auto Segments() const {
-        using IteratorType = DereferenceIterator<typename ConditionSegmentContainerType::const_iterator>;
-        return DereferenceRange<IteratorType>{ SegmentsBegin(), SegmentsEnd() };
+    /// @brief Returns dereference range for the segments container (const version).
+    /// @return DereferenceRange.
+    auto Segments() const -> DereferenceRange<typename ConditionSegmentContainerType::const_iterator> {
+        return dereference_range( mSegments.begin(), mSegments.end() );
     }
 
 private:
