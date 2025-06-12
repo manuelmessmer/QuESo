@@ -15,7 +15,7 @@
 #include <cstring>
 
 /// Project includes
-#include "queso/io/binary_writer.hpp"
+#include "queso/io/binary_buffer_writer.hpp"
 
 namespace queso {
 
@@ -40,7 +40,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
 
     if(Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::little);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::little);
 
         const uint32_t num_triangles = std::accumulate(rCondition.SegmentsBegin(), rCondition.SegmentsEnd(),
             uint32_t{0}, [](uint32_t Acc, const auto& rSegment) {
@@ -124,7 +124,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Write points
     file << "POINTS " << num_elements * 8 << " double\n";
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for (const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
             auto vertices = GetHexahedronVertices(lower_point, upper_point);
@@ -147,7 +147,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Write cells
     file << "CELLS " << num_elements << " " << num_elements*9 << '\n';
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for (IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t count = 8;
             binary_writer.WriteValue(count);
@@ -169,7 +169,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Write cell type
     file << "CELL_TYPES " << num_elements << '\n';
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         std::uint32_t value = 12;
         for (IndexType i = 0; i < num_elements; ++i) {
             binary_writer.WriteValue(value);
@@ -212,7 +212,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Write points
     file << "POINTS " << num_points << " double\n";
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
             for (const auto& r_point : r_points) {
@@ -235,7 +235,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Write Cells
     file << "CELLS " << num_elements << " " << num_elements*2 << '\n';
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t k = 1;
             binary_writer.WriteValue(k);
@@ -251,7 +251,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Write cell types
     file << "CELL_TYPES " << num_elements << '\n';
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t k = 1;
             binary_writer.WriteValue(k);
@@ -267,7 +267,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     file << "SCALARS Weights double 1\n";
     file << "LOOKUP_TABLE default\n";
     if (Binary) {
-        BinaryWriterBuffer binary_writer(file, BinaryWriterBuffer::EndianType::big);
+        BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(const auto& r_element : rBackgroundGrid.Elements()){
             const auto& points = r_element.GetIntegrationPoints();
             for(const auto& point : points ){
