@@ -99,17 +99,29 @@ public:
                                  const std::string& rFilename,
                                  bool Binary);
 
-    /// @brief Write points to VTK.
-    /// @tparam Type
-    /// @param pPoints
-    /// @param rFilename
-    /// @param Binary If true, file is written in binary format.
-    template<typename Type>
-    static void WritePointsToVTK(const std::vector<Type>& rPoints,
-                                 const std::string& rFilename,
-                                 bool Binary);
-
 private:
+    ///@}
+    ///@name Type definitions
+    ///@{
+
+    struct PointComparison {
+        bool operator() (const PointType& lhs, const PointType& rhs) const {
+            const double dx = lhs[0] - rhs[0];
+            const double dy = lhs[1] - rhs[1];
+            const double dz = lhs[2] - rhs[2];
+
+            if (std::abs(dx) < SNAPTOL) {
+                if (std::abs(dy) < SNAPTOL) {
+                    // x and y close enough, compare z
+                    return dz < -SNAPTOL;
+                }
+                // x close enough, compare y
+                return dy < -SNAPTOL;
+            }
+            // compare x
+            return dx < -SNAPTOL;
+        }
+    };
 
     ///@}
     ///@name Private Operations
@@ -122,35 +134,35 @@ private:
     static void ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                       const std::string& rFilename);
 
-    ///@brief  Reads triangle mesh from STL in Binary-format.
+                                      ///@brief  Reads triangle mesh from STL in Binary-format.
     ///@param rTriangleMesh
     ///@param rFilename
     ///@see ReadMeshFromSTL_Ascii()
     static void ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
-                                       const std::string& rFilename);
+        const std::string& rFilename);
 
     ///@brief Returns true if given file in in ASCII-format.
     ///@param rFilename
     ///@return bool
     static bool STLIsInASCIIFormat(const std::string& rFilename);
 
-    ////// Some Helper functions //////
-
-    template<typename T>
-    static void SwapEnd(T& var)
-    {
-        char* varArray = reinterpret_cast<char*>(&var);
-        for(long i = 0; i < static_cast<long>(sizeof(var)/2); ++i)
-        std::swap(varArray[sizeof(var) - 1 - i],varArray[i]);
+    /// @brief Helper function to get hexahedron vertices from bounds.
+    /// @param rMin
+    /// @param rMax
+    /// @return std::array<PointType, 8>
+    static std::array<PointType, 8> GetHexahedronVertices(const PointType& rMin, const PointType& rMax) {
+        return {{
+            {{rMin[0], rMin[1], rMin[2]}},
+            {{rMax[0], rMin[1], rMin[2]}},
+            {{rMax[0], rMax[1], rMin[2]}},
+            {{rMin[0], rMax[1], rMin[2]}},
+            {{rMin[0], rMin[1], rMax[2]}},
+            {{rMax[0], rMin[1], rMax[2]}},
+            {{rMax[0], rMax[1], rMax[2]}},
+            {{rMin[0], rMax[1], rMax[2]}} }};
     }
 
-    template<typename T>
-    static void WriteBinary(std::ofstream& stream, T& var){
-        SwapEnd(var);
-        stream.write(reinterpret_cast<char*>(&var), sizeof(T));
-    }
-
-  ///@}
+    ///@}
 }; // End class IO
 ///@} End QuESo Classes
 
