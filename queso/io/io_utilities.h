@@ -34,8 +34,13 @@ namespace queso {
  * @brief  Provides methods to parse data. Supports STL and VTK files.
 **/
 class IO {
-
 public:
+    ///@}
+    ///@name Type definitions
+    ///@{
+
+    enum class EncodingType {binary, ascii};
+
     ///@name Operations
     ///@{
 
@@ -45,7 +50,7 @@ public:
     /// @param Binary If true, file is written in binary format.
     static void WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
                                const std::string& rFilename,
-                               bool Binary);
+                               EncodingType Encoding);
 
     /// @brief Write TriangleMeshInterface to STL-File.
     /// @param rTriangleMesh
@@ -53,7 +58,7 @@ public:
     /// @param Binary If true, file is written in binary format.
     static void WriteMeshToSTL( const TriangleMeshInterface& rTriangleMesh,
                                 const std::string& rFilename,
-                                bool Binary);
+                                EncodingType Encoding);
 
     /// @brief Read TriangleMeshInterface from STL.
     /// @param rTriangleMesh
@@ -76,7 +81,7 @@ public:
     template<typename TElementType>
     static void WriteConditionToSTL(const Condition<TElementType>& rCondition,
                                     const std::string& rFilename,
-                                    bool Binary);
+                                    EncodingType Encoding);
 
     /// @brief Write element container to VTK-file.
     /// @tparam TElementType
@@ -86,7 +91,7 @@ public:
     template<typename TElementType>
     static void WriteElementsToVTK( const BackgroundGrid<TElementType>& rBackgroundGrid,
                                     const std::string& rFilename,
-                                    bool Binary);
+                                    EncodingType Encoding);
 
     /// @brief Write points to VTK. Interface for BackgroundGrid.
     /// @tparam TElementType
@@ -97,7 +102,7 @@ public:
     template<typename TElementType>
     static void WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                                  const std::string& rFilename,
-                                 bool Binary);
+                                 EncodingType Encoding);
 
 private:
     ///@}
@@ -144,7 +149,7 @@ private:
     ///@brief Returns true if given file in in ASCII-format.
     ///@param rFilename
     ///@return bool
-    static bool STLIsInASCIIFormat(const std::string& rFilename);
+    static EncodingType GetEncodingType(const std::string& rFilename);
 
     /// @brief Helper function to get hexahedron vertices from bounds.
     /// @param rMin

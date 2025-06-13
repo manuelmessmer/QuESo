@@ -34,12 +34,13 @@ void IO::WriteDictionaryToJSON(const TDictType& rDictionary, const std::string& 
 template<typename TElementType>
 void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
                              const std::string& rFilename,
-                             bool Binary) {
+                             EncodingType Encoding) {
     // Open file
-    std::ofstream file(rFilename, Binary ? (std::ios::out | std::ios::binary) : std::ios::out);
+    std::ofstream file(rFilename, (Encoding==EncodingType::binary)
+        ? (std::ios::out | std::ios::binary) : std::ios::out);
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
 
-    if(Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::little);
 
         const uint32_t num_triangles = std::accumulate(rCondition.SegmentsBegin(), rCondition.SegmentsEnd(),
@@ -72,8 +73,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
                 binary_writer.WriteValue(attribute_byte_count);
             }
         }
-    }
-    else { // Ascii export
+    } else { // ascii
         file << std::fixed << std::setprecision(6);
         file << "solid QuESoExport\n";
         for(const auto& r_segments : rCondition.Segments()) {
@@ -104,9 +104,10 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
 template<typename TElementType>
 void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                             const std::string& rFilename,
-                            bool Binary) {
+                            EncodingType Encoding) {
     // Open file
-    std::ofstream file(rFilename, Binary ? (std::ios::out | std::ios::binary) : std::ios::out);
+    std::ofstream file(rFilename, (Encoding == EncodingType::binary)
+        ? (std::ios::out | std::ios::binary) : std::ios::out);
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
 
     const SizeType num_elements = rBackgroundGrid.NumberOfActiveElements();
@@ -114,16 +115,16 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Header
     file << "# vtk DataFile Version 4.1\n";
     file << "vtk output\n";
-    file << (Binary ? "BINARY\n" : "ASCII\n");
+    file << ((Encoding == EncodingType::binary) ? "BINARY\n" : "ASCII\n");
     file << "DATASET UNSTRUCTURED_GRID\n";
 
-    if (!Binary) {
+    if(Encoding == EncodingType::ascii) {
         file << std::fixed << std::setprecision(15);
     }
 
     // Write points
     file << "POINTS " << num_elements * 8 << " double\n";
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for (const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
@@ -134,7 +135,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                 binary_writer.WriteValue(v[2]);
             }
         }
-    } else {
+    } else { // ascii
         for (const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
             auto vertices = GetHexahedronVertices(lower_point, upper_point);
@@ -146,7 +147,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
 
     // Write cells
     file << "CELLS " << num_elements << " " << num_elements*9 << '\n';
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for (IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t count = 8;
@@ -156,7 +157,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                 binary_writer.WriteValue(index);
             }
         }
-    } else {
+    } else { // ascii
         for (IndexType i = 0; i < num_elements; ++i) {
             file << 8;
             for (IndexType j = 0; j < 8; ++j) {
@@ -168,13 +169,13 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
 
     // Write cell type
     file << "CELL_TYPES " << num_elements << '\n';
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         std::uint32_t value = 12;
         for (IndexType i = 0; i < num_elements; ++i) {
             binary_writer.WriteValue(value);
         }
-    } else {
+    } else { // ascii
         for (IndexType i = 0; i < num_elements; ++i) {
             file << 12 << '\n';
         }
@@ -187,9 +188,10 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
 template<typename TElementType>
 void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                             const std::string& rFilename,
-                            bool Binary) {
+                            EncodingType Encoding) {
     // Open file
-    std::ofstream file(rFilename, Binary ? (std::ios::out | std::ios::binary) : std::ios::out);
+    std::ofstream file(rFilename, (Encoding == EncodingType::binary)
+        ? (std::ios::out | std::ios::binary) : std::ios::out);
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
 
     const IndexType num_points = std::accumulate(
@@ -202,16 +204,16 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Header
     file << "# vtk DataFile Version 4.1\n";
     file << "vtk output\n";
-    file << (Binary ? "BINARY\n" : "ASCII\n");
+    file << ((Encoding == EncodingType::binary) ? "BINARY\n" : "ASCII\n");
     file << "DATASET UNSTRUCTURED_GRID\n";
 
-    if (!Binary) {
+    if(Encoding == EncodingType::ascii) {
         file << std::fixed << std::setprecision(15);
     }
 
     // Write points
     file << "POINTS " << num_points << " double\n";
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
@@ -222,7 +224,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                 binary_writer.WriteValue(point_global[2]);
             }
         }
-    } else {
+    } else { // ascii
         for(const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
             for (const auto& r_point : r_points) {
@@ -234,7 +236,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
 
     // Write Cells
     file << "CELLS " << num_elements << " " << num_elements*2 << '\n';
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t k = 1;
@@ -242,7 +244,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
             k = static_cast<std::uint32_t>(i);
             binary_writer.WriteValue(k);
         }
-    } else {
+    } else { // ascii
         for(IndexType i = 0; i < num_elements; ++i) {
             file << 1 << ' ' << i << '\n';
         }
@@ -250,13 +252,13 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
 
     // Write cell types
     file << "CELL_TYPES " << num_elements << '\n';
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t k = 1;
             binary_writer.WriteValue(k);
         }
-    } else {
+    } else { // ascii
         for(IndexType i = 0; i < num_elements; ++i) {
             file << 1 << '\n';
         }
@@ -266,7 +268,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     file << "POINT_DATA " << num_points << '\n';
     file << "SCALARS Weights double 1\n";
     file << "LOOKUP_TABLE default\n";
-    if (Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(const auto& r_element : rBackgroundGrid.Elements()){
             const auto& points = r_element.GetIntegrationPoints();
@@ -275,7 +277,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                 binary_writer.WriteValue(weight);
             }
         }
-    } else {
+    } else { // ascii
         for(const auto& r_element : rBackgroundGrid.Elements()){
             const auto& points = r_element.GetIntegrationPoints();
             for(const auto& point : points ){

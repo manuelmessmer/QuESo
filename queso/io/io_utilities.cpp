@@ -20,14 +20,15 @@ namespace queso {
 
 void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
                         const std::string& rFilename,
-                        const bool Binary){
+                        EncodingType Encoding){
     // Open file
-    std::ofstream file(rFilename, Binary ? (std::ios::out | std::ios::binary) : std::ios::out);
+    std::ofstream file(rFilename, (Encoding == EncodingType::binary)
+        ? (std::ios::out | std::ios::binary) : std::ios::out);
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
 
     const uint32_t num_triangles = static_cast<uint32_t>(rTriangleMesh.NumOfTriangles());
 
-    if(Binary) {
+    if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::little);
 
         constexpr size_t header_size = 80;
@@ -75,10 +76,11 @@ void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
 
 void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
                         const std::string& rFilename,
-                        bool Binary) {
+                        EncodingType Encoding) {
 
     // Open file
-    std::ofstream file(rFilename, Binary ? (std::ios::out | std::ios::binary) : std::ios::out);
+    std::ofstream file(rFilename, (Encoding == EncodingType::binary)
+        ? (std::ios::out | std::ios::binary) : std::ios::out);
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
 
     const SizeType num_elements = rTriangleMesh.NumOfTriangles();
@@ -88,24 +90,24 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     // Header
     file << "# vtk DataFile Version 4.1\n";
     file << "vtk output\n";
-    file << (Binary ? "BINARY\n" : "ASCII\n");
+    file << ((Encoding == EncodingType::binary) ? "BINARY\n" : "ASCII\n");
     file << "DATASET UNSTRUCTURED_GRID\n";
 
-    if (!Binary) {
+    if(Encoding == EncodingType::ascii) {
         file << std::fixed << std::setprecision(15);
     }
 
     file << "POINTS " << num_points << " double\n";
 
     const auto& r_vertices = rTriangleMesh.GetVertices();
-    if(Binary){
+    if(Encoding == EncodingType::binary){
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(const auto& r_vertice : r_vertices) {
             binary_writer.WriteValue(r_vertice[0]);
             binary_writer.WriteValue(r_vertice[1]);
             binary_writer.WriteValue(r_vertice[2]);
         }
-    } else {
+    } else { // ascii
         for(const auto& r_vertice : r_vertices) {
             file << r_vertice[0] << ' ' << r_vertice[1] << ' ' << r_vertice[2] << '\n';
         }
@@ -113,7 +115,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
 
     // Write Cells
     file << "CELLS " << num_elements << " " << num_elements*4 << '\n';
-    if(Binary){
+    if(Encoding == EncodingType::binary){
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for(IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t count = 3;
@@ -123,7 +125,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
                 binary_writer.WriteValue(index);
             }
         }
-    } else {
+    } else { // ascii
         for(IndexType i = 0; i < num_elements; ++i) {
             file << 3;
             for( auto id : rTriangleMesh.VertexIds(i) ){
@@ -134,13 +136,13 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     }
 
     file << "CELL_TYPES " << num_elements << '\n';
-    if(Binary){
+    if(Encoding == EncodingType::binary){
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
         for( IndexType i = 0; i < num_elements; ++i){
             std::uint32_t value = 5;
             binary_writer.WriteValue(value);
         }
-    } else {
+    } else { // ascii
         for( IndexType i = 0; i < num_elements; ++i){
             file << 5 << '\n';
         }
@@ -154,7 +156,7 @@ void IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
                          const std::string& rFilename){
 
     // Open file
-    if( STLIsInASCIIFormat(rFilename) ) {
+    if( GetEncodingType(rFilename) == EncodingType::ascii ) {
         return ReadMeshFromSTL_Ascii(rTriangleMesh, rFilename);
     } else {
         return ReadMeshFromSTL_Binary(rTriangleMesh, rFilename);
@@ -165,7 +167,7 @@ void IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
 
 ////// Private member functions //////
 
-bool IO::STLIsInASCIIFormat(const std::string& rFilename) {
+IO::EncodingType IO::GetEncodingType(const std::string& rFilename) {
     std::ifstream file(rFilename, std::ios::in | std::ios::binary);
     QuESo_ERROR_IF(!file) << "Could not open file: " << rFilename << std::endl;
 
@@ -175,7 +177,7 @@ bool IO::STLIsInASCIIFormat(const std::string& rFilename) {
     // Check if file starts with "solid".
     if (firstLine.find("solid") != 0) {
         // Ascii must start with solid, binary can start with solid.
-        return false;
+        return EncodingType::binary;
     }
 
     // Check for Ascii-specific keywords in the next 20 lines.
@@ -186,7 +188,7 @@ bool IO::STLIsInASCIIFormat(const std::string& rFilename) {
             line.find("outer loop") != std::string::npos ||
             line.find("normal") != std::string::npos ||
             line.find("facet") != std::string::npos )  {
-            return true;  // Likely Ascii
+            return EncodingType::ascii;
         }
     }
 
@@ -198,11 +200,11 @@ bool IO::STLIsInASCIIFormat(const std::string& rFilename) {
     std::streamsize bytes_read = file.gcount();
     for (std::streamsize i = 0; i < bytes_read; ++i) {
         if (buffer[i] == '\0') {
-            return false; // Binary file detected
+            return EncodingType::binary;;
         }
     }
 
-    return true; // Likely Ascii
+    return EncodingType::ascii; // Likely Ascii
 }
 
 void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
