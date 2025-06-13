@@ -318,13 +318,13 @@ void EmbeddedModel::WriteModelToFile() const {
         QuESo_INFO_IF(echo_level > 0) << ":: WriteFileInfo :: Output directory: '" << output_directory_name << "'\n";
 
         // Write vtk files (binary = true).
-        IO::WriteElementsToVTK(mBackgroundGrid, (output_directory_name + "/elements.vtk"), true);
-        IO::WritePointsToVTK(mBackgroundGrid, (output_directory_name + "/integration_points.vtk"), true);
+        IO::WriteElementsToVTK(mBackgroundGrid, (output_directory_name + "/elements.vtk"), IO::EncodingType::binary);
+        IO::WritePointsToVTK(mBackgroundGrid, (output_directory_name + "/integration_points.vtk"), IO::EncodingType::binary);
         std::for_each(mBackgroundGrid.ConditionsBegin(), mBackgroundGrid.ConditionsEnd(),
             [&output_directory_name](const auto& r_condition){
                 IndexType condition_id = r_condition.GetSettings().template GetValue<IndexType>(ConditionSettings::condition_id);
                 const std::string bc_filename = output_directory_name + "/condition_id_" + std::to_string(condition_id) + ".stl";
-                IO::WriteConditionToSTL(r_condition, bc_filename, true);
+                IO::WriteConditionToSTL(r_condition, bc_filename, IO::EncodingType::binary);
         });
 
         /* Begin: Write to r_model_info */
