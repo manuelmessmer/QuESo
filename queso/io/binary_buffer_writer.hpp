@@ -28,11 +28,10 @@ namespace queso {
 ///@name QuESo Classes
 ///@{
 
-/**
- * @class  BinaryUtilites
- * @author Manuel Messmer
- * @brief  Provides methods to parse data. Supports STL and VTK files.
-**/
+
+/// @class  BinaryBufferWriter
+/// @author Manuel Messmer
+/// @brief  Buffer to write data in binary format to file.
 class BinaryBufferWriter {
 public:
     ///@name Type definitions
@@ -46,7 +45,7 @@ public:
 
     /// @brief Constructor.
     /// @param rOut Filestream.
-    /// @param Endian Options: {big,little}.
+    /// @param Endian Options: {big, little}.
     /// @param BufferSize (Default: 1MB).
     BinaryBufferWriter(std::ofstream& rOut, EndianType Endian, IndexType BufferSize = (int)1 << 20) // default 1MB
         : mOut(rOut), mBuffer{}, mEndian(Endian), mBufferSize(BufferSize)
@@ -58,6 +57,12 @@ public:
     ~BinaryBufferWriter() {
         Flush();
     }
+
+    /// Delete copy and move operators.
+    BinaryBufferWriter(const BinaryBufferWriter& rOther) = delete;
+    BinaryBufferWriter& operator=(const BinaryBufferWriter& rOther) = delete;
+    BinaryBufferWriter(BinaryBufferWriter&& rOther) = delete;
+    BinaryBufferWriter& operator=(BinaryBufferWriter&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -113,6 +118,12 @@ private:
     /// @param pData
     /// @param Size
     void AppendToBuffer(const char* pData, IndexType Size) {
+        if(Size > mBufferSize) {
+            Flush();
+            // Write large data directly to stream (no buffering).
+            mOut.write(pData, Size);
+            return;
+        }
         if (mBuffer.size() + Size > mBufferSize) {
             Flush();
         }
