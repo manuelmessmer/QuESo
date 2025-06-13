@@ -25,7 +25,6 @@ namespace Testing {
 /// @brief  Allows to create temporary files. Removes files from disc on destruction.
 class TemporaryFile {
 public:
-
     ///@name Life cycle
     ///@{
 
