@@ -11,23 +11,20 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef BINARY_WRITER_UTILTIES_HPP
-#define BINARY_WRITER_UTILTIES_HPP
+#ifndef BINARY_BUFFER_WRITER_HPP
+#define BINARY_BUFFER_WRITER_HPP
 
 //// STL includes
 #include <fstream>
 #include <vector>
-#include <functional>
 
 //// Project includes
 #include "queso/includes/define.hpp"
-
 
 namespace queso {
 
 ///@name QuESo Classes
 ///@{
-
 
 /// @class  BinaryBufferWriter
 /// @author Manuel Messmer
@@ -47,10 +44,13 @@ public:
     /// @param rOut Filestream.
     /// @param Endian Options: {big, little}.
     /// @param BufferSize (Default: 1MB).
-    BinaryBufferWriter(std::ofstream& rOut, EndianType Endian, IndexType BufferSize = (int)1 << 20) // default 1MB
-        : mOut(rOut), mBuffer{}, mEndian(Endian), mBufferSize(BufferSize)
+    BinaryBufferWriter(std::ofstream& rOut, EndianType Endian, IndexType BufferSize = (int)1 << 20) : // default 1MB
+          mOut(rOut),
+          mEndian(Endian),
+          mBufferSize(BufferSize),
+          mBufferPos(0),
+          mBuffer(BufferSize)
     {
-        mBuffer.reserve(mBufferSize);
     }
 
     /// Destructor
@@ -102,9 +102,10 @@ public:
 
     /// @brief Flushes the buffer to the filestream.
     void Flush() {
-        if (!mBuffer.empty()) {
-            mOut.write(mBuffer.data(), mBuffer.size());
-            mBuffer.clear();
+        if (mBufferPos > 0) {
+            mOut.write(mBuffer.data(), mBufferPos);
+            QuESo_ERROR_IF(!mOut) << "Write failed during Flush." << std::endl;
+            mBufferPos = 0; // Reset buffer.
         }
     }
 
@@ -122,12 +123,14 @@ private:
             Flush();
             // Write large data directly to stream (no buffering).
             mOut.write(pData, Size);
+            QuESo_ERROR_IF(!mOut) << "Write failed during Flush." << std::endl;
             return;
         }
-        if (mBuffer.size() + Size > mBufferSize) {
+        if (mBufferPos + Size > mBufferSize) {
             Flush();
         }
-        mBuffer.insert(mBuffer.end(), pData, pData + Size);
+        std::memcpy(mBuffer.data() + mBufferPos, pData, Size);
+        mBufferPos += Size;
     }
 
     /// @brief Returns the endian type of the current system.
@@ -166,10 +169,12 @@ private:
     ///@}
     ///@name Member variables
     ///@{
+
     std::ofstream& mOut;
-    std::vector<char> mBuffer;
     EndianType mEndian;
     IndexType mBufferSize;
+    IndexType mBufferPos;
+    std::vector<char> mBuffer;
 
   ///@}
 }; // End class BinaryBufferWriter
@@ -177,4 +182,4 @@ private:
 
 } // End namespace queso
 
-#endif // BINARY_WRITER_UTILTIES_HPP
+#endif // BINARY_BUFFER_WRITER_HPP
