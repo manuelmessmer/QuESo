@@ -25,14 +25,13 @@
 
 namespace queso {
 
-///@name QuESo Classes
+///@name QuESo classes
 ///@{
 
-/**
- * @class  IO
- * @author Manuel Messmer
- * @brief  Provides methods to parse data. Supports STL and VTK files.
-**/
+/// @class  IO
+/// @author Manuel Messmer
+/// @brief  Provides methods to read and write data from an to files.
+///         Supports STL and VTK file extensions.
 class IO {
 public:
     ///@}
@@ -44,66 +43,71 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief Write TriangleMeshInterface to VTK-File
-    /// @param rTriangleMesh
-    /// @param rFilename
-    /// @param Binary If true, file is written in binary format.
-    static void WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
-                               const std::string& rFilename,
-                               EncodingType Encoding);
+    /*--- Read operations ---*/
 
-    /// @brief Write TriangleMeshInterface to STL-File.
-    /// @param rTriangleMesh
-    /// @param rFilename
-    /// @param Binary If true, file is written in binary format.
-    static void WriteMeshToSTL( const TriangleMeshInterface& rTriangleMesh,
-                                const std::string& rFilename,
-                                EncodingType Encoding);
-
-    /// @brief Read TriangleMeshInterface from STL.
+    /// @brief Reads TriangleMesh from STL file.
+    ///        Checks if file is in binary or ascii format and calls either
+    ///        ReadMeshFromSTL_Ascii() or ReadMeshFromSTL_Binary().
     /// @param rTriangleMesh
     /// @param rFilename
     static void ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
                                 const std::string& rFilename);
 
-    ///@brief Write dictionary to JSON file.
+    /*--- Write operations ---*/
+
+    ///@brief Writes dictionary to JSON file.
     ///@tparam TDictType
     ///@param rDictionary
     ///@param rFilename
     template<typename TDictType>
-    static void WriteDictionaryToJSON(const TDictType& rDictionary, const std::string& rFilename);
+    static void WriteDictionaryToJSON(const TDictType& rDictionary,
+                                      const std::string& rFilename);
 
-    /// @brief Write triangle mesh associated to given condition to STL-file.
+    /// @brief Writes TriangleMesh to VTK file.
+    /// @param rTriangleMesh
+    /// @param rFilename
+    /// @param Encoding Options: {binary, ascii}.
+    static void WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
+                               const std::string& rFilename,
+                               EncodingType Encoding);
+
+    /// @brief Writes TriangleMesh to STL file.
+    /// @param rTriangleMesh
+    /// @param rFilename
+    /// @param Encoding Options: {binary, ascii}.
+    static void WriteMeshToSTL( const TriangleMeshInterface& rTriangleMesh,
+                                const std::string& rFilename,
+                                EncodingType Encoding);
+
+    /// @brief Writes triangle mesh associated with given condition to STL file.
     /// @tparam TElementType
     /// @param rCondition
     /// @param rFilename
-    /// @param Binary If true, file is written in binary format.
+    /// @param Encoding Options: {binary, ascii}.
     template<typename TElementType>
     static void WriteConditionToSTL(const Condition<TElementType>& rCondition,
                                     const std::string& rFilename,
                                     EncodingType Encoding);
 
-    /// @brief Write element container to VTK-file.
+    /// @brief Writes elements to VTK file.
     /// @tparam TElementType
     /// @param rBackgroundGrid
     /// @param rFilename
-    /// @param Binary If true, file is written in binary format.
+    /// @param Encoding Options: {binary, ascii}.
     template<typename TElementType>
     static void WriteElementsToVTK( const BackgroundGrid<TElementType>& rBackgroundGrid,
                                     const std::string& rFilename,
                                     EncodingType Encoding);
 
-    /// @brief Write points to VTK. Interface for BackgroundGrid.
+    /// @brief Write points to VTK file.
     /// @tparam TElementType
     /// @param rBackgroundGrid
     /// @param rFilename
-    /// @param Binary If true, file is written in binary format.
-    /// @todo Needs to be refactored.
+    /// @param Encoding Options: {binary, ascii}.
     template<typename TElementType>
     static void WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
                                  const std::string& rFilename,
                                  EncodingType Encoding);
-
 private:
     ///@}
     ///@name Type definitions
@@ -132,39 +136,39 @@ private:
     ///@name Private Operations
     ///@{
 
-    ///@brief  Reads triangle mesh from STL in Ascii-format.
+    ///@brief Returns the encopding type of the given file in Ascii-format.
+    ///@param rFilename
+    ///@return EncodingType: Options {binary, ascii}.
+    static EncodingType GetEncodingType(const std::string& rFilename);
+
+    ///@brief  Reads triangle mesh from STL file in Ascii-format.
     ///@param rTriangleMesh
     ///@param rFilename
-    ///@see ReadMeshFromSTL_Binary()
+    ///@see ReadMeshFromSTL_Binary().
     static void ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                       const std::string& rFilename);
 
-                                      ///@brief  Reads triangle mesh from STL in Binary-format.
+    ///@brief  Reads TriangleMesh from STL file in Binary-format.
     ///@param rTriangleMesh
     ///@param rFilename
-    ///@see ReadMeshFromSTL_Ascii()
+    ///@see ReadMeshFromSTL_Ascii().
     static void ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
-        const std::string& rFilename);
+                                       const std::string& rFilename);
 
-    ///@brief Returns true if given file in in ASCII-format.
-    ///@param rFilename
-    ///@return bool
-    static EncodingType GetEncodingType(const std::string& rFilename);
-
-    /// @brief Helper function to get hexahedron vertices from bounds.
-    /// @param rMin
-    /// @param rMax
+    /// @brief Helper function to get vertices of hexahedron defined by lower and upper bounds.
+    /// @param rLowerBound
+    /// @param rUpperBound
     /// @return std::array<PointType, 8>
-    static std::array<PointType, 8> GetHexahedronVertices(const PointType& rMin, const PointType& rMax) {
+    static std::array<PointType, 8> GetHexahedronVertices(const PointType& rLowerBound, const PointType& rUpperBound) {
         return {{
-            {{rMin[0], rMin[1], rMin[2]}},
-            {{rMax[0], rMin[1], rMin[2]}},
-            {{rMax[0], rMax[1], rMin[2]}},
-            {{rMin[0], rMax[1], rMin[2]}},
-            {{rMin[0], rMin[1], rMax[2]}},
-            {{rMax[0], rMin[1], rMax[2]}},
-            {{rMax[0], rMax[1], rMax[2]}},
-            {{rMin[0], rMax[1], rMax[2]}} }};
+            {{rLowerBound[0], rLowerBound[1], rLowerBound[2]}},
+            {{rUpperBound[0], rLowerBound[1], rLowerBound[2]}},
+            {{rUpperBound[0], rUpperBound[1], rLowerBound[2]}},
+            {{rLowerBound[0], rUpperBound[1], rLowerBound[2]}},
+            {{rLowerBound[0], rLowerBound[1], rUpperBound[2]}},
+            {{rUpperBound[0], rLowerBound[1], rUpperBound[2]}},
+            {{rUpperBound[0], rUpperBound[1], rUpperBound[2]}},
+            {{rLowerBound[0], rUpperBound[1], rUpperBound[2]}} }};
     }
 
     ///@}
@@ -173,6 +177,7 @@ private:
 
 } // End namespace queso
 
+// Include template definitions.
 #include "queso/io/io_utilities.tpp"
 
 #endif // IO_UTILTIES_H

@@ -94,9 +94,9 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
             }
         }
         file << "endsolid QuESoExport\n";
-        file.flush();
     }
 
+    file.flush();
     QuESo_ERROR_IF(!file.good()) << "Failed to write conditions to file: " << rFilename << ".\n";
 }
 
