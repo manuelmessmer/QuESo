@@ -105,9 +105,6 @@ public:
         TriangleMesh triangle_mesh{};
         IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
 
-        IO::WriteMeshToSTL(triangle_mesh, "queso_output/geometry.stl", IO::EncodingType::binary);
-        IO::WriteMeshToVTK(triangle_mesh, "queso_output/geometry.vtk", IO::EncodingType::binary);
-
         ComputeVolume(triangle_mesh);
         PrintVolumeElapsedTimeInfo();
 
