@@ -24,7 +24,7 @@ void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
     // Open file
     std::ofstream file(rFilename, (Encoding == EncodingType::binary)
         ? (std::ios::out | std::ios::binary) : std::ios::out);
-    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const uint32_t num_triangles = static_cast<uint32_t>(rTriangleMesh.NumOfTriangles());
 
@@ -81,7 +81,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     // Open file
     std::ofstream file(rFilename, (Encoding == EncodingType::binary)
         ? (std::ios::out | std::ios::binary) : std::ios::out);
-    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const SizeType num_elements = rTriangleMesh.NumOfTriangles();
     const SizeType num_points = rTriangleMesh.NumOfVertices();
@@ -149,7 +149,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     }
 
     file.flush();
-    QuESo_ERROR_IF(!file.good()) << "Failed to write mesh to file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file.good()) << "Failed to write mesh to file: " << rFilename << '.' << std::endl;
 }
 
 void IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
@@ -169,7 +169,7 @@ void IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
 
 IO::EncodingType IO::GetEncodingType(const std::string& rFilename) {
     std::ifstream file(rFilename, std::ios::in | std::ios::binary);
-    QuESo_ERROR_IF(!file) << "Could not open file: " << rFilename << std::endl;
+    QuESo_ERROR_IF(!file) << "Could not open file: " << rFilename << '.' << std::endl;
 
     std::string firstLine;
     std::getline(file, firstLine);
@@ -211,7 +211,7 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                const std::string& rFilename){
     // Open file
     std::ifstream file(rFilename);
-    QuESo_ERROR_IF(!file) << "Could not open file: " << rFilename << std::endl;
+    QuESo_ERROR_IF(!file) << "Could not open file: " << rFilename << '.' << std::endl;
 
     // Initialize map
     IndexType index = 0;
@@ -235,7 +235,7 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
         if (line.find("facet") != std::string::npos) {
             std::getline(file, line); // Expect "outer loop"
             if (!file.good() || line.find("outer loop") == std::string::npos) {
-                QuESo_ERROR << "Expected 'outer loop' but got: " << line << std::endl;
+                QuESo_ERROR << "Expected 'outer loop' but got: " << line << '.' << std::endl;
             }
 
             Vector3i triangle{};
@@ -243,7 +243,7 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
 
             for (int i = 0; i < 3; ++i) {
                 if(!std::getline(file, line)) {
-                    QuESo_ERROR << "Unexpected EOF reading vertex" << std::endl;
+                    QuESo_ERROR << "Unexpected EOF reading vertex." << std::endl;
                 }
                 std::istringstream iss(line);
                 std::string word;
@@ -277,11 +277,11 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
 
             std::getline(file, line); // endloop
             if (!file.good() || line.find("endloop") == std::string::npos) {
-                QuESo_ERROR << "Expected 'endloop' but got: " << line << std::endl;
+                QuESo_ERROR << "Expected 'endloop' but got: " << line << '.' << std::endl;
             }
             std::getline(file, line); // endfacet
             if (!file.good() || line.find("endfacet") == std::string::npos) {
-                QuESo_ERROR << "Expected 'endfacet' but got: " << line << std::endl;
+                QuESo_ERROR << "Expected 'endfacet' but got: " << line << '.' << std::endl;
             }
         }
     } while (std::getline(file, line));
@@ -300,7 +300,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
     char header[80];
     file.read(header, 80);
     if (!file.good()) {
-        QuESo_ERROR << "File " << rFilename << " is empty or corrupted.\n";
+        QuESo_ERROR << "File " << rFilename << " is empty or corrupted." << std::endl;
     }
 
     // Initialize map
@@ -310,7 +310,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
     // Read number of triangles
     std::uint32_t num_triangles;
     if(!(file.read(reinterpret_cast<char*>(&num_triangles), sizeof(num_triangles)))) {
-        QuESo_ERROR << "Couldnt read number of triangles. \n";
+        QuESo_ERROR << "Couldnt read number of triangles." << std::endl;
     }
     rTriangleMesh.Clear();
     rTriangleMesh.Reserve(static_cast<IndexType>(num_triangles));
@@ -320,7 +320,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
         { // Read and ignore normals
             float normal[3];
             file.read(reinterpret_cast<char*>(normal), sizeof(normal));
-            QuESo_ERROR_IF(!file) << "Couldn't read triangle normal.\n";
+            QuESo_ERROR_IF(!file) << "Couldn't read triangle normal." << std::endl;
         }
 
         // Read triangles and vertices. Each vertex is read seperately.
@@ -329,7 +329,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
         for(int j=0; j<3; ++j) {
             float coords[3];
             file.read(reinterpret_cast<char*>(coords), sizeof(coords));
-            QuESo_ERROR_IF(!file) << "Couldn't read triangle vertex.\n";
+            QuESo_ERROR_IF(!file) << "Couldn't read triangle vertex." << std::endl;
 
             Vector3d vertex = {static_cast<double>(coords[0]),
                                static_cast<double>(coords[1]),
@@ -360,7 +360,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
         // Read so-called attribute byte count and ignore it
         std::uint16_t attribute_byte_count;
         file.read(reinterpret_cast<char*>(&attribute_byte_count), sizeof(attribute_byte_count));
-        QuESo_ERROR_IF(!file) << "Couldn't read attribute byte count.\n";
+        QuESo_ERROR_IF(!file) << "Couldn't read attribute byte count." << std::endl;
     }
 
     rTriangleMesh.Check();

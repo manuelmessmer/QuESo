@@ -23,12 +23,12 @@ template<typename TDictType>
 void IO::WriteDictionaryToJSON(const TDictType& rDictionary, const std::string& rFilename) {
     // Open file
     std::ofstream file(rFilename, std::ios::out);
-    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     file << rDictionary;
 
     file.flush();
-    QuESo_ERROR_IF(!file.good()) << "Failed to write Dictionary to file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file.good()) << "Failed to write Dictionary to file: " << rFilename << '.' << std::endl;
 }
 
 template<typename TElementType>
@@ -38,7 +38,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
     // Open file
     std::ofstream file(rFilename, (Encoding==EncodingType::binary)
         ? (std::ios::out | std::ios::binary) : std::ios::out);
-    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::little);
@@ -97,7 +97,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
     }
 
     file.flush();
-    QuESo_ERROR_IF(!file.good()) << "Failed to write conditions to file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file.good()) << "Failed to write conditions to file: " << rFilename << '.' << std::endl;
 }
 
 
@@ -108,7 +108,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Open file
     std::ofstream file(rFilename, (Encoding == EncodingType::binary)
         ? (std::ios::out | std::ios::binary) : std::ios::out);
-    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const SizeType num_elements = rBackgroundGrid.NumberOfActiveElements();
 
@@ -182,7 +182,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     }
 
     file.flush();
-    QuESo_ERROR_IF(!file.good()) << "Failed to write elements to file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file.good()) << "Failed to write elements to file: " << rFilename << '.' << std::endl;
 }
 
 template<typename TElementType>
@@ -192,7 +192,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     // Open file
     std::ofstream file(rFilename, (Encoding == EncodingType::binary)
         ? (std::ios::out | std::ios::binary) : std::ios::out);
-    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const IndexType num_points = std::accumulate(
         rBackgroundGrid.ElementsBegin(), rBackgroundGrid.ElementsEnd(), IndexType{0},
@@ -287,7 +287,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     }
 
     file.flush();
-    QuESo_ERROR_IF(!file.good()) << "Failed to write points to file: " << rFilename << ".\n";
+    QuESo_ERROR_IF(!file.good()) << "Failed to write points to file: " << rFilename << '.' << std::endl;
 }
 
 } // End namespace queso
