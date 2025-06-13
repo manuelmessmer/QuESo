@@ -71,21 +71,24 @@ BOOST_AUTO_TEST_CASE(IOTriangleMeshSTLTest) {
     TestTriangleMeshSTL(IO::EncodingType::ascii);
 }
 
-void CheckVTKBlocks(const std::filesystem::path& rFilename, const std::vector<std::string>& rBlockNames) {
-    std::ifstream file(rFilename);
-    BOOST_REQUIRE(file.is_open());
+void CheckVTKBlocks(const std::filesystem::path& rFilename,
+                    const std::vector<std::string>& rBlockNames) {
+
+    std::ifstream file(rFilename, std::ios::binary);
+    BOOST_REQUIRE(file);
+
+    std::string file_contents((std::istreambuf_iterator<char>(file)),
+                               std::istreambuf_iterator<char>());
 
     std::set<std::string> blocks_found;
-    std::string line;
-    while (std::getline(file, line)) {
-        for(const auto& block_name : rBlockNames) {
-            if( line.find(block_name) != std::string::npos ) {
-                blocks_found.insert(block_name);
-            }
+    for (const auto& block_name : rBlockNames) {
+        if (file_contents.find(block_name) != std::string::npos) {
+            blocks_found.insert(block_name);
         }
     }
-    for(const auto& block_name : rBlockNames) {
-        QuESo_CHECK( blocks_found.find(block_name) != blocks_found.end() );
+
+    for (const auto& block_name : rBlockNames) {
+        QuESo_CHECK(blocks_found.find(block_name) != blocks_found.end());
     }
 }
 
@@ -158,7 +161,7 @@ void TestPointsVTK(IO::EncodingType Encoding) {
     auto p_grid = CreateTestBackgroundGrid();
 
     IO::WritePointsToVTK(*p_grid, tmp_file.GetString(), Encoding);
-    CheckVTKBlocks(tmp_file.GetPath(), {"CELLS", "POINTS", "CELL_TYPES"});
+    CheckVTKBlocks(tmp_file.GetPath(), {"CELLS", "POINTS", "CELL_TYPES", "POINT_DATA"});
 }
 
 BOOST_AUTO_TEST_CASE(IOPointsVTKTest) {
