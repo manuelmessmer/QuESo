@@ -85,7 +85,7 @@ public:
     /// Move constructor
     EmbeddedModel(EmbeddedModel&& rOther) noexcept = default;
     /// Move assignement operator
-    EmbeddedModel& operator=(EmbeddedModel&& rOther) noexcept = default;
+    EmbeddedModel& operator=(EmbeddedModel&& rOther) noexcept = delete;
 
     ///@}
     ///@name Operations

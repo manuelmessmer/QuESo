@@ -74,7 +74,7 @@ public:
     /// Move constructor
     BackgroundGrid(BackgroundGrid&& rOther) noexcept = default;
     /// Move assignement operator
-    BackgroundGrid& operator=(BackgroundGrid&& rOther) noexcept = default;
+    BackgroundGrid& operator=(BackgroundGrid&& rOther) noexcept = delete;
 
     ///@}
     ///@name Operations
@@ -400,7 +400,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    GridIndexer mGridIndexer;
+    const GridIndexer mGridIndexer;
 
     ElementContainerType mElements;
     ElementIdMapType mElementIdMap;

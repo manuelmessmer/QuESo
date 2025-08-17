@@ -395,7 +395,7 @@ public:
     /// @param i current index
     /// @param Direction Move Direction.
     /// @return bool
-    bool IsEnd(IndexType i, Direction Dir){
+    bool IsEnd(IndexType i, Direction Dir) const {
         return IsEnd(i, Dir, mGlobalPartition);
     }
 
@@ -404,7 +404,7 @@ public:
     /// @param Direction Move Direction.
     /// @param rPartition active Partition
     /// @return bool
-    bool IsEnd(IndexType i, Direction Dir, const PartitionBoxType& rPartition ){
+    bool IsEnd(IndexType i, Direction Dir, const PartitionBoxType& rPartition ) const {
         auto indices = GetMatrixIndicesFromVectorIndex(i);
         switch( Dir )
         {

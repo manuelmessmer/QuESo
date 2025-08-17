@@ -38,7 +38,6 @@ public:
     ///@{
     typedef TElementType ElementType;
     typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
-    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -70,7 +69,7 @@ public:
     /// Move constructor
     ConditionSegment(ConditionSegment&& rOther) noexcept = default;
     /// Move assignement operator
-    ConditionSegment& operator=(ConditionSegment&& rOther) noexcept = default;
+    ConditionSegment& operator=(ConditionSegment&& rOther) noexcept = delete;
 
     ///@}
     ///@name Operations
@@ -96,8 +95,7 @@ private:
 
     const IndexType mBackgroundGridIndex;
     const ElementType* mpParentElement;
-    const Unique<TriangleMeshInterface> mpTriangleMesh;
-    // BoundaryIntegrationPointVectorType mIntegrationPoints;
+    Unique<const TriangleMeshInterface> mpTriangleMesh;
 
     ///@}
 }; // End class ConditionSegment
