@@ -1,5 +1,5 @@
 # Project imports
-from QuESo_PythonApplication.PyQuESo import PyQuESo
+from QuESoPythonModule.PyQuESo import PyQuESo
 
 def main():
     pyqueso = PyQuESo("QuESoSettings.json")
