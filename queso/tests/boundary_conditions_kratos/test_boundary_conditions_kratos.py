@@ -1,9 +1,9 @@
 # Project imports
-import QuESo_PythonApplication as QuESo_App
-from QuESo_PythonApplication.PyQuESo import PyQuESo
-from queso.python_scripts.helper import *
+import QuESoPythonModule as QuESo_App
+from QuESoPythonModule.PyQuESo import PyQuESo
+from QuESoPythonModule.scripts.helper import *
 from kratos_interface.model_part_utilities import ModelPartUtilities
-from queso.python_scripts.queso_unit_test import QuESoTestCase
+from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 # Kratos imports
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IGA

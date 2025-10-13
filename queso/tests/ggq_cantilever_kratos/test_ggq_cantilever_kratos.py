@@ -1,8 +1,8 @@
 # Project imports
-import QuESo_PythonApplication as QuESo_APP
-from queso.python_scripts.helper import *
-from queso.python_scripts.json_import import JsonImport
-from queso.python_scripts.queso_unit_test import QuESoTestCase
+import QuESoPythonModule as QuESo_APP
+from QuESoPythonModule.scripts.helper import *
+from QuESoPythonModule.scripts.json_import import JsonImport
+from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 
 try:
     import KratosMultiphysics as KM

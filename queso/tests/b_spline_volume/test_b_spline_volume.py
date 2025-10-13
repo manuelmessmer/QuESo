@@ -1,7 +1,7 @@
 # Project imports
-from QuESo_PythonApplication.PyQuESo import PyQuESo
-from queso.python_scripts.helper import *
-from queso.python_scripts.queso_unit_test import QuESoTestCase
+from QuESoPythonModule.PyQuESo import PyQuESo
+from QuESoPythonModule.scripts.helper import *
+from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 # External imports
 import unittest
 import numpy as np

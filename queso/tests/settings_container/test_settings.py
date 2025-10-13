@@ -1,7 +1,8 @@
 # Project imports
-import QuESo_PythonApplication as QuESo
-from queso.python_scripts.json_io import JsonIO
-from queso.python_scripts.queso_unit_test import QuESoTestCase
+import QuESoPythonModule as QuESo
+from QuESoPythonModule.scripts.json_io import JsonIO
+from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
+
 # External imports
 import unittest
 import os

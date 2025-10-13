@@ -1,8 +1,8 @@
 # Project imports
 from platform import release
 import re
-import QuESo_PythonApplication as QuESo_App
-from QuESo_PythonApplication.PyQuESo import PyQuESo
+import QuESoPythonModule as QuESo_App
+from QuESoPythonModule.PyQuESo import PyQuESo
 
 try:
     import KratosMultiphysics as KM
