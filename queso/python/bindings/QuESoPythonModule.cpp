@@ -13,19 +13,19 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/python/define_python.hpp"
+#include "queso/python/bindings/define_python.hpp"
 // To export
-#include "queso/python/add_dictionary_to_python.h"
-#include "queso/python/add_containers_to_python.h"
-#include "queso/python/add_globals_to_python.h"
-#include "queso/python/add_utilities_to_python.h"
-#include "queso/python/add_io_to_python.h"
+#include "queso/python/bindings/add_dictionary_to_python.h"
+#include "queso/python/bindings/add_containers_to_python.h"
+#include "queso/python/bindings/add_globals_to_python.h"
+#include "queso/python/bindings/add_utilities_to_python.h"
+#include "queso/python/bindings/add_io_to_python.h"
 
 namespace queso {
 namespace Python {
 namespace py = pybind11;
 
-PYBIND11_MODULE(QuESo_Application,m) {
+PYBIND11_MODULE(_QuESoPythonModule,m) {
 
     m.doc() = "This is a Python binding for QuESo";
 

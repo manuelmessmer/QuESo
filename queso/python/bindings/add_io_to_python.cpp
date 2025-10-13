@@ -12,8 +12,8 @@
 //  Authors:    Manuel Messmer
 
 /// Project inlcudes
-#include "queso/python/define_python.hpp"
-#include "queso/python/add_io_to_python.h"
+#include "queso/python/bindings/define_python.hpp"
+#include "queso/python/bindings/add_io_to_python.h"
 // To export
 #include "queso/io/io_utilities.h"
 
