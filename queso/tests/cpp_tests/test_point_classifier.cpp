@@ -22,6 +22,8 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/containers/background_grid.hpp"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -33,7 +35,8 @@ BOOST_AUTO_TEST_CASE(CylinderPointClassifierTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     std::vector<PointType> rPoints{};
     rPoints.reserve(167620);
@@ -73,7 +76,8 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     std::vector<PointType> rPoints{};
     // rPoints.reserve(117900);
@@ -125,7 +129,8 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Instantiate brep_operator
     BRepOperator classifier(triangle_mesh);
@@ -152,7 +157,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {
     std::vector<bool> result_ref{};
     // Read reference results from file
     std::string line;
-    std::ifstream myfile ("queso/tests/cpp_tests/results/inside_outside_elephant.txt");
+    std::ifstream myfile (base_dir + "/results/inside_outside_elephant.txt");
     if (myfile.is_open())
     {
         while ( getline (myfile,line) )
@@ -177,7 +182,8 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     // Instantiate brep_operator
     BRepOperator classifier(triangle_mesh);
@@ -204,7 +210,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierTest) {
     std::vector<bool> result_ref{};
     // Read reference results from file
     std::string line;
-    std::ifstream myfile ("queso/tests/cpp_tests/results/inside_outside_bunny.txt");
+    std::ifstream myfile (base_dir + "/results/inside_outside_bunny.txt");
     if (myfile.is_open())
     {
         while ( getline (myfile,line) )

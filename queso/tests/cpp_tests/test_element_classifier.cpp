@@ -22,6 +22,8 @@
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -32,7 +34,8 @@ BOOST_AUTO_TEST_CASE(TouchElementCubeTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -57,7 +60,8 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -88,7 +92,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
-    std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_cylinder.txt");
+    std::ifstream myfile(base_dir + "/results/element_classifier_cylinder.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
@@ -104,7 +108,8 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -133,7 +138,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
-    std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_cube.txt");
+    std::ifstream myfile(base_dir + "/results/element_classifier_cube.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
@@ -149,7 +154,8 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -177,7 +183,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), 5376);
-    std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_elephant.txt");
+    std::ifstream myfile(base_dir + "/results/element_classifier_elephant.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);
@@ -193,7 +199,8 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -222,7 +229,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     const auto p_classification = brep_operator.pGetElementClassifications(r_settings);
 
     QuESo_CHECK_EQUAL( result.size(), num_of_elements);
-    std::ifstream myfile("queso/tests/cpp_tests/results/element_classifier_bunny.txt");
+    std::ifstream myfile(base_dir + "/results/element_classifier_bunny.txt");
     std::string line;
     for( IndexType i = 0; i < result.size(); ++i){
         getline (myfile, line);

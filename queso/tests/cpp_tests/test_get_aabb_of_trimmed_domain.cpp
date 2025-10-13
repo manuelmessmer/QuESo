@@ -22,6 +22,8 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -33,7 +35,8 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -64,7 +67,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
     }
 
     QuESo_CHECK_EQUAL(results.size(), 344);
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_trimmed_domain_cylinder.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_trimmed_domain_cylinder.txt");
     std::string line;
     for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
@@ -80,7 +83,8 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -112,7 +116,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     }
 
     QuESo_CHECK_EQUAL(results.size(), 826);
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_trimmed_domain_cube.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_trimmed_domain_cube.txt");
     std::string line;
     for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
@@ -129,7 +133,8 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -161,7 +166,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     }
 
     QuESo_CHECK_EQUAL(results.size(), 166);
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_trimmed_domain_elephant.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_trimmed_domain_elephant.txt");
     std::string line;
     for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);
@@ -178,7 +183,8 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -209,7 +215,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
         }
     }
     QuESo_CHECK_EQUAL(results.size(), 381);
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_trimmed_domain_bunny.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_trimmed_domain_bunny.txt");
     std::string line;
     for( IndexType i = 0; i < results.size(); ++i){
         getline (myfile, line);

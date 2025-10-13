@@ -25,6 +25,8 @@
 #include "queso/io/io_utilities.h"
 #include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -47,7 +49,8 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 13});
 
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -157,7 +160,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 12, 12});
 
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/steering_knuckle.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/steering_knuckle.stl");
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -253,7 +257,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 12, 7});
 
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);

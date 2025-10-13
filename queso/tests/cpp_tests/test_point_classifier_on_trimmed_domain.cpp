@@ -23,6 +23,8 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -34,7 +36,8 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -87,7 +90,8 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -144,7 +148,8 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -197,7 +202,8 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;

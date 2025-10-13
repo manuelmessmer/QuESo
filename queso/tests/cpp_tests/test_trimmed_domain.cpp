@@ -24,6 +24,8 @@
 #include "queso/quadrature/trimmed_element.hpp"
 #include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -177,8 +179,9 @@ BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 200u);
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
-    RunTest("queso/tests/cpp_tests/data/elephant.stl", r_settings,
-            "queso/tests/cpp_tests/results/surface_integral_elephant.txt", 166);
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    RunTest(base_dir + "/data/elephant.stl", r_settings,
+        base_dir + "/results/surface_integral_elephant.txt", 166);
 }
 
 BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
@@ -198,8 +201,9 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u);
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
-    RunTest("queso/tests/cpp_tests/data/stanford_bunny.stl", r_settings,
-            "queso/tests/cpp_tests/results/surface_integral_bunny.txt", 186);
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    RunTest(base_dir + "/data/stanford_bunny.stl", r_settings,
+        base_dir + "/results/surface_integral_bunny.txt", 186);
 }
 
 BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
@@ -219,8 +223,9 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u);
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
-    RunTest("queso/tests/cpp_tests/data/cylinder.stl", r_settings,
-            "queso/tests/cpp_tests/results/surface_integral_cylinder.txt", 80);
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    RunTest(base_dir + "/data/cylinder.stl", r_settings,
+        base_dir + "/results/surface_integral_cylinder.txt", 80);
 }
 
 
@@ -242,7 +247,8 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
 
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     auto& vertices = triangle_mesh.GetVertices();
     for( auto& v : vertices ){
