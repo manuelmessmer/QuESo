@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 import scipy.interpolate as si
 # import QuESo
-import QuESo_PythonApplication as QuESo
+import QuESoPythonModule as QuESo
 
 class BSplineVolume:
     """Class to construct a 3D B-Spline volume using the QuESo settings.
