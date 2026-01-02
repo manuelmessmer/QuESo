@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
 
-    QuESo_ERROR_IF(argc_ != 5 ) << "Please provide following arguments: -- single/all Filename/Directory n_min n_max\n";
+    QuESo_ERROR_IF(argc_ != 6 ) << "Please provide following arguments: -- single/all Filename/Directory n_min n_max\n";
 
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
     const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
@@ -57,7 +57,8 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         QuESo_INFO << "Thingi10KSTLEmbeddingTest :: Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
             << ", n_max : " << std::to_string(n_max) << ".\n";
     } else if( option == "small_set" || option == "large_set") {
-        std::string filename = "queso/tests/thingi10k_tests/model_ids_" + option + ".txt";
+        std::string filename = std::string(argv_[5]) + "/model_ids_" + option + ".txt";
+		std::cout << "Filename- " << filename << std::endl;
         std::ifstream file(filename);
         std::string buffer;
         while( std::getline(file, buffer) ){
@@ -185,7 +186,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     int argc_ = boost::unit_test::framework::master_test_suite().argc;
     char** argv_ = boost::unit_test::framework::master_test_suite().argv;
 
-    QuESo_ERROR_IF(argc_ != 5 ) << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
+    QuESo_ERROR_IF(argc_ != 6 ) << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
 
     const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
     const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
@@ -198,7 +199,7 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         QuESo_INFO << "Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
             << ", n_max : " << std::to_string(n_max) << ".\n";
     } else if( option == "small_set" || option == "large_set") {
-        std::string filename = "queso/tests/thingi10k_tests/model_ids_" + option + ".txt";
+        std::string filename = std::string(argv_[5]) + "/model_ids_" + option + ".txt";
         std::ifstream file(filename);
         std::string buffer;
         while( std::getline(file, buffer) ){

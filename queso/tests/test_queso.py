@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from ggq_tube.test_ggq_tube import TestGGQTube
 from ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
 from b_spline_volume.test_b_spline_volume import TestBSplineVolume
@@ -38,6 +41,10 @@ def PyQuESoTestSuite():
     return test_suite
 
 def main():
+    # Enables to open files relative to project_root
+    project_root = Path(__file__).resolve().parent.parent.parent
+    os.chdir(project_root)
+
     test_suite = PyQuESoTestSuite()
     runner = unittest.TextTestRunner()
     result = runner.run(test_suite)

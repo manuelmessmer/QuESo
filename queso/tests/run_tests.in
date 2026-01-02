@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+export PYTHONPATH=@CMAKE_BINARY_DIR@:${PYTHONPATH}
+
+if [[ "$1" == "py" ]]; then
+	python3 @PYTHON_TEST_EXE_DIR_IN@/test_queso.py
+fi
+
+if [[ "$1" == "cpp" ]]; then
+	@CPP_TEST_EXE_DIR_IN@/test_queso -- @CPP_TEST_SOURCE_DIR_IN@ 
+fi
+
+if [[ "$1" == "thingi10k" ]]; then
+	@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 5 50 @THINGI10K_ID_DIR@
+	@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set $2 2 10 @THINGI10K_ID_DIR@
+	@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 5 50 @THINGI10K_ID_DIR@
+	@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set $2 2 10 @THINGI10K_ID_DIR@
+fi
+
+

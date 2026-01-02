@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 # for cancelling redundant runs
 concurrency:
@@ -16,44 +16,30 @@ jobs:
       fail-fast: false
       matrix:
         build-type: [Release, FullDebug]
-    env:
-      QUESO_BUILD_TYPE: ${{ matrix.build-type }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          
+      - name: Install Boost Test
+        run: sudo apt-get install -y libboost-test-dev
 
-    - name: Install Dependencies
-      run: sudo apt-get install -y libboost-test-dev
+      - name: Build
+        run: |
+          cmake --preset linux -DQUESO_BUILD_TESTING=ON -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_CXX_FLAGS="-Og"
+          cmake --build --preset linux --target install
 
-    - name: Build
-      shell: bash
-      # Build your program with the given configuration
-      run: |
-        export CC=/usr/bin/gcc
-        export CXX=/usr/bin/g++
-        cp .github/workflows/configure.sh configure.sh
-        bash configure.sh
+      - name: Install Python dependencies
+        run: |
+          pip3 install numpy scipy
 
-    - name: Test Thingi10K
-      shell: bash
-      run: |
-        cp .github/workflows/run_tests_thingi10k.sh run_tests_thingi10k.sh
-        bash run_tests_thingi10k.sh
+      - name: Test py
+        run: |
+          ./out/build/linux/bin/run_tests py
 
-    - name: Test py
-      shell: bash
-      run: |
-        pip3 install numpy
-        pip3 install scipy
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/libs
-        python3 queso/tests/test_queso.py
-
-    - name: Test cpp
-      shell: bash
-      run: ./TestExecutables/test_queso --log_level=test_suite
+      - name: Test cpp
+        run: ./out/build/linux/bin/run_tests cpp
 
   windows:
     runs-on: windows-2022
@@ -61,49 +47,54 @@ jobs:
       QUESO_BUILD_TYPE: Release
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
 
-    - name: Download boost
-      run: |
-        $url = "https://archives.boost.io/release/1.81.0/source/boost_1_81_0.tar.gz"
-        (New-Object System.Net.WebClient).DownloadFile($url, "$env:RUNNER_TEMP\boost.tar.gz")
-        7z.exe x "$env:RUNNER_TEMP\boost.tar.gz" -o"$env:RUNNER_TEMP\boostArchive" -y | Out-Null
-        7z.exe x "$env:RUNNER_TEMP\boostArchive" -o"$env:RUNNER_TEMP\boost" -y | Out-Null
-    - name: Configure boost unit test framework
-      shell: cmd
-      run: |
-        cd "%RUNNER_TEMP%\boost\boost_1_81_0"
-        bootstrap.bat --with-toolset=msvc || goto :error
-    - name: Build boost unit test framework
-      shell: cmd
-      run: |
-        cd "%RUNNER_TEMP%\boost\boost_1_81_0"
-        b2 address-model=64 architecture=x86 toolset=msvc --with-test link=shared --prefix=boost_install install || goto:error
-    - name: Installing dependencies
-      shell: cmd
-      run: |
-        pip install numpy
-        pip install scipy
-    - name: Build
-      shell: cmd
-      run: |
-        copy .\.github\workflows\configure.cmd
-        configure.cmd
-    - name: Test py
-      shell: cmd
-      run: |
-        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%
-        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;D:\RUNNER_TEMP\boost\boost_1_81_0\boost_install\lib
-        python queso/tests/test_queso.py
-    - name: Test cpp
-      shell: cmd
-      run: |
-        set PATH=%PATH%;%GITHUB_WORKSPACE%\libs;%RUNNER_TEMP%\boost\boost_1_81_0\boost_install\lib
-        call "TestExecutables\Release\test_queso.exe" --log_level=test_suite || goto:error
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
 
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+        shell: pwsh
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            vcpkg/installed
+            vcpkg/packages
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Install Boost Test
+        run: |
+          cd vcpkg
+          .\vcpkg install boost-test:x64-windows
+        shell: pwsh
+
+      - name: Build
+        run: |
+          cmake --preset win -DQUESO_BUILD_TESTING=ON -DBoost_ROOT="${{ github.workspace }}/vcpkg/installed/x64-windows"
+          cmake --build --preset win --target install
+
+      - name: Install Python dependencies
+        run: |
+          pip install numpy scipy
+
+      - name: Test py
+        run: out/build/win/bin/run_tests.cmd py
+
+      - name: Test cpp
+        run: out/build/win/bin/run_tests.cmd cpp
+        env:
+          PATH: ${{ env.PATH }};${{ github.workspace }}\vcpkg\installed\x64-windows\bin

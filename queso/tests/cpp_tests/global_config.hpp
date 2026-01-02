@@ -7,7 +7,7 @@
 namespace queso {
 namespace Testing {
 
-    class GlobalConfig {
+	class GlobalConfig {
     public:
         static GlobalConfig& GetInstance() {
             static GlobalConfig config;
@@ -15,8 +15,8 @@ namespace Testing {
 
         }
         std::string BaseDir;
-    private:
 
+    private:
         GlobalConfig() {
             auto& master = boost::unit_test::framework::master_test_suite();
             if (master.argc <= 1) {
