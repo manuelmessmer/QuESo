@@ -241,7 +241,7 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
             Vector3i triangle{};
             std::array<PointType, 3> vertices;
 
-            for (int i = 0; i < 3; ++i) {
+            for (IndexType i = 0; i < 3; ++i) {
                 if(!std::getline(file, line)) {
                     QuESo_ERROR << "Unexpected EOF reading vertex." << std::endl;
                 }
@@ -326,7 +326,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
         // Read triangles and vertices. Each vertex is read seperately.
         Vector3i triangle{};
         std::array<PointType, 3> vertices;
-        for(int j=0; j<3; ++j) {
+        for(IndexType j=0; j<3; ++j) {
             float coords[3];
             file.read(reinterpret_cast<char*>(coords), sizeof(coords));
             QuESo_ERROR_IF(!file) << "Couldn't read triangle vertex." << std::endl;

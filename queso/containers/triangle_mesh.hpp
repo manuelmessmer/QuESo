@@ -136,7 +136,7 @@ public:
     /// @brief Remove triangle by index.
     /// @param Index
     void RemoveTriangle(IndexType Index ) override {
-        mTriangles.erase( mTriangles.begin() + Index );
+        mTriangles.erase( mTriangles.begin() + static_cast<std::ptrdiff_t>(Index) );
     }
 
     ///@brief Get vertices from mesh. (const version)

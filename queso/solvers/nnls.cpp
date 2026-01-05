@@ -27,7 +27,7 @@ double NNLS::solve(MatrixType& A, VectorType& B, VectorType& X) {
     // Get Dimension
     int m = static_cast<int>(B.size());
     int n = (m > 0) ? static_cast<int>(A.size())/m : 0;
-    X.resize(n);
+    X.resize(static_cast<std::size_t>(n));
 
     // Pointer to doubles
     double *A_doubles = A.data();

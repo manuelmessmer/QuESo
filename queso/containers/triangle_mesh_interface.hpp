@@ -228,7 +228,7 @@ public:
     /// @brief Remove normal by index.
     /// @param Index
     void RemoveNormal(IndexType Index ){
-        mNormals.erase( mNormals.begin() + Index );
+        mNormals.erase( mNormals.begin() + static_cast<std::ptrdiff_t>(Index) );
     }
 
     ///@brief Add normal to mesh.

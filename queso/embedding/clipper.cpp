@@ -37,7 +37,9 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
         auto loc_v1 = ClassifyPointToPlane(rV1, plane, 10.0*ZEROTOL);
         auto loc_v2 = ClassifyPointToPlane(rV2, plane, 10.0*ZEROTOL);
         auto loc_v3 = ClassifyPointToPlane(rV3, plane, 10.0*ZEROTOL);
-        IndexType count_on_plane = (loc_v1 == ON_PLANE) + (loc_v2 == ON_PLANE) + (loc_v3 == ON_PLANE);
+        IndexType count_on_plane = static_cast<IndexType>(loc_v1 == ON_PLANE) + 
+			                       static_cast<IndexType>(loc_v2 == ON_PLANE) + 
+								   static_cast<IndexType>(loc_v3 == ON_PLANE);
         if( count_on_plane == 3 ){
             return nullptr; // Triangle is aligned with plane
         }
@@ -114,7 +116,8 @@ void Clipper::ClipPolygonByPlane(const PolygonType* pPrevPoly,
                 // Only up to n=rPlane.mPlaneIndex are required, since others have not been checked yet.
                 std::array<bool,6> p_on_plane = {false}; // Initalizes all elements to 'false'.
                 std::generate_n(p_on_plane.begin(), rPlane.mPlaneIndex,
-                    [&a, &b, j=-1]()mutable->bool {++j; return a->second[j] && b.second[j]; });
+                    [&a, &b, j=-1]()mutable->bool {const auto index = static_cast<IndexType>(++j);
+												   return a->second[index] && b.second[index]; });
 
                 IndexType index = pCurrentPoly->AddVertex(FindIntersectionPointOnPlane( (*a).first, b.first, rPlane), p_on_plane);
                 pCurrentPoly->SetIndexOnPlane(index, rPlane.mPlaneIndex);
@@ -137,7 +140,8 @@ void Clipper::ClipPolygonByPlane(const PolygonType* pPrevPoly,
                 // Only up to n=rPlane.mPlaneIndex are required, since others have not been checked yet.
                 std::array<bool,6> p_on_plane = {false}; // Initalizes all elements to 'false'.
                 std::generate_n(p_on_plane.begin(), rPlane.mPlaneIndex,
-                    [&a, &b, j=-1]()mutable->bool {++j; return a->second[j] && b.second[j]; });
+                    [&a, &b, j=-1]()mutable->bool {const auto index = static_cast<IndexType>(++j);
+												   return a->second[index] && b.second[index]; });
 
                 IndexType index = pCurrentPoly->AddVertex(FindIntersectionPointOnPlane( (*a).first, b.first, rPlane), p_on_plane);
                 pCurrentPoly->SetIndexOnPlane(index, rPlane.mPlaneIndex);

@@ -163,7 +163,7 @@ private:
         if( number_neighbours > 1) {
             const auto el_it_begin = rNeighbors.begin();
             for(IndexType i = 0; i < number_neighbours; ++i){
-                auto el_ptr = *(el_it_begin + i);
+                auto el_ptr = *(el_it_begin + static_cast<std::ptrdiff_t>(i));
                 const double old_value = el_ptr->template GetValue<double>(ElementValues::neighbor_coefficient);
                 el_ptr->SetValue(ElementValues::neighbor_coefficient, old_value*LinearFunction(i, number_neighbours));
             }
@@ -204,8 +204,8 @@ private:
         // Lets move towards the direction with the highest coefficient.
         // There are six possible directions, e.i., six attempts.
         for( IndexType attempts = 0; attempts < 6; ++attempts ){
-            IndexType move_dir_index = std::distance(neighbour_coeffs.begin(),
-                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())); // <- Index of move direction.
+            IndexType move_dir_index = static_cast<IndexType>(std::distance(neighbour_coeffs.begin(),
+                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end()))); // <- Index of move direction.
             const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
 
             // Get the number of neighbors on the plane orthogonal to the move direction.

@@ -242,7 +242,7 @@ protected:
         for( IndexType i = 0; i < pBoundaryIPs->size(); ++i ){
             // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
             // for f_x_x and f_x_int at each point.
-            auto point_it = (begin_points_it_ptr + i);
+            auto point_it = (begin_points_it_ptr + static_cast<std::ptrdiff_t>(i));
             const auto& normal = point_it->Normal();
             PointType point = point_it->data();
 
@@ -311,7 +311,7 @@ protected:
         NNLS::MatrixType fitting_matrix(number_of_functions * number_reduced_points, 0.0);
         const auto points_it_begin = rIntegrationPoint.begin();
         for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
-            auto point_it = points_it_begin + column_index;
+            auto point_it = points_it_begin + static_cast<std::ptrdiff_t>(column_index);
             IndexType row_index = 0;
             for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
                 for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
@@ -378,7 +378,7 @@ protected:
                         return point_a.Weight() > point_b.Weight();
                     });
                 // Only keep #number_of_functions integration points.
-                rIntegrationPoint.erase(rIntegrationPoint.begin()+number_of_functions, rIntegrationPoint.end());
+                rIntegrationPoint.erase(rIntegrationPoint.begin()+static_cast<std::ptrdiff_t>(number_of_functions), rIntegrationPoint.end());
 
                 // Additionally remove all points that are zero.
                 rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPointType& point) {
@@ -402,7 +402,7 @@ protected:
                 double max_value = LOWESTD;
                 const auto begin_it = rIntegrationPoint.begin();
                 for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
-                    auto it = begin_it + i;
+                    auto it = begin_it + static_cast<std::ptrdiff_t>(i);
                     if( it->Weight() < min_value ) {
                         min_value_it = it;
                         min_value = it->Weight();
@@ -416,7 +416,7 @@ protected:
                 // However, always keep #min_number_of_points.
                 SizeType counter = 0;
                 for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
-                    auto it = begin_it + i;
+                    auto it = begin_it + static_cast<std::ptrdiff_t>(i);
                     // TODO: Fix this > 2..4
                     if( it->Weight() < 1e-8*max_value && rIntegrationPoint.size() > min_number_of_points){
                         rIntegrationPoint.erase(it);

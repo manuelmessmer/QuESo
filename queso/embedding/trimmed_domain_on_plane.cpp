@@ -158,7 +158,7 @@ void TrimmedDomainOnPlane::CloseContourEdges() {
         const bool neg_found =  distance_neg < (min_distance + mSnapTolerance);
         const bool ver_found = distance_ver < (min_distance + mSnapTolerance);
 
-        const IndexType found_count = static_cast<int>(pos_found) + static_cast<int>(neg_found) + static_cast<int>(ver_found);
+        const IndexType found_count = static_cast<IndexType>(pos_found) + static_cast<IndexType>(neg_found) + static_cast<IndexType>(ver_found);
 
         // Ignore if double vertex.
         if( found_count > 1 ) {
@@ -578,7 +578,7 @@ void TrimmedDomainOnPlane::SplitEdgesAtSplitPoint(OrientationType Orientation)
             split_points.clear();
 
             // Remove original edge
-            r_edges.erase( r_edges.begin() + pos );
+            r_edges.erase( r_edges.begin() + static_cast<std::ptrdiff_t>(pos) );
             --size;
         }
         else {
@@ -732,8 +732,8 @@ void TrimmedDomainOnPlane::RemoveDublicateVerticalEdges(
     std::vector<Edge2D> r_edges_copy( rEdges.begin(), rEdges.end() );
     rEdges.clear();
     for( auto r_edge : r_edges_copy){
-        IndexType count = std::count_if(r_edges_copy.begin(), r_edges_copy.end(), [&r_edge, &rVertices, tolerance](const auto& rValue)
-            { return std::abs(rVertices[r_edge.V1()][0] - (rVertices[rValue.V1()][0])) < tolerance; });
+        IndexType count = static_cast<IndexType>(std::count_if(r_edges_copy.begin(), r_edges_copy.end(), [&r_edge, &rVertices, tolerance](const auto& rValue)
+            { return std::abs(rVertices[r_edge.V1()][0] - (rVertices[rValue.V1()][0])) < tolerance; }));
 
         if(count == 1 )
             rEdges.push_back(r_edge);
@@ -779,7 +779,7 @@ std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const P
     IndexType index_2 = 0UL;
     IndexType v1_is_new = 0UL;
     if (v1_res != r_vertices_set.end()) { // Vertex 1 already exists
-        index_1 = std::distance<std::vector<Point2DType>::const_iterator>(r_vertices.cbegin(), (*v1_res));
+        index_1 = static_cast<IndexType>(std::distance<std::vector<Point2DType>::const_iterator>(r_vertices.cbegin(), (*v1_res)));
     }
     else { // Add new vertex 1
         index_1 = r_vertices.size();
@@ -787,7 +787,7 @@ std::pair<IndexType, IndexType> TrimmedDomainOnPlane::GetUniqueVertexIDs(const P
     }
 
     if (v2_res != r_vertices_set.end()) { // Vertex 2 already exists
-        index_2 = std::distance<std::vector<Point2DType>::const_iterator>(r_vertices.cbegin(), (*v2_res));
+        index_2 = static_cast<IndexType>(std::distance<std::vector<Point2DType>::const_iterator>(r_vertices.cbegin(), (*v2_res)));
     }
     else { // Add new vertex 2
         index_2 = r_vertices.size() + v1_is_new;

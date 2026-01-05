@@ -104,7 +104,7 @@ public:
     /// @brief Flushes the buffer to the filestream.
     void Flush() {
         if (mBufferPos > 0) {
-            mOut.write(mBuffer.data(), mBufferPos);
+            mOut.write(mBuffer.data(), static_cast<long int>(mBufferPos));
             QuESo_ERROR_IF(!mOut) << "Write failed during Flush." << std::endl;
             mBufferPos = 0; // Reset buffer.
         }
@@ -123,7 +123,7 @@ private:
         if(Size > mBufferSize) {
             Flush();
             // Write large data directly to stream (no buffering).
-            mOut.write(pData, Size);
+            mOut.write(pData, static_cast<long int>(Size));
             QuESo_ERROR_IF(!mOut) << "Write failed during Flush." << std::endl;
             return;
         }

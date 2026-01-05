@@ -207,7 +207,7 @@ double MeshUtilities::AreaOMP(const TriangleMeshInterface& rTriangleMesh){
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : area)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        area += rTriangleMesh.Area(i);
+        area += rTriangleMesh.Area(static_cast<IndexType>(i));
     }
     return area;
 }
@@ -238,7 +238,7 @@ double MeshUtilities::VolumeOMP(const TriangleMeshInterface& rTriangleMesh){
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(static_cast<IndexType>(i), 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){

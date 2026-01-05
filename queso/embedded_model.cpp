@@ -94,7 +94,8 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
 
     // Loop over all elements.
     #pragma omp parallel for reduction(+ : et_compute_intersection, et_moment_fitting, num_active_elements, num_trimmed_elements) schedule(dynamic)
-    for( int index = 0; index < static_cast<int>(global_number_of_elements); ++index) {
+    for( int for_index = 0; for_index < static_cast<int>(global_number_of_elements); ++for_index) {
+		const auto index = static_cast<IndexType>(for_index);
         // Check classification status.
         const IntersectionState status = (*p_classifications)[index];
 
@@ -172,7 +173,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     r_elapsed_time_info.SetValue(ElapsedTimeInfo::total, (total_time+elapsed_time_total) );
 
     // Get num of threads.
-    const IndexType num_threads = omp_get_max_threads();
+    const auto num_threads = static_cast<IndexType>(omp_get_max_threads());
     r_volume_time_info.SetValue(VolumeTimeInfo::computation_of_intersections, et_compute_intersection / ((double) num_threads) );
     r_volume_time_info.SetValue(VolumeTimeInfo::solution_of_moment_fitting_eqs, et_moment_fitting / ((double) num_threads) );
     r_volume_time_info.SetValue(VolumeTimeInfo::construction_of_ggq_rules, et_ggq_rules);
@@ -257,7 +258,8 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
 
     // Loop over background grid.
     #pragma omp parallel for reduction(+ : surf_area_in_active_domain) schedule(dynamic)
-    for( int index = 0; index < static_cast<int>(mGridIndexer.NumberOfElements()); ++index ) {
+    for( int for_index = 0; for_index < static_cast<int>(mGridIndexer.NumberOfElements()); ++for_index ) {
+		const auto index = static_cast<IndexType>(for_index);
         // Clip embedded geoemetry with the current element (bounding box).
         const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
         auto p_new_mesh = brep_operator.pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);

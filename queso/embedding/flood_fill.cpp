@@ -69,7 +69,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements(GroupSetVectorType& rGroups
     IndexType num_threads = 1;
     #pragma omp parallel
     {
-        num_threads = omp_get_num_threads();
+        num_threads = static_cast<IndexType>(omp_get_num_threads());
     }
 
     const IndexType partition_size = std::max<IndexType>( static_cast<IndexType>(std::ceil( static_cast<double>(mNumberOfElements[partition_index]) /
@@ -123,14 +123,14 @@ void FloodFill::PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBo
     BoolVectorType visited(total_num_elements, false);
     #pragma omp parallel for firstprivate(visited) schedule(static, 1)
     for( int p_i = 0; p_i < static_cast<int>(rPartitions.size()); ++p_i){
-        const auto& partition = rPartitions[p_i];
+        const auto& partition = rPartitions[static_cast<IndexType>(p_i)];
         for( IndexType i = partition.first[0]; i <= partition.second[0]; ++i ){
             for( IndexType j = partition.first[1]; j <= partition.second[1]; ++j ) {
                 for( IndexType k = partition.first[2]; k <= partition.second[2]; ++k ) {
                     const IndexType index = mGridIndexer.GetVectorIndexFromMatrixIndices(i, j, k);
                     if( !visited[index] ) { // Unvisited
                         GroupSetType new_group; // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
-                        std::get<0>(new_group) = p_i; // Partition index
+                        std::get<0>(new_group) = static_cast<IndexType>(p_i); // Partition index
                         Fill(index, new_group, partition, rStates, visited);
                         if( std::get<1>(new_group).size() > 0 ){
                             #pragma omp critical
@@ -164,7 +164,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
             /// 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
             const IndexType current_index = index_stack.top();
             for( auto direction : GridIndexer::GetDirections()){
-                new_indices[static_cast<int>(direction)] = Move(current_index, direction, rGroupSet, rPartition, rStates, rVisited );
+                new_indices[static_cast<IndexType>(direction)] = Move(current_index, direction, rGroupSet, rPartition, rStates, rVisited );
             }
 
             index_stack.pop();
@@ -242,13 +242,13 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
 
     #pragma omp parallel for
     for( int group_index = 0; group_index < static_cast<int>(num_groups);  ++group_index){
-        auto& group_set = rGroups[group_index];
+        auto& group_set = rGroups[static_cast<IndexType>(group_index)];
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         const auto& index_set = std::get<1>(group_set);
         const auto partition_index = std::get<0>(group_set);
 
-        auto& group_bounding_box = group_bounding_boxes[group_index];
-        auto& boundary_indices = group_boundary_indices[group_index];
+        auto& group_bounding_box = group_bounding_boxes[static_cast<IndexType>(group_index)];
+        auto& boundary_indices = group_boundary_indices[static_cast<IndexType>(group_index)];
 
         // Loop over elements in active group.
         for(auto& index : index_set ){
@@ -347,11 +347,11 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
                     if( are_neighbours ){
                         break;
                     }
-                    for( auto& iii : current_boundary_indices[static_cast<int>(GridIndexer::ReverseDirection(direction)) % 2] ) {
+                    for( auto& iii : current_boundary_indices[static_cast<IndexType>(GridIndexer::ReverseDirection(direction)) % 2] ) {
                         const auto [next_index, index_info] = mGridIndexer.GetNextIndex(iii, direction);
                         if( index_info != GridIndexer::IndexInfo::middle ) { break; }
-                        if( other_boundary_indices[static_cast<int>(direction) % 2].find(next_index)
-                                != other_boundary_indices[static_cast<int>(direction) % 2].end() ){
+                        if( other_boundary_indices[static_cast<IndexType>(direction) % 2].find(next_index)
+                                != other_boundary_indices[static_cast<IndexType>(direction) % 2].end() ){
                             are_neighbours = true;
                             break;
                         }
