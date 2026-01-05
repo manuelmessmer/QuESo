@@ -101,7 +101,7 @@ public:
 
     /// @brief Return Id of this element.
     /// @return IndexType
-    const IndexType GetId() const {
+    IndexType GetId() const {
         return mId;
     }
 
@@ -167,7 +167,7 @@ public:
     /// @brief Get ptr to trimmed domain of element.
     /// @note Return raw ptr. No transfer of ownership. Element owns trimmed domain.
     /// @return const TrimmedDomain*
-    const TrimmedDomain* const pGetTrimmedDomain() const {
+    const TrimmedDomain* pGetTrimmedDomain() const {
         if( !IsTrimmed() ){
             QuESo_ERROR << "Element is not Trimmed.\n";
         }

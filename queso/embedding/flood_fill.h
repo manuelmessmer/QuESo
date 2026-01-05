@@ -142,9 +142,8 @@ private:
     /// @param [out] rMergedGroups Output vector of groups.
     /// @param PartitionDir Direction along the partition was performed. Direction with "n_element_max".
     /// @param rPartitions Vector with all partitions.
-    /// @param rStates Global classification vector.
     void MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMergedGroups, IndexType PartitionDir,
-        PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const;
+        PartitionBoxVectorType& rPartitions) const;
 
 
     /// @brief Run flood fill to merge groups starting at 'GroupIndex'.

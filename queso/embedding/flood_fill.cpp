@@ -103,7 +103,7 @@ Unique<StatusVectorType> FloodFill::ClassifyElements(GroupSetVectorType& rGroups
     PartitionedFill(groups, partitions, states);
 
     // Merge groups from all partitions.
-    MergeGroups( groups, rGroupsOutput, partition_index, partitions, states );
+    MergeGroups( groups, rGroupsOutput, partition_index, partitions);
 
     // Mark states
     for( auto& r_group : rGroupsOutput ){
@@ -221,7 +221,7 @@ std::optional<IndexType> FloodFill::Move(IndexType Index, Direction Dir, GroupSe
 }
 
 void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMergedGroup,
-        IndexType PartitionDir, PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const {
+        IndexType PartitionDir, PartitionBoxVectorType& rPartitions) const {
 
     const IndexType num_groups = rGroups.size();
 

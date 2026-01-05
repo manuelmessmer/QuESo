@@ -257,7 +257,7 @@ double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh, IndexTy
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
 
-    QuESo_ERROR_IF(Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
+    QuESo_ERROR_IF( Dir > 2ul ) << " Directional Index is out-of-range.\n";
 
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
