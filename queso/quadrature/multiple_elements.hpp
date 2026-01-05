@@ -322,7 +322,7 @@ private:
     /// @return double.
     static double LinearFunction(IndexType X, IndexType NumNeighbors) {
         const double center = static_cast<double>(NumNeighbors-1) / 2.0;
-        const double delta = std::abs(center - X);
+        const double delta = std::abs(center - static_cast<double>(X));
 
         const double value = (1.0 - (0.9/center)*delta)*static_cast<double>(NumNeighbors);
 

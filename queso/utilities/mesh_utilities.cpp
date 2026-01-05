@@ -292,7 +292,7 @@ double MeshUtilities::AverageAspectRatio(const TriangleMeshInterface& rTriangleM
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         average_aspect_ratio += rTriangleMesh.AspectRatio(i);
     }
-    return average_aspect_ratio/rTriangleMesh.NumOfTriangles();
+    return average_aspect_ratio / static_cast<double>(rTriangleMesh.NumOfTriangles());
 }
 
 double MeshUtilities::EstimateQuality(const TriangleMeshInterface& rTriangleMesh ){

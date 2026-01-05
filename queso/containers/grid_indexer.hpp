@@ -451,9 +451,9 @@ private:
     inline BoundingBoxType GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k, const PointType& rLowerBound, const PointType& rUpperBound) const {
         const PointType indices_d{ static_cast<double>(i), static_cast<double>(j), static_cast<double>(k) };
         PointType delta;
-        delta[0] = std::abs(rUpperBound[0] - rLowerBound[0]) / (mNumberOfElements[0]);
-        delta[1] = std::abs(rUpperBound[1] - rLowerBound[1]) / (mNumberOfElements[1]);
-        delta[2] = std::abs(rUpperBound[2] - rLowerBound[2]) / (mNumberOfElements[2]);
+        delta[0] = std::abs(rUpperBound[0] - rLowerBound[0]) / static_cast<double>(mNumberOfElements[0]);
+        delta[1] = std::abs(rUpperBound[1] - rLowerBound[1]) / static_cast<double>(mNumberOfElements[1]);
+        delta[2] = std::abs(rUpperBound[2] - rLowerBound[2]) / static_cast<double>(mNumberOfElements[2]);
         return std::make_pair( Math::Add( rLowerBound, Math::MultElementWise(delta, indices_d)),
                             Math::Add( rLowerBound, Math::MultElementWise(delta, Math::Add({1.0, 1.0, 1.0}, indices_d))) );
 

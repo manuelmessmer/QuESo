@@ -69,9 +69,9 @@ public:
         const auto& r_lower_bound = rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
         const auto& r_upper_bound = rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
         // Obtain discretization of background mesh.
-        mDelta[0] = std::abs(r_upper_bound[0] - r_lower_bound[0]) / (mNumberOfElements[0]);
-        mDelta[1] = std::abs(r_upper_bound[1] - r_lower_bound[1]) / (mNumberOfElements[1]);
-        mDelta[2] = std::abs(r_upper_bound[2] - r_lower_bound[2]) / (mNumberOfElements[2]);
+        mDelta[0] = std::abs(r_upper_bound[0] - r_lower_bound[0]) / static_cast<double>(mNumberOfElements[0]);
+        mDelta[1] = std::abs(r_upper_bound[1] - r_lower_bound[1]) / static_cast<double>(mNumberOfElements[1]);
+        mDelta[2] = std::abs(r_upper_bound[2] - r_lower_bound[2]) / static_cast<double>(mNumberOfElements[2]);
     }
 
     ///@}

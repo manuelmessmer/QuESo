@@ -25,8 +25,8 @@ namespace queso {
 double NNLS::solve(MatrixType& A, VectorType& B, VectorType& X) {
 
     // Get Dimension
-    int m = B.size();
-    int n = (m > 0) ? A.size()/m : 0;
+    int m = static_cast<int>(B.size());
+    int n = (m > 0) ? static_cast<int>(A.size())/m : 0;
     X.resize(n);
 
     // Pointer to doubles

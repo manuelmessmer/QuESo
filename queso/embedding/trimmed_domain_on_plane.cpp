@@ -273,12 +273,12 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
         const auto &v2_up = V2byEdgeId(i, orientation_origin);
         const auto& r_edge = r_edges_origin[i];
 
-        int edge_id_dest = FindNegativePartnerEdge(v1_up, v2_up, r_edge.Normal() );
+        const auto edge_id_dest = FindNegativePartnerEdge(v1_up, v2_up, r_edge.Normal() );
 
         bool skip = false;
-        if (edge_id_dest > -1) { // Lower edge is found.
-            const auto &v1_low = V1byEdgeId(edge_id_dest, Orientation::Negative);
-            const auto &v2_low = V2byEdgeId(edge_id_dest, Orientation::Negative);
+        if (edge_id_dest.has_value()) { // Lower edge is found.
+            const auto &v1_low = V1byEdgeId(edge_id_dest.value(), Orientation::Negative);
+            const auto &v2_low = V2byEdgeId(edge_id_dest.value(), Orientation::Negative);
 
             // If v1 of lower and upper edge coincide.
             // Add:    /|
@@ -343,9 +343,9 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
             corner_points[3][DIRINDEX3] = plane_position;
 
             // Second and third point depends if lower edge is found or not.
-            if (edge_id_dest > -1) {
-                const auto &v1_low = V1byEdgeId(edge_id_dest, Orientation::Negative);
-                const auto &v2_low = V2byEdgeId(edge_id_dest, Orientation::Negative);
+            if (edge_id_dest.has_value()) {
+                const auto &v1_low = V1byEdgeId(edge_id_dest.value(), Orientation::Negative);
+                const auto &v2_low = V2byEdgeId(edge_id_dest.value(), Orientation::Negative);
 
                 corner_points[1][DIRINDEX1] = v1_low[0];
                 corner_points[1][DIRINDEX2] = v1_low[1];
@@ -425,11 +425,11 @@ void TrimmedDomainOnPlane::FindIntersectingEdgesWithUpperBound(std::vector<Edge2
     }  );
 }
 
-int TrimmedDomainOnPlane::FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const {
+std::optional<IndexType> TrimmedDomainOnPlane::FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const {
     // Get center
     const Point2DType c_positive = {0.5 * (rV1[0] + rV2[0]), 0.5 * (rV1[1] + rV2[1])};
     double min_distance = MAXD;
-    IndexType found_id = -1;
+	std::optional<IndexType> found_id{};
 
     for (IndexType i = 0; i < GetNumberEdges(Orientation::Negative); ++i) {
         const auto &v1 = V1byEdgeId(i, Orientation::Negative);
@@ -487,7 +487,7 @@ void TrimmedDomainOnPlane::SetSplitPoint(const Point2DType &rPoint, OrientationT
 {
     // Take bool from Edge.
     double current_distance = 1e15;
-    int edge_id = -1;
+	std::optional<IndexType> edge_id{};
     Point2DType intersection_point{};
     bool is_positive = OrientationDest == Orientation::Positive;
     OrientationType orientation_origin = is_positive ? Orientation::Negative : Orientation::Positive;
@@ -535,9 +535,9 @@ void TrimmedDomainOnPlane::SetSplitPoint(const Point2DType &rPoint, OrientationT
             }
         }
     }
-    if (edge_id > -1)
+    if (edge_id.has_value())
     {
-        r_edges_dest[edge_id].AddSplitPoint(intersection_point);
+        r_edges_dest[edge_id.value()].AddSplitPoint(intersection_point);
     }
 }
 
