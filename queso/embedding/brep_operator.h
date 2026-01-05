@@ -15,16 +15,11 @@
 #define BREP_OPERATOR_INCLUDE_H
 
 //// STL includes
-#include <memory>
+
 //// Project includes
-#include "queso/containers/triangle_mesh.hpp"
-#include "queso/containers/element.hpp"
-#include "queso/containers/boundary_integration_point.hpp"
-#include "queso/embedding/flood_fill.h"
+#include "queso/containers/dictionary.hpp"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/embedding/geometry_query.h"
-#include "queso/embedding/clipper.h"
-#include "queso/io/io_utilities.h"
 
 namespace queso {
 

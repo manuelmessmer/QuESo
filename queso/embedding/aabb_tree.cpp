@@ -12,6 +12,7 @@
 //  Authors:    Manuel Messmer
 
 //// Project includes
+#include "queso/embedding/aabb_primitive.h"
 #include "queso/embedding/aabb_tree.h"
 
 namespace queso {

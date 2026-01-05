@@ -16,13 +16,11 @@
 
 //// STL includes
 #include <vector>
-#include <array>
-#include <variant>
 #include <numeric>
+
 //// Project includes
 #include "queso/embedding/octree.h"
-#include "queso/containers/element.hpp"
-#include "queso/containers/boundary_integration_point.hpp"
+#include "queso/embedding/trimmed_domain.h"
 #include "queso/utilities/polynomial_utilities.hpp"
 #include "queso/solvers/nnls.h"
 

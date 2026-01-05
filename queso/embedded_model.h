@@ -19,10 +19,12 @@
 /// Project includes
 #include "queso/containers/triangle_mesh_interface.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/utilities/check_dictionary_utilities.hpp"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 

@@ -13,13 +13,14 @@
 
 //// STL includes
 #include <cmath>
-#include <algorithm>
-#include <iomanip>
-#include <limits>
 #include <random>
+
 //// Project includes
+#include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/ray_aabb_primitive.h"
+#include "queso/embedding/clipper.h"
+#include "queso/embedding/flood_fill.h"
 
 
 namespace queso {

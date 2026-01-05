@@ -15,6 +15,7 @@
 #define DATA_SET_INCLUDE_HPP
 
 //// STL includes
+#include <vector>
 #include <variant>
 
 /// Project includes

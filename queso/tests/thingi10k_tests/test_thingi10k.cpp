@@ -20,6 +20,7 @@
 #include <string>
 //// Project includes
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"

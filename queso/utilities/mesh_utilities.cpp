@@ -17,6 +17,7 @@
 #include <algorithm>
 
 /// Project includes
+#include "queso/containers/triangle_mesh.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/math_utilities.hpp"
 

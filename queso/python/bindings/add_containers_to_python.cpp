@@ -15,9 +15,6 @@
 #include "queso/python/bindings/define_python.hpp"
 #include "queso/python/bindings/add_containers_to_python.h"
 // To export
-#include "queso/containers/triangle_mesh.hpp"
-#include "queso/containers/background_grid.hpp"
-#include "queso/containers/condition.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "queso/embedded_model.h"
 

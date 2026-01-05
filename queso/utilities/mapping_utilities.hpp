@@ -16,6 +16,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
 

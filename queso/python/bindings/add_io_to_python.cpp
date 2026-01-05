@@ -12,9 +12,9 @@
 //  Authors:    Manuel Messmer
 
 /// Project inlcudes
-#include "queso/python/bindings/define_python.hpp"
 #include "queso/python/bindings/add_io_to_python.h"
-// To export
+
+/// To export
 #include "queso/io/io_utilities.h"
 
 namespace queso {

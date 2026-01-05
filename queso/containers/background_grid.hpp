@@ -19,7 +19,6 @@
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/containers/grid_indexer.hpp"
-#include "queso/containers/element.hpp"
 #include "queso/containers/condition.hpp"
 
 namespace queso {

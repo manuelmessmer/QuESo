@@ -13,8 +13,8 @@
 
 //// External includes
 #include <omp.h>
-#include <map>
 #include <cstdlib>
+
 //// Project includes
 #include "queso/embedding/flood_fill.h"
 #include "queso/embedding/brep_operator.h"

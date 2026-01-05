@@ -16,7 +16,6 @@
 
 //// STL includes
 #include <iostream>
-#include <variant>
 #include <cassert>
 #include <vector>
 #include <algorithm>

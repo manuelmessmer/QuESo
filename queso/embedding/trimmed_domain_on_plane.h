@@ -19,7 +19,7 @@
 #include <vector>
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso
 {

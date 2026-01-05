@@ -19,6 +19,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 

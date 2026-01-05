@@ -12,7 +12,6 @@
 //  Authors:    Manuel Messmer
 
 /// Project inlcudes
-#include "queso/python/bindings/define_python.hpp"
 #include "queso/python/bindings/add_globals_to_python.h"
 // To export
 #include "queso/includes/define.hpp"

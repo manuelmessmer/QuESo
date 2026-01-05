@@ -17,8 +17,9 @@
 /// STL includes
 #include <assert.h>
 /// Project includes
-#include "queso/includes/define.hpp"
+// IWYU pragma: begin_exports
 #include "queso/includes/exception.hpp"
+// IWYU pragma: end_exports
 
 namespace queso {
 

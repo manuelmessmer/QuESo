@@ -16,7 +16,9 @@
 
 //// External includes
 #include "aabb_tree/AABB_base.h"
+
 //// Project includes
+#include "queso/includes/define.hpp"
 #include "queso/embedding/aabb_primitive_base.h"
 
 namespace queso {

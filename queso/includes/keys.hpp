@@ -21,6 +21,10 @@
 #include <unordered_map>
 #include <typeindex>
 
+/// Project includes
+#include "queso/includes/exception.hpp"
+#include "queso/includes/core_definitions.hpp"
+
 namespace queso {
 namespace key {
 namespace detail {
@@ -262,7 +266,7 @@ struct ConstexprKey : private KeyData<typename TKeySetInfoType::EnumType> {
 
     /// @brief  Returns std::type_index of type of the KeySetInfo, to which this key belongs.
     /// @return std::type_index
-    constexpr std::type_index KeySetInfoTypeIndex() const noexcept {
+    std::type_index KeySetInfoTypeIndex() const noexcept {
         return std::type_index(typeid(KeySetInfoType));
     }
 };

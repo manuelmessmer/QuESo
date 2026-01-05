@@ -16,7 +16,6 @@
 
 //// STL includes
 #include <array>
-#include <algorithm>
 #include <stack>
 #include <set>
 

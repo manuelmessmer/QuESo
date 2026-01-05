@@ -15,13 +15,9 @@
 #define IO_UTILTIES_H
 
 //// STL includes
-#include <fstream>
-#include <numeric>
 
 //// Project includes
 #include "queso/containers/background_grid.hpp"
-#include "queso/containers/triangle_mesh.hpp"
-#include "queso/containers/boundary_integration_point.hpp"
 
 namespace queso {
 

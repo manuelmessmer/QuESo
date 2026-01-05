@@ -17,6 +17,7 @@
 //// STL includes
 #include <fstream>
 #include <vector>
+#include <cstring>
 
 //// Project includes
 #include "queso/includes/define.hpp"

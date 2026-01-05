@@ -21,6 +21,7 @@
 #include "queso/includes/checks.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
+#include "queso/embedding/aabb_primitive.h"
 #include "queso/embedding/aabb_tree.h"
 
 #include "queso/tests/cpp_tests/global_config.hpp"

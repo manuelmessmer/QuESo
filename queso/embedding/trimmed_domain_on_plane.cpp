@@ -14,8 +14,8 @@
 //// STL includes
 
 //// Project includes
+#include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/trimmed_domain_on_plane.h"
-#include "queso/embedding/brep_operator.h"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/embedding/polygon.h"
 

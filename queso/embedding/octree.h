@@ -19,6 +19,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/utilities/mapping_utilities.hpp"
 #include "queso/quadrature/single_element.hpp"
 
 namespace queso {

@@ -15,7 +15,6 @@
 #define LOGGER_INCLUDE_HPP
 
 //// STL includes
-#include <stdexcept>
 #include <iostream>
 #include <sstream>
 #include <iomanip>

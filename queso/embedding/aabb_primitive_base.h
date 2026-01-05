@@ -14,12 +14,6 @@
 #ifndef AABB_PRIMITIVE_BASE_INCLUDE_H
 #define AABB_PRIMITIVE_BASE_INCLUDE_H
 
-//// STL includes
-#include <cstddef>
-#include <array>
-//// Project includes
-#include "queso/includes/define.hpp"
-
 namespace queso {
 
 ///@name QuESo Classes

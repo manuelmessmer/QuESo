@@ -13,9 +13,12 @@
 
 /// STL includes
 #include <cstring>
+#include <fstream>
+#include <numeric>
 
 /// Project includes
 #include "queso/io/binary_buffer_writer.hpp"
+#include "queso/includes/define.hpp"
 
 namespace queso {
 

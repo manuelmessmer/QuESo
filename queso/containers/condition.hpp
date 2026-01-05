@@ -16,7 +16,7 @@
 
 //// Project includes
 #include "queso/containers/condition_segment.hpp"
-#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/dictionary.hpp"
 
 namespace queso {
 

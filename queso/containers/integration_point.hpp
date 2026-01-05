@@ -30,12 +30,6 @@ class IntegrationPoint
 {
 public:
 
-    ///@name Type defintion
-    ///@{
-    typedef std::array<double,3> BaseType;
-
-    ///@}
-
     ///@name Life Cycle
     ///@{
 
@@ -57,7 +51,7 @@ public:
     }
 
     /// 3D Constructor
-    IntegrationPoint(const BaseType& rPoint, double weigth_) :
+    IntegrationPoint(const Vector3d& rPoint, double weigth_) :
         mPoint(rPoint), mWeight(weigth_)
     {
     }
@@ -79,7 +73,7 @@ public:
     ///@{
 
     /// Returns underlying point data.
-    const BaseType& data() const {
+    const Vector3d& data() const {
         return mPoint;
     }
 
@@ -137,7 +131,7 @@ public:
 private:
     ///@name Private member variables
     ///@{
-    BaseType mPoint;
+    Vector3d mPoint;
     double mWeight;
     ///@}
 }; // End class IntegrationPoint

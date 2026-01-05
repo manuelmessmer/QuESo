@@ -13,9 +13,10 @@
 
 //// STL includes
 #include <iostream>
-#include <algorithm>
+
 //// External includes
 #include "nnls/nnls_impl.h"
+
 //// Project includes
 #include "queso/solvers/nnls.h"
 

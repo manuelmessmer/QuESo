@@ -12,11 +12,10 @@
 //  Authors:    Manuel Messmer
 
 //// STL includes
-#include <iostream>
 #include <algorithm>
-#include <stdexcept>
 #include <utility>
 #include <cmath>
+
 //// Project includes
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 

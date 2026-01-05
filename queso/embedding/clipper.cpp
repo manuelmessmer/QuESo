@@ -11,11 +11,12 @@
 //
 //  Authors:    Manuel Messmer
 
+//// STL includes
+#include <cstdlib>
+#include <algorithm>
+
 //// Project includes
 #include "queso/embedding/clipper.h"
-#include "queso/utilities/math_utilities.hpp"
-#include "queso/io/io_utilities.h"
-#include <cstdlib>
 
 namespace queso {
 

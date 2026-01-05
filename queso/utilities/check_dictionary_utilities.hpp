@@ -38,7 +38,7 @@ namespace CheckDictionaryUtilities {
 
     /// @brief Throws if the input settings are not set properly.
     /// @param rSettings
-    void CheckSettings( const MainDictionaryType& rSettings ) {
+    inline void CheckSettings( const MainDictionaryType& rSettings ) {
         const IndexType echo_level = rSettings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
 
         // Check if all values are set.
