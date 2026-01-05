@@ -118,10 +118,10 @@ public:
 
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ---------------------------------- START" << std::endl;
             for( const auto& p_condition_settings : r_conditions_settings_list ){
-                const auto& r_filename = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
-                TriangleMesh triangle_mesh{};
-                IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
-                ComputeCondition(triangle_mesh, *p_condition_settings);
+                const auto& r_filename_cond = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
+                TriangleMesh triangle_meshs_cond{};
+                IO::ReadMeshFromSTL(triangle_meshs_cond, r_filename_cond.c_str());
+                ComputeCondition(triangle_meshs_cond, *p_condition_settings);
             }
             PrintConditionsElapsedTimeInfo();
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;

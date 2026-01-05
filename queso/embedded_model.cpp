@@ -396,7 +396,6 @@ void EmbeddedModel::PrintVolumeInfo() const {
         const IndexType num_quadrature_points = r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points);
         QuESo_INFO << ":: QuadratureRuleInfo :: Number of integration points: " << num_quadrature_points << std::endl;
         if( echo_level > 1 ) {
-            const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
             const double percentage_of_geometry_volume = r_quad_info.GetValue<double>(QuadratureInfo::percentage_of_geometry_volume);
             QuESo_INFO << ":: QuadratureRuleInfo :: The computed quadrature represents " << percentage_of_geometry_volume
                 << "% of the volume of the STL model. Note that this number can depend on the setting 'min_element_volume_ratio'"

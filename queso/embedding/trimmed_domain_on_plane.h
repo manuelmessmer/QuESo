@@ -49,13 +49,13 @@ public:
     ///@name Enum's
     ///@{
 
-    enum Orientation {Positive, Negative, Vertical};
+    enum class Orientation {Positive, Negative, Vertical};
 
     ///@}
     ///@name Type Definitions
     ///@{
 
-    typedef enum Orientation OrientationType;
+    typedef Orientation OrientationType;
     typedef std::array<double, 2> Point2DType;
     typedef Vector3d Point3DType;
     typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;

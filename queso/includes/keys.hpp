@@ -341,12 +341,11 @@ namespace key {\
 /// @param ... List of key names (enum values).
 /// @details Defines an enum of keys and a class providing runtime access to key names and validation.
 #define QuESo_DECLARE_KEY_SET_INFO(KeySetName, KeySetToWhat_, ...)\
-    using KeySetInfoType = queso::key::detail::KeySetInfo;\
-    using KeyBaseType = queso::key::detail::DynamicKeyBase;\
     namespace key {\
     namespace detail {\
-        struct KeySetName##KeySetToWhat_##KeySetInfo : public KeySetInfoType {\
+        struct KeySetName##KeySetToWhat_##KeySetInfo : public queso::key::detail::KeySetInfo {\
             using KeySetToWhat = queso::key::KeySetToWhat_;\
+			using KeyBaseType = queso::key::detail::DynamicKeyBase;\
             enum class EnumType {__VA_ARGS__};\
             /* Member function to access key information*/\
             const KeyBaseType* pGetKey(std::string_view rName) const noexcept override {\
