@@ -116,18 +116,18 @@ public:
         using Tag = TKeySetInfosTypeTag;
 
         if constexpr (has_value_keys_v<Tag>) { // Initialize DataSet.
-            using KeySetInfoType = typename Tag::ValueKeySetInfoType;
-            using DataSetTypeTag = typename DataSetType::template KeySetInfoTypeTag<KeySetInfoType>;
+            using KeySetInfoType_ = typename Tag::ValueKeySetInfoType;
+            using DataSetTypeTag = typename DataSetType::template KeySetInfoTypeTag<KeySetInfoType_>;
             mpDataSet = MakeUnique<DataSetType>( DataSetTypeTag{} );
         }
         if constexpr ( has_subdict_keys_v<Tag> ) { // Initialize SubDictionaries.
-            using KeySetInfoType = typename Tag::SubDictKeySetInfoType;
-            mpSubDictKeySetInfo = MakeUnique<KeySetInfoType>();
+            using KeySetInfoType_ = typename Tag::SubDictKeySetInfoType;
+            mpSubDictKeySetInfo = MakeUnique<KeySetInfoType_>();
             mSubDictionaries.resize(mpSubDictKeySetInfo->GetNumberOfKeys());
         }
         if constexpr ( has_list_keys_v<Tag> ) { // Initialize Lists.
-            using KeySetInfoType = typename Tag::ListKeySetInfoType;
-            mpListKeySetInfo = MakeUnique<KeySetInfoType>();
+            using KeySetInfoType_ = typename Tag::ListKeySetInfoType;
+            mpListKeySetInfo = MakeUnique<KeySetInfoType_>();
             mListsOfDicts.resize(mpListKeySetInfo->GetNumberOfKeys());
         }
     }

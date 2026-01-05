@@ -225,9 +225,9 @@ private:
                     rCurrentBox.push_back(p_element);
                     // Update bounds of current box
                     const auto& r_el_bounds = p_element->GetBoundsUVW();
-                    for (IndexType i = 0; i < 3; ++i) {
-                        rBoxBounds.first[i]  = std::min(rBoxBounds.first[i], r_el_bounds.first[i]);
-                        rBoxBounds.second[i] = std::max(rBoxBounds.second[i], r_el_bounds.second[i]);
+                    for (IndexType k = 0; k < 3; ++k) {
+                        rBoxBounds.first[k]  = std::min(rBoxBounds.first[k], r_el_bounds.first[k]);
+                        rBoxBounds.second[k] = std::max(rBoxBounds.second[k], r_el_bounds.second[k]);
                     }
                 }
                 rBoxSize[dimension_index]++;

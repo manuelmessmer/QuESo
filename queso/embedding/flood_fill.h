@@ -18,6 +18,7 @@
 #include <array>
 #include <stack>
 #include <set>
+#include <optional>
 
 //// Project includes
 #include "queso/includes/define.hpp"
@@ -132,8 +133,8 @@ private:
     /// @param rPartition Current partition.
     /// @param rStates Global classification vector.
     /// @param rVisited Vector<bool> for all elements.
-    /// @return NextIndex.
-    int Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
+    /// @return std::optional<IndexType> -> NextIndex if valid.
+    std::optional<IndexType> Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
         const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
 
     /// @brief Merge groups that emerged from PartitionedFill.
@@ -152,10 +153,9 @@ private:
     /// @param [out] rMergedGroups Output vector of groups.
     /// @param rBoundaryIndices Contains all indices of element that are on the boundary.
     /// @param PartitionDir Direction along the partition was performed. Direction with "n_element_max".
-    /// @param rStates Global classification vector.
     /// @param rVisited Vector<bool> for all elements.
     void GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVector, GroupSetVectorType& rMergedGroups,
-        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, StatusVectorType& rStates, BoolVectorType& rVisited ) const;
+        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, BoolVectorType& rVisited ) const;
 
     /// @brief Performs a local ray tracing of two adjacent elements. On that is part of a new group and its trimmed neighbour.
     ///        We up to 10 rays, from the center of the first element towards the intersected triangles of the cut element. Based on the orientation of each triangle

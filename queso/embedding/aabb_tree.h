@@ -67,7 +67,7 @@ public:
 
             const PointType lower_bound{*x_min_max.first, *y_min_max.first, *z_min_max.first};
             const PointType upper_bound{*x_min_max.second, *y_min_max.second, *z_min_max.second};
-            this->insertParticle(i, lower_bound, upper_bound);
+            this->insertParticle(static_cast<unsigned int>(i), lower_bound, upper_bound);
 
             mLowerBound[0] = std::min<double>(*x_min_max.first, mLowerBound[0]);
             mUpperBound[0] = std::max<double>(*x_min_max.second, mUpperBound[0]);

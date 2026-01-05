@@ -159,7 +159,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
         // If box is not trimmed, run flood fill.
         IndexStackType index_stack;
         index_stack.push( Index );
-        std::array<int, 6> new_indices;
+        std::array<std::optional<IndexType>, 6> new_indices;
         while( !index_stack.empty() ){
             /// 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
             const IndexType current_index = index_stack.top();
@@ -169,8 +169,8 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
 
             index_stack.pop();
             for( IndexType direction = 0; direction < 6; ++direction){
-                if( new_indices[direction] > -1 ){
-                    index_stack.push(new_indices[direction]);
+                if( new_indices[direction].has_value() ){
+                    index_stack.push(new_indices[direction].value());
                 }
             }
         }
@@ -178,7 +178,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
 
 }
 
-int FloodFill::Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
+std::optional<IndexType> FloodFill::Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
         const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const {
 
     const IndexType index = Index;
@@ -188,7 +188,7 @@ int FloodFill::Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
 
     // Check if out-of-range
     if( index_info != GridIndexer::IndexInfo::middle ) {
-        return -1;
+        return std::nullopt;
     }
 
     // If next box is trimmed, add inside count.
@@ -197,19 +197,19 @@ int FloodFill::Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
     if( mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_perturb) , Math::Add(box_next.second, upper_perturb) )){
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
-        return -1;
+        return std::nullopt;
     }
 
     // Already visited.
     if( rVisited[next_index] ) {
-        return -1;
+        return std::nullopt;
     }
 
     // Is trimmed.
     if( mpBrepOperator->IsTrimmed(box_next.first, box_next.second) ){
         rVisited[next_index] = true;
         rStates[next_index] = IntersectionState::trimmed;
-        return -1;
+        return std::nullopt;
     }
 
     // Add next_index to current group.
@@ -262,7 +262,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed(Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ) {
                     if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
-                        std::get<1>( group_bounding_box ) = indices[PartitionDir];
+                        std::get<1>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
                         boundary_indices[1].clear();
                     }
                     boundary_indices[1].insert(index);
@@ -275,7 +275,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
                 if( !mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ){
                     if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
-                        std::get<0>( group_bounding_box ) = indices[PartitionDir];
+                        std::get<0>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
                         boundary_indices[0].clear();
                     }
                     boundary_indices[0].insert(index);
@@ -309,14 +309,14 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
     BoolVectorType visited(num_groups, false);
     for( IndexType group_index = 0; group_index < num_groups; ++group_index){
         if( !visited[group_index] ){
-            GroupFill(group_index, rGroups, rMergedGroup, group_boundary_indices, PartitionDir, rStates, visited);
+            GroupFill(group_index, rGroups, rMergedGroup, group_boundary_indices, PartitionDir, visited);
         }
     }
 
 }
 
 void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVector, GroupSetVectorType& rMergedGroups,
-        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, StatusVectorType& rStates, BoolVectorType& rVisited ) const {
+        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, BoolVectorType& rVisited ) const {
 
     // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
     const std::array<Direction, 2> walk_directions = {static_cast<Direction>(2*PartitionDir),
