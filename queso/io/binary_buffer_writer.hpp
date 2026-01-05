@@ -45,7 +45,7 @@ public:
     /// @param rOut Filestream.
     /// @param Endian Options: {big, little}.
     /// @param BufferSize (Default: 1MB).
-    BinaryBufferWriter(std::ofstream& rOut, EndianType Endian, IndexType BufferSize = (int)1 << 20) : // default 1MB
+    BinaryBufferWriter(std::ofstream& rOut, EndianType Endian, IndexType BufferSize = 1ul << 20) : // default 1MB
           mOut(rOut),
           mEndian(Endian),
           mBufferSize(BufferSize),

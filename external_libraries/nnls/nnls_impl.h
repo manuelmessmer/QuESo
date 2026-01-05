@@ -492,7 +492,7 @@ L400:
 	zz[ip] /= a[ip + jj * a_dim1];
 /* L430: */
     }
-    switch ((int)rtnkey) {
+    switch (static_cast<int>(rtnkey)) {
 	case 1:  goto L200;
 	case 2:  goto L320;
     }

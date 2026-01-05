@@ -174,8 +174,8 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
 
     // Get num of threads.
     const auto num_threads = static_cast<IndexType>(omp_get_max_threads());
-    r_volume_time_info.SetValue(VolumeTimeInfo::computation_of_intersections, et_compute_intersection / ((double) num_threads) );
-    r_volume_time_info.SetValue(VolumeTimeInfo::solution_of_moment_fitting_eqs, et_moment_fitting / ((double) num_threads) );
+    r_volume_time_info.SetValue(VolumeTimeInfo::computation_of_intersections, et_compute_intersection / static_cast<double>(num_threads) );
+    r_volume_time_info.SetValue(VolumeTimeInfo::solution_of_moment_fitting_eqs, et_moment_fitting / static_cast<double>(num_threads) );
     r_volume_time_info.SetValue(VolumeTimeInfo::construction_of_ggq_rules, et_ggq_rules);
 
     // BackgroundGridInfo.
