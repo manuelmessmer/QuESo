@@ -15,7 +15,7 @@
 #define DICTIONARY_BINDER_HELPER_INCLUDE_HPP
 
 /// Project inlcudes
-#include "queso/python/define_python.hpp"
+#include "queso/python/bindings/define_python.hpp"
 #include "queso/containers/dictionary.hpp"
 
 namespace queso {

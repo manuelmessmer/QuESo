@@ -2,7 +2,7 @@ from typing import Literal, Tuple
 # Import Kratos
 import KratosMultiphysics as KM
 # Import QuESo modules
-import QuESo_PythonApplication as QuESo
+import QuESoPythonModule as QuESo
 from kratos_interface.weak_bcs import PenaltySupport
 from kratos_interface.weak_bcs import LagrangeSupport
 from kratos_interface.weak_bcs import SurfaceLoad

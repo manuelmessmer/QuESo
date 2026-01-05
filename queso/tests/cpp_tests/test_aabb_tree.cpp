@@ -23,6 +23,8 @@
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/aabb_tree.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -31,9 +33,10 @@ BOOST_AUTO_TEST_SUITE( AABB_treeTestSuite )
 BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     QuESo_INFO << "Testing :: Test Touching Cube 1" << std::endl;
 
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Build aabb tree
     AABB_tree tree(triangle_mesh);
@@ -67,7 +70,8 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Build aabb tree
     AABB_tree tree(triangle_mesh);
@@ -141,13 +145,14 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     // Build aabb tree
     AABB_tree tree(triangle_mesh);
 
     // Open results file. Results are checked with CGAL
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_cylinder.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_cylinder.txt");
 
     IndexType number_trimmed_elements = 0;
     for(double xx = -1.5; xx <= 1.5; xx += 0.1){
@@ -201,13 +206,14 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Build aabb tree.
     AABB_tree tree(triangle_mesh);
 
     // Open results file. Results are verified with CGAL. Touching triangles are not considered as intersected.
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_elephant.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_elephant.txt");
 
     IndexType number_trimmed_elements = 0;
     for(double xx = -0.4; xx <= 0.4; xx += 0.02){
@@ -255,13 +261,14 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     // Build aabb tree.
     AABB_tree tree(triangle_mesh);
 
     // Read results file. Results are verified with CGAL:
-    std::ifstream myfile("queso/tests/cpp_tests/results/aabb_bunny.txt");
+    std::ifstream myfile(base_dir + "/results/aabb_bunny.txt");
 
     IndexType number_trimmed_elements = 0;
     for(double xx = -24; xx <= 85; xx += 2){

@@ -9,6 +9,7 @@ queso_output/
 kratos_output/
 libs/
 TestExecutables/
-QuESo_PythonApplication/
+QuESoPythonModule/
+out/
 .vscode/
 *.pyc

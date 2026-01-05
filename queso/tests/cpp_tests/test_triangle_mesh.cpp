@@ -22,6 +22,8 @@
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/io/io_utilities.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -31,7 +33,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOBindaryTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test IO Binary" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     // Make basic check
     triangle_mesh.Check();
@@ -49,7 +52,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshIOAsciiTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test IO Ascii" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder_ascii.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder_ascii.stl");
 
     // Make basic check
     triangle_mesh.Check();
@@ -81,7 +85,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshRefineTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Refine" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Make basic check
     triangle_mesh.Check();
@@ -102,7 +107,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshAppendTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Append" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     // Make basic check
     triangle_mesh.Check();
@@ -124,7 +130,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeVolumeBunnyTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Bunny" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
     double volume = MeshUtilities::Volume(triangle_mesh);
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
 
@@ -137,7 +144,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeCylinderTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Cylinder" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     double volume = MeshUtilities::Volume(triangle_mesh);
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
@@ -151,7 +159,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephantTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     double volume = MeshUtilities::Volume(triangle_mesh);
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);
@@ -165,7 +174,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Elephant Splitted" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -208,7 +218,8 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeCubeTest) {
     QuESo_INFO << "Testing :: Test Triangle Mesh :: Test Compute Volume Cube" << std::endl;
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     double volume = MeshUtilities::Volume(triangle_mesh);
     double volume_omp = MeshUtilities::VolumeOMP(triangle_mesh);

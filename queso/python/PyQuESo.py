@@ -1,10 +1,10 @@
 import os
 import shutil
 # import QuESo
-import QuESo_PythonApplication as QuESo_App
-from queso.python_scripts.b_spline_volume import BSplineVolume
-from queso.python_scripts.helper import *
-from queso.python_scripts.json_io import JsonIO
+import QuESoPythonModule as QuESo_App
+from .scripts.b_spline_volume import BSplineVolume
+from .scripts.helper import *
+from .scripts.json_io import JsonIO
 
 class PyQuESo:
     """Main QuESo Python class.

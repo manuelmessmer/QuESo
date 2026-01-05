@@ -23,6 +23,8 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/octree.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -38,7 +40,8 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
@@ -81,7 +84,8 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
@@ -120,7 +124,8 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
 
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;

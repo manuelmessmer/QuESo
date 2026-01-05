@@ -21,6 +21,8 @@
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -32,7 +34,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
 
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     Vector3d lower_bound = {0.0, 0.0, -0.1};
     Vector3d upper_bound = {2, 2, 1};
@@ -59,7 +62,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     //Read mesh from STL file
     TriangleMesh triangle_mesh{};
 
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cylinder.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     Vector3d lower_bound = {0.0, 0.0, 0.0};
     Vector3d upper_bound = {2, 2, 1};
@@ -85,7 +89,8 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/cube_with_cavity.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Construct BRep_Operator
     BRepOperator brep_operator(triangle_mesh);
@@ -117,7 +122,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
     QuESo_CHECK_EQUAL(results_area.size(), 9261 );
 
     // Compare reference areas of each clipped domain.
-    std::ifstream file("queso/tests/cpp_tests/results/clipper_cube.txt");
+    std::ifstream file(base_dir + "/results/clipper_cube.txt");
     std::string line{};
     for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
@@ -131,7 +136,8 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/elephant.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Construct BRep_operator.
     BRepOperator brep_operator(triangle_mesh);
@@ -165,7 +171,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
     QuESo_CHECK_EQUAL(results_area.size(), 6375 );
 
     // Compare reference areas of each clipped domain.
-    std::ifstream file("queso/tests/cpp_tests/results/clipper_elephant.txt");
+    std::ifstream file(base_dir + "/results/clipper_elephant.txt");
     std::string line{};
     for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);
@@ -180,7 +186,8 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
 
     TriangleMesh triangle_mesh{};
     // Read mesh from STL file
-    IO::ReadMeshFromSTL(triangle_mesh, "queso/tests/cpp_tests/data/stanford_bunny.stl");
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     // Construct BRep operator.
     BRepOperator brep_operator(triangle_mesh);
@@ -212,7 +219,7 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
     QuESo_CHECK_EQUAL(results_area.size(), 9108 );
 
     // Compare reference areas of each clipped domain.
-    std::ifstream file("queso/tests/cpp_tests/results/clipper_bunny.txt");
+    std::ifstream file(base_dir + "/results/clipper_bunny.txt");
     std::string line{};
     for( IndexType i = 0; i < results_area.size(); i++ ){
         std::getline(file, line);

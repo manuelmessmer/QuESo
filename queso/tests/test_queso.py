@@ -1,8 +1,11 @@
-from queso.tests.ggq_tube.test_ggq_tube import TestGGQTube
-from queso.tests.ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
-from queso.tests.b_spline_volume.test_b_spline_volume import TestBSplineVolume
-from queso.tests.boundary_conditions.test_boundary_conditions import TestBoundaryConditions
-from queso.tests.settings_container.test_settings import TestSettingsContainer
+import os
+from pathlib import Path
+
+from ggq_tube.test_ggq_tube import TestGGQTube
+from ggq_rule_1d.test_ggq_rule_1d import TestGGQ1d
+from b_spline_volume.test_b_spline_volume import TestBSplineVolume
+from boundary_conditions.test_boundary_conditions import TestBoundaryConditions
+from settings_container.test_settings import TestSettingsContainer
 
 try:
     import KratosMultiphysics as KM
@@ -12,9 +15,10 @@ except:
 
 if kratos_available:
     #from queso.tests.ggq_cantilever_kratos.test_ggq_cantilever_kratos import TestGGQCantileverKratos
-    from queso.tests.trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
-    from queso.tests.steering_knuckle_kratos.test_strain_energy_steering_knuckle import TestStrainEnergySteeringKnuckleKratos
-    from queso.tests.boundary_conditions_kratos.test_boundary_conditions_kratos import TestBoundaryConditionsKratos
+    from trimmed_cantilever_kratos.test_trimmed_cantilever_kratos import TestTrimmedCantileverKratos
+    from steering_knuckle_kratos.test_strain_energy_steering_knuckle import TestStrainEnergySteeringKnuckleKratos
+    from boundary_conditions_kratos.test_boundary_conditions_kratos import TestBoundaryConditionsKratos
+
 import unittest
 import sys
 
@@ -36,8 +40,10 @@ def PyQuESoTestSuite():
 
     return test_suite
 
-
 def main():
+    # Enables to open files relative to project_root
+    project_root = Path(__file__).resolve().parent.parent.parent
+    os.chdir(project_root)
 
     test_suite = PyQuESoTestSuite()
     runner = unittest.TextTestRunner()

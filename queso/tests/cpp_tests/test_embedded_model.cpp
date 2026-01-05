@@ -24,6 +24,8 @@
 #include "queso/io/io_utilities.h"
 #include "queso/embedded_model.h"
 
+#include "queso/tests/cpp_tests/global_config.hpp"
+
 namespace queso {
 namespace Testing {
 
@@ -32,7 +34,8 @@ BOOST_AUTO_TEST_SUITE( EmbeddedModelTestSuite )
 BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Intersected Element" << std::endl;
 
-    std::string filename = "queso/tests/cpp_tests/data/cylinder.stl";
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    std::string filename = base_dir + "/data/cylinder.stl";
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -92,7 +95,8 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 
     Vector3i num_elements = (Large) ? Vector3i{14, 22, 12} : Vector3i{7, 11, 6};
     GridTypeType grid_type = (BSplineMesh) ? GridType::b_spline_grid : GridType::hexahedral_fe_grid;
-    std::string filename = "queso/tests/cpp_tests/data/elephant.stl";
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    std::string filename = base_dir + "/data/elephant.stl";
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -275,7 +279,8 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
 
     Vector3i num_elements = (Large) ? Vector3i{20, 40, 40} : Vector3i{5, 10, 10};
     GridTypeType grid_type = (BSplineMesh) ? GridType::b_spline_grid : GridType::hexahedral_fe_grid;
-    std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    std::string filename = base_dir + "/data/steering_knuckle.stl";
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -296,25 +301,25 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
 
     auto p_cond_settings_1 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
     p_cond_settings_1->SetValue(ConditionSettings::condition_id, 1u);
-    p_cond_settings_1->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    p_cond_settings_1->SetValue(ConditionSettings::input_filename, base_dir + "/data/steering_knuckle_D1.stl");
     p_cond_settings_1->SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
     r_cond_settings_list.push_back(std::move(p_cond_settings_1));
 
     auto p_cond_settings_2 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
     p_cond_settings_2->SetValue(ConditionSettings::condition_id, 2u);
-    p_cond_settings_2->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N1.stl"));
+    p_cond_settings_2->SetValue(ConditionSettings::input_filename, base_dir + "/data/steering_knuckle_N1.stl");
     p_cond_settings_2->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
     r_cond_settings_list.push_back(std::move(p_cond_settings_2));
 
     auto p_cond_settings_3 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
     p_cond_settings_3->SetValue(ConditionSettings::condition_id, 3u);
-    p_cond_settings_3->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N2.stl"));
+    p_cond_settings_3->SetValue(ConditionSettings::input_filename, base_dir + "/data/steering_knuckle_N2.stl");
     p_cond_settings_3->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
     r_cond_settings_list.push_back(std::move(p_cond_settings_3));
 
     auto p_cond_settings_4 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
     p_cond_settings_4->SetValue(ConditionSettings::condition_id, 4u);
-    p_cond_settings_4->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_N3.stl"));
+    p_cond_settings_4->SetValue(ConditionSettings::input_filename, base_dir + "/data/steering_knuckle_N3.stl");
     p_cond_settings_4->SetValue(ConditionSettings::condition_type, std::string("SurfaceLoadCondition"));
     r_cond_settings_list.push_back(std::move(p_cond_settings_4));
 
@@ -445,7 +450,8 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     Vector3i num_elements = Vector3i{10, 20, 20};
     GridTypeType grid_type = GridType::b_spline_grid;
-    std::string filename = "queso/tests/cpp_tests/data/steering_knuckle.stl";
+    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
+    std::string filename = base_dir + "/data/steering_knuckle.stl";
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -467,7 +473,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     auto p_cond_settings_1 = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
     p_cond_settings_1->SetValue(ConditionSettings::condition_id, 1u);
-    p_cond_settings_1->SetValue(ConditionSettings::input_filename, std::string("queso/tests/cpp_tests/data/steering_knuckle_D1.stl"));
+    p_cond_settings_1->SetValue(ConditionSettings::input_filename, base_dir + "/data/steering_knuckle_D1.stl");
     p_cond_settings_1->SetValue(ConditionSettings::condition_type, std::string("PenaltySupportCondition"));
     r_cond_setttings_list.push_back(std::move(p_cond_settings_1));
 

@@ -1,5 +1,5 @@
 # Import QuESo
-import QuESo_PythonApplication as QuESo
+import QuESoPythonModule as QuESo
 
 # Import Kratos
 import KratosMultiphysics as KM

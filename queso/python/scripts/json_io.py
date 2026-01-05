@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 # Project imports
-import QuESo_PythonApplication as QuESo
+import QuESoPythonModule as QuESo
 
 # External imports
 import json

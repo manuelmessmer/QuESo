@@ -1,6 +1,6 @@
 import os
 # Import QuESo
-import QuESo_PythonApplication as QuESo
+import QuESoPythonModule as QuESo
 # Project imports
 from kratos_interface.custom_analysis_stage import CustomAnalysisStage
 # Import Kratos

@@ -1,8 +1,8 @@
 import numpy as np
 from typing import List, Tuple
 # Import QuESo
-import QuESo_PythonApplication as QuESo
-from queso.python_scripts.helper import *
+import QuESoPythonModule as QuESo
+from .scripts.helper import *
 # Import Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication

@@ -12,9 +12,9 @@
 //  Authors:    Manuel Messmer
 
 /// Project inlcudes
-#include "queso/python/define_python.hpp"
-#include "queso/python/add_dictionary_to_python.h"
-#include "queso/python/dictionary_binder_helper.hpp"
+#include "queso/python/bindings/define_python.hpp"
+#include "queso/python/bindings/add_dictionary_to_python.h"
+#include "queso/python/bindings/dictionary_binder_helper.hpp"
 // To export
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/dictionary.hpp"
