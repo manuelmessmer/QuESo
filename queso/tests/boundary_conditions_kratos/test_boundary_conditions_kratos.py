@@ -2,7 +2,7 @@
 import QuESoPythonModule as QuESo_App
 from QuESoPythonModule.PyQuESo import PyQuESo
 from QuESoPythonModule.scripts.helper import *
-from kratos_interface.model_part_utilities import ModelPartUtilities
+from QuESoPythonModule.kratos_interface.model_part_utilities import ModelPartUtilities
 from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 # Kratos imports
 import KratosMultiphysics as KM

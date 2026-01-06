@@ -13,9 +13,9 @@ except:
 
 if kratos_available:
     import json
-    from kratos_interface.kratos_analysis import Analysis
-    from kratos_interface.bounding_box_bcs import DirichletCondition
-    from kratos_interface.bounding_box_bcs import NeumannCondition
+    from QuESoPythonModule.kratos_interface.kratos_analysis import Analysis
+    from QuESoPythonModule.kratos_interface.bounding_box_bcs import DirichletCondition
+    from QuESoPythonModule.kratos_interface.bounding_box_bcs import NeumannCondition
 
 # External imports
 import unittest

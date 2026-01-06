@@ -63,7 +63,7 @@ public:
     /// @brief Helper to create EmbeddedModel.
     /// @param pSettings (EmbeddedModel takes unique ownership).
     /// @return EmbeddedModel.
-    static EmbeddedModel Create(Unique<MainDictionaryType> pSettings) {
+    static EmbeddedModel Create(Unique<MainDictionaryType>&& pSettings) {
         CheckDictionaryUtilities::CheckSettings(*pSettings);
         return EmbeddedModel(std::move(pSettings));
     }
@@ -71,7 +71,7 @@ public:
 private:
     /// @brief Constructor
     /// @param pSettings (EmbeddedModel takes unique ownership).
-    EmbeddedModel(Unique<MainDictionaryType> pSettings) :
+    EmbeddedModel(Unique<MainDictionaryType>&& pSettings) :
         mpSettings(std::move(pSettings)),
         mGridIndexer(*mpSettings),
         mBackgroundGrid(*mpSettings),
@@ -183,21 +183,19 @@ public:
         return *mpModelInfo;
     }
 
-    ///@brief Returns the ModelInfo (const version).
-    ///@return const MainDictionaryType&
+    ///@brief Returns the ModelInfo (non-const version).
+    ///@return MainDictionaryType&
     MainDictionaryType& GetModelInfo() {
         return *mpModelInfo;
     }
 
     ///@}
 private:
-
     ///@name Private Member Operations
     ///@{
 
-
-    ///@brief Returns the ModelInfo.
-    ///@return const MainDictionaryType&
+    ///@brief Returns the ModelInfo as non-const reference. May be called from const member funtions.
+    ///@return MainDictionaryType&
     MainDictionaryType& GetModelInfoMutable() const {
         return *mpModelInfo;
     }
