@@ -55,8 +55,6 @@ public:
     /// @param rIntegrationOrder
     /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
     static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
-        using ElementVectorType = std::vector<ElementType*>;
-
         // Initialize
         ComputeNeighborCoefficients(rGrid);
 

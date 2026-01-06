@@ -236,7 +236,7 @@ private:
     ///@name Private Members Variables
     ///@{
     Unique<const MainDictionaryType> mpSettings;
-    const GridIndexer mGridIndexer;
+    GridIndexer mGridIndexer;
     BackgroundGridType mBackgroundGrid;
     Unique<MainDictionaryType> mpModelInfo;
     ///@}

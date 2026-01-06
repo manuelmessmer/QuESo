@@ -462,11 +462,11 @@ private:
     ///@name Private Members
     ///@{
 
-    const BoundingBoxType mBoundXYZ;
-    const BoundingBoxType mBoundUVW;
-    const Vector3i mNumberOfElements;
-    const PartitionBoxType mGlobalPartition;
-    const bool mBSplineMesh;
+    BoundingBoxType mBoundXYZ;
+    BoundingBoxType mBoundUVW;
+    Vector3i mNumberOfElements;
+    PartitionBoxType mGlobalPartition;
+    bool mBSplineMesh;
 
     ///@}
 }; // End class GridIndexer.
