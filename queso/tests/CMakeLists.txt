@@ -33,6 +33,8 @@ target_compile_definitions(${testThingiName} PRIVATE QUESO_BUILD_TESTING=1)
 # Link to Boost libraries and QuESo
 target_link_libraries(${testName} PRIVATE Boost::unit_test_framework QuESo::QuESo)
 target_link_libraries(${testThingiName} PRIVATE Boost::unit_test_framework QuESo::QuESo OpenMP::OpenMP_CXX)
+target_compile_definitions(${testName} PRIVATE BOOST_TEST_DYN_LINK)
+target_compile_definitions(${testThingiName} PRIVATE BOOST_TEST_DYN_LINK)
 
 # Move to TestExecutableDir
 set(TestExecutableDir ${CMAKE_CURRENT_BINARY_DIR}/bin)
