@@ -2,7 +2,7 @@ import os
 # Import QuESo
 import QuESoPythonModule as QuESo
 # Project imports
-from kratos_interface.custom_analysis_stage import CustomAnalysisStage
+from QuESoPythonModule.kratos_interface.custom_analysis_stage import CustomAnalysisStage
 # Import Kratos
 import KratosMultiphysics as KM
 

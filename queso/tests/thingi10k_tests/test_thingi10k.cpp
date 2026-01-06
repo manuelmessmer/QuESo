@@ -11,8 +11,6 @@
 //
 //  Authors:    Manuel Messmer
 
-#define BOOST_TEST_DYN_LINK
-
 //// External includes
 #include <boost/test/unit_test.hpp>
 #include <omp.h>
@@ -20,6 +18,7 @@
 #include <string>
 //// Project includes
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"

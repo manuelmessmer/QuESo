@@ -15,7 +15,11 @@
 #define CONDITION_SEGMENT_INCLUDE_HPP
 
 //// STL includes
-#include "queso/containers/triangle_mesh.hpp"
+#include <vector>
+
+//// Project includes
+#include "queso/includes/define.hpp"
+#include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 

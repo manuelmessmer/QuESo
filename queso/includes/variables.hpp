@@ -15,8 +15,8 @@
 #ifndef VARIABLES_INCLUDE_HPP
 #define VARIABLES_INCLUDE_HPP
 
-#include<unordered_map>
-#include<typeindex>
+//// Project includes
+#include "queso/includes/core_definitions.hpp"
 
 #define QuESo_VARIABLE(Key, ValueType) {Key, std::type_index(typeid(ValueType))}
 

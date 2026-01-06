@@ -12,14 +12,12 @@
 //  Authors:    Manuel Messmer
 
 //// STL includes
-#include <random>
+
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/embedding/ray_aabb_primitive.h"
-#include "queso/utilities/mesh_utilities.h"
-#include "queso/io/io_utilities.h"
 
 namespace queso {
 

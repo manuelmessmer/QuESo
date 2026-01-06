@@ -19,10 +19,12 @@
 /// Project includes
 #include "queso/containers/triangle_mesh_interface.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/utilities/check_dictionary_utilities.hpp"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 
@@ -61,7 +63,7 @@ public:
     /// @brief Helper to create EmbeddedModel.
     /// @param pSettings (EmbeddedModel takes unique ownership).
     /// @return EmbeddedModel.
-    static EmbeddedModel Create(Unique<MainDictionaryType> pSettings) {
+    static EmbeddedModel Create(Unique<MainDictionaryType>&& pSettings) {
         CheckDictionaryUtilities::CheckSettings(*pSettings);
         return EmbeddedModel(std::move(pSettings));
     }
@@ -69,7 +71,7 @@ public:
 private:
     /// @brief Constructor
     /// @param pSettings (EmbeddedModel takes unique ownership).
-    EmbeddedModel(Unique<MainDictionaryType> pSettings) :
+    EmbeddedModel(Unique<MainDictionaryType>&& pSettings) :
         mpSettings(std::move(pSettings)),
         mGridIndexer(*mpSettings),
         mBackgroundGrid(*mpSettings),
@@ -116,10 +118,10 @@ public:
 
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ---------------------------------- START" << std::endl;
             for( const auto& p_condition_settings : r_conditions_settings_list ){
-                const auto& r_filename = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
-                TriangleMesh triangle_mesh{};
-                IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
-                ComputeCondition(triangle_mesh, *p_condition_settings);
+                const auto& r_filename_cond = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
+                TriangleMesh triangle_meshs_cond{};
+                IO::ReadMeshFromSTL(triangle_meshs_cond, r_filename_cond.c_str());
+                ComputeCondition(triangle_meshs_cond, *p_condition_settings);
             }
             PrintConditionsElapsedTimeInfo();
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;
@@ -181,21 +183,19 @@ public:
         return *mpModelInfo;
     }
 
-    ///@brief Returns the ModelInfo (const version).
-    ///@return const MainDictionaryType&
+    ///@brief Returns the ModelInfo (non-const version).
+    ///@return MainDictionaryType&
     MainDictionaryType& GetModelInfo() {
         return *mpModelInfo;
     }
 
     ///@}
 private:
-
     ///@name Private Member Operations
     ///@{
 
-
-    ///@brief Returns the ModelInfo.
-    ///@return const MainDictionaryType&
+    ///@brief Returns the ModelInfo as non-const reference. May be called from const member funtions.
+    ///@return MainDictionaryType&
     MainDictionaryType& GetModelInfoMutable() const {
         return *mpModelInfo;
     }
@@ -234,7 +234,7 @@ private:
     ///@name Private Members Variables
     ///@{
     Unique<const MainDictionaryType> mpSettings;
-    const GridIndexer mGridIndexer;
+    GridIndexer mGridIndexer;
     BackgroundGridType mBackgroundGrid;
     Unique<MainDictionaryType> mpModelInfo;
     ///@}

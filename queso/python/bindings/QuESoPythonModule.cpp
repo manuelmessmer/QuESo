@@ -13,8 +13,8 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/python/bindings/define_python.hpp"
-// To export
+
+/// To export
 #include "queso/python/bindings/add_dictionary_to_python.h"
 #include "queso/python/bindings/add_containers_to_python.h"
 #include "queso/python/bindings/add_globals_to_python.h"
@@ -23,7 +23,6 @@
 
 namespace queso {
 namespace Python {
-namespace py = pybind11;
 
 PYBIND11_MODULE(_QuESoPythonModule,m) {
 

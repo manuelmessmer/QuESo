@@ -15,6 +15,7 @@
 #define DEFINE_INCLUDE_HPP
 
 //// Project includes
+// IWYU pragma: begin_exports
 #include "queso/includes/core_definitions.hpp"
 #include "queso/includes/logger.hpp"
 #include "queso/includes/exception.hpp"
@@ -22,5 +23,6 @@
 #include "queso/includes/timer.hpp"
 #include "queso/includes/register_keys.hpp"
 #include "queso/includes/dereference_iterator.hpp"
+// IWYU pragma: end_exports
 
 #endif // DEFINE_INCLUDE_HPP

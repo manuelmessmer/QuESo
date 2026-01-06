@@ -129,6 +129,6 @@ class PyQuESo:
         except ImportError:
             raise ImportError("RunKratosAnalysis :: Kratos is not available.")
 
-        from kratos_interface.kratos_analysis import Analysis
+        from QuESoPythonModule.kratos_interface.kratos_analysis import Analysis
         self.analysis = Analysis( self.GetSettings(), kratos_settings_filename, self.GetElements(), self.GetConditions() )
 

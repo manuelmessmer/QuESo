@@ -13,9 +13,10 @@
 
 //// STL includes
 #include <iostream>
-#include <algorithm>
+
 //// External includes
 #include "nnls/nnls_impl.h"
+
 //// Project includes
 #include "queso/solvers/nnls.h"
 
@@ -24,9 +25,9 @@ namespace queso {
 double NNLS::solve(MatrixType& A, VectorType& B, VectorType& X) {
 
     // Get Dimension
-    int m = B.size();
-    int n = (m > 0) ? A.size()/m : 0;
-    X.resize(n);
+    int m = static_cast<int>(B.size());
+    int n = (m > 0) ? static_cast<int>(A.size())/m : 0;
+    X.resize(static_cast<std::size_t>(n));
 
     // Pointer to doubles
     double *A_doubles = A.data();
@@ -34,9 +35,9 @@ double NNLS::solve(MatrixType& A, VectorType& B, VectorType& X) {
     double *X_double = X.data();
 
     // Construct buffers
-    double *W = new double[n];
-    double *ZZ = new double[m];
-    int *index = new int[n];
+    double *W = new double[static_cast<std::size_t>(n)];
+    double *ZZ = new double[static_cast<std::size_t>(m)];
+    int *index = new int[static_cast<std::size_t>(n)];
 
     double Rnorm = 0; // Residual norm
 

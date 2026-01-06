@@ -17,7 +17,7 @@
 //// STL includes
 #include <vector>
 #include <array>
-#include <memory>
+
 //// Project includes
 #include "queso/includes/define.hpp"
 

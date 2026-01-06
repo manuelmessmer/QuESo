@@ -11,21 +11,15 @@
 //
 //  Authors:    Manuel Messmer
 
-#define BOOST_TEST_DYN_LINK
-
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// STL includes
 #include "math.h"
 // Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/embedding/brep_operator.h"
-#include "queso/quadrature/trimmed_element.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/quadrature/single_element.hpp"
-#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "queso/containers/grid_indexer.hpp"
 #include "queso/utilities/mesh_utilities.h"
-#include "queso/io/io_utilities.h"
 #include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 namespace queso {

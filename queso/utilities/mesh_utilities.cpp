@@ -17,6 +17,7 @@
 #include <algorithm>
 
 /// Project includes
+#include "queso/containers/triangle_mesh.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/math_utilities.hpp"
 
@@ -206,7 +207,7 @@ double MeshUtilities::AreaOMP(const TriangleMeshInterface& rTriangleMesh){
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : area)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        area += rTriangleMesh.Area(i);
+        area += rTriangleMesh.Area(static_cast<IndexType>(i));
     }
     return area;
 }
@@ -237,7 +238,7 @@ double MeshUtilities::VolumeOMP(const TriangleMeshInterface& rTriangleMesh){
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(static_cast<IndexType>(i), 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
@@ -256,7 +257,7 @@ double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh, IndexTy
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
 
-    QuESo_ERROR_IF(Dir < 0 || Dir > 2 ) << " Directional Index is out-of-range.\n";
+    QuESo_ERROR_IF( Dir > 2ul ) << " Directional Index is out-of-range.\n";
 
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
@@ -291,7 +292,7 @@ double MeshUtilities::AverageAspectRatio(const TriangleMeshInterface& rTriangleM
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         average_aspect_ratio += rTriangleMesh.AspectRatio(i);
     }
-    return average_aspect_ratio/rTriangleMesh.NumOfTriangles();
+    return average_aspect_ratio / static_cast<double>(rTriangleMesh.NumOfTriangles());
 }
 
 double MeshUtilities::EstimateQuality(const TriangleMeshInterface& rTriangleMesh ){

@@ -15,10 +15,8 @@
 #define EXCEPTION_INCLUDE_HPP
 
 //// STL includes
-#include <stdexcept>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
 
 namespace queso {
 

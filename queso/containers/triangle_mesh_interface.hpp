@@ -121,20 +121,20 @@ public:
 
     ///@brief Add vertex to mesh.
     ///@param NewVertex
-    virtual IndexType AddVertex(const Vector3d& NewVertex) {
+    virtual IndexType AddVertex([[maybe_unused]] const Vector3d& NewVertex) {
         QuESo_ERROR << "Calling base class member\n";
         return 0;
     }
 
     ///@brief Add triangle to mesh.
     ///@param NewTriangle
-    virtual void AddTriangle(const Vector3i& NewTriangle) {
+    virtual void AddTriangle([[maybe_unused]] const Vector3i& NewTriangle) {
         QuESo_ERROR << "Calling base class member\n";
     }
 
     /// @brief Remove triangle by index.
     /// @param Index
-    virtual void RemoveTriangle(IndexType Index ){
+    virtual void RemoveTriangle([[maybe_unused]] IndexType Index ){
         QuESo_ERROR << "Calling base class member\n";
     }
 
@@ -159,7 +159,7 @@ public:
     ///@brief Get triangle vertex 3
     ///@param TriangleId
     ///@return const Vector3d&
-    virtual const Vector3i& VertexIds(IndexType TriangleId) const {
+    virtual const Vector3i& VertexIds([[maybe_unused]] IndexType TriangleId) const {
         QuESo_ERROR << "Calling base class member\n";
     }
 
@@ -228,7 +228,7 @@ public:
     /// @brief Remove normal by index.
     /// @param Index
     void RemoveNormal(IndexType Index ){
-        mNormals.erase( mNormals.begin() + Index );
+        mNormals.erase( mNormals.begin() + static_cast<std::ptrdiff_t>(Index) );
     }
 
     ///@brief Add normal to mesh.

@@ -17,9 +17,11 @@
 //// STL includes
 #include <set>
 #include <vector>
+#include <optional>
+
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso
 {
@@ -47,13 +49,13 @@ public:
     ///@name Enum's
     ///@{
 
-    enum Orientation {Positive, Negative, Vertical};
+    enum class Orientation {Positive, Negative, Vertical};
 
     ///@}
     ///@name Type Definitions
     ///@{
 
-    typedef enum Orientation OrientationType;
+    typedef Orientation OrientationType;
     typedef std::array<double, 2> Point2DType;
     typedef Vector3d Point3DType;
     typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
@@ -278,7 +280,7 @@ private:
     ///@param rV2 Right Point
     ///@param rNormal Normal of edge (rV1 and rV2).
     ///@param int EdgeId
-    int FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const;
+	std::optional<IndexType> FindNegativePartnerEdge(const Point2DType &rV1, const Point2DType &rV2, const Point2DType &rNormal) const;
 
     ///@brief Find intersecting point on edge with Orientation==OrientationDest with x=Point[DIRINDEX1] and mark as split point.
     ///@param rPoint Potential split point.

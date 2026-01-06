@@ -5,7 +5,7 @@ import QuESoPythonModule as QuESo
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-from kratos_interface.model_part_utilities import ModelPartUtilities
+from QuESoPythonModule.kratos_interface.model_part_utilities import ModelPartUtilities
 import KratosMultiphysics.LinearSolversApplication
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):

@@ -16,9 +16,8 @@
 
 //// STL includes
 #include <vector>
-#include <array>
+
 //// Project includes
-#include "queso/containers/element.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {

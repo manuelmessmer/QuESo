@@ -17,7 +17,7 @@
 //// External includes
 #include "aabb_tree/AABB_base.h"
 //// Project includes
-#include "queso/embedding/aabb_primitive.h"
+#include "queso/embedding/aabb_primitive_base.h"
 #include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso {
@@ -67,7 +67,7 @@ public:
 
             const PointType lower_bound{*x_min_max.first, *y_min_max.first, *z_min_max.first};
             const PointType upper_bound{*x_min_max.second, *y_min_max.second, *z_min_max.second};
-            this->insertParticle(i, lower_bound, upper_bound);
+            this->insertParticle(static_cast<unsigned int>(i), lower_bound, upper_bound);
 
             mLowerBound[0] = std::min<double>(*x_min_max.first, mLowerBound[0]);
             mUpperBound[0] = std::max<double>(*x_min_max.second, mUpperBound[0]);

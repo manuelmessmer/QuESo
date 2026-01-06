@@ -17,8 +17,10 @@
 //// STL includes
 #include <cstddef>
 #include <array>
+
 //// Project includes
-#include "queso/containers/triangle_mesh.hpp"
+#include "queso/includes/define.hpp"
+#include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 

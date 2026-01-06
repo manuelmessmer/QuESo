@@ -12,11 +12,10 @@
 //  Authors:    Manuel Messmer
 
 //// STL includes
-#include <iostream>
 #include <algorithm>
-#include <stdexcept>
 #include <utility>
 #include <cmath>
+
 //// Project includes
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
@@ -38,7 +37,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
     const SizeType r = dimension.second; // Continuity
 
     const SizeType n = (p+1)*2 + (e-1)*(p-r) - p - 1; // Number of dofs
-    const SizeType m = static_cast<SizeType>( std::ceil(n/2.0) );              // Number of quadrature points
+    const SizeType m = static_cast<SizeType>( std::ceil(static_cast<double>(n)/2.0) ); // Number of quadrature points
 
     // Get correct base rule points
     const Ip1DVectorVectorType& r_base_points = GetGGQBasePoints(PolynomialDegree, NumberKnotSpans, Method);
@@ -51,19 +50,20 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
     Ip1DVectorType& r_ggq_points = *p_ggq_points;
     if( 2*m == n ){ // For odd number of nodes
         if( m > 2*m1 ){
-            const SizeType z = static_cast<SizeType>( std::ceil(0.5*m) );
+            const SizeType z = static_cast<SizeType>( std::ceil(0.5*static_cast<double>(m)) );
             std::copy_n(r_base_points[0].begin(), m1, r_ggq_points.begin());
             SizeType left = static_cast<SizeType>( std::ceil(r_base_points[0][m1-1][0]) );
             const SizeType right = static_cast<SizeType>( std::ceil(r_base_points[1][m2-1][0]) );
             SizeType ii = m1;
             while( ii < z ){
-                std::copy_n(r_base_points[1].begin(), m2, r_ggq_points.begin()+ii);
-                std::for_each(r_ggq_points.begin()+ii, r_ggq_points.begin()+ii+m2, [left](auto& rValue) { rValue[0] +=left;});
+                std::copy_n(r_base_points[1].begin(), m2, r_ggq_points.begin() + static_cast<std::ptrdiff_t>(ii));
+                std::for_each(r_ggq_points.begin()+static_cast<std::ptrdiff_t>(ii), r_ggq_points.begin()+static_cast<std::ptrdiff_t>(ii+m2), 
+						[left](auto& rValue) { rValue[0] += static_cast<double>(left);});
                 left += right;
                 ii += m2;
             }
-            std::reverse_copy(r_ggq_points.begin(), r_ggq_points.begin()+z, r_ggq_points.end()- z );
-            std::for_each(r_ggq_points.end()-z, r_ggq_points.end(), [e](auto& rValue) { rValue[0] = e - rValue[0];});
+            std::reverse_copy(r_ggq_points.begin(), r_ggq_points.begin()+static_cast<std::ptrdiff_t>(z), r_ggq_points.end()-static_cast<std::ptrdiff_t>(z) );
+            std::for_each(r_ggq_points.end()-static_cast<std::ptrdiff_t>(z), r_ggq_points.end(), [e](auto& rValue) { rValue[0] = static_cast<double>(e) - rValue[0];});
         }
         else {
             switch(Method)
@@ -81,23 +81,24 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
     }
     else { // For odd number of nodes
         if( m > 2*(m1+m3)-1 ){
-            const SizeType z = static_cast<SizeType>( std::ceil(0.5*m) );
+            const SizeType z = static_cast<SizeType>( std::ceil(0.5*static_cast<double>(m)) );
             std::copy_n(r_base_points[0].begin(), m1, r_ggq_points.begin());
             SizeType left = static_cast<SizeType>( std::ceil(r_base_points[0].back()[0]) );
             const SizeType right = static_cast<SizeType>( std::ceil(r_base_points[1].back()[0]) );
             SizeType ii = m1;
             while( ii < z ){
-                std::copy_n(r_base_points[1].begin(), m2, r_ggq_points.begin()+ii);
-                std::for_each(r_ggq_points.begin()+ii, r_ggq_points.begin()+ii+m2, [left](auto& rValue) { rValue[0] +=left;});
+                std::copy_n(r_base_points[1].begin(), m2, r_ggq_points.begin()+static_cast<std::ptrdiff_t>(ii));
+                std::for_each(r_ggq_points.begin()+static_cast<std::ptrdiff_t>(ii), r_ggq_points.begin()+static_cast<std::ptrdiff_t>(ii+m2), 
+					[left](auto& rValue) { rValue[0] += static_cast<double>(left);});
                 left += right;
                 ii += m2;
             }
 
-            std::copy_n(r_base_points[2].begin(), m3, r_ggq_points.begin()+z-m3);
-            std::for_each(r_ggq_points.begin()+z-m3, r_ggq_points.begin()+z, [e](auto& rValue) { rValue[0] +=0.5*e;});
-
-            std::reverse_copy(r_ggq_points.begin(), r_ggq_points.begin()+z, r_ggq_points.end()- z );
-            std::for_each(r_ggq_points.end()-z, r_ggq_points.end(), [e](auto& rValue) { rValue[0] = e - rValue[0];});
+            std::copy_n(r_base_points[2].begin(), m3, r_ggq_points.begin()+static_cast<std::ptrdiff_t>(z-m3));
+            std::for_each(r_ggq_points.begin()+static_cast<std::ptrdiff_t>(z-m3), r_ggq_points.begin()+static_cast<std::ptrdiff_t>(z), 
+				[e](auto& rValue) { rValue[0] +=0.5*static_cast<double>(e);});
+            std::reverse_copy(r_ggq_points.begin(), r_ggq_points.begin()+static_cast<std::ptrdiff_t>(z), r_ggq_points.end()-static_cast<std::ptrdiff_t>(z) );
+            std::for_each(r_ggq_points.end()-static_cast<std::ptrdiff_t>(z), r_ggq_points.end(), [e](auto& rValue) { rValue[0] = static_cast<double>(e) - rValue[0];});
         }
         else {
             switch(Method)
@@ -115,7 +116,7 @@ Ip1DVectorPtrType IntegrationPointFactory1D::GetGGQ(SizeType PolynomialDegree, S
     }
 
     // Scale points to desired interval (a,b)
-    const double h = (b-a) / e;
+    const double h = (b-a) / static_cast<double>(e);
     std::for_each(r_ggq_points.begin(), r_ggq_points.end(), [a, h](auto& rValue) { rValue[0] = a + h*rValue[0];
                                                                                    rValue[1] *= h; });
     return p_ggq_points;
@@ -158,7 +159,7 @@ const Ip1DVectorVectorType& IntegrationPointFactory1D::GetGGQBasePoints(SizeType
     const SizeType r = dimension.second; // Continuity
 
     const SizeType n = (p+1)*2 + (e-1)*(p-r) - p - 1; // Number of dofs
-    const SizeType m = static_cast<SizeType>( std::ceil(n/2.0) );              // Number of quadrature points
+    const SizeType m = static_cast<SizeType>( std::ceil(static_cast<double>(n)/2.0) ); // Number of quadrature points
 
     // Get correct base rule points
     if( p == 4 && r == 0 ){

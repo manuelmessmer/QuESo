@@ -11,17 +11,15 @@
 //
 //  Authors:    Manuel Messmer
 
-#define BOOST_TEST_DYN_LINK
-
 //// External includes
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
-#include "queso/quadrature/trimmed_element.hpp"
 #include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 #include "queso/tests/cpp_tests/global_config.hpp"

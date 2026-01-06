@@ -107,7 +107,7 @@ public:
 
     /// @brief Return ptr to Triangle mesh (Raw Ptr)
     /// @return const TriangleMeshInterface*
-    const TriangleMeshInterface* const pGetTriangleMesh() const{
+    const TriangleMeshInterface* pGetTriangleMesh() const{
         return mpTriangleMesh.get();
     }
 

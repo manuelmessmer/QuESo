@@ -15,13 +15,10 @@
 #define CLIPPER_INCLUDE_H
 
 //// STL includes
-#include <cstddef>
-#include <array>
-#include <algorithm>
+
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/embedding/polygon.h"
-#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 

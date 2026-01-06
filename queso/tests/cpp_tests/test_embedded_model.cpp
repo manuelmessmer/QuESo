@@ -11,8 +11,6 @@
 //
 //  Authors:    Manuel Messmer
 
-#define BOOST_TEST_DYN_LINK
-
 //// External includes
 #include <boost/test/unit_test.hpp>
 #include <numeric>      // std::accumulate

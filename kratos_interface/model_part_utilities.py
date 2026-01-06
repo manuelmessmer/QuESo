@@ -3,10 +3,10 @@ from typing import Literal, Tuple
 import KratosMultiphysics as KM
 # Import QuESo modules
 import QuESoPythonModule as QuESo
-from kratos_interface.weak_bcs import PenaltySupport
-from kratos_interface.weak_bcs import LagrangeSupport
-from kratos_interface.weak_bcs import SurfaceLoad
-from kratos_interface.weak_bcs import PressureLoad
+from QuESoPythonModule.kratos_interface.weak_bcs import PenaltySupport
+from QuESoPythonModule.kratos_interface.weak_bcs import LagrangeSupport
+from QuESoPythonModule.kratos_interface.weak_bcs import SurfaceLoad
+from QuESoPythonModule.kratos_interface.weak_bcs import PressureLoad
 
 # Type definition
 Point3D = Tuple[float, float, float]

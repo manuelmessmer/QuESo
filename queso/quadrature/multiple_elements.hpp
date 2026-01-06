@@ -19,6 +19,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
@@ -54,8 +55,6 @@ public:
     /// @param rIntegrationOrder
     /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
     static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
-        using ElementVectorType = std::vector<ElementType*>;
-
         // Initialize
         ComputeNeighborCoefficients(rGrid);
 
@@ -162,7 +161,7 @@ private:
         if( number_neighbours > 1) {
             const auto el_it_begin = rNeighbors.begin();
             for(IndexType i = 0; i < number_neighbours; ++i){
-                auto el_ptr = *(el_it_begin + i);
+                auto el_ptr = *(el_it_begin + static_cast<std::ptrdiff_t>(i));
                 const double old_value = el_ptr->template GetValue<double>(ElementValues::neighbor_coefficient);
                 el_ptr->SetValue(ElementValues::neighbor_coefficient, old_value*LinearFunction(i, number_neighbours));
             }
@@ -203,8 +202,8 @@ private:
         // Lets move towards the direction with the highest coefficient.
         // There are six possible directions, e.i., six attempts.
         for( IndexType attempts = 0; attempts < 6; ++attempts ){
-            IndexType move_dir_index = std::distance(neighbour_coeffs.begin(),
-                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())); // <- Index of move direction.
+            IndexType move_dir_index = static_cast<IndexType>(std::distance(neighbour_coeffs.begin(),
+                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end()))); // <- Index of move direction.
             const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
 
             // Get the number of neighbors on the plane orthogonal to the move direction.
@@ -224,9 +223,9 @@ private:
                     rCurrentBox.push_back(p_element);
                     // Update bounds of current box
                     const auto& r_el_bounds = p_element->GetBoundsUVW();
-                    for (IndexType i = 0; i < 3; ++i) {
-                        rBoxBounds.first[i]  = std::min(rBoxBounds.first[i], r_el_bounds.first[i]);
-                        rBoxBounds.second[i] = std::max(rBoxBounds.second[i], r_el_bounds.second[i]);
+                    for (IndexType k = 0; k < 3; ++k) {
+                        rBoxBounds.first[k]  = std::min(rBoxBounds.first[k], r_el_bounds.first[k]);
+                        rBoxBounds.second[k] = std::max(rBoxBounds.second[k], r_el_bounds.second[k]);
                     }
                 }
                 rBoxSize[dimension_index]++;
@@ -321,7 +320,7 @@ private:
     /// @return double.
     static double LinearFunction(IndexType X, IndexType NumNeighbors) {
         const double center = static_cast<double>(NumNeighbors-1) / 2.0;
-        const double delta = std::abs(center - X);
+        const double delta = std::abs(center - static_cast<double>(X));
 
         const double value = (1.0 - (0.9/center)*delta)*static_cast<double>(NumNeighbors);
 

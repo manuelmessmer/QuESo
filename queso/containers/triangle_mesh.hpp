@@ -16,16 +16,10 @@
 
 //// STL includes
 #include <vector>
-#include <array>
 #include <cmath>
-#include <memory>
-#include <iostream>
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/utilities/math_utilities.hpp"
-#include "queso/containers/triangle_gauss_legendre_integration_points.hpp"
-#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso {
@@ -142,7 +136,7 @@ public:
     /// @brief Remove triangle by index.
     /// @param Index
     void RemoveTriangle(IndexType Index ) override {
-        mTriangles.erase( mTriangles.begin() + Index );
+        mTriangles.erase( mTriangles.begin() + static_cast<std::ptrdiff_t>(Index) );
     }
 
     ///@brief Get vertices from mesh. (const version)
