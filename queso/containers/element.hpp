@@ -92,7 +92,7 @@ public:
     /// Move constructor
     Element(Element&& rOther) noexcept = default;
     /// Move assignement operator
-    Element& operator=(Element&& rOther) noexcept = default;
+    Element& operator=(Element&& rOther) noexcept = delete;
 
     ///@}
     ///@name Operations

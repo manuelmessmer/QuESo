@@ -30,8 +30,9 @@ namespace queso {
  * @class  TriangleMesh
  * @author Manuel Messmer
  * @brief  Simple implementation of a triangular surface mesh. Derives from TriangleMeshInterface.
- * @todo Refactor AddTriangle() and RemoveTriangle() such that normals are always passed.
- *       Put dot product etc. into math function.
+ * @todo - Refactor AddTriangle() and RemoveTriangle() such that normals are always passed.
+ *       - Put dot product etc. into math function.
+ *       - Add View to allow range based loops.
 */
 class TriangleMesh : public TriangleMeshInterface
 {
