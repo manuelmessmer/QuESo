@@ -22,8 +22,6 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-        "QUESO_BUILD_TESTING": true,
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
