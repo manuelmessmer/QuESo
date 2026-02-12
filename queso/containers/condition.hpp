@@ -65,7 +65,7 @@ public:
     /// Move constructor
     Condition(Condition&& rOther) noexcept = default;
     /// Move assignement operator
-    Condition& operator=(Condition&& rOther) noexcept = default;
+    Condition& operator=(Condition&& rOther) noexcept = delete;
 
     /// @brief Adds new ConditionSegment to this condition. Segment is moved into container.
     /// @param pNewSegment
