@@ -18,6 +18,7 @@
 #include <string>
 //// Project includes
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
@@ -79,14 +80,14 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
 
         // Get min/max of triangle mesh
-        auto bounding_box_stl = MeshUtilities::BoundingBox(triangle_mesh);
+        auto bounding_box_stl = MeshUtilities::BoundingBox(triangle_mesh.View());
         PointType lower_bound_stl = bounding_box_stl.first;
         PointType upper_bound_stl = bounding_box_stl.second;
 
-        auto delta_stl = Math::Subtract( upper_bound_stl, lower_bound_stl );
+        auto delta_stl = (upper_bound_stl - lower_bound_stl);
         double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
 
-        PointType lower_bound = Math::Subtract(lower_bound_stl, Math::Mult(0.1, delta_stl));
+        PointType lower_bound = (lower_bound_stl - (0.1 * delta_stl));
 
         Vector3i num_elements;
         num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));
@@ -129,7 +130,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
                     auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
-                    test_area += MeshUtilities::Area(*p_clipped_mesh);
+                    test_area += MeshUtilities::Area(p_clipped_mesh->Mesh().View());
 
                     auto status = brep_operator.GetIntersectionState(element);
                     if( status != (*p_states)[index] ){
@@ -140,7 +141,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                         auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second, min_vol_ratio, min_num_triangles);
                         if( p_trimmed_domain ){
                             const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
-                            test_volume += MeshUtilities::Volume(r_mesh);
+                            test_volume += MeshUtilities::Volume(r_mesh.View());
                         }
                     } else if( status == IntersectionState::inside ){
                         test_volume += (box.second[0] - box.first[0])
@@ -151,10 +152,10 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
             }
         }
 
-        const double area_ref = MeshUtilities::Area(triangle_mesh);
+        const double area_ref = MeshUtilities::Area(triangle_mesh.View());
         const double error_area = std::abs(test_area - area_ref)/area_ref;
 
-        const double volume_ref = MeshUtilities::Volume(triangle_mesh);
+        const double volume_ref = MeshUtilities::Volume(triangle_mesh.View());
         const double error_volume = std::abs( test_volume - volume_ref)/ volume_ref;
 
         BOOST_CHECK_LT(error_volume, 3e-10);
@@ -222,15 +223,15 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
 
         // Get min/max of triangle mesh
-        auto bounding_box_stl = MeshUtilities::BoundingBox(triangle_mesh);
+        auto bounding_box_stl = MeshUtilities::BoundingBox(triangle_mesh.View());
         PointType lower_bound_stl = bounding_box_stl.first;
         PointType upper_bound_stl = bounding_box_stl.second;
 
         count++;
-        auto delta_stl = Math::Subtract( upper_bound_stl, lower_bound_stl );
+        auto delta_stl = (upper_bound_stl - lower_bound_stl);
         double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
 
-        PointType lower_bound = Math::SubstractAndMult(0.1, lower_bound_stl, delta_stl);
+        PointType lower_bound = (0.1 * (lower_bound_stl - delta_stl));
 
         Vector3i num_elements{};
         num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));

@@ -19,8 +19,10 @@
 #include "queso/includes/checks.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/quadrature/single_element.hpp"
-#include "queso/utilities/mesh_utilities.h"
 #include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/utilities/triangle_utilities.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
 
 namespace queso {
 namespace Testing {
@@ -42,11 +44,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP2) {
     auto p_triangle_mesh = MeshUtilities::pGetCuboid(point_a_domain, point_b_domain);
 
     auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
-    for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
-            IndexType method = 3; // This will create 6 points per triangle.
-            auto p_new_points = p_triangle_mesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
-            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
-    }
+    p_triangle_mesh->View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
+        const IndexType method = 3; // This will create 6 points per triangle.
+        auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
+        p_boundary_ips->insert(p_boundary_ips->end(), new_points.begin(), new_points.end());
+    });
 
     const Vector3i polynomial_order = {2, 2, 2};
     const IntegrationMethod integration_method = IntegrationMethod::gauss;
@@ -100,11 +102,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP3) {
 
     MeshUtilities::Refine(*p_triangle_mesh, 500 );
     auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
-    for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
-            IndexType method = 3; // This will create 6 points per triangle.
-            auto p_new_points = p_triangle_mesh->pGetIPsGlobal<BoundaryIntegrationPoint>(triangle_id, method);
-            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
-    }
+    p_triangle_mesh->View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
+        const IndexType method = 3; // This will create 6 points per triangle.
+        auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
+        p_boundary_ips->insert(p_boundary_ips->end(), new_points.begin(), new_points.end());
+    });
 
     const Vector3i polynomial_order = {3, 3, 3};
     const IntegrationMethod integration_method = IntegrationMethod::gauss;
@@ -158,11 +160,11 @@ BOOST_AUTO_TEST_CASE(MomentFittingP4) {
 
     MeshUtilities::Refine(*p_triangle_mesh, 2000 );
     auto p_boundary_ips = MakeUnique<ElementType::BoundaryIntegrationPointVectorType>();
-    for( IndexType triangle_id = 0; triangle_id < p_triangle_mesh->NumOfTriangles(); ++triangle_id ) {
-            IndexType method = 3; // This will create 6 points per triangle.
-            auto p_new_points = p_triangle_mesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
-            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
-    }
+    p_triangle_mesh->View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
+        const IndexType method = 3; // This will create 6 points per triangle.
+        auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
+        p_boundary_ips->insert(p_boundary_ips->end(), new_points.begin(), new_points.end());
+    });
 
     const Vector3i polynomial_order = {4, 4, 4};
     const IntegrationMethod integration_method = IntegrationMethod::gauss;

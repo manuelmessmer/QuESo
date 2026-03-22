@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(MappingTest) {
                 PointType point_param =  Mapping::PointFromGlobalToParam(point_global, bounds_xyz, bounds_uvw);
                 PointType point_global_2 =  Mapping::PointFromParamToGlobal(point_param, bounds_xyz, bounds_uvw);
 
-                QuESo_CHECK_LT( Math::Norm( Math::Subtract(point_global, point_global_2) ), 1e-12 );
+                QuESo_CHECK_LT( Math::Norm( (point_global - point_global_2) ), 1e-12 );
             }
         }
     }

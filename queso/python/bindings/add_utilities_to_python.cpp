@@ -23,15 +23,16 @@ namespace Python {
 namespace py = pybind11;
 
 void AddUtilitiesToPython(pybind11::module& m) {
+    auto mesh_util = m.def_submodule("MeshUtil");
 
-    /// Export MeshUtilites
-    py::class_<MeshUtilities>(m,"MeshUtilities")
-        .def_static("Volume", &MeshUtilities::VolumeOMP)
-        .def_static("Area", &MeshUtilities::AreaOMP)
-    ;
+    mesh_util.def("Volume", [](const TriangleMesh &rMesh) {
+        return MeshUtilities::VolumeOMP(rMesh.View());
+    });
+    mesh_util.def("Area", [](const TriangleMesh &rMesh) {
+        return MeshUtilities::AreaOMP(rMesh.View());
+    });
 
 } // End AddUtilitiesToPython
 
 } // End namespace Python
 } // End namespace queso
-

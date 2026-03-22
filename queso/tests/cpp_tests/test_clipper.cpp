@@ -18,6 +18,7 @@
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
+#include "queso/utilities/mesh_utilities.h"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
 
@@ -44,10 +45,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
-    double area = 0.0;
-    for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
-        area += p_clipped_mesh->Area(i);
-    }
+    const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
 
     // Check surface area of clipped mesh.
     const double ref = 2.35619449;  // pi/2+pi/4 -> One quarte of the lateral surface + a quarter of the head face.
@@ -72,10 +70,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     // Clip mesh.
     auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
-    double area = 0.0;
-    for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
-        area += p_clipped_mesh->Area(i);
-    }
+    const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
 
     // Check surface area of clipped mesh.
     const double ref = 1.570796327;  // pi/2 -> One quarte of the lateral surface.
@@ -107,10 +102,7 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
                 // Clip mesh
                 auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
                 // Compute area of clipped domain.
-                double area = 0.0;
-                for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
-                    area += p_clipped_mesh->Area(i);
-                }
+                const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
                 results_area.push_back(area);
             }
         }
@@ -156,10 +148,7 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
                 auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
-                double area = 0.0;
-                for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
-                    area += p_clipped_mesh->Area(i);
-                }
+                const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
                 results_area.push_back(area);
             }
         }
@@ -204,10 +193,7 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
                 auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
-                double area = 0.0;
-                for( IndexType i = 0; i < p_clipped_mesh->NumOfTriangles(); ++i){
-                    area += p_clipped_mesh->Area(i);
-                }
+                const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
                 results_area.push_back(area);
             }
         }

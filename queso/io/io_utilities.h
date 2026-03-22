@@ -46,8 +46,8 @@ public:
     ///        ReadMeshFromSTL_Ascii() or ReadMeshFromSTL_Binary().
     /// @param rTriangleMesh
     /// @param rFilename
-    static void ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
-                                const std::string& rFilename);
+    static void ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
+                                 const std::string& rFilename);
 
     /*--- Write operations ---*/
 
@@ -63,17 +63,31 @@ public:
     /// @param rTriangleMesh
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
-    static void WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
+    static void WriteMeshToVTK(const TriangleMeshView& rTriangleMesh,
                                const std::string& rFilename,
                                EncodingType Encoding);
+
+    static void WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
+                               const std::string& rFilename,
+                               EncodingType Encoding)
+    {
+        WriteMeshToVTK(TriangleMeshView(rTriangleMesh), rFilename, Encoding);
+    }
 
     /// @brief Writes TriangleMesh to STL file.
     /// @param rTriangleMesh
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
-    static void WriteMeshToSTL( const TriangleMeshInterface& rTriangleMesh,
+    static void WriteMeshToSTL(const TriangleMeshView& rTriangleMesh,
                                 const std::string& rFilename,
                                 EncodingType Encoding);
+
+    static void WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
+                               const std::string& rFilename,
+                               EncodingType Encoding)
+    {
+        WriteMeshToSTL(TriangleMeshView(rTriangleMesh), rFilename, Encoding);
+    }
 
     /// @brief Writes triangle mesh associated with given condition to STL file.
     /// @tparam TElementType
@@ -141,14 +155,14 @@ private:
     ///@param rTriangleMesh
     ///@param rFilename
     ///@see ReadMeshFromSTL_Binary().
-    static void ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
+    static void ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
                                       const std::string& rFilename);
 
     ///@brief  Reads TriangleMesh from STL file in Binary-format.
     ///@param rTriangleMesh
     ///@param rFilename
     ///@see ReadMeshFromSTL_Ascii().
-    static void ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
+    static void ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
                                        const std::string& rFilename);
 
     /// @brief Helper function to get vertices of hexahedron defined by lower and upper bounds.

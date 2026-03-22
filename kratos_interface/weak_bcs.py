@@ -89,15 +89,15 @@ class PenaltySupport(WeakBcsBase):
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
         kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
 
-        for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
+        for tri in self.bcs_triangles.Triangles():
             # Map triangle points to parametric space
             params = [
-                point_from_global_to_param_space(self.bcs_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(self.bcs_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(tri.p1, self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(tri.p2, self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(tri.p3, self.bounds_xyz, self.bounds_uvw),
             ]
 
-            if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8: # type: ignore (TODO: add .pyi)
+            if tri.AspectRatio() >= 1e8:
                 continue  # Skip badly shaped triangles
 
             # Create triangle geometry
@@ -155,16 +155,16 @@ class LagrangeSupport(WeakBcsBase):
         kratos_prescribed = KM.Vector(self.prescribed)
 
         # Iterate over all triangles
-        for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
+        for tri in self.bcs_triangles.Triangles():
             # Map triangle vertices to parametric space
             params = [
-                point_from_global_to_param_space(self.bcs_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(self.bcs_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(self.bcs_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(tri.p1, self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(tri.p2, self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(tri.p3, self.bounds_xyz, self.bounds_uvw),
             ]
 
             # Skip bad quality triangles
-            if QuESo.TriangleMesh.AspectRatioStatic(*params) >= 1e8: # type: ignore (TODO: add .pyi)
+            if tri.AspectRatio() >= 1e8:
                 continue
 
             # Create triangle geometry
@@ -229,9 +229,9 @@ class SurfaceLoad(WeakBcsBase):
         properties = model_part.GetProperties()[1]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
+        for tri in self.bcs_triangles.Triangles():
             #Get points in physical space.
-            points = self.bcs_triangles.GetIntegrationPointsGlobal(triangle_id, 1)
+            points = tri.GetIPsGlobal(1)
 
             #Create kratos condition on each point.
             for point in points:
@@ -292,9 +292,9 @@ class PressureLoad(WeakBcsBase):
         properties = model_part.GetProperties()[1]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
+        for tri in self.bcs_triangles.Triangles():
             #Get points in physical space.
-            points = self.bcs_triangles.GetIntegrationPointsGlobal(triangle_id, 1)
+            points = tri.GetIPsGlobal(1)
 
             #Create kratos condition on each point.
             for point in points:

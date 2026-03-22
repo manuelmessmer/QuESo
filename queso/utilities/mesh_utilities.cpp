@@ -1,350 +1,310 @@
-//   ____        ______  _____
-//  / __ \      |  ____|/ ____|
-// | |  | |_   _| |__  | (___   ___
-// | |  | | | | |  __|  \___ \ / _ \'
-// | |__| | |_| | |____ ____) | (_) |
-//  \___\_\\__,_|______|_____/ \___/
-//         Quadrature for Embedded Solids
-//
-//  License:    BSD 4-Clause License
-//              See: https://github.com/manuelmessmer/QuESo/blob/main/LICENSE
-//
-//  Authors:    Manuel Messmer
+/*
+  ____        ______  _____
+ / __ \      |  ____|/ ____|
+| |  | |_   _| |__  | (___   ___
+| |  | | | | |  __|  \___ \ / _ \
+| |__| | |_| | |____ ____) | (_) |
+ \___\_\\__,_|______|_____/ \___/
+        Quadrature for Embedded Solids
+
+ License:    BSD 4-Clause License
+             See: https://github.com/manuelmessmer/QuESo/blob/main/LICENSE
+
+ Authors:    Manuel Messmer
+*/
 
 //// STL includes
-#include <map>
-#include <numeric>
 #include <algorithm>
+#include <map>
 
-/// Project includes
-#include "queso/containers/triangle_mesh.hpp"
+//// Project includes
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/math_utilities.hpp"
+#include "queso/utilities/triangle_utilities.hpp"
 
 namespace queso {
+namespace MeshUtilities {
 
-typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
+void Refine(TriangleMesh &rTriangleMesh, IndexType MinNumberOfTriangles)
+{
+    while (rTriangleMesh.NumOfTriangles() < MinNumberOfTriangles) {
+        double max_area = 0.0;
+        TriangleMeshView(rTriangleMesh).VisitEachTriangle<WithoutNormals>([&](const auto &triangle) {
+            max_area = std::max(max_area, TriangleUtilities::Area(triangle));
+        });
 
-///@todo Needs to be refactored.
-void MeshUtilities::Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles){
-    if( rTriangleMesh.NumOfTriangles() < MinNumberOfTriangles ){
-        IndexType original_size = rTriangleMesh.NumOfTriangles();
-        IndexType size = original_size;
-
-        double max_area = -1.0;
-        for( IndexType pos = 0; pos < size; ++pos){
-            max_area = std::max<double>( max_area, rTriangleMesh.Area(pos));
+        if (max_area <= ZEROTOL) {
+            break;
         }
 
-        const auto& r_vertices = rTriangleMesh.GetVertices();
-        rTriangleMesh.Reserve(4*size);
-        IndexType pos = 0;
-        while( pos < size ){
-            // Make sure this is a copy!!
-            auto vertex_ids = rTriangleMesh.VertexIds(pos);
-            const Vector3d p1 = r_vertices[vertex_ids[0]];
-            const Vector3d p2 = r_vertices[vertex_ids[1]];
-            const Vector3d p3 = r_vertices[vertex_ids[2]];
+        const double split_threshold = 0.9 * max_area;
+        const auto old_vertices = rTriangleMesh.Vertices();
+        const auto old_triangles = rTriangleMesh.TriangleIndices();
+        const auto old_normals = rTriangleMesh.Normals();
 
-            const double area = rTriangleMesh.Area(pos);
-            if( area > 0.5*max_area ){
-                IndexType e1 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p1, p2) );
-                IndexType e2 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p2, p3) );
-                IndexType e3 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p3, p1) );
+        TriangleMesh refined;
+        refined.Reserve(old_vertices.size() + 3 * old_triangles.size());
+        for (const auto &v : old_vertices) {
+            refined.AddVertex(v);
+        }
 
-                const auto normal = rTriangleMesh.Normal(pos);
-                rTriangleMesh.AddTriangle( {vertex_ids[0], e1, e3} );
-                rTriangleMesh.AddTriangle( {e1, vertex_ids[1], e2} );
-                rTriangleMesh.AddTriangle( {e2, vertex_ids[2], e3} );
-                rTriangleMesh.AddTriangle( {e1, e2, e3} );
-                rTriangleMesh.AddNormal( normal );
-                rTriangleMesh.AddNormal( normal );
-                rTriangleMesh.AddNormal( normal );
-                rTriangleMesh.AddNormal( normal );
-                size += 4;
+        std::map<std::pair<IndexType, IndexType>, IndexType> midpoint_cache;
+        auto midpoint_id = [&](IndexType i, IndexType j) {
+            if (j < i) {
+                std::swap(i, j);
+            }
+            const auto key = std::make_pair(i, j);
+            const auto it = midpoint_cache.find(key);
+            if (it != midpoint_cache.end()) {
+                return it->second;
+            }
 
-                rTriangleMesh.RemoveTriangle(pos);
-                rTriangleMesh.RemoveNormal(pos);
-                --size;
+            const auto midpoint = (0.5 * (old_vertices[i] + old_vertices[j]));
+            const IndexType id = refined.AddVertex(midpoint);
+            midpoint_cache.emplace(key, id);
+            return id;
+        };
+
+        bool did_split = false;
+        for (IndexType tid = 0; tid < old_triangles.size(); ++tid) {
+            const auto tri = old_triangles[tid];
+            const auto proxy = rTriangleMesh.Triangle<WithoutNormals>(tid);
+            const double area = TriangleUtilities::Area(proxy);
+            const auto &parent_normal = old_normals[tid];
+
+            if (area > split_threshold) {
+                did_split = true;
+                const IndexType e1 = midpoint_id(tri[0], tri[1]);
+                const IndexType e2 = midpoint_id(tri[1], tri[2]);
+                const IndexType e3 = midpoint_id(tri[2], tri[0]);
+
+                refined.AddTriangle({ tri[0], e1, e3 }, parent_normal);
+                refined.AddTriangle({ e1, tri[1], e2 }, parent_normal);
+                refined.AddTriangle({ e2, tri[2], e3 }, parent_normal);
+                refined.AddTriangle({ e1, e2, e3 }, parent_normal);
             } else {
-                ++pos;
-            }
-            if( pos > original_size ){
-                rTriangleMesh.Reserve(4*original_size);
-                original_size = size;
+                refined.AddTriangle(tri, parent_normal);
             }
         }
-        Refine(rTriangleMesh, MinNumberOfTriangles );
+
+        if (!did_split) {
+            break;
+        }
+
+        rTriangleMesh = std::move(refined);
     }
 }
 
-void MeshUtilities::Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh){
-    std::vector<IndexType> indices(rNewMesh.NumOfTriangles());
-    /// Fill vector with number of increasing values: 0,1,2..
-    std::iota( indices.begin(), indices.end(), 0 );
-    Append(rTriangleMesh, rNewMesh, indices);
-}
+void Append(TriangleMesh &rTriangleMesh, const TriangleMesh &rNewMesh)
+{
+    const IndexType initial_vertex_count = rTriangleMesh.NumOfVertices();
+    const IndexType target_capacity = rTriangleMesh.NumOfTriangles() + rNewMesh.NumOfTriangles();
+    rTriangleMesh.Reserve(target_capacity);
 
-void MeshUtilities::Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh, const std::vector<IndexType>& rIndices){
-
-    const IndexType initial_number_triangles = rTriangleMesh.NumOfTriangles();
-    const IndexType initial_number_vertices = rTriangleMesh.NumOfVertices();
-    IndexType vertex_count = initial_number_vertices;
-    std::map<IndexType, IndexType> index_map_vertices{};
-
-    for( auto triangle : rIndices){
-        const auto& tmp_indices = rNewMesh.VertexIds(triangle);
-        Vector3i new_triangle{};
-        IndexType ii = 0;
-        for( auto index : tmp_indices ){
-            // Insert index into index_map_vertices if map does not contain index.
-            auto ret = index_map_vertices.insert( std::pair<IndexType,IndexType>(index, vertex_count) );
-            if (ret.second==true) {
-                new_triangle[ii] = vertex_count;
-                vertex_count++;
-            } else {
-                new_triangle[ii] = index_map_vertices[index];
-            }
-            ++ii;
-        }
-        // Copy triangles and normals.
-        rTriangleMesh.AddTriangle(new_triangle);
-        rTriangleMesh.AddNormal( rNewMesh.Normal(triangle) );
+    for (const auto &vertex : rNewMesh.Vertices()) {
+        rTriangleMesh.AddVertex(vertex);
     }
 
-    auto& r_vertices = rTriangleMesh.GetVertices();
-    r_vertices.resize(vertex_count);
-    const auto& r_new_vertices = rNewMesh.GetVertices();
-
-    // Copy vertices.
-    for( auto index : index_map_vertices ){
-        r_vertices[ index.second ] = r_new_vertices[ index.first ];
-    }
-
-    // Copy edges.
-    const auto& new_edges_on_plane = rNewMesh.GetEdgesOnPlanes();
-    for( IndexType plane_index = 0; plane_index < 6; ++plane_index){
-        const auto& edges = new_edges_on_plane[plane_index];
-        for( auto& edge : edges ){
-            rTriangleMesh.AddEdgeOnPlane(plane_index, std::get<0>(edge)+initial_number_vertices,
-                                                      std::get<1>(edge)+initial_number_vertices,
-                                                      std::get<2>(edge)+initial_number_triangles );
-        }
+    const auto source_triangles = rNewMesh.TriangleIndices();
+    const auto source_normals = rNewMesh.Normals();
+    for (IndexType tid = 0; tid < source_triangles.size(); ++tid) {
+        const auto tri = source_triangles[tid];
+        const Vector3i offset_triangle{
+            tri[0] + initial_vertex_count,
+            tri[1] + initial_vertex_count,
+            tri[2] + initial_vertex_count
+        };
+        rTriangleMesh.AddTriangle(offset_triangle, source_normals[tid]);
     }
 }
 
-Unique<TriangleMeshInterface> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
-    //
-    //     2_______3                 y
-    //     /      /|                ´|`
-    //   6/_____7/ |                 |-->x
-    //    | 0   |  /1               /
-    //    |     | /                Z
-    //   4|____5|/
-    //
+// void Append(TriangleMesh &rTriangleMesh, const TriangleMesh &rNewMesh, const std::vector<IndexType> &rIndices)
+// {
+//     const auto source_vertices = rNewMesh.Vertices();
+//     const auto source_triangles = rNewMesh.TriangleIndices();
+//     const auto source_normals = rNewMesh.Normals();
+//
+//     const IndexType triangle_capacity = rTriangleMesh.NumOfTriangles() + rIndices.size();
+//     const IndexType vertex_capacity = rTriangleMesh.NumOfVertices() + 3 * rIndices.size();
+//     rTriangleMesh.Reserve(std::max(vertex_capacity, triangle_capacity));
+//
+//     constexpr IndexType invalid_id = std::numeric_limits<IndexType>::max();
+//     std::vector<IndexType> remapped_vertex_ids(source_vertices.size(), invalid_id);
+//
+//     for (const IndexType tid : rIndices) {
+//         const auto tri = source_triangles[tid];
+//         Vector3i remapped{};
+//
+//         for (IndexType j = 0; j < 3; ++j) {
+//             const IndexType source_vid = tri[j];
+//             IndexType mapped_id = remapped_vertex_ids[source_vid];
+//             if (mapped_id == invalid_id) {
+//                 mapped_id = rTriangleMesh.AddVertex(source_vertices[source_vid]);
+//                 remapped_vertex_ids[source_vid] = mapped_id;
+//             }
+//             remapped[j] = mapped_id;
+//         }
+//
+//         rTriangleMesh.AddTriangle(remapped, source_normals[tid]);
+//     }
+// }
+
+TriangleMeshPtrType pGetCuboid(const PointType &rLowerPoint, const PointType &rUpperPoint)
+{
     auto p_new_triangle_mesh = MakeUnique<TriangleMesh>();
 
-    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //0
-    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rLowerPoint[2]} ); //1
-    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rUpperPoint[1], rLowerPoint[2]} ); //2
-    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rUpperPoint[1], rLowerPoint[2]} ); //3
-    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rLowerPoint[1], rUpperPoint[2]} ); //4
-    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rLowerPoint[1], rUpperPoint[2]} ); //5
-    p_new_triangle_mesh->AddVertex( {rLowerPoint[0], rUpperPoint[1], rUpperPoint[2]} ); //6
-    p_new_triangle_mesh->AddVertex( {rUpperPoint[0], rUpperPoint[1], rUpperPoint[2]} ); //7
+    p_new_triangle_mesh->AddVertex({ rLowerPoint[0], rLowerPoint[1], rLowerPoint[2] }); // 0
+    p_new_triangle_mesh->AddVertex({ rUpperPoint[0], rLowerPoint[1], rLowerPoint[2] }); // 1
+    p_new_triangle_mesh->AddVertex({ rLowerPoint[0], rUpperPoint[1], rLowerPoint[2] }); // 2
+    p_new_triangle_mesh->AddVertex({ rUpperPoint[0], rUpperPoint[1], rLowerPoint[2] }); // 3
+    p_new_triangle_mesh->AddVertex({ rLowerPoint[0], rLowerPoint[1], rUpperPoint[2] }); // 4
+    p_new_triangle_mesh->AddVertex({ rUpperPoint[0], rLowerPoint[1], rUpperPoint[2] }); // 5
+    p_new_triangle_mesh->AddVertex({ rLowerPoint[0], rUpperPoint[1], rUpperPoint[2] }); // 6
+    p_new_triangle_mesh->AddVertex({ rUpperPoint[0], rUpperPoint[1], rUpperPoint[2] }); // 7
 
-    // negative x
-    p_new_triangle_mesh->AddTriangle({0, 6, 2});
-    p_new_triangle_mesh->AddNormal({-1.0, 0.0, 0.0});
-    p_new_triangle_mesh->AddTriangle({0, 4, 6});
-    p_new_triangle_mesh->AddNormal({-1.0, 0.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({ 0, 6, 2 }, { -1.0, 0.0, 0.0 });
+    p_new_triangle_mesh->AddTriangle({ 0, 4, 6 }, { -1.0, 0.0, 0.0 });
 
-    // postive x
-    p_new_triangle_mesh->AddTriangle({1, 7, 5});
-    p_new_triangle_mesh->AddNormal({1.0, 0.0, 0.0});
-    p_new_triangle_mesh->AddTriangle({1, 3, 7});
-    p_new_triangle_mesh->AddNormal({1.0, 0.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({ 1, 7, 5 }, { 1.0, 0.0, 0.0 });
+    p_new_triangle_mesh->AddTriangle({ 1, 3, 7 }, { 1.0, 0.0, 0.0 });
 
-    // negative y
-    p_new_triangle_mesh->AddTriangle({4, 1, 5});
-    p_new_triangle_mesh->AddNormal({0.0, -1.0, 0.0});
-    p_new_triangle_mesh->AddTriangle({4, 0, 1});
-    p_new_triangle_mesh->AddNormal({0.0, -1.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({ 4, 1, 5 }, { 0.0, -1.0, 0.0 });
+    p_new_triangle_mesh->AddTriangle({ 4, 0, 1 }, { 0.0, -1.0, 0.0 });
 
-    // postive y
-    p_new_triangle_mesh->AddTriangle({6, 7, 3});
-    p_new_triangle_mesh->AddNormal({0.0, 1.0, 0.0});
-    p_new_triangle_mesh->AddTriangle({6, 3, 2});
-    p_new_triangle_mesh->AddNormal({0.0, 1.0, 0.0});
+    p_new_triangle_mesh->AddTriangle({ 6, 7, 3 }, { 0.0, 1.0, 0.0 });
+    p_new_triangle_mesh->AddTriangle({ 6, 3, 2 }, { 0.0, 1.0, 0.0 });
 
-    // negative z
-    p_new_triangle_mesh->AddTriangle({1, 0, 3});
-    p_new_triangle_mesh->AddNormal({0.0, 0.0, -1.0});
-    p_new_triangle_mesh->AddTriangle({0, 2, 3});
-    p_new_triangle_mesh->AddNormal({0.0, 0.0, -1.0});
+    p_new_triangle_mesh->AddTriangle({ 1, 0, 3 }, { 0.0, 0.0, -1.0 });
+    p_new_triangle_mesh->AddTriangle({ 0, 2, 3 }, { 0.0, 0.0, -1.0 });
 
-    // positive z
-    p_new_triangle_mesh->AddTriangle({4, 5, 7});
-    p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
-    p_new_triangle_mesh->AddTriangle({4, 7, 6});
-    p_new_triangle_mesh->AddNormal({0.0, 0.0, 1.0});
+    p_new_triangle_mesh->AddTriangle({ 4, 5, 7 }, { 0.0, 0.0, 1.0 });
+    p_new_triangle_mesh->AddTriangle({ 4, 7, 6 }, { 0.0, 0.0, 1.0 });
 
     return p_new_triangle_mesh;
 }
 
-double MeshUtilities::Area(const TriangleMeshInterface& rTriangleMesh){
+double Area(const TriangleMeshView &rTriangleMeshView)
+{
     double area = 0.0;
-    // Loop over all triangles
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
-        area += rTriangleMesh.Area(i);
-    }
+    rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto &triangle) {
+        area += TriangleUtilities::Area(triangle);
+    });
     return area;
 }
 
-double MeshUtilities::AreaOMP(const TriangleMeshInterface& rTriangleMesh){
+double AreaOMP(const TriangleMeshView &rTriangleMeshView)
+{
     double area = 0.0;
-    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
-    // Loop over all triangles in omp parallel.
+    const IndexType num_triangles = rTriangleMeshView.NumOfTriangles();
     #pragma omp parallel for reduction(+ : area)
-    for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        area += rTriangleMesh.Area(static_cast<IndexType>(i));
+    for (int i = 0; i < static_cast<int>(num_triangles); ++i) {
+        area += TriangleUtilities::Area(rTriangleMeshView.Triangle<WithoutNormals>(static_cast<IndexType>(i)));
     }
     return area;
 }
 
-double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh){
+double Volume(const TriangleMeshView &rTriangleMeshView)
+{
     double volume = 0.0;
-    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
-    // Loop over all triangles
-    for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
-        const auto& r_points = *p_points;
-        // Loop over all points.
-        for( const auto& point : r_points ){
-            const auto& normal = point.Normal();
-            const double integrand = Math::Dot(normal, point.data() );
-            const double integral = integrand * point.Weight();
-            if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
-                volume += integral;
-            }
-        }
-    }
-    return std::abs(1.0/3.0*volume);
+    rTriangleMeshView.VisitEachTriangle<WithNormals>([&](const auto &triangle) {
+        const auto center = TriangleUtilities::Center(triangle);
+        volume += Math::Dot(triangle.Normal, center) * TriangleUtilities::Area(triangle);
+    });
+    return std::abs(volume / 3.0);
 }
 
-double MeshUtilities::VolumeOMP(const TriangleMeshInterface& rTriangleMesh){
+double VolumeOMP(const TriangleMeshView &rTriangleMeshView)
+{
     double volume = 0.0;
-    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
-    // Loop over all triangles in omp parallel.
+    const IndexType num_triangles = rTriangleMeshView.NumOfTriangles();
     #pragma omp parallel for reduction(+ : volume)
-    for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(static_cast<IndexType>(i), 0);
-        const auto& r_points = *p_points;
-        // Loop over all points.
-        for( const auto& point : r_points ){
-            const auto& normal = point.Normal();
-            const double integrand = Math::Dot(normal, point.data() );
-            const double integral = integrand * point.Weight();
-            if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
-                volume += integral;
-            }
-        }
+    for (int i = 0; i < static_cast<int>(num_triangles); ++i) {
+        const auto triangle = rTriangleMeshView.Triangle<WithNormals>(static_cast<IndexType>(i));
+        const auto center = TriangleUtilities::Center(triangle);
+        volume += Math::Dot(triangle.Normal, center) * TriangleUtilities::Area(triangle);
     }
-    return std::abs(1.0/3.0*volume);
+    return std::abs(volume / 3.0);
 }
 
-double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh, IndexType Dir){
+double Volume(const TriangleMeshView &rTriangleMeshView, IndexType Dir)
+{
+    QuESo_ERROR_IF(Dir > 2UL) << "Directional Index is out-of-range.\n";
+
     double volume = 0.0;
-    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
-
-    QuESo_ERROR_IF( Dir > 2ul ) << " Directional Index is out-of-range.\n";
-
-    // Loop over all triangles
-    for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
-        const auto& r_points = *p_points;
-        // Loop over all points.
-        for( const auto& point : r_points ){
-            const auto& normal = point.Normal();
-            const double integrand = normal[Dir]*point[Dir];
-            const double integral = integrand * point.Weight();
-            if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
-                volume += integral;
-            }
-        }
-    }
+    rTriangleMeshView.VisitEachTriangle<WithNormals>([&](const auto &triangle) {
+        const auto center = TriangleUtilities::Center(triangle);
+        volume += triangle.Normal[Dir] * center[Dir] * TriangleUtilities::Area(triangle);
+    });
     return std::abs(volume);
 }
 
-double MeshUtilities::MaxAspectRatio(const TriangleMeshInterface& rTriangleMesh){
+double MaxAspectRatio(const TriangleMeshView &rTriangleMeshView)
+{
     double max_aspect_ratio = MIND;
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
-        const double aspect_ratio = rTriangleMesh.AspectRatio(i);
-        if( aspect_ratio > max_aspect_ratio ){
-            max_aspect_ratio = aspect_ratio;
-        }
-    }
+    rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto &triangle) {
+        max_aspect_ratio = std::max(max_aspect_ratio, TriangleUtilities::AspectRatio(triangle));
+    });
     return max_aspect_ratio;
 }
 
-double MeshUtilities::AverageAspectRatio(const TriangleMeshInterface& rTriangleMesh){
-    double average_aspect_ratio = 0.0;
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
-        average_aspect_ratio += rTriangleMesh.AspectRatio(i);
+double AverageAspectRatio(const TriangleMeshView &rTriangleMeshView)
+{
+    if (rTriangleMeshView.NumOfTriangles() == 0) {
+        return 0.0;
     }
-    return average_aspect_ratio / static_cast<double>(rTriangleMesh.NumOfTriangles());
+
+    double sum = 0.0;
+    rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto &triangle) {
+        sum += TriangleUtilities::AspectRatio(triangle);
+    });
+    return sum / static_cast<double>(rTriangleMeshView.NumOfTriangles());
 }
 
-double MeshUtilities::EstimateQuality(const TriangleMeshInterface& rTriangleMesh ){
-    const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
+double EstimateQuality(const TriangleMeshView &rTriangleMeshView)
+{
     double total_volume_1 = 0.0;
     double total_volume_2 = 0.0;
     double total_volume_3 = 0.0;
     double total_area = 0.0;
-    PointType directional_areas = {0.0, 0.0, 0.0};
-    for( IndexType i = 0; i < num_triangles; ++i ){
-        const double area = rTriangleMesh.Area(i);
-        const auto normal = rTriangleMesh.Normal(i);
+    PointType directional_areas = { 0.0, 0.0, 0.0 };
+
+    rTriangleMeshView.VisitEachTriangle<WithNormals>([&](const auto &triangle) {
+        const double area = TriangleUtilities::Area(triangle);
+        const auto center = TriangleUtilities::Center(triangle);
+
         total_area += area;
-        Math::AddSelf(directional_areas, Math::Mult(area, normal) );
+        directional_areas[0] += area * triangle.Normal[0];
+        directional_areas[1] += area * triangle.Normal[1];
+        directional_areas[2] += area * triangle.Normal[2];
 
-        // Get integration points
-        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
-        const auto& r_points = *p_points;
-        // Loop over all points.
-        for( const auto& point : r_points ){
-            total_volume_1 += normal[0]*point[0] * point.Weight();
-            total_volume_2 += normal[1]*point[1] * point.Weight();
-            total_volume_3 += normal[2]*point[2] * point.Weight();
-        }
-    }
-    const double total_volume = std::abs(1.0/3.0*(total_volume_1 + total_volume_2 + total_volume_3));
-    const double error_v1 = std::abs(total_volume_1 - total_volume) / total_volume;
-    const double error_v2 = std::abs(total_volume_2 - total_volume) / total_volume;
-    const double error_v3 = std::abs(total_volume_3 - total_volume) / total_volume;
+        total_volume_1 += triangle.Normal[0] * center[0] * area;
+        total_volume_2 += triangle.Normal[1] * center[1] * area;
+        total_volume_3 += triangle.Normal[2] * center[2] * area;
+    });
 
-    const double error_area = Math::Norm(directional_areas) / std::abs(total_area);
+    const double total_volume = std::abs((total_volume_1 + total_volume_2 + total_volume_3) / 3.0);
+    const double denom = std::max(total_volume, EPS4);
+    const double error_v1 = std::abs(total_volume_1 - total_volume) / denom;
+    const double error_v2 = std::abs(total_volume_2 - total_volume) / denom;
+    const double error_v3 = std::abs(total_volume_3 - total_volume) / denom;
 
-    const double max_error = std::max(std::max(std::max( error_v1, error_v2), error_v3), error_area );
-    return max_error;
+    const double error_area = Math::Norm(directional_areas) / std::max(std::abs(total_area), EPS4);
+    return std::max(std::max(std::max(error_v1, error_v2), error_v3), error_area);
 }
 
+std::pair<PointType, PointType> BoundingBox(const TriangleMeshView &rTriangleMeshView)
+{
+    PointType lower_bound = { MAXD, MAXD, MAXD };
+    PointType upper_bound = { LOWESTD, LOWESTD, LOWESTD };
 
-std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMeshInterface& rTriangleMesh) {
-    PointType lower_bound = {MAXD, MAXD, MAXD};
-    PointType upper_bound = {LOWESTD, LOWESTD, LOWESTD};
-    for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
-        const auto& p1 = rTriangleMesh.P1(i);
-        const auto& p2 = rTriangleMesh.P2(i);
-        const auto& p3 = rTriangleMesh.P3(i);
+    rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto &triangle) {
+        const PointType x_values = { triangle.P1[0], triangle.P2[0], triangle.P3[0] };
+        const PointType y_values = { triangle.P1[1], triangle.P2[1], triangle.P3[1] };
+        const PointType z_values = { triangle.P1[2], triangle.P2[2], triangle.P3[2] };
 
-        const PointType x_values = {p1[0], p2[0], p3[0]};
-        const PointType y_values = {p1[1], p2[1], p3[1]};
-        const PointType z_values = {p1[2], p2[2], p3[2]};
-
-        auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
-        auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
-        auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
+        const auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
+        const auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
+        const auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
 
         lower_bound[0] = std::min<double>(*x_min_max.first, lower_bound[0]);
         upper_bound[0] = std::max<double>(*x_min_max.second, upper_bound[0]);
@@ -354,9 +314,13 @@ std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMeshInt
 
         lower_bound[2] = std::min<double>(*z_min_max.first, lower_bound[2]);
         upper_bound[2] = std::max<double>(*z_min_max.second, upper_bound[2]);
-    }
+    });
 
     return std::make_pair(lower_bound, upper_bound);
 }
 
-} // End namespace queso
+} // namespace MeshUtilities
+} // namespace queso
+
+
+

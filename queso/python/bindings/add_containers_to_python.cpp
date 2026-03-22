@@ -17,12 +17,10 @@
 // To export
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "queso/embedded_model.h"
+#include "queso/utilities/triangle_utilities.hpp"
 
 // Note: PYBIND11_MAKE_OPAQUE must live at file scope.
 
-// Point types
-using PointVectorType = std::vector<queso::PointType>;
-PYBIND11_MAKE_OPAQUE(PointVectorType)
 using IntegrationPointType = queso::IntegrationPoint;
 using BoundaryIntegrationPointType = queso::BoundaryIntegrationPoint;
 
@@ -61,48 +59,69 @@ using MainDictionaryHolderType = UniqueHolder<MainDictionaryType>;
 
 namespace py = pybind11;
 
+namespace {
+
+using PythonTriangleProxy = TriangleProxy<WithNormals>;
+
+struct TriangleIteratorTag {};
+
+struct VertexIteratorTag {};
+
+template<class TTag>
+struct PythonMeshIterator {
+    const TriangleMesh *mpMesh;
+    IndexType mIndex;
+};
+
+using PythonTriangleIterator = PythonMeshIterator<TriangleIteratorTag>;
+using PythonVertexIterator = PythonMeshIterator<VertexIteratorTag>;
+
+inline std::tuple<double, double, double> ToTuple3(const Vector3d &rV)
+{
+    return { rV[0], rV[1], rV[2] };
+}
+
+} // namespace
+
 void AddContainersToPython(pybind11::module& m) {
+    py::class_<PythonTriangleIterator>(m, "TriangleIterator")
+        .def("__iter__", [](PythonTriangleIterator &self) -> PythonTriangleIterator& { return self; }, py::return_value_policy::reference_internal)
+        .def("__next__", [](PythonTriangleIterator &self) {
+            if (self.mIndex >= self.mpMesh->NumOfTriangles()) {
+                throw py::stop_iteration();
+            }
+            return self.mpMesh->Triangle<WithNormals>(self.mIndex++);
+        })
+    ;
 
-    /// Export PointType
-    py::class_<PointType>(m,"Point")
-        .def(py::init<std::array<double,3>>())
-        .def(py::init<double, double, double>())
-        .def("X", [](const PointType& self){return self[0];} )
-        .def("Y", [](const PointType& self){return self[1];} )
-        .def("Z", [](const PointType& self){return self[2];} )
-        .def("__getitem__",  [](const PointType &self, IndexType i){return self[i];} )
-        .def("__len__", [](const PointType&) { return 3; })
-        .def("__iter__", [](const PointType &self) {
-                return py::make_iterator(self.begin(), self.end());
-            }, py::keep_alive<0, 1>())  // Keep PointType alive while iterator is used
-        .def("__repr__", [](const PointType &self) {
-                return "Point(" + std::to_string(self[0])
-                    + ", " + std::to_string(self[1])
-                    + ", " + std::to_string(self[2]) + ")";
-            })
-        ;
+    py::class_<PythonVertexIterator>(m, "VertexIterator")
+        .def("__iter__", [](PythonVertexIterator &self) -> PythonVertexIterator& { return self; }, py::return_value_policy::reference_internal)
+        .def("__next__", [](PythonVertexIterator &self) {
+            if (self.mIndex >= self.mpMesh->NumOfVertices()) {
+                throw py::stop_iteration();
+            }
+            return ToTuple3(self.mpMesh->Vertex(self.mIndex++));
+        })
+    ;
 
-    /// Export PointVector
-    py::bind_vector<PointVectorType>(m, "PointVector");
-
-    /// Export Vector3i
-    py::class_<Vector3i>(m,"Vector3i")
-        .def(py::init<std::array<IndexType,3>>())
-        .def(py::init<IndexType, IndexType, IndexType>())
-        .def("X", [](const Vector3i& self){return self[0];} )
-        .def("Y", [](const Vector3i& self){return self[1];} )
-        .def("Z", [](const Vector3i& self){return self[2];} )
-        .def("__getitem__",  [](const Vector3i &self, IndexType i){return self[i];} )
-        .def("__len__", [](const Vector3i&) { return 3; })
-        .def("__iter__", [](const Vector3i &self) {
-                return py::make_iterator(self.begin(), self.end());
-            }, py::keep_alive<0, 1>())  // Keep Vector3i alive while iterator is used
-        .def("__repr__", [](const Vector3i &self) {
-                std::ostringstream oss;
-                oss << "Vector3i(" << self[0] << ", " << self[1] << ", " << self[2] << ")";
-                return oss.str();
-            })
-        ;
+    py::class_<PythonTriangleProxy>(m, "Triangle")
+        .def_property_readonly("p1", [](const PythonTriangleProxy &self){ return ToTuple3(Vector3d{self.P1[0], self.P1[1], self.P1[2]}); })
+        .def_property_readonly("p2", [](const PythonTriangleProxy &self){ return ToTuple3(Vector3d{self.P2[0], self.P2[1], self.P2[2]}); })
+        .def_property_readonly("p3", [](const PythonTriangleProxy &self){ return ToTuple3(Vector3d{self.P3[0], self.P3[1], self.P3[2]}); })
+        .def_property_readonly("normal", [](const PythonTriangleProxy &self){ return ToTuple3(Vector3d{self.Normal[0], self.Normal[1], self.Normal[2]}); })
+        .def("Area", [](const PythonTriangleProxy &self){
+            return TriangleUtilities::Area(self);
+        })
+        .def("Center", [](const PythonTriangleProxy &self){
+            return ToTuple3(TriangleUtilities::Center(self));
+        })
+        .def("AspectRatio", [](const PythonTriangleProxy &self){
+            return TriangleUtilities::AspectRatio(self);
+        })
+        .def("GetIPsGlobal", [](const PythonTriangleProxy &self, IndexType Method){
+            return TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(self, Method);
+        }, py::return_value_policy::move)
+    ;
 
     /// Export Integration Points
     py::class_<IntegrationPointType>(m, "IntegrationPoint")
@@ -144,39 +163,30 @@ void AddContainersToPython(pybind11::module& m) {
     /// Export BoundaryIntegrationPoint Vector
     py::bind_vector<BoundaryIpVectorType>(m, "BoundaryIPVector");
 
-    /// Export TriangleMeshInterface
-    py::class_<TriangleMeshInterface, Unique<TriangleMeshInterface>>(m,"TriangleMeshInterface")
-    ;
-
     /// Export TriangleMesh
-    py::class_<TriangleMesh, Unique<TriangleMesh>, TriangleMeshInterface>(m,"TriangleMesh")
+    py::class_<TriangleMesh, Unique<TriangleMesh>>(m,"TriangleMesh")
         .def(py::init<>())
-        .def("Center", &TriangleMesh::Center)
-        .def("Normal", [](TriangleMesh& self, IndexType Id){
-            return self.Normal(Id); })
-        .def("Area", [](TriangleMesh& self, IndexType Id){
-            return self.Area(Id); })
-        .def("GetIntegrationPointsGlobal", [](TriangleMesh& self, IndexType Id, IndexType Method){
-            return self.pGetIPsGlobal<BoundaryIntegrationPointType>(Id, Method); }, py::return_value_policy::move)
         .def("NumOfTriangles", &TriangleMesh::NumOfTriangles)
-        .def("P1", &TriangleMesh::P1)
-        .def("P2", &TriangleMesh::P2)
-        .def("P3", &TriangleMesh::P3)
+        .def("NumOfVertices", &TriangleMesh::NumOfVertices)
+        .def("Vertices", [](const TriangleMesh &self){
+            return PythonVertexIterator{ &self, 0 };
+        }, py::keep_alive<0, 1>())
+        .def("Triangles", [](const TriangleMesh &self){
+            return PythonTriangleIterator{ &self, 0 };
+        }, py::keep_alive<0, 1>())
         .def("Reserve", &TriangleMesh::Reserve)
         .def("AddVertex", [](TriangleMesh& self, const std::array<double,3>& rVertex){
             return self.AddVertex( PointType(rVertex) ); })
         .def("AddTriangle", [](TriangleMesh& self, const std::array<IndexType,3>& rTriangle){
-            return self.AddTriangle( Vector3i(rTriangle) ); })
-        .def("AddNormal", [](TriangleMesh& self, const PointType& rNormal){
-            return self.AddNormal( rNormal ); })
-        .def("GetVertices",  static_cast< const std::vector<PointType>& (TriangleMesh::*)() const>(&TriangleMesh::GetVertices)
-            , py::return_value_policy::reference_internal ) // Export const version
-        .def("GetTriangles",  static_cast< const std::vector<Vector3i>& (TriangleMesh::*)() const>(&TriangleMesh::GetTriangles)
-            , py::return_value_policy::reference_internal ) // Export const version
-        .def_static("AspectRatioStatic", [](const std::array<double,3>& rV1, const std::array<double,3>& rV2, const std::array<double,3>& rV3){
-            return TriangleMesh::AspectRatio( PointType(rV1), PointType(rV2), PointType(rV3) ); })
-        .def_static("NormalStatic", [](const std::array<double,3>& rV1, const std::array<double,3>& rV2, const std::array<double,3>& rV3){
-            return TriangleMesh::Normal( PointType(rV1), PointType(rV2), PointType(rV3)); })
+            const Vector3i triangle_indices(rTriangle);
+            const auto &vertices = self.Vertices();
+            const TriangleProxy<WithoutNormals> triangle {
+                std::span<const double, 3>(vertices[triangle_indices[0]].data(), 3),
+                std::span<const double, 3>(vertices[triangle_indices[1]].data(), 3),
+                std::span<const double, 3>(vertices[triangle_indices[2]].data(), 3)
+            };
+            self.AddTriangle(triangle_indices, TriangleUtilities::Normal(triangle));
+        })
     ;
 
     /// Export Element

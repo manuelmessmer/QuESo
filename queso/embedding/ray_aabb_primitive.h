@@ -1,4 +1,3 @@
-
 //   ____        ______  _____
 //  / __ \      |  ____|/ ____|
 // | |  | |_   _| |__  | (___   ___
@@ -90,7 +89,7 @@ public:
     ///@param Parallel True if triangle is parallel.
     ///@todo Put Backfacing and Parallel into one enum. Also add OriginIsOnBoundary.
     ///@return bool
-    bool intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
+    bool intersect(PointView v0, PointView v1, PointView v2,
                     double &t, double &u, double &v, bool& BackFacing, bool& Parallel) const;
 
     ///@brief Returns true if triangle is parallel to ray.
@@ -99,7 +98,7 @@ public:
     ///@param v2 Triangle Vertex 3
     ///@param Tolerance Default: ZEROTOL.
     ///@return bool
-    bool is_parallel(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2, double Tolerance = ZEROTOL ) const;
+    bool is_parallel(PointView v0, PointView v1, PointView v2, double Tolerance = ZEROTOL ) const;
 
     ///@}
 private:

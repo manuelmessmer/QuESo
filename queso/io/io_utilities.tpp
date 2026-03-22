@@ -57,43 +57,31 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
         binary_writer.WriteValue(num_triangles);
         for(const auto& r_segments : rCondition.Segments()){
             const auto& r_triangle_mesh = r_segments.GetTriangleMesh();
-            const IndexType local_num_triangles = r_triangle_mesh.NumOfTriangles();
-            for(IndexType triangle_id = 0; triangle_id < local_num_triangles; ++triangle_id) {
-                const auto& p1 = r_triangle_mesh.P1(triangle_id);
-                const auto& p2 = r_triangle_mesh.P2(triangle_id);
-                const auto& p3 = r_triangle_mesh.P3(triangle_id);
-                const auto& normal = r_triangle_mesh.Normal(triangle_id);
-
-                const float coords[12] = { static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]),
-                                           static_cast<float>(p1[0]), static_cast<float>(p1[1]), static_cast<float>(p1[2]),
-                                           static_cast<float>(p2[0]), static_cast<float>(p2[1]), static_cast<float>(p2[2]),
-                                           static_cast<float>(p3[0]), static_cast<float>(p3[1]), static_cast<float>(p3[2]) };
+            r_triangle_mesh.View().template VisitEachTriangle<WithNormals>([&binary_writer](const auto &triangle) {
+                const float coords[12] = { static_cast<float>(triangle.Normal[0]), static_cast<float>(triangle.Normal[1]), static_cast<float>(triangle.Normal[2]),
+                                           static_cast<float>(triangle.P1[0]), static_cast<float>(triangle.P1[1]), static_cast<float>(triangle.P1[2]),
+                                           static_cast<float>(triangle.P2[0]), static_cast<float>(triangle.P2[1]), static_cast<float>(triangle.P2[2]),
+                                           static_cast<float>(triangle.P3[0]), static_cast<float>(triangle.P3[1]), static_cast<float>(triangle.P3[2]) };
 
                 binary_writer.WriteArray<float, 12>(coords);
 
                 std::uint16_t attribute_byte_count = 0;
                 binary_writer.WriteValue(attribute_byte_count);
-            }
+            });
         }
     } else { // ascii
         file << std::fixed << std::setprecision(6);
         file << "solid QuESoExport\n";
         for(const auto& r_segments : rCondition.Segments()) {
             const auto& r_triangle_mesh = r_segments.GetTriangleMesh();
-            const IndexType local_num_triangles = r_triangle_mesh.NumOfTriangles();
 
-            for(IndexType triangle_id = 0; triangle_id < local_num_triangles; ++triangle_id) {
-                const auto& p1 = r_triangle_mesh.P1(triangle_id);
-                const auto& p2 = r_triangle_mesh.P2(triangle_id);
-                const auto& p3 = r_triangle_mesh.P3(triangle_id);
-                const auto& normal = r_triangle_mesh.Normal(triangle_id);
-
-                file << "facet normal " << normal[0] << ' ' << normal[1] << ' ' << normal[2] << "\nouter loop\n";
-                file << "vertex " << p1[0] << ' ' << p1[1] << ' ' << p1[2] << '\n';
-                file << "vertex " << p2[0] << ' ' << p2[1] << ' ' << p2[2] << '\n';
-                file << "vertex " << p3[0] << ' ' << p3[1] << ' ' << p3[2] << '\n';
+            r_triangle_mesh.View().template VisitEachTriangle<WithNormals>([&file](const auto &triangle) {
+                file << "facet normal " << triangle.Normal[0] << ' ' << triangle.Normal[1] << ' ' << triangle.Normal[2] << "\nouter loop\n";
+                file << "vertex " << triangle.P1[0] << ' ' << triangle.P1[1] << ' ' << triangle.P1[2] << '\n';
+                file << "vertex " << triangle.P2[0] << ' ' << triangle.P2[1] << ' ' << triangle.P2[2] << '\n';
+                file << "vertex " << triangle.P3[0] << ' ' << triangle.P3[1] << ' ' << triangle.P3[2] << '\n';
                 file << "endloop\nendfacet\n";
-            }
+            });
         }
         file << "endsolid QuESoExport\n";
     }

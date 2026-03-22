@@ -20,7 +20,8 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/triangle_mesh_interface.hpp"
+#include "queso/containers/triangle_mesh_view.hpp"
+#include "queso/containers/clipped_triangle_mesh.hpp"
 
 namespace queso {
 
@@ -96,7 +97,7 @@ public:
     const VertexType& GetLastVertex() const;
 
     ///@brief Triangulates polygon based on centroide and returns triangles. Centroid is computed as mean of all vertices.
-    void AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) const;
+    void AddToTriangleMesh(ClippedTriangleMesh &rTriangleMesh) const;
 
     ///@brief Clears vertex container of polygon.
     void Clear();

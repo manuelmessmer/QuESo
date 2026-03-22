@@ -1,198 +1,226 @@
-//   ____        ______  _____
-//  / __ \      |  ____|/ ____|
-// | |  | |_   _| |__  | (___   ___
-// | |  | | | | |  __|  \___ \ / _ \'
-// | |__| | |_| | |____ ____) | (_) |
-//  \___\_\\__,_|______|_____/ \___/
-//         Quadrature for Embedded Solids
-//
-//  License:    BSD 4-Clause License
-//              See: https://github.com/manuelmessmer/QuESo/blob/main/LICENSE
-//
-//  Authors:    Manuel Messmer
+/*
+  ____        ______  _____
+ / __ \      |  ____|/ ____|
+| |  | |_   _| |__  | (___   ___
+| |  | | | | |  __|  \___ \ / _ \
+| |__| | |_| | |____ ____) | (_) |
+ \___\_\\__,_|______|_____/ \___/
+        Quadrature for Embedded Solids
 
-#ifndef TRIANGLE_MESH_INCLUDE_H
-#define TRIANGLE_MESH_INCLUDE_H
+ License:    BSD 4-Clause License
+             See: https://github.com/manuelmessmer/QuESo/blob/main/LICENSE
+
+ Authors:    Manuel Messmer
+*/
+
+#pragma once
 
 //// STL includes
+#include <ranges>
+#include <span>
+#include <type_traits>
+#include <utility>
 #include <vector>
-#include <cmath>
 
 //// Project includes
+#include "queso/containers/triangle_mesh_concepts.hpp"
 #include "queso/includes/define.hpp"
-#include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 
 ///@name QuESo Classes
 ///@{
+
+// Forward declaration.
+class TriangleMeshView;
+
 /**
  * @class  TriangleMesh
  * @author Manuel Messmer
- * @brief  Simple implementation of a triangular surface mesh. Derives from TriangleMeshInterface.
- * @todo Refactor AddTriangle() and RemoveTriangle() such that normals are always passed.
- *       Put dot product etc. into math function.
-*/
-class TriangleMesh : public TriangleMeshInterface
+ * @brief  Lightweight owning container for triangle connectivity, vertex coordinates, and per-triangle normals.
+ * @see    TriangleMeshView.
+ **/
+class TriangleMesh
 {
+    ///@name Operations
+    ///@{
+
 public:
-    ///@name Type Definitions
-    ///@{
-
-    typedef TriangleMeshInterface BaseType;
-    typedef std::vector<std::vector<std::tuple<IndexType, IndexType, IndexType>>> EdgesOnPlanesVectorType;
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    /// Constructor
-    TriangleMesh() = default;
-    /// Destructor
-    ~TriangleMesh() = default;
-
-    /// Copy Constructor
-    TriangleMesh(TriangleMesh const& rOther) = default;
-    /// Assignement Operator
-    TriangleMesh& operator=(TriangleMesh const& rOther) = default;
-    /// Move constructor
-    TriangleMesh(TriangleMesh&& rOther) noexcept = default;
-    /// Move assignement operator
-    TriangleMesh& operator=(TriangleMesh&& rOther) noexcept = default;
-
-    ///@}
-    ///@name Pure virtual Operations
-    ///@{
-
-    ///@brief Get number of triangles in mesh.
-    IndexType NumOfTriangles() const override {
-        return mTriangles.size();
+    /// @brief Reserves memory for vertices and triangles.
+    /// @param NumTriangles Expected number of triangles.
+    void Reserve(SizeType NumTriangles)
+    {
+        mTriangles.reserve(NumTriangles);
+        mNormals.reserve(NumTriangles);
+        mVertices.reserve((NumTriangles + 1) / 2);
     }
 
-    ///@brief Get number of vertices in mesh.
-    IndexType NumOfVertices() const override{
-        return mVertices.size();
+    /// @brief Appends a new vertex.
+    /// @param rVertex Vertex coordinates.
+    /// @return Index of new vertex.
+    IndexType AddVertex(const Vector3d &rVertex)
+    {
+        const IndexType vid = NumOfVertices();
+        mVertices.push_back(rVertex);
+        return vid;
     }
 
-    ///@brief Get triangle vertex 1
-    ///@param TriangleId
-    ///@return const Vector3d&
-    const Vector3d& P1(IndexType TriangleId) const override {
-        return mVertices[mTriangles[TriangleId][0]];
+    /// @brief Appends a new triangle with a precomputed normal.
+    /// @param rTriangle Vertex indices of the triangle.
+    /// @param rNormal Triangle normal vector.
+    void AddTriangle(const Vector3i &rTriangle, const Vector3d &rNormal)
+    {
+        mTriangles.push_back(rTriangle);
+        mNormals.push_back(rNormal);
     }
 
-    ///@brief Get triangle vertex 2
-    ///@param TriangleId
-    ///@return const Vector3d&
-    const Vector3d& P2(IndexType TriangleId) const override {
-        return mVertices[mTriangles[TriangleId][1]];
-    }
-
-    ///@brief Get triangle vertex 3
-    ///@param TriangleId
-    ///@return const Vector3d&
-    const Vector3d& P3(IndexType TriangleId) const override {
-        return mVertices[mTriangles[TriangleId][2]];
-    }
-
-    ///@}
-    ///@name Virtual Operations
-    ///@{
-
-    /// @brief Clone object
-    Unique<TriangleMeshInterface> Clone() override{
-        return MakeUnique<TriangleMesh>(*this);
-    }
-
-    ///@brief Clear all containers.
-    void Clear() override {
-        BaseType::Clear();
-        mTriangles.clear();
+    /// @brief Clears all mesh data.
+    void Clear()
+    {
         mVertices.clear();
+        mTriangles.clear();
+        mNormals.clear();
     }
 
-    ///@brief Reserve all containers for normal vertices and triangles.
-    ///       Note, call ReserveEdgesOnPlane() to reserve edges containers.
-    ///@param Size
-    void Reserve(IndexType Size) override {
-        BaseType::Reserve(Size);
-        mVertices.reserve(Size);
-        mTriangles.reserve(Size);
+    /// @brief Removes a triangle.
+    /// @details Swaps the to be deleted triangle with the last one and then pops the last element.
+    /// @param tid Triangle index to remove.
+    void RemoveTriangle(IndexType tid)
+    {
+        QuESo_ASSERT(tid < mTriangles.size(), "Index is out-of-bounds.");
+        mTriangles[tid] = mTriangles.back();
+        mNormals[tid] = mNormals.back();
+        mTriangles.pop_back();
+        mNormals.pop_back();
     }
 
-    ///@brief Add vertex to mesh.
-    ///@param NewVertex
-    IndexType AddVertex(const Vector3d& NewVertex) override {
-        mVertices.push_back(NewVertex);
-        return mVertices.size()-1;
+    /// @brief Returns the number of triangles.
+    /// @return Number of stored triangles.
+    IndexType NumOfTriangles() const noexcept
+    { return mTriangles.size(); }
+
+    /// @brief Returns the number of vertices.
+    /// @return Number of stored vertices.
+    IndexType NumOfVertices() const noexcept
+    { return mVertices.size(); }
+
+    /// @brief Returns a triangle proxy for the given triangle id.
+    /// @tparam Mode Triangle access mode (`WithNormals` or `WithoutNormals`).
+    /// @param tid Triangle index.
+    /// @return Triangle proxy in the requested mode.
+    /// @note May only throw in debug mode.
+    template<class Mode = WithNormals>
+    TriangleProxy<Mode> Triangle(IndexType tid) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(tid < mTriangles.size(), "Index is out-of-bounds.");
+        const auto &tri = mTriangles[tid];
+
+        if constexpr (std::is_same_v<Mode, WithNormals>) {
+            return { mVertices[tri[0]], mVertices[tri[1]], mVertices[tri[2]], mNormals[tid] };
+        } else {
+            return { mVertices[tri[0]], mVertices[tri[1]], mVertices[tri[2]] };
+        }
     }
 
-    ///@brief Add triangle to mesh.
-    ///@param NewTriangle
-    void AddTriangle(const Vector3i& NewTriangle) override {
-        mTriangles.push_back(NewTriangle);
+    /// @brief Returns the stored normal for the given triangle id.
+    /// @param tid Triangle index.
+    /// @return Const reference to the triangle normal.
+    /// @note May only throw in debug mode.
+    const Vector3d &Normal(IndexType tid) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(tid < mNormals.size(), "Index is out-of-bounds.");
+        return mNormals[tid];
     }
 
-    /// @brief Remove triangle by index.
-    /// @param Index
-    void RemoveTriangle(IndexType Index ) override {
-        mTriangles.erase( mTriangles.begin() + static_cast<std::ptrdiff_t>(Index) );
+    /// @brief Returns the vertex coordinates for a given vertex id.
+    /// @param vid Vertex index.
+    /// @return Const reference to the vertex coordinates.
+    const Vector3d &Vertex(IndexType vid) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(vid < mVertices.size(), "Index is out-of-bounds.");
+        return mVertices[vid];
     }
 
-    ///@brief Get vertices from mesh. (const version)
-    ///@return const std::vector<Vector3d>&
-    const std::vector<Vector3d>& GetVertices() const override {
-        return mVertices;
+    /// @brief Returns a lazy range over all triangles.
+    /// @tparam Mode Triangle access mode (`WithNormals` or `WithoutNormals`).
+    /// @return View of triangle proxies over all triangle indices.
+    template<class Mode = WithNormals>
+    auto Triangles() const
+    { return Triangles<Mode>(std::views::iota(IndexType{ 0 }, NumOfTriangles())); }
+
+    /// @brief Returns a lazy range over a subset of triangles.
+    /// @tparam Mode Triangle access mode (`WithNormals` or `WithoutNormals`).
+    /// @tparam TIndexRange Range type containing triangle ids. Range type must be convertible to `IndexType`.
+    /// @param Indices Range of triangle indices to visit.
+    /// @return View of triangle proxies for the provided indices.
+    template<class Mode = WithNormals, concepts::IndexRange TIndexRange>
+    auto Triangles(TIndexRange &&Indices) const
+    {
+        std::span<const Vector3i> triangles = mTriangles;
+        std::span<const Vector3d> vertices = mVertices;
+        auto triangle_indices = std::views::all(std::forward<TIndexRange>(Indices));
+
+        if constexpr (std::is_same_v<Mode, WithNormals>) {
+            std::span<const Vector3d> normals = mNormals;
+            return triangle_indices | std::views::transform([triangles, vertices, normals](IndexType i) {
+                const auto &tri = triangles[i];
+                return TriangleProxy<WithNormals>{ vertices[tri[0]], vertices[tri[1]], vertices[tri[2]], normals[i] };
+            });
+        } else {
+            return triangle_indices | std::views::transform([triangles, vertices](IndexType i) {
+                const auto &tri = triangles[i];
+                return TriangleProxy<WithoutNormals>{ vertices[tri[0]], vertices[tri[1]], vertices[tri[2]] };
+            });
+        }
     }
 
-    /// @brief Get vertices from mesh. (non-const version)
-    /// @return std::vector<Vector3d>&
-    std::vector<Vector3d>& GetVertices() override {
-        return mVertices;
-    }
+    /// @brief Returns all stored normals as a span.
+    /// @return Read-only span of triangle normals.
+    std::span<const Vector3d> Normals() const noexcept
+    { return mNormals; }
 
-    ///@brief Get triangles from mesh. (const version)
-    ///@return const std::vector<Vector3i>&
-    const std::vector<Vector3i>& GetTriangles() const override {
-        return mTriangles;
-    }
+    /// @brief Returns this mesh as a TriangleMeshView.
+    /// @details The function is declared here but defined in `triangle_mesh_view.hpp` to avoid
+    ///          an unnecessary include dependency and circular include between the two headers.
+    /// @note To use this function, the call site must include `triangle_mesh_view.hpp`.
+    /// @return Triangle mesh view over this mesh.
+    TriangleMeshView View() const;
 
-    ///@brief Get triangle vertex 3
-    ///@param TriangleId
-    ///@return const Vector3d&
-    const Vector3i& VertexIds(IndexType TriangleId) const override {
-        return mTriangles[TriangleId];
-    }
+    /// @brief Returns all stored vertices as a span.
+    /// @return Read-only span of vertices.
+    std::span<const Vector3d> Vertices() const noexcept
+    { return mVertices; }
 
-    ///@brief Basic check of this TriangleMesh instance.
-    void Check() const override {
-        // Check if mTriangles and mNormals are of the same size.
-        if( mTriangles.size() != BaseType::NumOfNormals() ){
+    /// @brief Returns all triangle index triplets as a span.
+    /// @return Read-only span of triangle index triplets.
+    std::span<const Vector3i> TriangleIndices() const noexcept
+    { return mTriangles; }
+
+    /// @brief Basic consistency check of this triangle mesh instance.
+    void Check() const
+    {
+        if (mTriangles.size() != mNormals.size()) {
             QuESo_ERROR << "Number of Triangles and Normals in mesh do not match.\n";
         }
-        // Check if all vertex ids exist.
-        for( IndexType i = 0; i < mTriangles.size(); ++i ){
-            for(IndexType j = 0; j < 3; ++j){
-                if( mTriangles[i][j] >= mVertices.size() ){
-                    QuESo_ERROR << "Triangle/Vertex mismatch.\n";
-                }
+
+        for (IndexType i = 0; i < mTriangles.size(); ++i) {
+            for (IndexType j = 0; j < 3; ++j) {
+                if (mTriangles[i][j] >= mVertices.size()) { QuESo_ERROR << "Triangle/Vertex mismatch.\n"; }
             }
         }
     }
-    ///@}
 
 private:
-
     ///@}
-    ///@name Private Member Variables
+    ///@name Private member variables
     ///@{
+
     std::vector<Vector3d> mVertices;
     std::vector<Vector3i> mTriangles;
+    std::vector<Vector3d> mNormals;
     ///@}
+};// End of TriangleMesh.
 
-}; // End of class TriangleMesh
-///@} // End QuESo classes
+///@}
 
-} // End namespace queso
-
-#endif // TRIANGLE_MESH_INCLUDE_H
+}// End namespace queso.

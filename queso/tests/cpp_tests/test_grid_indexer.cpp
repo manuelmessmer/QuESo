@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(r_settings);
-    const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
+    const auto delta = (bounds_xyz.second - bounds_xyz.first);
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
                 QuESo_CHECK_POINT_NEAR( box_3_uvw.first, box_3_xyz.first, 1e-12 );
                 QuESo_CHECK_POINT_NEAR( box_3_uvw.second, box_3_xyz.second, 1e-12 );
 
-                auto delta_box = Math::Subtract(box_1_xyz.second, box_1_xyz.first);
+                auto delta_box = (box_1_xyz.second - box_1_xyz.first);
                 QuESo_CHECK_LT( std::abs(delta[0]/number_of_elements[0] - delta_box[0]) / delta_box[0], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[1]/number_of_elements[1] - delta_box[1]) / delta_box[1], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[2]/number_of_elements[2] - delta_box[2]) / delta_box[2], 1e-12);
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 
     GridIndexer grid_indexer(r_settings);
-    const auto delta = Math::Subtract( bounds_xyz.second,  bounds_xyz.first );
+    const auto delta = (bounds_xyz.second - bounds_xyz.first);
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
                 QuESo_CHECK_POINT_NEAR(box_3_uvw.first, PointType({-1.0, -1.0, -1.0}), 1e-12);
                 QuESo_CHECK_POINT_NEAR(box_3_uvw.second, PointType({1.0, 1.0, 1.0}), 1e-12);
 
-                auto delta_box = Math::Subtract(box_1_xyz.second, box_1_xyz.first);
+                auto delta_box = (box_1_xyz.second - box_1_xyz.first);
                 QuESo_CHECK_LT( std::abs(delta[0]/number_of_elements[0] - delta_box[0]) / delta_box[0], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[1]/number_of_elements[1] - delta_box[1]) / delta_box[1], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[2]/number_of_elements[2] - delta_box[2]) / delta_box[2], 1e-12);

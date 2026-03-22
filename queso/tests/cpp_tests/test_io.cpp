@@ -20,6 +20,7 @@
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
+#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/quadrature/single_element.hpp"
@@ -31,19 +32,17 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( IOTestSuite )
 
-Unique<TriangleMeshInterface> CreateTestTriangleMesh() {
-    auto p_mesh = MakeUnique<TriangleMesh>();
+template<typename TMesh = TriangleMesh>
+Unique<TMesh> CreateTestTriangleMesh() {
+    auto p_mesh = MakeUnique<TMesh>();
     // Vertices
     p_mesh->AddVertex({0.0, 0.0, 0.0});
     p_mesh->AddVertex({1.0, 0.0, 0.0});
     p_mesh->AddVertex({0.0, 1.0, 0.0});
     p_mesh->AddVertex({1.0, 1.0, 0.0});
     // Triangles
-    p_mesh->AddTriangle({0, 1, 2});
-    p_mesh->AddTriangle({1, 3, 2});
-    // Normals
-    p_mesh->AddNormal({0.0, 0.0, 1.0});
-    p_mesh->AddNormal({0.0, 0.0, 1.0});
+    p_mesh->AddTriangle({0, 1, 2}, {0.0, 0.0, 1.0});
+    p_mesh->AddTriangle({1, 3, 2}, {0.0, 0.0, 1.0});
     return p_mesh;
 }
 
@@ -61,9 +60,11 @@ void TestTriangleMeshSTL(IO::EncodingType Encoding) {
     QuESo_CHECK_EQUAL(p_mesh->NumOfVertices(), mesh_read.NumOfVertices());
 
     for(IndexType i = 0; i < p_mesh->NumOfTriangles(); ++i) {
-        QuESo_CHECK_POINT_NEAR( p_mesh->P1(i), mesh_read.P1(i), 1e-10 );
-        QuESo_CHECK_POINT_NEAR( p_mesh->P2(i), mesh_read.P2(i), 1e-10 );
-        QuESo_CHECK_POINT_NEAR( p_mesh->P3(i), mesh_read.P3(i), 1e-10 );
+        const auto tri_a = p_mesh->Triangle<WithoutNormals>(i);
+        const auto tri_b = mesh_read.Triangle<WithoutNormals>(i);
+        QuESo_CHECK_POINT_NEAR( tri_a.P1, tri_b.P1, 1e-10 );
+        QuESo_CHECK_POINT_NEAR( tri_a.P2, tri_b.P2, 1e-10 );
+        QuESo_CHECK_POINT_NEAR( tri_a.P3, tri_b.P3, 1e-10 );
     }
 }
 
@@ -105,8 +106,8 @@ void TestTriangleMeshVTK(IO::EncodingType Encoding) {
 
 BOOST_AUTO_TEST_CASE(IOTriangleMeshVTKTest) {
     QuESo_INFO << "Testing :: Test IO Triangle Mesh :: Write VTK" << std::endl;
-    TestTriangleMeshSTL(IO::EncodingType::binary);
-    TestTriangleMeshSTL(IO::EncodingType::ascii);
+    TestTriangleMeshVTK(IO::EncodingType::binary);
+    TestTriangleMeshVTK(IO::EncodingType::ascii);
 }
 
 using IntegrationPointType = IntegrationPoint;
@@ -179,9 +180,9 @@ Unique<ConditionType> CreateTestConditions(){
     auto p_cond_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
 
     auto p_condition = MakeUnique<ConditionType>(*p_cond_settings, *p_cond_info);
-    auto p_mesh = CreateTestTriangleMesh();
+    auto p_mesh = CreateTestTriangleMesh<ClippedTriangleMesh>();
 
-    auto p_segment = MakeUnique<ConditionType::ConditionSegmentType>(1u, p_mesh);
+    auto p_segment = MakeUnique<ConditionType::ConditionSegmentType>(1u, std::move(p_mesh));
 
     p_condition->AddSegment(p_segment);
 
@@ -203,9 +204,11 @@ void TestConditionSTL(IO::EncodingType Encoding) {
     QuESo_CHECK_EQUAL(r_mesh.NumOfVertices(), mesh_read.NumOfVertices());
 
     for(IndexType i = 0; i < r_mesh.NumOfTriangles(); ++i) {
-        QuESo_CHECK_POINT_NEAR( r_mesh.P1(i), mesh_read.P1(i), 1e-10 );
-        QuESo_CHECK_POINT_NEAR( r_mesh.P2(i), mesh_read.P2(i), 1e-10 );
-        QuESo_CHECK_POINT_NEAR( r_mesh.P3(i), mesh_read.P3(i), 1e-10 );
+        const auto tri_a = r_mesh.Triangle<WithoutNormals>(i);
+        const auto tri_b = mesh_read.Triangle<WithoutNormals>(i);
+        QuESo_CHECK_POINT_NEAR( tri_a.P1, tri_b.P1, 1e-10 );
+        QuESo_CHECK_POINT_NEAR( tri_a.P2, tri_b.P2, 1e-10 );
+        QuESo_CHECK_POINT_NEAR( tri_a.P3, tri_b.P3, 1e-10 );
     }
 }
 

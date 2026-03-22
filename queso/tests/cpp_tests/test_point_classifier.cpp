@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierTest) {
 
     // Check if point on boundary is not inside.
     // Note the stl has a mesh at (1.0, 0.0, 0.0)
-    QuESo_CHECK_IS_FALSE( classifier.IsInside({1.0, 0.0, 0.0}) );
+    QuESo_CHECK_IS_FALSE( classifier.IsInside(PointType{1.0, 0.0, 0.0}) );
 }
 
 BOOST_AUTO_TEST_CASE(ElephantPointClassifierTest) {

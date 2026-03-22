@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
                     results.push_back( norm );
                 }
             }
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
                     results.push_back( norm );
                 }
             }
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
                     results.push_back( norm );
                 }
             }
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
                     auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( Math::Subtract(bounding_box.second, bounding_box.first) );
+                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
                     results.push_back( norm );
                 }
             }

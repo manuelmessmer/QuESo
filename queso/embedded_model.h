@@ -17,7 +17,6 @@
 /// STL includes
 
 /// Project includes
-#include "queso/containers/triangle_mesh_interface.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
@@ -107,7 +106,7 @@ public:
         TriangleMesh triangle_mesh{};
         IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
 
-        ComputeVolume(triangle_mesh);
+        ComputeVolume(triangle_mesh.View());
         PrintVolumeElapsedTimeInfo();
 
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume ---------------------------------------- End\n";
@@ -121,7 +120,7 @@ public:
                 const auto& r_filename_cond = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
                 TriangleMesh triangle_meshs_cond{};
                 IO::ReadMeshFromSTL(triangle_meshs_cond, r_filename_cond.c_str());
-                ComputeCondition(triangle_meshs_cond, *p_condition_settings);
+                ComputeCondition(triangle_meshs_cond.View(), *p_condition_settings);
             }
             PrintConditionsElapsedTimeInfo();
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ------------------------------------ End" << std::endl;
@@ -133,23 +132,23 @@ public:
     }
 
     ///@brief Creates integration points for an embedded volume that is enclosed/defined by rTriangleMesh.
-    ///       This interface enables to pass a TriangleMeshInterface and, hence, facilitates other applications to
+    ///       This interface enables to pass a TriangleMeshView and, hence, facilitates other applications to
     ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
     ///@param rTriangleMesh
     ///@see CreateAllFromSettings <- Creates volume and condition directly from input files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
-    void CreateVolume(const TriangleMeshInterface& rTriangleMesh){
+    void CreateVolume(const TriangleMeshView &rTriangleMesh){
         ComputeVolume(rTriangleMesh);
     }
 
     ///@brief Creates integration points for an embedded condition defined by rTriangleMesh.
-    ///       This interface enables to pass a TriangleMeshInterface and, hence, facilitates other applications to
+    ///       This interface enables to pass a TriangleMeshView and, hence, facilitates other applications to
     ///       use QuESo on C++ level, which do not want QuESo to read rTriangleMesh from an input file.
     ///@param rTriangleMesh
     ///@param rConditionSettings
     ///@see CreateAllFromSettings <- Creates volume and condition directly from input files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
-    void CreateCondition(const TriangleMeshInterface& rTriangleMesh, const MainDictionaryType& rConditionSettings){
+    void CreateCondition(const TriangleMeshView &rTriangleMesh, const MainDictionaryType& rConditionSettings){
         ComputeCondition(rTriangleMesh, rConditionSettings);
     }
 
@@ -202,17 +201,17 @@ private:
 
     ///@brief Main function to compute the integration points for a volume enclosed/defined by rTriangleMesh.
     ///@param rTriangleMesh
-    void ComputeVolume(const TriangleMeshInterface& rTriangleMesh);
+    void ComputeVolume(const TriangleMeshView &rTriangleMesh);
 
     ///@brief Main function to compute the integration points for a condition defined by rTriangleMesh.
     ///@param rTriangleMesh
     ///@param rConditionSettings
-    void ComputeCondition(const TriangleMeshInterface& rTriangleMesh, const MainDictionaryType& rConditionSettings);
+    void ComputeCondition(const TriangleMeshView &rTriangleMesh, const MainDictionaryType& rConditionSettings);
 
     ///@brief Prints a warning, if the rTriangleMesh is not fully contained within the bounding box defined
     ///       by 'lower_bound_xyz' and 'upper_bound_xyz' in mSettings.
     ///@param rTriangleMesh
-    void CheckIfMeshIsWithinBoundingBox(const TriangleMeshInterface& rTriangleMesh) const;
+    void CheckIfMeshIsWithinBoundingBox(const TriangleMeshView &rTriangleMesh) const;
 
     ///@brief Prints some info to the console regarding the computed volume.
     ///       Since only one volume per EmbeddedModel can be created no arguments have to be passed.

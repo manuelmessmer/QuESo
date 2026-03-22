@@ -29,8 +29,8 @@ namespace Mapping {
     /// @param rBoundsUVW parametric bounds of background grid.
     /// @return PointType
     inline PointType PointFromGlobalToParam( const PointType& rGlobalCoord, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW){
-        const auto delta_xyz = Math::Subtract( rBoundsXYZ.second, rBoundsXYZ.first );
-        const auto delta_uvw = Math::Subtract( rBoundsUVW.second, rBoundsUVW.first );
+        const auto delta_xyz = (rBoundsXYZ.second - rBoundsXYZ.first);
+        const auto delta_uvw = (rBoundsUVW.second - rBoundsUVW.first);
 
         return PointType{ ( (rGlobalCoord[0] - rBoundsXYZ.first[0]) / std::abs(delta_xyz[0]) * std::abs(delta_uvw[0]) ) + rBoundsUVW.first[0],
                           ( (rGlobalCoord[1] - rBoundsXYZ.first[1]) / std::abs(delta_xyz[1]) * std::abs(delta_uvw[1]) ) + rBoundsUVW.first[1],
@@ -43,8 +43,8 @@ namespace Mapping {
     /// @param rBoundsUVW parametric bounds of background grid.
     /// @return PointType.
     inline PointType PointFromParamToGlobal( const PointType& rLocalCoord, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW){
-        const auto delta_xyz = Math::Subtract( rBoundsXYZ.second,  rBoundsXYZ.first );
-        const auto delta_uvw = Math::Subtract( rBoundsUVW.second,  rBoundsUVW.first );
+        const auto delta_xyz = (rBoundsXYZ.second - rBoundsXYZ.first);
+        const auto delta_uvw = (rBoundsUVW.second - rBoundsUVW.first);
 
         return PointType{ ( (rLocalCoord[0] - rBoundsUVW.first[0]) / std::abs(delta_uvw[0]) * std::abs(delta_xyz[0]) ) + rBoundsXYZ.first[0],
                           ( (rLocalCoord[1] - rBoundsUVW.first[1]) / std::abs(delta_uvw[1]) * std::abs(delta_xyz[1]) ) + rBoundsXYZ.first[1],

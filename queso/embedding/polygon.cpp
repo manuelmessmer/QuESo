@@ -76,7 +76,7 @@ void Polygon<SIZE>::Clear(){
 }
 
 template<IndexType SIZE>
-void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) const {
+void Polygon<SIZE>::AddToTriangleMesh(ClippedTriangleMesh &rTriangleMesh) const {
     if(mNumVertices < 3){
         return;
     }
@@ -89,12 +89,12 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) cons
         rTriangleMesh.AddVertex( mVertices[1].first );
         rTriangleMesh.AddVertex( mVertices[2].first );
 
-        rTriangleMesh.AddTriangle( {num_v+0, num_v+1, num_v+2} );
-        rTriangleMesh.AddNormal( mNormal );
+        rTriangleMesh.AddTriangle( {num_v+0, num_v+1, num_v+2}, mNormal );
 
         // Add edges, that are located on a plane, to the mesh.
         // Planes: (-x, +x, -y, y, -z, z)
-        for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
+        for( SignedAxis axis : EnumRange<SignedAxis>() ){
+            const auto plane_index = static_cast<IndexType>(axis);
             const bool v1_on_plane = mVertices[0].second[plane_index];
             const bool v2_on_plane = mVertices[1].second[plane_index];
             const bool v3_on_plane = mVertices[2].second[plane_index];
@@ -102,13 +102,13 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) cons
                 QuESo_ERROR << "All vertices are set on plane.\n";
             }
             if( v1_on_plane && v2_on_plane ){
-                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+0, num_v+1, num_t+0);
+                rTriangleMesh.AddEdgeOnPlane(axis, num_v+0, num_v+1, num_t+0);
             }
             else if( v2_on_plane && v3_on_plane ){
-                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+1, num_v+2, num_t+0);
+                rTriangleMesh.AddEdgeOnPlane(axis, num_v+1, num_v+2, num_t+0);
             }
             else if( v3_on_plane && v1_on_plane ){
-                rTriangleMesh.AddEdgeOnPlane(plane_index, num_v+2, num_v+0, num_t+0);
+                rTriangleMesh.AddEdgeOnPlane(axis, num_v+2, num_v+0, num_t+0);
             }
         }
         return;
@@ -117,9 +117,9 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) cons
     // Compute mean of vertices
     PointType centroid = {0.0, 0.0, 0.0};
     for( IndexType i = 0 ; i < mNumVertices; ++i){
-        Math::AddSelf(centroid, mVertices[i].first);
+        centroid += mVertices[i].first;
     }
-    Math::DivideSelf(centroid, static_cast<double>(mNumVertices));
+    centroid /= static_cast<double>(mNumVertices);
 
     IndexType vertex_count = num_v;
     IndexType triangle_count = num_t;
@@ -128,14 +128,14 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) cons
         rTriangleMesh.AddVertex( mVertices[i+1].first );
         rTriangleMesh.AddVertex( centroid );
 
-        rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2} );
-        rTriangleMesh.AddNormal( mNormal );
+        rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2}, mNormal );
 
-        for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
+        for( SignedAxis axis : EnumRange<SignedAxis>() ){
+            const auto plane_index = static_cast<IndexType>(axis);
             const bool v1_on_plane = mVertices[i].second[plane_index];
             const bool v2_on_plane = mVertices[i+1].second[plane_index];
             if( v1_on_plane && v2_on_plane ){
-                rTriangleMesh.AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
+                rTriangleMesh.AddEdgeOnPlane(axis, vertex_count+0, vertex_count+1, triangle_count);
             }
         }
         ++triangle_count;
@@ -146,14 +146,14 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) cons
     rTriangleMesh.AddVertex( mVertices[0].first );
     rTriangleMesh.AddVertex( centroid );
 
-    rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2 } );
-    rTriangleMesh.AddNormal( mNormal );
+    rTriangleMesh.AddTriangle( {vertex_count+0, vertex_count+1, vertex_count+2 }, mNormal );
 
-    for( IndexType plane_index = 0; plane_index < 6; ++plane_index ){
+    for( SignedAxis axis : EnumRange<SignedAxis>() ){
+        const auto plane_index = static_cast<IndexType>(axis);
         const bool v1_on_plane = mVertices[mNumVertices-1].second[plane_index];
         const bool v2_on_plane = mVertices[0].second[plane_index];
         if( v1_on_plane && v2_on_plane ){
-            rTriangleMesh.AddEdgeOnPlane(plane_index, vertex_count+0, vertex_count+1, triangle_count);
+            rTriangleMesh.AddEdgeOnPlane(axis, vertex_count+0, vertex_count+1, triangle_count);
         }
     }
 

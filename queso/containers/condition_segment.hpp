@@ -19,7 +19,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/triangle_mesh_interface.hpp"
+#include "queso/containers/clipped_triangle_mesh.hpp"
 
 namespace queso {
 
@@ -51,8 +51,8 @@ public:
     /// @brief Constructor
     /// @param Index of BackgroundGrid @see GridIndexer.
     /// @param pTriangleMesh ptr to triangle mesh of this segment.
-    ConditionSegment(IndexType Index, Unique<TriangleMeshInterface>& pTriangleMesh)
-        : mBackgroundGridIndex(Index), mpParentElement(nullptr), mpTriangleMesh(std::move(pTriangleMesh))
+    ConditionSegment(IndexType Index, Unique<ClippedTriangleMesh>&& pTriangleMesh)
+        : mBackgroundGridIndex(Index), mpParentElement(nullptr), mpClippedTriangleMesh(std::move(pTriangleMesh))
     {
     }
 
@@ -60,8 +60,8 @@ public:
     /// @param Index of BackgroundGrid @see GridIndexer.
     /// @param pElement Ptr to parent element.
     /// @param pTriangleMesh ptr to triangle mesh of this segment.
-    ConditionSegment(IndexType Index, const ElementType* pElement, Unique<TriangleMeshInterface>& pTriangleMesh)
-        : mBackgroundGridIndex(Index), mpParentElement(pElement), mpTriangleMesh(std::move(pTriangleMesh))
+    ConditionSegment(IndexType Index, const ElementType* pElement, Unique<ClippedTriangleMesh>& pClippedTriangleMesh)
+        : mBackgroundGridIndex(Index), mpParentElement(pElement), mpClippedTriangleMesh(std::move(pClippedTriangleMesh))
     {
     }
 
@@ -81,9 +81,9 @@ public:
     ///@{
 
     /// @brief Return const ref to the triangle mesh, representing the condition segment.
-    /// @return  const TriangleMeshInterface&
-    const TriangleMeshInterface& GetTriangleMesh() const {
-        return *mpTriangleMesh;
+    /// @return  const TriangleMesh&
+    const TriangleMesh& GetTriangleMesh() const {
+        return mpClippedTriangleMesh->Mesh();
     }
 
     /// @brief Returns true if ConditionSegment is contained within in active parent element.
@@ -98,9 +98,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    const IndexType mBackgroundGridIndex;
+    IndexType mBackgroundGridIndex;
     const ElementType* mpParentElement;
-    const Unique<TriangleMeshInterface> mpTriangleMesh;
+    Unique<ClippedTriangleMesh> mpClippedTriangleMesh;
     // BoundaryIntegrationPointVectorType mIntegrationPoints;
 
     ///@}
@@ -109,5 +109,4 @@ private:
 } // End queso namespace.
 
 #endif // End CONDITION_SEGMENT_INCLUDE_HPP
-
 

@@ -14,8 +14,11 @@
 #ifndef MESH_UTILITIES_INCLUDE_H
 #define MESH_UTILITIES_INCLUDE_H
 
+//// STL includes
+#include <utility>
+
 //// Project includes
-#include "queso/containers/triangle_mesh_interface.hpp"
+#include "queso/containers/triangle_mesh_view.hpp"
 
 namespace queso {
 
@@ -28,94 +31,79 @@ namespace queso {
  * @author Manuel Messmer
  * @brief  Provides operators for the TriangleMesh.
 */
-class MeshUtilities {
-public:
-    ///@name Type Definitions
-    ///@{
-    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
+namespace MeshUtilities {
 
-    ///@}
-    ///@name Public Operations
-    ///@{
+using TriangleMeshPtrType = Unique<TriangleMesh>;
 
-    /// @brief Refines triangle mesh. Always conducts one refinement loop, such that area < 0.5*area_max.
-    /// @param rTriangleMesh Triangle mesh to refine.
-    /// @param MinNumberOfTriangles Minimum number of triangles in final mesh.
-    /// @todo May needs improvement, more parameters etc.
-    static void Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles);
+/// @brief Refines a mesh until a minimum triangle count is reached.
+/// @param rTriangleMesh Mesh that is refined in-place.
+/// @param MinNumberOfTriangles Requested minimum number of triangles.
+/// @details Refinement keeps the original surface geometry while increasing triangle resolution.
+void Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTriangles);
 
-    /// @brief Appends rTriangleMesh by rNewMesh.
-    /// @param rTriangleMesh Mesh to be appended.
-    /// @param rNewMesh New mesh to be inserted in rTriangleMesh.
-    static void Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh);
+/// @brief Appends one mesh to another.
+/// @param rTriangleMesh Destination mesh (modified in-place).
+/// @param rNewMesh Source mesh that is appended to the destination.
+/// @details Vertex and triangle connectivity are remapped consistently during append.
+void Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh);
 
-    /// @brief Append rTriangleMesh with some triangles in rNewMesh (given by Indices).
-    /// @param rTriangleMesh Mesh to be appended.
-    /// @param rNewMesh New mesh to be inserted in rTriangleMesh.
-    /// @param rIndices Indices of triangles to be copied.
-    static void Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh, const std::vector<IndexType>& rIndices);
+/// @brief Creates a cuboid surface mesh from axis-aligned bounds.
+/// @param rLowerPoint Lower corner of the cuboid in global coordinates.
+/// @param rUpperPoint Upper corner of the cuboid in global coordinates.
+/// @return Unique pointer to the generated cuboid triangle mesh.
+TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
-    ///@brief Return meshed cuboid.
-    ///@param rLowerPoint
-    ///@param rUpperPoint
-    ///@return Unique<TriangleMeshInterface>
-    static TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
+/// @brief Computes total surface area of a triangle mesh view.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Total mesh area.
+double Area(const TriangleMeshView& rTriangleMeshView);
 
-    /// @brief Returns surface area of triangle mesh.
-    /// @param rTriangleMesh
-    /// @return double.
-    static double Area(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Computes total surface area in parallel.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Total mesh area.
+/// @note Uses OpenMP parallelization when available.
+double AreaOMP(const TriangleMeshView& rTriangleMeshView);
 
-    /// @brief Returns surface area of triangle mesh (OMP version).
-    /// @param rTriangleMesh
-    /// @return double.
-    static double AreaOMP(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Computes enclosed volume of a closed triangle mesh.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Signed volume enclosed by the mesh.
+double Volume(const TriangleMeshView& rTriangleMeshView);
 
-    ///@brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
-    ///@param rTriangleMesh
-    ///@return double
-    static double Volume(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Computes directional contribution to enclosed volume.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @param Dir Direction index used for directional volume evaluation.
+/// @return Signed directional volume contribution.
+double Volume(const TriangleMeshView& rTriangleMeshView, IndexType Dir);
 
-    /// @brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
-    /// Only applies divergence theorem in direction Dir: 0-x, 1-y, 2-z.
-    /// @param rTriangleMesh
-    /// @param Dir
-    /// @return double
-    static double Volume(const TriangleMeshInterface& rTriangleMesh, IndexType Dir);
+/// @brief Computes enclosed volume in parallel.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Signed volume enclosed by the mesh.
+/// @note Uses OpenMP parallelization when available.
+double VolumeOMP(const TriangleMeshView& rTriangleMeshView);
 
-    ///@brief Returns enclosed volume by triangle mesh (OMP-version). Uses divergence theorem to compute volume.
-    ///@param rTriangleMesh
-    ///@return double
-    static double VolumeOMP(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Estimates overall mesh quality.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Scalar quality estimate based on triangle shape metrics.
+double EstimateQuality(const TriangleMeshView& rTriangleMeshView);
 
-    ///@brief Returns a quaility measure of triangle mesh. This function computes the volume of the mesh using
-    ///       the divergence theorem. It applies the divergence theorem individually in each space direction (volume_1, volume_2, volume_3).
-    ///       Theoretically, all directional volumes must be equal. Additionally, this function computes the directional
-    ///       areas: Sum of (normal * area). This value must be zero if the mesh is closed.
-    ///       The maximum relative errors of volume_1, volume_2, volume_3 and directional_area is returned.
-    ///@param rTriangleMesh
-    ///@return double maximum error.
-    static double EstimateQuality(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Returns the maximum triangle aspect ratio in the mesh.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Maximum aspect ratio over all triangles.
+double MaxAspectRatio(const TriangleMeshView& rTriangleMeshView);
 
-    ///@brief Returns maximum aspect ratio of all triangles in triangle mesh.
-    ///@param rTriangleMesh
-    ///@return double
-    static double MaxAspectRatio(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Returns the average triangle aspect ratio in the mesh.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Average aspect ratio over all triangles.
+double AverageAspectRatio(const TriangleMeshView& rTriangleMeshView);
 
-    ///@brief Returns average aspect ratio of all triangles in triangle mesh.
-    ///@param rTriangleMesh
-    ///@return double
-    static double AverageAspectRatio(const TriangleMeshInterface& rTriangleMesh);
+/// @brief Computes axis-aligned bounding box of a triangle mesh.
+/// @param rTriangleMeshView Non-owning view of the mesh.
+/// @return Pair of points `{lower_bound, upper_bound}` in global coordinates.
+std::pair<PointType, PointType> BoundingBox(const TriangleMeshView& rTriangleMeshView);
 
-
-    ///@brief Returns axis-aligned bounding box of triangle mesh.
-    ///@param rTriangleMesh
-    ///@return std::pair<PointType, PointType>
-    static std::pair<PointType, PointType> BoundingBox(const TriangleMeshInterface& rTriangleMesh);
-
-    ///@}
-}; // End class MeshUtilities
+} // namespace MeshUtilities
 ///@} // End QuESo Classes
 } // End namespace queso
 
 #endif // MESH_UTILITIES_INCLUDE_H
+
