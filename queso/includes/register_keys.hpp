@@ -93,25 +93,29 @@ QuESo_REGISTER_KEY_SET(BackgroundGridSettings, MainValuesTypeTag,
 // --- TrimmedQuadratureRuleSettings ---
 // Values
 QuESo_DEFINE_KEY_SET( TrimmedQuadratureRuleSettings, MainValuesTypeTag,
-    QuESo_KEY_LIST(moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed) );
+    QuESo_KEY_LIST(moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed, activate_fictitious_domain_with_alpha) );
 QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, moment_fitting_residual, MainValuesTypeTag, double);
 QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, min_element_volume_ratio, MainValuesTypeTag, double);
 QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, min_num_boundary_triangles, MainValuesTypeTag, IndexType);
 QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, neglect_elements_if_stl_is_flawed, MainValuesTypeTag, bool);
+QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, activate_fictitious_domain_with_alpha, MainValuesTypeTag, double);
 QuESo_REGISTER_KEY_SET(TrimmedQuadratureRuleSettings, MainValuesTypeTag,
     QuESo_KEY(TrimmedQuadratureRuleSettings::moment_fitting_residual),
     QuESo_KEY(TrimmedQuadratureRuleSettings::min_element_volume_ratio),
     QuESo_KEY(TrimmedQuadratureRuleSettings::min_num_boundary_triangles),
-    QuESo_KEY(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed)
+    QuESo_KEY(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed),
+    QuESo_KEY(TrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha)
 );
 
 // --- NonTrimmedQuadratureRuleSettings ---
 // Values
 QuESo_DEFINE_KEY_SET( NonTrimmedQuadratureRuleSettings, MainValuesTypeTag,
-    QuESo_KEY_LIST(integration_method) );
+    QuESo_KEY_LIST(integration_method, activate_fictitious_domain_with_alpha) );
 QuESo_DEFINE_KEY_TO_VALUE(NonTrimmedQuadratureRuleSettings, integration_method, MainValuesTypeTag, IntegrationMethodType);
+QuESo_DEFINE_KEY_TO_VALUE(NonTrimmedQuadratureRuleSettings, activate_fictitious_domain_with_alpha, MainValuesTypeTag, double);
 QuESo_REGISTER_KEY_SET(NonTrimmedQuadratureRuleSettings, MainValuesTypeTag,
-    QuESo_KEY(NonTrimmedQuadratureRuleSettings::integration_method)
+    QuESo_KEY(NonTrimmedQuadratureRuleSettings::integration_method),
+    QuESo_KEY(TrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha)
 );
 
 // --- ConditionSettings ---

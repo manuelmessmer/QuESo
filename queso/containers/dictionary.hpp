@@ -196,6 +196,19 @@ public:
         return mpDataSet->IsSet(rQueryKey);
     }
 
+    /// @brief Optionally returns the value associated with the given Key, depending on whether the value is set.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return std::optional<TValueType>
+    /// @note Only throws in debug mode.
+    template<typename TValueType, typename TKeyType>
+    std::optional<TValueType> GetValueOptional(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
+        QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
+        return mpDataSet->template GetValueOptional<TValueType>(rQueryKey);
+    }
+
+
     /// @brief Sets a SubDictionary associated with the given key. Dictionary takes unique ownership of the SubDictionary.
     /// @tparam TKeyType
     /// @param rQueryKey

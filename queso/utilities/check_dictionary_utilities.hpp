@@ -30,9 +30,11 @@ namespace CheckDictionaryUtilities {
     template<typename TKeyInfoType>
     void CheckIfAllValuesInDataSetAreSet( const MainDictionaryType& rSettings ) {
         using StringAccess = DictionaryStringAccess<MainDictionaryType>;
+		
         for( const auto& [name_view, _] : TKeyInfoType::msStringToKeyMap ) {
             std::string name{name_view};
-            QuESo_ERROR_IF( !StringAccess::IsSet(rSettings, name) ) << "Setting '" << name << "' is not set.\n";
+			if( name != "activate_fictitious_domain_with_alpha" )
+				QuESo_ERROR_IF( !StringAccess::IsSet(rSettings, name) ) << "Setting '" << name << "' is not set.\n";
         }
     }
 

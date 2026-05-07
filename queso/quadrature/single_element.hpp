@@ -16,6 +16,7 @@
 
 //// STL includes
 #include <vector>
+#include <optional>
 
 //// Project includes
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
@@ -53,13 +54,14 @@ public:
     /// @param rElement
     /// @param rOrder Order of quadrature rule.
     /// @param Method Integration method: Default - Gauss.
-    static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss) {
+    static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss, 
+						    std::optional<double> maybeAlpha = std::nullopt) {
         auto& integration_points = rElement.GetIntegrationPoints();
-
+    
         PointType lower_bound_param = rElement.GetBoundsUVW().first;
         PointType upper_bound_param = rElement.GetBoundsUVW().second;
 
-        AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rOrder, Method);
+        AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rOrder, Method, maybeAlpha);
     }
 
     /// @brief Assemble tensor product quadrature rules.
@@ -70,11 +72,11 @@ public:
     /// @param rOrder Order of quadrature rule.
     /// @param Method Integration method: Default - Gauss.
     static void AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
-                            const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss ) {
+                            const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss, std::optional<double> maybeAlpha = std::nullopt) {
         const auto& r_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
         const auto& r_ip_list_v = IntegrationPointFactory1D::GetGauss(rOrder[1], Method);
         const auto& r_ip_list_w = IntegrationPointFactory1D::GetGauss(rOrder[2], Method);
-
+                
         const SizeType n_point_u = r_ip_list_u.size();
         const SizeType n_point_v = r_ip_list_v.size();
         const SizeType n_point_w = r_ip_list_w.size();
@@ -87,6 +89,8 @@ public:
         const double length_v = std::abs(rUpperBoundParam[1] - rLowerBoundParam[1]);
         const double length_w = std::abs(rUpperBoundParam[2] - rLowerBoundParam[2]);
 
+		const double alpha = maybeAlpha.has_value() ? maybeAlpha.value() : 1.0;
+
         for (SizeType u = 0; u < n_point_u; ++u) {
             for (SizeType v = 0; v < n_point_v; ++v) {
                 for( SizeType w = 0; w < n_point_w; ++w) {
@@ -95,7 +99,7 @@ public:
                                                                         rLowerBoundParam[2] + length_w * (r_ip_list_w)[w][0],
                                                                         (r_ip_list_u)[u][1] * length_u *
                                                                         (r_ip_list_v)[v][1] * length_v *
-                                                                        (r_ip_list_w)[w][1] * length_w ) );
+                                                                        (r_ip_list_w)[w][1] * length_w * alpha ));
                 }
             }
         }

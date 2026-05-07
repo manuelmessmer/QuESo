@@ -19,9 +19,9 @@
 #include "queso/io/io_utilities.h"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/embedding/brep_operator.h"
-#include "queso/quadrature/single_element.hpp"
 #include "queso/quadrature/trimmed_element.hpp"
 #include "queso/quadrature/multiple_elements.hpp"
+#include "queso/quadrature/single_element.hpp"
 
 namespace queso {
 
@@ -45,9 +45,12 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     const IndexType echo_level = r_settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
 
     // MainSettings::non_trimmed_quadrature_rule_settings.
-    const IntegrationMethod integration_method = r_settings[MainSettings::non_trimmed_quadrature_rule_settings].
+    const auto& r_non_trimmed_quad_rule_settings = r_settings[MainSettings::non_trimmed_quadrature_rule_settings];
+    const IntegrationMethod integration_method = r_non_trimmed_quad_rule_settings.
         GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
     const bool ggq_rule_is_used =  static_cast<int>(integration_method) >= 3;
+    const std::optional<double> non_trimmed_fictitious_domain_alpha = r_non_trimmed_quad_rule_settings.
+        GetValueOptional<double>(NonTrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha);
 
     // MainSettings::trimmed_quadrature_rule_settings.
     const auto& r_trimmed_quad_rule_settings = r_settings[MainSettings::trimmed_quadrature_rule_settings];
@@ -59,6 +62,8 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
         GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
     const bool neglect_elements_if_stl_is_flawed = r_trimmed_quad_rule_settings.
         GetValue<bool>(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed);
+    const std::optional<double> trimmed_fictitious_domain_alpha = r_trimmed_quad_rule_settings.
+        GetValueOptional<double>(TrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha);
 
     // MainSettings::background_grid_settings.
     const auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
@@ -99,55 +104,55 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
         // Check classification status.
         const IntersectionState status = (*p_classifications)[index];
 
-        if( status == IntersectionState::inside || status == IntersectionState::trimmed ) {
-            // Get bounding box of element.
-            const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
-            const auto bounding_box_uvw = mGridIndexer.GetBoundingBoxUVWFromIndex(index);
+        const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
+        const auto bounding_box_uvw = mGridIndexer.GetBoundingBoxUVWFromIndex(index);
 
-            // Construct element.
-            Unique<ElementType> p_new_element = MakeUnique<ElementType>(index+1, bounding_box_xyz, bounding_box_uvw);
-            bool valid_element_flag = false;
+        // Construct element.
+        Unique<ElementType> p_new_element = MakeUnique<ElementType>(index+1, bounding_box_xyz, bounding_box_uvw);
+        bool valid_element_flag = false;
 
-            // Distinguish between trimmed and non-trimmed elements.
-            if( status == IntersectionState::trimmed) {
-                // Compute intersection between element and embedded geometry.
-                Timer timer_compute_intersection{};
-                auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
-                                                                        min_vol_element_ratio, num_boundary_triangles, neglect_elements_if_stl_is_flawed);
-                if( p_trimmed_domain ){
-                    p_new_element->pSetTrimmedDomain(p_trimmed_domain);
-                    valid_element_flag = true;
-                }
-                et_compute_intersection += timer_compute_intersection.Measure();
+		// Distinguish between trimmed and non-trimmed elements.
+		if( status == IntersectionState::trimmed) {
+			// Compute intersection between element and embedded geometry.
+			Timer timer_compute_intersection{};
+			auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
+																	min_vol_element_ratio, num_boundary_triangles, neglect_elements_if_stl_is_flawed);
+			if( p_trimmed_domain ){
+				p_new_element->pSetTrimmedDomain(p_trimmed_domain);
+				valid_element_flag = true;
+			}
+			et_compute_intersection += timer_compute_intersection.Measure();
 
-                // If valid, solve moment fitting equation.
-                if( valid_element_flag ){
-                    Timer timer_moment_fitting{};
-                    QuadratureTrimmedElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, moment_fitting_residual, echo_level);
-                    et_moment_fitting += timer_moment_fitting.Measure();
+			// If valid, solve moment fitting equation.
+			if( valid_element_flag ){
+				Timer timer_moment_fitting{};
+				QuadratureTrimmedElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, moment_fitting_residual, trimmed_fictitious_domain_alpha, echo_level);
+				et_moment_fitting += timer_moment_fitting.Measure();
 
-                    if( p_new_element->GetIntegrationPoints().size() == 0 ){
-                        valid_element_flag = false;
-                    }
-                }
-            }
-            else { // status == IntersectionState::inside.
-                if( !ggq_rule_is_used ){
-                    // Get standard gauss legendre points.
-                    QuadratureSingleElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, integration_method);
-                }
-                valid_element_flag = true;
-            }
+				if( p_new_element->GetIntegrationPoints().size() == 0 ){
+					valid_element_flag = false;
+				}
+			}
+		}
+		else if ( status == IntersectionState::inside && !ggq_rule_is_used ){ 
+			QuadratureSingleElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, integration_method);
+			valid_element_flag = true;
+		}
+		else { // status == IntersectionState::outside.
+			if( non_trimmed_fictitious_domain_alpha.has_value() ){
+				QuadratureSingleElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, integration_method, non_trimmed_fictitious_domain_alpha);
+				valid_element_flag = true;
+			}
+        }
 
-            if( valid_element_flag ){
-                // Update background grid counters.
-                ++num_active_elements;
-                if( p_new_element->IsTrimmed() ) { ++num_trimmed_elements; }
+        if( valid_element_flag ){
+            // Update background grid counters.
+            ++num_active_elements;
+            if( p_new_element->IsTrimmed() ) { ++num_trimmed_elements; }
 
-                // Add p_new_element to the background grid.
-                #pragma omp critical
-                mBackgroundGrid.AddElement(std::move(p_new_element));
-            }
+            // Add p_new_element to the background grid.
+            #pragma omp critical
+            mBackgroundGrid.AddElement(std::move(p_new_element));
         }
     } // #pragma parallel omp for reduction.
 

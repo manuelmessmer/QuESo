@@ -63,7 +63,7 @@ public:
     ///@param rIntegrationOrder
     ///@param Residual Targeted residual
     ///@param EchoLevel Default: 0
-    static double AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel=0) {
+    static double AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, std::optional<double> maybeAlpha, IndexType EchoLevel=0) {
         // Get boundary integration points.
         const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
         const auto p_boundary_ips = p_trimmed_domain->template pGetBoundaryIps<typename TElementType::BoundaryIntegrationPointType>();
@@ -126,6 +126,10 @@ public:
             // IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
             //}
         }
+
+		if( maybeAlpha.has_value() ){
+			AssembleFictitiousIPs(rElement, rIntegrationOrder, maybeAlpha.value());
+		}
 
         return residual;
     }
@@ -453,6 +457,51 @@ protected:
                 return point.Weight() < ZEROTOL; }), reduced_points.end());
 
             return global_residual;
+        }
+    }
+		
+    /// @brief Assembles quadrature points in the fictitious domain.
+    /// @param rElement 
+    /// @param rIntegrationOrder Order of quadrature rule.
+    /// @param Alpha value that is applied to the integration weights
+    static void AssembleFictitiousIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Alpha) {
+
+		auto& r_integration_points = rElement.GetIntegrationPoints();
+        const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
+
+        const auto& r_ip_list_u = IntegrationPointFactory1D::GetGauss(rIntegrationOrder[0], IntegrationMethod::gauss);
+        const auto& r_ip_list_v = IntegrationPointFactory1D::GetGauss(rIntegrationOrder[1], IntegrationMethod::gauss);
+        const auto& r_ip_list_w = IntegrationPointFactory1D::GetGauss(rIntegrationOrder[2], IntegrationMethod::gauss);
+                
+        const SizeType n_point_u = r_ip_list_u.size();
+        const SizeType n_point_v = r_ip_list_v.size();
+        const SizeType n_point_w = r_ip_list_w.size();
+
+        const SizeType n_point = (n_point_u)*(n_point_v)*(n_point_w);
+        r_integration_points.reserve(r_integration_points.size() + n_point);
+
+        const PointType lower_bound_param = rElement.GetBoundsUVW().first;
+        const PointType upper_bound_param = rElement.GetBoundsUVW().second;
+		
+        const double length_u = std::abs(upper_bound_param[0] - lower_bound_param[0]);
+        const double length_v = std::abs(upper_bound_param[1] - lower_bound_param[1]);
+        const double length_w = std::abs(upper_bound_param[2] - lower_bound_param[2]);
+
+        for (SizeType u = 0; u < n_point_u; ++u) {
+            for (SizeType v = 0; v < n_point_v; ++v) {
+                for( SizeType w = 0; w < n_point_w; ++w) {
+					const PointType query_point{lower_bound_param[0] + length_u * (r_ip_list_u)[u][0],
+                                                lower_bound_param[1] + length_v * (r_ip_list_v)[v][0],
+                                                lower_bound_param[2] + length_w * (r_ip_list_w)[w][0]};
+
+					if( !p_trimmed_domain->IsInsideTrimmedDomain(rElement.PointFromParamToGlobal(query_point)) ) {
+						r_integration_points.push_back(IntegrationPointType(query_point,
+																		    (r_ip_list_u)[u][1] * length_u *
+																		    (r_ip_list_v)[v][1] * length_v *
+																		    (r_ip_list_w)[w][1] * length_w * Alpha));
+					}
+                }
+            }
         }
     }
 }; // End Class

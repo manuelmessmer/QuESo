@@ -15,6 +15,7 @@
 #define DATA_SET_INCLUDE_HPP
 
 //// STL includes
+#include <optional>
 #include <vector>
 #include <variant>
 
@@ -224,6 +225,22 @@ public:
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
 
         return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
+    }
+
+    /// @brief Optionally returns the value associated with the given Key, depending on whether the value is set.
+    /// @tparam TValueType
+    /// @tparam TKeyType
+    /// @param rQueryKey
+    /// @return std::optional<TValueType>
+    /// @note Only throws in debug mode.
+    template<typename TValueType, typename TKeyType>
+    std::optional<TValueType> GetValueOptional(const TKeyType& rQueryKey,
+                                               std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+        if( !IsSet(rQueryKey) ) {
+            return std::nullopt;
+        }
+
+        return GetValueFast<TValueType>(rQueryKey);
     }
 
     /// @brief Returns the KeySetInfo associated with this DataSet.
