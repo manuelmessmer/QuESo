@@ -19,7 +19,8 @@ class WeakBcsBase():
     def __init__(self,
             bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
             bounds_xyz: Tuple[Point3D, Point3D],
-            bounds_uvw: Tuple[Point3D, Point3D]
+            bounds_uvw: Tuple[Point3D, Point3D],
+            nurbs_volume_name: str = "NurbsVolume"
         ) -> None:
         """Initializes WeakBcsBase.
 
@@ -31,6 +32,7 @@ class WeakBcsBase():
         self.bcs_triangles = bcs_triangles
         self.bounds_xyz = bounds_xyz
         self.bounds_uvw = bounds_uvw
+        self.nurbs_volume_name = nurbs_volume_name
 
     def apply(self, model_part: KM.ModelPart) -> None:
         """Applies the boundary condition (to be overridden).
@@ -62,7 +64,8 @@ class PenaltySupport(WeakBcsBase):
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
             prescribed: Tuple[float, float, float],
-            penalty: float
+            penalty: float,
+            nurbs_volume_name: str = "NurbsVolume"
         ) -> None:
         """Initializes PenaltySupport.
 
@@ -73,7 +76,7 @@ class PenaltySupport(WeakBcsBase):
             prescribed (Tuple[float, float, float]): Prescribed displacement vector.
             penalty (float): Penalty factor.
         """
-        super(PenaltySupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
+        super(PenaltySupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw, nurbs_volume_name)
         self.prescribed = prescribed
         self.penalty = penalty
 
@@ -83,10 +86,10 @@ class PenaltySupport(WeakBcsBase):
         Args:
             model_part (KM.ModelPart): Kratos model part.
         """
-        id_counter = model_part.NumberOfConditions() + 1
+        id_counter = model_part.GetRootModelPart().NumberOfConditions() + 1
         properties = model_part.GetProperties()[1]
         properties.SetValue(IgaApplication.PENALTY_FACTOR, self.penalty) # type: ignore
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
+        nurbs_volume = model_part.GetGeometry(self.nurbs_volume_name)
         kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
 
         for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
@@ -130,7 +133,8 @@ class LagrangeSupport(WeakBcsBase):
             bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
-            prescribed: Tuple[float, float, float]
+            prescribed: Tuple[float, float, float],
+            nurbs_volume_name: str = "NurbsVolume"
         ) -> None:
         """Initializes LagrangeMultiplierSupport.
 
@@ -140,7 +144,7 @@ class LagrangeSupport(WeakBcsBase):
             bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             prescribed (Tuple[float, float, float]): Prescribed displacement.
         """
-        super(LagrangeSupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
+        super(LagrangeSupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw, nurbs_volume_name)
         self.prescribed = prescribed
 
     def apply(self, model_part: KM.ModelPart) -> None:
@@ -149,9 +153,9 @@ class LagrangeSupport(WeakBcsBase):
         Args:
             model_part (KM.ModelPart): Kratos model part.
         """
-        id_counter = model_part.NumberOfConditions() + 1
+        id_counter = model_part.GetRootModelPart().NumberOfConditions() + 1
         properties = model_part.GetProperties()[1]
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
+        nurbs_volume = model_part.GetGeometry(self.nurbs_volume_name)
         kratos_prescribed = KM.Vector(self.prescribed)
 
         # Iterate over all triangles
@@ -199,7 +203,8 @@ class SurfaceLoad(WeakBcsBase):
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
             modulus: float,
-            direction: Tuple[float, float, float]
+            direction: Tuple[float, float, float],
+            nurbs_volume_name: str = "NurbsVolume"
         ) -> None:
         """Initializes SurfaceLoad.
 
@@ -210,12 +215,12 @@ class SurfaceLoad(WeakBcsBase):
             modulus (float): Load magnitude.
             direction (Tuple[float, float, float]): Load direction vector.
         """
-        super(SurfaceLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
+        super(SurfaceLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw, nurbs_volume_name)
 
         direction_array = np.array(direction)
         norm_direction = np.linalg.norm(direction_array)
         if norm_direction < 1e-10:
-            Exception("SurfaceLoad :: Norm of 'direction' is close to zero.")
+            raise RuntimeError("SurfaceLoad :: Norm of 'direction' is close to zero.")
         normalized_direction = direction_array / norm_direction
         self.force = modulus * normalized_direction
 
@@ -225,9 +230,9 @@ class SurfaceLoad(WeakBcsBase):
         Args:
             model_part (KM.ModelPart): Kratos model part.
         """
-        id_counter = model_part.NumberOfConditions() + 1
+        id_counter = model_part.GetRootModelPart().NumberOfConditions() + 1
         properties = model_part.GetProperties()[1]
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
+        nurbs_volume = model_part.GetGeometry(self.nurbs_volume_name)
 
         for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
             #Get points in physical space.
@@ -259,6 +264,7 @@ class SurfaceLoad(WeakBcsBase):
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1]) # type: ignore
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2]) # type: ignore
                 id_counter += 1
+                geo = condition.GetGeometry()
 
 class PressureLoad(WeakBcsBase):
     """PressureLoad.
@@ -269,7 +275,8 @@ class PressureLoad(WeakBcsBase):
             bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
-            modulus: float
+            modulus: float,
+            nurbs_volume_name: str = "NurbsVolume"
         ) -> None:
         """Initializes PressureLoad.
 
@@ -279,7 +286,7 @@ class PressureLoad(WeakBcsBase):
             bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
             modulus (float): Pressure value (magnitude).
         """
-        super(PressureLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
+        super(PressureLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw, nurbs_volume_name)
         self.modulus = modulus
 
     def apply(self, model_part: KM.ModelPart) -> None:
@@ -288,9 +295,9 @@ class PressureLoad(WeakBcsBase):
         Args:
             model_part (KM.ModelPart): Kratos model part.
         """
-        id_counter = model_part.NumberOfConditions() + 1
+        id_counter = model_part.GetRootModelPart().NumberOfConditions() + 1
         properties = model_part.GetProperties()[1]
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
+        nurbs_volume = model_part.GetGeometry(self.nurbs_volume_name)
 
         for triangle_id in range(self.bcs_triangles.NumOfTriangles()):
             #Get points in physical space.
@@ -326,3 +333,111 @@ class PressureLoad(WeakBcsBase):
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1]) # type: ignore
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2]) # type: ignore
                 id_counter += 1
+
+
+class CouplingPenalty(WeakBcsBase):
+    def __init__(self,
+            master_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            slave_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            master_bounds_xyz: Tuple[Point3D, Point3D],
+            master_bounds_uvw: Tuple[Point3D, Point3D],
+            slave_bounds_xyz: Tuple[Point3D, Point3D],
+            slave_bounds_uvw: Tuple[Point3D, Point3D],
+            penalty_factor: float,
+            slip: bool = False,
+            property_id: int = 1000,
+            master_nurbs_volume_name: str = "NurbsVolume",
+            slave_nurbs_volume_name: str = "NurbsVolume"
+        ) -> None:
+        super(CouplingPenalty, self).__init__(master_triangles, master_bounds_xyz, master_bounds_uvw, master_nurbs_volume_name)
+        self.master_triangles = master_triangles
+        self.slave_triangles = slave_triangles
+        self.slave_bounds_xyz = slave_bounds_xyz
+        self.slave_bounds_uvw = slave_bounds_uvw
+        self.penalty_factor = float(penalty_factor)
+        self.slip = bool(slip)
+        self.property_id = int(property_id)
+        self.slave_nurbs_volume_name = slave_nurbs_volume_name
+        self._cache = []
+
+    @staticmethod
+    def is_weak_condition() -> bool:
+        return False
+
+    def apply(self, model_part: KM.ModelPart) -> None:
+        if self.master_triangles.NumOfTriangles() != self.slave_triangles.NumOfTriangles():
+            raise RuntimeError(
+                "CouplingPenalty :: Master/slave triangle counts differ: "
+                f"{self.master_triangles.NumOfTriangles()} != {self.slave_triangles.NumOfTriangles()}"
+            )
+
+        properties = model_part.GetProperties()[self.property_id]
+        properties.SetValue(IgaApplication.PENALTY_FACTOR, self.penalty_factor) # type: ignore
+        properties.SetValue(IgaApplication.COUPLING_SLIP, self.slip) # type: ignore
+
+        master_volume = model_part.GetGeometry(self.nurbs_volume_name)
+        slave_volume = model_part.GetGeometry(self.slave_nurbs_volume_name)
+        id_counter = model_part.GetRootModelPart().NumberOfConditions() + 1
+        id_counter_0 = id_counter
+
+        created_conditions = 0
+        skipped_zero_area = 0
+        skipped_qp_mismatch = 0
+        skipped_empty_parts = 0
+
+        for triangle_id in range(self.master_triangles.NumOfTriangles()):
+            master_params = [
+                point_from_global_to_param_space(self.master_triangles.P1(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.master_triangles.P2(triangle_id), self.bounds_xyz, self.bounds_uvw),
+                point_from_global_to_param_space(self.master_triangles.P3(triangle_id), self.bounds_xyz, self.bounds_uvw),
+            ]
+            slave_params = [
+                point_from_global_to_param_space(self.slave_triangles.P1(triangle_id), self.slave_bounds_xyz, self.slave_bounds_uvw),
+                point_from_global_to_param_space(self.slave_triangles.P2(triangle_id), self.slave_bounds_xyz, self.slave_bounds_uvw),
+                point_from_global_to_param_space(self.slave_triangles.P3(triangle_id), self.slave_bounds_xyz, self.slave_bounds_uvw),
+            ]
+
+            if QuESo.TriangleMesh.AspectRatioStatic(*master_params) >= 1e8: # type: ignore
+                continue
+            if QuESo.TriangleMesh.AspectRatioStatic(*slave_params) >= 1e8: # type: ignore
+                continue
+
+            master_nodes = [KM.Node(i + 1, *param) for i, param in enumerate(master_params)]
+            slave_nodes = [KM.Node(i + 1, *param) for i, param in enumerate(slave_params)]
+            master_geom = KM.Triangle3D3(*master_nodes)
+            slave_geom = KM.Triangle3D3(*slave_nodes)
+
+            master_surface = KM.SurfaceInNurbsVolumeGeometry(master_volume, master_geom)
+            slave_surface = KM.SurfaceInNurbsVolumeGeometry(slave_volume, slave_geom)
+
+            master_qpg = KM.GeometriesVector()
+            slave_qpg = KM.GeometriesVector()
+            master_surface.CreateQuadraturePointGeometries(master_qpg, 2)
+            slave_surface.CreateQuadraturePointGeometries(slave_qpg, 2)
+
+            model_part.CreateNewCouplingCondition(
+                id_counter,
+                master_qpg[0],
+                slave_qpg[0],
+                properties,
+            )
+
+            id_counter += 1
+            created_conditions += 1
+
+        # KM.Logger.PrintInfo(
+        #     "CouplingPenalty",
+        #     (
+        #         f"created={created_conditions}, skipped_zero_area={skipped_zero_area}, "
+        #         f"skipped_qp_mismatch={skipped_qp_mismatch}, skipped_empty_parts={skipped_empty_parts}, "
+        #         "skipped_empty_coupling_geom=0"
+        #     )
+        # )
+        if created_conditions == 0:
+            raise RuntimeError(
+                "CouplingPenalty :: No coupling conditions were created. "
+                f"Details: triangles={self.master_triangles.NumOfTriangles()}, "
+                f"created={created_conditions}, skipped_zero_area={skipped_zero_area}, "
+                f"skipped_qp_mismatch={skipped_qp_mismatch}, skipped_empty_parts={skipped_empty_parts}, "
+                "skipped_empty_coupling_geom=0."
+            )

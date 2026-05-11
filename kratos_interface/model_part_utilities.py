@@ -113,10 +113,60 @@ class ModelPartUtilities:
             TriangleMesh.AddNormal(normal)
 
     @staticmethod
+    def _create_bc_from_settings(condition_settings, segment, nurbs_volume_name: str = "NurbsVolume"):
+        type_name = condition_settings["condition_type"]
+        if type_name == "PenaltySupportCondition":
+            return PenaltySupport(
+                segment.GetTriangleMesh(),
+                None,
+                None,
+                condition_settings["value"],
+                condition_settings["penalty_factor"],
+                nurbs_volume_name,
+            )
+        if type_name == "LagrangeSupportCondition":
+            return LagrangeSupport(
+                segment.GetTriangleMesh(),
+                None,
+                None,
+                condition_settings["value"],
+                nurbs_volume_name,
+            )
+        if type_name == "SurfaceLoadCondition":
+            return SurfaceLoad(
+                segment.GetTriangleMesh(),
+                None,
+                None,
+                condition_settings["modulus"],
+                condition_settings["direction"],
+                nurbs_volume_name,
+            )
+        if type_name == "PressureLoadCondition":
+            return PressureLoad(
+                segment.GetTriangleMesh(),
+                None,
+                None,
+                condition_settings["modulus"],
+                nurbs_volume_name,
+            )
+        available_conditions = (
+            "PenaltySupportCondition",
+            "LagrangeSupportCondition",
+            "SurfaceLoadCondition",
+            "PressureLoadCondition",
+        )
+        options = ", ".join(f'"{cond}"' for cond in available_conditions)
+        raise Exception(f"Given condition type '{type_name}' is not available. Available options are: {options}.")
+
+    @staticmethod
     def add_elements_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Elements: QuESo.ElementVector # type: ignore (TODO: add .pyi)
-        ) -> None:
+            Elements: QuESo.ElementVector, # type: ignore (TODO: add .pyi)
+            properties_id: int,
+            nurbs_volume_name: str = "NurbsVolume",
+            first_element_id: int | None = None,
+            element_name: str = "UpdatedLagrangianElement3D8N"
+        ) -> int:
         """
         Adds the QuESo elements to the Kratos NurbsVolume ModelPart.
 
@@ -124,10 +174,15 @@ class ModelPartUtilities:
             KratosNurbsVolumeModelPart (KM.ModelPart): The Kratos model part to which the elements will be added.
             Elements (QuESo.ElementVector): List of QuESo elements to add to the model part.
         """
-        nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry("NurbsVolume")
-        volume_properties = KratosNurbsVolumeModelPart.GetProperties()[1]
+        nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry(nurbs_volume_name)
+        volume_properties = KratosNurbsVolumeModelPart.GetProperties()[properties_id]
 
-        el_count = 0
+        if first_element_id is None:
+            el_count = KratosNurbsVolumeModelPart.NumberOfElements()
+        else:
+            el_count = int(first_element_id) - 1
+
+        print("numver_of_element: ", len(Elements))
         for element in Elements:
             # Collect valid integration points
             integration_points = [
@@ -143,18 +198,21 @@ class ModelPartUtilities:
                 quadrature_point_geometries = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
                 KratosNurbsVolumeModelPart.CreateNewElement(
-                    'SmallDisplacementElement3D8N',
+                    element_name,
                     el_count,
                     quadrature_point_geometries[0],
                     volume_properties
                 )
 
+        return el_count
+
     @staticmethod
     def add_conditions_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Conditions: QuESo.ConditionVector, # type: ignore (TODO: add .pyi)
+            Conditions,
             BoundsXYZ: Tuple[Point3D, Point3D],
-            BoundsUVW: Tuple[Point3D, Point3D]
+            BoundsUVW: Tuple[Point3D, Point3D],
+            nurbs_volume_name: str = "NurbsVolume"
         ) -> None:
         """
         Adds the QuESo conditions to the Kratos NurbsVolume ModelPart.
@@ -166,55 +224,35 @@ class ModelPartUtilities:
             BoundsUVW (Tuple[Point3D, Point3D]): Lower and upper bounds in UVW coordinates for the conditions.
         """
 
-        # Define a mapping of condition types to their handlers
-        condition_handlers = {
-            "PenaltySupportCondition": lambda settings, segment: PenaltySupport(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDoubleVector("value"),
-                settings.GetDouble("penalty_factor")
-            ),
-            "LagrangeSupportCondition": lambda settings, segment: LagrangeSupport(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDoubleVector("value")
-            ),
-            "SurfaceLoadCondition": lambda settings, segment: SurfaceLoad(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDouble("modulus"),
-                settings.GetDoubleVector("direction")
-            ),
-            "PressureLoadCondition": lambda settings, segment: PressureLoad(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDouble("modulus")
-            )
-        }
-
         boundary_conditions = []
         for bc in Conditions:
-            if bc.is_weak_condition():
+            if isinstance(bc, dict):
+                if "segments" not in bc:
+                    raise RuntimeError("Boundary condition definition must contain 'segments'.")
+                for segment in bc["segments"]:
+                    weak_bc = ModelPartUtilities._create_bc_from_settings(bc, segment, nurbs_volume_name)
+                    weak_bc.bounds_xyz = BoundsXYZ
+                    weak_bc.bounds_uvw = BoundsUVW
+                    boundary_conditions.append(weak_bc)
+            elif bc.is_weak_condition():
                 condition_settings = bc.GetSettings()
                 type_name = condition_settings.GetString("condition_type")
 
-                if type_name not in condition_handlers:
-                    available_conditions = (
-                        "PenaltySupportCondition",
-                        "LagrangeSupportCondition",
-                        "SurfaceLoadCondition",
-                        "PressureLoadCondition"
-                    )
-                    options = ', '.join(f'"{cond}"' for cond in available_conditions)
-                    raise Exception(f"Given condition type '{type_name}' is not available. Available options are: {options}.")
-
-                handler = condition_handlers[type_name]
                 for segment in bc:
-                    boundary_conditions.append(handler(condition_settings, segment))
+                    weak_bc = ModelPartUtilities._create_bc_from_settings(
+                        {
+                            "condition_type": type_name,
+                            "value": condition_settings.GetDoubleVector("value") if condition_settings.Has("value") else [0.0, 0.0, 0.0],
+                            "penalty_factor": condition_settings.GetDouble("penalty_factor") if condition_settings.Has("penalty_factor") else 0.0,
+                            "modulus": condition_settings.GetDouble("modulus") if condition_settings.Has("modulus") else 0.0,
+                            "direction": condition_settings.GetDoubleVector("direction") if condition_settings.Has("direction") else [0.0, 0.0, 0.0],
+                        },
+                        segment,
+                        nurbs_volume_name,
+                    )
+                    weak_bc.bounds_xyz = BoundsXYZ
+                    weak_bc.bounds_uvw = BoundsUVW
+                    boundary_conditions.append(weak_bc)
             else:
                 boundary_conditions.append(bc)
 
