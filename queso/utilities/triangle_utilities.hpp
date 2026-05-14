@@ -162,17 +162,17 @@ namespace TriangleUtilities {
         const auto &P3 = rTriangle.P3;
 
         for (IndexType i = 0; i < point_numbers; ++i) {
-            const double x = detail::ShapeFunctionValue(0, s_integration_points[i].data()) * P1[0]
-                             + detail::ShapeFunctionValue(1, s_integration_points[i].data()) * P2[0]
-                             + detail::ShapeFunctionValue(2, s_integration_points[i].data()) * P3[0];
+            const double x = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[0]
+                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * P2[0]
+                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * P3[0];
 
-            const double y = detail::ShapeFunctionValue(0, s_integration_points[i].data()) * P1[1]
-                             + detail::ShapeFunctionValue(1, s_integration_points[i].data()) * P2[1]
-                             + detail::ShapeFunctionValue(2, s_integration_points[i].data()) * P3[1];
+            const double y = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[1]
+                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * P2[1]
+                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * P3[1];
 
-            const double z = detail::ShapeFunctionValue(0, s_integration_points[i].data()) * P1[2]
-                             + detail::ShapeFunctionValue(1, s_integration_points[i].data()) * P2[2]
-                             + detail::ShapeFunctionValue(2, s_integration_points[i].data()) * P3[2];
+            const double z = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[2]
+                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * P2[2]
+                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * P3[2];
 
             // Normalize weights to 1 by multiplying by 2.
             const double weight = 2.0 * s_integration_points[i].Weight() * Area(rTriangle);

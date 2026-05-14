@@ -208,7 +208,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
         for(const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
             for (const auto& r_point : r_points) {
-                auto point_global = r_element.PointFromParamToGlobal(r_point.data());
+                auto point_global = r_element.PointFromParamToGlobal(r_point.Point());
                 binary_writer.WriteValue(point_global[0]);
                 binary_writer.WriteValue(point_global[1]);
                 binary_writer.WriteValue(point_global[2]);
@@ -218,7 +218,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
         for(const auto& r_element : rBackgroundGrid.Elements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
             for (const auto& r_point : r_points) {
-                auto point_global = r_element.PointFromParamToGlobal(r_point.data());
+                auto point_global = r_element.PointFromParamToGlobal(r_point.Point());
                 file << point_global[0] << ' ' << point_global[1] << ' ' << point_global[2] << '\n';
             }
         }

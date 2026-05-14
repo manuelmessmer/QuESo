@@ -177,21 +177,17 @@ protected:
         std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
 
         // Loop over all boundary integration points.
-        IndexType row_index = 0UL;
-        const auto begin_points_it = pIntegrationPoints->begin();
-        for( IndexType i = 0; i < pIntegrationPoints->size(); ++i ){
-            // Get iterator
-            auto point_it = (begin_points_it + i);
+		for( const auto& r_point : (*pIntegrationPoints) ) {
             // For all functions
-            row_index = 0;
-            const double weight = point_it->Weight();
+			IndexType row_index = 0UL;
+            const double weight = r_point.Weight();
             for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
                 for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                     for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
                         // Assemble RHS
-                        const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
-                            * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
-                            * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
+                        const double value = Polynomial::f_x(r_point[0], i_x, a[0], b[0])
+                            * Polynomial::f_x(r_point[1], i_y, a[1], b[1])
+                            * Polynomial::f_x(r_point[2], i_z, a[2], b[2]);
                         rConstantTerms[row_index] += value * weight;
                         row_index++;
                     }
@@ -238,33 +234,30 @@ protected:
 
         // Loop over all boundary integration points.
         IndexType row_index = 0;
-        const auto begin_points_it_ptr = pBoundaryIPs->begin();
-        for( IndexType i = 0; i < pBoundaryIPs->size(); ++i ){
-            // Note: The evaluation of polynomials is expensive. Therefore, precompute and store values
+		for( const auto& r_point : (*pBoundaryIPs) ) {
+            // Note: The evaluation of polynomials is expensive. Therefore, we precompute and store values
             // for f_x_x and f_x_int at each point.
-            auto point_it = (begin_points_it_ptr + static_cast<std::ptrdiff_t>(i));
-            const auto& normal = point_it->Normal();
-            PointType point = point_it->data();
+            const auto& normal = r_point.Normal();
 
             // X-Direction
             for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-                f_x_x[i_x] = Polynomial::f_x(point[0], i_x, a[0], b[0]);
-                f_x_int_x[i_x] = Polynomial::f_x_int(point[0], i_x, a[0], b[0]);
+                f_x_x[i_x] = Polynomial::f_x(r_point[0], i_x, a[0], b[0]);
+                f_x_int_x[i_x] = Polynomial::f_x_int(r_point[0], i_x, a[0], b[0]);
             }
             // Y-Direction
             for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y){
-                f_x_y[i_y] = Polynomial::f_x(point[1], i_y, a[1], b[1]);
-                f_x_int_y[i_y] = Polynomial::f_x_int(point[1], i_y, a[1], b[1]);
+                f_x_y[i_y] = Polynomial::f_x(r_point[1], i_y, a[1], b[1]);
+                f_x_int_y[i_y] = Polynomial::f_x_int(r_point[1], i_y, a[1], b[1]);
             }
             // Z-Direction
             for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                f_x_z[i_z] = Polynomial::f_x(point[2], i_z, a[2], b[2]);
-                f_x_int_z[i_z] = Polynomial::f_x_int(point[2], i_z, a[2], b[2]);
+                f_x_z[i_z] = Polynomial::f_x(r_point[2], i_z, a[2], b[2]);
+                f_x_int_z[i_z] = Polynomial::f_x_int(r_point[2], i_z, a[2], b[2]);
             }
 
             // Assembly RHS
             row_index = 0;
-            const double weight = 1.0/3.0*point_it->Weight();
+            const double weight = 1.0/3.0*r_point.Weight();
             for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
                 for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                     for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
@@ -316,9 +309,9 @@ protected:
             for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
                 for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                     for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                        const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
-                                        * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
-                                        * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
+                        const double value = Polynomial::f_x((*point_it)[0], i_x, a[0], b[0])
+                                        * Polynomial::f_x((*point_it)[1], i_y, a[1], b[1])
+                                        * Polynomial::f_x((*point_it)[2], i_z, a[2], b[2]);
                         // Matrix is serialized: Column first.
                         fitting_matrix[column_index*number_of_functions + row_index] = value;
                         row_index++;

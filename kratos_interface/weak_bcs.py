@@ -235,16 +235,16 @@ class SurfaceLoad(WeakBcsBase):
 
             #Create kratos condition on each point.
             for point in points:
-                global_point = (point.X(), point.Y(), point.Z())
+                global_point = (point.x, point.y, point.z)
                 #Map points to local space of B-Spline box
                 local_point = point_from_global_to_param_space(global_point, self.bounds_xyz, self.bounds_uvw)
 
                 # Create quadrature points
-                integration_points = [[local_point[0], local_point[1], local_point[2], point.Weight()]]
+                integration_points = [[local_point[0], local_point[1], local_point[2], point.weight]]
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
-                weight = point.Weight() # Weight contains all mapping terms.
+                weight = point.weight # Weight contains all mapping terms.
                 if weight < 1e-14:
                     continue # Skip insignificant weights
 
@@ -298,17 +298,17 @@ class PressureLoad(WeakBcsBase):
 
             #Create kratos condition on each point.
             for point in points:
-                global_point = (point.X(), point.Y(), point.Z())
+                global_point = (point.x, point.y, point.z)
 
                 # Map points to local space of B-Spline box
                 local_point = point_from_global_to_param_space(global_point, self.bounds_xyz, self.bounds_uvw)
 
                 # Create quadrature points
-                integration_points = [[local_point[0], local_point[1], local_point[2], point.Weight()]]
+                integration_points = [[local_point[0], local_point[1], local_point[2], point.weight]]
                 quadrature_point_geometries_boundary = KM.GeometriesVector()
                 nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
 
-                weight = point.Weight() # Weight contains all mapping terms.
+                weight = point.weight # Weight contains all mapping terms.
                 if weight < 1e-14:
                     continue  # Skip insignificant weights
 
@@ -319,7 +319,7 @@ class PressureLoad(WeakBcsBase):
                     properties
                 )
 
-                normal = point.Normal()
+                normal = point.normal
                 force = -1.0 * weight * self.modulus * np.array(normal)
 
                 condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0]) # type: ignore

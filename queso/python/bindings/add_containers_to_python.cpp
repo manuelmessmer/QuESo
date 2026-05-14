@@ -83,6 +83,8 @@ inline std::tuple<double, double, double> ToTuple3(const Vector3d &rV)
 
 } // namespace
 
+using namespace pybind11::literals;
+
 void AddContainersToPython(pybind11::module& m) {
     py::class_<PythonTriangleIterator>(m, "TriangleIterator")
         .def("__iter__", [](PythonTriangleIterator &self) -> PythonTriangleIterator& { return self; }, py::return_value_policy::reference_internal)
@@ -125,40 +127,61 @@ void AddContainersToPython(pybind11::module& m) {
 
     /// Export Integration Points
     py::class_<IntegrationPointType>(m, "IntegrationPoint")
-        .def(py::init<double, double, double, double>())
-        .def("X", [](const IntegrationPointType& self){return self[0];} )
-        .def("Y", [](const IntegrationPointType& self){return self[1];} )
-        .def("Z", [](const IntegrationPointType& self){return self[2];} )
-        .def("Weight", &IntegrationPointType::Weight)
-        .def("SetWeight", &IntegrationPointType::SetWeight)
-        .def("__getitem__",  [](const IntegrationPointType &self, IndexType i){return self[i];} )
+        .def(py::init<double, double, double, double>(), "x"_a, "y"_a, "z"_a, "weight"_a)
+        .def_property_readonly("x", [](const IntegrationPointType& self){return self[0];} )
+        .def_property_readonly("y", [](const IntegrationPointType& self){return self[1];} )
+        .def_property_readonly("z", [](const IntegrationPointType& self){return self[2];} )
+        .def_property_readonly("weight", &IntegrationPointType::Weight)
+        .def("__getitem__",  [](const IntegrationPointType &self, IndexType i){
+				if (i < 0)
+					i += 3;
+				if (i < 0 || i >= 3)
+					throw py::index_error();
+				return self[i];
+			})
         .def("__len__", [](const IntegrationPointType&) { return 3; })
         .def("__iter__", [](const IntegrationPointType &self) {
-            return py::make_iterator(self.data().begin(), self.data().end());
+            return py::make_iterator(self.Point().begin(), self.Point().end());
         }, py::keep_alive<0, 1>())
         .def("__repr__", [](const IntegrationPointType& self) {
             std::ostringstream oss;
             oss << "IntegrationPoint(" << self[0] << ", " << self[1] << ", " << self[2] << ", "
-                << "Weight=" << self.Weight() << ")";
+                << "weight=" << self.Weight() << ")";
             return oss.str();
         });
-    ;
 
     /// Export IntegrationPoint Vector
     py::bind_vector<IntegrationPointVectorType>(m, "IntegrationPointVector");
 
-    /// Export BoundaryIntegrationPoint
-    py::class_<BoundaryIntegrationPointType, IntegrationPointType>(m, "BoundaryIntegrationPoint")
-        .def(py::init<double, double, double, double, const std::array<double,3>& >())
-        .def("Normal", &BoundaryIntegrationPointType::Normal )
-        .def("__repr__", [](const BoundaryIntegrationPointType& self) {
-            std::ostringstream oss;
-            oss << "IntegrationPoint(" << self[0] << ", " << self[1] << ", " << self[2]
-                << ", Weight=" << self.Weight()
-                << ", Normal=" << self.Normal() << ")";
-            return oss.str();
-        });
-    ;
+	/// Export BoundaryIntegrationPoint
+	py::class_<BoundaryIntegrationPointType>(m, "BoundaryIntegrationPoint")
+		.def(py::init<double, double, double, double, const std::array<double, 3>&>(), "x"_a, "y"_a, "z"_a, "weight"_a, "normal"_a)
+		.def_property_readonly("x", [](const BoundaryIntegrationPointType& self) { return self[0]; })
+		.def_property_readonly("y", [](const BoundaryIntegrationPointType& self) { return self[1]; })
+		.def_property_readonly("z", [](const BoundaryIntegrationPointType& self) { return self[2]; })
+		.def_property_readonly("weight", &BoundaryIntegrationPointType::Weight)
+		.def_property_readonly("normal", &BoundaryIntegrationPointType::Normal, py::return_value_policy::reference_internal)
+		.def("__getitem__",
+			[](const BoundaryIntegrationPointType& self, IndexType i) {
+				if (i < 0)
+					i += 3;
+				if (i < 0 || i >= 3)
+					throw py::index_error();
+				return self[i];
+			})
+		.def("__len__", [](const BoundaryIntegrationPointType&) { return 3; })
+		.def(
+			"__iter__",
+			[](const BoundaryIntegrationPointType& self) {
+				return py::make_iterator(self.Point().begin(), self.Point().end());
+			},
+			py::keep_alive<0, 1>())
+		.def("__repr__", [](const BoundaryIntegrationPointType& self) {
+			std::ostringstream oss;
+			oss << "BoundaryIntegrationPoint(" << self[0] << ", " << self[1] << ", " << self[2]
+				<< ", weight=" << self.Weight() << ", normal=" << self.Normal() << ")";
+			return oss.str();
+		});
 
     /// Export BoundaryIntegrationPoint Vector
     py::bind_vector<BoundaryIpVectorType>(m, "BoundaryIPVector");
