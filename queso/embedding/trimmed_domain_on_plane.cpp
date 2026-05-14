@@ -28,25 +28,18 @@ typedef TrimmedDomainOnPlane::Edge2D Edge2D;
 typedef TrimmedDomainOnPlane::Point2DType Point2DType;
 typedef TrimmedDomainOnPlane::Point2DSetType Point2DSetType;
 
-void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMeshInterface &rTriangleMesh)
+void TrimmedDomainOnPlane::CollectEdgesOnPlane(const ClippedTriangleMesh &rTriangleMesh)
 {
-    const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlanes();
-    const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);
-
-    const auto& r_vertices = rTriangleMesh.GetVertices();
-    const auto& edges_on_plane = edges_on_planes[plane_index];
+    const SignedAxis axis = static_cast<SignedAxis>(DIRINDEX3 * 2UL + static_cast<IndexType>(mUpperBoundary));
+    const IndexType num_edges = rTriangleMesh.NumberOfEdges(axis);
     // Should only require 2UL*edges_on_plane.size(), however small buffer is used.
     // Note, initial capacity must be large enough. New allocation is not allowed and will crash.
-    Reserve( std::max<IndexType>(3UL*edges_on_plane.size(), 10UL) );
-    for( const auto& edge : edges_on_plane ){
-        const IndexType vertex_index_1 = std::get<0>(edge);
-        const IndexType vertex_index_2 = std::get<1>(edge);
-        const IndexType normal_index = std::get<2>(edge);
-
-        const auto& P1 = r_vertices[vertex_index_1];
-        const auto& P2 = r_vertices[vertex_index_2];
-        const auto& normal = rTriangleMesh.Normal(normal_index);
-        InsertEdge(P1, P2, normal);
+    Reserve( std::max<IndexType>(3UL*num_edges, 10UL) );
+    for( const auto& edge : rTriangleMesh.Edges(axis) ){
+        InsertEdge(
+            Point3DType{ edge.mP1[0], edge.mP1[1], edge.mP1[2] },
+            Point3DType{ edge.mP2[0], edge.mP2[1], edge.mP2[2] },
+            Point3DType{ edge.mNormal[0], edge.mNormal[1], edge.mNormal[2] });
     }
 }
 
@@ -264,7 +257,7 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
     auto &r_edges_origin = GetEdges(orientation_origin);
 
     //Instantiate new mesh ptr.
-    auto p_new_mesh = MakeUnique<TriangleMesh>();
+    auto p_new_mesh = MakeUnique<ClippedTriangleMesh>();
     p_new_mesh->Reserve(5 * r_edges_origin.size());
 
     // Loop over positive oriented edges.
@@ -289,18 +282,20 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 tmp_point[DIRINDEX3] = plane_position;
                 tmp_point[DIRINDEX1] = v1_low[0];
                 tmp_point[DIRINDEX2] = v1_low[1];
-                IndexType v1 = p_new_mesh->AddVertex(tmp_point);
+                const IndexType v1 = p_new_mesh->NumOfVertices();
+                p_new_mesh->AddVertex(tmp_point);
                 tmp_point[DIRINDEX1] = v2_low[0];
                 tmp_point[DIRINDEX2] = v2_low[1];
-                IndexType v2 = p_new_mesh->AddVertex(tmp_point);
+                const IndexType v2 = p_new_mesh->NumOfVertices();
+                p_new_mesh->AddVertex(tmp_point);
                 tmp_point[DIRINDEX1] = v2_up[0];
                 tmp_point[DIRINDEX2] = v2_up[1];
-                IndexType v3 = p_new_mesh->AddVertex(tmp_point);
+                const IndexType v3 = p_new_mesh->NumOfVertices();
+                p_new_mesh->AddVertex(tmp_point);
                 if (mUpperBoundary ^ mSwitchOrientation)
-                    p_new_mesh->AddTriangle(Vector3i{v1, v2, v3});
+                    p_new_mesh->AddTriangle(Vector3i{v1, v2, v3}, normal);
                 else
-                    p_new_mesh->AddTriangle(Vector3i{v2, v1, v3});
-                p_new_mesh->AddNormal(normal);
+                    p_new_mesh->AddTriangle(Vector3i{v2, v1, v3}, normal);
 
                 skip = true; // Skip polygon construction.
             }
@@ -314,18 +309,20 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 tmp_point[DIRINDEX3] = plane_position;
                 tmp_point[DIRINDEX1] = v1_low[0];
                 tmp_point[DIRINDEX2] = v1_low[1];
-                IndexType v1 = p_new_mesh->AddVertex(tmp_point);
+                const IndexType v1 = p_new_mesh->NumOfVertices();
+                p_new_mesh->AddVertex(tmp_point);
                 tmp_point[DIRINDEX1] = v2_low[0];
                 tmp_point[DIRINDEX2] = v2_low[1];
-                IndexType v2 = p_new_mesh->AddVertex(tmp_point);
+                const IndexType v2 = p_new_mesh->NumOfVertices();
+                p_new_mesh->AddVertex(tmp_point);
                 tmp_point[DIRINDEX1] = v1_up[0];
                 tmp_point[DIRINDEX2] = v1_up[1];
-                IndexType v3 = p_new_mesh->AddVertex(tmp_point);
+                const IndexType v3 = p_new_mesh->NumOfVertices();
+                p_new_mesh->AddVertex(tmp_point);
                 if (mUpperBoundary ^ mSwitchOrientation)
-                    p_new_mesh->AddTriangle(Vector3i{v1, v2, v3});
+                    p_new_mesh->AddTriangle(Vector3i{v1, v2, v3}, normal);
                 else
-                    p_new_mesh->AddTriangle(Vector3i{v2, v1, v3});
-                p_new_mesh->AddNormal(normal);
+                    p_new_mesh->AddTriangle(Vector3i{v2, v1, v3}, normal);
 
                 skip = true; // Skip polygon construction.
             }

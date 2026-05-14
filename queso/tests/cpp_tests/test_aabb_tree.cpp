@@ -21,6 +21,7 @@
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/aabb_primitive.h"
 #include "queso/embedding/aabb_tree.h"
+#include "queso/utilities/triangle_utilities.hpp"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
 
@@ -38,7 +39,7 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(triangle_mesh.View());
 
     Vector3d lower_bound = {-2.0, -2, -2};
     Vector3d upper_bound = {-1.5, 2, 2};
@@ -49,15 +50,13 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest1) {
     std::vector<IndexType> intersected_triangles{};
 
     for( auto r : results){
-        const auto& p1 = triangle_mesh.P1(r);
-        const auto& p2 = triangle_mesh.P2(r);
-        const auto& p3 = triangle_mesh.P3(r);
+        const auto tri = triangle_mesh.Triangle<WithoutNormals>(r);
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
-        QuESo_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
+        QuESo_CHECK( !aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance_1) );
         // If tolerance=0 intersection is detected.
         const double tolerance_2 = 0.0;
-        QuESo_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
+        QuESo_CHECK( aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance_2) );
     }
     QuESo_CHECK_EQUAL(intersected_triangles.size(), 0);
 
@@ -73,7 +72,7 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cube_with_cavity.stl");
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(triangle_mesh.View());
 
     Vector3d lower_bound = {1.5, -2, -2};
     Vector3d upper_bound = {5.0, 2, 2};
@@ -84,15 +83,13 @@ BOOST_AUTO_TEST_CASE(TouchingCubeTest2) {
     std::vector<IndexType> intersected_triangles{};
 
     for( auto r : results){
-        const auto& p1 = triangle_mesh.P1(r);
-        const auto& p2 = triangle_mesh.P2(r);
-        const auto& p3 = triangle_mesh.P3(r);
+        const auto tri = triangle_mesh.Triangle<WithoutNormals>(r);
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
-        QuESo_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
+        QuESo_CHECK( !aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance_1) );
         // If tolerance=0 intersection is detected.
         const double tolerance_2 = 0.0;
-        QuESo_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
+        QuESo_CHECK( aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance_2) );
     }
     QuESo_CHECK_EQUAL(intersected_triangles.size(), 0);
 
@@ -108,10 +105,11 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     triangle_mesh.AddVertex({0.0,0.0,0.0});
     triangle_mesh.AddVertex({-1.0,1.0,0.0});
     triangle_mesh.AddVertex({-1.0,1.0,1.0});
-    triangle_mesh.AddTriangle({0, 1, 2});
+    triangle_mesh.AddTriangle({0, 1, 2}, TriangleUtilities::Normal(TriangleProxy<WithoutNormals>{
+        triangle_mesh.Vertex(0), triangle_mesh.Vertex(1), triangle_mesh.Vertex(2)}));
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(triangle_mesh.View());
 
     // Lower bound touched triangle.
     Vector3d lower_bound = {-0.5, 0.5, 0.1};
@@ -125,17 +123,15 @@ BOOST_AUTO_TEST_CASE(TouchingTriangleTest) {
     std::vector<IndexType> intersected_triangles{};
 
     for( auto r : results){
-        const auto& p1 = triangle_mesh.P1(r);
-        const auto& p2 = triangle_mesh.P2(r);
-        const auto& p3 = triangle_mesh.P3(r);
+        const auto tri = triangle_mesh.Triangle<WithoutNormals>(r);
 
         // If tolerance>=0 intersection is not detected.
         const double tolerance_1 = 1e-8;
-        QuESo_CHECK( !aabb.intersect(p1, p2, p3, tolerance_1) );
+        QuESo_CHECK( !aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance_1) );
 
         // If tolerance=0 intersection is detected.
         const double tolerance_2 = 0.0;
-        QuESo_CHECK( aabb.intersect(p1, p2, p3, tolerance_2) );
+        QuESo_CHECK( aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance_2) );
     }
 } // End TouchingTriangleTest
 
@@ -148,7 +144,7 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
     IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
 
     // Build aabb tree
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(triangle_mesh.View());
 
     // Open results file. Results are checked with CGAL
     std::ifstream myfile(base_dir + "/results/aabb_cylinder.txt");
@@ -172,11 +168,9 @@ BOOST_AUTO_TEST_CASE(CylinderFindIntersectedTrianglesTest) {
                 std::vector<IndexType> intersected_triangles{};
 
                 for( auto r : results){
-                    const auto& p1 = triangle_mesh.P1(r);
-                    const auto& p2 = triangle_mesh.P2(r);
-                    const auto& p3 = triangle_mesh.P3(r);
+                    const auto tri = triangle_mesh.Triangle<WithoutNormals>(r);
                     const double tolerance = 0.0;
-                    if( aabb.intersect(p1, p2, p3, tolerance) ){
+                    if( aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance) ){
                         intersected_triangles.push_back(r);
                     }
                 }
@@ -209,7 +203,7 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
     IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
 
     // Build aabb tree.
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(triangle_mesh.View());
 
     // Open results file. Results are verified with CGAL. Touching triangles are not considered as intersected.
     std::ifstream myfile(base_dir + "/results/aabb_elephant.txt");
@@ -226,11 +220,9 @@ BOOST_AUTO_TEST_CASE(ElephantFindIntersectedTrianglesTest) {
 
                 std::vector<IndexType> intersected_triangles{};
                 for( auto r : results){
-                    const auto& p1 = triangle_mesh.P1(r);
-                    const auto& p2 = triangle_mesh.P2(r);
-                    const auto& p3 = triangle_mesh.P3(r);
+                    const auto tri = triangle_mesh.Triangle<WithoutNormals>(r);
                     const double tolerance = 0.0;
-                    if( aabb.intersect(p1, p2, p3, tolerance) ){
+                    if( aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance) ){
                         intersected_triangles.push_back(r);
                     }
                 }
@@ -264,7 +256,7 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
     IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/stanford_bunny.stl");
 
     // Build aabb tree.
-    AABB_tree tree(triangle_mesh);
+    AABB_tree tree(triangle_mesh.View());
 
     // Read results file. Results are verified with CGAL:
     std::ifstream myfile(base_dir + "/results/aabb_bunny.txt");
@@ -281,11 +273,9 @@ BOOST_AUTO_TEST_CASE(BunnyFindIntersectedTrianglesTest) {
 
                 std::vector<IndexType> intersected_triangles{};
                 for( auto r : results){
-                    const auto& p1 = triangle_mesh.P1(r);
-                    const auto& p2 = triangle_mesh.P2(r);
-                    const auto& p3 = triangle_mesh.P3(r);
+                    const auto tri = triangle_mesh.Triangle<WithoutNormals>(r);
                     const double tolerance = 0.0;
-                    if( aabb.intersect(p1, p2, p3, tolerance) ){
+                    if( aabb.intersect(tri.P1, tri.P2, tri.P3, tolerance) ){
                         intersected_triangles.push_back(r);
                     }
 

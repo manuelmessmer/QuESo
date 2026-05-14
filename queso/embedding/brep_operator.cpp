@@ -16,11 +16,12 @@
 #include <random>
 
 //// Project includes
-#include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/ray_aabb_primitive.h"
 #include "queso/embedding/clipper.h"
 #include "queso/embedding/flood_fill.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/utilities/triangle_utilities.hpp"
 
 
 namespace queso {
@@ -47,7 +48,7 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
 
             // Normalize
             const double norm_direction = Math::Norm( direction );
-            Math::DivideSelf( direction, norm_direction);
+            direction /= norm_direction;
 
             // Construct ray
             Ray_AABB_primitive ray(rPoint, direction);
@@ -68,18 +69,18 @@ bool BRepOperator::IsInside(const PointType& rPoint) const {
     return false;
 }
 
-bool BRepOperator::IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance) const {
+bool BRepOperator::IsTrimmed(PointView rLowerBound, PointView rUpperBound, double Tolerance) const {
     return mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance);
 }
 
 
-bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const {
-    double tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, SNAPTOL);
+bool BRepOperator::OnBoundedSideOfClippedSection(const PointType& rPoint, PointView rLowerBound, PointView rUpperBound) const {
+    const double tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, SNAPTOL);
 
     auto p_clipped_mesh = pClipTriangleMesh(rLowerBound, rUpperBound);
     auto& clipped_mesh = *p_clipped_mesh;
 
-    GeometryQuery geometry_query_local(clipped_mesh, false);
+    GeometryQuery geometry_query_local(clipped_mesh.MeshView(), false);
 
     IndexType current_id = 0;
     const IndexType num_triangles = clipped_mesh.NumOfTriangles();
@@ -88,24 +89,26 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
     IndexType success_count = 0;
     int inside_count = 0;
     while( success_count < 10 && current_id < num_triangles ){
+        const auto triangle = clipped_mesh.Triangle<WithoutNormals>(current_id);
+
         // Get direction
-        const auto center_triangle = clipped_mesh.Center(current_id);
-        Vector3d direction = Math::Subtract( center_triangle, rPoint );
+        const auto center_triangle = TriangleUtilities::Center(triangle);
+        Vector3d direction = center_triangle - rPoint;
 
         // Normalize
         double norm_direction = Math::Norm( direction );
-        Math::DivideSelf( direction, norm_direction );
+        direction /= norm_direction;
 
         // Construct ray
         Ray_AABB_primitive ray(rPoint, direction);
 
-        // Get vertices of current triangle
-        const auto& p1 = clipped_mesh.P1(current_id);
-        const auto& p2 = clipped_mesh.P2(current_id);
-        const auto& p3 = clipped_mesh.P3(current_id);
+        // Get vertices of current trianglk
+        const auto& p1 = triangle.P1;
+        const auto& p2 = triangle.P2;
+        const auto& p3 = triangle.P3;
 
         // Make sure target triangle is not parallel and has a significant area.
-        const double area = clipped_mesh.Area(current_id);
+        const double area = TriangleUtilities::Area(triangle);
         if( !ray.is_parallel(p1, p2, p3, 100.0*tolerance) && area >  100*ZEROTOL) {
             auto [is_inside, success] = geometry_query_local.IsInside(ray);
             if( success ){
@@ -123,7 +126,7 @@ bool BRepOperator::OnBoundedSideOfClippedSection( const PointType& rPoint, const
 }
 
 IntersectionState BRepOperator::GetIntersectionState(
-        const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
+        PointView rLowerBound, PointView rUpperBound, double Tolerance) const
 {
 
     if( mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance) ){
@@ -139,7 +142,7 @@ IntersectionState BRepOperator::GetIntersectionState(
     // }
 
     // Test if center is inside or outside.
-    const PointType center = Math::AddAndMult(0.5, rUpperBound, rLowerBound);
+    const PointType center = (0.5 * (rUpperBound + rLowerBound));
     IntersectionState status = (IsInside(center)) ? IntersectionState::inside : IntersectionState::outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.
@@ -152,7 +155,7 @@ Unique<StatusVectorType> BRepOperator::pGetElementClassifications(const MainDict
     return flood_fill.ClassifyElements();
 }
 
-TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
+TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(PointView rLowerBound, PointView rUpperBound,
         double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles, bool NeglectIfMeshIsFlawed ) const {
     // Instantiate random number generator
     std::random_device rd;
@@ -160,11 +163,11 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
     std::uniform_real_distribution<> drandon(1, 100);
 
     // Make copy of lower and upper bound.
-    auto lower_bound = rLowerBound;
-    auto upper_bound = rUpperBound;
+    PointType lower_bound{ rLowerBound[0], rLowerBound[1], rLowerBound[2] };
+    PointType upper_bound{ rUpperBound[0], rUpperBound[1], rUpperBound[2] };
 
     const double snap_tolerance = 10.0*RelativeSnapTolerance(lower_bound, upper_bound);
-    const auto delta = Math::Subtract(upper_bound, lower_bound);
+    const auto delta = (upper_bound - lower_bound);
     const double volume_non_trimmed_domain = delta[0]*delta[1]*delta[2];
 
     Unique<TrimmedDomain> best_prev_solution = nullptr;
@@ -177,10 +180,10 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
             const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
 
-            double volume = MeshUtilities::Volume( r_trimmed_domain_mesh);
+            const double volume = MeshUtilities::Volume(r_trimmed_domain_mesh.View());
             bool volume_ratio = volume / volume_non_trimmed_domain > MinElementVolumeRatio;
 
-            const double epsilon = MeshUtilities::EstimateQuality(r_trimmed_domain_mesh);
+            const double epsilon = MeshUtilities::EstimateQuality(r_trimmed_domain_mesh.View());
             if( epsilon < 1e-5  ){
                 if( volume_ratio )
                     return p_trimmed_domain;
@@ -197,8 +200,8 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
                     PointType lower_perturbation{drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
                     PointType upper_perturbation{drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance, drandon(gen)*snap_tolerance};
 
-                    Math::SubstractSelf( lower_bound, lower_perturbation );
-                    Math::AddSelf(upper_bound, upper_perturbation);
+                    lower_bound -= lower_perturbation;
+                    upper_bound += upper_perturbation;
                 }
             }
         }
@@ -218,56 +221,48 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(const PointType& rLowerBoun
 }
 
 
-Unique<TriangleMeshInterface> BRepOperator::pClipTriangleMesh(
-        const PointType& rLowerBound, const PointType& rUpperBound ) const {
+Unique<ClippedTriangleMesh> BRepOperator::pClipTriangleMesh(
+        PointView rLowerBound, PointView rUpperBound ) const {
 
-    const double snap_tolerance = 0.1*RelativeSnapTolerance(rUpperBound, rLowerBound);
-    auto p_intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(rLowerBound, rUpperBound, snap_tolerance);
-    auto p_triangle_mesh = MakeUnique<TriangleMesh>();
-    p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
-    p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
-    for( auto triangle_id : (*p_intersected_triangle_ids) ){
-        const auto& P1 = mTriangleMesh.P1(triangle_id);
-        const auto& P2 = mTriangleMesh.P2(triangle_id);
-        const auto& P3 = mTriangleMesh.P3(triangle_id);
-        const auto& normal = mTriangleMesh.Normal(triangle_id);
-        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, rLowerBound, rUpperBound );
+    const double snap_tolerance = 0.1*RelativeSnapTolerance(rLowerBound, rUpperBound);
+    const auto intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(rLowerBound, rUpperBound, snap_tolerance);
+    auto p_clipped_mesh = MakeUnique<ClippedTriangleMesh>();
+    p_clipped_mesh->Reserve( 2*intersected_triangle_ids.size() );
+    p_clipped_mesh->ReserveEdgesOnPlane( intersected_triangle_ids.size() );
+    mTriangleMesh.VisitEachTriangle<WithNormals>(intersected_triangle_ids, [&](const auto &triangle) {
+        auto p_polygon = Clipper::ClipTriangle(triangle, rLowerBound, rUpperBound );
         if( p_polygon ){
-            p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
+            p_polygon->AddToTriangleMesh(*p_clipped_mesh);
         }
+    });
+    if( p_clipped_mesh->NumOfTriangles() > 0){
+        p_clipped_mesh->Mesh().Check();
     }
-    if( p_triangle_mesh->NumOfTriangles() > 0){
-        p_triangle_mesh->Check();
-    }
-    return p_triangle_mesh;
+    return p_clipped_mesh;
 }
 
 
-Unique<TriangleMeshInterface> BRepOperator::pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const {
+Unique<ClippedTriangleMesh> BRepOperator::pClipTriangleMeshUnique(PointView rLowerBound, PointView rUpperBound ) const {
     const PointType offset{30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL};
-    const auto lower_bound = Math::Add(rLowerBound, offset);
-    const auto upper_bound = Math::Add(rUpperBound, offset);
+    const auto lower_bound = rLowerBound + offset;
+    const auto upper_bound = rUpperBound + offset;
     double snap_tolerance = 1.0*ZEROTOL;
 
-    auto p_intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
-    auto p_triangle_mesh = MakeUnique<TriangleMesh>();
-    p_triangle_mesh->Reserve( 2*p_intersected_triangle_ids->size() );
-    p_triangle_mesh->ReserveEdgesOnPlane( p_intersected_triangle_ids->size() );
+    const auto intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
+    auto p_clipped_mesh = MakeUnique<ClippedTriangleMesh>();
+    p_clipped_mesh->Reserve( 2*intersected_triangle_ids.size() );
+    p_clipped_mesh->ReserveEdgesOnPlane( intersected_triangle_ids.size() );
 
-    for( auto triangle_id : (*p_intersected_triangle_ids) ){
-        const auto& P1 = mTriangleMesh.P1(triangle_id);
-        const auto& P2 = mTriangleMesh.P2(triangle_id);
-        const auto& P3 = mTriangleMesh.P3(triangle_id);
-        const auto& normal = mTriangleMesh.Normal(triangle_id);
-        auto p_polygon = Clipper::ClipTriangle(P1, P2, P3, normal, lower_bound, upper_bound);
+    mTriangleMesh.VisitEachTriangle<WithNormals>(intersected_triangle_ids, [&](const auto &triangle) {
+        auto p_polygon = Clipper::ClipTriangle(triangle, lower_bound, upper_bound);
         if( p_polygon ){
-            p_polygon->AddToTriangleMesh(*p_triangle_mesh.get());
+            p_polygon->AddToTriangleMesh(*p_clipped_mesh);
         }
+    });
+    if( p_clipped_mesh->NumOfTriangles() > 0){
+        p_clipped_mesh->Mesh().Check();
     }
-    if( p_triangle_mesh->NumOfTriangles() > 0){
-        p_triangle_mesh->Check();
-    }
-    return p_triangle_mesh;
+    return p_clipped_mesh;
 }
 
 } // End namespace queso

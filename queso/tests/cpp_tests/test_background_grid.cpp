@@ -16,6 +16,7 @@
 // Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
 

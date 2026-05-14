@@ -1,6 +1,6 @@
 # Project imports
 from QuESoPythonModule.PyQuESo import PyQuESo
-from QuESoPythonModule import MeshUtilities as MeshUtil
+from QuESoPythonModule import MeshUtil
 from QuESoPythonModule.scripts.helper import *
 from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 # Unittest import

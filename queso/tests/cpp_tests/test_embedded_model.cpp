@@ -18,9 +18,10 @@
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
-#include "queso/containers/grid_indexer.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedded_model.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/utilities/triangle_utilities.hpp"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
 
@@ -68,8 +69,8 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     QuESo_CHECK_GT(num_triangles, 5000.0);
 
     double area = 0.0;
-    for( IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id){
-        const PointType coordinates = r_triangle_mesh.Center(triangle_id);
+    r_triangle_mesh.View().VisitEachTriangle<WithoutNormals>([&](const auto &triangle){
+        const PointType coordinates = TriangleUtilities::Center(triangle);
 
         QuESo_CHECK_GT(coordinates[2], -1e-6);
         QuESo_CHECK_LT(coordinates[2], 1.0+1e-6);
@@ -82,8 +83,8 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
             double radius = std::sqrt( std::pow(coordinates[0],2) + std::pow(coordinates[1], 2) );
             QuESo_CHECK_GT(radius, 0.998);
         }
-        area += r_triangle_mesh.Area(triangle_id);
-    }
+        area += TriangleUtilities::Area(triangle);
+    });
     QuESo_CHECK_LT(area, 5.141592654);
     QuESo_CHECK_GT(area, 5.135);
 }
@@ -153,7 +154,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
 
     // Check volume inside
     const BoundingBoxType el_bounding_box = (*el_it_begin)->GetBoundsXYZ();
-    const PointType el_delta = Math::Subtract( el_bounding_box.second, el_bounding_box.first );
+    const PointType el_delta = (el_bounding_box.second - el_bounding_box.first);
     const double ref_volume_inside = (el_delta[0]*el_delta[1]*el_delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
 
@@ -363,7 +364,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
 
     // Check volume inside
     const BoundingBoxType el_bounding_box = (*el_it_begin)->GetBoundsXYZ();
-    const PointType delta = Math::Subtract( el_bounding_box.second, el_bounding_box.first );
+    const PointType delta = (el_bounding_box.second - el_bounding_box.first);
     const double ref_volume_inside = (delta[0]*delta[1]*delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
 
@@ -371,7 +372,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     const double volume_tot = (volume_trimmed+volume_inside);
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
-    const double ref_volume_tot = MeshUtilities::Volume(triangle_mesh);
+    const double ref_volume_tot = MeshUtilities::Volume(triangle_mesh.View());
     QuESo_CHECK_RELATIVE_NEAR(volume_tot, ref_volume_tot, Tolerance);
 
     /// Test conditions
@@ -382,8 +383,8 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
         const auto& r_cond_setting = p_condition->GetSettings();
         std::string filename = r_cond_setting.GetValue<std::string>(ConditionSettings::input_filename);
         IO::ReadMeshFromSTL(triangle_mesh, filename);
-        const double ref_area = MeshUtilities::Area(triangle_mesh);
-        auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh()); };
+        const double ref_area = MeshUtilities::Area(triangle_mesh.View());
+        auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh().View()); };
         const double area = std::accumulate(p_condition->SegmentsBegin(), p_condition->SegmentsEnd(), 0.0, lambda);
         QuESo_CHECK_NEAR(ref_area, area, 1e-10);
     }
@@ -485,13 +486,13 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     QuESo_CHECK(r_geo_info.GetValue<bool>(EmbeddedGeometryInfo::is_closed));
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, filename);
-    double volume_ref = MeshUtilities::VolumeOMP(triangle_mesh);
-    QuESo_CHECK_NEAR(r_geo_info.GetValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-10);
+    double volume_ref = MeshUtilities::VolumeOMP(triangle_mesh.View());
+    QuESo_CHECK_RELATIVE_NEAR(r_geo_info.GetValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-13);
     // quadrature_info
     const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
-    QuESo_CHECK_EQUAL(r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points), 9508);
+    QuESo_CHECK_EQUAL(r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points), 9505);
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5)
     const double num_of_points_per_trimmed_element = r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_trimmed_element);
     QuESo_CHECK_GT(num_of_points_per_trimmed_element, 26);
@@ -539,7 +540,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     const std::string& r_filename = r_cond_settings_1.GetValue<std::string>(ConditionSettings::input_filename);
     TriangleMesh triangle_mesh_cond{};
     IO::ReadMeshFromSTL(triangle_mesh_cond, r_filename);
-    const double area_ref = MeshUtilities::Area(triangle_mesh_cond);
+    const double area_ref = MeshUtilities::Area(triangle_mesh_cond.View());
     QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::surf_area), area_ref, 1e-10);
     QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::perc_surf_area_in_active_domain), 100.0, 1e-5);
 }

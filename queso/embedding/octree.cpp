@@ -28,11 +28,11 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
     const PointType& r_lower_bound_uvw = mBoundsUVW.first;
     const PointType& r_upper_bound_uvw = mBoundsUVW.second;
     if( this->IsLeaf() ){
-        const auto delta_xyz = Math::SubstractAndMult(0.5, r_upper_bound_xyz, r_lower_bound_xyz);
+        const auto delta_xyz = (0.5 * (r_upper_bound_xyz - r_lower_bound_xyz));
         const PointType delta_x_xyz{delta_xyz[0], 0.0, 0.0};
         const PointType delta_y_xyz{0.0, delta_xyz[1], 0.0};
         const PointType delta_z_xyz{0.0, 0.0, delta_xyz[2]};
-        const auto delta_uvw = Math::SubstractAndMult(0.5, r_upper_bound_uvw, r_lower_bound_uvw);
+        const auto delta_uvw = (0.5 * (r_upper_bound_uvw - r_lower_bound_uvw));
         const PointType delta_x_uvw{delta_uvw[0], 0.0, 0.0};
         const PointType delta_y_uvw{0.0, delta_uvw[1], 0.0};
         const PointType delta_z_uvw{0.0, 0.0, delta_uvw[2]};
@@ -48,29 +48,29 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
         //
         if( (mLevel < MinLevel) || (mLevel < MaxLevel && mStatus == IntersectionState::trimmed) ){
             // Corner a
-            CreateNewNode(MinLevel, MaxLevel, 0, std::make_pair(r_lower_bound_xyz, Math::Add(r_lower_bound_xyz, delta_xyz) ),
-                                                 std::make_pair(r_lower_bound_uvw, Math::Add(r_lower_bound_uvw, delta_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 0, std::make_pair(r_lower_bound_xyz, (r_lower_bound_xyz + delta_xyz) ),
+                                                 std::make_pair(r_lower_bound_uvw, (r_lower_bound_uvw + delta_uvw) ), pOperator);
             // Corner b (a+delta_x)
-            CreateNewNode(MinLevel, MaxLevel, 1, std::make_pair(Math::Add(r_lower_bound_xyz,delta_x_xyz), Math::Add(Math::Add(r_lower_bound_xyz, delta_x_xyz), delta_xyz) ),
-                                                 std::make_pair(Math::Add(r_lower_bound_uvw,delta_x_uvw), Math::Add(Math::Add(r_lower_bound_uvw, delta_x_uvw), delta_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 1, std::make_pair((r_lower_bound_xyz + delta_x_xyz), ((r_lower_bound_xyz + delta_x_xyz) + delta_xyz) ),
+                                                 std::make_pair((r_lower_bound_uvw + delta_x_uvw), ((r_lower_bound_uvw + delta_x_uvw) + delta_uvw) ), pOperator);
             // Corner c (g-delta_z)
-            CreateNewNode(MinLevel, MaxLevel, 2, std::make_pair(Math::Subtract(Math::Subtract(r_upper_bound_xyz, delta_z_xyz), delta_xyz), Math::Subtract(r_upper_bound_xyz, delta_z_xyz) ),
-                                                 std::make_pair(Math::Subtract(Math::Subtract(r_upper_bound_uvw, delta_z_uvw), delta_uvw), Math::Subtract(r_upper_bound_uvw, delta_z_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 2, std::make_pair(((r_upper_bound_xyz - delta_z_xyz) - delta_xyz), (r_upper_bound_xyz - delta_z_xyz) ),
+                                                 std::make_pair(((r_upper_bound_uvw - delta_z_uvw) - delta_uvw), (r_upper_bound_uvw - delta_z_uvw) ), pOperator);
             // Corner d (a+delta_y)
-            CreateNewNode(MinLevel, MaxLevel, 3, std::make_pair(Math::Add(r_lower_bound_xyz, delta_y_xyz), Math::Add(Math::Add(r_lower_bound_xyz, delta_y_xyz), delta_xyz) ),
-                                                 std::make_pair(Math::Add(r_lower_bound_uvw, delta_y_uvw), Math::Add(Math::Add(r_lower_bound_uvw, delta_y_uvw), delta_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 3, std::make_pair((r_lower_bound_xyz + delta_y_xyz), ((r_lower_bound_xyz + delta_y_xyz) + delta_xyz) ),
+                                                 std::make_pair((r_lower_bound_uvw + delta_y_uvw), ((r_lower_bound_uvw + delta_y_uvw) + delta_uvw) ), pOperator);
             // Corner e (a+delta_z)
-            CreateNewNode(MinLevel, MaxLevel, 4, std::make_pair(Math::Add(r_lower_bound_xyz, delta_z_xyz), Math::Add(Math::Add(r_lower_bound_xyz, delta_z_xyz), delta_xyz) ),
-                                                 std::make_pair(Math::Add(r_lower_bound_uvw, delta_z_uvw), Math::Add(Math::Add(r_lower_bound_uvw, delta_z_uvw), delta_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 4, std::make_pair((r_lower_bound_xyz + delta_z_xyz), ((r_lower_bound_xyz + delta_z_xyz) + delta_xyz) ),
+                                                 std::make_pair((r_lower_bound_uvw + delta_z_uvw), ((r_lower_bound_uvw + delta_z_uvw) + delta_uvw) ), pOperator);
             // Corner f (g-delta_y)
-            CreateNewNode(MinLevel, MaxLevel, 5, std::make_pair(Math::Subtract(Math::Subtract(r_upper_bound_xyz, delta_y_xyz), delta_xyz), Math::Subtract(r_upper_bound_xyz, delta_y_xyz) ),
-                                                 std::make_pair(Math::Subtract(Math::Subtract(r_upper_bound_uvw, delta_y_uvw), delta_uvw), Math::Subtract(r_upper_bound_uvw, delta_y_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 5, std::make_pair(((r_upper_bound_xyz - delta_y_xyz) - delta_xyz), (r_upper_bound_xyz - delta_y_xyz) ),
+                                                 std::make_pair(((r_upper_bound_uvw - delta_y_uvw) - delta_uvw), (r_upper_bound_uvw - delta_y_uvw) ), pOperator);
             // Corner g
-            CreateNewNode(MinLevel, MaxLevel, 6, std::make_pair(Math::Subtract(r_upper_bound_xyz, delta_xyz), r_upper_bound_xyz),
-                                                 std::make_pair(Math::Subtract(r_upper_bound_uvw, delta_uvw), r_upper_bound_uvw), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 6, std::make_pair((r_upper_bound_xyz - delta_xyz), r_upper_bound_xyz),
+                                                 std::make_pair((r_upper_bound_uvw - delta_uvw), r_upper_bound_uvw), pOperator);
             // Corner h (g-delta_x)
-            CreateNewNode(MinLevel, MaxLevel, 7, std::make_pair(Math::Subtract(Math::Subtract(r_upper_bound_xyz, delta_x_xyz), delta_xyz), Math::Subtract(r_upper_bound_xyz, delta_x_xyz) ),
-                                                 std::make_pair(Math::Subtract(Math::Subtract(r_upper_bound_uvw, delta_x_uvw), delta_uvw), Math::Subtract(r_upper_bound_uvw, delta_x_uvw) ), pOperator);
+            CreateNewNode(MinLevel, MaxLevel, 7, std::make_pair(((r_upper_bound_xyz - delta_x_xyz) - delta_xyz), (r_upper_bound_xyz - delta_x_xyz) ),
+                                                 std::make_pair(((r_upper_bound_uvw - delta_x_uvw) - delta_uvw), (r_upper_bound_uvw - delta_x_uvw) ), pOperator);
 
         }
     }

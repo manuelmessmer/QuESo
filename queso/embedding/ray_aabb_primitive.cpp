@@ -171,12 +171,12 @@ bool Ray_AABB_primitive::intersect_general(const AABB_primitive &aabb) const {
     return true;
 }
 
-bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
+bool Ray_AABB_primitive::intersect(PointView v0, PointView v1, PointView v2,
                 double &t, double &u, double &v, bool& BackFacing, bool& Parallel) const {
 
     // Substraction: v1-v0 and v2-v0
-    Vector3d v0v1 = Math::Subtract( v1, v0 );
-    Vector3d v0v2 = Math::Subtract( v2, v0 );
+    Vector3d v0v1 = v1 - v0;
+    Vector3d v0v2 = v2 - v0;
 
     // Cross product: mDirection x v0v2
     Vector3d pvec = Math::Cross(mDirection, v0v2);
@@ -202,7 +202,7 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     double invDet = 1 / det;
 
     // Substraction: mOrigin - v0
-    Vector3d tvec = Math::Subtract( mOrigin, v0 );
+    Vector3d tvec = mOrigin - v0;
 
     // Dot product x invDet: (tvec * pvec) * invDet
     u = Math::Dot(tvec, pvec) * invDet;
@@ -229,10 +229,10 @@ bool Ray_AABB_primitive::intersect( const Vector3d &v0, const Vector3d &v1, cons
     return true;
 }
 
-bool Ray_AABB_primitive::is_parallel( const Vector3d &v0, const Vector3d &v1, const Vector3d &v2, double Tolerance) const {
+bool Ray_AABB_primitive::is_parallel(PointView v0, PointView v1, PointView v2, double Tolerance) const {
     // Substraction: v1-v0 and v2-v0
-    Vector3d v0v1 = Math::Subtract( v1, v0 );
-    Vector3d v0v2 = Math::Subtract( v2, v0 );
+    Vector3d v0v1 = v1 - v0;
+    Vector3d v0v2 = v2 - v0;
 
     // Cross product: mDirection x v0v2
     Vector3d pvec = Math::Cross(mDirection, v0v2);

@@ -18,10 +18,12 @@
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/io/io_utilities.h"
+#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/octree.h"
+#include "queso/utilities/mesh_utilities.h"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
 
@@ -48,7 +50,9 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh);
-    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, min_vol_ratio, min_num_triangles);
+    const PointType lower_a = {-2.0, -2.0, -2.0};
+    const PointType upper_a = {-1.3, -1.3, -1.3};
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_a, upper_a, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
     Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3}),
@@ -92,7 +96,9 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh);
-    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-2.0, -2, -2},{-1.3, -1.3, -1.3}, min_vol_ratio, min_num_triangles);
+    const PointType lower_b = {-2.0, -2.0, -2.0};
+    const PointType upper_b = {-1.3, -1.3, -1.3};
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_b, upper_b, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
     Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3}),
@@ -130,10 +136,12 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     const double min_vol_ratio = 0.0;
     const IndexType min_num_triangles = 500;
 
-    const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh);
+    const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh.View());
     // Get trimmed domain.
     BRepOperator brep_operator(triangle_mesh);
-    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}, min_vol_ratio, min_num_triangles);
+    const PointType lower_c = {-0.4, -0.6, -0.35};
+    const PointType upper_c = {0.4, 0.6, 0.35};
+    auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_c, upper_c, min_vol_ratio, min_num_triangles);
 
     // Construct octree.
     Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}),
@@ -169,4 +177,3 @@ BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
 } // End namespace queso
-

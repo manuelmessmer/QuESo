@@ -15,6 +15,7 @@
 #define GEOMETRY_QUERY_INCLUDE_H
 
 /// Project includes
+#include "queso/containers/triangle_mesh_view.hpp"
 #include "queso/embedding/ray_aabb_primitive.h"
 #include "queso/embedding/aabb_tree.h"
 
@@ -40,8 +41,13 @@ public:
 
     /// Constructor
 
-    GeometryQuery(const TriangleMeshInterface& rTriangleMesh, bool MeshIsClosed = true)
+    GeometryQuery(const TriangleMeshView &rTriangleMesh, bool MeshIsClosed = true)
         : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh), mMeshIsClosed(MeshIsClosed)
+    {
+    }
+
+    GeometryQuery(const TriangleMesh &rTriangleMesh, bool MeshIsClosed = true)
+        : GeometryQuery(TriangleMeshView(rTriangleMesh), MeshIsClosed)
     {
     }
 
@@ -52,7 +58,7 @@ public:
     /// @brief Returns true, if rPoint is within the bounding box of the given triangle mesh.
     /// @param rPoint
     /// @return bool.
-    bool IsWithinBoundingBox(const PointType& rPoint) const;
+    bool IsWithinBoundingBox(PointView rPoint) const;
 
     /// @brief Ray tracing to check, if a Point is inside or outside of the given triangle mesh.
     /// @details Calls: IsInsideOpen or IsInsideClosed depending on mMeshIsClosed.
@@ -65,14 +71,14 @@ public:
     /// @param rUpperBound of AABB.
     /// @param Tolerance Reduces size of AABB.
     /// @return bool
-    bool DoIntersect(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const;
+    bool DoIntersect(PointView rLowerBound, PointView rUpperBound, double Tolerance ) const;
 
     /// @brief Returns a vector of ids of all triangles that intersect with the AABB.
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @param Tolerance Reduces size of AABB.
-    /// @return Unique<std::vector<IndexType>>
-    Unique<std::vector<IndexType>> GetIntersectedTriangleIds(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance ) const;
+    /// @return Vector of intersected triangle ids.
+    std::vector<IndexType> GetIntersectedTriangleIds(PointView rLowerBound, PointView rUpperBound, double Tolerance ) const;
 
 private:
     ///@}
@@ -93,7 +99,7 @@ private:
     ///@name Private Members
     ///@{
 
-    const TriangleMeshInterface& mTriangleMesh;
+    TriangleMeshView mTriangleMesh;
     AABB_tree mTree;
     bool mMeshIsClosed;
     ///@}

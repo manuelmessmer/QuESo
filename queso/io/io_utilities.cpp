@@ -15,10 +15,11 @@
 #include <map>
 //// Project includes
 #include "queso/io/io_utilities.h"
+#include "queso/utilities/triangle_utilities.hpp"
 
 namespace queso {
 
-void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
+void IO::WriteMeshToSTL(const TriangleMeshView& rTriangleMesh,
                         const std::string& rFilename,
                         EncodingType Encoding){
     // Open file
@@ -36,36 +37,26 @@ void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
         binary_writer.WriteRaw(header, header_size);
         binary_writer.WriteValue(num_triangles);
 
-        for(IndexType triangle_id = 0; triangle_id < num_triangles; ++triangle_id) {
-            const auto& p1 = rTriangleMesh.P1(triangle_id);
-            const auto& p2 = rTriangleMesh.P2(triangle_id);
-            const auto& p3 = rTriangleMesh.P3(triangle_id);
-            const auto& normal = rTriangleMesh.Normal(triangle_id);
-
-            const float coords[12] = { static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]),
-                                       static_cast<float>(p1[0]), static_cast<float>(p1[1]), static_cast<float>(p1[2]),
-                                       static_cast<float>(p2[0]), static_cast<float>(p2[1]), static_cast<float>(p2[2]),
-                                       static_cast<float>(p3[0]), static_cast<float>(p3[1]), static_cast<float>(p3[2]) };
+        rTriangleMesh.VisitEachTriangle<WithNormals>([&binary_writer](const auto &triangle) {
+            const float coords[12] = { static_cast<float>(triangle.Normal[0]), static_cast<float>(triangle.Normal[1]), static_cast<float>(triangle.Normal[2]),
+                                       static_cast<float>(triangle.P1[0]), static_cast<float>(triangle.P1[1]), static_cast<float>(triangle.P1[2]),
+                                       static_cast<float>(triangle.P2[0]), static_cast<float>(triangle.P2[1]), static_cast<float>(triangle.P2[2]),
+                                       static_cast<float>(triangle.P3[0]), static_cast<float>(triangle.P3[1]), static_cast<float>(triangle.P3[2]) };
             binary_writer.WriteArray(coords);
 
             uint16_t attribute_byte_count = 0;
             binary_writer.WriteValue(attribute_byte_count);
-        }
+        });
     } else { // Ascii
         file << std::fixed << std::setprecision(6);
         file << "solid QuESoExport\n";
-        for(std::uint32_t triangle_id = 0; triangle_id < num_triangles; ++triangle_id) {
-            const auto& p1 = rTriangleMesh.P1(triangle_id);
-            const auto& p2 = rTriangleMesh.P2(triangle_id);
-            const auto& p3 = rTriangleMesh.P3(triangle_id);
-            const auto& normal = rTriangleMesh.Normal(triangle_id);
-
-            file << "facet normal " << normal[0] << ' ' << normal[1] << ' ' << normal[2] << "\nouter loop\n";
-            file << "vertex " << p1[0] << ' ' << p1[1] << ' ' << p1[2] << '\n';
-            file << "vertex " << p2[0] << ' ' << p2[1] << ' ' << p2[2] << '\n';
-            file << "vertex " << p3[0] << ' ' << p3[1] << ' ' << p3[2] << '\n';
+        rTriangleMesh.VisitEachTriangle<WithNormals>([&file](const auto &triangle) {
+            file << "facet normal " << triangle.Normal[0] << ' ' << triangle.Normal[1] << ' ' << triangle.Normal[2] << "\nouter loop\n";
+            file << "vertex " << triangle.P1[0] << ' ' << triangle.P1[1] << ' ' << triangle.P1[2] << '\n';
+            file << "vertex " << triangle.P2[0] << ' ' << triangle.P2[1] << ' ' << triangle.P2[2] << '\n';
+            file << "vertex " << triangle.P3[0] << ' ' << triangle.P3[1] << ' ' << triangle.P3[2] << '\n';
             file << "endloop\nendfacet\n";
-        }
+        });
         file << "endsolid QuESoExport\n";
     }
 
@@ -73,7 +64,7 @@ void IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
     QuESo_ERROR_IF(!file.good()) << "Failed to write conditions to file: " << rFilename << ".\n";
 }
 
-void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
+void IO::WriteMeshToVTK(const TriangleMeshView& rTriangleMesh,
                         const std::string& rFilename,
                         EncodingType Encoding) {
 
@@ -83,7 +74,18 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const SizeType num_elements = rTriangleMesh.NumOfTriangles();
-    const SizeType num_points = rTriangleMesh.NumOfVertices();
+    std::vector<Vector3d> vertices;
+    std::vector<Vector3i> triangles;
+    vertices.reserve(num_elements * 3);
+    triangles.reserve(num_elements);
+    rTriangleMesh.VisitEachTriangle<WithoutNormals>([&](const auto &triangle) {
+        const IndexType v0 = vertices.size();
+        vertices.push_back(Vector3d{ triangle.P1[0], triangle.P1[1], triangle.P1[2] });
+        vertices.push_back(Vector3d{ triangle.P2[0], triangle.P2[1], triangle.P2[2] });
+        vertices.push_back(Vector3d{ triangle.P3[0], triangle.P3[1], triangle.P3[2] });
+        triangles.push_back(Vector3i{ v0 + 0, v0 + 1, v0 + 2 });
+    });
+    const SizeType num_points = vertices.size();
 
 
     // Header
@@ -98,16 +100,15 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
 
     file << "POINTS " << num_points << " double\n";
 
-    const auto& r_vertices = rTriangleMesh.GetVertices();
     if(Encoding == EncodingType::binary){
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for(const auto& r_vertice : r_vertices) {
+        for(const auto& r_vertice : vertices) {
             binary_writer.WriteValue(r_vertice[0]);
             binary_writer.WriteValue(r_vertice[1]);
             binary_writer.WriteValue(r_vertice[2]);
         }
     } else { // ascii
-        for(const auto& r_vertice : r_vertices) {
+        for(const auto& r_vertice : vertices) {
             file << r_vertice[0] << ' ' << r_vertice[1] << ' ' << r_vertice[2] << '\n';
         }
     }
@@ -119,7 +120,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
         for(IndexType i = 0; i < num_elements; ++i) {
             std::uint32_t count = 3;
             binary_writer.WriteValue(count);
-            for( auto id : rTriangleMesh.VertexIds(i) ){
+            for( auto id : triangles[i] ){
                 std::uint32_t index = static_cast<std::uint32_t>(id);
                 binary_writer.WriteValue(index);
             }
@@ -127,7 +128,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     } else { // ascii
         for(IndexType i = 0; i < num_elements; ++i) {
             file << 3;
-            for( auto id : rTriangleMesh.VertexIds(i) ){
+            for( auto id : triangles[i] ){
                 file << ' ' << id;
             }
             file << '\n';
@@ -151,7 +152,7 @@ void IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
     QuESo_ERROR_IF(!file.good()) << "Failed to write mesh to file: " << rFilename << '.' << std::endl;
 }
 
-void IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
+void IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
                          const std::string& rFilename){
 
     // Open file
@@ -206,7 +207,7 @@ IO::EncodingType IO::GetEncodingType(const std::string& rFilename) {
     return EncodingType::ascii; // Likely Ascii
 }
 
-void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
+void IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
                                const std::string& rFilename){
     // Open file
     std::ifstream file(rFilename);
@@ -266,13 +267,10 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                     vertices[i] = it->first;
                 }
             }
-            // Add Triangle
-            rTriangleMesh.AddTriangle(triangle);
-
-            // Note: STL are often given in single precision. Therefore, we compute the normals based on
-            // the given vertices, which are now in double precision.
-            const PointType normal = TriangleMeshInterface::Normal(vertices[0], vertices[1], vertices[2]);
-            rTriangleMesh.AddNormal( normal );
+            // Note: STL are often given in single precision. Therefore, we compute normals from
+            // the converted double precision vertices.
+            const auto tri_proxy = TriangleProxy<WithoutNormals>{ vertices[0], vertices[1], vertices[2] };
+            rTriangleMesh.AddTriangle(triangle, TriangleUtilities::Normal(tri_proxy));
 
             std::getline(file, line); // endloop
             if (!file.good() || line.find("endloop") == std::string::npos) {
@@ -288,7 +286,7 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
     rTriangleMesh.Check();
 }
 
-void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
+void IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
                                 const std::string& rFilename){
 
     // Open file
@@ -348,13 +346,10 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
             }
         }
 
-        // Add triangle
-        rTriangleMesh.AddTriangle(triangle);
-
-        // Note: STL are often given in single precision. Therefore, we compute the normals based on
-        // the given vertices, which are now in double precision.
-        const PointType normal = TriangleMeshInterface::Normal(vertices[0], vertices[1], vertices[2]);
-        rTriangleMesh.AddNormal(normal);
+        // Note: STL are often given in single precision. Therefore, we compute normals from
+        // the converted double precision vertices.
+        const auto tri_proxy = TriangleProxy<WithoutNormals>{ vertices[0], vertices[1], vertices[2] };
+        rTriangleMesh.AddTriangle(triangle, TriangleUtilities::Normal(tri_proxy));
 
         // Read so-called attribute byte count and ignore it
         std::uint16_t attribute_byte_count;
@@ -367,5 +362,3 @@ void IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
 
 
 } // End namespace queso
-
-

@@ -22,11 +22,15 @@ namespace queso {
 
 typedef Clipper::PolygonType PolygonType;
 
-Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-            const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound ){
+Unique<PolygonType> Clipper::ClipTriangle(
+        TriangleProxy<WithNormals> rTriangle,
+        PointView rLowerBound,
+        PointView rUpperBound ){
 
-    Unique<PolygonType> p_current_poly = MakeUnique<PolygonType>(rNormal);
-    Unique<PolygonType> p_prev_poly = MakeUnique<PolygonType>(rNormal);
+    Unique<PolygonType> p_current_poly = MakeUnique<PolygonType>(
+        PointType{ rTriangle.Normal[0], rTriangle.Normal[1], rTriangle.Normal[2] });
+    Unique<PolygonType> p_prev_poly = MakeUnique<PolygonType>(
+        PointType{ rTriangle.Normal[0], rTriangle.Normal[1], rTriangle.Normal[2] });
 
     // Return nullptr, if no point is on bounded side.
     // Note on_bounded_side means behind plane, since normal vectors point in outward direction.
@@ -34,9 +38,9 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
         // Mapping of plane_index: [-x, x, -y, y, -z, z]
         const double plane_position = (plane_index%2UL) ? rUpperBound[plane_index/2UL] : rLowerBound[plane_index/2UL];
         Plane plane(plane_index, plane_position);
-        auto loc_v1 = ClassifyPointToPlane(rV1, plane, 10.0*ZEROTOL);
-        auto loc_v2 = ClassifyPointToPlane(rV2, plane, 10.0*ZEROTOL);
-        auto loc_v3 = ClassifyPointToPlane(rV3, plane, 10.0*ZEROTOL);
+        auto loc_v1 = ClassifyPointToPlane(rTriangle.P1, plane, 10.0*ZEROTOL);
+        auto loc_v2 = ClassifyPointToPlane(rTriangle.P2, plane, 10.0*ZEROTOL);
+        auto loc_v3 = ClassifyPointToPlane(rTriangle.P3, plane, 10.0*ZEROTOL);
         IndexType count_on_plane = static_cast<IndexType>(loc_v1 == ON_PLANE) + 
 			                       static_cast<IndexType>(loc_v2 == ON_PLANE) + 
 								   static_cast<IndexType>(loc_v3 == ON_PLANE);
@@ -46,9 +50,9 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     }
 
     // Compute min/max values of bounding box around triangle.
-    const PointType x_values{rV1[0], rV2[0], rV3[0]};
-    const PointType y_values{rV1[1], rV2[1], rV3[1]};
-    const PointType z_values{rV1[2], rV2[2], rV3[2]};
+    const PointType x_values{rTriangle.P1[0], rTriangle.P2[0], rTriangle.P3[0]};
+    const PointType y_values{rTriangle.P1[1], rTriangle.P2[1], rTriangle.P3[1]};
+    const PointType z_values{rTriangle.P1[2], rTriangle.P2[2], rTriangle.P3[2]};
 
     auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
     auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
@@ -58,9 +62,9 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     PointType max_tri{*x_min_max.second, *y_min_max.second, *z_min_max.second};
 
     // Add triangle vertices to polygon.
-    p_current_poly->AddVertex( rV1 );
-    p_current_poly->AddVertex( rV2 );
-    p_current_poly->AddVertex( rV3 );
+    p_current_poly->AddVertex(PointType{ rTriangle.P1[0], rTriangle.P1[1], rTriangle.P1[2] });
+    p_current_poly->AddVertex(PointType{ rTriangle.P2[0], rTriangle.P2[1], rTriangle.P2[2] });
+    p_current_poly->AddVertex(PointType{ rTriangle.P3[0], rTriangle.P3[1], rTriangle.P3[2] });
 
     /// Loop over all three dimensions, and clip each plane (positive and negative direction.)
     for(IndexType dimension = 0; dimension < 3; ++dimension)
@@ -169,7 +173,7 @@ void Clipper::ClipPolygonByPlane(const PolygonType* pPrevPoly,
     }
 }
 
-IndexType Clipper::ClassifyPointToPlane(const PointType& rPoint,
+IndexType Clipper::ClassifyPointToPlane(PointView rPoint,
                             const Plane& rPlane,
                             const double Eps) {
 
@@ -189,8 +193,8 @@ IndexType Clipper::ClassifyPointToPlane(const PointType& rPoint,
     return ON_PLANE;
 }
 
-PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
-                                                const PointType& rB,
+PointType Clipper::FindIntersectionPointOnPlane(PointView rA,
+                                                PointView rB,
                                                 const Plane& rPlane) {
     // Need to find a parameter t for the point pt, such that,
     // * 0 <= t <= 1

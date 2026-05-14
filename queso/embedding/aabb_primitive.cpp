@@ -13,6 +13,7 @@
 
 //// Project includes
 #include "queso/embedding/aabb_primitive.h"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
 
@@ -25,7 +26,7 @@ bool AABB_primitive::intersect(const AABB_primitive &aabb) const  {
     return true;
 }
 
-bool AABB_primitive::intersect(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
+bool AABB_primitive::intersect(PointView v0, PointView v1, PointView v2,
                                double tolerance) const {
 
     /// Get extent of aabb.
@@ -39,9 +40,9 @@ bool AABB_primitive::intersect(const Vector3d &v0, const Vector3d &v1, const Vec
     Vector3d v2_orig{v2[0] - centre[0], v2[1] - centre[1], v2[2] - centre[2]};
 
     // Compute the edge vectors of the triangle  (ABC). Line between vertices.
-    Vector3d f0{v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]};
-    Vector3d f1{v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]};
-    Vector3d f2{v0[0] - v2[0], v0[1] - v2[1], v0[2] - v2[2]};
+    Vector3d f0 = v1 - v0;
+    Vector3d f1 = v2 - v1;
+    Vector3d f2 = v0 - v2;
 
     // Compute the face normals of the AABB, because the AABB
     // AABB is axis algined by definition.
@@ -132,9 +133,15 @@ bool AABB_primitive::intersect(const Vector3d &v0, const Vector3d &v1, const Vec
 }
 
 
-bool AABB_primitive::check_axis( const Vector3d &u0, const Vector3d &u1, const Vector3d &u2,
-                                 const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-                                 const Vector3d &extent, const Vector3d& test_axis ) const {
+bool AABB_primitive::check_axis(
+    PointView u0,
+    PointView u1,
+    PointView u2,
+    PointView v0,
+    PointView v1,
+    PointView v2,
+    PointView extent,
+    PointView test_axis) const {
 
     // Project all 3 vertices of the triangle onto the test_axis.
     double pv0 = v0[0]*test_axis[0] + v0[1]*test_axis[1] + v0[2]*test_axis[2];

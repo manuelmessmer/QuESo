@@ -17,6 +17,8 @@
 //// STL includes
 
 //// Project includes
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/clipped_triangle_mesh.hpp"
 #include "queso/containers/dictionary.hpp"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/embedding/geometry_query.h"
@@ -50,8 +52,13 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
     ///@param Closed Must be true, if mesh is closed.
-    BRepOperator(const TriangleMeshInterface& rTriangleMesh, bool Closed=true)
+    BRepOperator(const TriangleMeshView& rTriangleMesh, bool Closed=true)
         : mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed)
+    {
+    }
+
+    BRepOperator(const TriangleMesh &rTriangleMesh, bool Closed=true)
+        : BRepOperator(TriangleMeshView(rTriangleMesh), Closed)
     {
     }
 
@@ -84,7 +91,7 @@ public:
     ///@param Tolerance Tolerance reduces size of element/AABB slightly. Default: SNAPTOL. If Tolerance=0 touch is detected as intersection.
     ///                 If Tolerance>0, touch is not detected as intersection.
     ///@return IntersectionState, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionState GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
+    IntersectionState GetIntersectionState(PointView rLowerBound, PointView rUpperBound, double Tolerance = SNAPTOL) const;
 
     /// @brief Returns a ptr to a vector that holds the states of each element. Vector is ordered according to index -> see: GridIndexer.
     ///        This function runs a flood fill repeatively and classifies each group based on the bounding elements that are trimmed. Each element that borders a trimmed
@@ -99,7 +106,7 @@ public:
     /// @param MinElementVolumeRatio Below this ratio elements are not considered.
     /// @param MinNumberOfBoundaryTriangles Min number of triangles in the closed surface mesh.
     /// @return TrimmedDomainPtrType (Unique)
-    TrimmedDomainPtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
+    TrimmedDomainPtrType pGetTrimmedDomain(PointView rLowerBound, PointView rUpperBound,
         double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles, bool NeglectIfMeshIsFlawed = true ) const;
 
     ///@brief Clips triangle mesh by AABB.
@@ -108,15 +115,15 @@ public:
     ///@see pClipTriangleMeshUnique().
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<TriangleMeshInterface>. Clipped mesh.
-    Unique<TriangleMeshInterface> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<ClippedTriangleMesh>. Clipped mesh.
+    Unique<ClippedTriangleMesh> pClipTriangleMesh(PointView rLowerBound, PointView rUpperBound ) const;
 
     /// @brief Returns true, if AABB is intersected by at least one triangle.
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @param Tolerance Reduces size of AABB.
     /// @return bool.
-    bool IsTrimmed(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL) const;
+    bool IsTrimmed(PointView rLowerBound, PointView rUpperBound, double Tolerance = SNAPTOL) const;
 
     /// @brief Returns true if rPoint lies on bounded side of clipped mesh (clipped by AABB).
     ///        Ray tracing through the center of at least 10 triangles (or maximum number of triangles, if n_max < 10) is performed.
@@ -126,7 +133,7 @@ public:
     /// @param rLowerBound of AABB.
     /// @param rUpperBound of AABB.
     /// @return bool
-    bool OnBoundedSideOfClippedSection( const PointType& rPoint, const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    bool OnBoundedSideOfClippedSection(const PointType& rPoint, PointView rLowerBound, PointView rUpperBound) const;
 
     ///@brief ProtoType: Clips triangle mesh by AABB. This function keeps triangles that are categorized on the planes of AABB.
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
@@ -135,8 +142,8 @@ public:
     ///@see pClipTriangleMesh()
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<TriangleMeshInterface>. Clipped mesh.
-    Unique<TriangleMeshInterface> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<ClippedTriangleMesh>. Clipped mesh.
+    Unique<ClippedTriangleMesh> pClipTriangleMeshUnique(PointView rLowerBound, PointView rUpperBound ) const;
     ///@}
 
 private:
@@ -144,7 +151,7 @@ private:
     ///@name Private Members
     ///@{
 
-    const TriangleMeshInterface& mTriangleMesh;
+    TriangleMeshView mTriangleMesh;
     GeometryQuery mGeometryQuery;
 
     ///@}

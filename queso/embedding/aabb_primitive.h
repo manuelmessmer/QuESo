@@ -45,8 +45,10 @@ public:
     ///@}
     ///@name Life cycle
     ///@{
-    AABB_primitive(const Vector3d& rLowerBound, const Vector3d& rUpperBound) :
-        AABB_lohedges(rLowerBound, rUpperBound)
+    AABB_primitive(PointView rLowerBound, PointView rUpperBound) :
+        AABB_lohedges(
+            Vector3d{ rLowerBound[0], rLowerBound[1], rLowerBound[2] },
+            Vector3d{ rUpperBound[0], rUpperBound[1], rUpperBound[2] })
     {
     }
 
@@ -65,7 +67,7 @@ public:
     ///@param v1 Vertex 2 of triangle.
     ///@param v2 Vertex 3 of triangle.
     ///@param tolerance. Reduces extent of aabb. If tolerance > 0 -> touching triangles are not detected as intersected.
-    bool intersect(const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
+    bool intersect(PointView v0, PointView v1, PointView v2,
                    double tolerance) const;
 
 private:
@@ -85,9 +87,15 @@ private:
     ///@param extent Extent of aabb. Half of edge length in each direction.
     ///@param test_axis Axis to be tested.
     ///@return bool
-    bool check_axis( const Vector3d &u0, const Vector3d &u1, const Vector3d &u2,
-                     const Vector3d &v0, const Vector3d &v1, const Vector3d &v2,
-                     const Vector3d &extent, const Vector3d& test_axis ) const;
+    bool check_axis(
+        PointView u0,
+        PointView u1,
+        PointView u2,
+        PointView v0,
+        PointView v1,
+        PointView v2,
+        PointView extent,
+        PointView test_axis) const;
 
     ///@}
 }; // End AABB_primitive class

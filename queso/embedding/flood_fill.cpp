@@ -194,7 +194,7 @@ std::optional<IndexType> FloodFill::Move(IndexType Index, Direction Dir, GroupSe
     // If next box is trimmed, add inside count.
     // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
     auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-    if( mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_perturb) , Math::Add(box_next.second, upper_perturb) )){
+    if( mpBrepOperator->IsTrimmed( (box_next.first + lower_perturb) , (box_next.second + upper_perturb) )){
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
         return std::nullopt;
@@ -260,7 +260,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[0]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[0]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( !mpBrepOperator->IsTrimmed(Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ) {
+                if( !mpBrepOperator->IsTrimmed((box_next.first + lower_offset), (box_next.second + upper_offset) ) ) {
                     if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
                         std::get<1>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
                         boundary_indices[1].clear();
@@ -273,7 +273,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[1]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[1]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( !mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ){
+                if( !mpBrepOperator->IsTrimmed( (box_next.first + lower_offset), (box_next.second + upper_offset) ) ){
                     if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
                         std::get<0>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
                         boundary_indices[0].clear();
@@ -288,7 +288,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[0]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[0]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( mpBrepOperator->IsTrimmed( Math::Add(box_next.first, lower_offset), Math::Add(box_next.second, upper_offset) ) ){
+                if( mpBrepOperator->IsTrimmed( (box_next.first + lower_offset), (box_next.second + upper_offset) ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
@@ -297,7 +297,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[1]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[1]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( mpBrepOperator->IsTrimmed( Math::Add( box_next.first, lower_offset), Math::Add( box_next.second, upper_offset) ) ){
+                if( mpBrepOperator->IsTrimmed( (box_next.first + lower_offset), (box_next.second + upper_offset) ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
@@ -377,9 +377,9 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
 int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
     const auto box_current = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
     const auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(NextIndex);
-    const PointType center_box = Math::AddAndMult(0.5, box_current.first, box_current.second);
+    const PointType center_box = (0.5 * (box_current.first + box_current.second));
 
-    if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, Math::Add(box_next.first, rLowerOffset) , Math::Add(box_next.second, rUpperOffset) ) ) {
+    if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, (box_next.first + rLowerOffset) , (box_next.second + rUpperOffset) ) ) {
         return 1;
     } else {
         return -1;

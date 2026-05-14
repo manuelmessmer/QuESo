@@ -18,6 +18,7 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/embedding/ray_aabb_primitive.h"
+#include "queso/utilities/triangle_utilities.hpp"
 
 namespace queso {
 
@@ -48,24 +49,21 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         }
 
         // Get direction
-        const auto center_triangle = mpClippedMesh->Center(current_id);
-        Vector3d direction = Math::Subtract( center_triangle, rPoint );
+        const auto triangle = mpClippedMesh->Triangle<WithoutNormals>(current_id);
+        const auto center_triangle = TriangleUtilities::Center(triangle);
+        Vector3d direction = center_triangle - rPoint;
 
         // Normalize
         double norm_direction = Math::Norm( direction );
-        Math::DivideSelf( direction, norm_direction);
+        direction /= norm_direction;
 
         // Construct ray
         Ray_AABB_primitive ray(rPoint, direction);
 
         // Get vertices of current triangle
-        const auto& p1 = mpClippedMesh->P1(current_id);
-        const auto& p2 = mpClippedMesh->P2(current_id);
-        const auto& p3 = mpClippedMesh->P3(current_id);
-
         // Make sure target triangle is not parallel and has a significant area.
-        const double area = mpClippedMesh->Area(current_id);
-        if( !ray.is_parallel(p1, p2, p3, 100.0*mSnapTolerance) && area >  100*ZEROTOL) {
+        const double area = TriangleUtilities::Area(triangle);
+        if( !ray.is_parallel(triangle.P1, triangle.P2, triangle.P3, 100.0*mSnapTolerance) && area >  100*ZEROTOL) {
             std::tie(is_inside, success_local) = mGeometryQuery.IsInside(ray);
         }
         current_id++;
@@ -79,7 +77,7 @@ const BoundingBoxType TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
                                  {LOWESTD, LOWESTD, LOWESTD} };
 
     // Loop over all vertices
-    const auto& vertices = mpTriangleMesh->GetVertices();
+    const auto vertices = mClosedMesh.Vertices();
     for( auto& v : vertices ){
         // Loop over all 3 dimensions
         for( IndexType i = 0; i < 3; ++i){
@@ -103,7 +101,7 @@ IntersectionStateType TrimmedDomain::GetIntersectionState(
     }
 
     // Test if center is inside or outside.
-    const PointType center = Math::AddAndMult(0.5, rLowerBound, rUpperBound);
+    const PointType center = (0.5 * (rLowerBound + rUpperBound));
     const auto status = IsInsideTrimmedDomain(center) ? IntersectionState::inside : IntersectionState::outside;
 
     // If triangle is not intersected, center location will determine if inside or outside.

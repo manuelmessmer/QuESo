@@ -47,15 +47,14 @@ public:
 
     ///@brief Clips triangle by AABB. Expects that input triangle does intersect one of the faces of the bounding box.
     ///       If triangle is fully contained within AABB, same triangle is returned. If triangle is fully outside of AABB nullptr is returned.
-    ///@param rV1 Vertex 1 of Triangle.
-    ///@param rV2 Vertex 2 of Triangle.
-    ///@param rV3 Vertex 3 of Triangle.
-    ///@param rNormal Normal vector of triangle. Is provided, such that recomputation can be omitted. Recomputation would also lose accuracy.
+    ///@param rTriangle Triangle proxy with normal.
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
     ///@return Unique<Polygon> (Will contain maximal 9 vertices).
-    static Unique<PolygonType> ClipTriangle(const PointType& rV1, const PointType& rV2, const PointType& rV3,
-                 const PointType& rNormal, const PointType& rLowerBound, const PointType& rUpperBound);
+    static Unique<PolygonType> ClipTriangle(
+        TriangleProxy<WithNormals> rTriangle,
+        PointView rLowerBound,
+        PointView rUpperBound);
 
     ///@}
 
@@ -109,7 +108,7 @@ private:
     ///@param rPoint Point to be classified.
     ///@param rPlane Plane.
     ///@return IndexType (IN_FRON_OF_PLANE, BEHIND_PLANE, ON_PLANE)
-    static IndexType ClassifyPointToPlane(const PointType& rPoint,
+    static IndexType ClassifyPointToPlane(PointView rPoint,
                                const Plane& rPlane,
                                const double Eps = 10.0*ZEROTOL);
 
@@ -117,9 +116,9 @@ private:
     ///@param rA Point behind the plane.
     ///@param rB Point in front of the plane.
     ///@return rPlane Clipping plane.
-    static PointType FindIntersectionPointOnPlane(const PointType& rA,
-                                                  const PointType& rB,
-                                                  const Plane& rPlane);
+    static PointType FindIntersectionPointOnPlane(PointView rA,
+                                       PointView rB,
+                                       const Plane& rPlane);
 
 
 }; // End Clipper class

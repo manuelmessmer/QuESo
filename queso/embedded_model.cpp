@@ -25,7 +25,7 @@
 
 namespace queso {
 
-void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
+void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
 
     CheckIfMeshIsWithinBoundingBox(rTriangleMesh);
 
@@ -220,7 +220,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshInterface& rTriangleMesh){
     PrintVolumeInfo();
 }
 
-void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh, const MainDictionaryType& rConditionSettings) {
+void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, const MainDictionaryType& rConditionSettings) {
 
     CheckIfMeshIsWithinBoundingBox(rTriangleMesh);
 
@@ -266,12 +266,12 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshInterface& rTriangleMesh,
 
         if( p_new_mesh->NumOfTriangles() > 0 ) {
             const auto p_el = mBackgroundGrid.pGetElement(index+1);
-            const double surf_area_segment = MeshUtilities::Area(*p_new_mesh);
+            const double surf_area_segment = MeshUtilities::Area(p_new_mesh->MeshView());
 
             // If p_el != nullptr, the current condition is within an active element.
             // Otherwise, the current condition is outside the active domain.
             auto p_new_segment = p_el ? MakeUnique<ConditionType::ConditionSegmentType>(index, p_el, p_new_mesh)
-                : MakeUnique<ConditionType::ConditionSegmentType>(index, p_new_mesh);
+                : MakeUnique<ConditionType::ConditionSegmentType>(index, std::move(p_new_mesh));
             surf_area_in_active_domain += p_el ?  surf_area_segment : 0.0;
 
             // Add condition segment to condition.
@@ -353,7 +353,7 @@ void EmbeddedModel::WriteModelToFile() const {
     }
 }
 
-void EmbeddedModel::CheckIfMeshIsWithinBoundingBox(const TriangleMeshInterface& rTriangleMesh) const {
+void EmbeddedModel::CheckIfMeshIsWithinBoundingBox(const TriangleMeshView &rTriangleMesh) const {
     const auto& r_settings = GetSettings();
     // Check if bounding box fully contains the triangle mesh.
     if( r_settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level) > 0 ){

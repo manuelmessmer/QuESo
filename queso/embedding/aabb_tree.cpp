@@ -17,7 +17,7 @@
 
 namespace queso {
 
-bool AABB_tree::IsWithinBoundingBox(const PointType& rPoint) const {
+bool AABB_tree::IsWithinBoundingBox(PointView rPoint) const {
     if(   rPoint[0] < mLowerBound[0]
         || rPoint[0] > mUpperBound[0]
         || rPoint[1] < mLowerBound[1]

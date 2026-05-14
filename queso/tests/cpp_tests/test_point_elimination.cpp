@@ -16,10 +16,12 @@
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
+#include "queso/utilities/mesh_utilities.h"
 #include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
@@ -114,7 +116,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 }
                 // Check if integration points contain correct volume;
                 const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh);
+                const double ref_volume = MeshUtilities::Volume(r_mesh.View());
                 QuESo_CHECK_RELATIVE_NEAR(volume, ref_volume, 100.0*Residual);
             }
         }
@@ -226,7 +228,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 }
                 // Check if integration points contain correct volume;
                 const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh);
+                const double ref_volume = MeshUtilities::Volume(r_mesh.View());
                 const double volume_error = std::abs(volume - ref_volume)/ ref_volume;
                 QuESo_CHECK_LT(volume_error, 1e-6); // Note can not be better as moment fitting residual.
             }
@@ -324,7 +326,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
                 // Check if integration points contain correct volume;
                 const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh);
+                const double ref_volume = MeshUtilities::Volume(r_mesh.View());
                 const double volume_error = std::abs(volume - ref_volume);
                 QuESo_CHECK_LT(volume_error, 1e-7);
             }

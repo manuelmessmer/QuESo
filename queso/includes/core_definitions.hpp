@@ -16,23 +16,30 @@
 
 //// STL includes
 #include <ostream>
+#include <ranges>
+#include <type_traits>
 #include <limits>
 #include <memory>
 #include <array>
+#include <span>
 
 namespace queso {
 
 ///@name QuESo GLOBAL TYPE DEFINITIONS
 ///@{
 
-typedef std::size_t  SizeType;
-typedef std::size_t  IndexType;
+using SizeType = std::size_t;
+using IndexType = std::size_t;
 
-typedef std::array<double,3> PointType;
-typedef std::array<double,3> Vector3d;
-typedef std::array<IndexType,3>  Vector3i;
-typedef std::pair<PointType, PointType> BoundingBoxType;
-typedef std::pair<Vector3i, Vector3i> PartitionBoxType;
+using PointType = std::array<double,3>;
+using Vector3d = std::array<double,3>;
+using Vector3i = std::array<IndexType,3> ;
+using PointView = std::span<const double,3>;
+using Vector3dView = std::span<const double,3>;
+using Vector3iView = std::span<const IndexType,3> ;
+
+using BoundingBoxType = std::pair<PointType, PointType>;
+using PartitionBoxType = std::pair<Vector3i, Vector3i>;
 
 ///@}
 ///@name QuESo GLOBAL VARIABLES
@@ -53,14 +60,14 @@ inline constexpr double QUIETNAND = std::numeric_limits<double>::quiet_NaN();
 inline constexpr double SNAPTOL = 1e-12;
 inline constexpr double ZEROTOL = 1e-14;
 
-inline constexpr double RelativeSnapTolerance(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL){
-    const PointType delta{rUpperBound[0] - rLowerBound[0],
-                          rUpperBound[1] - rLowerBound[1],
-                          rUpperBound[2] - rLowerBound[2]};
+inline constexpr double RelativeSnapTolerance(PointView rLowerBound, PointView rUpperBound, double Tolerance = SNAPTOL){
+    const Vector3d delta{rUpperBound[0] - rLowerBound[0],
+                         rUpperBound[1] - rLowerBound[1],
+                         rUpperBound[2] - rLowerBound[2]};
     return std::max( std::max(delta[0], std::max(delta[1], delta[2]))*Tolerance, Tolerance);
 }
 
-inline constexpr double RelativeSnapTolerance(const PointType& rDelta, double Tolerance = SNAPTOL){
+inline constexpr double RelativeSnapTolerance(const PointView& rDelta, double Tolerance = SNAPTOL){
     return std::max( std::max(rDelta[0], std::max(rDelta[1], rDelta[2]))*Tolerance, Tolerance);
 }
 
@@ -71,7 +78,16 @@ inline constexpr double EPS2 = 1e-10;
 inline constexpr double EPS3 = 1e-12;
 inline constexpr double EPS4 = 1e-14;
 
-// Enum's
+template<typename TEnum>
+constexpr auto EnumRange()
+{
+    using EnumType = std::underlying_type_t<TEnum>;
+    return std::views::iota(EnumType{0}, static_cast<EnumType>(TEnum::_end))
+         | std::views::transform([](EnumType v) {
+               return static_cast<TEnum>(v);
+           });
+}
+
 enum class IntegrationMethod {gauss, gauss_reduced_1, gauss_reduced_2, ggq_optimal, ggq_reduced_1, ggq_reduced_2};
 typedef IntegrationMethod IntegrationMethodType;
 inline std::ostream& operator<<(std::ostream& rOs, IntegrationMethodType Enum) {
@@ -120,6 +136,8 @@ inline std::ostream& operator<<(std::ostream& rOs, GridTypeType Enum) {
             return rOs;
     }
 }
+
+enum class SignedAxis {neg_x, pos_x, neg_y, pos_y, neg_z, pos_z, _end};
 
 /// QuESo Factories
 inline constexpr BoundingBoxType MakeBox( const PointType& rL, const PointType& rR ) {

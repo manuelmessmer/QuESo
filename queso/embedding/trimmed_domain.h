@@ -18,6 +18,7 @@
 #include <memory>
 /// Project includes
 #include "queso/embedding/geometry_query.h"
+#include "queso/utilities/triangle_utilities.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/embedding/trimmed_domain_on_plane.h"
 
@@ -38,7 +39,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
+    using TriangleMeshPtrType = Unique<ClippedTriangleMesh>;
 
     ///@}
     ///@name Life Cycle
@@ -53,8 +54,10 @@ public:
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )
-        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound), mpBrepOperatorGlobal(pOperator),
-          mpClippedMesh(mpTriangleMesh->Clone()), mGeometryQuery(*mpClippedMesh, false)
+        : mLowerBound(rLowerBound), mUpperBound(rUpperBound), mpBrepOperatorGlobal(pOperator),
+          mpClippedMesh(std::move(pTriangleMesh)),
+          mClosedMesh(mpClippedMesh->Mesh()),
+          mGeometryQuery(mpClippedMesh->MeshView(), false)
     {
         // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
@@ -70,27 +73,27 @@ public:
         auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
         auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
 
-        if( mpTriangleMesh->NumOfTriangles() > 0 ){
-            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation( *(mpTriangleMesh.get()) );
-            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation( *(mpTriangleMesh.get()) );
+        if( mpClippedMesh->NumOfTriangles() > 0 ){
+            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation(*mpClippedMesh);
+            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation(*mpClippedMesh);
+            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation(*mpClippedMesh);
+            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation(*mpClippedMesh);
+            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation(*mpClippedMesh);
+            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation(*mpClippedMesh);
 
             const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
                 + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
 
-            mpTriangleMesh->Reserve(2UL*num_triangles);
+            mClosedMesh.Reserve(2UL*num_triangles);
 
-            MeshUtilities::Append(*(mpTriangleMesh), *(p_t1));
-            MeshUtilities::Append(*(mpTriangleMesh), *(p_t2));
-            MeshUtilities::Append(*(mpTriangleMesh), *(p_t3));
-            MeshUtilities::Append(*(mpTriangleMesh), *(p_t4));
-            MeshUtilities::Append(*(mpTriangleMesh), *(p_t5));
-            MeshUtilities::Append(*(mpTriangleMesh), *(p_t6));
+            MeshUtilities::Append(mClosedMesh, p_t1->Mesh());
+            MeshUtilities::Append(mClosedMesh, p_t2->Mesh());
+            MeshUtilities::Append(mClosedMesh, p_t3->Mesh());
+            MeshUtilities::Append(mClosedMesh, p_t4->Mesh());
+            MeshUtilities::Append(mClosedMesh, p_t5->Mesh());
+            MeshUtilities::Append(mClosedMesh, p_t6->Mesh());
 
-            MeshUtilities::Refine(*(mpTriangleMesh.get()), MinNumberOfTriangles);
+            MeshUtilities::Refine(mClosedMesh, MinNumberOfTriangles);
         }
     }
 
@@ -106,15 +109,15 @@ public:
     bool IsInsideTrimmedDomain(const PointType& rPoint) const;
 
     /// @brief Return ptr to Triangle mesh (Raw Ptr)
-    /// @return const TriangleMeshInterface*
-    const TriangleMeshInterface* pGetTriangleMesh() const{
-        return mpTriangleMesh.get();
+    /// @return const TriangleMesh*
+    const TriangleMesh* pGetTriangleMesh() const{
+        return &mClosedMesh;
     }
 
     /// @brief Return reference to triangle mesh
-    /// @return const TriangleMeshInterface&
-    const TriangleMeshInterface& GetTriangleMesh() const{
-        return *(mpTriangleMesh.get());
+    /// @return const TriangleMesh&
+    const TriangleMesh& GetTriangleMesh() const{
+        return mClosedMesh;
     }
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
@@ -125,11 +128,11 @@ public:
         // Pointer to boundary integration points
         auto p_boundary_ips = MakeUnique<std::vector<BoundaryIntegrationPointType>>();
 
-        p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*12UL);
-        for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
+        p_boundary_ips->reserve(mClosedMesh.NumOfTriangles()*12UL);
+        for( const auto& triangle : mClosedMesh.Triangles<WithNormals>() ){
             IndexType method = 3; // Creates 12 points per triangle.
-            auto p_new_points = mpTriangleMesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
-            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+            auto p_new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
+            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points.begin(), p_new_points.end());
         }
 
         return p_boundary_ips;
@@ -166,13 +169,13 @@ private:
     ///@}
     ///@name Private Members
     ///@{
-    TriangleMeshPtrType mpTriangleMesh;
     PointType mLowerBound;
     PointType mUpperBound;
 
     const BRepOperator* mpBrepOperatorGlobal;
 
-    Unique<TriangleMeshInterface> mpClippedMesh;
+    Unique<ClippedTriangleMesh> mpClippedMesh;
+    TriangleMesh mClosedMesh;
     GeometryQuery mGeometryQuery;
     double mSnapTolerance;
 

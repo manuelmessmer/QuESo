@@ -454,8 +454,8 @@ private:
         delta[0] = std::abs(rUpperBound[0] - rLowerBound[0]) / static_cast<double>(mNumberOfElements[0]);
         delta[1] = std::abs(rUpperBound[1] - rLowerBound[1]) / static_cast<double>(mNumberOfElements[1]);
         delta[2] = std::abs(rUpperBound[2] - rLowerBound[2]) / static_cast<double>(mNumberOfElements[2]);
-        return std::make_pair( Math::Add( rLowerBound, Math::MultElementWise(delta, indices_d)),
-                               Math::Add( rLowerBound, Math::MultElementWise(delta, Math::Add({1.0, 1.0, 1.0}, indices_d))) );
+        return std::make_pair(rLowerBound + Math::MultElementWise(delta, indices_d),
+                              rLowerBound + Math::MultElementWise(delta, PointType{1.0, 1.0, 1.0} + indices_d));
 
     }
 

@@ -56,13 +56,18 @@ class ModelPartUtilities:
             KratosModelPart (KM.ModelPart): The Kratos ModelPart to populate with data from the triangle mesh.
             TriangleMesh (QuESo.TriangleMesh): The QuESo triangle mesh from which the model part is read.
         """
-        vertices = TriangleMesh.GetVertices()
+        vertices = list(TriangleMesh.Vertices())
+        id_map = {tuple(vertex): v_id for v_id, vertex in enumerate(vertices)}
         for v_id, vertex in enumerate(vertices):
             KratosModelPart.CreateNewNode(v_id+1, vertex[0], vertex[1], vertex[2])
 
-        triangles = TriangleMesh.GetTriangles()
-        for t_id, triangle in enumerate(triangles):
-            KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, [triangle[0]+1, triangle[1]+1, triangle[2]+1], KratosModelPart.GetProperties()[1])
+        for t_id, tri in enumerate(TriangleMesh.Triangles()):
+            node_ids = [
+                id_map[tuple(tri.p1)] + 1,
+                id_map[tuple(tri.p2)] + 1,
+                id_map[tuple(tri.p3)] + 1,
+            ]
+            KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, node_ids, KratosModelPart.GetProperties()[1])
 
     @staticmethod
     def read_triangle_mesh_grom_model_part(
@@ -83,7 +88,7 @@ class ModelPartUtilities:
         """
         id_map = {node.Id: queso_id for queso_id, node in enumerate(KratosModelPart.Nodes)}
         for node in KratosModelPart.Nodes: # type: ignore
-            TriangleMesh.AddVertex([node.X, node.Y, node.Z])
+            TriangleMesh.AddVertex((node.X, node.Y, node.Z))
 
         if( type == "Elements"):
             entity_list = KratosModelPart.Elements
@@ -103,14 +108,8 @@ class ModelPartUtilities:
                 raise Exception("ModelPartUtilities :: read_triangle_mesh_grom_model_part :: Queso only allows triangles.")
 
             # Get the node ids for the triangle
-            node_ids = [id_map[node.Id] for node in geometry]
+            node_ids = tuple(id_map[node.Id] for node in geometry)
             TriangleMesh.AddTriangle(node_ids)
-
-            # Compute the normal for the triangle
-            normal = QuESo.Triangle.NormalStatic( # type: ignore (TODO: add .pyi)
-                [node.X, node.Y, node.Z] for node in geometry
-            )
-            TriangleMesh.AddNormal(normal)
 
     @staticmethod
     def add_elements_to_model_part(
