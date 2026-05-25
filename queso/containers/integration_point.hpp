@@ -11,8 +11,7 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef INTEGRATION_POINT_INCLUDE_H
-#define INTEGRATION_POINT_INCLUDE_H
+#pragma once
 
 //// Project includes
 #include "queso/includes/define.hpp"
@@ -25,118 +24,57 @@ namespace queso {
 /**
  * @class  IntegrationPoint
  * @author Manuel Messmer
-*/
+ * @brief Simple container that stores a 3D-point (`PointType`) and a integration weight (`double`).
+ **/
 class IntegrationPoint
 {
 public:
-
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor
-    IntegrationPoint() : mPoint{}, mWeight(0.0)
-    {
-    }
-
     /// 2D Constructor
-    IntegrationPoint(double x, double y, double weigth_) :
-        mPoint{x,y,0.0}, mWeight(weigth_)
-    {
-    }
+    constexpr IntegrationPoint(double X, double Y, double Weight) noexcept : mPoint{ X, Y, 0.0 }, mWeight(Weight)
+    {}
 
     /// 3D Constructor
-    IntegrationPoint(double x, double y, double z, double weigth_) :
-        mPoint{x,y,z}, mWeight(weigth_)
-    {
-    }
+    constexpr IntegrationPoint(double X, double Y, double Z, double Weight) noexcept
+        : mPoint{ X, Y, Z }, mWeight(Weight)
+    {}
 
-    /// 3D Constructor
-    IntegrationPoint(const Vector3d& rPoint, double weigth_) :
-        mPoint(rPoint), mWeight(weigth_)
-    {
-    }
-
-    /// Destructor
-    virtual ~IntegrationPoint() = default;
-
-    /// Copy Constructor
-    IntegrationPoint(IntegrationPoint const& rOther) = default;
-    /// Assignement Operator
-    IntegrationPoint& operator=(IntegrationPoint const& rOther) = default;
-    /// Move constructor
-    IntegrationPoint(IntegrationPoint&& rOther) noexcept = default;
-    /// Move assignement operator
-    IntegrationPoint& operator=(IntegrationPoint&& rOther) noexcept = default;
+    /// 3D Constructor from PointType
+    constexpr IntegrationPoint(const PointType& rPoint, double Weight) noexcept : mPoint(rPoint), mWeight(Weight)
+    {}
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Returns underlying point data.
-    const Vector3d& data() const {
-        return mPoint;
-    }
-
-    /// Access first element
-    double& X(){
-        return mPoint[0];
-    }
-
-    /// Access second element
-    double& Y(){
-        return mPoint[1];
-    }
-
-    /// Access third element
-    double& Z(){
-        return mPoint[2];
-    }
-
-    /// Access first element const
-    double X() const{
-        return mPoint[0];
-    }
-
-    /// Access second element const
-    double Y() const{
-        return mPoint[1];
-    }
-
-    /// Access third element const
-    double Z() const{
-        return mPoint[2];
-    }
-
-    /// Access elements by index
-    double& operator [] (std::size_t i){
-        return mPoint[i];
-    }
+    /// Returns underlying point coordinates.
+    [[nodiscard]] constexpr const PointType& Point() const noexcept
+    { return mPoint; }
 
     /// Access elements by index (const)
-    double operator [] (std::size_t i) const{
-        return mPoint[i];
-    }
+    [[nodiscard]] constexpr double operator[](IndexType i) const noexcept
+    { return mPoint[i]; }
 
     /// Get integration weight
-    double Weight() const{
-        return mWeight;
-    }
+    [[nodiscard]] constexpr double Weight() const noexcept
+    { return mWeight; }
 
     /// Set integration weight
-    void SetWeight(double weigth_){
-        mWeight = weigth_;
-    }
+    constexpr void SetWeight(double Weight) noexcept
+    { mWeight = Weight; }
 
     ///@}
 private:
     ///@name Private member variables
     ///@{
-    Vector3d mPoint;
-    double mWeight;
+    PointType mPoint{};
+    double mWeight{};
     ///@}
-}; // End class IntegrationPoint
+};// End class IntegrationPoint
 ///@} End QuESo classes
 
-} // End namespace queso
+static_assert(std::is_trivially_copyable_v<IntegrationPoint>, "IntegrationPoint must remain trivially copyable.");
 
-#endif // INTEGRATION_POINT_INCLUDE_H
+}// End namespace queso

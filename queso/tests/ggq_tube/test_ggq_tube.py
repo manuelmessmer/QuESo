@@ -30,12 +30,12 @@ class TestGGQTube(unittest.TestCase):
 
         ips = {}
         num_el_inside = 0
-        for i, element in enumerate(self.pyqueso.GetElements()):
+        for element in self.pyqueso.GetElements():
             if not element.IsTrimmed():
                 num_el_inside += 1
                 tmp_list = []
                 for point in element.GetIntegrationPoints():
-                    tmp_list.append( [point.X(), point.Y(), point.Z(), point.Weight()] )
+                    tmp_list.append( [point.x, point.y, point.z, point.weight] )
                 ips[element.ID()] = tmp_list
 
         # with open("test.json", 'w') as file:

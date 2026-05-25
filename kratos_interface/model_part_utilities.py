@@ -130,9 +130,9 @@ class ModelPartUtilities:
         for element in Elements:
             # Collect valid integration points
             integration_points = [
-                [point.X(), point.Y(), point.Z(), point.Weight()]
+                [point.x, point.y, point.z, point.weight]
                 for point in element.GetIntegrationPoints()
-                if(point.Weight() > 0)
+                if(point.weight > 0)
             ]
 
             # Create elements

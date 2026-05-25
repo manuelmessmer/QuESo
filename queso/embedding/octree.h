@@ -89,7 +89,7 @@ private:
                     pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
                 else {
                     for( auto& point : integration_points_tmp){
-                        const auto tmp_point = Mapping::PointFromParamToGlobal(point.data(), mBoundsXYZ, mBoundsUVW);
+                        const auto tmp_point = Mapping::PointFromParamToGlobal(point.Point(), mBoundsXYZ, mBoundsUVW);
                         if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
                             pPoints->push_back(point);
                         }
