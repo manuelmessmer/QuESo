@@ -34,7 +34,7 @@ class PyQuESo:
         self._settings_holder = None
         self._embedded_model.CreateAllFromSettings()
 
-    def GetElements(self) -> QuESo_App.ElementVector: # type: ignore (TODO: add .pyi)
+    def GetElements(self) -> list[QuESo_App.Element]: # type: ignore (TODO: add .pyi)
         """Returns a list of active elements from the embedded model.
 
         Returns:

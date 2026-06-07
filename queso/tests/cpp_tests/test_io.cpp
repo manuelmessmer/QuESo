@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(IOTriangleMeshVTKTest) {
 using IntegrationPointType = IntegrationPoint;
 using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
 using ElementType = Element<IntegrationPointType, BoundaryIntegrationPointType>;
-using BackgroundGridType = BackgroundGrid<ElementType>;
+using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
 
 Unique<BackgroundGridType> CreateTestBackgroundGrid(){
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
@@ -137,7 +137,7 @@ Unique<BackgroundGridType> CreateTestBackgroundGrid(){
                                                                        MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
 
         QuadratureSingleElement<ElementType>::AssembleIPs(*p_new_element, Vector3i({1, 2, 1}), IntegrationMethod::gauss);
-        p_grid->AddElement(std::move(p_new_element));
+        p_grid->AddElement(std::move(*p_new_element));
     }
 
     return p_grid;

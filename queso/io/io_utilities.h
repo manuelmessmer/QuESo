@@ -100,22 +100,26 @@ public:
                                     EncodingType Encoding);
 
     /// @brief Writes elements to VTK file.
-    /// @tparam TElementType
+    /// @tparam TIntegrationPointType
+    /// @tparam TBoundaryIntegrationPointType
     /// @param rBackgroundGrid
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
-    template<typename TElementType>
-    static void WriteElementsToVTK( const BackgroundGrid<TElementType>& rBackgroundGrid,
+    template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
+    static void WriteElementsToVTK(
+        const BackgroundGrid<TIntegrationPointType, TBoundaryIntegrationPointType>& rBackgroundGrid,
                                     const std::string& rFilename,
                                     EncodingType Encoding);
 
     /// @brief Write points to VTK file.
-    /// @tparam TElementType
+    /// @tparam TIntegrationPointType
+    /// @tparam TBoundaryIntegrationPointType
     /// @param rBackgroundGrid
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
-    template<typename TElementType>
-    static void WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
+    template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
+    static void WritePointsToVTK(
+        const BackgroundGrid<TIntegrationPointType, TBoundaryIntegrationPointType>& rBackgroundGrid,
                                  const std::string& rFilename,
                                  EncodingType Encoding);
 private:

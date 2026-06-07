@@ -11,211 +11,190 @@
 //
 //  Authors:    Manuel Messmer
 
-//// External includes
+/// External includes
 #include <boost/test/unit_test.hpp>
-// Project includes
-#include "queso/includes/checks.hpp"
-#include "queso/includes/dictionary_factory.hpp"
+
+/// Project includes
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/element.hpp"
-#include "queso/containers/background_grid.hpp"
+#include "queso/includes/checks.hpp"
+#include "queso/includes/dictionary_factory.hpp"
 
-namespace queso {
-namespace Testing {
+namespace queso::Testing {
 
-BOOST_AUTO_TEST_SUITE( BackgroundGridTestSuite )
+BOOST_AUTO_TEST_SUITE(BackgroundGridTestSuite)
 
-typedef IntegrationPoint IntegrationPointType;
-typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-typedef BackgroundGrid<ElementType> BackgroundGridType;
+using IntegrationPointType = IntegrationPoint;
+using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
+using ElementType = Element<IntegrationPointType, BoundaryIntegrationPointType>;
+using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
 
-Unique<BackgroundGridType> CreateTestBackgroundGrid(Vector3i rNumberOfElemnts){
+BackgroundGridType CreateTestBackgroundGrid(const Vector3i& rNumberOfElements)
+{
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
 
     auto& r_background_grid_settings = r_settings[MainSettings::background_grid_settings];
-    r_background_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElemnts);
+    r_background_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElements);
     r_background_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    r_background_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24, -43, 5});
-    r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
-    r_background_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
-    r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_background_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -24, -43, 5 });
+    r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 85, 46, 115 });
+    r_background_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ -1.0, -1.0, 1.0 });
+    r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
 
-    Unique<BackgroundGridType> p_grid = MakeUnique<BackgroundGridType>(r_settings);
+    BackgroundGridType grid(r_settings);
 
-    IndexType number_elements = rNumberOfElemnts[0]*rNumberOfElemnts[1]*rNumberOfElemnts[2];
-    for( IndexType i = 1; i <= number_elements; ++i){
-        PointType tmp_point_A = {0.0, 0.0, 0.0};
-        PointType tmp_point_B = {0.1, 0.1, 0.1};
-        Unique<ElementType> tmp_element = MakeUnique<ElementType>(i, MakeBox(tmp_point_A, tmp_point_B),
-                                                             MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
-        if( i != 17)
-            p_grid->AddElement(std::move(tmp_element));
+    IndexType number_elements = rNumberOfElements[0] * rNumberOfElements[1] * rNumberOfElements[2];
+    for (IndexType elements_id = 1; elements_id <= number_elements; ++elements_id) {
+        ElementType new_element(
+            elements_id, MakeBox({ 0.0, 0.0, 0.0 }, { 0.1, 0.1, 0.1 }), MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 }));
+        if (elements_id != 17) grid.AddElement(std::move(new_element));
     }
+    grid.LockElements();
 
-    return p_grid;
+    return grid;
 }
 
-BOOST_AUTO_TEST_CASE(TestBackgroundGridX) {
+BOOST_AUTO_TEST_CASE(TestBackgroundGridX)
+{
     QuESo_INFO << "Testing :: Test Background Grid :: Background Grid Walking along X Direction" << std::endl;
 
-    Vector3i number_of_elements = {3, 4, 2};
-    auto p_grid = CreateTestBackgroundGrid(number_of_elements);
+    Vector3i number_of_elements = { 3, 4, 2 };
+    auto grid = CreateTestBackgroundGrid(number_of_elements);
 
-    bool local_end;
-    bool found;
-    IndexType next_id;
     IndexType current_id = 1;
-    QuESo_CHECK_EQUAL(p_grid->NumberOfActiveElements(), 23);
+    QuESo_CHECK_EQUAL(grid.NumberOfActiveElements(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < p_grid->NumberOfActiveElements() + 1; ++i){
-        auto neighbour = p_grid->pGetNextElementInX(current_id, next_id, local_end);
-        found = false;
-        if( neighbour ){
+    for (IndexType i = 1; i <= grid.NumberOfActiveElements(); ++i) {
+        const auto next_result = grid.GetNextElement(current_id, BackgroundGridType::Direction::x_forward);
+        const auto* p_neighbour = next_result.pElement;
+        bool found = false;
+        if (p_neighbour) {
             found = true;
-            IndexType reverse_id;
-            bool local_end_reversed;
-            p_grid->pGetPreviousElementInX(next_id, reverse_id, local_end_reversed);
-            if( local_end ) {
-                QuESo_CHECK(local_end_reversed);
-            }
-            QuESo_CHECK_EQUAL(current_id, reverse_id);
+            const auto reverse_result =
+                grid.GetNextElement(next_result.nextId, BackgroundGridType::Direction::x_backward);
+            if (next_result.isEnd) { QuESo_CHECK(reverse_result.isEnd); }
+            QuESo_CHECK_EQUAL(current_id, reverse_result.nextId);
             active_element_counter++;
         }
-        QuESo_CHECK_EQUAL(next_id, i+1);
-        if( next_id == 17 ){
-            QuESo_CHECK(local_end);
+        QuESo_CHECK_EQUAL(next_result.nextId, i + 1);
+        if (next_result.nextId == 17) {
+            QuESo_CHECK(next_result.isEnd);
             QuESo_CHECK_IS_FALSE(found);
-        }
-        else {
-            QuESo_CHECK_EQUAL(neighbour->GetId(), i+1);
+        } else {
+            QuESo_CHECK_EQUAL(p_neighbour->GetId(), i + 1);
             QuESo_CHECK(found);
 
-            if( current_id % 3 == 0 ){
-                QuESo_CHECK(local_end);
-            }
-            else {
-                QuESo_CHECK_IS_FALSE(local_end);
+            if (current_id % 3 == 0) {
+                QuESo_CHECK(next_result.isEnd);
+            } else {
+                QuESo_CHECK_IS_FALSE(next_result.isEnd);
             }
         }
-        current_id = next_id;
+        current_id = next_result.nextId;
     }
     QuESo_CHECK_EQUAL(active_element_counter, 23);
-} // End Testcase
+}// End Testcase
 
-bool contains(std::vector<int>& v, int test_value){
-    if(std::find(v.begin(), v.end(), test_value) != v.end()) {
-        return true;
-    }
-    return false;
-}
+bool contains(const std::vector<int>& v, int test_value)
+{ return std::find(v.begin(), v.end(), test_value) != v.end(); }
 
-BOOST_AUTO_TEST_CASE(TestBackgroundGridY) {
+BOOST_AUTO_TEST_CASE(TestBackgroundGridY)
+{
     QuESo_INFO << "Testing :: Test Background Grid :: Background Grid Walking along Y Direction" << std::endl;
 
-    Vector3i number_of_elements = {3, 4, 2};
-    auto p_grid = CreateTestBackgroundGrid(number_of_elements);
+    Vector3i number_of_elements = { 3, 4, 2 };
+    auto grid = CreateTestBackgroundGrid(number_of_elements);
 
-    bool local_end;
-    bool found;
-    IndexType next_id;
     IndexType current_id = 1;
-    std::vector<int> test_next_ids {1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12, 13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24};
-    std::vector<int> test_local_ends {10, 11, 12, 22, 23, 24};
+    const std::vector<int> test_next_ids{
+        1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12, 13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24
+    };
+    const std::vector<int> test_local_ends{ 10, 11, 12, 22, 23, 24 };
 
-    QuESo_CHECK_EQUAL(p_grid->NumberOfActiveElements(), 23);
+    QuESo_CHECK_EQUAL(grid.NumberOfActiveElements(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < p_grid->NumberOfActiveElements() + 1; ++i){
-        found = false;
-        auto neighbour = p_grid->pGetNextElementInY(current_id, next_id, local_end);
-        if( neighbour ){
+    for (IndexType i = 1; i <= grid.NumberOfActiveElements(); ++i) {
+        const auto next_result = grid.GetNextElement(current_id, BackgroundGridType::Direction::y_forward);
+        const auto* p_neighbour = next_result.pElement;
+        bool found = false;
+        if (p_neighbour) {
             found = true;
-            IndexType reverse_id;
-            bool local_end_reversed;
-            p_grid->pGetPreviousElementInY(next_id, reverse_id, local_end_reversed);
-            if( local_end ) {
-                QuESo_CHECK(local_end_reversed);
-            }
-            QuESo_CHECK_EQUAL(current_id, reverse_id);
+            const auto reverse_result =
+                grid.GetNextElement(next_result.nextId, BackgroundGridType::Direction::y_backward);
+            if (next_result.isEnd) { QuESo_CHECK(reverse_result.isEnd); }
+            QuESo_CHECK_EQUAL(current_id, reverse_result.nextId);
             active_element_counter++;
         }
-        QuESo_CHECK_EQUAL(static_cast<int>(next_id), test_next_ids[i]);
+        QuESo_CHECK_EQUAL(static_cast<int>(next_result.nextId), test_next_ids[i]);
 
-        if( next_id == 17 ){
-            QuESo_CHECK(local_end);
+        if (next_result.nextId == 17) {
+            QuESo_CHECK(next_result.isEnd);
             QuESo_CHECK_IS_FALSE(found);
-        }
-        else {
-            QuESo_CHECK_EQUAL(found, true);
-            QuESo_CHECK_EQUAL(static_cast<int>(neighbour->GetId()), test_next_ids[i]);
+        } else {
+            QuESo_CHECK(found);
+            QuESo_CHECK_EQUAL(static_cast<int>(p_neighbour->GetId()), test_next_ids[i]);
 
-            if( contains(test_local_ends, current_id) ){
-                QuESo_CHECK(local_end);
-            }
-            else {
-                QuESo_CHECK_IS_FALSE(local_end);
+            if (contains(test_local_ends, current_id)) {
+                QuESo_CHECK(next_result.isEnd);
+            } else {
+                QuESo_CHECK_IS_FALSE(next_result.isEnd);
             }
         }
-        current_id = next_id;
+        current_id = next_result.nextId;
     }
     QuESo_CHECK_EQUAL(active_element_counter, 23);
-} // End Testcase
+}// End Testcase
 
-BOOST_AUTO_TEST_CASE(TestBackgroundGridZ) {
+BOOST_AUTO_TEST_CASE(TestBackgroundGridZ)
+{
     QuESo_INFO << "Testing :: Test Background Grid :: Background Grid Walking along Z Direction" << std::endl;
 
-    Vector3i number_of_elements = {3, 4, 2};
-    auto p_grid = CreateTestBackgroundGrid(number_of_elements);
+    Vector3i number_of_elements = { 3, 4, 2 };
+    auto grid = CreateTestBackgroundGrid(number_of_elements);
 
-    bool local_end;
-    bool found;
-    IndexType next_id;
     IndexType current_id = 1;
-    std::vector<int> test_next_ids {1, 13, 2, 14, 3, 15, 4, 16, 5, 17, 6, 18, 7, 19, 8, 20, 9, 21, 10, 22, 11, 23, 12, 24};
-    std::vector<int> test_local_ends {13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+    const std::vector<int> test_next_ids{
+        1, 13, 2, 14, 3, 15, 4, 16, 5, 17, 6, 18, 7, 19, 8, 20, 9, 21, 10, 22, 11, 23, 12, 24
+    };
+    const std::vector<int> test_local_ends{ 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
 
-    QuESo_CHECK_EQUAL(p_grid->NumberOfActiveElements(), 23);
+    QuESo_CHECK_EQUAL(grid.NumberOfActiveElements(), 23);
     IndexType active_element_counter = 1;
-    for( IndexType i = 1; i < p_grid->NumberOfActiveElements() + 1; ++i){
-        found = false;
-        auto neighbour = p_grid->pGetNextElementInZ(current_id, next_id, local_end);
-        if( neighbour ){
+    for (IndexType i = 1; i <= grid.NumberOfActiveElements(); ++i) {
+        const auto next_result = grid.GetNextElement(current_id, BackgroundGridType::Direction::z_forward);
+        const auto* p_neighbour = next_result.pElement;
+        bool found = false;
+        if (p_neighbour) {
             found = true;
-            IndexType reverse_id;
-            bool local_end_reversed;
-
-            p_grid->pGetPreviousElementInZ(next_id, reverse_id, local_end_reversed);
-            if( local_end ) {
-                QuESo_CHECK(local_end_reversed);
-            }
-            QuESo_CHECK_EQUAL(current_id, reverse_id);
+            const auto reverse_result =
+                grid.GetNextElement(next_result.nextId, BackgroundGridType::Direction::z_backward);
+            if (next_result.isEnd) { QuESo_CHECK(reverse_result.isEnd); }
+            QuESo_CHECK_EQUAL(current_id, reverse_result.nextId);
             active_element_counter++;
         }
-        QuESo_CHECK_EQUAL(static_cast<int>(next_id), test_next_ids[i]);
+        QuESo_CHECK_EQUAL(static_cast<int>(next_result.nextId), test_next_ids[i]);
 
-        if( next_id == 17 ){
-            QuESo_CHECK(local_end);
+        if (next_result.nextId == 17) {
+            QuESo_CHECK(next_result.isEnd);
             QuESo_CHECK_IS_FALSE(found);
-        }
-        else {
+        } else {
             QuESo_CHECK(found);
-            QuESo_CHECK_EQUAL(static_cast<int>(neighbour->GetId()), test_next_ids[i]);
+            QuESo_CHECK_EQUAL(static_cast<int>(p_neighbour->GetId()), test_next_ids[i]);
 
-            if( contains(test_local_ends, current_id) ){
-                QuESo_CHECK(local_end);
-            }
-            else {
-                QuESo_CHECK_IS_FALSE(local_end);
+            if (contains(test_local_ends, current_id)) {
+                QuESo_CHECK(next_result.isEnd);
+            } else {
+                QuESo_CHECK_IS_FALSE(next_result.isEnd);
             }
         }
-        current_id = next_id;
+        current_id = next_result.nextId;
     }
     QuESo_CHECK_EQUAL(active_element_counter, 23);
-} // End Testcase
+}// End Testcase
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // End namespace Testing
-} // End namespace queso
+}// namespace queso::Testing

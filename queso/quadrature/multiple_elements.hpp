@@ -41,7 +41,9 @@ public:
     ///@{
 
     using ElementType = TElementType;
-    using BackgroundGridType = BackgroundGrid<ElementType>;
+    using IntegrationPointType = typename ElementType::IntegrationPointType;
+    using BoundaryIntegrationPointType = typename ElementType::BoundaryIntegrationPointType;
+    using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
     using Direction = GridIndexer::Direction;
 
     ///@}
@@ -61,7 +63,7 @@ public:
         // Create priority queue for all non-trimmed elements. The element with the highest neighbor coefficient is
         // always at front.
         std::priority_queue<ElementType*, ElementVectorType, CompareByCoefficient> unvisited_elements;
-        for( auto& r_el : rGrid.Elements() ) {
+        for( auto& r_el : rGrid.GetElements() ) {
             r_el.SetValue(ElementValues::is_visited, false);
             if( !r_el.IsTrimmed() ){
                 unvisited_elements.push(&r_el);
@@ -134,7 +136,10 @@ private:
             IndexType el_counter = 1;
             // Loop until all elements in rElements have beend visited/found
             while( el_counter < rElements.NumberOfActiveElements() ){
-                ElementType* neighbour = rElements.pGetNextElement(current_id, dir, next_id, local_end);
+                const auto next_element_result = rElements.GetNextElement(current_id, dir);
+                ElementType* neighbour = next_element_result.pElement;
+                next_id = next_element_result.nextId;
+                local_end = next_element_result.isEnd;
                 if( neighbour ){
                     el_counter++;
                     if(neighbour->IsTrimmed()){
@@ -307,11 +312,9 @@ private:
     /// @param CurrentId
     /// @param Dir
     /// @return ElementType*
+	/// TODO: Remove this function.
     static ElementType* pNextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
-        IndexType dummy_next_id;
-        bool dummy_local_end;
-
-        return rElements.pGetNextElement(CurrentId, Dir, dummy_next_id, dummy_local_end);
+        return rElements.GetNextElement(CurrentId, Dir).pElement;
     }
 
     /// @brief Helper function to compute the neighbor coefficient using a linear function.

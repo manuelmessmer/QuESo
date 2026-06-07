@@ -60,10 +60,10 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
 
     QuESo_CHECK_EQUAL(elements.size(), 1);
 
-    const auto& points_reduced = (*elements.begin())->GetIntegrationPoints();
+    const auto& points_reduced = elements.begin()->GetIntegrationPoints();
     QuESo_CHECK_LT(points_reduced.size(), 28);
 
-    const auto& r_triangle_mesh = (*elements.begin())->pGetTrimmedDomain()->GetTriangleMesh();
+    const auto& r_triangle_mesh = elements.begin()->pGetTrimmedDomain()->GetTriangleMesh();
     const IndexType num_triangles = r_triangle_mesh.NumOfTriangles();
 
     QuESo_CHECK_GT(num_triangles, 5000.0);
@@ -127,9 +127,9 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     int num_points_inside = 0;
     for( IndexType i = 0; i < elements.size(); ++i){
         const auto& el_it = *(el_it_begin+i);
-        const double det_j = el_it->DetJ();
-        if( el_it->IsTrimmed() ){
-            const auto& points_trimmed = el_it->GetIntegrationPoints();
+        const double det_j = el_it.DetJ();
+        if( el_it.IsTrimmed() ){
+            const auto& points_trimmed = el_it.GetIntegrationPoints();
             QuESo_CHECK_GT(points_trimmed.size(), 0);
             QuESo_CHECK_LT(points_trimmed.size(), (rOrder[0]+1)*(rOrder[1]+1)*(rOrder[2]+1)+1);
             for( const auto& point : points_trimmed ){
@@ -137,7 +137,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
             }
             num_elements_trimmed++;
         } else {
-            const auto& points_inside = el_it->GetIntegrationPoints();
+            const auto& points_inside = el_it.GetIntegrationPoints();
             for( const auto& point : points_inside ){
                 volume_inside += point.Weight()*det_j;
                 num_points_inside++;
@@ -153,7 +153,7 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
-    const BoundingBoxType el_bounding_box = (*el_it_begin)->GetBoundsXYZ();
+    const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
     const PointType el_delta = (el_bounding_box.second - el_bounding_box.first);
     const double ref_volume_inside = (el_delta[0]*el_delta[1]*el_delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
@@ -337,9 +337,9 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     int num_points_inside = 0;
     for( IndexType i = 0; i < elements.size(); ++i){
         const auto& el_it = *(el_it_begin+i);
-        const double det_j = el_it->DetJ();
-        if( el_it->IsTrimmed() ){
-            const auto& points_trimmed = el_it->GetIntegrationPoints();
+        const double det_j = el_it.DetJ();
+        if( el_it.IsTrimmed() ){
+            const auto& points_trimmed = el_it.GetIntegrationPoints();
             QuESo_CHECK_GT(points_trimmed.size(), 0);
             QuESo_CHECK_LT(points_trimmed.size(), (p+1)*(p+1)*(p+1)+1);
             for( const auto& point : points_trimmed ){
@@ -347,7 +347,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
             }
             num_elements_trimmed++;
         } else {
-            const auto& points_inside = el_it->GetIntegrationPoints();
+            const auto& points_inside = el_it.GetIntegrationPoints();
             for( const auto& point : points_inside ){
                 volume_inside += point.Weight()*det_j;
                 num_points_inside++;
@@ -363,7 +363,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
-    const BoundingBoxType el_bounding_box = (*el_it_begin)->GetBoundsXYZ();
+    const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
     const PointType delta = (el_bounding_box.second - el_bounding_box.first);
     const double ref_volume_inside = (delta[0]*delta[1]*delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
@@ -378,14 +378,14 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     /// Test conditions
     const auto& conditions = embedded_model.GetConditions();
     QuESo_CHECK_EQUAL(conditions.size(), 4);
-    for( const auto& p_condition : conditions ){
+    for( const auto& r_condition : conditions ){
         TriangleMesh triangle_mesh{};
-        const auto& r_cond_setting = p_condition->GetSettings();
+        const auto& r_cond_setting = r_condition.GetSettings();
         std::string filename = r_cond_setting.GetValue<std::string>(ConditionSettings::input_filename);
         IO::ReadMeshFromSTL(triangle_mesh, filename);
         const double ref_area = MeshUtilities::Area(triangle_mesh.View());
         auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh().View()); };
-        const double area = std::accumulate(p_condition->SegmentsBegin(), p_condition->SegmentsEnd(), 0.0, lambda);
+        const double area = std::accumulate(r_condition.SegmentsBegin(), r_condition.SegmentsEnd(), 0.0, lambda);
         QuESo_CHECK_NEAR(ref_area, area, 1e-10);
     }
 }
@@ -531,7 +531,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     const auto& r_condition_info_1 = *r_model_info.GetList(MainInfo::conditions_infos_list)[0];
     const auto& r_condition_1 = embedded_model.GetConditions()[0];
-    const auto& r_condition_info_1_other = r_condition_1->GetInfo();
+    const auto& r_condition_info_1_other = r_condition_1.GetInfo();
     QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
     QuESo_CHECK_EQUAL( r_condition_info_1.GetValue<IndexType>(ConditionInfo::condition_id), 1);
 

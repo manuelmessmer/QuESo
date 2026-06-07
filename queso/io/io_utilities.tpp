@@ -91,8 +91,9 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
 }
 
 
-template<typename TElementType>
-void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
+template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
+void IO::WriteElementsToVTK(
+    const BackgroundGrid<TIntegrationPointType, TBoundaryIntegrationPointType>& rBackgroundGrid,
                             const std::string& rFilename,
                             EncodingType Encoding) {
     // Open file
@@ -116,7 +117,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     file << "POINTS " << num_elements * 8 << " double\n";
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for (const auto& r_element : rBackgroundGrid.Elements()) {
+        for (const auto& r_element : rBackgroundGrid.GetElements()) {
             const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
             auto vertices = GetHexahedronVertices(lower_point, upper_point);
             for (const auto& v : vertices) {
@@ -126,7 +127,7 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
             }
         }
     } else { // ascii
-        for (const auto& r_element : rBackgroundGrid.Elements()) {
+        for (const auto& r_element : rBackgroundGrid.GetElements()) {
             const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
             auto vertices = GetHexahedronVertices(lower_point, upper_point);
             for (const auto& v : vertices) {
@@ -175,17 +176,18 @@ void IO::WriteElementsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     QuESo_ERROR_IF(!file.good()) << "Failed to write elements to file: " << rFilename << '.' << std::endl;
 }
 
-template<typename TElementType>
-void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
-                            const std::string& rFilename,
-                            EncodingType Encoding) {
+template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
+void IO::WritePointsToVTK(
+    const BackgroundGrid<TIntegrationPointType, TBoundaryIntegrationPointType>& rBackgroundGrid,
+                             const std::string& rFilename,
+                             EncodingType Encoding) {
     // Open file
     std::ofstream file(rFilename, (Encoding == EncodingType::binary)
         ? (std::ios::out | std::ios::binary) : std::ios::out);
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const IndexType num_points = std::accumulate(
-        rBackgroundGrid.ElementsBegin(), rBackgroundGrid.ElementsEnd(), IndexType{0},
+        rBackgroundGrid.GetElements().begin(), rBackgroundGrid.GetElements().end(), IndexType{0},
         [](IndexType Acc, const auto& rElement) {
             return Acc + rElement.GetIntegrationPoints().size();
     });
@@ -205,7 +207,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     file << "POINTS " << num_points << " double\n";
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for(const auto& r_element : rBackgroundGrid.Elements()) {
+        for(const auto& r_element : rBackgroundGrid.GetElements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
             for (const auto& r_point : r_points) {
                 auto point_global = r_element.PointFromParamToGlobal(r_point.Point());
@@ -215,7 +217,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
             }
         }
     } else { // ascii
-        for(const auto& r_element : rBackgroundGrid.Elements()) {
+        for(const auto& r_element : rBackgroundGrid.GetElements()) {
             const auto& r_points = r_element.GetIntegrationPoints();
             for (const auto& r_point : r_points) {
                 auto point_global = r_element.PointFromParamToGlobal(r_point.Point());
@@ -260,7 +262,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
     file << "LOOKUP_TABLE default\n";
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for(const auto& r_element : rBackgroundGrid.Elements()){
+        for(const auto& r_element : rBackgroundGrid.GetElements()){
             const auto& points = r_element.GetIntegrationPoints();
             for(const auto& point : points ){
                 double weight = point.Weight();
@@ -268,7 +270,7 @@ void IO::WritePointsToVTK(const BackgroundGrid<TElementType>& rBackgroundGrid,
             }
         }
     } else { // ascii
-        for(const auto& r_element : rBackgroundGrid.Elements()){
+        for(const auto& r_element : rBackgroundGrid.GetElements()){
             const auto& points = r_element.GetIntegrationPoints();
             for(const auto& point : points ){
                 file << point.Weight() << '\n';
