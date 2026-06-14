@@ -51,7 +51,7 @@ public:
     using IntegrationPointType = IntegrationPoint;
     using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
     using ElementType = Element<IntegrationPointType, BoundaryIntegrationPointType>;
-    using BackgroundGridType = BackgroundGrid<ElementType>;
+    using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
     using ConditionType = Condition<ElementType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 

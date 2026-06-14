@@ -15,6 +15,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
+#include "queso/containers/integration_point_concepts.hpp"
 
 namespace queso {
 
@@ -75,6 +76,6 @@ private:
 };// End class IntegrationPoint
 ///@} End QuESo classes
 
-static_assert(std::is_trivially_copyable_v<IntegrationPoint>, "IntegrationPoint must remain trivially copyable.");
+static_assert(concepts::IntegrationPoint<IntegrationPoint>, "IntegrationPoint must satisfy concepts::IntegrationPoint.");
 
 }// End namespace queso

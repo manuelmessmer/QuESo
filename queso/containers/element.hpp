@@ -19,6 +19,7 @@
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/containers/data_set.hpp"
+#include "queso/containers/integration_point_concepts.hpp"
 #include "queso/embedding/trimmed_domain.h"
 #include "queso/utilities/mapping_utilities.hpp"
 
@@ -48,7 +49,7 @@ QuESo_REGISTER_KEY_SET(ElementValues, MainValuesTypeTag,
  * @tparam TBoundaryIntegrationPointType
  * @see    background_grid.hpp
 */
-template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
+template<concepts::IntegrationPoint TIntegrationPointType, concepts::BoundaryIntegrationPoint TBoundaryIntegrationPointType>
 class Element
 {
 public:

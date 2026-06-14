@@ -132,12 +132,12 @@ void AddContainersToPython(pybind11::module& m) {
         .def_property_readonly("y", [](const IntegrationPointType& self){return self[1];} )
         .def_property_readonly("z", [](const IntegrationPointType& self){return self[2];} )
         .def_property_readonly("weight", &IntegrationPointType::Weight)
-        .def("__getitem__",  [](const IntegrationPointType &self, IndexType i){
+        .def("__getitem__",  [](const IntegrationPointType &self, int i){
 				if (i < 0)
 					i += 3;
 				if (i < 0 || i >= 3)
 					throw py::index_error();
-				return self[i];
+				return self[static_cast<IndexType>(i)];
 			})
         .def("__len__", [](const IntegrationPointType&) { return 3; })
         .def("__iter__", [](const IntegrationPointType &self) {
@@ -162,12 +162,12 @@ void AddContainersToPython(pybind11::module& m) {
 		.def_property_readonly("weight", &BoundaryIntegrationPointType::Weight)
 		.def_property_readonly("normal", &BoundaryIntegrationPointType::Normal, py::return_value_policy::reference_internal)
 		.def("__getitem__",
-			[](const BoundaryIntegrationPointType& self, IndexType i) {
+			[](const BoundaryIntegrationPointType& self, int i) {
 				if (i < 0)
 					i += 3;
 				if (i < 0 || i >= 3)
 					throw py::index_error();
-				return self[i];
+				return self[static_cast<IndexType>(i)];
 			})
 		.def("__len__", [](const BoundaryIntegrationPointType&) { return 3; })
 		.def(
@@ -227,24 +227,16 @@ void AddContainersToPython(pybind11::module& m) {
         .def("IsTrimmed", &ElementType::IsTrimmed)
     ;
 
-    // Export Element Vector
-    py::class_<ElementVectorPtrType>(m, "ElementVector")
-        .def("__getitem__", [](const ElementVectorPtrType &self, const IndexType i)
-            { return &(*self[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const ElementVectorPtrType &self) { return self.size(); })
-        .def("__iter__", [](ElementVectorPtrType &self) {
-            return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
-        }, py::keep_alive<0, 1>() )
-    ;
-
-    /// Export BackgroundGrid
-    py::class_<BackgroundGrid<ElementType>>(m, "BackgroundGrid")
-        .def(py::init<const BackgroundGrid<ElementType>::MainDictionaryType&>())
-        .def("GetElements", &BackgroundGrid<ElementType>::GetElements, py::return_value_policy::reference_internal)
-        .def("NumberOfActiveElements", &BackgroundGrid<ElementType>::NumberOfActiveElements)
-        .def("GetConditions", &BackgroundGrid<ElementType>::GetConditions, py::return_value_policy::reference_internal)
-        .def("NumberOfConditions", &BackgroundGrid<ElementType>::NumberOfConditions)
-    ;
+	/// Export BackgroundGrid
+	using GridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
+	py::class_<GridType>(m, "BackgroundGrid")
+		.def(py::init<const GridType::MainDictionaryType&>())
+		.def("GetElements",
+			py::overload_cast<>(&GridType::GetElements, py::const_),
+			py::return_value_policy::reference_internal)
+		.def("NumberOfActiveElements", &GridType::NumberOfActiveElements)
+		.def("GetConditions", &GridType::GetConditions, py::return_value_policy::reference_internal)
+		.def("NumberOfConditions", &GridType::NumberOfConditions);
 
     /// Export Condition Segment
     py::class_<ConditionSegmentType, ConditionSegmentPtrType>(m,"ConditionSegment")
@@ -309,4 +301,3 @@ void AddContainersToPython(pybind11::module& m) {
 
 } // End namespace Python
 } // End namespace queso
-

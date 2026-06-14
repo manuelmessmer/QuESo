@@ -105,7 +105,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
             const auto bounding_box_uvw = mGridIndexer.GetBoundingBoxUVWFromIndex(index);
 
             // Construct element.
-            Unique<ElementType> p_new_element = MakeUnique<ElementType>(index+1, bounding_box_xyz, bounding_box_uvw);
+            ElementType new_element(index+1, bounding_box_xyz, bounding_box_uvw);
             bool valid_element_flag = false;
 
             // Distinguish between trimmed and non-trimmed elements.
@@ -115,7 +115,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
                 auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
                                                                         min_vol_element_ratio, num_boundary_triangles, neglect_elements_if_stl_is_flawed);
                 if( p_trimmed_domain ){
-                    p_new_element->pSetTrimmedDomain(p_trimmed_domain);
+                    new_element.pSetTrimmedDomain(p_trimmed_domain);
                     valid_element_flag = true;
                 }
                 et_compute_intersection += timer_compute_intersection.Measure();
@@ -123,10 +123,10 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
                 // If valid, solve moment fitting equation.
                 if( valid_element_flag ){
                     Timer timer_moment_fitting{};
-                    QuadratureTrimmedElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, moment_fitting_residual, echo_level);
+                    QuadratureTrimmedElement<ElementType>::AssembleIPs(new_element, polynomial_order, moment_fitting_residual, echo_level);
                     et_moment_fitting += timer_moment_fitting.Measure();
 
-                    if( p_new_element->GetIntegrationPoints().size() == 0 ){
+                    if( new_element.GetIntegrationPoints().size() == 0 ){
                         valid_element_flag = false;
                     }
                 }
@@ -134,7 +134,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
             else { // status == IntersectionState::inside.
                 if( !ggq_rule_is_used ){
                     // Get standard gauss legendre points.
-                    QuadratureSingleElement<ElementType>::AssembleIPs(*p_new_element, polynomial_order, integration_method);
+                    QuadratureSingleElement<ElementType>::AssembleIPs(new_element, polynomial_order, integration_method);
                 }
                 valid_element_flag = true;
             }
@@ -142,14 +142,16 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
             if( valid_element_flag ){
                 // Update background grid counters.
                 ++num_active_elements;
-                if( p_new_element->IsTrimmed() ) { ++num_trimmed_elements; }
+                if( new_element.IsTrimmed() ) { ++num_trimmed_elements; }
 
-                // Add p_new_element to the background grid.
+                // Add new_element to the background grid.
                 #pragma omp critical
-                mBackgroundGrid.AddElement(std::move(p_new_element));
+                mBackgroundGrid.AddElement(std::move(new_element));
             }
         }
     } // #pragma parallel omp for reduction.
+
+	mBackgroundGrid.LockElements();
 
     // Assmble Generalized Gaussian quadrature rules (if enabled).
     double et_ggq_rules = 0.0;
@@ -190,7 +192,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
     double represented_volume = 0.0;
     SizeType tot_num_points_full = 0;
     SizeType tot_num_points_trimmed = 0;
-    const auto el_it_ptr_begin = mBackgroundGrid.ElementsBegin();
+    const auto el_it_ptr_begin = mBackgroundGrid.GetElements().begin();
     #pragma omp parallel for reduction(+ : represented_volume, tot_num_points_full, tot_num_points_trimmed) schedule(guided)
     for( int i = 0; i < static_cast<int>(num_active_elements); ++i ){
         const auto el_ptr = (el_it_ptr_begin + i);
@@ -281,7 +283,7 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, cons
     }
 
     // Add condition to background grid.
-    mBackgroundGrid.AddCondition(std::move(p_new_condition));
+    mBackgroundGrid.AddCondition(std::move(*p_new_condition));
 
     /* Begin: Write to ModelInfo */
 
@@ -322,7 +324,7 @@ void EmbeddedModel::WriteModelToFile() const {
         // Write vtk files (binary = true).
         IO::WriteElementsToVTK(mBackgroundGrid, (output_directory_name + "/elements.vtk"), IO::EncodingType::binary);
         IO::WritePointsToVTK(mBackgroundGrid, (output_directory_name + "/integration_points.vtk"), IO::EncodingType::binary);
-        std::for_each(mBackgroundGrid.ConditionsBegin(), mBackgroundGrid.ConditionsEnd(),
+        std::for_each(mBackgroundGrid.GetConditions().begin(), mBackgroundGrid.GetConditions().end(),
             [&output_directory_name](const auto& r_condition){
                 IndexType condition_id = r_condition.GetSettings().template GetValue<IndexType>(ConditionSettings::condition_id);
                 const std::string bc_filename = output_directory_name + "/condition_id_" + std::to_string(condition_id) + ".stl";
