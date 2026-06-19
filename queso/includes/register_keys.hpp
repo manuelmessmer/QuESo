@@ -58,10 +58,10 @@ QuESo_REGISTER_KEY_SET(MainSettings, ListTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( GeneralSettings, MainValuesTypeTag,
     QuESo_KEY_LIST(input_filename, output_directory_name, echo_level, write_output_to_file) );
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, input_filename, MainValuesTypeTag, std::string);
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, output_directory_name, MainValuesTypeTag, std::string);
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, echo_level, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, write_output_to_file, MainValuesTypeTag, bool);
+QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, input_filename, MainValuesTypeTag, std::string, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, output_directory_name, MainValuesTypeTag, std::string, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, echo_level, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, write_output_to_file, MainValuesTypeTag, bool, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(GeneralSettings, MainValuesTypeTag,
     QuESo_KEY(GeneralSettings::input_filename),
     QuESo_KEY(GeneralSettings::output_directory_name),
@@ -73,13 +73,13 @@ QuESo_REGISTER_KEY_SET(GeneralSettings, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( BackgroundGridSettings, MainValuesTypeTag,
     QuESo_KEY_LIST(grid_type, lower_bound_xyz, upper_bound_xyz, lower_bound_uvw, upper_bound_uvw, polynomial_order, number_of_elements) );
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, grid_type, MainValuesTypeTag, GridTypeType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, lower_bound_xyz, MainValuesTypeTag, PointType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, upper_bound_xyz, MainValuesTypeTag, PointType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, lower_bound_uvw, MainValuesTypeTag, PointType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, upper_bound_uvw, MainValuesTypeTag, PointType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, polynomial_order, MainValuesTypeTag, Vector3i);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, number_of_elements, MainValuesTypeTag, Vector3i);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, grid_type, MainValuesTypeTag, GridTypeType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, lower_bound_xyz, MainValuesTypeTag, PointType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, upper_bound_xyz, MainValuesTypeTag, PointType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, lower_bound_uvw, MainValuesTypeTag, PointType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, upper_bound_uvw, MainValuesTypeTag, PointType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, polynomial_order, MainValuesTypeTag, Vector3i, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridSettings, number_of_elements, MainValuesTypeTag, Vector3i, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(BackgroundGridSettings, MainValuesTypeTag,
     QuESo_KEY(BackgroundGridSettings::grid_type),
     QuESo_KEY(BackgroundGridSettings::lower_bound_xyz),
@@ -94,10 +94,10 @@ QuESo_REGISTER_KEY_SET(BackgroundGridSettings, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( TrimmedQuadratureRuleSettings, MainValuesTypeTag,
     QuESo_KEY_LIST(moment_fitting_residual, min_element_volume_ratio, min_num_boundary_triangles, neglect_elements_if_stl_is_flawed) );
-QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, moment_fitting_residual, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, min_element_volume_ratio, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, min_num_boundary_triangles, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, neglect_elements_if_stl_is_flawed, MainValuesTypeTag, bool);
+QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, moment_fitting_residual, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, min_element_volume_ratio, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, min_num_boundary_triangles, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(TrimmedQuadratureRuleSettings, neglect_elements_if_stl_is_flawed, MainValuesTypeTag, bool, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(TrimmedQuadratureRuleSettings, MainValuesTypeTag,
     QuESo_KEY(TrimmedQuadratureRuleSettings::moment_fitting_residual),
     QuESo_KEY(TrimmedQuadratureRuleSettings::min_element_volume_ratio),
@@ -109,7 +109,7 @@ QuESo_REGISTER_KEY_SET(TrimmedQuadratureRuleSettings, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( NonTrimmedQuadratureRuleSettings, MainValuesTypeTag,
     QuESo_KEY_LIST(integration_method) );
-QuESo_DEFINE_KEY_TO_VALUE(NonTrimmedQuadratureRuleSettings, integration_method, MainValuesTypeTag, IntegrationMethodType);
+QuESo_DEFINE_KEY_TO_VALUE(NonTrimmedQuadratureRuleSettings, integration_method, MainValuesTypeTag, IntegrationMethodType, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(NonTrimmedQuadratureRuleSettings, MainValuesTypeTag,
     QuESo_KEY(NonTrimmedQuadratureRuleSettings::integration_method)
 );
@@ -118,13 +118,13 @@ QuESo_REGISTER_KEY_SET(NonTrimmedQuadratureRuleSettings, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( ConditionSettings, MainValuesTypeTag,
     QuESo_KEY_LIST(condition_id, condition_type, input_filename, modulus, direction, value, penalty_factor) );
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_id, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_type, MainValuesTypeTag, std::string);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, input_filename, MainValuesTypeTag, std::string);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, modulus, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, direction, MainValuesTypeTag, PointType);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, value, MainValuesTypeTag, PointType);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, penalty_factor, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_id, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_type, MainValuesTypeTag, std::string, KeyRequirement::optional);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, input_filename, MainValuesTypeTag, std::string, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, modulus, MainValuesTypeTag, double, KeyRequirement::optional);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, direction, MainValuesTypeTag, PointType, KeyRequirement::optional);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, value, MainValuesTypeTag, PointType, KeyRequirement::optional);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, penalty_factor, MainValuesTypeTag, double, KeyRequirement::optional);
 QuESo_REGISTER_KEY_SET(ConditionSettings, MainValuesTypeTag,
     QuESo_KEY(ConditionSettings::condition_id),
     QuESo_KEY(ConditionSettings::condition_type),
@@ -163,8 +163,8 @@ QuESo_REGISTER_KEY_SET(MainInfo, ListTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( EmbeddedGeometryInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(is_closed, volume) );
-QuESo_DEFINE_KEY_TO_VALUE(EmbeddedGeometryInfo, is_closed, MainValuesTypeTag, bool);
-QuESo_DEFINE_KEY_TO_VALUE(EmbeddedGeometryInfo, volume, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(EmbeddedGeometryInfo, is_closed, MainValuesTypeTag, bool, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(EmbeddedGeometryInfo, volume, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(EmbeddedGeometryInfo, MainValuesTypeTag,
     QuESo_KEY(EmbeddedGeometryInfo::is_closed),
     QuESo_KEY(EmbeddedGeometryInfo::volume)
@@ -174,11 +174,11 @@ QuESo_REGISTER_KEY_SET(EmbeddedGeometryInfo, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( QuadratureInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(represented_volume, percentage_of_geometry_volume, tot_num_points, num_of_points_per_full_element, num_of_points_per_trimmed_element) );
-QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, represented_volume, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, percentage_of_geometry_volume, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, tot_num_points, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, num_of_points_per_full_element, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, num_of_points_per_trimmed_element, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, represented_volume, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, percentage_of_geometry_volume, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, tot_num_points, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, num_of_points_per_full_element, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(QuadratureInfo, num_of_points_per_trimmed_element, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(QuadratureInfo, MainValuesTypeTag,
     QuESo_KEY(QuadratureInfo::represented_volume),
     QuESo_KEY(QuadratureInfo::percentage_of_geometry_volume),
@@ -191,10 +191,10 @@ QuESo_REGISTER_KEY_SET(QuadratureInfo, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( BackgroundGridInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(num_active_elements, num_trimmed_elements, num_full_elements, num_inactive_elements) );
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_active_elements, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_trimmed_elements, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_full_elements, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_inactive_elements, MainValuesTypeTag, IndexType);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_active_elements, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_trimmed_elements, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_full_elements, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(BackgroundGridInfo, num_inactive_elements, MainValuesTypeTag, IndexType, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(BackgroundGridInfo, MainValuesTypeTag,
     QuESo_KEY(BackgroundGridInfo::num_active_elements),
     QuESo_KEY(BackgroundGridInfo::num_trimmed_elements),
@@ -206,9 +206,9 @@ QuESo_REGISTER_KEY_SET(BackgroundGridInfo, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( ConditionInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(condition_id, surf_area, perc_surf_area_in_active_domain) );
-QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, condition_id, MainValuesTypeTag, IndexType);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, surf_area, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, perc_surf_area_in_active_domain, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, condition_id, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, surf_area, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionInfo, perc_surf_area_in_active_domain, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(ConditionInfo, MainValuesTypeTag,
     QuESo_KEY(ConditionInfo::condition_id),
     QuESo_KEY(ConditionInfo::surf_area),
@@ -219,7 +219,7 @@ QuESo_REGISTER_KEY_SET(ConditionInfo, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( ElapsedTimeInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(total) );
-QuESo_DEFINE_KEY_TO_VALUE(ElapsedTimeInfo, total, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(ElapsedTimeInfo, total, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(ElapsedTimeInfo, MainValuesTypeTag,
     QuESo_KEY(ElapsedTimeInfo::total)
 );
@@ -239,11 +239,11 @@ QuESo_REGISTER_KEY_SET(ElapsedTimeInfo, SubDictTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( VolumeTimeInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(total, classification_of_elements, computation_of_intersections, solution_of_moment_fitting_eqs, construction_of_ggq_rules) );
-QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, total, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, classification_of_elements, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, computation_of_intersections, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, solution_of_moment_fitting_eqs, MainValuesTypeTag, double);
-QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, construction_of_ggq_rules, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, total, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, classification_of_elements, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, computation_of_intersections, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, solution_of_moment_fitting_eqs, MainValuesTypeTag, double, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(VolumeTimeInfo, construction_of_ggq_rules, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(VolumeTimeInfo, MainValuesTypeTag,
     QuESo_KEY(VolumeTimeInfo::total),
     QuESo_KEY(VolumeTimeInfo::classification_of_elements),
@@ -256,7 +256,7 @@ QuESo_REGISTER_KEY_SET(VolumeTimeInfo, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( ConditionsTimeInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(total) );
-QuESo_DEFINE_KEY_TO_VALUE(ConditionsTimeInfo, total, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionsTimeInfo, total, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(ConditionsTimeInfo, MainValuesTypeTag,
     QuESo_KEY(ConditionsTimeInfo::total)
 );
@@ -265,7 +265,7 @@ QuESo_REGISTER_KEY_SET(ConditionsTimeInfo, MainValuesTypeTag,
 // Values
 QuESo_DEFINE_KEY_SET( WriteFilesTimeInfo, MainValuesTypeTag,
     QuESo_KEY_LIST(total) );
-QuESo_DEFINE_KEY_TO_VALUE(WriteFilesTimeInfo, total, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(WriteFilesTimeInfo, total, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(WriteFilesTimeInfo, MainValuesTypeTag,
     QuESo_KEY(WriteFilesTimeInfo::total)
 );
@@ -304,14 +304,14 @@ namespace Testing {
 
     // TestKeys3 :: MainValuesTypeTag
     QuESo_DEFINE_KEY_SET( TestKeys3, MainValuesTypeTag, QuESo_KEY_LIST(zero, one, two, three, four, five, six, seven) );
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, zero, MainValuesTypeTag, PointType);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, one, MainValuesTypeTag, Vector3i);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, two, MainValuesTypeTag, bool);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, three, MainValuesTypeTag, double);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, four, MainValuesTypeTag, IndexType);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, five, MainValuesTypeTag, std::string);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, six, MainValuesTypeTag, IntegrationMethodType);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, seven, MainValuesTypeTag, GridTypeType);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, zero, MainValuesTypeTag, PointType, KeyRequirement::required);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, one, MainValuesTypeTag, Vector3i, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, two, MainValuesTypeTag, bool, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, three, MainValuesTypeTag, double, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, four, MainValuesTypeTag, IndexType, KeyRequirement::required);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, five, MainValuesTypeTag, std::string, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, six, MainValuesTypeTag, IntegrationMethodType, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys3, seven, MainValuesTypeTag, GridTypeType, KeyRequirement::required);
     QuESo_REGISTER_KEY_SET( TestKeys3, MainValuesTypeTag,
         QuESo_KEY(TestKeys3::zero),
         QuESo_KEY(TestKeys3::one),
@@ -363,16 +363,18 @@ namespace Testing {
         QuESo_KEY(TestKeys5::six)
     );
     // TestKeys5 :: ListTypeTag
-    QuESo_DEFINE_KEY_SET( TestKeys5, MainValuesTypeTag, QuESo_KEY_LIST(seven, eight, nine, ten) );
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, seven, MainValuesTypeTag, double);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, eight, MainValuesTypeTag, IndexType);
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, nine, MainValuesTypeTag, PointType );
-    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, ten, MainValuesTypeTag, IndexType );
+    QuESo_DEFINE_KEY_SET( TestKeys5, MainValuesTypeTag, QuESo_KEY_LIST(seven, eight, nine, ten, eleven) );
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, seven, MainValuesTypeTag, double, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, eight, MainValuesTypeTag, IndexType, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, nine, MainValuesTypeTag, PointType, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, ten, MainValuesTypeTag, IndexType, KeyRequirement::optional);
+    QuESo_DEFINE_KEY_TO_VALUE(TestKeys5, eleven, MainValuesTypeTag, IndexType, KeyRequirement::required);
     QuESo_REGISTER_KEY_SET(TestKeys5, MainValuesTypeTag,
         QuESo_KEY(TestKeys5::seven),
         QuESo_KEY(TestKeys5::eight),
         QuESo_KEY(TestKeys5::nine),
-        QuESo_KEY(TestKeys5::ten)
+        QuESo_KEY(TestKeys5::ten),
+        QuESo_KEY(TestKeys5::eleven)
     );
 
 }

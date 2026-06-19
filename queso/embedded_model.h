@@ -99,10 +99,10 @@ public:
     void CreateAllFromSettings() {
         // Create volume
         const auto& r_general_settings = GetSettings()[MainSettings::general_settings];
-        const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+        const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume -------------------------------------- START" << std::endl;
 
-        const auto& r_filename = r_general_settings.GetValue<std::string>(GeneralSettings::input_filename);
+        const auto& r_filename = r_general_settings.GetRequiredValue<std::string>(GeneralSettings::input_filename);
         TriangleMesh triangle_mesh{};
         IO::ReadMeshFromSTL(triangle_mesh, r_filename.c_str());
 
@@ -117,7 +117,7 @@ public:
 
             QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Conditions ---------------------------------- START" << std::endl;
             for( const auto& p_condition_settings : r_conditions_settings_list ){
-                const auto& r_filename_cond = p_condition_settings->GetValue<std::string>(ConditionSettings::input_filename);
+                const auto& r_filename_cond = p_condition_settings->GetRequiredValue<std::string>(ConditionSettings::input_filename);
                 TriangleMesh triangle_meshs_cond{};
                 IO::ReadMeshFromSTL(triangle_meshs_cond, r_filename_cond.c_str());
                 ComputeCondition(triangle_meshs_cond.View(), *p_condition_settings);

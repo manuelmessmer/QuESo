@@ -71,6 +71,8 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
             p_subdict_2->SetValue(TestKeys3::zero, PointType({2.0, 3.2, 1.1}));
             p_subdict_2->SetValue(TestKeys3::one, Vector3i({1, 2, 3}));
             p_subdict_2->SetValue(TestKeys3::two, false);
+            p_subdict_2->SetValue(TestKeys3::four, 4u);
+            p_subdict_2->SetValue(TestKeys3::seven, GridType::b_spline_grid);
 
             if constexpr (!NOTDEBUG) {
                 // Wrong key type.
@@ -87,9 +89,11 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
             DictionaryType::EmptyKeySetType,
             DictionaryType::EmptyKeySetType>{} );
 
+		p_subdict_3->SetValue(TestKeys3::zero, PointType({4.0, 5.0, 6.0}));
         p_subdict_3->SetValue(TestKeys3::three, 3.0);
         p_subdict_3->SetValue(TestKeys3::four, 3u);
         p_subdict_3->SetValue(TestKeys3::five, std::string("Hello"));
+        p_subdict_3->SetValue(TestKeys3::seven, GridType::hexahedral_fe_grid);
 
         if constexpr (!NOTDEBUG) {
             // Dictionary does not contain any list.
@@ -107,10 +111,8 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
     QuESo_CHECK( test_dict.IsSet(TestKeys5::seven) );
     QuESo_CHECK( test_dict.IsSet(TestKeys5::eight) );
 
-    QuESo_CHECK_NEAR( test_dict.GetValue<double>(TestKeys5::seven), 2.0, 1e-10);
-    QuESo_CHECK_EQUAL( test_dict.GetValue<IndexType>(TestKeys5::eight ), 3u );
-    QuESo_CHECK_NEAR( test_dict.GetValueFast<double>(TestKeys5::seven), 2.0, 1e-10);
-    QuESo_CHECK_EQUAL( test_dict.GetValueFast<IndexType>(TestKeys5::eight ), 3u );
+    QuESo_CHECK_NEAR( test_dict.TryGetValue<double>(TestKeys5::seven)->get(), 2.0, 1e-10);
+    QuESo_CHECK_EQUAL( test_dict.TryGetValue<IndexType>(TestKeys5::eight )->get(), 3u );
 
     // Values are not set.
     QuESo_CHECK( !test_dict.IsSet(TestKeys5::nine) );
@@ -122,7 +124,7 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
     if constexpr (!NOTDEBUG) {
         // Dictionary has an empty data set.
         BOOST_REQUIRE_THROW( r_subdict_1.IsSet(TestKeys3::zero), std::exception );
-        BOOST_REQUIRE_THROW( r_subdict_1.GetValue<PointType>(TestKeys3::zero), std::exception );
+        BOOST_REQUIRE_THROW( r_subdict_1.TryGetValue<Vector3i>(TestKeys3::one), std::exception );
         // Wrong key.
         BOOST_REQUIRE_THROW( r_subdict_1[TestKeys4::zero], std::exception );
         // Dict not set.
@@ -139,22 +141,26 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
     QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::zero) );
     QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::one) );
     QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::two) );
+    QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::four) );
+    QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::seven) );
+    r_subdict_2.CheckRequired();
 
-    QuESo_CHECK_POINT_NEAR( r_subdict_2.GetValue<PointType>(TestKeys3::zero), PointType({2.0, 3.2, 1.1}), 1e-10 );
-    QuESo_CHECK_Vector3i_EQUAL( r_subdict_2.GetValue<Vector3i>(TestKeys3::one), Vector3i({1, 2, 3}) );
-    QuESo_CHECK( !r_subdict_2.GetValue<bool>(TestKeys3::two) );
+    QuESo_CHECK_POINT_NEAR( r_subdict_2.GetRequiredValue<PointType>(TestKeys3::zero), PointType({2.0, 3.2, 1.1}), 1e-10 );
+    QuESo_CHECK_Vector3i_EQUAL( r_subdict_2.TryGetValue<Vector3i>(TestKeys3::one)->get(), Vector3i({1, 2, 3}) );
+    QuESo_CHECK( !r_subdict_2.TryGetValue<bool>(TestKeys3::two)->get() );
+    QuESo_CHECK_EQUAL( r_subdict_2.GetRequiredValue<IndexType>(TestKeys3::four), 4u );
+    QuESo_CHECK_EQUAL( r_subdict_2.GetRequiredValue<GridTypeType>(TestKeys3::seven), GridType::b_spline_grid );
 
     QuESo_CHECK( !r_subdict_2.IsSet(TestKeys3::five) );
 
     // Check List (Note: list has just one item).
     for( const auto& items : test_dict.GetList(TestKeys5::five) ) {
-        QuESo_CHECK_NEAR( items->GetValue<double>(TestKeys3::three), 3.0, 1e-10);
-        QuESo_CHECK_EQUAL( items->GetValue<IndexType>(TestKeys3::four), 3u);
-        QuESo_CHECK_EQUAL( items->GetValue<std::string>(TestKeys3::five), "Hello");
-
-        QuESo_CHECK_NEAR( items->GetValueFast<double>(TestKeys3::three), 3.0, 1e-10);
-        QuESo_CHECK_EQUAL( items->GetValueFast<IndexType>(TestKeys3::four), 3u);
-        QuESo_CHECK_EQUAL( items->GetValueFast<std::string>(TestKeys3::five), "Hello");
+        items->CheckRequired();
+        QuESo_CHECK_POINT_NEAR( items->GetRequiredValue<PointType>(TestKeys3::zero), PointType({4.0, 5.0, 6.0}), 1e-10);
+        QuESo_CHECK_NEAR( items->TryGetValue<double>(TestKeys3::three)->get(), 3.0, 1e-10);
+        QuESo_CHECK_EQUAL( items->GetRequiredValue<IndexType>(TestKeys3::four), 3u);
+        QuESo_CHECK_EQUAL( items->TryGetValue<std::string>(TestKeys3::five)->get(), "Hello");
+        QuESo_CHECK_EQUAL( items->GetRequiredValue<GridTypeType>(TestKeys3::seven), GridType::hexahedral_fe_grid);
     }
 }
 
@@ -292,4 +298,3 @@ BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
 } // End namespace queso
-

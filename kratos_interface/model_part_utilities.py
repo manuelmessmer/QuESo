@@ -151,7 +151,7 @@ class ModelPartUtilities:
     @staticmethod
     def add_conditions_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Conditions: QuESo.ConditionVector, # type: ignore (TODO: add .pyi)
+            Conditions: list[QuESo.Condition], # type: ignore (TODO: add .pyi)
             BoundsXYZ: Tuple[Point3D, Point3D],
             BoundsUVW: Tuple[Point3D, Point3D]
         ) -> None:

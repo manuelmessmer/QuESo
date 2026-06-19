@@ -15,7 +15,9 @@
 #define DICTIONARY_INCLUDE_HPP
 
 //// STL includes
+#include <functional>
 #include <iostream>
+#include <optional>
 #include <cassert>
 #include <vector>
 #include <algorithm>
@@ -159,37 +161,38 @@ public:
         mpDataSet->SetValue(rQueryKey, rNewValue);
     }
 
-    /// @brief Returns the value associated with the given Key.
+    /// @brief Returns the value associated with the given required key.
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-    /// @note In release mode it throws if the given key is not set. In debug mode it addionally throws if TKeyType is of wrong type.
-    /// @see GetValueFast(): Never throws in release.
+	/// @note Only throws in debug mode. In release mode, no checks are performed to verify that the DataSet is non-empty, 
+	///       the TKeyType has the correct type, or that the value is set.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetValue(const TKeyType& rQueryKey) const {
+    const TValueType& GetRequiredValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
         QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
-        return mpDataSet->template GetValue<TValueType>(rQueryKey);
+        return mpDataSet->template GetRequiredValue<TValueType>(rQueryKey);
     }
 
-    /// @brief Returns the value associated with the given Key (fast version, does not throw).
+    /// @brief Returns the value associated with the given optional key if it is set.
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
-    /// @return const TValueType&
-    /// @note Only throws in debug mode. In realese it does not check if the value is set and if TKeyType is of correct type.
-    /// @see GetValue(): Throws if value is not set.
+    /// @return std::optional<std::reference_wrapper<const TValueType>>
+	/// @note Only throws in debug mode. In release mode, no checks are performed to verify that the DataSet is non-empty, 
+	///       or that the TKeyType has the correct type.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetValueFast(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
+    std::optional<std::reference_wrapper<const TValueType>> TryGetValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
         QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
-        return mpDataSet->template GetValueFast<TValueType>(rQueryKey);
+        return mpDataSet->template TryGetValue<TValueType>(rQueryKey);
     }
 
     /// @brief Returns true if the value associated with the given Key is set.
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return bool
-    /// @note Only throws in debug mode.
+	/// @note Only throws in debug mode. In release mode, no checks are performed to verify that the DataSet is non-empty, 
+	///       or that the TKeyType has the correct type.
     template<typename TKeyType>
     bool IsSet(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
         QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
@@ -280,6 +283,36 @@ public:
     ListType& GetList(const TKeyType& rQueryKey,
                       std::enable_if_t<is_key_v<TKeyType>>* = nullptr  ) noexcept(NOTDEBUG) {
         return const_cast<ListType&>(static_cast<const Dictionary&>(*this).GetList(rQueryKey));
+    }
+
+    /// @brief Throws if any required value in this dictionary or nested dictionaries is not set.
+    void CheckRequired() const {
+        if (mpDataSet) {
+            mpDataSet->CheckRequired();
+        }
+
+        if (mpSubDictKeySetInfo) {
+            const auto& r_map = mpSubDictKeySetInfo->GetStringKeyMap();
+            for (const auto& [_, p_key] : r_map) {
+                const auto& p_sub_dictionary = mSubDictionaries[p_key->Index()];
+                QuESo_ERROR_IF(!p_sub_dictionary)
+                    << "Dictionary associated with Key: '" << p_key->Name() << "' is not set.\n";
+                p_sub_dictionary->CheckRequired();
+            }
+        }
+
+        if (mpListKeySetInfo) {
+            const auto& r_map = mpListKeySetInfo->GetStringKeyMap();
+            for (const auto& [_, p_key] : r_map) {
+                const auto& r_list = mListsOfDicts[p_key->Index()];
+                for (IndexType i = 0; i < r_list.size(); ++i) {
+                    const auto& p_dictionary = r_list[i];
+                    QuESo_ERROR_IF(!p_dictionary)
+                        << "Dictionary entry (" << i << ") in list '" << p_key->Name() << "' is not set.\n";
+                    p_dictionary->CheckRequired();
+                }
+            }
+        }
     }
 
 private:

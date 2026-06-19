@@ -381,7 +381,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     for( const auto& r_condition : conditions ){
         TriangleMesh triangle_mesh{};
         const auto& r_cond_setting = r_condition.GetSettings();
-        std::string filename = r_cond_setting.GetValue<std::string>(ConditionSettings::input_filename);
+        std::string filename = r_cond_setting.GetRequiredValue<std::string>(ConditionSettings::input_filename);
         IO::ReadMeshFromSTL(triangle_mesh, filename);
         const double ref_area = MeshUtilities::Area(triangle_mesh.View());
         auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh().View()); };
@@ -483,48 +483,51 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     const auto& r_model_info = embedded_model.GetModelInfo();
     // embedded_geometry_info
     const auto& r_geo_info = r_model_info[MainInfo::embedded_geometry_info];
-    QuESo_CHECK(r_geo_info.GetValue<bool>(EmbeddedGeometryInfo::is_closed));
+    r_geo_info.CheckRequired();
+    QuESo_CHECK(r_geo_info.GetRequiredValue<bool>(EmbeddedGeometryInfo::is_closed));
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, filename);
     double volume_ref = MeshUtilities::VolumeOMP(triangle_mesh.View());
-    QuESo_CHECK_RELATIVE_NEAR(r_geo_info.GetValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-13);
+    QuESo_CHECK_RELATIVE_NEAR(r_geo_info.GetRequiredValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-13);
     // quadrature_info
     const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
-    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
-    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
-    QuESo_CHECK_EQUAL(r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points), 9505);
-    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5)
-    const double num_of_points_per_trimmed_element = r_quad_info.GetValue<double>(QuadratureInfo::num_of_points_per_trimmed_element);
+    r_quad_info.CheckRequired();
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
+    QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), 9505);
+    QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5)
+    const double num_of_points_per_trimmed_element = r_quad_info.GetRequiredValue<double>(QuadratureInfo::num_of_points_per_trimmed_element);
     QuESo_CHECK_GT(num_of_points_per_trimmed_element, 26);
     QuESo_CHECK_LT(num_of_points_per_trimmed_element, 27);
     // background_grid_info
     const auto& r_grid_info = r_model_info[MainInfo::background_grid_info];
-    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_active_elements), 354);
-    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_trimmed_elements), 349);
-    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_full_elements), 5);
-    QuESo_CHECK_EQUAL(r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_inactive_elements), 3646);
+    r_grid_info.CheckRequired();
+    QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_active_elements), 354);
+    QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_trimmed_elements), 349);
+    QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_full_elements), 5);
+    QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_inactive_elements), 3646);
     // elapsed_time_info
     const auto& r_elapsed_time_info = r_model_info[MainInfo::elapsed_time_info];
-    const double total_time = r_elapsed_time_info.GetValue<double>(ElapsedTimeInfo::total);
+    const double total_time = r_elapsed_time_info.GetRequiredValue<double>(ElapsedTimeInfo::total);
 
     const auto& r_volume_time_info = r_elapsed_time_info[ElapsedTimeInfo::volume_time_info];
-    const double et_volume_total = r_volume_time_info.GetValue<double>(VolumeTimeInfo::total);
-    const double et_coe = r_volume_time_info.GetValue<double>(VolumeTimeInfo::classification_of_elements);
+    const double et_volume_total = r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::total);
+    const double et_coe = r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::classification_of_elements);
     QuESo_CHECK_GT(et_coe, EPS1);
-    const double et_coi = r_volume_time_info.GetValue<double>(VolumeTimeInfo::computation_of_intersections);
+    const double et_coi = r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::computation_of_intersections);
     QuESo_CHECK_GT(et_coi, EPS1);
-    const double et_somf = r_volume_time_info.GetValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs);
+    const double et_somf = r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs);
     QuESo_CHECK_GT(et_somf, EPS1);
-    const double et_cogr = r_volume_time_info.GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules);
+    const double et_cogr = r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::construction_of_ggq_rules);
     QuESo_CHECK_GT(et_cogr, EPS1);
     QuESo_CHECK_GT( et_volume_total, (et_coe+et_coi+et_somf+et_cogr) );
 
     const auto& r_condition_time_info = r_elapsed_time_info[ElapsedTimeInfo::conditions_time_info];
-    const double et_condition_total = r_condition_time_info.GetValue<double>(ConditionsTimeInfo::total);
+    const double et_condition_total = r_condition_time_info.GetRequiredValue<double>(ConditionsTimeInfo::total);
     QuESo_CHECK_GT(et_condition_total, EPS1);
 
     const auto& r_write_file_time_info = r_elapsed_time_info[ElapsedTimeInfo::write_files_time_info];
-    const double et_write_file_total = r_write_file_time_info.GetValue<double>(WriteFilesTimeInfo::total);
+    const double et_write_file_total = r_write_file_time_info.GetRequiredValue<double>(WriteFilesTimeInfo::total);
     QuESo_CHECK_NEAR(et_write_file_total, 0.0, 1e-10);
 
     QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total+et_write_file_total), 1e-5);
@@ -533,16 +536,17 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     const auto& r_condition_1 = embedded_model.GetConditions()[0];
     const auto& r_condition_info_1_other = r_condition_1.GetInfo();
     QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
-    QuESo_CHECK_EQUAL( r_condition_info_1.GetValue<IndexType>(ConditionInfo::condition_id), 1);
+    r_condition_info_1.CheckRequired();
+    QuESo_CHECK_EQUAL( r_condition_info_1.GetRequiredValue<IndexType>(ConditionInfo::condition_id), 1);
 
     const auto& r_settings_obtained = embedded_model.GetSettings();
     const auto& r_cond_settings_1 = *r_settings_obtained.GetList(MainSettings::conditions_settings_list)[0];
-    const std::string& r_filename = r_cond_settings_1.GetValue<std::string>(ConditionSettings::input_filename);
+    const std::string& r_filename = r_cond_settings_1.GetRequiredValue<std::string>(ConditionSettings::input_filename);
     TriangleMesh triangle_mesh_cond{};
     IO::ReadMeshFromSTL(triangle_mesh_cond, r_filename);
     const double area_ref = MeshUtilities::Area(triangle_mesh_cond.View());
-    QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::surf_area), area_ref, 1e-10);
-    QuESo_CHECK_NEAR( r_condition_info_1.GetValue<double>(ConditionInfo::perc_surf_area_in_active_domain), 100.0, 1e-5);
+    QuESo_CHECK_NEAR( r_condition_info_1.GetRequiredValue<double>(ConditionInfo::surf_area), area_ref, 1e-10);
+    QuESo_CHECK_NEAR( r_condition_info_1.GetRequiredValue<double>(ConditionInfo::perc_surf_area_in_active_domain), 100.0, 1e-5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
