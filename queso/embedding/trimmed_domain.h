@@ -39,25 +39,23 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using TriangleMeshPtrType = Unique<ClippedTriangleMesh>;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// @brief Constructor for trimmed domain.
-    /// @param pTriangleMesh Clipped triangle mesh. Must contain edges on boundary planes of aabb (see: TrimmedomainOnPlane).
+    /// @param rTriangleMesh Clipped triangle mesh. Must contain edges on boundary planes of aabb (see: TrimmedomainOnPlane).
     /// @param rLowerBound Lower bound of trimmed domain.
     /// @param rUpperBound Upper bound of trimmed domain.
     /// @param pOperator Pointer to BrepOperator to perform IsInside()-check. Only used as safety procedure, if IsInsideTrimmedDomain() failes.
     /// @param MinNumberOfTriangles Minimum number of triangles used to discretize the boundary of this trimmed domain.
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
-    TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
+    TrimmedDomain(ClippedTriangleMesh&& rTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )
         : mLowerBound(rLowerBound), mUpperBound(rUpperBound), mpBrepOperatorGlobal(pOperator),
-          mpClippedMesh(std::move(pTriangleMesh)),
-          mClosedMesh(mpClippedMesh->Mesh()),
-          mGeometryQuery(mpClippedMesh->MeshView(), false)
+          mClippedMesh(std::move(rTriangleMesh)),
+          mClosedMesh(mClippedMesh.Mesh()),
+          mGeometryQuery(mClippedMesh.MeshView(), false)
     {
         // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
@@ -73,13 +71,13 @@ public:
         auto p_trimmed_domain_lower_y = MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
         auto p_trimmed_domain_lower_z = MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, mLowerBound, mUpperBound, this, SwitchPlaneOrientation);
 
-        if( mpClippedMesh->NumOfTriangles() > 0 ){
-            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation(*mpClippedMesh);
-            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation(*mpClippedMesh);
-            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation(*mpClippedMesh);
-            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation(*mpClippedMesh);
-            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation(*mpClippedMesh);
-            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation(*mpClippedMesh);
+        if( mClippedMesh.NumOfTriangles() > 0 ){
+            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation(mClippedMesh);
+            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation(mClippedMesh);
+            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation(mClippedMesh);
+            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation(mClippedMesh);
+            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation(mClippedMesh);
+            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation(mClippedMesh);
 
             const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
                 + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
@@ -174,7 +172,7 @@ private:
 
     const BRepOperator* mpBrepOperatorGlobal;
 
-    Unique<ClippedTriangleMesh> mpClippedMesh;
+    ClippedTriangleMesh mClippedMesh;
     TriangleMesh mClosedMesh;
     GeometryQuery mGeometryQuery;
     double mSnapTolerance;

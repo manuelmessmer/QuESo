@@ -18,7 +18,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 direction = condition_settings.GetDoubleVector("direction")
                 self.assertListsAlmostEqual(direction, [-1.0, 2.0, 3.0], 10)
                 area_segmented1 = 0
-                for segment in condition:
+                for segment in condition.GetSegments():
                     triangle_mesh_seg1 = segment.GetTriangleMesh()
                     area_segmented1 += MeshUtil.Area(triangle_mesh_seg1)
                 self.assertAlmostEqual(area_segmented1, 332.37754, 5)
@@ -33,7 +33,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 modulus = condition_settings.GetDouble("modulus")
                 self.assertAlmostEqual(modulus, 2.0, 10)
                 area_segmented1 = 0
-                for segment in condition:
+                for segment in condition.GetSegments():
                     triangle_mesh_seg1 = segment.GetTriangleMesh()
                     area_segmented1 += MeshUtil.Area(triangle_mesh_seg1)
                 self.assertAlmostEqual(area_segmented1, 577.978141, 5)
@@ -48,7 +48,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 value = condition_settings.GetDoubleVector("value")
                 self.assertListsAlmostEqual(value, [0.0, 0.3, 0.0], 10)
                 area_segmented1 = 0
-                for segment in condition:
+                for segment in condition.GetSegments():
                     triangle_mesh_seg1 = segment.GetTriangleMesh()
                     area_segmented1 += MeshUtil.Area(triangle_mesh_seg1)
                 self.assertAlmostEqual(area_segmented1, 921.163635, 5)
@@ -65,7 +65,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 penalty_factor = condition_settings.GetDouble("penalty_factor")
                 self.assertAlmostEqual(penalty_factor, 1e10, 10)
                 area_segmented1 = 0
-                for segment in condition:
+                for segment in condition.GetSegments():
                     triangle_mesh_seg1 = segment.GetTriangleMesh()
                     area_segmented1 += MeshUtil.Area(triangle_mesh_seg1)
                 self.assertAlmostEqual(area_segmented1, 1183.54304, 5)

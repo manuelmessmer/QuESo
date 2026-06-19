@@ -33,34 +33,34 @@ namespace Testing {
 BOOST_AUTO_TEST_SUITE( IOTestSuite )
 
 template<typename TMesh = TriangleMesh>
-Unique<TMesh> CreateTestTriangleMesh() {
-    auto p_mesh = MakeUnique<TMesh>();
+TMesh CreateTestTriangleMesh() {
+    TMesh mesh{};
     // Vertices
-    p_mesh->AddVertex({0.0, 0.0, 0.0});
-    p_mesh->AddVertex({1.0, 0.0, 0.0});
-    p_mesh->AddVertex({0.0, 1.0, 0.0});
-    p_mesh->AddVertex({1.0, 1.0, 0.0});
+    mesh.AddVertex({0.0, 0.0, 0.0});
+    mesh.AddVertex({1.0, 0.0, 0.0});
+    mesh.AddVertex({0.0, 1.0, 0.0});
+    mesh.AddVertex({1.0, 1.0, 0.0});
     // Triangles
-    p_mesh->AddTriangle({0, 1, 2}, {0.0, 0.0, 1.0});
-    p_mesh->AddTriangle({1, 3, 2}, {0.0, 0.0, 1.0});
-    return p_mesh;
+    mesh.AddTriangle({0, 1, 2}, {0.0, 0.0, 1.0});
+    mesh.AddTriangle({1, 3, 2}, {0.0, 0.0, 1.0});
+    return mesh;
 }
 
 void TestTriangleMeshSTL(IO::EncodingType Encoding) {
     TemporaryFile tmp_file("temp_test_file.stl");
 
-    auto p_mesh = CreateTestTriangleMesh();
+    auto mesh = CreateTestTriangleMesh();
 
-    IO::WriteMeshToSTL(*p_mesh, tmp_file.GetString(), Encoding);
+    IO::WriteMeshToSTL(mesh, tmp_file.GetString(), Encoding);
 
     TriangleMesh mesh_read;
     IO::ReadMeshFromSTL(mesh_read, tmp_file.GetString());
 
-    QuESo_CHECK_EQUAL(p_mesh->NumOfTriangles(), mesh_read.NumOfTriangles());
-    QuESo_CHECK_EQUAL(p_mesh->NumOfVertices(), mesh_read.NumOfVertices());
+    QuESo_CHECK_EQUAL(mesh.NumOfTriangles(), mesh_read.NumOfTriangles());
+    QuESo_CHECK_EQUAL(mesh.NumOfVertices(), mesh_read.NumOfVertices());
 
-    for(IndexType i = 0; i < p_mesh->NumOfTriangles(); ++i) {
-        const auto tri_a = p_mesh->Triangle<WithoutNormals>(i);
+    for(IndexType i = 0; i < mesh.NumOfTriangles(); ++i) {
+        const auto tri_a = mesh.Triangle<WithoutNormals>(i);
         const auto tri_b = mesh_read.Triangle<WithoutNormals>(i);
         QuESo_CHECK_POINT_NEAR( tri_a.P1, tri_b.P1, 1e-10 );
         QuESo_CHECK_POINT_NEAR( tri_a.P2, tri_b.P2, 1e-10 );
@@ -98,9 +98,9 @@ void CheckVTKBlocks(const std::filesystem::path& rFilename,
 void TestTriangleMeshVTK(IO::EncodingType Encoding) {
     TemporaryFile tmp_file("temp_test_file.stl");
 
-    auto p_mesh = CreateTestTriangleMesh();
+    auto mesh = CreateTestTriangleMesh();
 
-    IO::WriteMeshToVTK(*p_mesh, tmp_file.GetString(), Encoding);
+    IO::WriteMeshToVTK(mesh, tmp_file.GetString(), Encoding);
     CheckVTKBlocks(tmp_file.GetPath(), {"CELLS", "POINTS", "CELL_TYPES"});
 }
 
@@ -180,11 +180,11 @@ Unique<ConditionType> CreateTestConditions(){
     auto p_cond_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionSettings");
 
     auto p_condition = MakeUnique<ConditionType>(*p_cond_settings, *p_cond_info);
-    auto p_mesh = CreateTestTriangleMesh<ClippedTriangleMesh>();
+    auto mesh = CreateTestTriangleMesh<ClippedTriangleMesh>();
 
-    auto p_segment = MakeUnique<ConditionType::ConditionSegmentType>(1u, std::move(p_mesh));
+    auto segment = ConditionType::ConditionSegmentType(1u, std::move(mesh));
 
-    p_condition->AddSegment(p_segment);
+    p_condition->AddSegment(std::move(segment));
 
     return p_condition;
 }
@@ -198,7 +198,7 @@ void TestConditionSTL(IO::EncodingType Encoding) {
     TriangleMesh mesh_read;
     IO::ReadMeshFromSTL(mesh_read, tmp_file.GetString());
 
-    const auto& r_mesh = p_condition->SegmentsBegin()->GetTriangleMesh();
+    const auto& r_mesh = p_condition->GetSegments().begin()->GetTriangleMesh();
 
     QuESo_CHECK_EQUAL(r_mesh.NumOfTriangles(), mesh_read.NumOfTriangles());
     QuESo_CHECK_EQUAL(r_mesh.NumOfVertices(), mesh_read.NumOfVertices());

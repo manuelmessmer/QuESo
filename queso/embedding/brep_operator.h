@@ -112,11 +112,11 @@ public:
     ///@brief Clips triangle mesh by AABB.
     ///       Will NOT keep triangles that are categorized to be on one of the six planes of AABB.
     ///       This is a requirement for the intersection algorithm (see: TrimemdDomain and TrimmedDomainOnPlane).
-    ///@see pClipTriangleMeshUnique().
+    ///@see ClipTriangleMeshUnique().
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<ClippedTriangleMesh>. Clipped mesh.
-    Unique<ClippedTriangleMesh> pClipTriangleMesh(PointView rLowerBound, PointView rUpperBound ) const;
+    ///@return ClippedTriangleMesh. Clipped mesh.
+    ClippedTriangleMesh ClipTriangleMesh(PointView rLowerBound, PointView rUpperBound ) const;
 
     /// @brief Returns true, if AABB is intersected by at least one triangle.
     /// @param rLowerBound of AABB.
@@ -139,11 +139,11 @@ public:
     ///       However, to avoid that triangles are assigned twice to both adjacent AABB's, they are only assigned to the positive planes (+x, +y, +z).
     ///       This is a requirement for the application of boundary conditions.
     ///@todo This needs improvement. Probably global function that cuts every plane only once, to guarantee that triangles on the planes are not assigned twice.
-    ///@see pClipTriangleMesh()
+    ///@see ClipTriangleMesh()
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<ClippedTriangleMesh>. Clipped mesh.
-    Unique<ClippedTriangleMesh> pClipTriangleMeshUnique(PointView rLowerBound, PointView rUpperBound ) const;
+    ///@return ClippedTriangleMesh. Clipped mesh.
+    ClippedTriangleMesh ClipTriangleMeshUnique(PointView rLowerBound, PointView rUpperBound ) const;
     ///@}
 
 private:

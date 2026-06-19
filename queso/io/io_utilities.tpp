@@ -46,7 +46,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::little);
 
-        const uint32_t num_triangles = std::accumulate(rCondition.SegmentsBegin(), rCondition.SegmentsEnd(),
+        const uint32_t num_triangles = std::accumulate(rCondition.GetSegments().begin(), rCondition.GetSegments().end(),
             uint32_t{0}, [](uint32_t Acc, const auto& rSegment) {
                 return Acc + static_cast<uint32_t>(rSegment.GetTriangleMesh().NumOfTriangles()); });
 
@@ -55,7 +55,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
         binary_writer.WriteRaw(header, header_size);
 
         binary_writer.WriteValue(num_triangles);
-        for(const auto& r_segments : rCondition.Segments()){
+        for(const auto& r_segments : rCondition.GetSegments()){
             const auto& r_triangle_mesh = r_segments.GetTriangleMesh();
             r_triangle_mesh.View().template VisitEachTriangle<WithNormals>([&binary_writer](const auto &triangle) {
                 const float coords[12] = { static_cast<float>(triangle.Normal[0]), static_cast<float>(triangle.Normal[1]), static_cast<float>(triangle.Normal[2]),
@@ -72,7 +72,7 @@ void IO::WriteConditionToSTL(const Condition<TElementType>& rCondition,
     } else { // ascii
         file << std::fixed << std::setprecision(6);
         file << "solid QuESoExport\n";
-        for(const auto& r_segments : rCondition.Segments()) {
+        for(const auto& r_segments : rCondition.GetSegments()) {
             const auto& r_triangle_mesh = r_segments.GetTriangleMesh();
 
             r_triangle_mesh.View().template VisitEachTriangle<WithNormals>([&file](const auto &triangle) {

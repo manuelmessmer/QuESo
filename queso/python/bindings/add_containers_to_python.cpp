@@ -27,20 +27,15 @@ using BoundaryIntegrationPointType = queso::BoundaryIntegrationPoint;
 // Element related types
 using ElementType = queso::Element<IntegrationPointType, BoundaryIntegrationPointType>;
 using ElementPtrType = queso::Unique<ElementType>;
-using ElementVectorPtrType = std::vector<ElementPtrType>;
-PYBIND11_MAKE_OPAQUE(ElementVectorPtrType);
 
 // Condition related types
 using ConditionType = queso::Condition<ElementType>;
 using ConditionPtrType = queso::Unique<ConditionType>;
-using ConditionVectorPtrType = std::vector<ConditionPtrType>;
-PYBIND11_MAKE_OPAQUE(ConditionVectorPtrType);
 
 // Condition segments related types
 using ConditionSegmentType = queso::ConditionSegment<ElementType>;
-using ConditionSegmentPtrType = queso::Unique<ConditionSegmentType>;
-using ConditionSegmentVectorPtrType = std::vector<ConditionSegmentPtrType>;
-PYBIND11_MAKE_OPAQUE(ConditionSegmentVectorPtrType)
+using ConditionSegmentVectorType = std::vector<ConditionSegmentType>;
+PYBIND11_MAKE_OPAQUE(ConditionSegmentVectorType)
 
 // Point / integration point vector types
 using IntegrationPointVectorType = ElementType::IntegrationPointVectorType;
@@ -239,17 +234,17 @@ void AddContainersToPython(pybind11::module& m) {
 		.def("NumberOfConditions", &GridType::NumberOfConditions);
 
     /// Export Condition Segment
-    py::class_<ConditionSegmentType, ConditionSegmentPtrType>(m,"ConditionSegment")
+    py::class_<ConditionSegmentType>(m,"ConditionSegment")
         .def("GetTriangleMesh", &ConditionSegmentType::GetTriangleMesh , py::return_value_policy::reference_internal )
     ;
 
     // Export ConditionSegment Vector
-    py::class_<ConditionSegmentVectorPtrType>(m, "ConditionSegmentVector")
-        .def("__getitem__", [](const ConditionSegmentVectorPtrType &self, const IndexType i)
-            { return &(*self[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const ConditionSegmentVectorPtrType &self) { return self.size(); })
-        .def("__iter__", [](ConditionSegmentVectorPtrType &self) {
-            return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
+    py::class_<ConditionSegmentVectorType>(m, "ConditionSegmentVector")
+        .def("__getitem__", [](const ConditionSegmentVectorType &self, const IndexType i)
+            { return &self[i]; }, py::return_value_policy::reference_internal)
+        .def("__len__", [](const ConditionSegmentVectorType &self) { return self.size(); })
+        .def("__iter__", [](ConditionSegmentVectorType &self) {
+            return py::make_iterator(self.begin(), self.end());
         }, py::keep_alive<0, 1>() )
     ;
 
@@ -259,22 +254,6 @@ void AddContainersToPython(pybind11::module& m) {
         .def("GetSettings", &ConditionType::GetSettings, py::return_value_policy::reference_internal)
         .def("GetSegments", &ConditionType::GetSegments, py::return_value_policy::reference_internal)
         .def("NumberOfSegments", &ConditionType::NumberOfSegments )
-        .def("__getitem__", [](const ConditionType &self, const IndexType i)
-            { return &(*self.GetSegments()[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const ConditionType &self) { return self.NumberOfSegments(); })
-        .def("__iter__", [](ConditionType &self) {
-            return py::make_iterator( self.SegmentsBegin(), self.SegmentsEnd() );
-        }, py::keep_alive<0, 1>())
-    ;
-
-    // Export Condition Vector
-    py::class_<ConditionVectorPtrType>(m, "ConditionVector")
-        .def("__getitem__", [](const ConditionVectorPtrType &self, const IndexType i)
-            { return &(*self[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const ConditionVectorPtrType &self) { return self.size(); })
-        .def("__iter__", [](ConditionVectorPtrType &self) {
-            return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
-        }, py::keep_alive<0, 1>())
     ;
 
     /// Export Integration Points 1D vector. Just a: (std::vector<std::array<double,2>>)

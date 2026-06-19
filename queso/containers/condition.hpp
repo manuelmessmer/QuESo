@@ -11,8 +11,10 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef CONDITION_INCLUDE_HPP
-#define CONDITION_INCLUDE_HPP
+#pragma once
+
+//// STL includes
+#include <functional>
 
 //// Project includes
 #include "queso/containers/condition_segment.hpp"
@@ -23,137 +25,81 @@ namespace queso {
 ///@name QuESo Classes
 ///@{
 
-/**
- * @class  Condition
- * @author Manuel Messmer
- * @brief  Interface for conditions. Stores condition settings, some condition info, and a list of condition segments.
- *         Each segment is clipped to the element boundaries in the background grid and holds the respective
- *         section of the triangle mesh.
- * @see    containers/condition_segment.h
-**/
+/// @class  Condition
+/// @author Manuel Messmer
+/// @brief  Container for condition settings, condition info, and the corresponding condition segments.
+///         Each segment is clipped to the element boundaries in the background grid and holds the
+///         respective section of the triangle mesh.
+/// @see    containers/condition_segment.h
 template<typename TElementType>
-class Condition {
+class Condition
+{
 public:
-
-    ///@name Type Definitions
+    ///@name Type definitions
     ///@{
     using ElementType = TElementType;
 
     using ConditionSegmentType = ConditionSegment<ElementType>;
-    using ConditionSegmentPtrType = Unique<ConditionSegmentType>;
-    using ConditionSegmentContainerType = std::vector<ConditionSegmentPtrType>;
+    using ConditionSegmentContainerType = std::vector<ConditionSegmentType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@}
-    ///@name Life Cycle
+    ///@name Life cycle
     ///@{
 
     /// @brief Constructor
     /// @param rConditionSettings
     /// @param rConditionInfo
-    Condition( const MainDictionaryType& rConditionSettings, MainDictionaryType& rConditionInfo )
-        :  mConditionSettings(rConditionSettings), mConditionInfo(rConditionInfo)
-    {
-    }
+    Condition(const MainDictionaryType& rConditionSettings, MainDictionaryType& rConditionInfo)
+        : mConditionSettings(rConditionSettings), mConditionInfo(rConditionInfo)
+    {}
 
     /// Destructor
     ~Condition() = default;
     /// Copy constructor
     Condition(const Condition& rOther) = delete;
-    /// Assignement operator
+    /// Assignment operator
     Condition& operator=(const Condition& rOther) = delete;
     /// Move constructor
     Condition(Condition&& rOther) noexcept = default;
-    /// Move assignement operator
+    /// Move assignment operator
     Condition& operator=(Condition&& rOther) noexcept = default;
 
     /// @brief Adds new ConditionSegment to this condition. Segment is moved into container.
-    /// @param pNewSegment
-    void AddSegment(ConditionSegmentPtrType& pNewSegment) {
-        mSegments.push_back(std::move(pNewSegment));
-    }
+    /// @param rNewSegment
+    void AddSegment(ConditionSegmentType&& rNewSegment)
+    { mSegments.emplace_back(std::move(rNewSegment)); }
 
     /// @brief Returns all stored ConditionSegments.
     /// @return const ConditionSegmentContainerType&
-    const ConditionSegmentContainerType& GetSegments() const {
-        return mSegments;
-    }
+    [[nodiscard]] const ConditionSegmentContainerType& GetSegments() const noexcept
+    { return mSegments; }
 
     /// @brief Returns condition settings.
-    /// @return const SettingsBaseType&
-    const MainDictionaryType& GetSettings() const {
-        return mConditionSettings;
-    }
+    /// @return const MainDictionaryType&
+    [[nodiscard]] const MainDictionaryType& GetSettings() const noexcept
+    { return mConditionSettings.get(); }
 
-    /// @brief Returns condition settings.
-    /// @return const ModelInfoBaseType&
-    const MainDictionaryType& GetInfo() const {
-        return mConditionInfo;
-    }
+    /// @brief Returns condition info.
+    /// @return const MainDictionaryType&
+    [[nodiscard]] const MainDictionaryType& GetInfo() const noexcept
+    { return mConditionInfo.get(); }
 
     /// @brief Returns the number of segments.
     /// @return IndexType
-    IndexType NumberOfSegments() const {
-        return mSegments.size();
-    }
-
-    ///@}
-    ///@name Iterators
-    ///@{
-
-    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
-    ///        but directly to the actual object.
-    /// @return DereferenceIterator
-    auto SegmentsBegin() -> DereferenceIterator<typename ConditionSegmentContainerType::iterator> {
-        return dereference_iterator(mSegments.begin());
-    }
-
-    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
-    ///        but directly to the actual object.
-    /// @return DereferenceIterator
-    auto SegmentsBegin() const -> DereferenceIterator<typename ConditionSegmentContainerType::const_iterator> {
-        return dereference_iterator(mSegments.begin());
-    }
-
-    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
-    ///        but directly to the actual object.
-    /// @return DereferenceIterator
-    auto SegmentsEnd() -> DereferenceIterator<typename ConditionSegmentContainerType::iterator> {
-        return dereference_iterator(mSegments.end());
-    }
-
-    /// @brief Returns dereference iterator. This means iterator does not point to UniquePtr,
-    ///        but directly to the actual object.
-    /// @return DereferenceIterator
-    auto SegmentsEnd() const -> DereferenceIterator<typename ConditionSegmentContainerType::const_iterator> {
-        return dereference_iterator(mSegments.end());
-    }
-
-    /// @brief Returns dereference range for the segments container (non-const version).
-    /// @return DereferenceRange.
-    auto Segments() -> DereferenceRange<typename ConditionSegmentContainerType::iterator> {
-        return dereference_range( mSegments.begin(), mSegments.end() );
-    }
-
-    /// @brief Returns dereference range for the segments container (const version).
-    /// @return DereferenceRange.
-    auto Segments() const -> DereferenceRange<typename ConditionSegmentContainerType::const_iterator> {
-        return dereference_range( mSegments.begin(), mSegments.end() );
-    }
+    [[nodiscard]] IndexType NumberOfSegments() const noexcept
+    { return mSegments.size(); }
 
 private:
-
     ///@}
     ///@name Private Members
     ///@{
 
-    const MainDictionaryType& mConditionSettings;
-    MainDictionaryType& mConditionInfo;
-    ConditionSegmentContainerType mSegments;
+    std::reference_wrapper<const MainDictionaryType> mConditionSettings;
+    std::reference_wrapper<MainDictionaryType> mConditionInfo;
+    ConditionSegmentContainerType mSegments{};
 
     ///@}
-}; // End class Condition
+};// End class Condition
 ///@}
-} // End queso namespace.
-
-#endif // End CONDITION_INCLUDE_HPP
+}// namespace queso

@@ -33,7 +33,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
 
 bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
 
-    const IndexType num_triangles = mpClippedMesh->NumOfTriangles();
+    const IndexType num_triangles = mClippedMesh.NumOfTriangles();
     if( num_triangles == 0){
         return true;
     }
@@ -49,7 +49,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         }
 
         // Get direction
-        const auto triangle = mpClippedMesh->Triangle<WithoutNormals>(current_id);
+        const auto triangle = mClippedMesh.Triangle<WithoutNormals>(current_id);
         const auto center_triangle = TriangleUtilities::Center(triangle);
         Vector3d direction = center_triangle - rPoint;
 

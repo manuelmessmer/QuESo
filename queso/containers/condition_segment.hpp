@@ -11,102 +11,97 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef CONDITION_SEGMENT_INCLUDE_HPP
-#define CONDITION_SEGMENT_INCLUDE_HPP
+#pragma once
 
 //// STL includes
-#include <vector>
+#include <functional>
+#include <optional>
 
 //// Project includes
-#include "queso/includes/define.hpp"
 #include "queso/containers/clipped_triangle_mesh.hpp"
+#include "queso/includes/define.hpp"
 
 namespace queso {
 
 ///@name QuESo Classes
 ///@{
 
-/**
- * @class  ConditionSegment
- * @author Manuel Messmer
- * @brief  Segment of condition that is clipped to the element boundaries of the background grid.
- *         Stores the index of the parent element (see: GridIndexer). If parent element is active, also stores a ptr to the parent element.
- *         Additionally, stores the clipped section of the triangle mesh, and the corresponding boundary integration points (not yet).
- * @todo   Add BoundaryIntegrationPoints that can eventually be used by a boundary MomentFitting scheme.
-**/
+/// @class  ConditionSegment
+/// @author Manuel Messmer
+/// @brief  Segment of a condition clipped to the background-grid element boundaries.
+///         Stores the parent element id and, if the parent element is active, a reference to it.
+///         Additionally stores the clipped section of the triangle mesh.
+/// @todo   Add boundary integration points that can eventually be used by a boundary moment-fitting scheme.
 template<typename TElementType>
-class ConditionSegment {
+class ConditionSegment
+{
 public:
-
-    ///@name Type Definitions
+    ///@name Type definitions
     ///@{
-    typedef TElementType ElementType;
-    typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
-    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
+    using ElementType = TElementType;
+    using BoundaryIntegrationPointType = typename ElementType::BoundaryIntegrationPointType;
+    using BoundaryIntegrationPointVectorType = std::vector<BoundaryIntegrationPointType>;
 
     ///@}
-    ///@name Life Cycle
+    ///@name Life cycle
     ///@{
 
     /// @brief Constructor
-    /// @param Index of BackgroundGrid @see GridIndexer.
-    /// @param pTriangleMesh ptr to triangle mesh of this segment.
-    ConditionSegment(IndexType Index, Unique<ClippedTriangleMesh>&& pTriangleMesh)
-        : mBackgroundGridIndex(Index), mpParentElement(nullptr), mpClippedTriangleMesh(std::move(pTriangleMesh))
-    {
-    }
+    /// @param Index index in the background grid. @see GridIndexer.
+    /// @param rClippedTriangleMesh clipped triangle mesh of this segment. ConditionSegment takes ownership.
+    ConditionSegment(IndexType Index, ClippedTriangleMesh&& rTriangleMesh)
+        : mBackgroundGridIndex(Index), mClippedTriangleMesh(std::move(rTriangleMesh))
+    {}
 
     /// @brief Constructor
-    /// @param Index of BackgroundGrid @see GridIndexer.
-    /// @param pElement Ptr to parent element.
-    /// @param pTriangleMesh ptr to triangle mesh of this segment.
-    ConditionSegment(IndexType Index, const ElementType* pElement, Unique<ClippedTriangleMesh>& pClippedTriangleMesh)
-        : mBackgroundGridIndex(Index), mpParentElement(pElement), mpClippedTriangleMesh(std::move(pClippedTriangleMesh))
-    {
-    }
+    /// @param Index index in the background grid. @see GridIndexer.
+    /// @param rClippedTriangleMesh clipped triangle mesh of this segment. ConditionSegment takes ownership.
+    /// @param rElement parent element.
+    ConditionSegment(IndexType Index, ClippedTriangleMesh&& rClippedTriangleMesh, const ElementType& rElement)
+        : mBackgroundGridIndex(Index), mClippedTriangleMesh(std::move(rClippedTriangleMesh)), mParentElement(rElement)
+    {}
 
-    // Destructor
+    /// Destructor
     ~ConditionSegment() = default;
-    // Copy constructor
+    /// Copy constructor
     ConditionSegment(const ConditionSegment& rOther) = delete;
-    // Assignement operator
+    /// Assignment operator
     ConditionSegment& operator=(const ConditionSegment& rOther) = delete;
     /// Move constructor
     ConditionSegment(ConditionSegment&& rOther) noexcept = default;
-    /// Move assignement operator
+    /// Move assignment operator
     ConditionSegment& operator=(ConditionSegment&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// @brief Return const ref to the triangle mesh, representing the condition segment.
-    /// @return  const TriangleMesh&
-    const TriangleMesh& GetTriangleMesh() const {
-        return mpClippedTriangleMesh->Mesh();
-    }
+    /// @brief Returns the triangle mesh representing the condition segment.
+    /// @return const TriangleMesh&
+    [[nodiscard]] const TriangleMesh& GetTriangleMesh() const
+    { return mClippedTriangleMesh.Mesh(); }
 
-    /// @brief Returns true if ConditionSegment is contained within in active parent element.
+    /// @brief Returns true if the condition segment is contained within an active parent element.
     /// @return bool
-    bool IsInActiveElement() const {
-        return (mpParentElement) != 0;
-    }
+    [[nodiscard]] bool IsInActiveElement() const noexcept
+    { return mParentElement.has_value(); }
+
+    /// @brief Returns the optional parent element.
+    /// @return const optional parent-element reference.
+    [[nodiscard]] const std::optional<std::reference_wrapper<const ElementType>>& GetParentElement() const noexcept
+    { return mParentElement; }
 
 private:
-
     ///@}
     ///@name Private member variables
     ///@{
 
-    IndexType mBackgroundGridIndex;
-    const ElementType* mpParentElement;
-    Unique<ClippedTriangleMesh> mpClippedTriangleMesh;
+    IndexType mBackgroundGridIndex{};
+    ClippedTriangleMesh mClippedTriangleMesh{};
+    std::optional<std::reference_wrapper<const ElementType>> mParentElement{};
     // BoundaryIntegrationPointVectorType mIntegrationPoints;
 
     ///@}
-}; // End class ConditionSegment
+};// End class ConditionSegment
 ///@}
-} // End queso namespace.
-
-#endif // End CONDITION_SEGMENT_INCLUDE_HPP
-
+}// namespace queso
