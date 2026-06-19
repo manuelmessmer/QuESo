@@ -3,8 +3,6 @@ import QuESoPythonModule
 
 import unittest
 import numpy as np
-from scipy import __version__ as __scipy_version__
-from scipy._lib import _pep440
 from scipy.interpolate import BSpline
 
 #import scipy
@@ -24,22 +22,18 @@ class TestGGQ1d(unittest.TestCase):
         knots = np.concatenate( (knots, np.repeat(np.linspace(a, b, e+1)[1:-1], p-r)), axis=0)
         knots = np.concatenate( (knots, b*np.ones(p+1)), axis=0)
 
-        np_minversion = '1.8.0'
-        if _pep440.parse(__scipy_version__) >= _pep440.Version(np_minversion):
-            target = []
-            dim = len(knots) - p - 1
-            for k in range(dim):
-                target.append( (knots[p+k+1] - knots[k])/(p+1) )
-            # Get B-Spline collocation matrix
-            B = BSpline.design_matrix(nodes, knots, p).toarray()
-            error = np.linalg.norm( (target - np.array(weights).dot(np.array(B)) )/dim )
-            if must_pass:
-                self.assertLess( error, 1e-15 )
-                self.assertEqual(len(nodes), m)
-            else:
-                self.assertGreater( error, 1e-10)
+        target = []
+        dim = len(knots) - p - 1
+        for k in range(dim):
+            target.append( (knots[p+k+1] - knots[k])/(p+1) )
+        # Get B-Spline collocation matrix
+        B = BSpline.design_matrix(nodes, knots, p).toarray()
+        error = np.linalg.norm( (target - np.array(weights).dot(np.array(B)) )/dim )
+        if must_pass:
+            self.assertLess( error, 1e-15 )
+            self.assertEqual(len(nodes), m)
         else:
-            print("Testing :: QQGRule1d is skipped. Requires scipy version: >=" + np_minversion)
+            self.assertGreater( error, 1e-10)
 
     def test_1(self):
         '''p=2: GGQ Optimal'''
