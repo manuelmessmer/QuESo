@@ -114,14 +114,14 @@ class ModelPartUtilities:
     @staticmethod
     def add_elements_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Elements: QuESo.ElementVector # type: ignore (TODO: add .pyi)
+            Elements: list[QuESo.Element] # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Adds the QuESo elements to the Kratos NurbsVolume ModelPart.
 
         Args:
             KratosNurbsVolumeModelPart (KM.ModelPart): The Kratos model part to which the elements will be added.
-            Elements (QuESo.ElementVector): List of QuESo elements to add to the model part.
+            Elements (list[QuESo.Element]): List of QuESo elements to add to the model part.
         """
         nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry("NurbsVolume")
         volume_properties = KratosNurbsVolumeModelPart.GetProperties()[1]
@@ -160,7 +160,7 @@ class ModelPartUtilities:
 
         Args:
             KratosNurbsVolumeModelPart (KM.ModelPart): The Kratos model part to which the conditions will be added.
-            Conditions (QuESo.ConditionVector): List of QuESo boundary conditions to add to the model part.
+            Conditions (list[QuESo.Condition]): List of QuESo boundary conditions to add to the model part.
             BoundsXYZ (Tuple[Point3D, Point3D]): Lower and upper bounds in XYZ coordinates for the conditions.
             BoundsUVW (Tuple[Point3D, Point3D]): Lower and upper bounds in UVW coordinates for the conditions.
         """
@@ -212,7 +212,7 @@ class ModelPartUtilities:
                     raise Exception(f"Given condition type '{type_name}' is not available. Available options are: {options}.")
 
                 handler = condition_handlers[type_name]
-                for segment in bc:
+                for segment in bc.GetSegments():
                     boundary_conditions.append(handler(condition_settings, segment))
             else:
                 boundary_conditions.append(bc)

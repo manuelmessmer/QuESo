@@ -77,8 +77,7 @@ bool BRepOperator::IsTrimmed(PointView rLowerBound, PointView rUpperBound, doubl
 bool BRepOperator::OnBoundedSideOfClippedSection(const PointType& rPoint, PointView rLowerBound, PointView rUpperBound) const {
     const double tolerance = RelativeSnapTolerance(rLowerBound, rUpperBound, SNAPTOL);
 
-    auto p_clipped_mesh = pClipTriangleMesh(rLowerBound, rUpperBound);
-    auto& clipped_mesh = *p_clipped_mesh;
+    auto clipped_mesh = ClipTriangleMesh(rLowerBound, rUpperBound);
 
     GeometryQuery geometry_query_local(clipped_mesh.MeshView(), false);
 
@@ -175,9 +174,9 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(PointView rLowerBound, Poin
     bool switch_plane_orientation = false;
     IndexType iteration = 1UL;
     while( iteration < 15){
-        auto p_new_mesh = pClipTriangleMesh(lower_bound, upper_bound);
-        if( p_new_mesh->NumOfTriangles() > 0) {
-            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(p_new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
+        auto new_mesh = ClipTriangleMesh(lower_bound, upper_bound);
+        if( new_mesh.NumOfTriangles() > 0) {
+            auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
             const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
 
             const double volume = MeshUtilities::Volume(r_trimmed_domain_mesh.View());
@@ -221,48 +220,48 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(PointView rLowerBound, Poin
 }
 
 
-Unique<ClippedTriangleMesh> BRepOperator::pClipTriangleMesh(
+ClippedTriangleMesh BRepOperator::ClipTriangleMesh(
         PointView rLowerBound, PointView rUpperBound ) const {
 
     const double snap_tolerance = 0.1*RelativeSnapTolerance(rLowerBound, rUpperBound);
     const auto intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(rLowerBound, rUpperBound, snap_tolerance);
-    auto p_clipped_mesh = MakeUnique<ClippedTriangleMesh>();
-    p_clipped_mesh->Reserve( 2*intersected_triangle_ids.size() );
-    p_clipped_mesh->ReserveEdgesOnPlane( intersected_triangle_ids.size() );
+    ClippedTriangleMesh clipped_mesh{};
+    clipped_mesh.Reserve( 2*intersected_triangle_ids.size() );
+    clipped_mesh.ReserveEdgesOnPlane( intersected_triangle_ids.size() );
     mTriangleMesh.VisitEachTriangle<WithNormals>(intersected_triangle_ids, [&](const auto &triangle) {
         auto p_polygon = Clipper::ClipTriangle(triangle, rLowerBound, rUpperBound );
         if( p_polygon ){
-            p_polygon->AddToTriangleMesh(*p_clipped_mesh);
+            p_polygon->AddToTriangleMesh(clipped_mesh);
         }
     });
-    if( p_clipped_mesh->NumOfTriangles() > 0){
-        p_clipped_mesh->Mesh().Check();
+    if( clipped_mesh.NumOfTriangles() > 0){
+        clipped_mesh.Mesh().Check();
     }
-    return p_clipped_mesh;
+    return clipped_mesh;
 }
 
 
-Unique<ClippedTriangleMesh> BRepOperator::pClipTriangleMeshUnique(PointView rLowerBound, PointView rUpperBound ) const {
+ClippedTriangleMesh BRepOperator::ClipTriangleMeshUnique(PointView rLowerBound, PointView rUpperBound ) const {
     const PointType offset{30*ZEROTOL, 30*ZEROTOL, 30*ZEROTOL};
     const auto lower_bound = rLowerBound + offset;
     const auto upper_bound = rUpperBound + offset;
     double snap_tolerance = 1.0*ZEROTOL;
 
     const auto intersected_triangle_ids = mGeometryQuery.GetIntersectedTriangleIds(lower_bound, upper_bound, snap_tolerance);
-    auto p_clipped_mesh = MakeUnique<ClippedTriangleMesh>();
-    p_clipped_mesh->Reserve( 2*intersected_triangle_ids.size() );
-    p_clipped_mesh->ReserveEdgesOnPlane( intersected_triangle_ids.size() );
+    ClippedTriangleMesh clipped_mesh{};
+    clipped_mesh.Reserve( 2*intersected_triangle_ids.size() );
+    clipped_mesh.ReserveEdgesOnPlane( intersected_triangle_ids.size() );
 
     mTriangleMesh.VisitEachTriangle<WithNormals>(intersected_triangle_ids, [&](const auto &triangle) {
         auto p_polygon = Clipper::ClipTriangle(triangle, lower_bound, upper_bound);
         if( p_polygon ){
-            p_polygon->AddToTriangleMesh(*p_clipped_mesh);
+            p_polygon->AddToTriangleMesh(clipped_mesh);
         }
     });
-    if( p_clipped_mesh->NumOfTriangles() > 0){
-        p_clipped_mesh->Mesh().Check();
+    if( clipped_mesh.NumOfTriangles() > 0){
+        clipped_mesh.Mesh().Check();
     }
-    return p_clipped_mesh;
+    return clipped_mesh;
 }
 
 } // End namespace queso

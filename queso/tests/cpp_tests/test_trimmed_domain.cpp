@@ -93,8 +93,8 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
         ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
                                MakeBox(lower_bound_uvw, upper_bound_uvw));
 
-        auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
-        area_test += MeshUtilities::Area(p_clipped_mesh->Mesh().View());
+        auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
+        area_test += MeshUtilities::Area(clipped_mesh.Mesh().View());
 
 
         const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz );
@@ -280,8 +280,8 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         const Vector3d lower_bound_xyz = bounding_box.first;
         const Vector3d upper_bound_xyz = bounding_box.second;
 
-        auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
-        area += MeshUtilities::Area(p_clipped_mesh->Mesh().View());
+        auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
+        area += MeshUtilities::Area(clipped_mesh.Mesh().View());
         // Get Trimmed domain
         auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
         if( p_trimmed_domain ){

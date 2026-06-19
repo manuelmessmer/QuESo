@@ -264,21 +264,21 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, cons
 		const auto index = static_cast<IndexType>(for_index);
         // Clip embedded geoemetry with the current element (bounding box).
         const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
-        auto p_new_mesh = brep_operator.pClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
+        auto new_mesh = brep_operator.ClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
 
-        if( p_new_mesh->NumOfTriangles() > 0 ) {
+        if( new_mesh.NumOfTriangles() > 0 ) {
             const auto p_el = mBackgroundGrid.pGetElement(index+1);
-            const double surf_area_segment = MeshUtilities::Area(p_new_mesh->MeshView());
+            const double surf_area_segment = MeshUtilities::Area(new_mesh.MeshView());
 
             // If p_el != nullptr, the current condition is within an active element.
             // Otherwise, the current condition is outside the active domain.
-            auto p_new_segment = p_el ? MakeUnique<ConditionType::ConditionSegmentType>(index, p_el, p_new_mesh)
-                : MakeUnique<ConditionType::ConditionSegmentType>(index, std::move(p_new_mesh));
+            auto new_segment = p_el ? ConditionType::ConditionSegmentType(index, std::move(new_mesh), *p_el)
+                : ConditionType::ConditionSegmentType(index, std::move(new_mesh));
             surf_area_in_active_domain += p_el ?  surf_area_segment : 0.0;
 
             // Add condition segment to condition.
             #pragma omp critical
-            p_new_condition->AddSegment(p_new_segment);
+            p_new_condition->AddSegment(std::move(new_segment));
         }
     }
 

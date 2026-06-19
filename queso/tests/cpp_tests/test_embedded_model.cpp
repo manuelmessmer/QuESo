@@ -385,7 +385,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
         IO::ReadMeshFromSTL(triangle_mesh, filename);
         const double ref_area = MeshUtilities::Area(triangle_mesh.View());
         auto lambda = [](double result, const auto& r_segment){return result + MeshUtilities::Area(r_segment.GetTriangleMesh().View()); };
-        const double area = std::accumulate(r_condition.SegmentsBegin(), r_condition.SegmentsEnd(), 0.0, lambda);
+        const double area = std::accumulate(r_condition.GetSegments().begin(), r_condition.GetSegments().end(), 0.0, lambda);
         QuESo_CHECK_NEAR(ref_area, area, 1e-10);
     }
 }

@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest1) {
     BRepOperator brep_operator(triangle_mesh);
 
     // Clip mesh.
-    auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
+    auto clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
 
-    const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
+    const double area = MeshUtilities::Area(clipped_mesh.MeshView());
 
     // Check surface area of clipped mesh.
     const double ref = 2.35619449;  // pi/2+pi/4 -> One quarte of the lateral surface + a quarter of the head face.
@@ -68,9 +68,9 @@ BOOST_AUTO_TEST_CASE(ClipCubeTest2) {
     BRepOperator brep_operator(triangle_mesh);
 
     // Clip mesh.
-    auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
+    auto clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
 
-    const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
+    const double area = MeshUtilities::Area(clipped_mesh.MeshView());
 
     // Check surface area of clipped mesh.
     const double ref = 1.570796327;  // pi/2 -> One quarte of the lateral surface.
@@ -100,9 +100,9 @@ BOOST_AUTO_TEST_CASE(ClipCubeWithCavityTest) {
                 Vector3d lower_bound = {xx,yy,zz};
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
                 // Clip mesh
-                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
+                auto clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
                 // Compute area of clipped domain.
-                const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
+                const double area = MeshUtilities::Area(clipped_mesh.MeshView());
                 results_area.push_back(area);
             }
         }
@@ -145,10 +145,10 @@ BOOST_AUTO_TEST_CASE(ClipElephantTest) {
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip  Mesh.
-                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
+                auto clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
-                const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
+                const double area = MeshUtilities::Area(clipped_mesh.MeshView());
                 results_area.push_back(area);
             }
         }
@@ -190,10 +190,10 @@ BOOST_AUTO_TEST_CASE(ClipBunnyTest) {
                 Vector3d upper_bound = {xx+delta_x, yy+delta_y, zz+delta_z};
 
                 // Clip mesh.
-                auto p_clipped_mesh = brep_operator.pClipTriangleMesh(lower_bound, upper_bound);
+                auto clipped_mesh = brep_operator.ClipTriangleMesh(lower_bound, upper_bound);
 
                 // Compute area of clipped domain.
-                const double area = MeshUtilities::Area(p_clipped_mesh->MeshView());
+                const double area = MeshUtilities::Area(clipped_mesh.MeshView());
                 results_area.push_back(area);
             }
         }

@@ -19,8 +19,8 @@ class Analysis():
     def __init__(self,
             settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
             kratos_settings_filename: str,
-            elements: QuESo.ElementVector, # type: ignore (TODO: add .pyi)
-            boundary_conditions: QuESo.ConditionVector # type: ignore (TODO: add .pyi)
+            elements: list[QuESo.Element], # type: ignore (TODO: add .pyi)
+            boundary_conditions: list[QuESo.Condition] # type: ignore (TODO: add .pyi)
         ) -> None:
         """
         Constructor for the `Analysis` class.
@@ -31,8 +31,8 @@ class Analysis():
         Args:
             settings (QuESo.Dictionary): The settings for the analysis, including elements and boundary conditions.
             kratos_settings_filename (str): The path to the Kratos settings file in JSON format.
-            elements (QuESo.ElementVector): A list of elements to be added to the model part.
-            boundary_conditions (QuESo.ConditionVector): A list of boundary conditions to be applied to the model.
+            elements (list[QuESo.Element]): A list of elements to be added to the model part.
+            boundary_conditions (list[QuESo.Condition]): A list of boundary conditions to be applied to the model.
         """
         self.model = KM.Model()
         analysis = CustomAnalysisStage(self.model, settings, kratos_settings_filename, elements, boundary_conditions)

@@ -38,11 +38,11 @@ class PyQuESo:
         """Returns a list of active elements from the embedded model.
 
         Returns:
-            QuESo_App.ElementVector: List of active elements.
+            list[QuESo_App.Element]: List of active elements.
         """
         return self._embedded_model.GetElements()
 
-    def GetConditions(self) -> QuESo_App.ConditionVector: # type: ignore (TODO: add .pyi)
+    def GetConditions(self) -> list[QuESo_App.Condition]: # type: ignore (TODO: add .pyi)
         """Returns a list of conditions from the embedded model.
 
         Returns:

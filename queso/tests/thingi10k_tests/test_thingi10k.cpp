@@ -129,8 +129,8 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 
                     ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
 
-                    auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
-                    test_area += MeshUtilities::Area(p_clipped_mesh->Mesh().View());
+                    auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(box.first, box.second );
+                    test_area += MeshUtilities::Area(clipped_mesh.Mesh().View());
 
                     auto status = brep_operator.GetIntersectionState(element);
                     if( status != (*p_states)[index] ){
@@ -303,8 +303,6 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
                     auto box = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
 
                     ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
-
-                    auto p_clipped_mesh = brep_operator.pClipTriangleMeshUnique(box.first, box.second );
 
                     auto status = brep_operator.GetIntersectionState(element);
                     // Boost unit test framework throws warning when comparing enum's.
