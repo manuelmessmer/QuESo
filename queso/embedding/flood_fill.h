@@ -63,11 +63,11 @@ public:
     /// @param rSettings
     FloodFill(const BRepOperator* pBrepOperator, const MainDictionaryType& rSettings) :
         mpBrepOperator(pBrepOperator), mGridIndexer(rSettings),
-        mNumberOfElements( rSettings[MainSettings::background_grid_settings].GetValue<Vector3i>(BackgroundGridSettings::number_of_elements) )
+        mNumberOfElements( rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(BackgroundGridSettings::number_of_elements) )
     {
 
-        const auto& r_lower_bound = rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
-        const auto& r_upper_bound = rSettings[MainSettings::background_grid_settings].GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
+        const auto& r_lower_bound = rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        const auto& r_upper_bound = rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
         // Obtain discretization of background mesh.
         mDelta[0] = std::abs(r_upper_bound[0] - r_lower_bound[0]) / static_cast<double>(mNumberOfElements[0]);
         mDelta[1] = std::abs(r_upper_bound[1] - r_lower_bound[1]) / static_cast<double>(mNumberOfElements[1]);

@@ -15,6 +15,8 @@
 #define DATA_SET_INCLUDE_HPP
 
 //// STL includes
+#include <functional>
+#include <optional>
 #include <vector>
 #include <variant>
 
@@ -166,48 +168,52 @@ public:
         }
     }
 
-    /// @brief Returns the value associated with the given Key (fast version, does not throw).
+    /// @brief Returns the value associated with the given required key.
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-    /// @note Only throws in debug mode. In realese it does not check if the value is set and if TKeyType is of correct type.
-    /// @see GetValue(): Throws if value is not set.
+	/// @note Only throws in debug mode. In release mode, no checks are performed to
+	///       verify that TKeyType has the correct type or that a value is set.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetValueFast(const TKeyType& rQueryKey,
-                                   std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+    const TValueType& GetRequiredValue(const TKeyType& rQueryKey,
+                                       std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
+        static_assert( TKeyType::msIsRequired );
 
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex() ),
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ASSERT( !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]),
-            "Value to Key: '" + std::string(rQueryKey.Name()) + "' is not set.\n");
+        QuESo_ASSERT( mCheckedRequired,
+            "CheckRequired() must be called before accessing required value to Key: '" + std::string(rQueryKey.Name()) + "'.\n" );
 
         return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
 
-    /// @brief Returns the value associated with the given Key.
+    /// @brief Returns the value associated with the given optional key if it is set.
     /// @tparam TValueType
     /// @tparam TKeyType
     /// @param rQueryKey
-    /// @return const TValueType&
-    /// @note In release mode it throws if the given key is not set. In debug mode it addionally throws if TKeyType is of wrong type.
-    /// @see GetValueFast(): Never throws in release.
+    /// @return std::optional<std::reference_wrapper<const TValueType>> Empty if unset.
+	/// @note Only throws in debug mode. In release mode, no checks is performed to
+	///       verify that TKeyType has the correct type.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetValue(const TKeyType& rQueryKey,
-                               std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const {
+    std::optional<std::reference_wrapper<const TValueType>> TryGetValue(
+        	const TKeyType& rQueryKey,
+        	std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
+        static_assert( !TKeyType::msIsRequired );
 
         QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ERROR_IF( std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]) )
-            << "Value to Key: '" << rQueryKey.Name() << "' is not set.\n";
+		if (!IsSet(rQueryKey)) {
+            return std::nullopt;
+        }
 
-        return std::get<TValueType>(mData[rQueryKey.Index()]);
+        return std::cref(std::get<TValueType>(mData[rQueryKey.Index()]));
     }
 
     /// @brief Returns true if the value associated with the given Key is set.
@@ -224,6 +230,18 @@ public:
             "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
 
         return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
+    }
+
+    /// @brief Throws if any required value associated with this data set is not set.
+    void CheckRequired() const {
+        const auto& r_map = mpKeySetInfo->GetStringKeyMap();
+        for (const auto& [_, p_key] : r_map) {
+            if (p_key->IsRequired()) {
+                QuESo_ERROR_IF(std::holds_alternative<std::monostate>(mData[p_key->Index()]))
+                    << "Value to Key: '" << p_key->Name() << "' is not set.\n";
+            }
+        }
+        mCheckedRequired = true;
     }
 
     /// @brief Returns the KeySetInfo associated with this DataSet.
@@ -352,6 +370,7 @@ private:
 
     Unique<key::detail::KeySetInfo> mpKeySetInfo;
     std::vector<VariantValueType> mData;
+    mutable bool mCheckedRequired = false;
 
     ///@}
 }; // End class DataSet

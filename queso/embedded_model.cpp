@@ -42,27 +42,27 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
 
     const auto& r_settings = GetSettings();
     // MainSettings::general_settings.
-    const IndexType echo_level = r_settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level);
+    const IndexType echo_level = r_settings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level);
 
     // MainSettings::non_trimmed_quadrature_rule_settings.
     const IntegrationMethod integration_method = r_settings[MainSettings::non_trimmed_quadrature_rule_settings].
-        GetValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
+        GetRequiredValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
     const bool ggq_rule_is_used =  static_cast<int>(integration_method) >= 3;
 
     // MainSettings::trimmed_quadrature_rule_settings.
     const auto& r_trimmed_quad_rule_settings = r_settings[MainSettings::trimmed_quadrature_rule_settings];
     const double min_vol_element_ratio = std::max<double>(r_trimmed_quad_rule_settings.
-        GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 1e-10);
+        GetRequiredValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 1e-10);
     const IndexType num_boundary_triangles = r_trimmed_quad_rule_settings.
-        GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
+        GetRequiredValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
     const double moment_fitting_residual = r_trimmed_quad_rule_settings.
-        GetValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
+        GetRequiredValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
     const bool neglect_elements_if_stl_is_flawed = r_trimmed_quad_rule_settings.
-        GetValue<bool>(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed);
+        GetRequiredValue<bool>(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed);
 
     // MainSettings::background_grid_settings.
     const auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-    const Vector3i polynomial_order = r_grid_settings.GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+    const Vector3i polynomial_order = r_grid_settings.GetRequiredValue<Vector3i>(BackgroundGridSettings::polynomial_order);
 
     /* End: Get neccessary settings */
 
@@ -170,8 +170,8 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
     // ElpasedTimeInfo.
     auto& r_elapsed_time_info = r_model_info[MainInfo::elapsed_time_info];
     r_elapsed_time_info[ElapsedTimeInfo::volume_time_info].SetValue(VolumeTimeInfo::total, elapsed_time_total);
-    const double total_time = (r_elapsed_time_info.IsSet(ElapsedTimeInfo::total)) ?
-        r_elapsed_time_info.GetValue<double>(ElapsedTimeInfo::total) : 0.0;
+    r_elapsed_time_info.CheckRequired();
+    const double total_time = r_elapsed_time_info.GetRequiredValue<double>(ElapsedTimeInfo::total);
     r_elapsed_time_info.SetValue(ElapsedTimeInfo::total, (total_time+elapsed_time_total) );
 
     // Get num of threads.
@@ -238,7 +238,7 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, cons
     auto p_new_cond_info = DictionaryFactory<key::MainValuesTypeTag>::Create("ConditionInfo");
 
     // ConditionInfo
-    const IndexType condition_id = rConditionSettings.GetValue<IndexType>(ConditionSettings::condition_id);
+    const IndexType condition_id = rConditionSettings.GetRequiredValue<IndexType>(ConditionSettings::condition_id);
     p_new_cond_info->SetValue(ConditionInfo::condition_id, condition_id);
     const double surface_area = MeshUtilities::AreaOMP(rTriangleMesh);
     p_new_cond_info->SetValue(ConditionInfo::surf_area, surface_area);
@@ -294,13 +294,13 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, cons
     const double measured_time = timer_condition.Measure();
     auto& r_time_info = r_model_info[MainInfo::elapsed_time_info];
     auto& r_condition_time_info = r_time_info[ElapsedTimeInfo::conditions_time_info];
-    const double total_time = (r_time_info.IsSet(ElapsedTimeInfo::total)) ?
-        r_time_info.GetValue<double>(ElapsedTimeInfo::total) : 0.0;
+    r_time_info.CheckRequired();
+    const double total_time = r_time_info.GetRequiredValue<double>(ElapsedTimeInfo::total);
     r_time_info.SetValue(ElapsedTimeInfo::total, (total_time+measured_time) );
 
     // ConditionsTimeInfo::
-    const double total_time_conditions = (r_condition_time_info.IsSet(ConditionsTimeInfo::total)) ?
-        r_condition_time_info.GetValue<double>(ConditionsTimeInfo::total) : 0.0;
+    r_condition_time_info.CheckRequired();
+    const double total_time_conditions = r_condition_time_info.GetRequiredValue<double>(ConditionsTimeInfo::total);
     r_condition_time_info.SetValue(ConditionsTimeInfo::total, (total_time_conditions+measured_time) );
 
     /* End: Write to ModelInfo */
@@ -312,13 +312,13 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, cons
 void EmbeddedModel::WriteModelToFile() const {
     const auto& r_settings = GetSettings();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
-    if( r_general_settings.GetValue<bool>(GeneralSettings::write_output_to_file) ) {
+    if( r_general_settings.GetRequiredValue<bool>(GeneralSettings::write_output_to_file) ) {
         // Start timer.
         Timer timer_output{};
 
         // Get output_directory_name.
-        const std::string output_directory_name = r_general_settings.GetValue<std::string>(GeneralSettings::output_directory_name);
-        const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+        const std::string output_directory_name = r_general_settings.GetRequiredValue<std::string>(GeneralSettings::output_directory_name);
+        const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
         QuESo_INFO_IF(echo_level > 0) << ":: WriteFileInfo :: Output directory: '" << output_directory_name << "'\n";
 
         // Write vtk files (binary = true).
@@ -326,7 +326,7 @@ void EmbeddedModel::WriteModelToFile() const {
         IO::WritePointsToVTK(mBackgroundGrid, (output_directory_name + "/integration_points.vtk"), IO::EncodingType::binary);
         std::for_each(mBackgroundGrid.GetConditions().begin(), mBackgroundGrid.GetConditions().end(),
             [&output_directory_name](const auto& r_condition){
-                IndexType condition_id = r_condition.GetSettings().template GetValue<IndexType>(ConditionSettings::condition_id);
+                IndexType condition_id = r_condition.GetSettings().template GetRequiredValue<IndexType>(ConditionSettings::condition_id);
                 const std::string bc_filename = output_directory_name + "/condition_id_" + std::to_string(condition_id) + ".stl";
                 IO::WriteConditionToSTL(r_condition, bc_filename, IO::EncodingType::binary);
         });
@@ -337,8 +337,8 @@ void EmbeddedModel::WriteModelToFile() const {
         // ElapsedTimeInfo::
         const double measured_time = timer_output.Measure();
         auto& r_time_info = r_model_info[MainInfo::elapsed_time_info];
-        const double total_time = (r_time_info.IsSet(ElapsedTimeInfo::total)) ?
-            r_time_info.GetValue<double>(ElapsedTimeInfo::total) : 0.0;
+        r_time_info.CheckRequired();
+        const double total_time = r_time_info.GetRequiredValue<double>(ElapsedTimeInfo::total);
         r_time_info.SetValue(ElapsedTimeInfo::total, (total_time+measured_time) );
 
         // WriteFilesTimeInfo::
@@ -358,12 +358,12 @@ void EmbeddedModel::WriteModelToFile() const {
 void EmbeddedModel::CheckIfMeshIsWithinBoundingBox(const TriangleMeshView &rTriangleMesh) const {
     const auto& r_settings = GetSettings();
     // Check if bounding box fully contains the triangle mesh.
-    if( r_settings[MainSettings::general_settings].GetValue<IndexType>(GeneralSettings::echo_level) > 0 ){
+    if( r_settings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level) > 0 ){
         // Get grid dimensions.
         PointType lower_bound = r_settings[MainSettings::background_grid_settings].
-            GetValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+            GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
         PointType upper_bound = r_settings[MainSettings::background_grid_settings].
-            GetValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
+            GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
 
         // Get geometry dimensions.
         auto bb_mesh = MeshUtilities::BoundingBox(rTriangleMesh);
@@ -387,18 +387,20 @@ void EmbeddedModel::PrintVolumeInfo() const {
     const auto& r_settings = GetSettings();
     const auto& r_model_info = GetModelInfo();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
-    const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+    const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
     if( echo_level > 0) {
         const auto& r_grid_info = r_model_info[MainInfo::background_grid_info];
-        const IndexType num_active_elements = r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_active_elements);
-        const IndexType num_trimmed_elements = r_grid_info.GetValue<IndexType>(BackgroundGridInfo::num_trimmed_elements);
+        r_grid_info.CheckRequired();
+        const IndexType num_active_elements = r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_active_elements);
+        const IndexType num_trimmed_elements = r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_trimmed_elements);
         QuESo_INFO << ":: BackgroundGridInfo :: Number of active elements: " << num_active_elements << std::endl;
         QuESo_INFO << ":: BackgroundGridInfo :: Number of trimmed elements: " << num_trimmed_elements << std::endl;
         const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
-        const IndexType num_quadrature_points = r_quad_info.GetValue<IndexType>(QuadratureInfo::tot_num_points);
+        r_quad_info.CheckRequired();
+        const IndexType num_quadrature_points = r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points);
         QuESo_INFO << ":: QuadratureRuleInfo :: Number of integration points: " << num_quadrature_points << std::endl;
         if( echo_level > 1 ) {
-            const double percentage_of_geometry_volume = r_quad_info.GetValue<double>(QuadratureInfo::percentage_of_geometry_volume);
+            const double percentage_of_geometry_volume = r_quad_info.GetRequiredValue<double>(QuadratureInfo::percentage_of_geometry_volume);
             QuESo_INFO << ":: QuadratureRuleInfo :: The computed quadrature represents " << percentage_of_geometry_volume
                 << "% of the volume of the STL model. Note that this number can depend on the setting 'min_element_volume_ratio'"
                 << " in 'QuESoSettings.json'.\n";
@@ -410,36 +412,38 @@ void EmbeddedModel::PrintVolumeElapsedTimeInfo() const {
     const auto& r_settings = GetSettings();
     const auto& r_model_info = GetModelInfo();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
-    const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+    const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
     const auto& r_volume_time_info = r_model_info[MainInfo::elapsed_time_info][ElapsedTimeInfo::volume_time_info];
+    r_volume_time_info.CheckRequired();
     if( echo_level > 1 ) {
         // Average time spent for each task
-        QuESo_INFO << ":: ElpasedTimeInfo (Create Volume) :: Total time: " << r_volume_time_info.GetValue<double>(VolumeTimeInfo::total) << " sec\n";
+        QuESo_INFO << ":: ElpasedTimeInfo (Create Volume) :: Total time: " << r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::total) << " sec\n";
         QuESo_INFO << ":: ElpasedTimeInfo (Create Volume) :: Individual tasks:\n";
         QuESo_INFO << "   -- Classification of elements:    " <<
-            r_volume_time_info.GetValue<double>(VolumeTimeInfo::classification_of_elements) << " sec\n";
+            r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::classification_of_elements) << " sec\n";
         QuESo_INFO << "   -- Computation of intersections:  " <<
-            r_volume_time_info.GetValue<double>(VolumeTimeInfo::computation_of_intersections) << " sec\n";
+            r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::computation_of_intersections) << " sec\n";
         QuESo_INFO << "   -- Solution of moment fitting eq: " <<
-            r_volume_time_info.GetValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs) << " sec\n";
+            r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::solution_of_moment_fitting_eqs) << " sec\n";
         QuESo_INFO << "   -- Construction of GGQ rules:     " <<
-            r_volume_time_info.GetValue<double>(VolumeTimeInfo::construction_of_ggq_rules) << " sec\n";
+            r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::construction_of_ggq_rules) << " sec\n";
     } else {
-        QuESo_INFO_IF(echo_level > 0) << ":: ElpasedTimeInfo (Create Volume) :: Elapsed time: " << r_volume_time_info.GetValue<double>(VolumeTimeInfo::total) << " sec\n";
+        QuESo_INFO_IF(echo_level > 0) << ":: ElpasedTimeInfo (Create Volume) :: Elapsed time: " << r_volume_time_info.GetRequiredValue<double>(VolumeTimeInfo::total) << " sec\n";
     }
 }
 
 void EmbeddedModel::PrintConditionInfo(const MainDictionaryType& rConditionInfo) const {
     const auto& r_settings = GetSettings();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
-    const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+    const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
     if( echo_level > 0) {
-        IndexType condition_id = rConditionInfo.GetValue<IndexType>(ConditionInfo::condition_id);
+        rConditionInfo.CheckRequired();
+        IndexType condition_id = rConditionInfo.GetRequiredValue<IndexType>(ConditionInfo::condition_id);
         QuESo_INFO << ":: ConditionInfo :: Creating condition with id: " << condition_id << std::endl;
         if( echo_level > 1 ) {
-            const auto& surf_area = rConditionInfo.GetValue<double>(ConditionInfo::surf_area);
+            const auto& surf_area = rConditionInfo.GetRequiredValue<double>(ConditionInfo::surf_area);
             QuESo_INFO << "   -- Surface area: " << surf_area << '\n';
-            const auto& perc_area = rConditionInfo.GetValue<double>(ConditionInfo::perc_surf_area_in_active_domain);
+            const auto& perc_area = rConditionInfo.GetRequiredValue<double>(ConditionInfo::perc_surf_area_in_active_domain);
             QuESo_INFO << "   -- " << perc_area
                 << "% of the surface area lies within an active element. Note"
                 << " that this number can depend on the setting 'min_element_volume_ratio'"
@@ -452,10 +456,11 @@ void EmbeddedModel::PrintConditionsElapsedTimeInfo() const {
     const auto& r_settings = GetSettings();
     const auto& r_model_info = GetModelInfo();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
-    const IndexType echo_level = r_general_settings.GetValue<IndexType>(GeneralSettings::echo_level);
+    const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
     if( echo_level > 0 ){
         const auto& r_conditions_time_info = r_model_info[MainInfo::elapsed_time_info][ElapsedTimeInfo::conditions_time_info];
-        QuESo_INFO << ":: ElpasedTimeInfo (Create Conditions) :: Elapsed time: " << r_conditions_time_info.GetValue<double>(ConditionsTimeInfo::total) << " sec\n";
+        r_conditions_time_info.CheckRequired();
+        QuESo_INFO << ":: ElpasedTimeInfo (Create Conditions) :: Elapsed time: " << r_conditions_time_info.GetRequiredValue<double>(ConditionsTimeInfo::total) << " sec\n";
     }
 }
 

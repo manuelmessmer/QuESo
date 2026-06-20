@@ -27,8 +27,13 @@
 #include "queso/includes/exception.hpp"
 #include "queso/includes/core_definitions.hpp"
 
-namespace queso {
-namespace key {
+namespace queso::key {
+
+enum class KeyRequirement {
+    optional,
+    required
+};
+
 namespace detail {
 
 /// @brief Returns the number of items in a string delimited by a comma
@@ -177,6 +182,7 @@ struct DynamicKeyBase {
     /// Pure virtual functions.
     virtual IndexType Index() const noexcept = 0;
     virtual std::string_view Name() const noexcept = 0;
+    virtual bool IsRequired() const noexcept = 0;
     virtual std::string_view TargetTypeName() const noexcept = 0;
     virtual std::type_index TargetTypeIndex() const noexcept = 0;
     virtual std::type_index KeySetInfoTypeIndex() const noexcept = 0;
@@ -187,12 +193,16 @@ struct DynamicKeyBase {
 ///        Derives privately from KeyData to access the respective key value.
 /// @tparam TKeySetInfoType
 /// @tparam TKeyToWhat (Default: TKeyToWhat = TKeySetInfoType::KeySetToWhat )
-template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
+/// @tparam TRequirement specficies whether the value associated to this key is required or optional
+template<typename TKeySetInfoType,
+         typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat,
+         queso::key::KeyRequirement TRequirement = queso::key::KeyRequirement::optional>
 struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoType::EnumType> {
     /// Typedefs
     using KeySetInfoType = TKeySetInfoType;
     using KeyToWhat = TKeyToWhat;
     using KeyValueType = typename KeySetInfoType::EnumType;
+    static constexpr bool msIsRequired = (TRequirement == queso::key::KeyRequirement::required);
 
     /// @brief  Constructor.
     /// @param KeyValue
@@ -209,6 +219,12 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
     /// @return const std::string&
     std::string_view Name() const noexcept override {
         return KeySetInfoType::msEnumNames[static_cast<IndexType>(this->mKeyValue)];
+    }
+
+    /// @brief Returns `true` if the value associated to this key is required.
+    /// @return bool
+    bool IsRequired() const noexcept override {
+        return msIsRequired;
     }
 
     /// @brief Returns the name of the target type.
@@ -242,12 +258,16 @@ struct DynamicKey : public DynamicKeyBase, private KeyData<typename TKeySetInfoT
 ///        Derives privately from KeyData to access the respective key value.
 /// @tparam TKeySetInfoType
 /// @tparam TKeyToWhat
-template<typename TKeySetInfoType, typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat>
+/// @tparam TRequirement specficies whether the value associated to this key is required or optional
+template<typename TKeySetInfoType,
+         typename TKeyToWhat = typename TKeySetInfoType::KeySetToWhat,
+         queso::key::KeyRequirement TRequirement = queso::key::KeyRequirement::optional>
 struct ConstexprKey : private KeyData<typename TKeySetInfoType::EnumType> {
     /// The following typedefs can be used for static type assertion.
     using KeySetInfoType = TKeySetInfoType;
     using KeyToWhat = TKeyToWhat;
     using KeyValueType = typename KeySetInfoType::EnumType;
+    static constexpr bool msIsRequired = (TRequirement == queso::key::KeyRequirement::required);
 
     /// @brief  Constructor (constexpr).
     /// @param KeyValue
@@ -289,8 +309,7 @@ struct KeySetInfo {
 };
 
 } // End namespace detail
-} // End namespace key
-} // End namespace queso
+} // End namespace queso::key
 
 /// @brief Macro to define a value type list with associated string names.
 /// @param ValuesTypeListName The typedef name for the list.
@@ -420,17 +439,18 @@ namespace key {\
 /// @param KeyName The key identifier (enum entry).
 /// @param KeySetToWhat The key set's type tag (value category).
 /// @param KeyToWhat The specific value type the key maps to (e.g., int, double).
+/// @param Requirement Specifies whether a key is required or optional (e.g., KeyRequirement::optional).
 /// @details Generates dynamic and constexpr keys. Includes a static assert to ensure the type is valid.
-#define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat)\
+#define QuESo_DEFINE_KEY_TO_VALUE(KeySetName, KeyName, KeySetToWhat, KeyToWhat, Requirement)\
     static_assert(queso::key::KeySetToWhat::is_valid_value_type_v<KeyToWhat>, "Given KeyToWhat-type is invalid.");\
     namespace key {\
     namespace detail {\
     namespace KeySetName {/* Define dynamic key */\
-        inline const queso::key::detail::DynamicKey<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName##_Dynamic(\
+        inline const queso::key::detail::DynamicKey<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat, queso::key::Requirement> KeyName##_Dynamic(\
             key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
     }}}\
     namespace KeySetName {/* Define constexpr key */\
-        inline constexpr queso::key::detail::ConstexprKey<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat> KeyName(\
+        inline constexpr queso::key::detail::ConstexprKey<key::detail::KeySetName##KeySetToWhat##KeySetInfo, KeyToWhat, queso::key::Requirement> KeyName(\
             key::detail::KeySetName##KeySetToWhat##KeySetInfo::EnumType::KeyName);\
     }\
 

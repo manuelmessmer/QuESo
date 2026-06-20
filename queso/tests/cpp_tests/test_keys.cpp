@@ -21,7 +21,8 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( KeysTestSuite )
 
-template<typename TKeyType, typename TKeySetToWhat, typename TKeyToWhat = TKeySetToWhat>
+template<typename TKeyType, typename TKeySetToWhat, typename TKeyToWhat = TKeySetToWhat,
+         queso::key::KeyRequirement TRequirement = queso::key::KeyRequirement::optional>
 constexpr bool CheckKeyStatic(const TKeyType& rKey, IndexType Index, const char* rName) {
 
     QuESo_CHECK_EQUAL( rKey.Index(), Index );
@@ -30,11 +31,13 @@ constexpr bool CheckKeyStatic(const TKeyType& rKey, IndexType Index, const char*
     static_assert( std::is_same_v<typename TKeyType::KeyToWhat, TKeyToWhat> );
     static_assert( std::is_same_v<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetToWhat> );
     static_assert( TKeySetToWhat::template is_key_v<TKeyType> );
+    static_assert( TKeyType::msIsRequired == (TRequirement == queso::key::KeyRequirement::required) );
 
     return true;
 }
 
-template<typename TKeyType, typename TKeyToWhat>
+template<typename TKeyType, typename TKeyToWhat,
+         queso::key::KeyRequirement TRequirement = queso::key::KeyRequirement::optional>
 void CheckKeyDynamic(const TKeyType& rKey, IndexType Index, const char* rName) {
 
     typename TKeyType::KeySetInfoType key_set_info;
@@ -47,6 +50,8 @@ void CheckKeyDynamic(const TKeyType& rKey, IndexType Index, const char* rName) {
 
     QuESo_CHECK_EQUAL(p_key->Name(), rKey.Name());
     QuESo_CHECK_EQUAL(p_key->Index(), rKey.Index());
+    const bool is_required = (TRequirement == queso::key::KeyRequirement::required);
+    QuESo_CHECK( p_key->IsRequired() == is_required );
 }
 
 BOOST_AUTO_TEST_CASE(TestRegisterKeys1) {
@@ -111,23 +116,23 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     QuESo_INFO << "Testing :: Test Keys :: Register Single Key Set 3" << std::endl;
 
     /// TestKeys3
-    static_assert( CheckKeyStatic<decltype(TestKeys3::zero), queso::key::MainValuesTypeTag, PointType>(TestKeys3::zero, 0, "zero") );
+    static_assert( CheckKeyStatic<decltype(TestKeys3::zero), queso::key::MainValuesTypeTag, PointType, queso::key::KeyRequirement::required>(TestKeys3::zero, 0, "zero") );
     static_assert( CheckKeyStatic<decltype(TestKeys3::one), queso::key::MainValuesTypeTag, Vector3i>(TestKeys3::one, 1, "one") );
     static_assert( CheckKeyStatic<decltype(TestKeys3::two), queso::key::MainValuesTypeTag, bool>(TestKeys3::two, 2, "two") );
     static_assert( CheckKeyStatic<decltype(TestKeys3::three), queso::key::MainValuesTypeTag, double>(TestKeys3::three, 3, "three") );
-    static_assert( CheckKeyStatic<decltype(TestKeys3::four), queso::key::MainValuesTypeTag, IndexType>(TestKeys3::four, 4, "four") );
+    static_assert( CheckKeyStatic<decltype(TestKeys3::four), queso::key::MainValuesTypeTag, IndexType, queso::key::KeyRequirement::required>(TestKeys3::four, 4, "four") );
     static_assert( CheckKeyStatic<decltype(TestKeys3::five), queso::key::MainValuesTypeTag, std::string>(TestKeys3::five, 5, "five") );
     static_assert( CheckKeyStatic<decltype(TestKeys3::six), queso::key::MainValuesTypeTag, IntegrationMethodType>(TestKeys3::six, 6, "six") );
-    static_assert( CheckKeyStatic<decltype(TestKeys3::seven), queso::key::MainValuesTypeTag, GridTypeType>(TestKeys3::seven, 7, "seven") );
+    static_assert( CheckKeyStatic<decltype(TestKeys3::seven), queso::key::MainValuesTypeTag, GridTypeType, queso::key::KeyRequirement::required>(TestKeys3::seven, 7, "seven") );
 
-    CheckKeyDynamic<decltype(TestKeys3::zero), PointType>(TestKeys3::zero, 0, "zero");
+    CheckKeyDynamic<decltype(TestKeys3::zero), PointType, queso::key::KeyRequirement::required>(TestKeys3::zero, 0, "zero");
     CheckKeyDynamic<decltype(TestKeys3::one), Vector3i>(TestKeys3::one, 1, "one");
     CheckKeyDynamic<decltype(TestKeys3::two), bool>(TestKeys3::two, 2, "two");
     CheckKeyDynamic<decltype(TestKeys3::three), double>(TestKeys3::three, 3, "three");
-    CheckKeyDynamic<decltype(TestKeys3::four), IndexType>(TestKeys3::four, 4, "four");
+    CheckKeyDynamic<decltype(TestKeys3::four), IndexType, queso::key::KeyRequirement::required>(TestKeys3::four, 4, "four");
     CheckKeyDynamic<decltype(TestKeys3::five), std::string>(TestKeys3::five, 5, "five");
     CheckKeyDynamic<decltype(TestKeys3::six), IntegrationMethodType>(TestKeys3::six, 6, "six");
-    CheckKeyDynamic<decltype(TestKeys3::seven), GridTypeType>(TestKeys3::seven, 7, "seven");
+    CheckKeyDynamic<decltype(TestKeys3::seven), GridTypeType, queso::key::KeyRequirement::required>(TestKeys3::seven, 7, "seven");
 
     using KeySetInfoType = decltype(TestKeys3::zero)::KeySetInfoType;
     using KeySetInfoType_2 = decltype(TestKeys3::one)::KeySetInfoType;
@@ -152,6 +157,11 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys3) {
     static_assert( queso::key::MainValuesTypeTag::GetValueTypeName<std::string>() == "std::string" );
     static_assert( queso::key::MainValuesTypeTag::GetValueTypeName<IntegrationMethodType>() == "IntegrationMethodType" );
     static_assert( queso::key::MainValuesTypeTag::GetValueTypeName<GridTypeType>() == "GridTypeType" );
+
+    static_assert( TestKeys3::zero.msIsRequired );
+    static_assert( !TestKeys3::one.msIsRequired );
+    static_assert( TestKeys3::four.msIsRequired );
+    static_assert( TestKeys3::seven.msIsRequired );
 }
 
 BOOST_AUTO_TEST_CASE(TestRegisterKeys4) {
@@ -240,11 +250,13 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     static_assert( CheckKeyStatic<decltype(TestKeys5::eight), queso::key::MainValuesTypeTag, IndexType>(TestKeys5::eight, 1, "eight") );
     static_assert( CheckKeyStatic<decltype(TestKeys5::nine), queso::key::MainValuesTypeTag, PointType>(TestKeys5::nine, 2, "nine") );
     static_assert( CheckKeyStatic<decltype(TestKeys5::ten), queso::key::MainValuesTypeTag, IndexType>(TestKeys5::ten, 3, "ten") );
+    static_assert( CheckKeyStatic<decltype(TestKeys5::eleven), queso::key::MainValuesTypeTag, IndexType, queso::key::KeyRequirement::required>(TestKeys5::eleven, 4, "eleven") );
 
     CheckKeyDynamic<decltype(TestKeys5::seven), double>(TestKeys5::seven, 0, "seven");
     CheckKeyDynamic<decltype(TestKeys5::eight), IndexType>(TestKeys5::eight, 1, "eight");
     CheckKeyDynamic<decltype(TestKeys5::nine), PointType>(TestKeys5::nine, 2, "nine");
     CheckKeyDynamic<decltype(TestKeys5::ten), IndexType>(TestKeys5::ten, 3, "ten");
+    CheckKeyDynamic<decltype(TestKeys5::eleven), IndexType, queso::key::KeyRequirement::required>(TestKeys5::eleven, 4, "eleven");
 
     using KeySetInfoTypeValue = decltype(TestKeys5::nine)::KeySetInfoType;
     using KeySetInfoTypeValue_2 = decltype(TestKeys5::ten)::KeySetInfoType;
@@ -262,8 +274,8 @@ BOOST_AUTO_TEST_CASE(TestRegisterKeys5) {
     static_assert( queso::key::MainValuesTypeTag::GetValueTypeName<GridTypeType>() == "GridTypeType" );
 
     KeySetInfoTypeValue key_set_info_value{};
-    QuESo_CHECK_EQUAL( key_set_info_value.GetNumberOfKeys(), 4);
-    QuESo_CHECK_EQUAL( KeySetInfoTypeValue::StaticGetAllKeyNames(), "['seven', 'eight', 'nine', 'ten']" );
+    QuESo_CHECK_EQUAL( key_set_info_value.GetNumberOfKeys(), 5);
+    QuESo_CHECK_EQUAL( KeySetInfoTypeValue::StaticGetAllKeyNames(), "['seven', 'eight', 'nine', 'ten', 'eleven']" );
     QuESo_CHECK( key_set_info_value.pGetKey("one") == nullptr );
 }
 

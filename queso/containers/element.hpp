@@ -29,8 +29,8 @@ namespace queso {
 // Values
 QuESo_DEFINE_KEY_SET(ElementValues, MainValuesTypeTag,
     QuESo_KEY_LIST(is_visited, neighbor_coefficient) );
-QuESo_DEFINE_KEY_TO_VALUE(ElementValues, is_visited, MainValuesTypeTag, bool);
-QuESo_DEFINE_KEY_TO_VALUE(ElementValues, neighbor_coefficient, MainValuesTypeTag, double);
+QuESo_DEFINE_KEY_TO_VALUE(ElementValues, is_visited, MainValuesTypeTag, bool, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(ElementValues, neighbor_coefficient, MainValuesTypeTag, double, KeyRequirement::required);
 QuESo_REGISTER_KEY_SET(ElementValues, MainValuesTypeTag,
     QuESo_KEY(ElementValues::is_visited),
     QuESo_KEY(ElementValues::neighbor_coefficient)
@@ -82,6 +82,7 @@ public:
     {
         mpValues->SetValue(ElementValues::is_visited, false);
         mpValues->SetValue(ElementValues::neighbor_coefficient, 1.0);
+		mpValues->CheckRequired();
     }
 
     /// Destructor
@@ -192,8 +193,7 @@ public:
     /// @return const TValueType&
     template<typename TValueType, typename TKeyType>
     const TValueType& GetValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
-        // We can use the fast version. The values are always set, see Constructor.
-        return mpValues->GetValueFast<TValueType>(rQueryKey);
+        return mpValues->GetRequiredValue<TValueType>(rQueryKey);
     }
     ///@}
 private:

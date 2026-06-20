@@ -51,6 +51,9 @@ void CheckTriangleOrientation(const TriangleMesh &rTriangleMesh){
 void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValuesTypeTag>& rSettings,
             const std::string& rResultsFilename, IndexType NumTrimmedElements){
 
+    rSettings[MainSettings::trimmed_quadrature_rule_settings].CheckRequired();
+    rSettings[MainSettings::background_grid_settings].CheckRequired();
+
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
     typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
@@ -72,11 +75,11 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
     double area_test = 0.0;
 
     const double min_vol_ratio = rSettings[MainSettings::trimmed_quadrature_rule_settings].
-        GetValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
+        GetRequiredValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
     const IndexType min_num_triangles = rSettings[MainSettings::trimmed_quadrature_rule_settings].
-        GetValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
+        GetRequiredValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
     const Vector3i order =  rSettings[MainSettings::background_grid_settings].
-        GetValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+        GetRequiredValue<Vector3i>(BackgroundGridSettings::polynomial_order);
 
     GridIndexer grid_indexer(rSettings);
     IndexType number_trimmed_elements = 0;
@@ -243,6 +246,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, rUpperBound);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
+	r_grid_settings.CheckRequired();
 
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;

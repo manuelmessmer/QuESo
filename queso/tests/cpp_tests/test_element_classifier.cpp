@@ -70,7 +70,9 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{30, 30, 130});
+	r_grid_settings.CheckRequired();
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -118,7 +120,9 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 1.5});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{20, 20, 20});
+	r_grid_settings.CheckRequired();
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -164,7 +168,9 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{16, 24, 14});
+	r_grid_settings.CheckRequired();
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
@@ -209,7 +215,9 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1-0, 1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{36, 30, 40});
+	r_grid_settings.CheckRequired();
 
     // Instatiate brep_operator
     BRepOperator brep_operator(triangle_mesh);

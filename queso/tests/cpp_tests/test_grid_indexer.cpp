@@ -41,7 +41,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
     const auto delta = (bounds_xyz.second - bounds_xyz.first);
@@ -112,7 +114,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
     const auto delta = (bounds_xyz.second - bounds_xyz.first);
@@ -189,7 +193,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
 
@@ -243,7 +249,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
     // Walk foward
@@ -301,7 +309,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
     // Walk foward
@@ -360,7 +370,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
 
@@ -455,7 +467,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
 
@@ -552,7 +566,9 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
+	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
 

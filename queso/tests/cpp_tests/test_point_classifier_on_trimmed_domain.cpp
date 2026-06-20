@@ -16,7 +16,6 @@
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
-#include "queso/containers/background_grid.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
@@ -46,7 +45,9 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 26});
+	r_grid_settings.CheckRequired();
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
@@ -98,6 +99,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.0, 1.0, 1.0});
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{1, 1, 1});
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
@@ -158,7 +160,9 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{16, 24, 14});
+	r_grid_settings.CheckRequired();
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
 
     // Instantiate brep_operator
@@ -212,7 +216,9 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46, 115});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{11, 9, 12});
+	r_grid_settings.CheckRequired();
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);

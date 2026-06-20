@@ -43,6 +43,8 @@ BackgroundGridType CreateTestBackgroundGrid(const Vector3i& rNumberOfElements)
     r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 85, 46, 115 });
     r_background_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ -1.0, -1.0, 1.0 });
     r_background_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
+    r_background_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+    r_background_grid_settings.CheckRequired();
 
     BackgroundGridType grid(r_settings);
 

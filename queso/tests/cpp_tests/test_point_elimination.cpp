@@ -45,7 +45,9 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 13});
+	r_grid_settings.CheckRequired();
 
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
@@ -156,7 +158,9 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{-40, 10.0, 10.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 12, 12});
+	r_grid_settings.CheckRequired();
 
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
@@ -253,7 +257,9 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0,  1.0,  1.0});
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 12, 7});
+	r_grid_settings.CheckRequired();
 
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
