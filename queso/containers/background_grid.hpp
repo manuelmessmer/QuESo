@@ -129,15 +129,15 @@ public:
         QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         auto found_key = mElementIdMap.find(ElementId);
         if (found_key == mElementIdMap.end()) { return std::nullopt; }
-        const auto& rLocation = found_key->second;
+        const auto& r_location = found_key->second;
         if constexpr (TFilter == ElementFilter::all) {
-            if (rLocation.is_trimmed) return mTrimmedElements[rLocation.index].View();
-            return mUntrimmedElements[rLocation.index].View();
+            if (r_location.is_trimmed) return mTrimmedElements[r_location.index].View();
+            return mUntrimmedElements[r_location.index].View();
         } else if constexpr (TFilter == ElementFilter::untrimmed) {
-            if (!rLocation.is_trimmed) return mUntrimmedElements[rLocation.index].View();
+            if (!r_location.is_trimmed) return mUntrimmedElements[r_location.index].View();
             return std::nullopt;
         } else {
-            if (rLocation.is_trimmed) return mTrimmedElements[rLocation.index].View();
+            if (r_location.is_trimmed) return mTrimmedElements[r_location.index].View();
             return std::nullopt;
         }
     }
@@ -255,14 +255,14 @@ public:
     [[nodiscard]] IndexType NumberOfTrimmedElements() const noexcept
     { return mTrimmedElements.size(); }
 
-    /// @brief Reserves capacity for the element container.
-    /// @details Call this before inserting elements so element addresses remain stable.
+    /// @brief Reserves capacity for the element containers.
     /// @param NewCapacity.
-    void ReserveElements(IndexType NewCapacity)
+    void ReserveElements(IndexType NumUntrimmedElements, IndexType NumTrimmedElements)
     {
-        mElementIdMap.reserve(NewCapacity);
-        mUntrimmedElements.reserve(NewCapacity);
-        mTrimmedElements.reserve(NewCapacity);
+        mElementIdMap.reserve(NumUntrimmedElements + NumTrimmedElements);
+
+        mUntrimmedElements.reserve(NumUntrimmedElements);
+        mTrimmedElements.reserve(NumTrimmedElements);
     }
 
     /// @brief Adjusts capacity of condition container.
@@ -277,38 +277,26 @@ public:
     void LockElements() noexcept
     { mElementsLocked = true; }
 
-    /// @brief Traverses the grid in Dir and returns an ElementView of the next element.
-    /// @details TFilter controls which elements are considered (all / trimmed / untrimmed).
-    ///          Returns NextElementViewResult with std::optional<ElementViewType>.
-    /// @param CurrentId element id to start from.
+    /// @brief Traverses the grid in the requested direction and returns a view of the next element.
+    /// @details TFilter controls which elements are considered:
+    ///          `all`, `trimmed`, or `untrimmed`.
+    /// @param CurrentId Element id to start from.
     /// @param Dir Move direction.
+    /// @return NextElementViewResult containing the optional next element, the next grid id, and the end flag.
     template<ElementFilter TFilter = ElementFilter::all>
     [[nodiscard]] NextElementViewResult GetNextElementView(IndexType CurrentId, Direction Dir) const
     {
-        switch (Dir) {
-        case Direction::x_forward:
-            return GetElementViewByIndexer<TFilter>(CurrentId, &GridIndexer::GetNextIndexX);
-        case Direction::x_backward:
-            return GetElementViewByIndexer<TFilter>(CurrentId, &GridIndexer::GetPreviousIndexX);
-        case Direction::y_forward:
-            return GetElementViewByIndexer<TFilter>(CurrentId, &GridIndexer::GetNextIndexY);
-        case Direction::y_backward:
-            return GetElementViewByIndexer<TFilter>(CurrentId, &GridIndexer::GetPreviousIndexY);
-        case Direction::z_forward:
-            return GetElementViewByIndexer<TFilter>(CurrentId, &GridIndexer::GetNextIndexZ);
-        case Direction::z_backward:
-            return GetElementViewByIndexer<TFilter>(CurrentId, &GridIndexer::GetPreviousIndexZ);
-        default:
-            QuESo_ASSERT(false, "There are only 6 different directions.\n");
-            return {};
-        }
+        return GetNextElementByDirection(CurrentId, Dir, [this](IndexType NextId) {
+            return GetElementView<TFilter>(NextId);
+        });
     }
 
-    /// @brief Traverses the grid in Dir and returns a mutable pointer to the next element.
-    /// @details ElementFilter::all is not valid — use GetNextElementView() instead.
-    ///          Returns NextElementResult<TFilter> with a raw pointer (nullptr if not found).
-    /// @param CurrentId element id to start from.
+    /// @brief Traverses the grid in the requested direction and returns a mutable pointer to the next element.
+    /// @details `ElementFilter::all` is not valid here; use GetNextElementView() instead.
+    /// @param CurrentId Element id to start from.
     /// @param Dir Move direction.
+    /// @return NextElementResult<TFilter> containing the pointer to the next element, the next grid id, and the end
+    ///         flag.
     template<ElementFilter TFilter>
     [[nodiscard]] NextElementResult<TFilter> GetNextElement(IndexType CurrentId, Direction Dir)
     {
@@ -316,23 +304,9 @@ public:
             TFilter != ElementFilter::all,
             "ElementFilter::all is not valid for GetNextElement — use GetNextElementView() instead."
         );
-        switch (Dir) {
-        case Direction::x_forward:
-            return GetElementByIndexer<TFilter>(CurrentId, &GridIndexer::GetNextIndexX);
-        case Direction::x_backward:
-            return GetElementByIndexer<TFilter>(CurrentId, &GridIndexer::GetPreviousIndexX);
-        case Direction::y_forward:
-            return GetElementByIndexer<TFilter>(CurrentId, &GridIndexer::GetNextIndexY);
-        case Direction::y_backward:
-            return GetElementByIndexer<TFilter>(CurrentId, &GridIndexer::GetPreviousIndexY);
-        case Direction::z_forward:
-            return GetElementByIndexer<TFilter>(CurrentId, &GridIndexer::GetNextIndexZ);
-        case Direction::z_backward:
-            return GetElementByIndexer<TFilter>(CurrentId, &GridIndexer::GetPreviousIndexZ);
-        default:
-            QuESo_ASSERT(false, "There are only 6 different directions.\n");
-            return {};
-        }
+        return GetNextElementByDirection(CurrentId, Dir, [this](IndexType NextId) {
+            return pGetElement<TFilter>(NextId);
+        });
     }
 
     /// @brief Returns whether the given element id is an end in the requested direction.
@@ -342,78 +316,104 @@ public:
     [[nodiscard]] bool IsEnd(IndexType CurrentId, Direction Dir) const
     { return mGridIndexer.IsEnd(CurrentId - 1, Dir); }
 
-    /// @brief Calls rBuilder.Build(), then inserts the element into trimmed storage.
-    /// @details Dispatches to this overload when rBuilder.Build() returns std::optional<T>,
-    ///          i.e., when the builder may reject the element (no domain or no IPs).
-    ///          The critical section protects concurrent writes from the OMP parallel loop.
-    /// @tparam TBuilderType  Must provide Build(IndexType, const ElementBounds&)
-    ///                        returning std::optional<TrimmedElement>.
-    /// @return true if the element was built and inserted successfully.
+    /// @brief Calls rBuilder.Build() and inserts the element into the corresponding storage.
+    /// @details The target storage is selected from `TBuilderType::Builds` (e.g., ElementFilter::trimmed).
+    ///          If Build() returns an empty result, no element is inserted.
+    ///          The critical section protects concurrent writes from the OpenMP loop.
+    /// @return true if an element was built and inserted, false otherwise.
     template<typename TBuilderType>
-        requires requires(TBuilderType& b, IndexType id, const ElementBounds& bounds) { b.Build(id, bounds).value(); }
     bool MakeElement(TBuilderType& rBuilder, IndexType Id, const ElementBounds& rBounds)
     {
+        QuESo_ASSERT(!mElementsLocked, "Cannot add elements after LockElements() was called.");
         auto result = rBuilder.Build(Id, rBounds);
         if (!result) return false;
-        QuESo_ASSERT(!mElementsLocked, "Cannot add elements after LockElements() was called.");
 #pragma omp critical
         {
             QuESo_ERROR_IF(mElementIdMap.contains(Id)) << "Element ID '" << Id << "' already exists.\n";
-            const IndexType element_index = mTrimmedElements.size();
-            mTrimmedElements.emplace_back(std::move(*result));
-            mElementIdMap.emplace(Id, ElementStorageLocation{ true, element_index });
+            const auto location = [&]() {
+                if constexpr (TBuilderType::Builds == ElementFilter::trimmed) {
+                    const IndexType index = mTrimmedElements.size();
+                    mTrimmedElements.emplace_back(std::move(*result));
+                    return ElementStorageLocation{ true, index };
+                } else {
+                    static_assert(
+                        TBuilderType::Builds == ElementFilter::untrimmed,
+                        "The builder must either support trimmed or untrimmed element construction."
+                    );
+
+                    const IndexType index = mUntrimmedElements.size();
+                    mUntrimmedElements.emplace_back(std::move(*result));
+                    return ElementStorageLocation{ false, index };
+                }
+            }();
+            mElementIdMap.emplace(Id, location);
         }
         return true;
     }
 
-    /// @brief Calls rBuilder.Build(), then inserts the element into untrimmed storage.
-    /// @details Dispatches to this overload when rBuilder.Build() returns T directly
-    ///          (non-optional), i.e., the builder always produces a valid element.
-    ///          The critical section protects concurrent writes from the OMP parallel loop.
-    /// @tparam TBuilderType  Must provide Build(IndexType, const ElementBounds&)
-    ///                        returning UntrimmedElement.
-    template<typename TBuilderType>
-        requires(!requires(TBuilderType& b, IndexType id, const ElementBounds& bounds) { b.Build(id, bounds).value(); })
-    void MakeElement(TBuilderType& rBuilder, IndexType Id, const ElementBounds& rBounds)
-    {
-        QuESo_ASSERT(!mElementsLocked, "Cannot add elements after LockElements() was called.");
-        auto element = rBuilder.Build(Id, rBounds);
-#pragma omp critical
-        {
-            QuESo_ERROR_IF(mElementIdMap.contains(Id)) << "Element ID '" << Id << "' already exists.\n";
-            const IndexType element_index = mUntrimmedElements.size();
-            mUntrimmedElements.emplace_back(std::move(element));
-            mElementIdMap.emplace(Id, ElementStorageLocation{ false, element_index });
-        }
-    }
 
 private:
     using IndexerMethodType = GridIndexer::IndexReturnType (GridIndexer::*)(IndexType) const;
 
-    template<ElementFilter TFilter = ElementFilter::all>
-    [[nodiscard]] NextElementViewResult GetElementViewByIndexer(IndexType CurrentId, IndexerMethodType Method) const
+    /// @brief Traverses the grid in the requested direction and dispatches to the corresponding GridIndexer step.
+    /// @details The accessor decides whether the result is returned as an ElementView or as a mutable raw pointer.
+    /// @param CurrentId Element id to start from.
+    /// @param Dir Move direction.
+    /// @param rAccessor Callable taking the next element id and returning either `std::optional<ElementViewType>`,
+    ///                  `UntrimmedElementType*`, or `TrimmedElementType*`.
+    template<typename TAccessor>
+    [[nodiscard]] auto GetNextElementByDirection(IndexType CurrentId, Direction Dir, TAccessor&& rAccessor) const
     {
-        const auto [next_index, index_info] = (mGridIndexer.*Method)(CurrentId - 1);
-        const IndexType next_id = next_index + 1;
-        bool is_end = (index_info != GridIndexer::IndexInfo::middle);
-        auto p_element = GetElementView<TFilter>(next_id);
-        if (!p_element) is_end = true;
-        return { p_element, next_id, is_end };
+        switch (Dir) {
+        case Direction::x_forward:
+            return GetNextElementByIndexer(CurrentId, &GridIndexer::GetNextIndexX, std::forward<TAccessor>(rAccessor));
+        case Direction::x_backward:
+            return GetNextElementByIndexer(
+                CurrentId, &GridIndexer::GetPreviousIndexX, std::forward<TAccessor>(rAccessor)
+            );
+        case Direction::y_forward:
+            return GetNextElementByIndexer(CurrentId, &GridIndexer::GetNextIndexY, std::forward<TAccessor>(rAccessor));
+        case Direction::y_backward:
+            return GetNextElementByIndexer(
+                CurrentId, &GridIndexer::GetPreviousIndexY, std::forward<TAccessor>(rAccessor)
+            );
+        case Direction::z_forward:
+            return GetNextElementByIndexer(CurrentId, &GridIndexer::GetNextIndexZ, std::forward<TAccessor>(rAccessor));
+        case Direction::z_backward:
+            return GetNextElementByIndexer(
+                CurrentId, &GridIndexer::GetPreviousIndexZ, std::forward<TAccessor>(rAccessor)
+            );
+        }
+        QuESo_ERROR << "There are only 6 different directions.\n";
     }
 
-    template<ElementFilter TFilter>
-    [[nodiscard]] NextElementResult<TFilter> GetElementByIndexer(IndexType CurrentId, IndexerMethodType Method)
+    /// @brief Applies a GridIndexer step, fetches the corresponding element, and packages the traversal result.
+    /// @details The result type is deduced from `rAccessor`:
+    ///          `std::optional<ElementViewType>` yields NextElementViewResult,
+    ///          `UntrimmedElementType*` yields NextElementResult<ElementFilter::untrimmed>, and
+    ///          `TrimmedElementType*` yields NextElementResult<ElementFilter::trimmed>.
+    /// @param CurrentId Element id to start from.
+    /// @param Method GridIndexer stepping method.
+    /// @param rAccessor Callable taking the computed next id and returning the matching element access type.
+    template<typename TAccessor>
+    [[nodiscard]] auto
+        GetNextElementByIndexer(IndexType CurrentId, IndexerMethodType Method, TAccessor&& rAccessor) const
     {
-        static_assert(
-            TFilter != ElementFilter::all,
-            "ElementFilter::all is not valid for GetElementByIndexer — use GetElementViewByIndexer() instead."
-        );
         const auto [next_index, index_info] = (mGridIndexer.*Method)(CurrentId - 1);
         const IndexType next_id = next_index + 1;
         bool is_end = (index_info != GridIndexer::IndexInfo::middle);
-        auto p_element = pGetElement<TFilter>(next_id);
-        if (!p_element) is_end = true;
-        return { p_element, next_id, is_end };
+        auto element = rAccessor(next_id);
+        if (!element) { is_end = true; }
+
+        using AccessResultType = decltype(element);
+        if constexpr (std::same_as<AccessResultType, std::optional<ElementViewType>>) {
+            return NextElementViewResult{ std::move(element), next_id, is_end };
+        } else if constexpr (std::same_as<AccessResultType, UntrimmedElementType*>) {
+            return NextElementResult<ElementFilter::untrimmed>{ element, next_id, is_end };
+        } else {
+            static_assert(std::same_as<AccessResultType, TrimmedElementType*>);
+            return NextElementResult<ElementFilter::trimmed>{ element, next_id, is_end };
+        }
     }
 
     ///@}

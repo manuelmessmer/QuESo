@@ -251,7 +251,7 @@ void AddContainersToPython(pybind11::module& m) {
         .def("__len__", [](const ConditionSegmentVectorType &self) { return self.size(); })
         .def("__iter__", [](ConditionSegmentVectorType &self) {
             return py::make_iterator(self.begin(), self.end());
-        }, py::keep_alive<0, 1>() )
+        })
     ;
 
     /// Export Condition
@@ -276,14 +276,13 @@ void AddContainersToPython(pybind11::module& m) {
         }))
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
 		.def("GetElements",
-			[](const GridType& rGrid) {
+			[](const EmbeddedModel& rEmbeddedModel) {
 				std::vector<ElementViewType> elements;
-				const auto views = rGrid.GetElementViews();
+				const auto views = rEmbeddedModel.GetElementViews();
 				elements.reserve(views.size());
 				std::ranges::copy(views, std::back_inserter(elements));
 				return elements;
-			},
-			py::keep_alive<0, 1>())
+			})
         .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal)
         .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
         .def("GetModelInfo", static_cast<const EmbeddedModel::MainDictionaryType& (EmbeddedModel::*)() const>(&EmbeddedModel::GetModelInfo),

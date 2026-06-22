@@ -20,7 +20,6 @@
 
 //// Project includes
 #include "queso/embedding/octree.h"
-#include "queso/embedding/trimmed_domain.h"
 #include "queso/utilities/polynomial_utilities.hpp"
 #include "queso/solvers/nnls.h"
 
@@ -46,7 +45,6 @@ public:
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
     typedef std::vector<BoundaryIntegrationPointType> BoundaryIPsVectorType;
-    typedef Unique<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
     typedef std::vector<double> VectorType;
 
     ///@}
@@ -65,20 +63,17 @@ public:
     ///@param EchoLevel Default: 0
     static double AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel=0) {
         // Get boundary integration points.
-        const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
-        const auto p_boundary_ips = p_trimmed_domain->template pGetBoundaryIps<typename TElementType::BoundaryIntegrationPointType>();
+        const auto boundary_ips = rElement.template GetActiveDomainBoundaryIps<typename TElementType::BoundaryIntegrationPointType, CoordinateSpace::global>();
 
         // Get constant terms.
         VectorType constant_terms{};
-        ComputeConstantTerms(constant_terms, p_boundary_ips, rElement, rIntegrationOrder);
+        ComputeConstantTerms(constant_terms, boundary_ips, rElement, rIntegrationOrder);
 
         // Construct octree. Octree is used to distribute inital points within trimmed domain.
-        const auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
+        const auto bounds_xyz = rElement.template GetActiveDomainBounds<CoordinateSpace::global>();
+        const auto bounds_uvw = rElement.template GetActiveDomainBounds<CoordinateSpace::parametric>();
 
-        BoundingBoxType bounding_box_uvw = MakeBox( rElement.PointFromGlobalToParam(bounding_box.first),
-                                                    rElement.PointFromGlobalToParam(bounding_box.second));
-
-        Octree<TrimmedDomain> octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
+        Octree<ElementType> octree(&rElement, bounds_xyz, bounds_uvw);
 
         // Start point elimination.
         double residual = MAXD;
@@ -142,7 +137,13 @@ protected:
     /// @param rOctree
     /// @param MinNumPoints Minimum Number of Points
     /// @param rIntegrationOrder Order of Gauss quadrature.
-    static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder) {
+    template<typename TOctreeOperator>
+    static void DistributeIntegrationPoints(
+        IntegrationPointVectorType& rIntegrationPoint,
+        Octree<TOctreeOperator>& rOctree,
+        SizeType MinNumPoints,
+        const Vector3i& rIntegrationOrder)
+    {
         IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
         const IndexType max_iteration = 5UL;
         IndexType iteration = 0UL;
@@ -162,8 +163,8 @@ protected:
     /// @param rIntegrationOrder
     static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
         // Initialize const variables.
-        const PointType& a = rElement.GetBoundsUVW().first;
-        const PointType& b = rElement.GetBoundsUVW().second;
+        const PointType& a = rElement.template GetCellBounds<CoordinateSpace::parametric>().lower;
+        const PointType& b = rElement.template GetCellBounds<CoordinateSpace::parametric>().upper;
 
         const IndexType ffactor = 1;
         const IndexType order_u = rIntegrationOrder[0];
@@ -199,16 +200,16 @@ protected:
     /// @brief Computes constant terms of moment fitting equation via boundary integration points. This functions uses the divergence theorem
     //         to transform the respective volume integrals to countour/surface integrals.
     /// @param[out] rConstantTerms
-    /// @param pBoundaryIPs (Unique<T>)
+    /// @param rBoundaryIPs
     /// @param rElement
     /// @param rIntegrationOrder
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorType& rBoundaryIPs, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
         // Initialize const variables.
-        const auto bounds_xyz = rElement.GetBoundsXYZ();
+        const auto bounds_xyz = rElement.template GetCellBounds<CoordinateSpace::global>();
 
         // Constant terms / moments are evaluated in physical space.
-        const PointType& a = bounds_xyz.first;
-        const PointType& b = bounds_xyz.second;
+        const PointType& a = bounds_xyz.lower;
+        const PointType& b = bounds_xyz.upper;
 
         const IndexType ffactor = 1;
         const IndexType order_u = rIntegrationOrder[0];
@@ -234,7 +235,7 @@ protected:
 
         // Loop over all boundary integration points.
         IndexType row_index = 0;
-		for( const auto& r_point : (*pBoundaryIPs) ) {
+        for( const auto& r_point : rBoundaryIPs ) {
             // Note: The evaluation of polynomials is expensive. Therefore, we precompute and store values
             // for f_x_x and f_x_int at each point.
             const auto& normal = r_point.Normal();
@@ -285,8 +286,8 @@ protected:
     /// @return double Relative residual ||ax -b||_L2 / ||b||_L2
     static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
 
-        PointType a = rElement.GetBoundsUVW().first;
-        PointType b = rElement.GetBoundsUVW().second;
+        PointType a = rElement.template GetCellBounds<CoordinateSpace::parametric>().lower;
+        PointType b = rElement.template GetCellBounds<CoordinateSpace::parametric>().upper;
 
         double jacobian = rElement.DetJ();
 
@@ -530,5 +531,3 @@ protected:
 
 //     throw  std::invalid_argument("QuadratureTrimmedElement :: Order out of range!\n");
 // }
-
-

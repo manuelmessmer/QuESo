@@ -30,7 +30,7 @@ namespace detail {
     /// @param rFrom Source bounds.
     /// @param rTo Target bounds.
     /// @return Vector3d
-    [[nodiscard]] constexpr Vector3d
+    [[nodiscard]] inline Vector3d
         ComputeScale(const BoundingBoxType& rFrom, const BoundingBoxType& rTo) noexcept(NOTDEBUG)
     {
         QuESo_ASSERT(std::abs(rFrom.upper[0] - rFrom.lower[0]) > ZEROTOL, "Degenerate bounding box.");
@@ -74,7 +74,7 @@ namespace detail {
 /// @param rPoint Point in global coordinates.
 /// @param rBounds Element-local bounds.
 /// @return PointType
-[[nodiscard]] constexpr PointType ToParametric(PointView rPoint, const ElementBounds& rBounds) noexcept(NOTDEBUG)
+[[nodiscard]] inline PointType ToParametric(PointView rPoint, const ElementBounds& rBounds) noexcept(NOTDEBUG)
 {
     const auto scale = detail::ComputeScale(rBounds.global, rBounds.parametric);
     return { (rPoint[0] - rBounds.global.lower[0]) * scale[0] + rBounds.parametric.lower[0],
@@ -86,7 +86,7 @@ namespace detail {
 /// @param rPoint Point in parametric coordinates.
 /// @param rBounds Element-local bounds.
 /// @return PointType
-[[nodiscard]] constexpr PointType ToGlobal(PointView rPoint, const ElementBounds& rBounds) noexcept(NOTDEBUG)
+[[nodiscard]] inline PointType ToGlobal(PointView rPoint, const ElementBounds& rBounds) noexcept(NOTDEBUG)
 {
     const auto scale = detail::ComputeScale(rBounds.parametric, rBounds.global);
     return { (rPoint[0] - rBounds.parametric.lower[0]) * scale[0] + rBounds.global.lower[0],
@@ -97,7 +97,7 @@ namespace detail {
 /// @brief Returns the determinant of the element-local affine map Jacobian.
 /// @param rBounds Element-local bounds.
 /// @return double
-[[nodiscard]] constexpr double DetJ(const ElementBounds& rBounds) noexcept(NOTDEBUG)
+[[nodiscard]] inline double DetJ(const ElementBounds& rBounds) noexcept(NOTDEBUG)
 {
     const auto scale = detail::ComputeScale(rBounds.parametric, rBounds.global);
     return scale[0] * scale[1] * scale[2];

@@ -144,8 +144,8 @@ private:
     [[nodiscard]] const TriangleMesh& GetOrCreateBoundaryMesh(const ElementBounds& rBounds) const
     {
         if (!mBoundaryMesh) {
-            const auto& bounds = rBounds.global;
-            mBoundaryMesh.emplace(MeshUtilities::MakeMeshBox(bounds.lower, bounds.upper));
+            const auto& r_bounds = rBounds.global;
+            mBoundaryMesh.emplace(MeshUtilities::MakeMeshBox(r_bounds.lower, r_bounds.upper));
         }
         return *mBoundaryMesh;
     }

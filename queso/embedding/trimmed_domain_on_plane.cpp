@@ -199,12 +199,12 @@ void TrimmedDomainOnPlane::CloseContourEdges() {
         const double v_left = intersected_vertices[0].first;
         const double v_right = intersected_vertices[1].first;
         double center = v_left + 0.5 * (v_right - v_left);
-        Point3DType new_point{}; // We need 3D point, to use IsInsideTrimmedDomain().
+        Point3DType new_point{}; // We need 3D point, to use IsInside().
         new_point[DIRINDEX1] = center;
         new_point[DIRINDEX2] = 0.5*(mUpperBound[DIRINDEX2]+y_max);
         new_point[DIRINDEX3] = plane_position;
         Point2DType normal = {0, 1};
-        if ( mpTrimmedDomain->IsInsideTrimmedDomain(new_point) ) {
+        if ( mpTrimmedDomain->IsInside<CoordinateSpace::global>(new_point) ) {
             InsertEdge({v_left, mUpperBound[DIRINDEX2]}, {v_right, mUpperBound[DIRINDEX2]}, normal, Orientation::Positive);
         }
     }
@@ -455,7 +455,7 @@ std::optional<IndexType> TrimmedDomainOnPlane::FindNegativePartnerEdge(const Poi
                     test_point[DIRINDEX2] = c_positive[1];
                     double plane_position = GetPlanePosition();
                     test_point[DIRINDEX3] = mUpperBoundary ? plane_position + 100.0*mSnapTolerance : plane_position - 100.0*mSnapTolerance;
-                    bool is_inside = mpTrimmedDomain->IsInsideTrimmedDomain(test_point);
+                    bool is_inside = mpTrimmedDomain->IsInside<CoordinateSpace::global>(test_point);
                     if ( !is_inside ){
                         const double distance = c_positive[1] - 0.5*(v1[1] + v2[1]);
                         // Distance must be larger than 0.0 and large than alreade found min_distance.

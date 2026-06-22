@@ -78,8 +78,8 @@ public:
     ///@return IntersectionState, enum: (0-Inside, 1-Outside, 2-Trimmed).
     template<typename TElementType>
     IntersectionState GetIntersectionState(const TElementType& rElement) const {
-        const auto& lower_bound = rElement.GetBoundsXYZ().first;
-        const auto& upper_bound = rElement.GetBoundsXYZ().second;
+        const auto& lower_bound = rElement.template GetCellBounds<CoordinateSpace::global>().lower;
+        const auto& upper_bound = rElement.template GetCellBounds<CoordinateSpace::global>().upper;
         return GetIntersectionState(lower_bound, upper_bound);
     }
 

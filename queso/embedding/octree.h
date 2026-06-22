@@ -19,8 +19,8 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/utilities/mapping_utilities.hpp"
 #include "queso/quadrature/single_element.hpp"
+#include "queso/utilities/mapping_utilities.hpp"
 
 namespace queso {
 
@@ -32,7 +32,7 @@ namespace queso {
  * @author Manuel Messmer
  * @tparam TOperator: Required member operations:
  *                   -GetIntersectionState(const PointType& rLowerBound, const PointType& rUpperBound)
- *                   -IsInsideTrimmedDomain(const PointType& rPoint)
+ *                   -IsInsideActiveDomain(const PointType& rPoint)
 */
 template<typename TOperator>
 class Octree {
@@ -84,13 +84,14 @@ private:
             if( this->IsLeaf() ){
                 std::vector<typename TElementType::IntegrationPointType> integration_points_tmp{};
                 // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
-                QuadratureSingleElement<TElementType>::AssembleIPs(integration_points_tmp, mBoundsUVW.first, mBoundsUVW.second, rOrder);
+                QuadratureSingleElement<TElementType>::AssembleIPs(integration_points_tmp, mBoundsUVW.lower, mBoundsUVW.upper, rOrder);
                 if( mStatus == IntersectionState::inside )
                     pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
                 else {
+                    const ElementBounds bounds{mBoundsXYZ, mBoundsUVW};
                     for( auto& point : integration_points_tmp){
-                        const auto tmp_point = Mapping::PointFromParamToGlobal(point.Point(), mBoundsXYZ, mBoundsUVW);
-                        if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
+                        const auto tmp_point = mapping::ToGlobal(point.Point(), bounds);
+                        if( pOperator->template IsInsideActiveDomain<CoordinateSpace::global>( tmp_point ) ){
                             pPoints->push_back(point);
                         }
                     }
@@ -149,7 +150,7 @@ public:
     ///@{
 
     /// @brief Constructor
-    /// @param pOperator Operator to perform GetIntersectionState() and IsInsideTrimmedDomain().
+    /// @param pOperator Operator to perform GetIntersectionState() and IsInsideActiveDomain().
     /// @param rBoundsXYZ Bounds of AABB of Root Node in physical space.
     /// @param rBoundsUVW Bounds of AABB of Root Node in parametric space.
     Octree(const TOperator* pOperator, const BoundingBoxType& rBoundsXYZ, const BoundingBoxType& rBoundsUVW)

@@ -22,6 +22,9 @@
 
 namespace queso {
 
+///@name QuESo classes
+///@{
+
 /// @class  ElementView
 /// @author Manuel Messmer
 /// @brief  Lightweight, non-owning read-only view of an element.
@@ -114,7 +117,6 @@ public:
     { return mIsTrimmed; }
 
     ///@}
-
 private:
     ///@name Private Members
     ///@{
@@ -125,5 +127,5 @@ private:
 
     ///@}
 };
-
+///@}
 }// namespace queso

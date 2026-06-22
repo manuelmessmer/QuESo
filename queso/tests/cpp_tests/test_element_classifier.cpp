@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(CylinderElementClassifierTest) {
     std::vector<std::pair<PointType, PointType>> boxes{};
     for(IndexType i = 0; i < num_of_elements; ++i) {
         auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second)) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.lower, bounding_box.upper)) );
 
     }
 
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(CubeElementClassifierTest) {
     result.reserve(num_of_elements);
     for( IndexType i = 0; i < num_of_elements; ++i ){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second)) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.lower, bounding_box.upper)) );
     }
 
     // Get flood fill solution
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(ElephantElementClassifierTest) {
     result.reserve(5376);
     for( IndexType i = 0; i < 5376; ++i ){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second)) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.lower, bounding_box.upper)) );
     }
 
     // Get flood fill solution
@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(BunnyElementClassifierTest) {
     result.reserve(num_of_elements);
     for( IndexType i = 0; i < num_of_elements; ++i){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.first, bounding_box.second )) );
+        result.push_back( static_cast<IndexType>(brep_operator.GetIntersectionState(bounding_box.lower, bounding_box.upper )) );
     }
 
     // Get flood fill solution

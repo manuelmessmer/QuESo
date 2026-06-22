@@ -21,6 +21,7 @@
 //// Project includes
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/untrimmed_element.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/includes/register_keys.hpp"
 #include "queso/includes/timer.hpp"
@@ -47,6 +48,9 @@ public:
     using BoundaryIntegrationPointType = TBoundaryIntegrationPointType;
     using ElementType = TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
+	using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>; 
+	using ElementFilterType = BackgroundGridType::ElementFilter;
+	static constexpr ElementFilterType Builds = ElementFilterType::trimmed;
     ///@}
     ///@name Life cycle
     ///@{
@@ -163,6 +167,9 @@ public:
     using BoundaryIntegrationPointType = TBoundaryIntegrationPointType;
     using ElementType = UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
+	using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>; 
+	using ElementFilterType = BackgroundGridType::ElementFilter;
+	static constexpr ElementFilterType Builds = ElementFilterType::untrimmed;
 
     ///@}
     ///@name Life cycle
@@ -195,7 +202,7 @@ public:
     /// @param Id      Element id.
     /// @param rBounds Element bounds in global and parametric space.
     /// @return The built element (always valid).
-    [[nodiscard]] ElementType Build(IndexType Id, const ElementBounds& rBounds)
+    [[nodiscard]] std::optional<ElementType> Build(IndexType Id, const ElementBounds& rBounds)
     {
         ElementType element(Id, rBounds);
         if (!mUsesGgqRule) {

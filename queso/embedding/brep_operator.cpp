@@ -177,12 +177,12 @@ TrimmedDomainPtrType BRepOperator::pGetTrimmedDomain(PointView rLowerBound, Poin
         auto new_mesh = ClipTriangleMesh(lower_bound, upper_bound);
         if( new_mesh.NumOfTriangles() > 0) {
             auto p_trimmed_domain = MakeUnique<TrimmedDomain>(std::move(new_mesh), lower_bound, upper_bound, this, MinNumberOfBoundaryTriangles, switch_plane_orientation);
-            const auto& r_trimmed_domain_mesh = p_trimmed_domain->GetTriangleMesh();
+            const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
 
-            const double volume = MeshUtilities::Volume(r_trimmed_domain_mesh.View());
+            const double volume = MeshUtilities::Volume(mesh_view);
             bool volume_ratio = volume / volume_non_trimmed_domain > MinElementVolumeRatio;
 
-            const double epsilon = MeshUtilities::EstimateQuality(r_trimmed_domain_mesh.View());
+            const double epsilon = MeshUtilities::EstimateQuality(mesh_view);
             if( epsilon < 1e-5  ){
                 if( volume_ratio )
                     return p_trimmed_domain;

@@ -62,6 +62,13 @@ namespace {
         return std::move(r_settings);
     }
 
+	struct NoOpBuilder
+	{
+		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
+		[[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
+		{ return UntrimmedElementType(Id, rBounds); }
+	};
+
     [[nodiscard]] BackgroundGridType CreateUntrimmedTraversalGrid(const Vector3i& rNumberOfElements)
     {
         auto settings = MakeSettings(rNumberOfElements);
@@ -71,13 +78,7 @@ namespace {
         GridIndexer grid_indexer(r_settings);
         const IndexType number_of_elements = rNumberOfElements[0] * rNumberOfElements[1] * rNumberOfElements[2];
 
-        struct NoOpBuilder
-        {
-            [[nodiscard]] UntrimmedElementType Build(IndexType Id, const ElementBounds& rBounds)
-            { return UntrimmedElementType(Id, rBounds); }
-        };
 
-        grid.ReserveElements(number_of_elements);
         NoOpBuilder builder{};
         for (IndexType element_id = 1; element_id <= number_of_elements; ++element_id) {
             if (element_id == 17) continue;
@@ -90,6 +91,27 @@ namespace {
         return grid;
     }
 
+	struct UntrimmedBuilder
+	{
+		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
+		[[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
+		{ return UntrimmedElementType(Id, rBounds); }
+	};
+
+	struct TrimmedBuilder
+	{
+		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::trimmed;
+		[[nodiscard]] std::optional<TrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
+		{
+			ClippedTriangleMesh clipped_mesh{};
+			return TrimmedElementType(
+					Id,
+					rBounds,
+					TrimmedDomain(std::move(clipped_mesh), rBounds.global.lower, rBounds.global.upper, nullptr, 0)
+					);
+		}
+	};
+
     [[nodiscard]] BackgroundGridType CreateMixedGrid(bool Lock = true)
     {
         constexpr Vector3i number_of_elements{ 2, 2, 2 };
@@ -99,29 +121,10 @@ namespace {
         BackgroundGridType grid(r_settings);
         GridIndexer grid_indexer(r_settings);
 
-        struct UntrimmedBuilder
-        {
-            [[nodiscard]] UntrimmedElementType Build(IndexType Id, const ElementBounds& rBounds)
-            { return UntrimmedElementType(Id, rBounds); }
-        };
-
-        struct TrimmedBuilder
-        {
-            [[nodiscard]] std::optional<TrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
-            {
-                ClippedTriangleMesh clipped_mesh{};
-                return TrimmedElementType(
-                    Id,
-                    rBounds,
-                    TrimmedDomain(std::move(clipped_mesh), rBounds.global.lower, rBounds.global.upper, nullptr, 0)
-                );
-            }
-        };
 
         const std::vector<IndexType> untrimmed_ids{ 1, 3, 6 };
         const std::vector<IndexType> trimmed_ids{ 2, 5, 8 };
 
-        grid.ReserveElements(6);
         UntrimmedBuilder untrimmed_builder{};
         TrimmedBuilder trimmed_builder{};
 

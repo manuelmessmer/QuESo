@@ -17,7 +17,7 @@
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/element.hpp"
+#include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_SUITE( PointEliminationTestSuite )
 void RunCylinder(const Vector3i& rOrder, double Residual){
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -63,25 +63,19 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound_xyz = bounding_box.first;
-        Vector3d upper_bound_xyz = bounding_box.second;
+        Vector3d lower_bound_xyz = bounding_box.lower;
+        Vector3d upper_bound_xyz = bounding_box.upper;
 
         const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        Vector3d lower_bound_uvw = bounding_box_uvw.first;
-        Vector3d upper_bound_uvw = bounding_box_uvw.second;
-
-        // Construct element
-        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                               MakeBox(lower_bound_uvw, upper_bound_uvw));
+        Vector3d lower_bound_uvw = bounding_box_uvw.lower;
+        Vector3d upper_bound_uvw = bounding_box_uvw.upper;
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
-
-                // Add trimmed domain to element.
-                element.pSetTrimmedDomain(p_trimmed_domain);
+                ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
 
                 // Run point elimination
                 const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, rOrder, Residual);
@@ -100,8 +94,8 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
 
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
-                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps<BoundaryIntegrationPoint>();
-                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, rOrder);
+                auto boundary_ips = element.GetActiveDomainBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::global>();
+                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, rOrder);
 
                 // Run moment fitting again.
                 const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, rOrder);
@@ -117,8 +111,8 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                     volume += weight1*element.DetJ(); // Multiplied with det(J).
                 }
                 // Check if integration points contain correct volume;
-                const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh.View());
+                const auto& r_mesh = element.GetActiveDomainBoundaryMesh();
+                const double ref_volume = MeshUtilities::Volume(r_mesh);
                 QuESo_CHECK_RELATIVE_NEAR(volume, ref_volume, 100.0*Residual);
             }
         }
@@ -147,7 +141,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -176,25 +170,19 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound_xyz = bounding_box.first;
-        Vector3d upper_bound_xyz = bounding_box.second;
+        Vector3d lower_bound_xyz = bounding_box.lower;
+        Vector3d upper_bound_xyz = bounding_box.upper;
 
         const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        Vector3d lower_bound_uvw = bounding_box_uvw.first;
-        Vector3d upper_bound_uvw = bounding_box_uvw.second;
-
-        // Construct element
-        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                               MakeBox(lower_bound_uvw, upper_bound_uvw));
+        Vector3d lower_bound_uvw = bounding_box_uvw.lower;
+        Vector3d upper_bound_uvw = bounding_box_uvw.upper;
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
-
-                // Add trimmed domain to element.
-                element.pSetTrimmedDomain(p_trimmed_domain);
+                ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
 
                 // Run point elimination
                 const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8);
@@ -212,8 +200,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
 
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
-                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps<BoundaryIntegrationPoint>();
-                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
+                auto boundary_ips = element.GetActiveDomainBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::global>();
+                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, {2, 2, 2});
 
                 // Run moment fitting again.
                 const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
@@ -231,8 +219,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                     volume += weight1*element.DetJ(); // Multiplied with det(J).
                 }
                 // Check if integration points contain correct volume;
-                const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh.View());
+                const auto& r_mesh = element.GetActiveDomainBoundaryMesh();
+                const double ref_volume = MeshUtilities::Volume(r_mesh);
                 const double volume_error = std::abs(volume - ref_volume)/ ref_volume;
                 QuESo_CHECK_LT(volume_error, 1e-6); // Note can not be better as moment fitting residual.
             }
@@ -246,7 +234,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -275,25 +263,19 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound_xyz = bounding_box.first;
-        Vector3d upper_bound_xyz = bounding_box.second;
+        Vector3d lower_bound_xyz = bounding_box.lower;
+        Vector3d upper_bound_xyz = bounding_box.upper;
 
         const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        Vector3d lower_bound_uvw = bounding_box_uvw.first;
-        Vector3d upper_bound_uvw = bounding_box_uvw.second;
-
-        // Construct element
-        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                               MakeBox(lower_bound_uvw, upper_bound_uvw));
+        Vector3d lower_bound_uvw = bounding_box_uvw.lower;
+        Vector3d upper_bound_uvw = bounding_box_uvw.upper;
 
         if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
             // Get trimmed domain
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
             if( p_trimmed_domain ){
                 ++number_trimmed_elements;
-
-                // Add trimmed domain to element.
-                element.pSetTrimmedDomain(p_trimmed_domain);
+                ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
 
                 // Run point elimination
                 const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8);
@@ -311,8 +293,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
 
                 // Compute constant terms.
                 std::vector<double> constant_terms{};
-                auto p_boundary_ips = element.pGetTrimmedDomain()->pGetBoundaryIps<BoundaryIntegrationPointType>();
-                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, {2, 2, 2});
+                auto boundary_ips = element.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>();
+                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, {2, 2, 2});
 
                 // Run moment fitting again.
                 const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
@@ -331,8 +313,8 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 }
 
                 // Check if integration points contain correct volume;
-                const auto& r_mesh = element.pGetTrimmedDomain()->GetTriangleMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh.View());
+                const auto& r_mesh = element.GetActiveDomainBoundaryMesh();
+                const double ref_volume = MeshUtilities::Volume(r_mesh);
                 const double volume_error = std::abs(volume - ref_volume);
                 QuESo_CHECK_LT(volume_error, 1e-7);
             }

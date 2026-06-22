@@ -17,6 +17,7 @@
 #include <vector>
 
 //// Project includes
+#include "queso/containers/integration_point_concepts.hpp"
 #include "queso/includes/define.hpp"
 
 namespace queso {
@@ -39,7 +40,7 @@ struct ElementBounds
 /// the owning element type.
 /// @tparam TIntegrationPoint Volume integration-point type.
 /// @tparam TBoundaryIntegrationPoint Boundary integration-point type.
-template<typename TIntegrationPoint, typename TBoundaryIntegrationPoint>
+template<concepts::IntegrationPoint TIntegrationPoint, concepts::BoundaryIntegrationPoint TBoundaryIntegrationPoint>
 struct ElementCore
 {
     ///@name Type definitions

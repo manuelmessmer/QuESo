@@ -44,10 +44,10 @@ public:
     /// @brief Constructor
     /// @param rSettings
     GridIndexer( const MainDictionaryType& rSettings ) :
-        mBoundXYZ( std::make_pair(rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
-                                  rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
-        mBoundUVW( std::make_pair(rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_uvw),
-                                  rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_uvw)) ),
+        mBoundXYZ( MakeBox(rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_xyz),
+                           rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_xyz)) ),
+        mBoundUVW( MakeBox(rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_uvw),
+                           rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_uvw)) ),
         mNumberOfElements(rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(BackgroundGridSettings::number_of_elements) ),
         mGlobalPartition( std::make_pair(Vector3i({0, 0, 0}), Vector3i({mNumberOfElements[0]-1, mNumberOfElements[1]-1, mNumberOfElements[2]-1}) )),
         mBSplineMesh( rSettings[MainSettings::background_grid_settings].GetRequiredValue<GridType>(BackgroundGridSettings::grid_type) ==  GridType::b_spline_grid )
@@ -95,14 +95,14 @@ public:
     /// @return BoundingBoxType.
     inline BoundingBoxType GetBoundingBoxXYZFromIndex(IndexType Index) const {
         const auto indices = GetMatrixIndicesFromVectorIndex(Index);
-        return GetBoundingBoxFromIndex(indices[0], indices[1], indices[2], mBoundXYZ.first, mBoundXYZ.second);
+        return GetBoundingBoxFromIndex(indices[0], indices[1], indices[2], mBoundXYZ.lower, mBoundXYZ.upper);
     }
 
     /// @brief Creates bounding box in physical space from given indices.
     /// @param Indices
     /// @return BoundingBoxType.
     inline BoundingBoxType GetBoundingBoxXYZFromIndex(const Vector3i& rIndices) const {
-        return GetBoundingBoxFromIndex(rIndices[0], rIndices[1], rIndices[2], mBoundXYZ.first, mBoundXYZ.second);
+        return GetBoundingBoxFromIndex(rIndices[0], rIndices[1], rIndices[2], mBoundXYZ.lower, mBoundXYZ.upper);
     }
 
     /// @brief Creates bounding box in physical space from given indices.
@@ -111,7 +111,7 @@ public:
     /// @param k
     /// @return BoundingBoxType
     inline BoundingBoxType GetBoundingBoxXYZFromIndex(IndexType i, IndexType j, IndexType k) const {
-        return GetBoundingBoxFromIndex(i, j, k, mBoundXYZ.first, mBoundXYZ.second);
+        return GetBoundingBoxFromIndex(i, j, k, mBoundXYZ.lower, mBoundXYZ.upper);
     }
 
     /// @brief Creates bounding box in parametric space from given index.
@@ -120,7 +120,7 @@ public:
     inline BoundingBoxType GetBoundingBoxUVWFromIndex(IndexType Index) const {
         if( mBSplineMesh ) {
             const auto indices = GetMatrixIndicesFromVectorIndex(Index);
-            return GetBoundingBoxFromIndex(indices[0], indices[1], indices[2], mBoundUVW.first, mBoundUVW.second);
+            return GetBoundingBoxFromIndex(indices[0], indices[1], indices[2], mBoundUVW.lower, mBoundUVW.upper);
         }
         return mBoundUVW;
     }
@@ -130,7 +130,7 @@ public:
     /// @return BoundingBoxType.
     inline BoundingBoxType GetBoundingBoxUVWFromIndex(const Vector3i& rIndices) const {
         if( mBSplineMesh ) {
-            return GetBoundingBoxFromIndex(rIndices[0], rIndices[1], rIndices[2], mBoundUVW.first, mBoundUVW.second);
+            return GetBoundingBoxFromIndex(rIndices[0], rIndices[1], rIndices[2], mBoundUVW.lower, mBoundUVW.upper);
         }
         return mBoundUVW;
     }
@@ -142,7 +142,7 @@ public:
     /// @return BoundingBoxType
     inline BoundingBoxType GetBoundingBoxUVWFromIndex(IndexType i, IndexType j, IndexType k) const {
         if( mBSplineMesh ) {
-            return GetBoundingBoxFromIndex(i, j, k, mBoundUVW.first, mBoundUVW.second);
+            return GetBoundingBoxFromIndex(i, j, k, mBoundUVW.lower, mBoundUVW.upper);
         }
         return mBoundUVW;
     }
@@ -454,8 +454,8 @@ private:
         delta[0] = std::abs(rUpperBound[0] - rLowerBound[0]) / static_cast<double>(mNumberOfElements[0]);
         delta[1] = std::abs(rUpperBound[1] - rLowerBound[1]) / static_cast<double>(mNumberOfElements[1]);
         delta[2] = std::abs(rUpperBound[2] - rLowerBound[2]) / static_cast<double>(mNumberOfElements[2]);
-        return std::make_pair(rLowerBound + Math::MultElementWise(delta, indices_d),
-                              rLowerBound + Math::MultElementWise(delta, PointType{1.0, 1.0, 1.0} + indices_d));
+        return MakeBox(rLowerBound + Math::MultElementWise(delta, indices_d),
+                       rLowerBound + Math::MultElementWise(delta, PointType{1.0, 1.0, 1.0} + indices_d));
 
     }
 

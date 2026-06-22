@@ -13,9 +13,6 @@
 
 #pragma once
 
-//// STL includes
-#include <type_traits>
-
 //// Project includes
 #include "queso/containers/cell_domain.hpp"
 #include "queso/containers/element_core.hpp"

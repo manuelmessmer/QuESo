@@ -19,7 +19,7 @@
 #include "queso/includes/checks.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/element.hpp"
+#include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/embedding/octree.h"
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     QuESo_INFO << "Testing :: Test Octree :: Test Cube 1" << std::endl;
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     /// Uniform refinement, each node has 8 children.
 
@@ -54,9 +54,14 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest1) {
     const PointType upper_a = {-1.3, -1.3, -1.3};
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_a, upper_a, min_vol_ratio, min_num_triangles);
 
+    const auto bounds_xyz = MakeBox({-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3});
+    const auto bounds_uvw = MakeBox({-1.0, -1.0, -1.0},{1.0, 1.0, 1.0});
+    ElementType element(0, ElementBounds{bounds_xyz, bounds_uvw}, std::move(*p_trimmed_domain));
+
     // Construct octree.
-    Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-1.5, -1.5, -1.5},{-1.3, -1.3, -1.3}),
-                                          MakeBox({-1.0, -1.0, -1.0},{1.0, 1.0, 1.0}) );
+    Octree<ElementType> octree(&element,
+        element.GetCellBounds<CoordinateSpace::global>(),
+        element.GetCellBounds<CoordinateSpace::parametric>());
 
     // Refine octree to level 5.
     octree.Refine(4, 4);
@@ -83,7 +88,7 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
 
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
     /// Refinement in only on trimmed nodes in one direction.
 
     // Read mesh from STL file
@@ -100,9 +105,14 @@ BOOST_AUTO_TEST_CASE(OctreeCubeTest2) {
     const PointType upper_b = {-1.3, -1.3, -1.3};
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_b, upper_b, min_vol_ratio, min_num_triangles);
 
+    const auto bounds_xyz = MakeBox({-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3});
+    const auto bounds_uvw = MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
+    ElementType element(0, ElementBounds{bounds_xyz, bounds_uvw}, std::move(*p_trimmed_domain));
+
     // Construct octree.
-    Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-1.50001, -1.49999, -1.49999},{-1.3, -1.3, -1.3}),
-                                          MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
+    Octree<ElementType> octree(&element,
+        element.GetCellBounds<CoordinateSpace::global>(),
+        element.GetCellBounds<CoordinateSpace::parametric>());
 
     // Refine octree to level 5.
     octree.Refine(0, 4);
@@ -124,7 +134,7 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     QuESo_INFO << "Testing :: Test Octree :: Test Elephant" << std::endl;
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     // Compute volume of elephant through octree.
 
@@ -143,9 +153,14 @@ BOOST_AUTO_TEST_CASE(OctreeElephantTest) {
     const PointType upper_c = {0.4, 0.6, 0.35};
     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_c, upper_c, min_vol_ratio, min_num_triangles);
 
+    const auto bounds_xyz = MakeBox({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35});
+    const auto bounds_uvw = MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0});
+    ElementType element(0, ElementBounds{bounds_xyz, bounds_uvw}, std::move(*p_trimmed_domain));
+
     // Construct octree.
-    Octree<TrimmedDomain> octree(p_trimmed_domain.get(), MakeBox({-0.4, -0.6, -0.35},{0.4, 0.6, 0.35}),
-                                          MakeBox({-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0}));
+    Octree<ElementType> octree(&element,
+        element.GetCellBounds<CoordinateSpace::global>(),
+        element.GetCellBounds<CoordinateSpace::parametric>());
 
     // Refine octree to level 5.
     octree.Refine(0, 5);

@@ -21,7 +21,6 @@
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/quadrature/single_element.hpp"
 
@@ -110,10 +109,23 @@ BOOST_AUTO_TEST_CASE(IOTriangleMeshVTKTest) {
     TestTriangleMeshVTK(IO::EncodingType::ascii);
 }
 
-using IntegrationPointType = IntegrationPoint;
-using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
-using ElementType = Element<IntegrationPointType, BoundaryIntegrationPointType>;
-using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
+namespace {
+	using IntegrationPointType = IntegrationPoint;
+	using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
+	using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
+
+	struct GaussBuilder { 
+		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
+		Vector3i order;
+		std::optional<BackgroundGridType::UntrimmedElementType> Build(IndexType id, const ElementBounds& bounds) {
+			BackgroundGridType::UntrimmedElementType element(id, bounds);
+			QuadratureSingleElement<BackgroundGridType::UntrimmedElementType>::AssembleIPs(
+				element, order, IntegrationMethod::gauss
+			);
+			return element;
+		}
+	};
+}
 
 Unique<BackgroundGridType> CreateTestBackgroundGrid(){
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
@@ -131,15 +143,13 @@ Unique<BackgroundGridType> CreateTestBackgroundGrid(){
 
     Unique<BackgroundGridType> p_grid = MakeUnique<BackgroundGridType>(r_settings);
 
+    GaussBuilder builder{ Vector3i({1, 2, 1}) };
+
     IndexType number_elements = 2;
     for( IndexType i = 1; i <= number_elements; ++i){
-        PointType tmp_point_A = {0.0, 0.0, 0.0};
-        PointType tmp_point_B = {0.1, 0.1, 0.1};
-        Unique<ElementType> p_new_element = MakeUnique<ElementType>(i, MakeBox(tmp_point_A, tmp_point_B),
-                                                                       MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}) );
-
-        QuadratureSingleElement<ElementType>::AssembleIPs(*p_new_element, Vector3i({1, 2, 1}), IntegrationMethod::gauss);
-        p_grid->AddElement(std::move(*p_new_element));
+        const auto bounds_xyz = MakeBox({0.0, 0.0, 0.0}, {0.1, 0.1, 0.1});
+        const auto bounds_uvw = MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
+        p_grid->MakeElement(builder, i, ElementBounds{bounds_xyz, bounds_uvw});
     }
 
     return p_grid;
@@ -175,7 +185,7 @@ BOOST_AUTO_TEST_CASE(IOPointsVTKTest) {
     TestPointsVTK(IO::EncodingType::ascii);
 }
 
-using ConditionType = Condition<ElementType>;
+using ConditionType = Condition<BackgroundGridType::ElementViewType>;
 
 Unique<ConditionType> CreateTestConditions(){
     auto p_cond_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionInfo");
