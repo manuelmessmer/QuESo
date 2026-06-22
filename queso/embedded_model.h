@@ -14,12 +14,9 @@
 #ifndef EMBEDDED_MODEL_INCLUDE_H
 #define EMBEDDED_MODEL_INCLUDE_H
 
-/// STL includes
-
 /// Project includes
-#include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/utilities/check_dictionary_utilities.hpp"
@@ -37,7 +34,7 @@ namespace queso {
  * @brief  Main class of QuESo.
  *         Provides interface to create integration points for embedded volumes and embedded conditions (boundaries)
  *         based on the settings provided in mSettings. EmbeddedModel aggregates a BackgroundGrid, which stores the
- *         created active elements and conditions. Each element stores its integrations points. Each condition is
+ *         created active elements and conditions. Each active element stores its integrations points. Each condition is
  *         split into ConditionSegment's (that conform to the boundaries of the elements in the background grid).
  *         The corresponding boundary integration points are stored on these ConditionSegments.
  *         EmbeddedModel also stores some information regearding the created model in mModelInfo.
@@ -50,9 +47,9 @@ public:
 
     using IntegrationPointType = IntegrationPoint;
     using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
-    using ElementType = Element<IntegrationPointType, BoundaryIntegrationPointType>;
     using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
-    using ConditionType = Condition<ElementType>;
+    using ElementViewType = typename BackgroundGridType::ElementViewType;
+    using ConditionType = Condition<ElementViewType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
 
     ///@}
@@ -158,14 +155,22 @@ public:
     ///        mpModelInfo is written to JSON file.
     void WriteModelToFile() const;
 
-    /// @brief Returns all active elements.
-    /// @return const Reference to ElementVectorPtrType
-    const BackgroundGridType::ElementContainerType& GetElements() const {
-        return mBackgroundGrid.GetElements();
+    /// @brief Returns a lazy range of ElementView over all matching elements.
+    /// @details TFilter: all → both, trimmed → trimmed only, untrimmed → untrimmed only.
+    template<BackgroundGridType::ElementFilter TFilter = BackgroundGridType::ElementFilter::all>
+    auto GetElementViews() const {
+        return mBackgroundGrid.template GetElementViews<TFilter>();
+    }
+
+    /// @brief Returns a span over the raw element container matching TFilter.
+    /// @details ElementFilter::all is not valid — use GetElementViews() instead.
+    template<BackgroundGridType::ElementFilter TFilter>
+    [[nodiscard]] auto GetElements() const noexcept {
+        return mBackgroundGrid.template GetElements<TFilter>();
     }
 
     /// @brief Returns all conditions.
-    /// @return const Reference to ElementVectorPtrType
+    /// @return const Reference to ConditionContainerType
     const BackgroundGridType::ConditionContainerType& GetConditions() const {
         return mBackgroundGrid.GetConditions();
     }

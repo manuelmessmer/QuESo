@@ -71,21 +71,21 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
     return is_inside;
 }
 
-const BoundingBoxType TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
+BoundingBoxType TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
     // Initialize bounding box
     BoundingBoxType bounding_box = { {MAXD, MAXD, MAXD},
-                                 {LOWESTD, LOWESTD, LOWESTD} };
+                                     {LOWESTD, LOWESTD, LOWESTD} };
 
     // Loop over all vertices
     const auto vertices = mClosedMesh.Vertices();
     for( auto& v : vertices ){
         // Loop over all 3 dimensions
         for( IndexType i = 0; i < 3; ++i){
-            if( v[i] < bounding_box.first[i] ){ // Find min values
-                bounding_box.first[i] = v[i];
+            if( v[i] < bounding_box.lower[i] ){ // Find min values
+                bounding_box.lower[i] = v[i];
             }
-            if( v[i] > bounding_box.second[i] ){ // Find max values
-                bounding_box.second[i] = v[i];
+            if( v[i] > bounding_box.upper[i] ){ // Find max values
+                bounding_box.upper[i] = v[i];
             }
         }
     }

@@ -15,6 +15,7 @@
 #include <boost/test/unit_test.hpp>
 #include <numeric>      // std::accumulate
 #include <memory>       //std::addressof
+#include <optional>
 //// Project includes
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
@@ -56,20 +57,22 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
-    const auto& elements = embedded_model.GetElements();
+    const auto elements = embedded_model.GetElementViews();
+    const auto trimmed_elements = embedded_model.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
 
     QuESo_CHECK_EQUAL(elements.size(), 1);
+    QuESo_CHECK_EQUAL(trimmed_elements.size(), 1UL);
 
-    const auto& points_reduced = elements.begin()->GetIntegrationPoints();
+    const auto& points_reduced = trimmed_elements.front().GetIntegrationPoints();
     QuESo_CHECK_LT(points_reduced.size(), 28);
 
-    const auto& r_triangle_mesh = elements.begin()->pGetTrimmedDomain()->GetTriangleMesh();
+    const auto& r_triangle_mesh = trimmed_elements.front().GetActiveDomainBoundaryMesh();
     const IndexType num_triangles = r_triangle_mesh.NumOfTriangles();
 
     QuESo_CHECK_GT(num_triangles, 5000.0);
 
     double area = 0.0;
-    r_triangle_mesh.View().VisitEachTriangle<WithoutNormals>([&](const auto &triangle){
+    r_triangle_mesh.VisitEachTriangle<WithoutNormals>([&](const auto &triangle){
         const PointType coordinates = TriangleUtilities::Center(triangle);
 
         QuESo_CHECK_GT(coordinates[2], -1e-6);
@@ -106,8 +109,8 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.37, -0.55, -0.31});
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.37, 0.55, 0.31});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.lower);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.upper);
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, rOrder);
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
@@ -116,17 +119,19 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(p_settings));
     embedded_model.CreateAllFromSettings();
 
-    const auto& elements = embedded_model.GetElements();
+    const auto elements = embedded_model.GetElementViews();
 
     // Compute total volume
     double volume_trimmed = 0.0;
     double volume_inside = 0.0;
-    const auto el_it_begin = elements.begin();
     int num_elements_inside = 0;
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
-    for( IndexType i = 0; i < elements.size(); ++i){
-        const auto& el_it = *(el_it_begin+i);
+    std::optional<BoundingBoxType> first_box;
+    for (const auto el_it : elements) {
+        if (!first_box.has_value()) {
+            first_box = el_it.template GetCellBounds<CoordinateSpace::global>();
+        }
         const double det_j = el_it.DetJ();
         if( el_it.IsTrimmed() ){
             const auto& points_trimmed = el_it.GetIntegrationPoints();
@@ -153,8 +158,8 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
-    const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
-    const PointType el_delta = (el_bounding_box.second - el_bounding_box.first);
+    const BoundingBoxType el_bounding_box = *first_box;
+    const PointType el_delta = (el_bounding_box.upper - el_bounding_box.lower);
     const double ref_volume_inside = (el_delta[0]*el_delta[1]*el_delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
 
@@ -290,8 +295,8 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, grid_type);
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{20.0, 190.0, 190.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.first);
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.second);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, rBoundsUVW.lower);
+    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, rBoundsUVW.upper);
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, num_elements);
     r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{p, p, p});
     r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
@@ -326,17 +331,19 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     embedded_model.CreateAllFromSettings();
 
     /// Test volume
-    const auto& elements = embedded_model.GetElements();
+    const auto elements = embedded_model.GetElementViews();
 
     // Compute total volume
     double volume_trimmed = 0.0;
     double volume_inside = 0.0;
-    const auto el_it_begin = elements.begin();
     int num_elements_inside = 0;
     int num_elements_trimmed = 0;
     int num_points_inside = 0;
-    for( IndexType i = 0; i < elements.size(); ++i){
-        const auto& el_it = *(el_it_begin+i);
+    std::optional<BoundingBoxType> first_box;
+    for (const auto el_it : elements) {
+        if (!first_box.has_value()) {
+            first_box = el_it.template GetCellBounds<CoordinateSpace::global>();
+        }
         const double det_j = el_it.DetJ();
         if( el_it.IsTrimmed() ){
             const auto& points_trimmed = el_it.GetIntegrationPoints();
@@ -363,8 +370,8 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     QuESo_CHECK_EQUAL(num_points_inside, static_cast<int>(NumPointsInside));
 
     // Check volume inside
-    const BoundingBoxType el_bounding_box = el_it_begin->GetBoundsXYZ();
-    const PointType delta = (el_bounding_box.second - el_bounding_box.first);
+    const BoundingBoxType el_bounding_box = *first_box;
+    const PointType delta = (el_bounding_box.upper - el_bounding_box.lower);
     const double ref_volume_inside = (delta[0]*delta[1]*delta[2])*num_elements_inside;
     QuESo_CHECK_RELATIVE_NEAR(volume_inside, ref_volume_inside, 1e-13);
 

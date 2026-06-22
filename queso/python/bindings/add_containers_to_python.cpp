@@ -23,25 +23,25 @@
 
 using IntegrationPointType = queso::IntegrationPoint;
 using BoundaryIntegrationPointType = queso::BoundaryIntegrationPoint;
+using BackgroundGridType = queso::BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
 
 // Element related types
-using ElementType = queso::Element<IntegrationPointType, BoundaryIntegrationPointType>;
-using ElementPtrType = queso::Unique<ElementType>;
+using ElementViewType = BackgroundGridType::ElementViewType;
 
 // Condition related types
-using ConditionType = queso::Condition<ElementType>;
+using ConditionType = queso::Condition<ElementViewType>;
 using ConditionPtrType = queso::Unique<ConditionType>;
 
 // Condition segments related types
-using ConditionSegmentType = queso::ConditionSegment<ElementType>;
+using ConditionSegmentType = queso::ConditionSegment<ElementViewType>;
 using ConditionSegmentVectorType = std::vector<ConditionSegmentType>;
 PYBIND11_MAKE_OPAQUE(ConditionSegmentVectorType)
 
 // Point / integration point vector types
-using IntegrationPointVectorType = ElementType::IntegrationPointVectorType;
+using IntegrationPointVectorType = ElementViewType::IntegrationPointVectorType;
 PYBIND11_MAKE_OPAQUE(IntegrationPointVectorType)
 
-using BoundaryIpVectorType = ElementType::BoundaryIntegrationPointVectorType;
+using BoundaryIpVectorType = std::vector<BoundaryIntegrationPointType>;
 PYBIND11_MAKE_OPAQUE(BoundaryIpVectorType);
 
 using IntegrationPoint1DVectorType = std::vector<std::array<double,2>>;
@@ -208,27 +208,33 @@ void AddContainersToPython(pybind11::module& m) {
     ;
 
     /// Export Element
-    py::class_<ElementType, ElementPtrType>(m,"Element")
-        .def("GetIntegrationPoints",  static_cast< const IntegrationPointVectorType& (ElementType::*)() const>(&ElementType::GetIntegrationPoints)
-            ,py::return_value_policy::reference_internal ) // Export const version
-        .def("LowerBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().first; })
-        .def("UpperBoundXYZ", [](const ElementType& rElement ){ return rElement.GetBoundsXYZ().second; })
-        .def("LowerBoundUVW", [](const ElementType& rElement ){ return rElement.GetBoundsUVW().first; })
-        .def("UpperBoundUVW", [](const ElementType& rElement ){ return rElement.GetBoundsUVW().second; })
-        .def("GetNumberBoundaryTriangles", [](const ElementType& rElement ){
-            return rElement.pGetTrimmedDomain()->GetTriangleMesh().NumOfTriangles();
-        })
-        .def("ID", &ElementType::GetId)
-        .def("IsTrimmed", &ElementType::IsTrimmed)
+    py::class_<ElementViewType>(m,"Element")
+        .def("GetIntegrationPoints", [](const ElementViewType& rElement) -> const IntegrationPointVectorType& {
+                return rElement.GetIntegrationPoints<CoordinateSpace::parametric>();
+            }, py::return_value_policy::reference_internal)
+        .def("LowerBoundXYZ", [](const ElementViewType& rElement ){ return rElement.GetCellBounds<CoordinateSpace::global>().lower; })
+        .def("UpperBoundXYZ", [](const ElementViewType& rElement ){ return rElement.GetCellBounds<CoordinateSpace::global>().upper; })
+        .def("LowerBoundUVW", [](const ElementViewType& rElement ){ return rElement.GetCellBounds<CoordinateSpace::parametric>().lower; })
+        .def("UpperBoundUVW", [](const ElementViewType& rElement ){ return rElement.GetCellBounds<CoordinateSpace::parametric>().upper; })
+        .def("ID", &ElementViewType::GetId)
+        .def("IsTrimmed", &ElementViewType::IsTrimmed)
     ;
 
 	/// Export BackgroundGrid
-	using GridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
+	using GridType = BackgroundGridType;
 	py::class_<GridType>(m, "BackgroundGrid")
 		.def(py::init<const GridType::MainDictionaryType&>())
-		.def("GetElements",
-			py::overload_cast<>(&GridType::GetElements, py::const_),
-			py::return_value_policy::reference_internal)
+		.def(
+			"GetElements",
+			[](const GridType& rGrid) {
+				std::vector<ElementViewType> elements;
+				const auto views = rGrid.GetElementViews();
+				elements.reserve(views.size());
+				std::ranges::copy(views, std::back_inserter(elements));
+				return elements;
+			},
+			py::keep_alive<0, 1>()
+		)
 		.def("NumberOfActiveElements", &GridType::NumberOfActiveElements)
 		.def("GetConditions", &GridType::GetConditions, py::return_value_policy::reference_internal)
 		.def("NumberOfConditions", &GridType::NumberOfConditions);
@@ -269,7 +275,15 @@ void AddContainersToPython(pybind11::module& m) {
             return MakeUnique<EmbeddedModel>(EmbeddedModel::Create(rSettings.Release()));
         }))
         .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
-        .def("GetElements", &EmbeddedModel::GetElements, py::return_value_policy::reference_internal)
+		.def("GetElements",
+			[](const GridType& rGrid) {
+				std::vector<ElementViewType> elements;
+				const auto views = rGrid.GetElementViews();
+				elements.reserve(views.size());
+				std::ranges::copy(views, std::back_inserter(elements));
+				return elements;
+			},
+			py::keep_alive<0, 1>())
         .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal)
         .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
         .def("GetModelInfo", static_cast<const EmbeddedModel::MainDictionaryType& (EmbeddedModel::*)() const>(&EmbeddedModel::GetModelInfo),

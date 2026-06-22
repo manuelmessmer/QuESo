@@ -19,9 +19,8 @@
 #include "queso/io/io_utilities.h"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/embedding/brep_operator.h"
-#include "queso/quadrature/single_element.hpp"
-#include "queso/quadrature/trimmed_element.hpp"
 #include "queso/quadrature/multiple_elements.hpp"
+#include "queso/embedding/element_builders.hpp"
 
 namespace queso {
 
@@ -37,34 +36,8 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
     const bool is_closed = MeshUtilities::EstimateQuality(rTriangleMesh) < 1e-10;
     r_model_info[MainInfo::embedded_geometry_info].SetValue(EmbeddedGeometryInfo::is_closed, is_closed);
 
-    /* Begin: Get neccessary settings */
-    /// @todo Pass r_settings to all functions.
-
+	// Get global settings.
     const auto& r_settings = GetSettings();
-    // MainSettings::general_settings.
-    const IndexType echo_level = r_settings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level);
-
-    // MainSettings::non_trimmed_quadrature_rule_settings.
-    const IntegrationMethod integration_method = r_settings[MainSettings::non_trimmed_quadrature_rule_settings].
-        GetRequiredValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
-    const bool ggq_rule_is_used =  static_cast<int>(integration_method) >= 3;
-
-    // MainSettings::trimmed_quadrature_rule_settings.
-    const auto& r_trimmed_quad_rule_settings = r_settings[MainSettings::trimmed_quadrature_rule_settings];
-    const double min_vol_element_ratio = std::max<double>(r_trimmed_quad_rule_settings.
-        GetRequiredValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio), 1e-10);
-    const IndexType num_boundary_triangles = r_trimmed_quad_rule_settings.
-        GetRequiredValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
-    const double moment_fitting_residual = r_trimmed_quad_rule_settings.
-        GetRequiredValue<double>(TrimmedQuadratureRuleSettings::moment_fitting_residual);
-    const bool neglect_elements_if_stl_is_flawed = r_trimmed_quad_rule_settings.
-        GetRequiredValue<bool>(TrimmedQuadratureRuleSettings::neglect_elements_if_stl_is_flawed);
-
-    // MainSettings::background_grid_settings.
-    const auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-    const Vector3i polynomial_order = r_grid_settings.GetRequiredValue<Vector3i>(BackgroundGridSettings::polynomial_order);
-
-    /* End: Get neccessary settings */
 
     // Start timer.
     Timer timer_total{};
@@ -82,83 +55,38 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
     auto& r_volume_time_info = r_model_info[MainInfo::elapsed_time_info][ElapsedTimeInfo::volume_time_info];
     r_volume_time_info.SetValue(VolumeTimeInfo::classification_of_elements, timer_check_intersect.Measure());
 
-    /* Begin: Initialize info variables */
-    // Variables for performance measurements.
-    double et_compute_intersection = 0.0;
-    double et_moment_fitting = 0.0;
-
-    // Grid information counters
-    SizeType num_active_elements = 0;
-    SizeType num_trimmed_elements = 0;
-    /* End: Initialize info variables */
+    // Construct builders from settings (once, before the loop).
+    TrimmedElementBuilder<IntegrationPoint, BoundaryIntegrationPoint> trimmed_builder(r_settings, brep_operator);
+    UntrimmedElementBuilder<IntegrationPoint, BoundaryIntegrationPoint> untrimmed_builder(r_settings);
 
     // Loop over all elements.
-    #pragma omp parallel for reduction(+ : et_compute_intersection, et_moment_fitting, num_active_elements, num_trimmed_elements) schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for( int for_index = 0; for_index < static_cast<int>(global_number_of_elements); ++for_index) {
-		const auto index = static_cast<IndexType>(for_index);
-        // Check classification status.
+        const auto index = static_cast<IndexType>(for_index);
         const IntersectionState status = (*p_classifications)[index];
 
         if( status == IntersectionState::inside || status == IntersectionState::trimmed ) {
-            // Get bounding box of element.
-            const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
-            const auto bounding_box_uvw = mGridIndexer.GetBoundingBoxUVWFromIndex(index);
-
-            // Construct element.
-            ElementType new_element(index+1, bounding_box_xyz, bounding_box_uvw);
-            bool valid_element_flag = false;
-
-            // Distinguish between trimmed and non-trimmed elements.
+            const ElementBounds bounds{
+                mGridIndexer.GetBoundingBoxXYZFromIndex(index),
+                mGridIndexer.GetBoundingBoxUVWFromIndex(index)
+            };
             if( status == IntersectionState::trimmed) {
-                // Compute intersection between element and embedded geometry.
-                Timer timer_compute_intersection{};
-                auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(bounding_box_xyz.first, bounding_box_xyz.second,
-                                                                        min_vol_element_ratio, num_boundary_triangles, neglect_elements_if_stl_is_flawed);
-                if( p_trimmed_domain ){
-                    new_element.pSetTrimmedDomain(p_trimmed_domain);
-                    valid_element_flag = true;
-                }
-                et_compute_intersection += timer_compute_intersection.Measure();
-
-                // If valid, solve moment fitting equation.
-                if( valid_element_flag ){
-                    Timer timer_moment_fitting{};
-                    QuadratureTrimmedElement<ElementType>::AssembleIPs(new_element, polynomial_order, moment_fitting_residual, echo_level);
-                    et_moment_fitting += timer_moment_fitting.Measure();
-
-                    if( new_element.GetIntegrationPoints().size() == 0 ){
-                        valid_element_flag = false;
-                    }
-                }
-            }
-            else { // status == IntersectionState::inside.
-                if( !ggq_rule_is_used ){
-                    // Get standard gauss legendre points.
-                    QuadratureSingleElement<ElementType>::AssembleIPs(new_element, polynomial_order, integration_method);
-                }
-                valid_element_flag = true;
-            }
-
-            if( valid_element_flag ){
-                // Update background grid counters.
-                ++num_active_elements;
-                if( new_element.IsTrimmed() ) { ++num_trimmed_elements; }
-
-                // Add new_element to the background grid.
-                #pragma omp critical
-                mBackgroundGrid.AddElement(std::move(new_element));
+                mBackgroundGrid.MakeElement(trimmed_builder, index + 1, bounds);
+            } else {
+                mBackgroundGrid.MakeElement(untrimmed_builder, index + 1, bounds);
             }
         }
-    } // #pragma parallel omp for reduction.
+    } // End omp parallel for.
 
-	mBackgroundGrid.LockElements();
+    mBackgroundGrid.LockElements();
 
     // Assmble Generalized Gaussian quadrature rules (if enabled).
     double et_ggq_rules = 0.0;
-    if( ggq_rule_is_used ){
-        // Construct Generalized Gaussian quadrature rules.
+    if( untrimmed_builder.UsesGgqRule() ){
         Timer timer_ggq_rules{};
-        QuadratureMultipleElements<ElementType>::AssembleIPs(mBackgroundGrid, polynomial_order, integration_method);
+        QuadratureMultipleElements<BackgroundGridType::UntrimmedElementType>::AssembleIPs(
+            mBackgroundGrid, untrimmed_builder.PolynomialOrder(), untrimmed_builder.GetIntegrationMethod()
+        );
         et_ggq_rules = timer_ggq_rules.Measure();
     }
 
@@ -174,36 +102,41 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView &rTriangleMesh){
     const double total_time = r_elapsed_time_info.GetRequiredValue<double>(ElapsedTimeInfo::total);
     r_elapsed_time_info.SetValue(ElapsedTimeInfo::total, (total_time+elapsed_time_total) );
 
-    // Get num of threads.
+    // Timings come from builders (atomically accumulated across threads).
     const auto num_threads = static_cast<IndexType>(omp_get_max_threads());
-    r_volume_time_info.SetValue(VolumeTimeInfo::computation_of_intersections, et_compute_intersection / static_cast<double>(num_threads) );
-    r_volume_time_info.SetValue(VolumeTimeInfo::solution_of_moment_fitting_eqs, et_moment_fitting / static_cast<double>(num_threads) );
+    r_volume_time_info.SetValue(VolumeTimeInfo::computation_of_intersections,
+        trimmed_builder.ElapsedIntersectionTime() / static_cast<double>(num_threads));
+    r_volume_time_info.SetValue(VolumeTimeInfo::solution_of_moment_fitting_eqs,
+        trimmed_builder.ElapsedMomentFittingTime() / static_cast<double>(num_threads));
     r_volume_time_info.SetValue(VolumeTimeInfo::construction_of_ggq_rules, et_ggq_rules);
 
-    // BackgroundGridInfo.
-    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_active_elements, num_active_elements );
-    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_trimmed_elements, num_trimmed_elements );
-    const IndexType num_full_elements = (num_active_elements-num_trimmed_elements);
-    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_full_elements, num_full_elements );
-    const IndexType num_inactive_elements =  ( mGridIndexer.NumberOfElements() - num_active_elements);
-    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_inactive_elements, num_inactive_elements );
+    // Counts come from the grid.
+    const IndexType num_active_elements  = mBackgroundGrid.NumberOfActiveElements();
+    const IndexType num_trimmed_elements = mBackgroundGrid.NumberOfTrimmedElements();
+    const IndexType num_full_elements    = num_active_elements - num_trimmed_elements;
+    const IndexType num_inactive_elements = mGridIndexer.NumberOfElements() - num_active_elements;
+
+    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_active_elements,   num_active_elements);
+    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_trimmed_elements,  num_trimmed_elements);
+    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_full_elements,     num_full_elements);
+    r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_inactive_elements, num_inactive_elements);
 
     // QuadratureInfo.
     double represented_volume = 0.0;
     SizeType tot_num_points_full = 0;
     SizeType tot_num_points_trimmed = 0;
-    const auto el_it_ptr_begin = mBackgroundGrid.GetElements().begin();
-    #pragma omp parallel for reduction(+ : represented_volume, tot_num_points_full, tot_num_points_trimmed) schedule(guided)
-    for( int i = 0; i < static_cast<int>(num_active_elements); ++i ){
-        const auto el_ptr = (el_it_ptr_begin + i);
-        const double det_j = el_ptr->DetJ();
-        const auto& r_points = el_ptr->GetIntegrationPoints();
-        represented_volume += std::accumulate(r_points.begin(), r_points.end(), 0.0,
-            [det_j](double sum, const auto& point) {
-                return sum + point.Weight() * det_j; }
+    for (const auto& rElement : mBackgroundGrid.GetElementViews<BackgroundGridType::ElementFilter::all>()) {
+        const double det_j = rElement.DetJ();
+        const auto& r_points = rElement.GetIntegrationPoints();
+        represented_volume += det_j*std::accumulate(
+            r_points.begin(), r_points.end(), 0.0,
+            [](double sum, const auto& point) { return sum + point.Weight(); }
         );
-        auto& target_counter = el_ptr->IsTrimmed() ? tot_num_points_trimmed : tot_num_points_full;
-        target_counter += r_points.size();
+		if( rElement.IsTrimmed() ){
+			tot_num_points_trimmed += r_points.size();
+		} else {
+			tot_num_points_full += r_points.size();
+		}
     }
     const SizeType tot_num_points = tot_num_points_trimmed + tot_num_points_full;
     r_model_info[MainInfo::quadrature_info].SetValue(QuadratureInfo::tot_num_points, tot_num_points);
@@ -264,10 +197,10 @@ void EmbeddedModel::ComputeCondition(const TriangleMeshView &rTriangleMesh, cons
 		const auto index = static_cast<IndexType>(for_index);
         // Clip embedded geoemetry with the current element (bounding box).
         const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
-        auto new_mesh = brep_operator.ClipTriangleMeshUnique(bounding_box_xyz.first, bounding_box_xyz.second);
+        auto new_mesh = brep_operator.ClipTriangleMeshUnique(bounding_box_xyz.lower, bounding_box_xyz.upper);
 
         if( new_mesh.NumOfTriangles() > 0 ) {
-            const auto p_el = mBackgroundGrid.pGetElement(index+1);
+            const auto p_el = mBackgroundGrid.GetElementView(index+1);
             const double surf_area_segment = MeshUtilities::Area(new_mesh.MeshView());
 
             // If p_el != nullptr, the current condition is within an active element.

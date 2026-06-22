@@ -17,8 +17,8 @@
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
+#include "queso/containers/untrimmed_element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
-#include "queso/containers/element.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
 #include "queso/utilities/mesh_utilities.h"
@@ -32,8 +32,8 @@ namespace Testing {
 
 BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
 
-void CheckTriangleOrientation(const TriangleMesh &rTriangleMesh){
-    rTriangleMesh.View().VisitEachTriangle<WithNormals>([&](const auto &triangle){
+void CheckTriangleOrientation(TriangleMeshView rTriangleMesh){
+    rTriangleMesh.VisitEachTriangle<WithNormals>([&](const auto &triangle){
         if( TriangleUtilities::Area(triangle) > EPS3 ){
             const Vector3d A = triangle.P2 - triangle.P1;
             const Vector3d B = triangle.P3 - triangle.P2;
@@ -56,7 +56,7 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
 
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, rFilename.c_str());
@@ -85,16 +85,14 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        const Vector3d lower_bound_xyz = bounding_box.first;
-        const Vector3d upper_bound_xyz = bounding_box.second;
+        const Vector3d lower_bound_xyz = bounding_box.lower;
+        const Vector3d upper_bound_xyz = bounding_box.upper;
         const Vector3d delta_xyz = (upper_bound_xyz - lower_bound_xyz);
         const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        const Vector3d lower_bound_uvw = bounding_box_uvw.first;
-        const Vector3d upper_bound_uvw = bounding_box_uvw.second;
+        const Vector3d lower_bound_uvw = bounding_box_uvw.lower;
+        const Vector3d upper_bound_uvw = bounding_box_uvw.upper;
 
-        // Construct element
-        ElementType element(1, MakeBox(lower_bound_xyz, upper_bound_xyz),
-                               MakeBox(lower_bound_uvw, upper_bound_uvw));
+        ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw});
 
         auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area_test += MeshUtilities::Area(clipped_mesh.Mesh().View());
@@ -106,25 +104,27 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
 
             // Get triangle mesh
-            const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+            const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
 
             // Check orientation
-            CheckTriangleOrientation(r_mesh);
+            CheckTriangleOrientation(mesh_view);
 
             // Get volume
-            volume_test += MeshUtilities::Volume(r_mesh.View());
+            volume_test += MeshUtilities::Volume(mesh_view);
 
             // Get boundary integration points
-            auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps<BoundaryIntegrationPointType>();
+            const ElementBounds element_bounds{bounding_box, bounding_box_uvw};
+            auto boundary_ips =
+                p_trimmed_domain->GetBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>(element_bounds);
 
             std::vector<double> constant_terms{};
-            QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, p_boundary_ips, element, order);
+            QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, order);
 
             // Read and ignore header
             getline(file, line);
             //file_out << "E: " << number_trimmed_elements << std::endl;
             double surface_area = 0.0;
-            for( auto& ip : *p_boundary_ips){
+            for( auto& ip : boundary_ips){
                 surface_area += ip.Weight();
             }
             //file_out << std::setprecision(16) << surface_area << std::endl;
@@ -281,19 +281,19 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     IndexType number_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        const Vector3d lower_bound_xyz = bounding_box.first;
-        const Vector3d upper_bound_xyz = bounding_box.second;
+        const Vector3d lower_bound_xyz = bounding_box.lower;
+        const Vector3d upper_bound_xyz = bounding_box.upper;
 
         auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area += MeshUtilities::Area(clipped_mesh.Mesh().View());
         // Get Trimmed domain
         auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
         if( p_trimmed_domain ){
-            auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
+            auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
             // Check triangle orientations.
-            CheckTriangleOrientation(r_mesh);
+            CheckTriangleOrientation(mesh_view);
 
-            volume += MeshUtilities::Volume(r_mesh.View());
+            volume += MeshUtilities::Volume(mesh_view);
             number_trimmed_elements++;
         }
     }

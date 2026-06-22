@@ -14,7 +14,6 @@
 #pragma once
 
 //// STL includes
-#include <functional>
 #include <optional>
 
 //// Project includes
@@ -32,16 +31,13 @@ namespace queso {
 ///         Stores the parent element id and, if the parent element is active, a reference to it.
 ///         Additionally stores the clipped section of the triangle mesh.
 /// @todo   Add boundary integration points that can eventually be used by a boundary moment-fitting scheme.
-template<typename TElementType>
+template<typename TElementViewType>
 class ConditionSegment
 {
 public:
     ///@name Type definitions
     ///@{
-    using ElementType = TElementType;
-    using BoundaryIntegrationPointType = typename ElementType::BoundaryIntegrationPointType;
-    using BoundaryIntegrationPointVectorType = std::vector<BoundaryIntegrationPointType>;
-
+    using ElementViewType = TElementViewType;
     ///@}
     ///@name Life cycle
     ///@{
@@ -57,7 +53,7 @@ public:
     /// @param Index index in the background grid. @see GridIndexer.
     /// @param rClippedTriangleMesh clipped triangle mesh of this segment. ConditionSegment takes ownership.
     /// @param rElement parent element.
-    ConditionSegment(IndexType Index, ClippedTriangleMesh&& rClippedTriangleMesh, const ElementType& rElement)
+    ConditionSegment(IndexType Index, ClippedTriangleMesh&& rClippedTriangleMesh, const ElementViewType& rElement)
         : mBackgroundGridIndex(Index), mClippedTriangleMesh(std::move(rClippedTriangleMesh)), mParentElement(rElement)
     {}
 
@@ -88,7 +84,7 @@ public:
 
     /// @brief Returns the optional parent element.
     /// @return const optional parent-element reference.
-    [[nodiscard]] const std::optional<std::reference_wrapper<const ElementType>>& GetParentElement() const noexcept
+    [[nodiscard]] const std::optional<ElementViewType>& GetParentElement() const noexcept
     { return mParentElement; }
 
 private:
@@ -98,7 +94,7 @@ private:
 
     IndexType mBackgroundGridIndex{};
     ClippedTriangleMesh mClippedTriangleMesh{};
-    std::optional<std::reference_wrapper<const ElementType>> mParentElement{};
+    std::optional<ElementViewType> mParentElement{};
     // BoundaryIntegrationPointVectorType mIntegrationPoints;
 
     ///@}
