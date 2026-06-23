@@ -19,7 +19,7 @@
 //// Project includes
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/element.hpp"
+#include "queso/containers/untrimmed_element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/embedding/brep_operator.h"
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_SUITE( Thingi10KTestSuite )
 BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     QuESo_INFO << "Testing :: Test Thingi10k :: STL embedding test.\n";
     Timer timer;
@@ -127,9 +127,10 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     IndexType index = grid_indexer.GetVectorIndexFromMatrixIndices(i, j, k);
                     auto box = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
+                    const auto bounds_uvw = MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
+                    ElementType element(1, ElementBounds{box, bounds_uvw});
 
-                    auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(box.first, box.second );
+                    auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(box.lower, box.upper );
                     test_area += MeshUtilities::Area(clipped_mesh.Mesh().View());
 
                     auto status = brep_operator.GetIntersectionState(element);
@@ -138,15 +139,15 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
                     }
                     if( status == IntersectionState::trimmed){
                         // Get trimmed domain
-                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.first, box.second, min_vol_ratio, min_num_triangles);
+                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.lower, box.upper, min_vol_ratio, min_num_triangles);
                         if( p_trimmed_domain ){
-                            const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
-                            test_volume += MeshUtilities::Volume(r_mesh.View());
+                            const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
+                            test_volume += MeshUtilities::Volume(mesh_view);
                         }
                     } else if( status == IntersectionState::inside ){
-                        test_volume += (box.second[0] - box.first[0])
-                                     * (box.second[1] - box.first[1])
-                                     * (box.second[2] - box.first[2]);
+                        test_volume += (box.upper[0] - box.lower[0])
+                                     * (box.upper[1] - box.lower[1])
+                                     * (box.upper[2] - box.lower[2]);
                     }
                 }
             }
@@ -175,7 +176,7 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
 BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
     typedef IntegrationPoint IntegrationPointType;
     typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef Element<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
     QuESo_INFO << "Testing :: Test Thingi10k :: Element classification.\n";
     Timer timer;
@@ -302,7 +303,8 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
                     IndexType index = grid_indexer.GetVectorIndexFromMatrixIndices(i, j, k);
                     auto box = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
 
-                    ElementType element(1, box, MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}));
+                    const auto bounds_uvw = MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
+                    ElementType element(1, ElementBounds{box, bounds_uvw});
 
                     auto status = brep_operator.GetIntersectionState(element);
                     // Boost unit test framework throws warning when comparing enum's.

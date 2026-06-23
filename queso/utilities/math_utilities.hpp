@@ -140,6 +140,14 @@ inline Vector3i operator-(Vector3iView lhs, Vector3iView rhs)
     return {lhs[0] - rhs[0], lhs[1] - rhs[1], lhs[2] - rhs[2]};
 }
 
+inline Vector3d& operator+=(Vector3d& lhs, double rhs)
+{
+    lhs[0] += rhs;
+    lhs[1] += rhs;
+    lhs[2] += rhs;
+    return lhs;
+}
+
 inline Vector3d& operator*=(Vector3d& lhs, double rhs)
 {
     lhs[0] *= rhs;

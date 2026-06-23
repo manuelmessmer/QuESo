@@ -33,8 +33,6 @@ namespace queso {
 */
 namespace MeshUtilities {
 
-using TriangleMeshPtrType = Unique<TriangleMesh>;
-
 /// @brief Refines a mesh until a minimum triangle count is reached.
 /// @param rTriangleMesh Mesh that is refined in-place.
 /// @param MinNumberOfTriangles Requested minimum number of triangles.
@@ -50,8 +48,8 @@ void Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh);
 /// @brief Creates a cuboid surface mesh from axis-aligned bounds.
 /// @param rLowerPoint Lower corner of the cuboid in global coordinates.
 /// @param rUpperPoint Upper corner of the cuboid in global coordinates.
-/// @return Unique pointer to the generated cuboid triangle mesh.
-TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
+/// @return Newly created TriangleMesh
+TriangleMesh MakeMeshBox(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
 /// @brief Computes total surface area of a triangle mesh view.
 /// @param rTriangleMeshView Non-owning view of the mesh.

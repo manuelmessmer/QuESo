@@ -30,7 +30,7 @@ namespace TriangleUtilities {
     /// @param rTriangle Triangle proxy.
     /// @return double
     template<class Mode>
-    inline double Area(const TriangleProxy<Mode> &rTriangle)
+    inline double Area(const TriangleProxy<Mode>& rTriangle)
     {
         const Vector3d A = rTriangle.P2 - rTriangle.P1;
         const Vector3d B = rTriangle.P3 - rTriangle.P1;
@@ -43,7 +43,7 @@ namespace TriangleUtilities {
     /// @param rTriangle Triangle proxy.
     /// @return Vector3d
     template<class Mode>
-    inline Vector3d Normal(const TriangleProxy<Mode> &rTriangle)
+    inline Vector3d Normal(const TriangleProxy<Mode>& rTriangle)
     {
         const Vector3d A = rTriangle.P2 - rTriangle.P1;
         const Vector3d B = rTriangle.P3 - rTriangle.P2;
@@ -76,7 +76,7 @@ namespace TriangleUtilities {
     /// @param rTriangle Triangle proxy.
     /// @return double
     template<class Mode>
-    inline double AspectRatio(const TriangleProxy<Mode> &rTriangle)
+    inline double AspectRatio(const TriangleProxy<Mode>& rTriangle)
     {
         const auto area = Area(rTriangle);
 
@@ -99,20 +99,20 @@ namespace TriangleUtilities {
     /// @param rTriangle Triangle proxy.
     /// @return Vector3d.
     template<class Mode>
-    inline Vector3d Center(const TriangleProxy<Mode> &rTriangle)
+    inline Vector3d Center(const TriangleProxy<Mode>& rTriangle)
     {
-        const auto &P1 = rTriangle.P1;
-        const auto &P2 = rTriangle.P2;
-        const auto &P3 = rTriangle.P3;
+        const auto& P1 = rTriangle.P1;
+        const auto& P2 = rTriangle.P2;
+        const auto& P3 = rTriangle.P3;
 
         return { 1.0 / 3.0 * (P1[0] + P2[0] + P3[0]),
-            1.0 / 3.0 * (P1[1] + P2[1] + P3[1]),
-            1.0 / 3.0 * (P1[2] + P2[2] + P3[2]) };
+                 1.0 / 3.0 * (P1[1] + P2[1] + P3[1]),
+                 1.0 / 3.0 * (P1[2] + P2[2] + P3[2]) };
     }
 
     namespace detail {
         using IpVectorType = std::vector<IntegrationPoint>;
-        inline const IpVectorType &GetIntegrationPoints(IndexType method)
+        inline const IpVectorType& GetIntegrationPoints(IndexType method)
         {
             switch (method) {
             case 0:
@@ -129,7 +129,7 @@ namespace TriangleUtilities {
             QuESo_ERROR << "Wrong Index of Shape Function.\n";
         }
 
-        inline double ShapeFunctionValue(IndexType ShapeFunctionIndex, const Vector3d &rPoint)
+        inline double ShapeFunctionValue(IndexType ShapeFunctionIndex, const Vector3d& rPoint)
         {
             switch (ShapeFunctionIndex) {
             case 0:
@@ -149,17 +149,26 @@ namespace TriangleUtilities {
     /// @param rTriangle Triangle proxy.
     /// @param Method integration method.
     /// @return Boundary integration points.
+    /// TODO: refactor to VisitBoundaryIps with TCallback to direcly push_back to a vector (with or without
+    /// transformation).
+    /// TriangleUtilities::VisitIPsGlobal<TBoundaryIntegrationPointType>(rTriangle, method, [&](auto&& rIp) {
+    ///     if constexpr (TSpace == CoordinateSpace::global) {
+    ///         boundary_ips.push_back(std::forward<decltype(rIp)>(rIp));
+    ///     } else {
+    ///         boundary_ips.push_back(rCellMapper.ToParametric(rIp));
+    ///     }
+    /// });
     template<typename TBoundaryIntegrationPointType, class Mode>
-    std::vector<TBoundaryIntegrationPointType> GetIPsGlobal(const TriangleProxy<Mode> &rTriangle, IndexType Method)
+    std::vector<TBoundaryIntegrationPointType> GetIPsGlobal(const TriangleProxy<Mode>& rTriangle, IndexType Method)
     {
-        const auto &s_integration_points = detail::GetIntegrationPoints(Method);
+        const auto& s_integration_points = detail::GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
 
         auto global_integration_points = std::vector<TBoundaryIntegrationPointType>();
 
-        const auto &P1 = rTriangle.P1;
-        const auto &P2 = rTriangle.P2;
-        const auto &P3 = rTriangle.P3;
+        const auto& P1 = rTriangle.P1;
+        const auto& P2 = rTriangle.P2;
+        const auto& P3 = rTriangle.P3;
 
         for (IndexType i = 0; i < point_numbers; ++i) {
             const double x = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[0]

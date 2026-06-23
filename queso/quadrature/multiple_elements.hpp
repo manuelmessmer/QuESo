@@ -19,7 +19,6 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/containers/element.hpp"
 #include "queso/containers/background_grid.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
@@ -63,11 +62,9 @@ public:
         // Create priority queue for all non-trimmed elements. The element with the highest neighbor coefficient is
         // always at front.
         std::priority_queue<ElementType*, ElementVectorType, CompareByCoefficient> unvisited_elements;
-        for( auto& r_el : rGrid.GetElements() ) {
+        for( auto& r_el : rGrid.template GetElements<BackgroundGridType::ElementFilter::untrimmed>() ) {
             r_el.SetValue(ElementValues::is_visited, false);
-            if( !r_el.IsTrimmed() ){
-                unvisited_elements.push(&r_el);
-            }
+            unvisited_elements.push(&r_el);
         }
 
         // Repeat until all elements are visited.
@@ -84,7 +81,7 @@ public:
             current_box.reserve(10000);
             current_box.push_back(p_max_el);
             Vector3i current_box_sizes = {1, 1, 1};
-            BoundingBoxType current_box_bounds = p_max_el->GetBoundsUVW();
+            BoundingBoxType current_box_bounds = p_max_el->template GetCellBounds<CoordinateSpace::parametric>();
             while( TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds) ){
             }
 
@@ -129,25 +126,20 @@ private:
             ElementVectorType neighbors;
             neighbors.reserve(20);
             // Check if element with index=1 is part of rElements.
-            const auto first_element = rElements.pGetElement(1);
-            if( first_element && !first_element->IsTrimmed() )
+            const auto first_element = rElements.template pGetElement<BackgroundGridType::ElementFilter::untrimmed>(1);
+            if( first_element )
                 neighbors.push_back(first_element);
 
             IndexType el_counter = 1;
             // Loop until all elements in rElements have beend visited/found
-            while( el_counter < rElements.NumberOfActiveElements() ){
-                const auto next_element_result = rElements.GetNextElement(current_id, dir);
-                ElementType* neighbour = next_element_result.pElement;
-                next_id = next_element_result.nextId;
-                local_end = next_element_result.isEnd;
+            while( el_counter < rElements.NumberOfUntrimmedElements() ){
+                const auto next_element_result = rElements.template GetNextElement<BackgroundGridType::ElementFilter::untrimmed>(current_id, dir);
+                ElementType* neighbour = next_element_result.p_element;
+                next_id = next_element_result.next_id;
+                local_end = next_element_result.is_end;
                 if( neighbour ){
                     el_counter++;
-                    if(neighbour->IsTrimmed()){
-                        local_end = true;
-                    }
-                    else {
-                        neighbors.push_back(neighbour);
-                    }
+                    neighbors.push_back(neighbour);
                 }
                 if( local_end ){
                     AssignNeighborCoefficients(neighbors);
@@ -195,7 +187,7 @@ private:
                 ElementType* p_neighbour = pNextElement(rGrid, current_id, direction );
                 if( p_neighbour ){
                     const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
-                    if( !is_visited && !p_neighbour->IsTrimmed() ){
+                    if( !is_visited ){
                         double coeff = p_neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
                         neighbour_coeffs[dir_index] += coeff; // <- Sum up coefficients.
                         neighbours[dir_index].push_back(p_neighbour);
@@ -227,10 +219,10 @@ private:
                     p_element->SetValue(ElementValues::is_visited, true);
                     rCurrentBox.push_back(p_element);
                     // Update bounds of current box
-                    const auto& r_el_bounds = p_element->GetBoundsUVW();
+                    const auto& r_el_bounds = p_element->template GetCellBounds<CoordinateSpace::parametric>();
                     for (IndexType k = 0; k < 3; ++k) {
-                        rBoxBounds.first[k]  = std::min(rBoxBounds.first[k], r_el_bounds.first[k]);
-                        rBoxBounds.second[k] = std::max(rBoxBounds.second[k], r_el_bounds.second[k]);
+                        rBoxBounds.lower[k] = std::min(rBoxBounds.lower[k], r_el_bounds.lower[k]);
+                        rBoxBounds.upper[k] = std::max(rBoxBounds.upper[k], r_el_bounds.upper[k]);
                     }
                 }
                 rBoxSize[dimension_index]++;
@@ -260,21 +252,21 @@ private:
         for( auto* p_el : rElements ){
 
             // Local lower and upper points
-            const auto lower_point_param = p_el->GetBoundsUVW().first;
-            const auto upper_point_param = p_el->GetBoundsUVW().second;
+            const auto lower_point_param = p_el->template GetCellBounds<CoordinateSpace::parametric>().lower;
+            const auto upper_point_param = p_el->template GetCellBounds<CoordinateSpace::parametric>().upper;
 
             std::array<std::vector<std::array<double,2>>, 3> tmp_integration_points{};
 
             for( IndexType direction = 0; direction < 3; ++direction){
-                const double distance_global = rBounds.second[direction] - rBounds.first[direction];
-                const double length_global = std::abs(rBounds.second[direction] - rBounds.first[direction]);
+                const double distance_global = rBounds.upper[direction] - rBounds.lower[direction];
+                const double length_global = std::abs(rBounds.upper[direction] - rBounds.lower[direction]);
 
                 const IntegrationPointFactory1D::Ip1DVectorPtrType p_ggq_points =
                     IntegrationPointFactory1D::GetGGQ(rIntegrationOrder[direction], rNumberKnotspans[direction], Method);
                 const IntegrationPointFactory1D::Ip1DVectorType& r_ggq_points = *p_ggq_points;
 
                 for( IndexType j = 0; j < r_ggq_points.size(); ++j){
-                    const double position = rBounds.first[direction] + distance_global* (r_ggq_points)[j][0];
+                    const double position = rBounds.lower[direction] + distance_global* (r_ggq_points)[j][0];
                     const double weight = length_global *  (r_ggq_points)[j][1];
                     std::array<double, 2> tmp_point = {position, weight};
                     if( lower_point_param[direction]-EPS3 <= position && position < upper_point_param[direction]-EPS3){
@@ -314,7 +306,7 @@ private:
     /// @return ElementType*
 	/// TODO: Remove this function.
     static ElementType* pNextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
-        return rElements.GetNextElement(CurrentId, Dir).pElement;
+        return rElements.template GetNextElement<BackgroundGridType::ElementFilter::untrimmed>(CurrentId, Dir).p_element;
     }
 
     /// @brief Helper function to compute the neighbor coefficient using a linear function.

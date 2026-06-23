@@ -38,8 +38,15 @@ using PointView = std::span<const double,3>;
 using Vector3dView = std::span<const double,3>;
 using Vector3iView = std::span<const IndexType,3> ;
 
-using BoundingBoxType = std::pair<PointType, PointType>;
+struct BoundingBox {
+    PointType lower;
+    PointType upper;
+};
+
+using BoundingBoxType = BoundingBox;
 using PartitionBoxType = std::pair<Vector3i, Vector3i>;
+
+enum class CoordinateSpace { parametric, global };
 
 ///@}
 ///@name QuESo GLOBAL VARIABLES
@@ -140,8 +147,8 @@ inline std::ostream& operator<<(std::ostream& rOs, GridTypeType Enum) {
 enum class SignedAxis {neg_x, pos_x, neg_y, pos_y, neg_z, pos_z, _end};
 
 /// QuESo Factories
-inline constexpr BoundingBoxType MakeBox( const PointType& rL, const PointType& rR ) {
-    return std::make_pair(rL, rR);
+inline constexpr BoundingBoxType MakeBox(const PointType& rL, const PointType& rR) {
+    return BoundingBox{rL, rR};
 }
 
 ///@}

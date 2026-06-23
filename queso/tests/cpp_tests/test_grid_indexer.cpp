@@ -37,16 +37,16 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
-    const auto delta = (bounds_xyz.second - bounds_xyz.first);
+    const auto delta = (bounds_xyz.upper - bounds_xyz.lower);
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -61,23 +61,23 @@ BOOST_AUTO_TEST_CASE(GridIndexerBSplineMeshTest) {
                 auto box_2_xyz = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
                 auto box_3_xyz = grid_indexer.GetBoundingBoxXYZFromIndex(indices);
 
-                QuESo_CHECK_POINT_NEAR( box_1_xyz.first, box_2_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_1_xyz.first, box_3_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_1_xyz.second, box_2_xyz.second, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_1_xyz.second, box_3_xyz.second, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_1_xyz.lower, box_2_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_1_xyz.lower, box_3_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_1_xyz.upper, box_2_xyz.upper, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_1_xyz.upper, box_3_xyz.upper, 1e-12 );
 
                 auto box_1_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(index);
                 auto box_2_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i, j, k);
                 auto box_3_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(indices);
 
-                QuESo_CHECK_POINT_NEAR( box_1_uvw.first, box_1_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_1_uvw.second, box_1_xyz.second, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_2_uvw.first, box_2_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_2_uvw.second, box_2_xyz.second, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_3_uvw.first, box_3_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR( box_3_uvw.second, box_3_xyz.second, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_1_uvw.lower, box_1_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_1_uvw.upper, box_1_xyz.upper, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_2_uvw.lower, box_2_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_2_uvw.upper, box_2_xyz.upper, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_3_uvw.lower, box_3_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR( box_3_uvw.upper, box_3_xyz.upper, 1e-12 );
 
-                auto delta_box = (box_1_xyz.second - box_1_xyz.first);
+                auto delta_box = (box_1_xyz.upper - box_1_xyz.lower);
                 QuESo_CHECK_LT( std::abs(delta[0]/number_of_elements[0] - delta_box[0]) / delta_box[0], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[1]/number_of_elements[1] - delta_box[1]) / delta_box[1], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[2]/number_of_elements[2] - delta_box[2]) / delta_box[2], 1e-12);
@@ -110,16 +110,16 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
 
     GridIndexer grid_indexer(r_settings);
-    const auto delta = (bounds_xyz.second - bounds_xyz.first);
+    const auto delta = (bounds_xyz.upper - bounds_xyz.lower);
     double volume = 0.0;
     for( IndexType i = 0; i < number_of_elements[0]; ++i){
         for( IndexType j = 0; j < number_of_elements[1]; ++j){
@@ -134,23 +134,23 @@ BOOST_AUTO_TEST_CASE(GridIndexerFEMeshTest) {
                 auto box_2_xyz = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
                 auto box_3_xyz = grid_indexer.GetBoundingBoxXYZFromIndex(indices);
 
-                QuESo_CHECK_POINT_NEAR(box_1_xyz.first, box_2_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR(box_1_xyz.first, box_3_xyz.first, 1e-12 );
-                QuESo_CHECK_POINT_NEAR(box_1_xyz.second, box_2_xyz.second, 1e-12 );
-                QuESo_CHECK_POINT_NEAR(box_1_xyz.second, box_3_xyz.second, 1e-12 );
+                QuESo_CHECK_POINT_NEAR(box_1_xyz.lower, box_2_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR(box_1_xyz.lower, box_3_xyz.lower, 1e-12 );
+                QuESo_CHECK_POINT_NEAR(box_1_xyz.upper, box_2_xyz.upper, 1e-12 );
+                QuESo_CHECK_POINT_NEAR(box_1_xyz.upper, box_3_xyz.upper, 1e-12 );
 
                 auto box_1_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(index);
                 auto box_2_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i, j, k);
                 auto box_3_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(indices);
 
-                QuESo_CHECK_POINT_NEAR(box_1_uvw.first, PointType({-1.0, -1.0, -1.0}), 1e-12);
-                QuESo_CHECK_POINT_NEAR(box_1_uvw.second, PointType({1.0, 1.0, 1.0}), 1e-12);
-                QuESo_CHECK_POINT_NEAR(box_2_uvw.first, PointType({-1.0, -1.0, -1.0}), 1e-12);
-                QuESo_CHECK_POINT_NEAR(box_2_uvw.second, PointType({1.0, 1.0, 1.0}), 1e-12);
-                QuESo_CHECK_POINT_NEAR(box_3_uvw.first, PointType({-1.0, -1.0, -1.0}), 1e-12);
-                QuESo_CHECK_POINT_NEAR(box_3_uvw.second, PointType({1.0, 1.0, 1.0}), 1e-12);
+                QuESo_CHECK_POINT_NEAR(box_1_uvw.lower, PointType({-1.0, -1.0, -1.0}), 1e-12);
+                QuESo_CHECK_POINT_NEAR(box_1_uvw.upper, PointType({1.0, 1.0, 1.0}), 1e-12);
+                QuESo_CHECK_POINT_NEAR(box_2_uvw.lower, PointType({-1.0, -1.0, -1.0}), 1e-12);
+                QuESo_CHECK_POINT_NEAR(box_2_uvw.upper, PointType({1.0, 1.0, 1.0}), 1e-12);
+                QuESo_CHECK_POINT_NEAR(box_3_uvw.lower, PointType({-1.0, -1.0, -1.0}), 1e-12);
+                QuESo_CHECK_POINT_NEAR(box_3_uvw.upper, PointType({1.0, 1.0, 1.0}), 1e-12);
 
-                auto delta_box = (box_1_xyz.second - box_1_xyz.first);
+                auto delta_box = (box_1_xyz.upper - box_1_xyz.lower);
                 QuESo_CHECK_LT( std::abs(delta[0]/number_of_elements[0] - delta_box[0]) / delta_box[0], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[1]/number_of_elements[1] - delta_box[1]) / delta_box[1], 1e-12);
                 QuESo_CHECK_LT( std::abs(delta[2]/number_of_elements[2] - delta_box[2]) / delta_box[2], 1e-12);
@@ -189,10 +189,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalXTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
@@ -245,10 +245,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalYTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
@@ -305,10 +305,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingGlobalZTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
@@ -366,10 +366,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalXTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
@@ -463,10 +463,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalYTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();
@@ -562,10 +562,10 @@ BOOST_AUTO_TEST_CASE(GridIndexerIndexWalkingLocalZTest) {
 
     auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
     r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.second);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.first);
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.second);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, bounds_xyz.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, bounds_xyz.upper);
+    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, bounds_uvw.lower);
+    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, bounds_uvw.upper);
     r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
 	r_grid_settings.CheckRequired();

@@ -231,12 +231,12 @@ BOOST_AUTO_TEST_CASE(TriangleMeshComputeElephant2Test) {
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
-                    const auto& r_mesh = p_trimmed_domain->GetTriangleMesh();
-                    volume += MeshUtilities::Volume(r_mesh.View());
+                    const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
+                    volume += MeshUtilities::Volume(mesh_view);
                 }
                 else if (status == IntersectionState::inside ){
-                    const auto p_cube_mesh = MeshUtilities::pGetCuboid(lower_bound, upper_bound);
-                    volume += MeshUtilities::Volume(p_cube_mesh->View());
+                    const auto cube_mesh = MeshUtilities::MakeMeshBox(lower_bound, upper_bound);
+                    volume += MeshUtilities::Volume(cube_mesh.View());
                 }
             }
         }

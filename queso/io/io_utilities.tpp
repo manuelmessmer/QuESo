@@ -117,8 +117,8 @@ void IO::WriteElementsToVTK(
     file << "POINTS " << num_elements * 8 << " double\n";
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for (const auto& r_element : rBackgroundGrid.GetElements()) {
-            const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
+        for (const auto& r_element : rBackgroundGrid.GetElementViews()) {
+            const auto& [lower_point, upper_point] = r_element.template GetCellBounds<CoordinateSpace::global>();
             auto vertices = GetHexahedronVertices(lower_point, upper_point);
             for (const auto& v : vertices) {
                 binary_writer.WriteValue(v[0]);
@@ -127,8 +127,8 @@ void IO::WriteElementsToVTK(
             }
         }
     } else { // ascii
-        for (const auto& r_element : rBackgroundGrid.GetElements()) {
-            const auto& [lower_point, upper_point] = r_element.GetBoundsXYZ();
+        for (const auto& r_element : rBackgroundGrid.GetElementViews()) {
+            const auto& [lower_point, upper_point] = r_element.template GetCellBounds<CoordinateSpace::global>();
             auto vertices = GetHexahedronVertices(lower_point, upper_point);
             for (const auto& v : vertices) {
                 file << v[0] << ' ' << v[1] << ' ' << v[2] << '\n';
@@ -187,9 +187,9 @@ void IO::WritePointsToVTK(
     QuESo_ERROR_IF(!file) << "Could not create/open file: " << rFilename << '.' << std::endl;
 
     const IndexType num_points = std::accumulate(
-        rBackgroundGrid.GetElements().begin(), rBackgroundGrid.GetElements().end(), IndexType{0},
+        rBackgroundGrid.GetElementViews().begin(), rBackgroundGrid.GetElementViews().end(), IndexType{0},
         [](IndexType Acc, const auto& rElement) {
-            return Acc + rElement.GetIntegrationPoints().size();
+            return Acc + rElement.template GetIntegrationPoints<CoordinateSpace::global>().size();
     });
     const IndexType num_elements = num_points;
 
@@ -207,21 +207,17 @@ void IO::WritePointsToVTK(
     file << "POINTS " << num_points << " double\n";
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for(const auto& r_element : rBackgroundGrid.GetElements()) {
-            const auto& r_points = r_element.GetIntegrationPoints();
-            for (const auto& r_point : r_points) {
-                auto point_global = r_element.PointFromParamToGlobal(r_point.Point());
-                binary_writer.WriteValue(point_global[0]);
-                binary_writer.WriteValue(point_global[1]);
-                binary_writer.WriteValue(point_global[2]);
+        for(const auto& r_element : rBackgroundGrid.GetElementViews()) {
+            for (const auto& r_point : r_element.template GetIntegrationPoints<CoordinateSpace::global>()) {
+                binary_writer.WriteValue(r_point[0]);
+                binary_writer.WriteValue(r_point[1]);
+                binary_writer.WriteValue(r_point[2]);
             }
         }
     } else { // ascii
-        for(const auto& r_element : rBackgroundGrid.GetElements()) {
-            const auto& r_points = r_element.GetIntegrationPoints();
-            for (const auto& r_point : r_points) {
-                auto point_global = r_element.PointFromParamToGlobal(r_point.Point());
-                file << point_global[0] << ' ' << point_global[1] << ' ' << point_global[2] << '\n';
+        for(const auto& r_element : rBackgroundGrid.GetElementViews()) {
+            for (const auto& r_point : r_element.template GetIntegrationPoints<CoordinateSpace::global>()) {
+                file << r_point[0] << ' ' << r_point[1] << ' ' << r_point[2] << '\n';
             }
         }
     }
@@ -262,16 +258,16 @@ void IO::WritePointsToVTK(
     file << "LOOKUP_TABLE default\n";
     if(Encoding == EncodingType::binary) {
         BinaryBufferWriter binary_writer(file, BinaryBufferWriter::EndianType::big);
-        for(const auto& r_element : rBackgroundGrid.GetElements()){
-            const auto& points = r_element.GetIntegrationPoints();
+        for(const auto& r_element : rBackgroundGrid.GetElementViews()){
+            const auto& points = r_element.template GetIntegrationPoints<CoordinateSpace::global>();
             for(const auto& point : points ){
                 double weight = point.Weight();
                 binary_writer.WriteValue(weight);
             }
         }
     } else { // ascii
-        for(const auto& r_element : rBackgroundGrid.GetElements()){
-            const auto& points = r_element.GetIntegrationPoints();
+        for(const auto& r_element : rBackgroundGrid.GetElementViews()){
+            const auto& points = r_element.template GetIntegrationPoints<CoordinateSpace::global>();
             for(const auto& point : points ){
                 file << point.Weight() << '\n';
             }

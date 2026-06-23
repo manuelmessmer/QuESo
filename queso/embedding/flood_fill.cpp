@@ -150,7 +150,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
     rVisited[Index] = true;
     const auto box = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
     // Only start filling if current element is not trimmed.
-    if( mpBrepOperator->IsTrimmed(box.first, box.second) ){
+    if( mpBrepOperator->IsTrimmed(box.lower, box.upper) ){
         rStates[Index] = IntersectionState::trimmed;
     } else {
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
@@ -194,7 +194,7 @@ std::optional<IndexType> FloodFill::Move(IndexType Index, Direction Dir, GroupSe
     // If next box is trimmed, add inside count.
     // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
     auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-    if( mpBrepOperator->IsTrimmed( (box_next.first + lower_perturb) , (box_next.second + upper_perturb) )){
+    if( mpBrepOperator->IsTrimmed( (box_next.lower + lower_perturb) , (box_next.upper + upper_perturb) )){
         // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
         std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
         return std::nullopt;
@@ -206,7 +206,7 @@ std::optional<IndexType> FloodFill::Move(IndexType Index, Direction Dir, GroupSe
     }
 
     // Is trimmed.
-    if( mpBrepOperator->IsTrimmed(box_next.first, box_next.second) ){
+    if( mpBrepOperator->IsTrimmed(box_next.lower, box_next.upper) ){
         rVisited[next_index] = true;
         rStates[next_index] = IntersectionState::trimmed;
         return std::nullopt;
@@ -260,7 +260,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[0]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[0]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( !mpBrepOperator->IsTrimmed((box_next.first + lower_offset), (box_next.second + upper_offset) ) ) {
+                if( !mpBrepOperator->IsTrimmed((box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ) {
                     if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
                         std::get<1>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
                         boundary_indices[1].clear();
@@ -273,7 +273,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[1]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[1]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( !mpBrepOperator->IsTrimmed( (box_next.first + lower_offset), (box_next.second + upper_offset) ) ){
+                if( !mpBrepOperator->IsTrimmed( (box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ){
                     if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
                         std::get<0>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
                         boundary_indices[0].clear();
@@ -288,7 +288,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[0]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[0]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( mpBrepOperator->IsTrimmed( (box_next.first + lower_offset), (box_next.second + upper_offset) ) ){
+                if( mpBrepOperator->IsTrimmed( (box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
@@ -297,7 +297,7 @@ void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMe
                 const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[1]);
                 const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[1]);
                 auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( mpBrepOperator->IsTrimmed( (box_next.first + lower_offset), (box_next.second + upper_offset) ) ){
+                if( mpBrepOperator->IsTrimmed( (box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ){
                     std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
                 }
             }
@@ -377,9 +377,9 @@ void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVec
 int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
     const auto box_current = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
     const auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(NextIndex);
-    const PointType center_box = (0.5 * (box_current.first + box_current.second));
+    const PointType center_box = (0.5 * (box_current.lower + box_current.upper));
 
-    if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, (box_next.first + rLowerOffset) , (box_next.second + rUpperOffset) ) ) {
+    if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, (box_next.lower + rLowerOffset) , (box_next.upper + rUpperOffset) ) ) {
         return 1;
     } else {
         return -1;
@@ -391,20 +391,20 @@ BoundingBoxType FloodFill::GetOffsets(Direction Dir ) const {
     const double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
     switch(Dir){
         case Direction::x_forward:
-            return std::make_pair(PointType{-tolerance, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
+            return MakeBox(PointType{-tolerance, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
         case Direction::x_backward:
-            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{tolerance, 0.0, 0.0});
+            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{tolerance, 0.0, 0.0});
         case Direction::y_forward:
-            return std::make_pair(PointType{0.0, -tolerance, 0.0}, PointType{0.0, 0.0, 0.0});
+            return MakeBox(PointType{0.0, -tolerance, 0.0}, PointType{0.0, 0.0, 0.0});
         case Direction::y_backward:
-            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, tolerance, 0.0});
+            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{0.0, tolerance, 0.0});
         case Direction::z_forward:
-            return std::make_pair(PointType{0.0, 0.0, -tolerance}, PointType{0.0, 0.0, 0.0});
+            return MakeBox(PointType{0.0, 0.0, -tolerance}, PointType{0.0, 0.0, 0.0});
         case Direction::z_backward:
-            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, tolerance});
+            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, tolerance});
         default:
             assert(false);
-            return std::make_pair(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
+            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
     }
 }
 

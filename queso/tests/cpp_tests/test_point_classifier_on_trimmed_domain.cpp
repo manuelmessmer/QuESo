@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        const Vector3d lower_bound = bounding_box.first;
-        const Vector3d upper_bound = bounding_box.second;
+        const Vector3d lower_bound = bounding_box.lower;
+        const Vector3d upper_bound = bounding_box.upper;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 0.1;
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite) {
                     for(double p_z = lower_bound[2]+delta_p_z/2.0; p_z <= upper_bound[2]; p_z += delta_p_z){
                         // Make sure both functions produce the same result.
                         PointType test_point = {p_x, p_y, p_z};
-                        bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
+                        bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
                         bool res2 = brep_operator.IsInside(test_point);
                         QuESo_CHECK_EQUAL(res1, res2);
                     }
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest) {
                             for(double p_z = lower_bound[2]+delta_p_z/2.0; p_z <= upper_bound[2]; p_z += delta_p_z){
                                 // Make sure both functions produce the same result.
                                 PointType test_point = {p_x, p_y, p_z};
-                                bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
+                                bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
                                 bool res2 = brep_operator.IsInside(test_point);
                                 QuESo_CHECK_EQUAL(res1, res2);
                             }
@@ -175,8 +175,8 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound = bounding_box.first;
-        Vector3d upper_bound = bounding_box.second;
+        Vector3d lower_bound = bounding_box.lower;
+        Vector3d upper_bound = bounding_box.upper;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 0.01;
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest) {
                     for(double p_z = lower_bound[2]+delta_p_z/2.0; p_z <= upper_bound[2]; p_z += delta_p_z){
                         // Make sure both functions produce the same result.
                         PointType test_point = {p_x, p_y, p_z};
-                        bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
+                        bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
                         bool res2 = brep_operator.IsInside(test_point);
                         QuESo_CHECK_EQUAL(res1, res2);
                     }
@@ -230,8 +230,8 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
     IndexType num_of_trimmed_elements = 0;
     for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound = bounding_box.first;
-        Vector3d upper_bound = bounding_box.second;
+        Vector3d lower_bound = bounding_box.lower;
+        Vector3d upper_bound = bounding_box.upper;
         if( brep_operator.GetIntersectionState(lower_bound, upper_bound) == IntersectionState::trimmed){
             auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
             const double delta_p_x = 2;
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest) {
                     for(double p_z = lower_bound[2]+delta_p_z/2.0; p_z <= upper_bound[2]; p_z += delta_p_z){
                         // Make sure both functions produce the same result.
                         PointType test_point = {p_x, p_y, p_z};
-                        bool res1 = p_trimmed_domain->IsInsideTrimmedDomain(test_point);
+                        bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
                         bool res2 = brep_operator.IsInside(test_point);
                         QuESo_CHECK_EQUAL(res1, res2);
                     }

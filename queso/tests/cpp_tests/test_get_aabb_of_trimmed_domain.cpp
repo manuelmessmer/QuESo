@@ -15,7 +15,7 @@
 #include <boost/test/unit_test.hpp>
 //// Project includes
 #include "queso/includes/checks.hpp"
-#include "queso/containers/background_grid.hpp"
+#include "queso/includes/define.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 
     // Instantiate brep_operator
     BRepOperator brep_operator(triangle_mesh);
+	auto dummy_bounds = ElementBounds{MakeBox({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), MakeBox({0.0,0.0,0.0}, {0.0, 0.0, 0.0})};
 
     const double delta_x = 0.50;
     const double delta_y = 0.50;
@@ -56,8 +57,8 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
-                    auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
+                    auto bounding_box = p_trimmed_domain->GetBounds<CoordinateSpace::global>(dummy_bounds);
+                    const double norm = Math::Norm( (bounding_box.upper - bounding_box.lower) );
                     results.push_back( norm );
                 }
             }
@@ -79,6 +80,7 @@ BOOST_AUTO_TEST_CASE(CylinderBoundingBoxOfTrimmedDomainTest) {
 BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
     QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Cube" << std::endl;
 
+	auto dummy_bounds = ElementBounds{MakeBox({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), MakeBox({0.0,0.0,0.0}, {0.0, 0.0, 0.0})};
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
@@ -105,8 +107,8 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
-                    auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
+                    auto bounding_box = p_trimmed_domain->GetBounds<CoordinateSpace::global>(dummy_bounds);
+                    const double norm = Math::Norm( (bounding_box.upper - bounding_box.lower) );
                     results.push_back( norm );
                 }
             }
@@ -129,6 +131,7 @@ BOOST_AUTO_TEST_CASE(CubeBoundingBoxOfTrimmedDomainTest) {
 BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
     QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Elephant" << std::endl;
 
+	auto dummy_bounds = ElementBounds{MakeBox({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), MakeBox({0.0,0.0,0.0}, {0.0, 0.0, 0.0})};
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
@@ -155,8 +158,8 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
-                    auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
+                    auto bounding_box = p_trimmed_domain->GetBounds<CoordinateSpace::global>(dummy_bounds);
+                    const double norm = Math::Norm( (bounding_box.upper - bounding_box.lower) );
                     results.push_back( norm );
                 }
             }
@@ -179,6 +182,7 @@ BOOST_AUTO_TEST_CASE(ElephantBoundingBoxOfTrimmedDomainTest) {
 BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
     QuESo_INFO << "Testing :: Test Bounding Box Of Trimmed Domain:: Bunny" << std::endl;
 
+	auto dummy_bounds = ElementBounds{MakeBox({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), MakeBox({0.0,0.0,0.0}, {0.0, 0.0, 0.0})};
     // Read mesh from STL file
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
@@ -205,8 +209,8 @@ BOOST_AUTO_TEST_CASE(BunnyBoundingBoxOfTrimmedDomainTest) {
                 auto status = brep_operator.GetIntersectionState(lower_bound, upper_bound);
                 if( status == IntersectionState::trimmed){
                     auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound, upper_bound, min_vol_ratio, min_num_triangles);
-                    auto bounding_box = p_trimmed_domain->GetBoundingBoxOfTrimmedDomain();
-                    const double norm = Math::Norm( (bounding_box.second - bounding_box.first) );
+                    auto bounding_box = p_trimmed_domain->GetBounds<CoordinateSpace::global>(dummy_bounds);
+                    const double norm = Math::Norm( (bounding_box.upper - bounding_box.lower) );
                     results.push_back( norm );
                 }
             }

@@ -56,8 +56,8 @@ public:
     static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::gauss) {
         auto& integration_points = rElement.GetIntegrationPoints();
 
-        PointType lower_bound_param = rElement.GetBoundsUVW().first;
-        PointType upper_bound_param = rElement.GetBoundsUVW().second;
+        PointType lower_bound_param = rElement.template GetCellBounds<CoordinateSpace::parametric>().lower;
+        PointType upper_bound_param = rElement.template GetCellBounds<CoordinateSpace::parametric>().upper;
 
         AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rOrder, Method);
     }
