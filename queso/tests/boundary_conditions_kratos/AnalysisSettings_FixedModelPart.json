@@ -1,0 +1,29 @@
+{
+    "model_parts": [
+        {
+            "name": "NurbsMesh",
+            "geometries": [
+                {
+                    "name": "NurbsVolume",
+                    "fixed_model_parts": [
+                        {
+                            "model_part_name": "main",
+                            "fix": "DISPLACEMENT_X"
+                        }
+                    ],
+                    "queso_components": [
+                        {
+                            "component_name": "main",
+                            "element_settings": {
+                                "property_id": 1
+                            },
+                            "condition_settings": {
+                                "active_condition_ids": [1]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

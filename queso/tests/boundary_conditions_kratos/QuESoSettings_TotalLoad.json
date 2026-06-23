@@ -21,7 +21,7 @@
     },
     "conditions_settings_list"    :  [{
             "condition_id" : 1,
-            "condition_type" : "SurfaceLoadCondition",
+            "condition_type" : "TotalLoadCondition",
             "input_filename" : "queso/tests/steering_knuckle_kratos/data/N1.stl",
             "modulus" : 50.0,
             "direction" : [1.0, 1.0, 1.0]

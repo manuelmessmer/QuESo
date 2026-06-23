@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "NurbsMesh",
+        "model_part_name" : "Structure.NurbsMesh",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {

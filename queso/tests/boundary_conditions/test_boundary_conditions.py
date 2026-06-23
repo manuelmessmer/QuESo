@@ -16,7 +16,7 @@ class TestBoundaryConditions(QuESoTestCase):
     def check_values(self, pyqueso):
         for condition in pyqueso.conditions("main"):
             condition_settings = condition.GetSettings()
-            if condition_settings.GetString("condition_type") == "SurfaceLoadCondition":
+            if condition_settings.GetString("condition_type") == "TotalLoadCondition":
                 input_filename = condition_settings.GetString("input_filename")
                 self.assertEqual(input_filename, self._expected_path("queso/tests/steering_knuckle_kratos/data/N1.stl"))
                 modulus = condition_settings.GetDouble("modulus")

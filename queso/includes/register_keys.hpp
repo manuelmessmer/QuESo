@@ -117,7 +117,7 @@ QuESo_REGISTER_KEY_SET(NonTrimmedQuadratureRuleSettings, MainValuesTypeTag,
 // --- ConditionSettings ---
 // Values
 QuESo_DEFINE_KEY_SET( ConditionSettings, MainValuesTypeTag,
-    QuESo_KEY_LIST(condition_id, condition_type, input_filename, modulus, direction, value, penalty_factor) );
+    QuESo_KEY_LIST(condition_id, condition_type, input_filename, modulus, direction, value, penalty_factor, coupling_partner, slip));
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_id, MainValuesTypeTag, IndexType, KeyRequirement::required);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, condition_type, MainValuesTypeTag, std::string, KeyRequirement::optional);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, input_filename, MainValuesTypeTag, std::string, KeyRequirement::required);
@@ -125,6 +125,8 @@ QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, modulus, MainValuesTypeTag, double,
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, direction, MainValuesTypeTag, PointType, KeyRequirement::optional);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, value, MainValuesTypeTag, PointType, KeyRequirement::optional);
 QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, penalty_factor, MainValuesTypeTag, double, KeyRequirement::optional);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, coupling_partner, MainValuesTypeTag, std::string, KeyRequirement::optional);
+QuESo_DEFINE_KEY_TO_VALUE(ConditionSettings, slip, MainValuesTypeTag, bool, KeyRequirement::optional);
 QuESo_REGISTER_KEY_SET(ConditionSettings, MainValuesTypeTag,
     QuESo_KEY(ConditionSettings::condition_id),
     QuESo_KEY(ConditionSettings::condition_type),
@@ -132,7 +134,9 @@ QuESo_REGISTER_KEY_SET(ConditionSettings, MainValuesTypeTag,
     QuESo_KEY(ConditionSettings::modulus),
     QuESo_KEY(ConditionSettings::direction),
     QuESo_KEY(ConditionSettings::value),
-    QuESo_KEY(ConditionSettings::penalty_factor)
+    QuESo_KEY(ConditionSettings::penalty_factor),
+    QuESo_KEY(ConditionSettings::coupling_partner),
+    QuESo_KEY(ConditionSettings::slip)
 );
 
 /* --- Keys for ComponentInfo --- */

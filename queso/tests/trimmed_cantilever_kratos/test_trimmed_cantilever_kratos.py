@@ -131,8 +131,8 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
 
             settings = self.pyqueso.settings("main")
             grid_settings = settings["background_grid_settings"]
-            lower_bound = grid_settings.GetDoubleVector("lower_bound_xyz")
-            upper_bound = grid_settings.GetDoubleVector("upper_bound_xyz")
+            lower_bound = grid_settings["lower_bound_xyz"]
+            upper_bound = grid_settings["upper_bound_xyz"]
             self.CheckErrorInDisplacement(lower_bound, upper_bound, nurbs_volume, tolerance)
 
     def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):
