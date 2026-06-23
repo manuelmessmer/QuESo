@@ -11,41 +11,42 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef TRIMMED_ELEMENT_INCLUDE_HPP
-#define TRIMMED_ELEMENT_INCLUDE_HPP
+#pragma once
 
 //// STL includes
-#include <vector>
 #include <numeric>
+#include <vector>
 
 //// Project includes
 #include "queso/embedding/octree.h"
-#include "queso/utilities/polynomial_utilities.hpp"
 #include "queso/solvers/nnls.h"
+#include "queso/utilities/polynomial_utilities.hpp"
 
 namespace queso {
 
 ///@name QuESo Classes
 ///@{
 
-/**
- * @class  QuadratureTrimmedElement.
- * @author Manuel Messmer
- * @brief  Provides functions to create integration rules for trimmed elements.
- * @tparam TElementType
-**/
+/// @class  QuadratureTrimmedElement.
+/// @author Manuel Messmer
+/// @brief  Provides functions to create integration rules for trimmed elements.
+/// @tparam TElementType
 template<typename TElementType>
-class QuadratureTrimmedElement{
+class QuadratureTrimmedElement
+{
 public:
     ///@name Type Definition
     ///@{
-    typedef TElementType ElementType;
-    typedef typename ElementType::IntegrationPointType IntegrationPointType;
-    typedef typename ElementType::IntegrationPointVectorType IntegrationPointVectorType;
-    typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
-    typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
-    typedef std::vector<BoundaryIntegrationPointType> BoundaryIPsVectorType;
-    typedef std::vector<double> VectorType;
+    using ElementType = TElementType;
+
+    using IntegrationPointType = typename ElementType::IntegrationPointType;
+    using IntegrationPointVectorType = typename ElementType::IntegrationPointVectorType;
+    using IntegrationPointVectorPtrType = Unique<IntegrationPointVectorType>;
+
+    using BoundaryIntegrationPointType = typename ElementType::BoundaryIntegrationPointType;
+    using BoundaryIPsVectorType = std::vector<BoundaryIntegrationPointType>;
+
+    using VectorType = std::vector<double>;
 
     ///@}
     ///@name Operations
@@ -60,10 +61,20 @@ public:
     ///@param rElement
     ///@param rIntegrationOrder
     ///@param Residual Targeted residual
+	///@param maybeAlpha Optional alpha value for fictitious domain
     ///@param EchoLevel Default: 0
-    static double AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel=0) {
+    static double AssembleIPs(
+        ElementType& rElement,
+        const Vector3i& rIntegrationOrder,
+        double Residual,
+		std::optional<double> maybeAlpha,
+        IndexType EchoLevel = 0
+    )
+    {
         // Get boundary integration points.
-        const auto boundary_ips = rElement.template GetActiveDomainBoundaryIps<typename TElementType::BoundaryIntegrationPointType, CoordinateSpace::global>();
+        const auto boundary_ips = rElement.template GetActiveDomainBoundaryIps<
+            typename TElementType::BoundaryIntegrationPointType,
+            CoordinateSpace::global>();
 
         // Get constant terms.
         VectorType constant_terms{};
@@ -83,28 +94,32 @@ public:
 
         const IndexType max_iteration = (Math::Max(rIntegrationOrder) == 2) ? 4UL : 3UL;
         // If residual can not be statisfied, try with more points in initial set.
-        while( residual > Residual && iteration < max_iteration){
+        while (residual > Residual && iteration < max_iteration) {
 
             // Distribute intial points via an octree.
-            const SizeType min_num_points = (rIntegrationOrder[0]+1)*(rIntegrationOrder[1]+1)*(rIntegrationOrder[2]+1)*(point_distribution_factor);
+            const SizeType min_num_points = (rIntegrationOrder[0] + 1) * (rIntegrationOrder[1] + 1)
+                                            * (rIntegrationOrder[2] + 1) * (point_distribution_factor);
             DistributeIntegrationPoints(integration_points, octree, min_num_points, rIntegrationOrder);
 
             // If no point is contained in integration_points -> exit.
-            if( integration_points.size() == 0 ){
+            if (integration_points.size() == 0) {
                 rElement.GetIntegrationPoints().clear();
                 return 1;
             }
 
-            // Also add old, moment fitted points to new set. 'old_integration_points' only contains points with weights > 0.0;
+            // Also add old, moment fitted points to new set. 'old_integration_points' only contains points with weights
+            // > 0.0;
             auto& old_integration_points = rElement.GetIntegrationPoints();
-            integration_points.insert(integration_points.end(), old_integration_points.begin(), old_integration_points.end() );
+            integration_points.insert(
+                integration_points.end(), old_integration_points.begin(), old_integration_points.end()
+            );
             old_integration_points.clear();
 
             // Run point elimination.
             residual = PointElimination(constant_terms, integration_points, rElement, rIntegrationOrder, Residual);
 
             // If residual is very high, remove all points. Note, elements without points will be neglected.
-            if( residual > 1e-2 ) {
+            if (residual > 1e-2) {
                 auto& reduced_points = rElement.GetIntegrationPoints();
                 reduced_points.clear();
             }
@@ -114,14 +129,12 @@ public:
             iteration++;
         }
 
-        if( residual > Residual && EchoLevel > 2){
-            QuESo_INFO << "Warning :: Moment Fitting :: Targeted residual (" << Residual << ") is not achieved for element id: " << rElement.GetId() << ". Residual: " << residual << ".\n";
-            //if( rParam.EchoLevel() > 3 ) {
-            // const std::string filename = "queso_output/residual_not_achieved_id_" + std::to_string(rElement.GetId()) + ".stl";
-            // IO::WriteMeshToSTL(p_trimmed_domain->GetTriangleMesh(), filename.c_str(), true);
-            //}
+        if (residual > Residual && EchoLevel > 2) {
+            QuESo_INFO << "Warning :: Moment Fitting :: Targeted residual (" << Residual
+                       << ") is not achieved for element id: " << rElement.GetId() << ". Residual: " << residual
+                       << ".\n";
         }
-
+        if (maybeAlpha.has_value()) { AssembleFictitiousIPs(rElement, rIntegrationOrder, maybeAlpha.value()); }
         return residual;
     }
 
@@ -130,7 +143,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// @brief Distributes point within trimmed domain using an octree. In each leaf node, Gauss points according to rIntegrationOrder are generated.
+    /// @brief Distributes point within trimmed domain using an octree. In each leaf node, Gauss points according to
+    /// rIntegrationOrder are generated.
     ///        Only points inside the trimmed domain are considered.
     ///        Every time this function is called the otree is refined and more points are distributed.
     /// @param[out] rIntegrationPoint
@@ -142,12 +156,13 @@ protected:
         IntegrationPointVectorType& rIntegrationPoint,
         Octree<TOctreeOperator>& rOctree,
         SizeType MinNumPoints,
-        const Vector3i& rIntegrationOrder)
+        const Vector3i& rIntegrationOrder
+    )
     {
-        IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
+        IndexType refinemen_level = rOctree.MaxRefinementLevel() + 1;
         const IndexType max_iteration = 5UL;
         IndexType iteration = 0UL;
-        while( rIntegrationPoint.size() < MinNumPoints && iteration < max_iteration){
+        while (rIntegrationPoint.size() < MinNumPoints && iteration < max_iteration) {
             rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
             rIntegrationPoint.clear();
             rOctree.template AddIntegrationPoints<TElementType>(rIntegrationPoint, rIntegrationOrder);
@@ -161,7 +176,13 @@ protected:
     /// @param pIntegrationPoints (Unique<T>)
     /// @param rElement
     /// @param rIntegrationOrder
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
+    static void ComputeConstantTerms(
+        VectorType& rConstantTerms,
+        const IntegrationPointVectorPtrType& pIntegrationPoints,
+        const ElementType& rElement,
+        const Vector3i& rIntegrationOrder
+    )
+    {
         // Initialize const variables.
         const PointType& a = rElement.template GetCellBounds<CoordinateSpace::parametric>().lower;
         const PointType& b = rElement.template GetCellBounds<CoordinateSpace::parametric>().upper;
@@ -171,24 +192,25 @@ protected:
         const IndexType order_v = rIntegrationOrder[1];
         const IndexType order_w = rIntegrationOrder[2];
 
-        const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+        const IndexType number_of_functions =
+            (order_u * ffactor + 1) * (order_v * ffactor + 1) * (order_w * ffactor + 1);
 
         // Resize constant terms.
         rConstantTerms.resize(number_of_functions, false);
-        std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
+        std::fill(rConstantTerms.begin(), rConstantTerms.end(), 0.0);
 
         // Loop over all boundary integration points.
-		for( const auto& r_point : (*pIntegrationPoints) ) {
+        for (const auto& r_point : (*pIntegrationPoints)) {
             // For all functions
-			IndexType row_index = 0UL;
+            IndexType row_index = 0UL;
             const double weight = r_point.Weight();
-            for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-                for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-                    for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
+            for (IndexType i_x = 0; i_x <= order_u * ffactor; ++i_x) {
+                for (IndexType i_y = 0; i_y <= order_v * ffactor; ++i_y) {
+                    for (IndexType i_z = 0; i_z <= order_w * ffactor; ++i_z) {
                         // Assemble RHS
                         const double value = Polynomial::f_x(r_point[0], i_x, a[0], b[0])
-                            * Polynomial::f_x(r_point[1], i_y, a[1], b[1])
-                            * Polynomial::f_x(r_point[2], i_z, a[2], b[2]);
+                                             * Polynomial::f_x(r_point[1], i_y, a[1], b[1])
+                                             * Polynomial::f_x(r_point[2], i_z, a[2], b[2]);
                         rConstantTerms[row_index] += value * weight;
                         row_index++;
                     }
@@ -197,13 +219,20 @@ protected:
         }
     }
 
-    /// @brief Computes constant terms of moment fitting equation via boundary integration points. This functions uses the divergence theorem
+    /// @brief Computes constant terms of moment fitting equation via boundary integration points. This functions uses
+    /// the divergence theorem
     //         to transform the respective volume integrals to countour/surface integrals.
     /// @param[out] rConstantTerms
     /// @param rBoundaryIPs
     /// @param rElement
     /// @param rIntegrationOrder
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorType& rBoundaryIPs, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
+    static void ComputeConstantTerms(
+        VectorType& rConstantTerms,
+        const BoundaryIPsVectorType& rBoundaryIPs,
+        const ElementType& rElement,
+        const Vector3i& rIntegrationOrder
+    )
+    {
         // Initialize const variables.
         const auto bounds_xyz = rElement.template GetCellBounds<CoordinateSpace::global>();
 
@@ -216,59 +245,60 @@ protected:
         const IndexType order_v = rIntegrationOrder[1];
         const IndexType order_w = rIntegrationOrder[2];
 
-        const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+        const IndexType number_of_functions =
+            (order_u * ffactor + 1) * (order_v * ffactor + 1) * (order_w * ffactor + 1);
 
         // Resize constant terms.
         rConstantTerms.resize(number_of_functions, false);
-        std::fill( rConstantTerms.begin(),rConstantTerms.end(), 0.0);
+        std::fill(rConstantTerms.begin(), rConstantTerms.end(), 0.0);
 
         /// Initialize containers for f_x and f_x_int
         // X-direction
-        std::vector<double> f_x_x(order_u*ffactor+1);
-        std::vector<double> f_x_int_x(order_u*ffactor+1);
+        std::vector<double> f_x_x(order_u * ffactor + 1);
+        std::vector<double> f_x_int_x(order_u * ffactor + 1);
         // Y-direction
-        std::vector<double> f_x_y(order_v*ffactor+1);
-        std::vector<double> f_x_int_y(order_v*ffactor+1);
+        std::vector<double> f_x_y(order_v * ffactor + 1);
+        std::vector<double> f_x_int_y(order_v * ffactor + 1);
         // Z-direction
-        std::vector<double> f_x_z(order_w*ffactor+1);
-        std::vector<double> f_x_int_z(order_w*ffactor+1);
+        std::vector<double> f_x_z(order_w * ffactor + 1);
+        std::vector<double> f_x_int_z(order_w * ffactor + 1);
 
         // Loop over all boundary integration points.
         IndexType row_index = 0;
-        for( const auto& r_point : rBoundaryIPs ) {
+        for (const auto& r_point : rBoundaryIPs) {
             // Note: The evaluation of polynomials is expensive. Therefore, we precompute and store values
             // for f_x_x and f_x_int at each point.
             const auto& normal = r_point.Normal();
 
             // X-Direction
-            for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for (IndexType i_x = 0; i_x <= order_u * ffactor; ++i_x) {
                 f_x_x[i_x] = Polynomial::f_x(r_point[0], i_x, a[0], b[0]);
                 f_x_int_x[i_x] = Polynomial::f_x_int(r_point[0], i_x, a[0], b[0]);
             }
             // Y-Direction
-            for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y){
+            for (IndexType i_y = 0; i_y <= order_v * ffactor; ++i_y) {
                 f_x_y[i_y] = Polynomial::f_x(r_point[1], i_y, a[1], b[1]);
                 f_x_int_y[i_y] = Polynomial::f_x_int(r_point[1], i_y, a[1], b[1]);
             }
             // Z-Direction
-            for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
+            for (IndexType i_z = 0; i_z <= order_w * ffactor; ++i_z) {
                 f_x_z[i_z] = Polynomial::f_x(r_point[2], i_z, a[2], b[2]);
                 f_x_int_z[i_z] = Polynomial::f_x_int(r_point[2], i_z, a[2], b[2]);
             }
 
             // Assembly RHS
             row_index = 0;
-            const double weight = 1.0/3.0*r_point.Weight();
-            for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-                for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-                    for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
+            const double weight = 1.0 / 3.0 * r_point.Weight();
+            for (IndexType i_x = 0; i_x <= order_u * ffactor; ++i_x) {
+                for (IndexType i_y = 0; i_y <= order_v * ffactor; ++i_y) {
+                    for (IndexType i_z = 0; i_z <= order_w * ffactor; ++i_z) {
                         // Compute normal for each face/triangle.
                         PointType value;
-                        value[0] = f_x_int_x[i_x]*f_x_y[i_y]*f_x_z[i_z];
-                        value[1] = f_x_x[i_x]*f_x_int_y[i_y]*f_x_z[i_z];
-                        value[2] = f_x_x[i_x]*f_x_y[i_y]*f_x_int_z[i_z];
+                        value[0] = f_x_int_x[i_x] * f_x_y[i_y] * f_x_z[i_z];
+                        value[1] = f_x_x[i_x] * f_x_int_y[i_y] * f_x_z[i_z];
+                        value[2] = f_x_x[i_x] * f_x_y[i_y] * f_x_int_z[i_z];
 
-                        double integrand = normal[0]*value[0] + normal[1]*value[1] + normal[2]*value[2];
+                        double integrand = normal[0] * value[0] + normal[1] * value[1] + normal[2] * value[2];
                         rConstantTerms[row_index] += integrand * weight;
                         row_index++;
                     }
@@ -277,14 +307,21 @@ protected:
         }
     }
 
-    /// @brief Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
+    /// @brief Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the
+    /// integration points.
     ///        Computed weights are directly assigned to rIntegrationPoint.
     /// @param rConstantTerms
     /// @param[out] rIntegrationPoint
     /// @param rElement
     /// @param rIntegrationOrder
     /// @return double Relative residual ||ax -b||_L2 / ||b||_L2
-    static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const ElementType& rElement, const Vector3i& rIntegrationOrder) {
+    static double MomentFitting(
+        const VectorType& rConstantTerms,
+        IntegrationPointVectorType& rIntegrationPoint,
+        const ElementType& rElement,
+        const Vector3i& rIntegrationOrder
+    )
+    {
 
         PointType a = rElement.template GetCellBounds<CoordinateSpace::parametric>().lower;
         PointType b = rElement.template GetCellBounds<CoordinateSpace::parametric>().upper;
@@ -296,25 +333,27 @@ protected:
         const IndexType order_v = rIntegrationOrder[1];
         const IndexType order_w = rIntegrationOrder[2];
 
-        const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
+        const IndexType number_of_functions =
+            (order_u * ffactor + 1) * (order_v * ffactor + 1) * (order_w * ffactor + 1);
         const IndexType number_reduced_points = rIntegrationPoint.size();
 
-        const double l2_norm_ct = std::sqrt( std::inner_product(rConstantTerms.begin(), rConstantTerms.end(), rConstantTerms.begin(), 0.0) );
+        const double l2_norm_ct =
+            std::sqrt(std::inner_product(rConstantTerms.begin(), rConstantTerms.end(), rConstantTerms.begin(), 0.0));
 
         /// Assemble moment fitting matrix.
         NNLS::MatrixType fitting_matrix(number_of_functions * number_reduced_points, 0.0);
         const auto points_it_begin = rIntegrationPoint.begin();
-        for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
+        for (IndexType column_index = 0; column_index < number_reduced_points; ++column_index) {
             auto point_it = points_it_begin + static_cast<std::ptrdiff_t>(column_index);
             IndexType row_index = 0;
-            for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-                for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-                    for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
+            for (IndexType i_x = 0; i_x <= order_u * ffactor; ++i_x) {
+                for (IndexType i_y = 0; i_y <= order_v * ffactor; ++i_y) {
+                    for (IndexType i_z = 0; i_z <= order_w * ffactor; ++i_z) {
                         const double value = Polynomial::f_x((*point_it)[0], i_x, a[0], b[0])
-                                        * Polynomial::f_x((*point_it)[1], i_y, a[1], b[1])
-                                        * Polynomial::f_x((*point_it)[2], i_z, a[2], b[2]);
+                                             * Polynomial::f_x((*point_it)[1], i_y, a[1], b[1])
+                                             * Polynomial::f_x((*point_it)[2], i_z, a[2], b[2]);
                         // Matrix is serialized: Column first.
-                        fitting_matrix[column_index*number_of_functions + row_index] = value;
+                        fitting_matrix[column_index * number_of_functions + row_index] = value;
                         row_index++;
                     }
                 }
@@ -323,13 +362,14 @@ protected:
 
         // Solve non-negative Least-Square-Error problem.
         VectorType weights(number_reduced_points);
-        VectorType tmp_constant_terms(rConstantTerms); // NNLS::solve does modify input. Therefore, copy is required.
+        VectorType tmp_constant_terms(rConstantTerms);// NNLS::solve does modify input. Therefore, copy is required.
         const double rel_residual = NNLS::solve(fitting_matrix, tmp_constant_terms, weights) / l2_norm_ct;
 
         // Write computed weights onto integration points
-        for( IndexType i = 0; i < number_reduced_points; ++i){
-            // Divide by det_jacobian to account for the corresponding multiplication during the element integration within the used external solver.
-            double new_weight = weights[i]/(jacobian);
+        for (IndexType i = 0; i < number_reduced_points; ++i) {
+            // Divide by det_jacobian to account for the corresponding multiplication during the element integration
+            // within the used external solver.
+            double new_weight = weights[i] / (jacobian);
             rIntegrationPoint[i].SetWeight(new_weight);
         }
 
@@ -343,14 +383,22 @@ protected:
     /// @param rIntegrationOrder
     /// @param Residual targeted residual
     /// @return double achieved residual
-    static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual){
+    static double PointElimination(
+        const VectorType& rConstantTerms,
+        IntegrationPointVectorType& rIntegrationPoint,
+        ElementType& rElement,
+        const Vector3i& rIntegrationOrder,
+        double Residual
+    )
+    {
         /// Initialize variables.
         const SizeType ffactor = 1;
         const SizeType order_u = rIntegrationOrder[0];
         const SizeType order_v = rIntegrationOrder[1];
         const SizeType order_w = rIntegrationOrder[2];
-        const IndexType number_of_functions = (order_u*ffactor + 1) * (order_v*ffactor+1) * (order_w*ffactor + 1);
-        const IndexType min_number_of_points = order_u*order_v*order_w;
+        const IndexType number_of_functions =
+            (order_u * ffactor + 1) * (order_v * ffactor + 1) * (order_w * ffactor + 1);
+        const IndexType min_number_of_points = order_u * order_v * order_w;
 
         const double targeted_residual = Residual;
         double global_residual = MIND;
@@ -360,31 +408,42 @@ protected:
         bool point_is_eliminated = false;
         IntegrationPointVectorType prev_solution{};
 
-        // If any point is eliminated, we must run another moment fitting loop, to guarantee that the weights are correct.
-        // Also keep iterating, until targeted_residual is stepped over.
-        while( point_is_eliminated || (global_residual < targeted_residual && number_iterations < maximum_iteration) ){
+        // If any point is eliminated, we must run another moment fitting loop, to guarantee that the weights are
+        // correct. Also keep iterating, until targeted_residual is stepped over.
+        while (point_is_eliminated || (global_residual < targeted_residual && number_iterations < maximum_iteration)) {
             point_is_eliminated = false;
             global_residual = MomentFitting(rConstantTerms, rIntegrationPoint, rElement, rIntegrationOrder);
-            if( number_iterations == 0UL){
+            if (number_iterations == 0UL) {
                 /// In first iteration, revome all points but #number_of_functions
                 // Sort integration points according to weight.
-                std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPointType& point_a, const IntegrationPointType& point_b) -> bool {
+                std::sort(
+                    rIntegrationPoint.begin(),
+                    rIntegrationPoint.end(),
+                    [](const IntegrationPointType& point_a, const IntegrationPointType& point_b) -> bool {
                         return point_a.Weight() > point_b.Weight();
-                    });
+                    }
+                );
                 // Only keep #number_of_functions integration points.
-                rIntegrationPoint.erase(rIntegrationPoint.begin()+static_cast<std::ptrdiff_t>(number_of_functions), rIntegrationPoint.end());
+                rIntegrationPoint.erase(
+                    rIntegrationPoint.begin() + static_cast<std::ptrdiff_t>(number_of_functions),
+                    rIntegrationPoint.end()
+                );
 
                 // Additionally remove all points that are zero.
-                rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPointType& point) {
-                    return point.Weight() < ZEROTOL; }), rIntegrationPoint.end());
+                rIntegrationPoint.erase(
+                    std::remove_if(
+                        rIntegrationPoint.begin(),
+                        rIntegrationPoint.end(),
+                        [](const IntegrationPointType& point) { return point.Weight() < ZEROTOL; }
+                    ),
+                    rIntegrationPoint.end()
+                );
 
                 // Stop if no points are left.
-                if( rIntegrationPoint.size() == 0 )
-                    break;
+                if (rIntegrationPoint.size() == 0) break;
 
                 point_is_eliminated = true;
-            }
-            else if( global_residual < targeted_residual && number_iterations < maximum_iteration){
+            } else if (global_residual < targeted_residual && number_iterations < maximum_iteration) {
                 // Store solution, in previous solution
                 prev_solution.clear();
                 prev_solution.insert(prev_solution.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
@@ -395,36 +454,37 @@ protected:
                 double min_value = MAXD;
                 double max_value = LOWESTD;
                 const auto begin_it = rIntegrationPoint.begin();
-                for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
+                for (IndexType i = 0; i < rIntegrationPoint.size(); i++) {
                     auto it = begin_it + static_cast<std::ptrdiff_t>(i);
-                    if( it->Weight() < min_value ) {
+                    if (it->Weight() < min_value) {
                         min_value_it = it;
                         min_value = it->Weight();
                     }
-                    if( it->Weight() > max_value ) {
-                        max_value = it->Weight();
-                    }
+                    if (it->Weight() > max_value) { max_value = it->Weight(); }
                 }
 
                 // Remove points that are very small (< EPS1*max_value)
                 // However, always keep #min_number_of_points.
-                SizeType counter = 0;
-                for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
-                    auto it = begin_it + static_cast<std::ptrdiff_t>(i);
-                    // TODO: Fix this > 2..4
-                    if( it->Weight() < 1e-8*max_value && rIntegrationPoint.size() > min_number_of_points){
-                        rIntegrationPoint.erase(it);
-                        point_is_eliminated = true;
-                        counter++;
-                    }
-                }
+                const auto old_size = rIntegrationPoint.size();
+                rIntegrationPoint.erase(
+                    std::remove_if(
+                        rIntegrationPoint.begin(),
+                        rIntegrationPoint.end(),
+                        [max_value](const auto& rPoint) { return rPoint.Weight() < 1e-8 * max_value; }
+                    ),
+                    rIntegrationPoint.end()
+                );
+                point_is_eliminated = (old_size != rIntegrationPoint.size());
+
                 // If nothing was removed, remove at least one points.
-                if( counter == 0 && rIntegrationPoint.size() > min_number_of_points){
+                if (!point_is_eliminated && rIntegrationPoint.size() > min_number_of_points) {
                     rIntegrationPoint.erase(min_value_it);
                     point_is_eliminated = true;
                 }
-                // Leave loop in next iteration. Note if point_is_eliminated the moment fitting equation is solved again.
-                if( rIntegrationPoint.size() <= min_number_of_points ){ //&& !point_is_eliminated ){
+
+                // Leave loop in next iteration. Note if point_is_eliminated the moment fitting equation is solved
+                // again.
+                if (rIntegrationPoint.size() <= min_number_of_points) {//&& !point_is_eliminated ){
                     number_iterations = maximum_iteration + 10;
                 }
             }
@@ -432,102 +492,76 @@ protected:
         }
 
         auto& reduced_points = rElement.GetIntegrationPoints();
-        if( (global_residual >= targeted_residual && prev_solution.size() > 0) || number_iterations > maximum_iteration ) {
+        if ((global_residual >= targeted_residual && prev_solution.size() > 0)
+            || number_iterations > maximum_iteration) {
             // Return previous solution.
             reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
-            reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPointType& point) {
-                return point.Weight() < ZEROTOL; }), reduced_points.end());
+            reduced_points.erase(
+                std::remove_if(
+                    reduced_points.begin(),
+                    reduced_points.end(),
+                    [](const IntegrationPointType& point) { return point.Weight() < ZEROTOL; }
+                ),
+                reduced_points.end()
+            );
 
             return prev_residual;
-        }
-        else{
+        } else {
             // Return current solution.
             reduced_points.insert(reduced_points.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
-            reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPointType& point) {
-                return point.Weight() < ZEROTOL; }), reduced_points.end());
+            reduced_points.erase(
+                std::remove_if(
+                    reduced_points.begin(),
+                    reduced_points.end(),
+                    [](const IntegrationPointType& point) { return point.Weight() < ZEROTOL; }
+                ),
+                reduced_points.end()
+            );
 
             return global_residual;
         }
     }
-}; // End Class
 
+    /// @brief Assembles quadrature points in the fictitious domain.
+    /// @param rElement
+    /// @param rIntegrationOrder Order of quadrature rule.
+    /// @param Alpha value that is applied to the integration weights.
+    static void AssembleFictitiousIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Alpha)
+    {
+        auto& r_integration_points = rElement.GetIntegrationPoints();
 
-} // End namespace queso
+        const auto& r_ip_list_u = IntegrationPointFactory1D::GetGauss(rIntegrationOrder[0], IntegrationMethod::gauss);
+        const auto& r_ip_list_v = IntegrationPointFactory1D::GetGauss(rIntegrationOrder[1], IntegrationMethod::gauss);
+        const auto& r_ip_list_w = IntegrationPointFactory1D::GetGauss(rIntegrationOrder[2], IntegrationMethod::gauss);
 
-#endif // TRIMMED_ELEMENT_INCLUDE_HPP
+        const SizeType n_point_u = r_ip_list_u.size();
+        const SizeType n_point_v = r_ip_list_v.size();
+        const SizeType n_point_w = r_ip_list_w.size();
 
-// double QuadratureTrimmedElement::f_x(double x, int order, double a, double b){
-//     double tmp_x = (2*x - a - b)/(b-a);
-//     return p_n(tmp_x,order);
-// }
+        const SizeType n_point = (n_point_u) * (n_point_v) * (n_point_w);
+        r_integration_points.reserve(r_integration_points.size() + n_point);
 
+        const PointType lower_bound_param = rElement.template GetCellBounds<CoordinateSpace::parametric>().lower;
+        const PointType upper_bound_param = rElement.template GetCellBounds<CoordinateSpace::parametric>().upper;
 
+        const double length_u = upper_bound_param[0] - lower_bound_param[0];
+        const double length_v = upper_bound_param[1] - lower_bound_param[1];
+        const double length_w = upper_bound_param[2] - lower_bound_param[2];
+        const double scaled_volume = length_u * length_v * length_w * Alpha;
 
-// double QuadratureTrimmedElement::f_x(double x, int order){
-//     if( order == 0){double
-//     }
-//     else {
-//         return std::pow(x, order);
-//     }
-// }
-
-// double QuadratureTrimmedElement::f_x_integral(double x, int order) {
-//     if(  order == 0 ){
-//         return x;
-//     }
-//     else {
-//         return 1.0/ ( (double)order + 1.0) * std::pow(x, order+1);
-//     }
-// }
-
-// double QuadratureTrimmedElement::f_x_integral(double x, int order, double a, double b){
-//     switch(order)
-//     {
-//         case 0:
-//             return x;
-//         case 1:
-//             return -std::pow((a + b - 2.0*x),2)/(4.0*(a - b));
-//         case 2:
-//             return - x/2.0 - std::pow((a + b - 2.0*x),3)/(4.0*std::pow((a - b),2));
-//         case 3:
-//             return (3.0*std::pow( (a + b - 2.0*x),2) )/(8.0*(a - b)) - (5*std::pow((a + b - 2.0*x),4))/(16*std::pow((a - b),3));
-//         case 4:
-//             return (3.0*x)/8.0 + (5.0*std::pow((a + b - 2.0*x),3))/(8*std::pow((a - b),2)) - (7.0*std::pow((a + b - 2*x),5))/(16*std::pow((a - b),4));
-//         case 5:
-//             return (35*std::pow((a + b - 2*x),4))/(32*std::pow((a - b),3)) - (15*std::pow((a + b - 2*x),2))/(32*(a - b)) - (21*std::pow((a + b - 2*x),6))/(32*std::pow((a - b),5));
-//         case 6:
-//             return (63*std::pow((a + b - 2*x),5))/(32*std::pow((a - b),4)) - (35*std::pow((a + b - 2*x),3))/(32*std::pow((a - b),2)) - (5*x)/16 - (33*std::pow((a + b - 2*x),7))/(32*std::pow((a - b),6));
-//         case 7:
-//             return (35.0*std::pow( (a + b - 2*x),2))/(64*(a - b)) - (315*std::pow((a + b - 2*x),4))/(128.0*std::pow((a - b),3)) + (231.0*std::pow((a + b - 2*x),6))/(64.0*std::pow((a - b),5)) - (429.0*std::pow((a + b - 2*x),8))/(256.0*std::pow((a - b),7));
-//         case 8:
-//             return (35.0*x)/128.0 + (105.0*std::pow( (a + b - 2*x),3) )/(64.0*std::pow( (a - b),2) ) - (693.0*std::pow( (a + b - 2*x),5) )/(128.0*std::pow((a - b),4) ) + (429.0*std::pow((a + b - 2*x),7))/(64.0*std::pow((a - b),6)) - (715.0*std::pow( (a + b - 2*x),9) )/(256.0*std::pow((a - b),8));
-//     }
-
-//     throw  std::invalid_argument("QuadratureTrimmedElement :: Order out of range!\n");
-// }
-
-// double QuadratureTrimmedElement::p_n(double x, int order) {
-//     switch(order)
-//     {
-//         case 0:
-//             return 1;
-//         case 1:
-//             return x;
-//         case 2:
-//             return 1.0/2.0*(3.0*std::pow(x,2)-1.0);
-//         case 3:
-//             return 1.0/2.0*(5.0*std::pow(x,3) - 3.0*x);
-//         case 4:
-//             return 1.0/8.0*(35.0*std::pow(x,4)-30.0*std::pow(x,2) +3.0);
-//         case 5:
-//             return 1.0/8.0*(63.0*std::pow(x,5)-70.0*std::pow(x,3)+15.0*x);
-//         case 6:
-//             return 1.0/16.0*(231.0*std::pow(x,6)-315.0*std::pow(x,4)+105.0*std::pow(x,2)-5.0);
-//         case 7:
-//             return 1.0/16.0*(429.0*std::pow(x,7)-693.0*std::pow(x,5)+315.0*std::pow(x,3)-35.0*x);
-//         case 8:
-//             return 1.0/128.0*(6435.0*std::pow(x,8) - 12012.0*std::pow(x,6)+6930.0*std::pow(x,4)-1260.0*std::pow(x,2)+35.0);
-//     }
-
-//     throw  std::invalid_argument("QuadratureTrimmedElement :: Order out of range!\n");
-// }
+        for (const auto& ip_u : r_ip_list_u) {
+            const double u_coord = lower_bound_param[0] + length_u * ip_u[0];
+            for (const auto& ip_v : r_ip_list_v) {
+                const double v_coord = lower_bound_param[1] + length_v * ip_v[0];
+                const double uv_weight = ip_u[1] * ip_v[1];
+                for (const auto& ip_w : r_ip_list_w) {
+                    const PointType query_point{ u_coord, v_coord, lower_bound_param[2] + length_w * ip_w[0] };
+                    if (!rElement.template IsInsideActiveDomain<CoordinateSpace::parametric>(query_point)) {
+                        r_integration_points.emplace_back(query_point, uv_weight * ip_w[1] * scaled_volume);
+                    }
+                }
+            }
+        }
+    }
+};// End Class
+}// End namespace queso
