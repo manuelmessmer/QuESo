@@ -27,7 +27,7 @@ set_target_properties(_QuESoPythonModule PROPERTIES
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/QuESoPythonModule.py ${CMAKE_BINARY_DIR}/QuESoPythonModule/__init__.py COPYONLY)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/PyQuESo.py DESTINATION ${CMAKE_BINARY_DIR}/QuESoPythonModule)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/model.py ${CMAKE_BINARY_DIR}/QuESoPythonModule/model.py COPYONLY)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/scripts DESTINATION ${CMAKE_BINARY_DIR}/QuESoPythonModule)
 file(COPY ${CMAKE_SOURCE_DIR}/kratos_interface DESTINATION ${CMAKE_BINARY_DIR}/QuESoPythonModule)
 
@@ -56,7 +56,6 @@ install(TARGETS _QuESoPythonModule DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPyth
 
 # Install Python module.
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/QuESoPythonModule.py DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule RENAME __init__.py)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PyQuESo.py DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/model.py DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos_interface DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule)
-

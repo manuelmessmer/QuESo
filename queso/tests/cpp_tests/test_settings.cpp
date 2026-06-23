@@ -37,19 +37,18 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
         if( !NOTDEBUG ) {
             BOOST_REQUIRE_THROW(settings[MainInfo::background_grid_info], std::exception); // Wrong Key type
 
-            // General settings
-            auto& r_general_settings = settings[MainSettings::general_settings];
-            BOOST_REQUIRE_THROW(r_general_settings.IsSet(ConditionSettings::condition_id), std::exception); // Wrong Key type
-            BOOST_REQUIRE_THROW(r_general_settings.GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception); // Wrong Key type
+            // Main settings
+            BOOST_REQUIRE_THROW(settings.IsSet(ConditionSettings::condition_id), std::exception); // Wrong Key type
+            BOOST_REQUIRE_THROW(settings.GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_uvw), std::exception); // Wrong Key type
 
             /// Mesh settings
-            BOOST_REQUIRE_THROW(r_mesh_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level), std::exception); // Wrong Key type
+            BOOST_REQUIRE_THROW(r_mesh_settings.GetRequiredValue<IndexType>(MainSettings::echo_level), std::exception); // Wrong Key type
 
-            BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, 2u), std::exception); // Wrong Key type
+            BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MainSettings::echo_level, 2u), std::exception); // Wrong Key type
 
             r_mesh_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
             r_mesh_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{1.0, 2.0, 3.0});
-            BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(GeneralSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
+            BOOST_REQUIRE_THROW(r_mesh_settings.SetValue(MainSettings::echo_level, IndexType(2)), std::exception); // Wrong Key type
             QuESo_CHECK(r_mesh_settings.IsSet(BackgroundGridSettings::lower_bound_xyz));
             BOOST_REQUIRE_THROW(r_mesh_settings.CheckRequired(), std::exception); // Not all required values are set.
 
@@ -88,20 +87,20 @@ BOOST_AUTO_TEST_CASE(SettingsWrongTypeTest) {
 
         auto p_settingss = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
         auto& settings = *p_settingss;
-        BOOST_REQUIRE_THROW(settings[MainSettings::general_settings].CheckRequired(), std::exception);
+        BOOST_REQUIRE_THROW(settings.CheckRequired(), std::exception);
 
         BOOST_REQUIRE_THROW(StringAccess::GetSubDictionary(settings, "echo_level"), std::exception); // Wrong Key type
 
-        /// General settings
-        auto& r_general_settings = StringAccess::GetSubDictionary(settings, "general_settings");
-        BOOST_REQUIRE_THROW(StringAccess::IsSet(r_general_settings, "general_settings"), std::exception); // Wrong Key type
-        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(r_general_settings, "lower_bound_uvw"), std::exception); // Wrong Key type
+        /// Main settings
+        BOOST_REQUIRE_THROW(StringAccess::IsSet(settings, "general_settings"), std::exception); // Wrong Key type
+        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(settings, "lower_bound_uvw"), std::exception); // Wrong Key type
 
-        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(r_general_settings, "input_filename"), std::exception); // Wrong Value type
-        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(r_general_settings, "output_directory_name"), std::exception); // Wrong Value type
-        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(r_general_settings, "echo_level"), std::exception); // Wrong Value type
-        BOOST_REQUIRE_THROW(StringAccess::SetValue(r_general_settings, "echo_level", -1), std::exception); // Negative value
-        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(r_general_settings, "write_output_to_file"), std::exception); // Wrong Value type
+        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(settings, "component_name"), std::exception); // Wrong Value type
+        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(settings, "input_filename"), std::exception); // Wrong Value type
+        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(settings, "output_directory_name"), std::exception); // Wrong Value type
+        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(settings, "echo_level"), std::exception); // Wrong Value type
+        BOOST_REQUIRE_THROW(StringAccess::SetValue(settings, "echo_level", -1), std::exception); // Negative value
+        BOOST_REQUIRE_THROW(StringAccess::GetValue<PointType>(settings, "write_output_to_file"), std::exception); // Wrong Value type
 
         /// Mesh settings
         auto& r_mesh_settings = StringAccess::GetSubDictionary(settings, "background_grid_settings");
@@ -179,7 +178,8 @@ BOOST_AUTO_TEST_CASE(SettingsCheckRequiredTest) {
 
     BOOST_REQUIRE_THROW(settings.CheckRequired(), std::exception);
 
-    settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, std::string("input.stl"));
+    settings.SetValue(MainSettings::component_name, std::string("main"));
+    settings.SetValue(MainSettings::input_filename, std::string("input.stl"));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType({0.0, 0.0, 0.0}));
     settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType({1.0, 1.0, 1.0}));
@@ -208,16 +208,18 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
         auto& settings = *p_settingss;
 
         /// General settings
-        QuESo_CHECK( !settings[MainSettings::general_settings].IsSet(GeneralSettings::input_filename) );
-        BOOST_REQUIRE_THROW( settings[MainSettings::general_settings].CheckRequired(), std::exception );
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, std::string("input.stl"));
-        settings[MainSettings::general_settings].CheckRequired();
-        QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::output_directory_name) );
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<std::string>(GeneralSettings::output_directory_name), std::string("queso_output") );
-        QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::echo_level) );
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level), 1u);
-        QuESo_CHECK( settings[MainSettings::general_settings].IsSet(GeneralSettings::write_output_to_file) );
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<bool>(GeneralSettings::write_output_to_file), true);
+        QuESo_CHECK( !settings.IsSet(MainSettings::component_name) );
+        QuESo_CHECK( !settings.IsSet(MainSettings::input_filename) );
+        BOOST_REQUIRE_THROW( settings.CheckRequired(), std::exception );
+        settings.SetValue(MainSettings::component_name, std::string("main"));
+        BOOST_REQUIRE_THROW( settings.CheckRequired(), std::exception );
+        settings.SetValue(MainSettings::input_filename, std::string("input.stl"));
+        QuESo_CHECK( settings.IsSet(MainSettings::output_directory_name) );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<std::string>(MainSettings::output_directory_name), std::string("queso_output") );
+        QuESo_CHECK( settings.IsSet(MainSettings::echo_level) );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<IndexType>(MainSettings::echo_level), 1u);
+        QuESo_CHECK( settings.IsSet(MainSettings::write_output_to_file) );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<bool>(MainSettings::write_output_to_file), true);
         /// Mesh settings
         QuESo_CHECK( !settings[MainSettings::background_grid_settings].IsSet(BackgroundGridSettings::grid_type) );
         BOOST_REQUIRE_THROW( settings[MainSettings::background_grid_settings].CheckRequired(), std::exception );
@@ -244,6 +246,7 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i({2, 2, 2}));
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i({4, 4, 4}));
         settings[MainSettings::background_grid_settings].CheckRequired();
+        settings.CheckRequired();
 
         /// TrimmedQuadratureRuleSettings settings
         settings[MainSettings::trimmed_quadrature_rule_settings].CheckRequired();
@@ -272,17 +275,19 @@ BOOST_AUTO_TEST_CASE(SettingsDefaultValuesTest) {
         auto& settings = *p_settingss;
 
         /// General settings
-        QuESo_CHECK( !StringAccess::IsSet( StringAccess::GetSubDictionary(settings, "general_settings"), "input_filename" ));
-        BOOST_REQUIRE_THROW( StringAccess::GetValue<std::string>(StringAccess::GetSubDictionary(settings, "general_settings"), "input_filename"), std::exception );
+        QuESo_CHECK( !StringAccess::IsSet(settings, "component_name") );
+        BOOST_REQUIRE_THROW( StringAccess::GetValue<std::string>(settings, "component_name"), std::exception );
+        QuESo_CHECK( !StringAccess::IsSet(settings, "input_filename") );
+        BOOST_REQUIRE_THROW( StringAccess::GetValue<std::string>(settings, "input_filename"), std::exception );
 
-        QuESo_CHECK( StringAccess::IsSet(StringAccess::GetSubDictionary(settings, "general_settings"), "output_directory_name") );
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(StringAccess::GetSubDictionary(settings, "general_settings"), "output_directory_name"), std::string("queso_output") );
+        QuESo_CHECK( StringAccess::IsSet(settings, "output_directory_name") );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(settings, "output_directory_name"), std::string("queso_output") );
 
-        QuESo_CHECK( StringAccess::IsSet(StringAccess::GetSubDictionary(settings, "general_settings"), "echo_level") );
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<IndexType>(StringAccess::GetSubDictionary(settings, "general_settings"), "echo_level"), 1u);
+        QuESo_CHECK( StringAccess::IsSet(settings, "echo_level") );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<IndexType>(settings, "echo_level"), 1u);
 
-        QuESo_CHECK( StringAccess::IsSet(StringAccess::GetSubDictionary(settings, "general_settings"), "write_output_to_file") );
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<bool>(StringAccess::GetSubDictionary(settings, "general_settings"), "write_output_to_file"), true);
+        QuESo_CHECK( StringAccess::IsSet(settings, "write_output_to_file") );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<bool>(settings, "write_output_to_file"), true);
 
         /// Mesh settings
         QuESo_CHECK( !StringAccess::IsSet(StringAccess::GetSubDictionary(settings, "background_grid_settings"), "grid_type") );
@@ -334,20 +339,20 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
         auto& settings = *p_settingss;
 
         /// General settings
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, std::string("test_filename.stl"));
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::output_directory_name, std::string("new_output/"));
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 2u);
-        settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
-        settings[MainSettings::general_settings].CheckRequired();
+        settings.SetValue(MainSettings::component_name, std::string("main"));
+        settings.SetValue(MainSettings::input_filename, std::string("test_filename.stl"));
+        settings.SetValue(MainSettings::output_directory_name, std::string("new_output/"));
+        settings.SetValue(MainSettings::echo_level, 2u);
+        settings.SetValue(MainSettings::write_output_to_file, false);
 
 
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<std::string>(GeneralSettings::input_filename), std::string("test_filename.stl") );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<std::string>(MainSettings::input_filename), std::string("test_filename.stl") );
 
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<std::string>(GeneralSettings::output_directory_name), std::string("new_output/") );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<std::string>(MainSettings::output_directory_name), std::string("new_output/") );
 
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level), 2u );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<IndexType>(MainSettings::echo_level), 2u );
 
-        QuESo_CHECK_EQUAL( settings[MainSettings::general_settings].GetRequiredValue<bool>(GeneralSettings::write_output_to_file), false );
+        QuESo_CHECK_EQUAL( settings.GetRequiredValue<bool>(MainSettings::write_output_to_file), false );
 
         /// Mesh settings
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
@@ -358,6 +363,7 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i({5, 6, 7}));
         settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i({8, 9, 2}));
         settings[MainSettings::background_grid_settings].CheckRequired();
+        settings.CheckRequired();
 
         QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetRequiredValue<GridType>(BackgroundGridSettings::grid_type), GridType::b_spline_grid );
         QuESo_CHECK_EQUAL( settings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_xyz), PointType({1.0, 1.0, 2.0}) );
@@ -394,16 +400,16 @@ BOOST_AUTO_TEST_CASE(SettingsCustomizedValuesTest) {
         auto& settings = *p_settingss;
 
         /// General settings
-        StringAccess::SetValue( StringAccess::GetSubDictionary(settings, "general_settings"), "input_filename", std::string("test_filename.stl"));
+        StringAccess::SetValue(settings, "component_name", std::string("main"));
+        StringAccess::SetValue(settings, "input_filename", std::string("test_filename.stl"));
+        StringAccess::SetValue(settings, "output_directory_name", std::string("new_output/"));
+        StringAccess::SetValue(settings, "echo_level", 2u);
+        StringAccess::SetValue(settings, "write_output_to_file", false);
 
-        StringAccess::SetValue( StringAccess::GetSubDictionary(settings, "general_settings"), "output_directory_name", std::string("new_output/"));
-        StringAccess::SetValue( StringAccess::GetSubDictionary(settings, "general_settings"), "echo_level", 2u);
-        StringAccess::SetValue( StringAccess::GetSubDictionary(settings, "general_settings"), "write_output_to_file", false);
-
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(StringAccess::GetSubDictionary(settings, "general_settings"), "input_filename"), std::string("test_filename.stl") );
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(StringAccess::GetSubDictionary(settings, "general_settings"), "output_directory_name"), std::string("new_output/") );
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<IndexType>(StringAccess::GetSubDictionary(settings, "general_settings"), "echo_level"), 2u );
-        QuESo_CHECK_EQUAL( StringAccess::GetValue<bool>(StringAccess::GetSubDictionary(settings, "general_settings"), "write_output_to_file"), false );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(settings, "input_filename"), std::string("test_filename.stl") );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<std::string>(settings, "output_directory_name"), std::string("new_output/") );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<IndexType>(settings, "echo_level"), 2u );
+        QuESo_CHECK_EQUAL( StringAccess::GetValue<bool>(settings, "write_output_to_file"), false );
 
         /// Mesh settings
         StringAccess::SetValue( StringAccess::GetSubDictionary(settings, "background_grid_settings"), "grid_type", GridType::b_spline_grid);
@@ -463,12 +469,12 @@ BOOST_AUTO_TEST_CASE(SettingsConditionSettingsWrongTypeTest) {
 
             cond_settings.SetValue(ConditionSettings::condition_id, 100u);
             QuESo_CHECK( cond_settings.IsSet(ConditionSettings::condition_id) );
-            BOOST_REQUIRE_THROW( cond_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
+            BOOST_REQUIRE_THROW( cond_settings.GetRequiredValue<IndexType>(MainSettings::echo_level), std::exception ); // Wrong Key type
 
             QuESo_CHECK( !cond_settings.TryGetValue<std::string>(ConditionSettings::condition_type).has_value() );
             cond_settings.SetValue(ConditionSettings::condition_type, std::string("dummy"));
             QuESo_CHECK_EQUAL( cond_settings.TryGetValue<std::string>(ConditionSettings::condition_type)->get(), std::string("dummy") );
-            BOOST_REQUIRE_THROW( cond_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level), std::exception ); // Wrong Key type
+            BOOST_REQUIRE_THROW( cond_settings.GetRequiredValue<IndexType>(MainSettings::echo_level), std::exception ); // Wrong Key type
 
             BOOST_REQUIRE_THROW( cond_settings.CheckRequired(), std::exception );
             QuESo_CHECK( !cond_settings.TryGetValue<double>(ConditionSettings::modulus).has_value() );

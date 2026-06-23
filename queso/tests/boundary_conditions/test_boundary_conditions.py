@@ -1,5 +1,7 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+from pathlib import Path
+
+from QuESoPythonModule.model import Model
 from QuESoPythonModule import MeshUtil
 from QuESoPythonModule.scripts.helper import *
 from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
@@ -7,12 +9,16 @@ from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 import unittest
 
 class TestBoundaryConditions(QuESoTestCase):
+    @staticmethod
+    def _expected_path(filename: str) -> str:
+        return str(Path(filename).resolve())
+
     def check_values(self, pyqueso):
-        for condition in pyqueso.GetConditions():
+        for condition in pyqueso.conditions("main"):
             condition_settings = condition.GetSettings()
             if condition_settings.GetString("condition_type") == "SurfaceLoadCondition":
                 input_filename = condition_settings.GetString("input_filename")
-                self.assertEqual(input_filename, "queso/tests/steering_knuckle_kratos/data/N1.stl")
+                self.assertEqual(input_filename, self._expected_path("queso/tests/steering_knuckle_kratos/data/N1.stl"))
                 modulus = condition_settings.GetDouble("modulus")
                 self.assertAlmostEqual(modulus, 5.0, 10)
                 direction = condition_settings.GetDoubleVector("direction")
@@ -29,7 +35,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 self.assertAlmostEqual(area_segmented2, 332.37754, 5)
             elif condition_settings.GetString("condition_type") == "PressureLoadCondition":
                 input_filename = condition_settings.GetString("input_filename")
-                self.assertEqual(input_filename, "queso/tests/steering_knuckle_kratos/data/N2.stl")
+                self.assertEqual(input_filename, self._expected_path("queso/tests/steering_knuckle_kratos/data/N2.stl"))
                 modulus = condition_settings.GetDouble("modulus")
                 self.assertAlmostEqual(modulus, 2.0, 10)
                 area_segmented1 = 0
@@ -44,7 +50,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 self.assertAlmostEqual(area_segmented2, 577.978141, 5)
             elif condition_settings.GetString("condition_type") == "LagrangeSupportCondition":
                 input_filename = condition_settings.GetString("input_filename")
-                self.assertEqual(input_filename, "queso/tests/steering_knuckle_kratos/data/N3.stl")
+                self.assertEqual(input_filename, self._expected_path("queso/tests/steering_knuckle_kratos/data/N3.stl"))
                 value = condition_settings.GetDoubleVector("value")
                 self.assertListsAlmostEqual(value, [0.0, 0.3, 0.0], 10)
                 area_segmented1 = 0
@@ -59,7 +65,7 @@ class TestBoundaryConditions(QuESoTestCase):
                 self.assertAlmostEqual(area_segmented2, 921.163635, 5)
             elif condition_settings.GetString("condition_type") == "PenaltySupportCondition":
                 input_filename = condition_settings.GetString("input_filename")
-                self.assertEqual(input_filename, "queso/tests/steering_knuckle_kratos/data/D1.stl")
+                self.assertEqual(input_filename, self._expected_path("queso/tests/steering_knuckle_kratos/data/D1.stl"))
                 value = condition_settings.GetDoubleVector("value")
                 self.assertListsAlmostEqual(value, [0.0, 0.0, 0.0], 10)
                 penalty_factor = condition_settings.GetDouble("penalty_factor")
@@ -78,13 +84,13 @@ class TestBoundaryConditions(QuESoTestCase):
                 raise Exception("TestBoundaryConditions :: Given condition type does not exist.")
 
     def test_1(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoSettings1.json")
-        pyqueso.Run()
+        pyqueso = Model("queso/tests/boundary_conditions/QuESoSettings1.json")
+        pyqueso.run()
         self.check_values(pyqueso)
 
     def test_2(self):
-        pyqueso = PyQuESo("queso/tests/boundary_conditions/QuESoSettings2.json")
-        pyqueso.Run()
+        pyqueso = Model("queso/tests/boundary_conditions/QuESoSettings2.json")
+        pyqueso.run()
         self.check_values(pyqueso)
 
 if __name__ == "__main__":

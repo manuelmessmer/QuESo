@@ -1,9 +1,11 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+from QuESoPythonModule.model import Model
+
 
 def main():
-    pyqueso = PyQuESo("QuESoSettings.json")
-    pyqueso.Run()
+    pyqueso = Model("QuESoSettings.json")
+    pyqueso.run()
+
 
 if __name__ == "__main__":
     main()

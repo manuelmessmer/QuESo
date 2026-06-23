@@ -16,7 +16,7 @@
 #include "queso/python/bindings/add_containers_to_python.h"
 // To export
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "queso/embedded_model.h"
+#include "queso/embedded_component.h"
 #include "queso/utilities/triangle_utilities.hpp"
 
 // Note: PYBIND11_MAKE_OPAQUE must live at file scope.
@@ -269,23 +269,23 @@ void AddContainersToPython(pybind11::module& m) {
         .def_static("GetGGQ", &IntegrationPointFactory1D::GetGGQ, py::return_value_policy::move)
     ;
 
-    /// Export EmbeddedModel
-    py::class_<EmbeddedModel>(m,"EmbeddedModel")
+    /// Export EmbeddedComponent
+    py::class_<EmbeddedComponent>(m,"EmbeddedComponent")
         .def(py::init([](MainDictionaryHolderType& rSettings) {
-            return MakeUnique<EmbeddedModel>(EmbeddedModel::Create(rSettings.Release()));
+            return MakeUnique<EmbeddedComponent>(EmbeddedComponent::Create(rSettings.Release()));
         }))
-        .def("CreateAllFromSettings", &EmbeddedModel::CreateAllFromSettings)
+        .def("CreateAllFromSettings", &EmbeddedComponent::CreateAllFromSettings)
 		.def("GetElements",
-			[](const EmbeddedModel& rEmbeddedModel) {
+			[](const EmbeddedComponent& rEmbeddedComponent) {
 				std::vector<ElementViewType> elements;
-				const auto views = rEmbeddedModel.GetElementViews();
+				const auto views = rEmbeddedComponent.GetElementViews();
 				elements.reserve(views.size());
 				std::ranges::copy(views, std::back_inserter(elements));
 				return elements;
 			})
-        .def("GetConditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal)
-        .def("GetSettings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
-        .def("GetModelInfo", static_cast<const EmbeddedModel::MainDictionaryType& (EmbeddedModel::*)() const>(&EmbeddedModel::GetModelInfo),
+        .def("GetConditions", &EmbeddedComponent::GetConditions, py::return_value_policy::reference_internal)
+        .def("GetSettings", &EmbeddedComponent::GetSettings, py::return_value_policy::reference_internal)
+        .def("GetComponentInfo", static_cast<const EmbeddedComponent::MainDictionaryType& (EmbeddedComponent::*)() const>(&EmbeddedComponent::GetComponentInfo),
             py::return_value_policy::reference_internal)
     ;
 

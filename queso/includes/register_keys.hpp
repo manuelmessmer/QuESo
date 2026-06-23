@@ -33,15 +33,28 @@ QuESo_CREATE_KEY_SET_TO_OBJECT_TYPE_TAG(SubDictTypeTag);
 /* --- Keys for Settings --- */
 
 // --- MainSettings ---
+// Values
+QuESo_DEFINE_KEY_SET( MainSettings, MainValuesTypeTag,
+    QuESo_KEY_LIST(component_name, input_filename, output_directory_name, echo_level, write_output_to_file) );
+QuESo_DEFINE_KEY_TO_VALUE(MainSettings, component_name, MainValuesTypeTag, std::string, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(MainSettings, input_filename, MainValuesTypeTag, std::string, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(MainSettings, output_directory_name, MainValuesTypeTag, std::string, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(MainSettings, echo_level, MainValuesTypeTag, IndexType, KeyRequirement::required);
+QuESo_DEFINE_KEY_TO_VALUE(MainSettings, write_output_to_file, MainValuesTypeTag, bool, KeyRequirement::required);
+QuESo_REGISTER_KEY_SET(MainSettings, MainValuesTypeTag,
+    QuESo_KEY(MainSettings::component_name),
+    QuESo_KEY(MainSettings::input_filename),
+    QuESo_KEY(MainSettings::output_directory_name),
+    QuESo_KEY(MainSettings::echo_level),
+    QuESo_KEY(MainSettings::write_output_to_file)
+);
 // SubDicts
 QuESo_DEFINE_KEY_SET( MainSettings, SubDictTypeTag,
-    QuESo_KEY_LIST(general_settings, background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings) );
-QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, general_settings, SubDictTypeTag);
+    QuESo_KEY_LIST(background_grid_settings, trimmed_quadrature_rule_settings, non_trimmed_quadrature_rule_settings) );
 QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, background_grid_settings, SubDictTypeTag);
 QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, trimmed_quadrature_rule_settings, SubDictTypeTag);
 QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, non_trimmed_quadrature_rule_settings, SubDictTypeTag);
 QuESo_REGISTER_KEY_SET(MainSettings, SubDictTypeTag,
-    QuESo_KEY(MainSettings::general_settings),
     QuESo_KEY(MainSettings::background_grid_settings),
     QuESo_KEY(MainSettings::trimmed_quadrature_rule_settings),
     QuESo_KEY(MainSettings::non_trimmed_quadrature_rule_settings)
@@ -52,21 +65,6 @@ QuESo_DEFINE_KEY_SET( MainSettings, ListTypeTag,
 QuESo_DEFINE_KEY_TO_OBJECT(MainSettings, conditions_settings_list, ListTypeTag);
 QuESo_REGISTER_KEY_SET(MainSettings, ListTypeTag,
     QuESo_KEY(MainSettings::conditions_settings_list),
-);
-
-// --- GeneralSettings ---
-// Values
-QuESo_DEFINE_KEY_SET( GeneralSettings, MainValuesTypeTag,
-    QuESo_KEY_LIST(input_filename, output_directory_name, echo_level, write_output_to_file) );
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, input_filename, MainValuesTypeTag, std::string, KeyRequirement::required);
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, output_directory_name, MainValuesTypeTag, std::string, KeyRequirement::required);
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, echo_level, MainValuesTypeTag, IndexType, KeyRequirement::required);
-QuESo_DEFINE_KEY_TO_VALUE(GeneralSettings, write_output_to_file, MainValuesTypeTag, bool, KeyRequirement::required);
-QuESo_REGISTER_KEY_SET(GeneralSettings, MainValuesTypeTag,
-    QuESo_KEY(GeneralSettings::input_filename),
-    QuESo_KEY(GeneralSettings::output_directory_name),
-    QuESo_KEY(GeneralSettings::echo_level),
-    QuESo_KEY(GeneralSettings::write_output_to_file)
 );
 
 // --- BackgroundGridSettings ---
@@ -137,7 +135,7 @@ QuESo_REGISTER_KEY_SET(ConditionSettings, MainValuesTypeTag,
     QuESo_KEY(ConditionSettings::penalty_factor)
 );
 
-/* --- Keys for ModelInfo --- */
+/* --- Keys for ComponentInfo --- */
 
 // --- MainInfo ---
 // SubDicts

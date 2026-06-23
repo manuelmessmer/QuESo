@@ -9,23 +9,21 @@ import os
 
 class TestSettingsContainer(QuESoTestCase):
     def check_customized_values(self, settings):
-        # Check general_settings
-        general_settings = settings["general_settings"]
-
-        self.assertTrue(general_settings.IsSet("input_filename"))
-        input_filename = general_settings.GetString("input_filename")
+        # Check top-level settings
+        self.assertTrue(settings.IsSet("input_filename"))
+        input_filename = settings.GetString("input_filename")
         self.assertEqual(input_filename, "dummy.stl")
 
-        self.assertTrue(general_settings.IsSet("output_directory_name"))
-        output_directory_name = general_settings.GetString("output_directory_name")
+        self.assertTrue(settings.IsSet("output_directory_name"))
+        output_directory_name = settings.GetString("output_directory_name")
         self.assertEqual(output_directory_name, "new_output")
 
-        self.assertTrue(general_settings.IsSet("echo_level"))
-        echo_level = general_settings.GetInt("echo_level")
+        self.assertTrue(settings.IsSet("echo_level"))
+        echo_level = settings.GetInt("echo_level")
         self.assertEqual(echo_level, 2)
 
-        self.assertTrue(general_settings.IsSet("write_output_to_file"))
-        write_output_to_file = general_settings.GetBool("write_output_to_file")
+        self.assertTrue(settings.IsSet("write_output_to_file"))
+        write_output_to_file = settings.GetBool("write_output_to_file")
         self.assertFalse(write_output_to_file)
 
         # Check background_grid_settings
@@ -173,21 +171,19 @@ class TestSettingsContainer(QuESoTestCase):
             self.assertAlmostEqual(ref_settings["penalty_factor"], settings.GetDouble("penalty_factor"), 8 )
 
     def check_default_values(self, settings):
-        # Check general_settings
-        general_settings = settings["general_settings"]
+        # Check top-level settings
+        self.assertFalse(settings.IsSet("input_filename"))
 
-        self.assertFalse(general_settings.IsSet("input_filename"))
-
-        self.assertTrue(general_settings.IsSet("output_directory_name"))
-        output_directory_name = general_settings.GetString("output_directory_name")
+        self.assertTrue(settings.IsSet("output_directory_name"))
+        output_directory_name = settings.GetString("output_directory_name")
         self.assertEqual(output_directory_name, "queso_output")
 
-        self.assertTrue(general_settings.IsSet("echo_level"))
-        echo_level = general_settings.GetInt("echo_level")
+        self.assertTrue(settings.IsSet("echo_level"))
+        echo_level = settings.GetInt("echo_level")
         self.assertEqual(echo_level, 1)
 
-        self.assertTrue(general_settings.IsSet("write_output_to_file"))
-        write_output_to_file = general_settings.GetBool("write_output_to_file")
+        self.assertTrue(settings.IsSet("write_output_to_file"))
+        write_output_to_file = settings.GetBool("write_output_to_file")
         self.assertTrue(write_output_to_file)
 
         # Check background_grid_settings
@@ -285,4 +281,3 @@ class TestSettingsContainer(QuESoTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

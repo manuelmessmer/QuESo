@@ -1,10 +1,8 @@
 {
-    "general_settings"   : {
-        "input_filename"  : "dummy.stl",
-        "output_directory_name" : "new_output",
-        "echo_level"      : 2,
-        "write_output_to_file" : false
-    },
+    "input_filename"  : "dummy.stl",
+    "output_directory_name" : "new_output",
+    "echo_level"      : 2,
+    "write_output_to_file" : false,
     "background_grid_settings"     : {
         "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
@@ -46,4 +44,3 @@
         }
     ]
 }
-

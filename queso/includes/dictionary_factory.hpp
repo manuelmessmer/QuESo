@@ -35,23 +35,14 @@ inline Unique<MainDictionaryType> CreateSettings() {
 
     /*--- Main ---*/
     auto p_settings = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
-        DictionaryType::EmptyKeySetType,
+        key::detail::MainSettingsMainValuesTypeTagKeySetInfo,
         key::detail::MainSettingsSubDictTypeTagKeySetInfo,
         key::detail::MainSettingsListTypeTagKeySetInfo>{} );
 
-    /*--- General settings ---*/
-    auto p_general_settings = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
-        key::detail::GeneralSettingsMainValuesTypeTagKeySetInfo,
-        DictionaryType::EmptyKeySetType,
-        DictionaryType::EmptyKeySetType>{} );
-
     // Add defaults.
-    p_general_settings->SetValue(GeneralSettings::output_directory_name, std::string("queso_output"));
-    p_general_settings->SetValue(GeneralSettings::echo_level, 1u);
-    p_general_settings->SetValue(GeneralSettings::write_output_to_file, true);
-
-    // Add to Main.
-    p_settings->SetSubDictionary(MainSettings::general_settings, std::move(p_general_settings));
+    p_settings->SetValue(MainSettings::output_directory_name, std::string("queso_output"));
+    p_settings->SetValue(MainSettings::echo_level, 1u);
+    p_settings->SetValue(MainSettings::write_output_to_file, true);
 
     /*--- Background grid settings ---*/
     auto p_background_grid_settings = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
@@ -106,13 +97,13 @@ inline Unique<MainDictionaryType> CreateConditionSettings() {
     return p_condition_settings;
 }
 
-/// @brief Returns a Dictionary containing the default model info.
+/// @brief Returns a Dictionary containing the default component info.
 /// @return Unique<MainDictionaryType>
-inline Unique<MainDictionaryType> CreateModelInfo() {
+inline Unique<MainDictionaryType> CreateComponentInfo() {
     using DictionaryType = MainDictionaryType;
 
     /*--- Main info ---*/
-    auto p_model_info = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
+    auto p_component_info = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
         DictionaryType::EmptyKeySetType,
         key::detail::MainInfoSubDictTypeTagKeySetInfo,
         key::detail::MainInfoListTypeTagKeySetInfo>{} );
@@ -124,7 +115,7 @@ inline Unique<MainDictionaryType> CreateModelInfo() {
         DictionaryType::EmptyKeySetType>{} );
 
     // Add to main.
-    p_model_info->SetSubDictionary(MainInfo::embedded_geometry_info, std::move(p_embedded_geometry_info));
+    p_component_info->SetSubDictionary(MainInfo::embedded_geometry_info, std::move(p_embedded_geometry_info));
 
     /*--- Quadrature info ---*/
     auto p_quadrature_info = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
@@ -133,7 +124,7 @@ inline Unique<MainDictionaryType> CreateModelInfo() {
         DictionaryType::EmptyKeySetType>{} );
 
     // Add to main.
-    p_model_info->SetSubDictionary(MainInfo::quadrature_info, std::move(p_quadrature_info));
+    p_component_info->SetSubDictionary(MainInfo::quadrature_info, std::move(p_quadrature_info));
 
     /*--- Background grid info ---*/
     auto p_background_grid_info = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
@@ -142,7 +133,7 @@ inline Unique<MainDictionaryType> CreateModelInfo() {
         DictionaryType::EmptyKeySetType>{} );
 
     // Add to main.
-    p_model_info->SetSubDictionary(MainInfo::background_grid_info, std::move(p_background_grid_info));
+    p_component_info->SetSubDictionary(MainInfo::background_grid_info, std::move(p_background_grid_info));
 
     /*--- Elapsed time info ---*/
     auto p_elapsed_time_info = MakeUnique<DictionaryType>( DictionaryType::KeySetInfosTypeTag<
@@ -194,9 +185,9 @@ inline Unique<MainDictionaryType> CreateModelInfo() {
     p_elapsed_time_info->SetSubDictionary(ElapsedTimeInfo::write_files_time_info, std::move(p_write_files_time_info));
 
     // Add elapsed_time_info to Main.
-    p_model_info->SetSubDictionary(MainInfo::elapsed_time_info, std::move(p_elapsed_time_info));
+    p_component_info->SetSubDictionary(MainInfo::elapsed_time_info, std::move(p_elapsed_time_info));
 
-    return p_model_info;
+    return p_component_info;
 }
 
 /// @brief Returns a Dictionary containing the default condition info.
@@ -233,7 +224,7 @@ inline RegistryType<key::MainValuesTypeTag> RegisterAll() {
     RegistryType<key::MainValuesTypeTag> creators;
     creators["Settings"] = &CreateSettings;
     creators["ConditionSettings"] = &CreateConditionSettings;
-    creators["ModelInfo"] = &CreateModelInfo;
+    creators["ComponentInfo"] = &CreateComponentInfo;
     creators["ConditionInfo"] = &CreateConditionInfo;
 
     return creators;

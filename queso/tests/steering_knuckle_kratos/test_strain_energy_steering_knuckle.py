@@ -1,24 +1,28 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+from QuESoPythonModule.kratos_interface.kratos_analysis import KratosAnalysis
 from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 # Kratos imports
-import KratosMultiphysics
+import KratosMultiphysics as KM
 # External imports
 import unittest
 
 class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
     def run_test(self, filename, tolerance):
-        pyqueso = PyQuESo(filename)
-        pyqueso.Run()
-        pyqueso.RunKratosAnalysis("queso/tests/steering_knuckle_kratos/KratosParameters.json")
+        model = KM.Model()
+        analysis = KratosAnalysis(
+            model,
+            queso_settings_filename=filename,
+            analysis_settings_filename="queso/tests/steering_knuckle_kratos/AnalysisSettings.json",
+            kratos_settings_filename="queso/tests/steering_knuckle_kratos/KratosParameters.json",
+        )
+        analysis.Run()
 
-        analysis = pyqueso.GetAnalysis()
         model_part = analysis.GetModelPart()
         strain_energy = 0.0
 
         for element in model_part.Elements:
-            values = element.CalculateOnIntegrationPoints(KratosMultiphysics.STRAIN_ENERGY, model_part.ProcessInfo)
-            weights = element.CalculateOnIntegrationPoints(KratosMultiphysics.INTEGRATION_WEIGHT, model_part.ProcessInfo)
+            values = element.CalculateOnIntegrationPoints(KM.STRAIN_ENERGY, model_part.ProcessInfo)
+            weights = element.CalculateOnIntegrationPoints(KM.INTEGRATION_WEIGHT, model_part.ProcessInfo)
             for value, weight in zip(values, weights):
                 strain_energy += value*weight
         self.assertAlmostEqual(strain_energy, 21.777, delta=tolerance)
@@ -37,6 +41,5 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
 
 

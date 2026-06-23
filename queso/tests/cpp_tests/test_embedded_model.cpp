@@ -21,7 +21,7 @@
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
-#include "queso/embedded_model.h"
+#include "queso/embedded_component.h"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/triangle_utilities.hpp"
 
@@ -40,9 +40,10 @@ MainDictionaryPtrType CreateBaseSettings(const std::string& rFilename)
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
 
-    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, rFilename);
-    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-    r_settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
+    r_settings.SetValue(MainSettings::component_name, std::string("main"));
+    r_settings.SetValue(MainSettings::input_filename, rFilename);
+    r_settings.SetValue(MainSettings::echo_level, 0u);
+    r_settings.SetValue(MainSettings::write_output_to_file, false);
 
     return p_settings;
 }
@@ -105,16 +106,16 @@ void AddConditionSettings(
     rSettings.GetList(MainSettings::conditions_settings_list).push_back(std::move(p_cond_settings));
 }
 
-EmbeddedModel CreateEmbeddedModel(MainDictionaryPtrType pSettings)
+EmbeddedComponent CreateEmbeddedComponent(MainDictionaryPtrType pSettings)
 {
-    EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(pSettings));
-    embedded_model.CreateAllFromSettings();
-    return embedded_model;
+    EmbeddedComponent embedded_component = EmbeddedComponent::Create(std::move(pSettings));
+    embedded_component.CreateAllFromSettings();
+    return embedded_component;
 }
 
 }
 
-BOOST_AUTO_TEST_SUITE( EmbeddedModelTestSuite )
+BOOST_AUTO_TEST_SUITE( EmbeddedComponentTestSuite )
 
 BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     QuESo_INFO << "Testing :: Test Embedded Model :: Create Volume :: Intersected Element" << std::endl;
@@ -126,10 +127,10 @@ BOOST_AUTO_TEST_CASE(IntersectedElementTest) {
     auto& r_settings = *p_settings;
     ConfigureCylinderIntersectedElement(r_settings);
 
-    EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+    EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
-    const auto elements = embedded_model.GetElementViews();
-    const auto trimmed_elements = embedded_model.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+    const auto elements = embedded_component.GetElementViews();
+    const auto trimmed_elements = embedded_component.GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
 
     QuESo_CHECK_EQUAL(elements.size(), 1);
     QuESo_CHECK_EQUAL(trimmed_elements.size(), 1UL);
@@ -175,16 +176,16 @@ BOOST_AUTO_TEST_CASE(IntersectedElementFictitiousDomainTest) {
         auto& r_settings = *p_settings;
         ConfigureCylinderIntersectedElement(r_settings, Alpha);
 
-        return CreateEmbeddedModel(std::move(p_settings));
+        return CreateEmbeddedComponent(std::move(p_settings));
     };
 
-    auto embedded_model_without_alpha = create_model(std::nullopt);
-    auto embedded_model_with_alpha = create_model(0.25);
+    auto embedded_component_without_alpha = create_model(std::nullopt);
+    auto embedded_component_with_alpha = create_model(0.25);
 
     const auto trimmed_without_alpha =
-        embedded_model_without_alpha.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+        embedded_component_without_alpha.GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
     const auto trimmed_with_alpha =
-        embedded_model_with_alpha.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+        embedded_component_with_alpha.GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
 
     QuESo_CHECK_EQUAL(trimmed_without_alpha.size(), 1UL);
     QuESo_CHECK_EQUAL(trimmed_with_alpha.size(), 1UL);
@@ -244,9 +245,9 @@ void TestElephant( IntegrationMethodType IntegrationMethod, const Vector3i&  rOr
     r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::moment_fitting_residual, 1e-6);
     r_settings[MainSettings::non_trimmed_quadrature_rule_settings].SetValue(NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod);
 
-    EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+    EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
-    const auto elements = embedded_model.GetElementViews();
+    const auto elements = embedded_component.GetElementViews();
 
     // Compute total volume
     double volume_trimmed = 0.0;
@@ -431,10 +432,10 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     AddConditionSettings(r_settings, 3u, base_dir + "/data/steering_knuckle_N2.stl", "SurfaceLoadCondition");
     AddConditionSettings(r_settings, 4u, base_dir + "/data/steering_knuckle_N3.stl", "SurfaceLoadCondition");
 
-    EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+    EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
     /// Test volume
-    const auto elements = embedded_model.GetElementViews();
+    const auto elements = embedded_component.GetElementViews();
 
     // Compute total volume
     double volume_trimmed = 0.0;
@@ -486,7 +487,7 @@ void TestSteeringKnuckle( IntegrationMethodType IntegrationMethod, IndexType p, 
     QuESo_CHECK_RELATIVE_NEAR(volume_tot, ref_volume_tot, Tolerance);
 
     /// Test conditions
-    const auto& conditions = embedded_model.GetConditions();
+    const auto& conditions = embedded_component.GetConditions();
     QuESo_CHECK_EQUAL(conditions.size(), 4);
     for( const auto& r_condition : conditions ){
         TriangleMesh triangle_mesh{};
@@ -554,7 +555,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckle6Test) {
 }
 
 
-BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
+BOOST_AUTO_TEST_CASE(SteeringKnuckleComponentInfoTest) {
     QuESo_INFO << "Testing :: Test Embedded Model :: Model Info :: Steering Knuckle" << std::endl;
 
     Vector3i num_elements = Vector3i{10, 20, 20};
@@ -578,12 +579,12 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     AddConditionSettings(r_settings, 1u, base_dir + "/data/steering_knuckle_D1.stl", "PenaltySupportCondition");
 
-    EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+    EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
-    /// Check model info
-    const auto& r_model_info = embedded_model.GetModelInfo();
+    /// Check component info
+    const auto& r_component_info = embedded_component.GetComponentInfo();
     // embedded_geometry_info
-    const auto& r_geo_info = r_model_info[MainInfo::embedded_geometry_info];
+    const auto& r_geo_info = r_component_info[MainInfo::embedded_geometry_info];
     r_geo_info.CheckRequired();
     QuESo_CHECK(r_geo_info.GetRequiredValue<bool>(EmbeddedGeometryInfo::is_closed));
     TriangleMesh triangle_mesh{};
@@ -591,7 +592,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     double volume_ref = MeshUtilities::VolumeOMP(triangle_mesh.View());
     QuESo_CHECK_RELATIVE_NEAR(r_geo_info.GetRequiredValue<double>(EmbeddedGeometryInfo::volume), volume_ref, 1e-13);
     // quadrature_info
-    const auto& r_quad_info = r_model_info[MainInfo::quadrature_info];
+    const auto& r_quad_info = r_component_info[MainInfo::quadrature_info];
     r_quad_info.CheckRequired();
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
@@ -601,14 +602,14 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     QuESo_CHECK_GT(num_of_points_per_trimmed_element, 26);
     QuESo_CHECK_LT(num_of_points_per_trimmed_element, 27);
     // background_grid_info
-    const auto& r_grid_info = r_model_info[MainInfo::background_grid_info];
+    const auto& r_grid_info = r_component_info[MainInfo::background_grid_info];
     r_grid_info.CheckRequired();
     QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_active_elements), 354);
     QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_trimmed_elements), 349);
     QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_full_elements), 5);
     QuESo_CHECK_EQUAL(r_grid_info.GetRequiredValue<IndexType>(BackgroundGridInfo::num_inactive_elements), 3646);
     // elapsed_time_info
-    const auto& r_elapsed_time_info = r_model_info[MainInfo::elapsed_time_info];
+    const auto& r_elapsed_time_info = r_component_info[MainInfo::elapsed_time_info];
     const double total_time = r_elapsed_time_info.GetRequiredValue<double>(ElapsedTimeInfo::total);
 
     const auto& r_volume_time_info = r_elapsed_time_info[ElapsedTimeInfo::volume_time_info];
@@ -633,14 +634,14 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
 
     QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total+et_condition_total+et_write_file_total), 1e-5);
 
-    const auto& r_condition_info_1 = *r_model_info.GetList(MainInfo::conditions_infos_list)[0];
-    const auto& r_condition_1 = embedded_model.GetConditions()[0];
+    const auto& r_condition_info_1 = *r_component_info.GetList(MainInfo::conditions_infos_list)[0];
+    const auto& r_condition_1 = embedded_component.GetConditions()[0];
     const auto& r_condition_info_1_other = r_condition_1.GetInfo();
     QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
     r_condition_info_1.CheckRequired();
     QuESo_CHECK_EQUAL( r_condition_info_1.GetRequiredValue<IndexType>(ConditionInfo::condition_id), 1);
 
-    const auto& r_settings_obtained = embedded_model.GetSettings();
+    const auto& r_settings_obtained = embedded_component.GetSettings();
     const auto& r_cond_settings_1 = *r_settings_obtained.GetList(MainSettings::conditions_settings_list)[0];
     const std::string& r_filename = r_cond_settings_1.GetRequiredValue<std::string>(ConditionSettings::input_filename);
     TriangleMesh triangle_mesh_cond{};
@@ -654,4 +655,3 @@ BOOST_AUTO_TEST_SUITE_END()
 
 } // End namespace Testing
 } // End namespace queso
-

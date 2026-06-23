@@ -2,7 +2,8 @@
 from platform import release
 import re
 import QuESoPythonModule as QuESo_App
-from QuESoPythonModule.PyQuESo import PyQuESo
+from QuESoPythonModule.kratos_interface.kratos_analysis import KratosAnalysis
+from QuESoPythonModule.model import Model
 
 try:
     import KratosMultiphysics as KM
@@ -41,7 +42,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #el=1000
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings3.json", 0.0005)
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
+        for element in self.pyqueso.elements("main"):
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -57,7 +58,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings4.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
+        for element in self.pyqueso.elements("main"):
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -72,7 +73,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings5.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
+        for element in self.pyqueso.elements("main"):
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -87,7 +88,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings6.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
+        for element in self.pyqueso.elements("main"):
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
             else:
@@ -99,7 +100,7 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings7.json", 0.0008)
-        for element in self.pyqueso.GetElements():
+        for element in self.pyqueso.elements("main"):
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 4*4*4)
 
@@ -108,22 +109,27 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings8.json", 0.0008)
-        for element in self.pyqueso.GetElements():
+        for element in self.pyqueso.elements("main"):
             if element.IsTrimmed():
                 self.assertLessEqual(len(element.GetIntegrationPoints()), 5*5*5)
 
     def RunTest(self,filename, tolerance):
         if kratos_available:
-            self.pyqueso = PyQuESo(filename)
-            self.pyqueso.Run()
+            self.pyqueso = Model(filename)
+            self.pyqueso.run()
 
-            # Direct Analysis with kratos
-            self.pyqueso.RunKratosAnalysis("queso/tests/trimmed_cantilever_kratos/KratosParameters.json")
+            analysis = KratosAnalysis(
+                KM.Model(),
+                queso_settings_filename=filename,
+                analysis_settings_filename="queso/tests/trimmed_cantilever_kratos/AnalysisSettings.json",
+                kratos_settings_filename="queso/tests/trimmed_cantilever_kratos/KratosParameters.json",
+            )
+            analysis.Run()
 
-            model_part = self.pyqueso.GetAnalysis().GetModelPart()
+            model_part = analysis.GetModelPart()
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-            settings = self.pyqueso.GetSettings()
+            settings = self.pyqueso.settings("main")
             grid_settings = settings["background_grid_settings"]
             lower_bound = grid_settings.GetDoubleVector("lower_bound_xyz")
             upper_bound = grid_settings.GetDoubleVector("upper_bound_xyz")

@@ -22,13 +22,13 @@ namespace queso {
 
 namespace Testing {
 
-BOOST_AUTO_TEST_SUITE( ModelInfoTestSuite )
+BOOST_AUTO_TEST_SUITE( ComponentInfoTestSuite )
 
-BOOST_AUTO_TEST_CASE(ModelInfoDefaultValuesTest) {
-    QuESo_INFO << "Testing :: Test ModelInfo :: Test Default Values" << std::endl;
+BOOST_AUTO_TEST_CASE(ComponentInfoDefaultValuesTest) {
+    QuESo_INFO << "Testing :: Test ComponentInfo :: Test Default Values" << std::endl;
 
     {   /// Key access
-        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ModelInfo");
+        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ComponentInfo");
         auto& r_model_info = *p_model_info;
 
         BOOST_REQUIRE_THROW( r_model_info.CheckRequired(), std::exception );
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(ModelInfoDefaultValuesTest) {
         using DictionaryType = Dictionary<queso::key::MainValuesTypeTag>;
         using StringAccess = DictionaryStringAccess<DictionaryType>;
 
-        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ModelInfo");
+        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ComponentInfo");
         auto& r_model_info = *p_model_info;
 
         BOOST_REQUIRE_THROW( r_model_info.CheckRequired(), std::exception );
@@ -187,11 +187,11 @@ BOOST_AUTO_TEST_CASE(ModelInfoDefaultValuesTest) {
 }
 
 
-BOOST_AUTO_TEST_CASE(ModelInfoCustomizedValuesTest) {
-    QuESo_INFO << "Testing :: Test ModelInfo :: Test Customized Values" << std::endl;
+BOOST_AUTO_TEST_CASE(ComponentInfoCustomizedValuesTest) {
+    QuESo_INFO << "Testing :: Test ComponentInfo :: Test Customized Values" << std::endl;
 
     {   /// Key access
-        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ModelInfo");
+        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ComponentInfo");
         auto& r_model_info = *p_model_info;
 
         /// General r_model_info
@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE(ModelInfoCustomizedValuesTest) {
         using DictionaryType = Dictionary<queso::key::MainValuesTypeTag>;
         using StringAccess = DictionaryStringAccess<DictionaryType>;
 
-        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ModelInfo");
+        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ComponentInfo");
         auto& r_model_info = *p_model_info;
 
         /// General embedded geometry info
@@ -380,8 +380,8 @@ BOOST_AUTO_TEST_CASE(ModelInfoCustomizedValuesTest) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(ModelInfoConditionsInfoDefaultValuesTest) {
-    QuESo_INFO << "Testing :: Test ModelInfo :: Test Condition Info Defaut Values" << std::endl;
+BOOST_AUTO_TEST_CASE(ComponentInfoConditionsInfoDefaultValuesTest) {
+    QuESo_INFO << "Testing :: Test ComponentInfo :: Test Condition Info Defaut Values" << std::endl;
 
     {   /// Key access
         auto p_cond_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionInfo");
@@ -416,11 +416,11 @@ BOOST_AUTO_TEST_CASE(ModelInfoConditionsInfoDefaultValuesTest) {
     }
 };
 
-BOOST_AUTO_TEST_CASE(ModelInfoConditionsInfoCustomizedValuesTest) {
-    QuESo_INFO << "Testing :: Test ModelInfo :: Test Condition Info Customized Values" << std::endl;
+BOOST_AUTO_TEST_CASE(ComponentInfoConditionsInfoCustomizedValuesTest) {
+    QuESo_INFO << "Testing :: Test ComponentInfo :: Test Condition Info Customized Values" << std::endl;
 
     {   /// Key access
-        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ModelInfo");
+        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ComponentInfo");
 
         {
             auto p_cond_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionInfo");
@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(ModelInfoConditionsInfoCustomizedValuesTest) {
         using DictionaryType = Dictionary<queso::key::MainValuesTypeTag>;
         using StringAccess = DictionaryStringAccess<DictionaryType>;
 
-        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ModelInfo");
+        auto p_model_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ComponentInfo");
         {
             auto p_cond_info = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("ConditionInfo");
             auto& r_cond_info = *p_cond_info;

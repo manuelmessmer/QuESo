@@ -1,12 +1,12 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+import KratosMultiphysics as KM
+from QuESoPythonModule.kratos_interface.kratos_analysis import KratosAnalysis
+
 
 def main():
-    pyqueso = PyQuESo("QuESoSettings.json")
-    pyqueso.Run()
+    analysis = KratosAnalysis(KM.Model())
+    analysis.Run()
 
-    # Direct Analysis with kratos
-    pyqueso.RunKratosAnalysis()
 
 if __name__ == "__main__":
     main()

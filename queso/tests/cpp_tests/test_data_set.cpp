@@ -87,13 +87,14 @@ BOOST_AUTO_TEST_CASE(TestDataSetCheckRequired) {
     using DataSetType = DataSet<queso::key::MainValuesTypeTag>;
 
     {
-        DataSetType data_set(DataSetType::KeySetInfoTypeTag<queso::key::detail::GeneralSettingsMainValuesTypeTagKeySetInfo>{});
+        DataSetType data_set(DataSetType::KeySetInfoTypeTag<queso::key::detail::MainSettingsMainValuesTypeTagKeySetInfo>{});
         BOOST_REQUIRE_THROW(data_set.CheckRequired(), std::exception);
 
-        data_set.SetValue(GeneralSettings::input_filename, std::string("input.stl"));
-        data_set.SetValue(GeneralSettings::output_directory_name, std::string("output"));
-        data_set.SetValue(GeneralSettings::echo_level, 1u);
-        data_set.SetValue(GeneralSettings::write_output_to_file, true);
+        data_set.SetValue(MainSettings::component_name, std::string("main"));
+        data_set.SetValue(MainSettings::input_filename, std::string("input.stl"));
+        data_set.SetValue(MainSettings::output_directory_name, std::string("output"));
+        data_set.SetValue(MainSettings::echo_level, 1u);
+        data_set.SetValue(MainSettings::write_output_to_file, true);
         data_set.CheckRequired();
     }
 

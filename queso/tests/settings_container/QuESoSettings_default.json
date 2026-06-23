@@ -1,6 +1,7 @@
 {
-    "general_settings"   : {
-    },
+    "output_directory_name" : "queso_output",
+    "echo_level"      : 1,
+    "write_output_to_file" : true,
     "background_grid_settings"     : {
     },
     "trimmed_quadrature_rule_settings"     : {
@@ -15,4 +16,3 @@
         }
     ]
 }
-

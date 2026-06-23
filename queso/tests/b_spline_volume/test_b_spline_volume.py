@@ -1,5 +1,5 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+from QuESoPythonModule.model import Model
 from QuESoPythonModule.scripts.helper import *
 from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
 # External imports
@@ -74,8 +74,8 @@ class TestBSplineVolume(QuESoTestCase):
 
 
     def RunTest(self, input_filename, results_filename):
-        pyqueso = PyQuESo(input_filename)
-        volume_open = pyqueso.GetBSplineVolume("open_knot_vector")
+        pyqueso = Model(input_filename)
+        volume_open = pyqueso.b_spline_volume("main", "open_knot_vector")
         cps = volume_open.ControlPoints()
         knots_u = volume_open.KnotsU()
         knots_v = volume_open.KnotsV()
@@ -143,7 +143,7 @@ class TestBSplineVolume(QuESoTestCase):
         for k1, k2 in zip(res["knots_w"], knots_w):
             self.assertAlmostEqual(k1, k2, 12)
 
-        volume_non_open = pyqueso.GetBSplineVolume("non_open_knot_vector")
+        volume_non_open = pyqueso.b_spline_volume("main", "non_open_knot_vector")
 
         self.__CompareOpenVsNonOpen(volume_open.GetSpline(0), volume_non_open.GetSpline(0))
         self.__CompareOpenVsNonOpen(volume_open.GetSpline(1), volume_non_open.GetSpline(1))

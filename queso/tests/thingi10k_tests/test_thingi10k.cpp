@@ -102,7 +102,8 @@ BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
         auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
         auto& r_settings = *p_settings;
 
-        r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+        r_settings.SetValue(MainSettings::component_name, std::string("main"));
+        r_settings.SetValue(MainSettings::input_filename, filename);
         auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
         r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
@@ -247,7 +248,8 @@ BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
         auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
         auto& r_settings = *p_settings;
 
-        r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
+        r_settings.SetValue(MainSettings::component_name, std::string("main"));
+        r_settings.SetValue(MainSettings::input_filename, filename);
         auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
         r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);

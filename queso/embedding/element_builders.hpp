@@ -94,9 +94,7 @@ public:
                   TrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha
               )
           ),
-          mEchoLevel(
-              rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level)
-          )
+          mEchoLevel(rSettings.GetRequiredValue<IndexType>(MainSettings::echo_level))
     {}
 
     ///@}

@@ -25,7 +25,7 @@ class JsonIO():
         QuESo.IO.WriteDictionaryToJSON(settings, json_filename) # type: ignore (TODO: add .pyi)
 
     @classmethod
-    def read_settings(cls, json_filename: str) -> QuESo.DictionaryHolder: # type: ignore (TODO: add .pyi)
+    def read_settings(cls, input : str | dict) -> QuESo.DictionaryHolder: # type: ignore (TODO: add .pyi)
         """
         Read QuESo settings from a JSON file.
 
@@ -35,8 +35,12 @@ class JsonIO():
         Returns:
             QuESo.DictionaryHolder: QuESo dictionary holder object that contains the parsed settings.
         """
-        with open(json_filename, 'r') as file:
-            dictionary = json.load(file)
+
+        if isinstance(input, dict):
+            dictionary = input
+        else:
+            with open(input, 'r') as file:
+                dictionary = json.load(file)
 
         queso_settings_holder = QuESo.Dictionary.Create("Settings") # type: ignore (TODO: add .pyi)
         cls._read_dict(dictionary, queso_settings_holder.GetObject() )
