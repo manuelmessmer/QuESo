@@ -19,9 +19,9 @@
 #include <optional>
 
 //// Project includes
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/untrimmed_element.hpp"
-#include "queso/containers/background_grid.hpp"
 #include "queso/embedding/brep_operator.h"
 #include "queso/includes/register_keys.hpp"
 #include "queso/includes/timer.hpp"
@@ -48,9 +48,9 @@ public:
     using BoundaryIntegrationPointType = TBoundaryIntegrationPointType;
     using ElementType = TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
-	using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>; 
-	using ElementFilterType = BackgroundGridType::ElementFilter;
-	static constexpr ElementFilterType Builds = ElementFilterType::trimmed;
+    using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
+    using ElementFilterType = BackgroundGridType::ElementFilter;
+    static constexpr ElementFilterType Builds = ElementFilterType::trimmed;
     ///@}
     ///@name Life cycle
     ///@{
@@ -89,7 +89,14 @@ public:
                   TrimmedQuadratureRuleSettings::moment_fitting_residual
               )
           ),
-          mEchoLevel(rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level))
+          mAlpha(
+              rSettings[MainSettings::trimmed_quadrature_rule_settings].TryGetValue<double>(
+                  TrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha
+              )
+          ),
+          mEchoLevel(
+              rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level)
+          )
     {}
 
     ///@}
@@ -115,7 +122,7 @@ public:
 
         Timer timer_fitting{};
         QuadratureTrimmedElement<ElementType>::AssembleIPs(
-            element, mPolynomialOrder, mMomentFittingResidual, mEchoLevel
+            element, mPolynomialOrder, mMomentFittingResidual, mAlpha, mEchoLevel
         );
         mElapsedMomentFittingTime.fetch_add(timer_fitting.Measure(), std::memory_order_relaxed);
 
@@ -145,6 +152,7 @@ private:
     bool mNeglectIfStlIsFlawed;
     Vector3i mPolynomialOrder;
     double mMomentFittingResidual;
+	std::optional<double> mAlpha;
     IndexType mEchoLevel;
 
     std::atomic<double> mElapsedIntersectionTime{ 0.0 };
@@ -167,9 +175,9 @@ public:
     using BoundaryIntegrationPointType = TBoundaryIntegrationPointType;
     using ElementType = UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
     using MainDictionaryType = Dictionary<key::MainValuesTypeTag>;
-	using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>; 
-	using ElementFilterType = BackgroundGridType::ElementFilter;
-	static constexpr ElementFilterType Builds = ElementFilterType::untrimmed;
+    using BackgroundGridType = BackgroundGrid<IntegrationPointType, BoundaryIntegrationPointType>;
+    using ElementFilterType = BackgroundGridType::ElementFilter;
+    static constexpr ElementFilterType Builds = ElementFilterType::untrimmed;
 
     ///@}
     ///@name Life cycle

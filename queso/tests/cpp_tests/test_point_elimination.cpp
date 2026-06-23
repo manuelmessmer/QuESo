@@ -78,7 +78,7 @@ void RunCylinder(const Vector3i& rOrder, double Residual){
                 ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, rOrder, Residual);
+                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, rOrder, Residual, std::nullopt);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-6);
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
                 ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8);
+                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8, std::nullopt);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-8);
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
                 ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
 
                 // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8);
+                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8, std::nullopt);
 
                 // Check if residual is smaller than targeted.
                 QuESo_CHECK_LT(residual, 1e-8);
