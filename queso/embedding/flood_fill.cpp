@@ -163,7 +163,7 @@ void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBo
         while( !index_stack.empty() ){
             /// 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
             const IndexType current_index = index_stack.top();
-            for( auto direction : GridIndexer::GetDirections()){
+            for( auto direction : EnumRange<GridIndexer::Direction>()){
                 new_indices[static_cast<IndexType>(direction)] = Move(current_index, direction, rGroupSet, rPartition, rStates, rVisited );
             }
 

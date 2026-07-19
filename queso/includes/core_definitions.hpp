@@ -174,6 +174,13 @@ inline auto MakeUnique(Args&&... args) -> decltype(std::make_unique<T>(std::forw
 }
 
 ///@}
+///@name QuESo type traits
+///@{
+
+template<auto>
+inline constexpr bool always_false_v = false;
+
+///@}
 ///@name QuESo ostream definitions
 ///@{
 

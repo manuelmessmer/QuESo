@@ -182,7 +182,7 @@ private:
         std::array<double, 6> neighbour_coeffs = {0.0}; // <- Coefficients in each direction.
         for( const auto* p_element : rCurrentBox ){
             IndexType current_id = p_element->GetId();
-            for( auto direction : GridIndexer::GetDirections() ){
+            for( auto direction : EnumRange<GridIndexer::Direction>() ){
                 const IndexType dir_index = static_cast<IndexType>(direction);
                 ElementType* p_neighbour = pNextElement(rGrid, current_id, direction );
                 if( p_neighbour ){

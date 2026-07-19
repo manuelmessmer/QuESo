@@ -11,11 +11,12 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef ASSERT_HPP_INCLUDE
-#define ASSERT_HPP_INCLUDE
+#pragma once
 
 /// STL includes
 #include <assert.h>
+#include <type_traits>
+
 /// Project includes
 // IWYU pragma: begin_exports
 #include "queso/includes/exception.hpp"
@@ -24,32 +25,35 @@
 namespace queso {
 
 /// QuESo Macros
-#ifdef NDEBUG    // asserts disabled
+#ifdef NDEBUG  // asserts disabled
 
-static constexpr bool NOTDEBUG = true;
-// Use empty assert from STL (Different for Win and GCC)
-# define QuESo_ASSERT(Assertation, Message)		(assert(0))
+constexpr bool NOTDEBUG = true;
 
-#else            // asserts enabled
+#define QuESo_ASSERT(Assertation, Message) (assert(0))
 
-static constexpr bool NOTDEBUG = false;
+#else  // asserts enabled
+
+constexpr bool NOTDEBUG = false;
 
 namespace detail {
+    template<typename A>
+    constexpr void
+        Assert(A assertion, std::string_view message, const char* file, const char* function, std::size_t line)
+    {
+        if (assertion) return;
 
-template<typename A>
-inline void Assert(A assertion, const std::string& rMessage,
-                   std::string const& rFileName, std::string const& rFunctionName, std::size_t LineNumber) {
-    if( !assertion ) {
-        throw Exception(rFileName, rFunctionName, LineNumber) << rMessage;
+        if (std::is_constant_evaluated()) {
+            throw message;
+        } else {
+            throw Exception(file, function, line) << message;
+        }
     }
-} // End namespace detail
 
-#define QuESo_ASSERT(Assertation, Message) queso::detail::Assert(Assertation, Message, __FILE__, QuESo_CURRENT_FUNCTION, __LINE__)
+#define QuESo_ASSERT(Assertation, Message) \
+    queso::detail::Assert(Assertation, Message, __FILE__, QuESo_CURRENT_FUNCTION, __LINE__)
 
-} // End detail
+}  // namespace detail
 
-#endif // NDEBUG
+#endif  // NDEBUG
 
-} // End queso
-
-#endif // ASSERT_HPP_INCLUDE
+}  // namespace queso
