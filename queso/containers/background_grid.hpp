@@ -353,8 +353,6 @@ public:
 
 
 private:
-    using IndexerMethodType = GridIndexer::IndexReturnType (GridIndexer::*)(IndexType) const;
-
     /// @brief Traverses the grid in the requested direction and dispatches to the corresponding GridIndexer step.
     /// @details The accessor decides whether the result is returned as an ElementView or as a mutable raw pointer.
     /// @param CurrentId Element id to start from.
@@ -366,25 +364,21 @@ private:
     {
         switch (Dir) {
         case Direction::x_forward:
-            return GetNextElementByIndexer(CurrentId, &GridIndexer::GetNextIndexX, std::forward<TAccessor>(rAccessor));
+            return GetNextElementByIndexer<Direction::x_forward>(CurrentId, std::forward<TAccessor>(rAccessor));
         case Direction::x_backward:
-            return GetNextElementByIndexer(
-                CurrentId, &GridIndexer::GetPreviousIndexX, std::forward<TAccessor>(rAccessor)
-            );
+            return GetNextElementByIndexer<Direction::x_backward>(CurrentId, std::forward<TAccessor>(rAccessor));
         case Direction::y_forward:
-            return GetNextElementByIndexer(CurrentId, &GridIndexer::GetNextIndexY, std::forward<TAccessor>(rAccessor));
+            return GetNextElementByIndexer<Direction::y_forward>(CurrentId, std::forward<TAccessor>(rAccessor));
         case Direction::y_backward:
-            return GetNextElementByIndexer(
-                CurrentId, &GridIndexer::GetPreviousIndexY, std::forward<TAccessor>(rAccessor)
-            );
+            return GetNextElementByIndexer<Direction::y_backward>(CurrentId, std::forward<TAccessor>(rAccessor));
         case Direction::z_forward:
-            return GetNextElementByIndexer(CurrentId, &GridIndexer::GetNextIndexZ, std::forward<TAccessor>(rAccessor));
+            return GetNextElementByIndexer<Direction::z_forward>(CurrentId, std::forward<TAccessor>(rAccessor));
         case Direction::z_backward:
-            return GetNextElementByIndexer(
-                CurrentId, &GridIndexer::GetPreviousIndexZ, std::forward<TAccessor>(rAccessor)
-            );
+            return GetNextElementByIndexer<Direction::z_backward>(CurrentId, std::forward<TAccessor>(rAccessor));
+        case Direction::_end:
+            Unreachable("Direction::_end is a sentinel, not a runtime value.");
         }
-        QuESo_ERROR << "There are only 6 different directions.\n";
+		Unreachable("Invalid Direction value.");
     }
 
     /// @brief Applies a GridIndexer step, fetches the corresponding element, and packages the traversal result.
@@ -393,13 +387,11 @@ private:
     ///          `UntrimmedElementType*` yields NextElementResult<ElementFilter::untrimmed>, and
     ///          `TrimmedElementType*` yields NextElementResult<ElementFilter::trimmed>.
     /// @param CurrentId Element id to start from.
-    /// @param Method GridIndexer stepping method.
     /// @param rAccessor Callable taking the computed next id and returning the matching element access type.
-    template<typename TAccessor>
-    [[nodiscard]] auto
-        GetNextElementByIndexer(IndexType CurrentId, IndexerMethodType Method, TAccessor&& rAccessor) const
+    template<Direction TDir, typename TAccessor>
+    [[nodiscard]] auto GetNextElementByIndexer(IndexType CurrentId, TAccessor&& rAccessor) const
     {
-        const auto [next_index, index_info] = (mGridIndexer.*Method)(CurrentId - 1);
+        const auto [next_index, index_info] = mGridIndexer.template GetNextIndex<TDir>(CurrentId - 1);
         const IndexType next_id = next_index + 1;
         bool is_end = (index_info != GridIndexer::IndexInfo::middle);
         auto element = rAccessor(next_id);
