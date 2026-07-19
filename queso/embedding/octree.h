@@ -19,7 +19,7 @@
 
 //// Project includes
 #include "queso/includes/define.hpp"
-#include "queso/quadrature/single_element.hpp"
+#include "queso/quadrature/tensor_product.hpp"
 #include "queso/utilities/mapping_utilities.hpp"
 
 namespace queso {
@@ -83,8 +83,8 @@ private:
         void GetIntegrationPoints(typename TElementType::IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const {
             if( this->IsLeaf() ){
                 std::vector<typename TElementType::IntegrationPointType> integration_points_tmp{};
-                // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
-                QuadratureSingleElement<TElementType>::AssembleIPs(integration_points_tmp, mBoundsUVW.lower, mBoundsUVW.upper, rOrder);
+                // Note that quadrature::tensor_product::Compute clears integration_points_tmp.
+                quadrature::tensor_product::Compute(integration_points_tmp, mBoundsUVW, { .integration_order = rOrder });
                 if( mStatus == IntersectionState::inside )
                     pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
                 else {

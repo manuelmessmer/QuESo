@@ -22,7 +22,7 @@
 #include "queso/io/io_utilities.h"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/triangle_mesh.hpp"
-#include "queso/quadrature/single_element.hpp"
+#include "queso/quadrature/tensor_product.hpp"
 
 #include "queso/tests/cpp_tests/helper/temporary_file.hpp"
 
@@ -119,8 +119,8 @@ namespace {
 		Vector3i order;
 		std::optional<BackgroundGridType::UntrimmedElementType> Build(IndexType id, const ElementBounds& bounds) {
 			BackgroundGridType::UntrimmedElementType element(id, bounds);
-			QuadratureSingleElement<BackgroundGridType::UntrimmedElementType>::AssembleIPs(
-				element, order, IntegrationMethod::gauss
+			quadrature::tensor_product::Compute(
+				element, { .integration_order = order, .method = IntegrationMethod::gauss }
 			);
 			return element;
 		}
