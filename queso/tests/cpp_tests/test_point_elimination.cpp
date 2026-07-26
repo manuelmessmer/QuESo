@@ -13,317 +13,275 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+
+//// STL includes
+#include <string_view>
+
 //// Project includes
+#include "queso/containers/boundary_integration_point.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/trimmed_element.hpp"
+#include "queso/embedding/brep_operator.h"
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
-#include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/trimmed_element.hpp"
-#include "queso/containers/triangle_mesh.hpp"
-#include "queso/embedding/brep_operator.h"
 #include "queso/io/io_utilities.h"
+#include "queso/quadrature/moment_fitting.hpp"
 #include "queso/utilities/mesh_utilities.h"
-#include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
 
-namespace queso {
-namespace Testing {
+// This suite tests point elimination on real trimmed geometries and verifies that returned reduced rules have stable,
+// current weights. Related coverage: test_moment_fitting_assembly.cpp checks assembly details, test_moment_fitting.cpp
+// checks unreduced NNLS solves, and test_element_trimmed.cpp checks public Compute API behavior.
 
-BOOST_AUTO_TEST_SUITE( PointEliminationTestSuite )
+namespace queso::Testing {
 
-void RunCylinder(const Vector3i& rOrder, double Residual){
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+namespace {
 
-    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-    auto& r_settings = *p_settings;
+    using IntegrationPointType = IntegrationPoint;
+    using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
+    using ElementType = TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
 
-    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
-    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{6, 6, 13});
-	r_grid_settings.CheckRequired();
+    struct PointEliminationCase
+    {
+        std::string_view stl_filename;
+        GridType grid_type;
+        PointType lower_bound_xyz;
+        PointType upper_bound_xyz;
+        PointType lower_bound_uvw;
+        PointType upper_bound_uvw;
+        Vector3i number_of_elements;
+        Vector3i integration_order;
+        double target_residual;
+        double residual_tolerance;
+        double volume_tolerance;
+        IndexType max_number_of_points;
+        IndexType expected_trimmed_elements;
+    };
 
-    TriangleMesh triangle_mesh{};
-    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/cylinder.stl");
+    Dictionary<queso::key::MainValuesTypeTag> MakeSettings(const PointEliminationCase& rCase)
+    {
+        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+        auto& r_settings = *p_settings;
 
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh);
+        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
+        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, rCase.grid_type);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, rCase.lower_bound_xyz);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, rCase.upper_bound_xyz);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, rCase.lower_bound_uvw);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, rCase.upper_bound_uvw);
+        r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, rCase.integration_order);
+        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, rCase.number_of_elements);
+        r_grid_settings.CheckRequired();
 
-    const double min_vol_ratio = 1e-3;
-    const IndexType min_num_triangles = 500;
-
-    GridIndexer grid_indexer(r_settings);
-    IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound_xyz = bounding_box.lower;
-        Vector3d upper_bound_xyz = bounding_box.upper;
-
-        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        Vector3d lower_bound_uvw = bounding_box_uvw.lower;
-        Vector3d upper_bound_uvw = bounding_box_uvw.upper;
-
-        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
-            // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
-            if( p_trimmed_domain ){
-                ++number_trimmed_elements;
-                ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
-
-                // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, rOrder, Residual, std::nullopt);
-
-                // Check if residual is smaller than targeted.
-                QuESo_CHECK_LT(residual, 1e-6);
-
-                // Must be more points than p*p*p.
-                auto& r_points = element.GetIntegrationPoints();
-
-                QuESo_CHECK_LT(r_points.size(), (rOrder[0]+1)*(rOrder[1]+1)*(rOrder[2]+1)+1);
-                QuESo_CHECK_GT(r_points.size(), rOrder[0]*rOrder[1]*rOrder[2]);
-
-                // Get copy of points.
-                ElementType::IntegrationPointVectorType copy_points(r_points);
-
-                // Compute constant terms.
-                std::vector<double> constant_terms{};
-                auto boundary_ips = element.GetActiveDomainBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::global>();
-                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, rOrder);
-
-                // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, rOrder);
-
-                // Check if residual and weights are the same.
-                QuESo_CHECK_NEAR( residual, residual_2, EPS4 );
-                double volume = 0.0;
-                for( IndexType i = 0; i < r_points.size(); ++i){
-                    const double weight1 = r_points[i].Weight();
-                    QuESo_CHECK_GT(weight1, EPS4);
-                    const double weight2 = copy_points[i].Weight();
-                    QuESo_CHECK_RELATIVE_NEAR( weight1, weight2 , EPS2 );
-                    volume += weight1*element.DetJ(); // Multiplied with det(J).
-                }
-                // Check if integration points contain correct volume;
-                const auto& r_mesh = element.GetActiveDomainBoundaryMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh);
-                QuESo_CHECK_RELATIVE_NEAR(volume, ref_volume, 100.0*Residual);
-            }
-        }
+        return std::move(r_settings);
     }
-    QuESo_CHECK_EQUAL(number_trimmed_elements, 120);
-}
 
-BOOST_AUTO_TEST_CASE(PointEliminationCylinder1Test) {
+    double RefitReturnedRuleAndCheckWeightsAreUnchanged(
+        ElementType& rElement,
+        ElementType::IntegrationPointVectorType& rPoints,
+        const ElementType::IntegrationPointVectorType& rReferencePoints,
+        const Vector3i& rIntegrationOrder
+    )
+    {
+        auto boundary_ips =
+            rElement.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>();
+        const auto order_info = quadrature::moment_fitting::detail::MakeIntegrationOrderInfo(rIntegrationOrder);
+        auto constant_terms = quadrature::moment_fitting::detail::ComputeConstantTerms(
+            boundary_ips, rElement.GetCellBounds<CoordinateSpace::global>(), order_info
+        );
+
+        const quadrature::moment_fitting::detail::MomentFittingProblem problem(constant_terms);
+        quadrature::moment_fitting::detail::MomentFittingScratch scratch{};
+        const quadrature::moment_fitting::detail::IntegrationGeometry geometry{
+            rElement.GetCellBounds<CoordinateSpace::parametric>(), rElement.DetJ()
+        };
+        const auto fitting_result = quadrature::moment_fitting::detail::MomentFitting<ElementType>(
+            rPoints, geometry, order_info, problem, scratch
+        );
+
+        for (IndexType i = 0; i < rPoints.size(); ++i) {
+            QuESo_CHECK_GT(rPoints[i].Weight(), EPS4);
+            QuESo_CHECK_RELATIVE_NEAR(rPoints[i].Weight(), rReferencePoints[i].Weight(), EPS2);
+        }
+
+        return fitting_result.residual;
+    }
+
+    double IntegratedVolume(const ElementType& rElement)
+    {
+        double volume = 0.0;
+        for (const auto& rPoint : rElement.GetIntegrationPoints()) { volume += rPoint.Weight() * rElement.DetJ(); }
+        return volume;
+    }
+
+    void CheckVolume(const ElementType& rElement, double Tolerance)
+    {
+        const double volume = IntegratedVolume(rElement);
+        const double reference_volume = MeshUtilities::Volume(rElement.GetActiveDomainBoundaryMesh());
+        QuESo_CHECK_RELATIVE_NEAR(volume, reference_volume, Tolerance);
+    }
+
+    void CheckReturnedRule(ElementType& rElement, const PointEliminationCase& rCase)
+    {
+        const auto residual =
+            quadrature::moment_fitting::Compute(
+                rElement, { .integration_order = rCase.integration_order, .residual = rCase.target_residual }
+            )
+                .value();
+        QuESo_CHECK_NEAR(residual, 0.0, rCase.residual_tolerance);
+
+        auto& r_points = rElement.GetIntegrationPoints();
+        QuESo_CHECK_LT(r_points.size(), rCase.max_number_of_points);
+        QuESo_CHECK_IS_FALSE(r_points.empty());
+
+        const ElementType::IntegrationPointVectorType reference_points(r_points);
+        // Refit the returned point set to verify point elimination did not return stale weights.
+        const double residual_after_refitting_returned_rule =
+            RefitReturnedRuleAndCheckWeightsAreUnchanged(rElement, r_points, reference_points, rCase.integration_order);
+        QuESo_CHECK_NEAR(residual, residual_after_refitting_returned_rule, EPS4);
+
+        CheckVolume(rElement, rCase.volume_tolerance);
+    }
+
+    void RunPointEliminationCase(const PointEliminationCase& rCase)
+    {
+        const auto settings = MakeSettings(rCase);
+        TriangleMesh triangle_mesh{};
+        const std::string stl_path = GlobalConfig::GetInstance().BaseDir + "/data/" + std::string(rCase.stl_filename);
+        IO::ReadMeshFromSTL(triangle_mesh, stl_path);
+
+        BRepOperator brep_operator(triangle_mesh);
+        constexpr double min_vol_ratio = 1e-3;
+        constexpr IndexType min_num_triangles = 500;
+
+        GridIndexer grid_indexer(settings);
+        IndexType number_trimmed_elements = 0;
+        for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
+            const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
+            const auto& lower_bound_xyz = bounding_box.lower;
+            const auto& upper_bound_xyz = bounding_box.upper;
+
+            if (brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) != IntersectionState::trimmed) {
+                continue;
+            }
+
+            auto p_trimmed_domain =
+                brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
+            if (!p_trimmed_domain) { continue; }
+
+            ++number_trimmed_elements;
+            const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
+            ElementType element(1, ElementBounds{ bounding_box, bounding_box_uvw }, std::move(*p_trimmed_domain));
+            CheckReturnedRule(element, rCase);
+        }
+        QuESo_CHECK_EQUAL(number_trimmed_elements, rCase.expected_trimmed_elements);
+    }
+
+}  // namespace
+
+BOOST_AUTO_TEST_SUITE(PointEliminationTestSuite)
+
+BOOST_AUTO_TEST_CASE(PointEliminationCylinder1Test)
+{
+    // Verifies reduced quadratic rules on trimmed cylinder cells and re-solve stability of returned weights.
     QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Quadratic" << std::endl;
-    RunCylinder({2, 2, 2}, 1e-8);
+    constexpr PointEliminationCase test_case{ .stl_filename = "cylinder.stl",
+                                              .grid_type = GridType::b_spline_grid,
+                                              .lower_bound_xyz = { -1.5, -1.5, -1.0 },
+                                              .upper_bound_xyz = { 1.5, 1.5, 12.0 },
+                                              .lower_bound_uvw = { 0.0, 0.0, 0.0 },
+                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                              .number_of_elements = { 6, 6, 13 },
+                                              .integration_order = { 2, 2, 2 },
+                                              .target_residual = 1e-8,
+                                              .residual_tolerance = 1e-6,
+                                              .volume_tolerance = 1e-6,
+                                              .max_number_of_points = 28,
+                                              .expected_trimmed_elements = 120 };
+    RunPointEliminationCase(test_case);
 }
 
-BOOST_AUTO_TEST_CASE(PointEliminationCylinder2Test) {
+BOOST_AUTO_TEST_CASE(PointEliminationCylinder2Test)
+{
+    // Verifies reduced cubic rules on trimmed cylinder cells and re-solve stability of returned weights.
     QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Cubic" << std::endl;
-    RunCylinder({3, 3, 3}, 1e-8);
+    constexpr PointEliminationCase test_case{ .stl_filename = "cylinder.stl",
+                                              .grid_type = GridType::b_spline_grid,
+                                              .lower_bound_xyz = { -1.5, -1.5, -1.0 },
+                                              .upper_bound_xyz = { 1.5, 1.5, 12.0 },
+                                              .lower_bound_uvw = { 0.0, 0.0, 0.0 },
+                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                              .number_of_elements = { 6, 6, 13 },
+                                              .integration_order = { 3, 3, 3 },
+                                              .target_residual = 1e-8,
+                                              .residual_tolerance = 1e-6,
+                                              .volume_tolerance = 1e-6,
+                                              .max_number_of_points = 65,
+                                              .expected_trimmed_elements = 120 };
+    RunPointEliminationCase(test_case);
 }
 
-BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test) {
+BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test)
+{
+    // Verifies reduced mixed-order rules on trimmed cylinder cells and re-solve stability of returned weights.
     QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Mixed" << std::endl;
-    RunCylinder({2, 3, 4}, 1e-7);
+    constexpr PointEliminationCase test_case{ .stl_filename = "cylinder.stl",
+                                              .grid_type = GridType::b_spline_grid,
+                                              .lower_bound_xyz = { -1.5, -1.5, -1.0 },
+                                              .upper_bound_xyz = { 1.5, 1.5, 12.0 },
+                                              .lower_bound_uvw = { 0.0, 0.0, 0.0 },
+                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                              .number_of_elements = { 6, 6, 13 },
+                                              .integration_order = { 2, 3, 4 },
+                                              .target_residual = 1e-7,
+                                              .residual_tolerance = 1e-6,
+                                              .volume_tolerance = 1e-5,
+                                              .max_number_of_points = 61,
+                                              .expected_trimmed_elements = 120 };
+    RunPointEliminationCase(test_case);
 }
 
-
-BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest) {
+BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest)
+{
+    // Verifies reduced rules on steering-knuckle geometry, including volume recovery and stable returned weights.
     QuESo_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
-
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-
-    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-    auto& r_settings = *p_settings;
-
-    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-130.0, -110.0, -110.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{-40, 10.0, 10.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-130.0, -110.0, -110.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{-40, 10.0, 10.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
-    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 12, 12});
-	r_grid_settings.CheckRequired();
-
-    TriangleMesh triangle_mesh{};
-    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/steering_knuckle.stl");
-
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh);
-
-    const double min_vol_ratio = 1e-3;
-    const IndexType min_num_triangles = 500;
-
-    GridIndexer grid_indexer(r_settings);
-    IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound_xyz = bounding_box.lower;
-        Vector3d upper_bound_xyz = bounding_box.upper;
-
-        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        Vector3d lower_bound_uvw = bounding_box_uvw.lower;
-        Vector3d upper_bound_uvw = bounding_box_uvw.upper;
-
-        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
-            // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
-            if( p_trimmed_domain ){
-                ++number_trimmed_elements;
-                ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
-
-                // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8, std::nullopt);
-
-                // Check if residual is smaller than targeted.
-                QuESo_CHECK_LT(residual, 1e-8);
-
-                // Must be more points than p*p*p.
-                auto& r_points = element.GetIntegrationPoints();
-                QuESo_CHECK_LT(r_points.size(), 28);
-                QuESo_CHECK_GT(r_points.size(), 7);
-
-                // Get copy of points.
-                ElementType::IntegrationPointVectorType copy_points(r_points);
-
-                // Compute constant terms.
-                std::vector<double> constant_terms{};
-                auto boundary_ips = element.GetActiveDomainBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::global>();
-                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, {2, 2, 2});
-
-                // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
-
-                // Check if residual and weights are the same.
-                QuESo_CHECK_LT( residual, residual_2+EPS4 );
-                QuESo_CHECK_LT( residual_2, residual+EPS4 );
-                double volume = 0.0;
-                for( IndexType i = 0; i < r_points.size(); ++i){
-                    const double weight1 = r_points[i].Weight();
-                    QuESo_CHECK_GT(weight1, EPS4);
-                    const double weight2 = copy_points[i].Weight();
-                    const double error = std::abs(weight1 - weight2)/ weight1;
-                    QuESo_CHECK_LT( error , EPS2 );
-                    volume += weight1*element.DetJ(); // Multiplied with det(J).
-                }
-                // Check if integration points contain correct volume;
-                const auto& r_mesh = element.GetActiveDomainBoundaryMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh);
-                const double volume_error = std::abs(volume - ref_volume)/ ref_volume;
-                QuESo_CHECK_LT(volume_error, 1e-6); // Note can not be better as moment fitting residual.
-            }
-        }
-    }
-    QuESo_CHECK_EQUAL(number_trimmed_elements, 80);
+    constexpr PointEliminationCase test_case{ .stl_filename = "steering_knuckle.stl",
+                                              .grid_type = GridType::b_spline_grid,
+                                              .lower_bound_xyz = { -130.0, -110.0, -110.0 },
+                                              .upper_bound_xyz = { -40.0, 10.0, 10.0 },
+                                              .lower_bound_uvw = { -130.0, -110.0, -110.0 },
+                                              .upper_bound_uvw = { -40.0, 10.0, 10.0 },
+                                              .number_of_elements = { 9, 12, 12 },
+                                              .integration_order = { 2, 2, 2 },
+                                              .target_residual = 1e-8,
+                                              .residual_tolerance = 1e-8,
+                                              .volume_tolerance = 1e-6,
+                                              .max_number_of_points = 28,
+                                              .expected_trimmed_elements = 80 };
+    RunPointEliminationCase(test_case);
 }
 
-BOOST_AUTO_TEST_CASE(PointEliminationElephantTest) {
+BOOST_AUTO_TEST_CASE(PointEliminationElephantTest)
+{
+    // Verifies reduced rules on elephant geometry, including volume recovery and stable returned weights.
     QuESo_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
-
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-
-    auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-    auto& r_settings = *p_settings;
-
-    auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-    r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.4, 0.6, 0.35});
-    r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0,  1.0,  1.0});
-    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2, 2, 2});
-    r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 12, 7});
-	r_grid_settings.CheckRequired();
-
-    TriangleMesh triangle_mesh{};
-    std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-    IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/data/elephant.stl");
-
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh);
-
-    const double min_vol_ratio = 1e-3;
-    const IndexType min_num_triangles = 500;
-
-    GridIndexer grid_indexer(r_settings);
-    IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
-        const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-        Vector3d lower_bound_xyz = bounding_box.lower;
-        Vector3d upper_bound_xyz = bounding_box.upper;
-
-        const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-        Vector3d lower_bound_uvw = bounding_box_uvw.lower;
-        Vector3d upper_bound_uvw = bounding_box_uvw.upper;
-
-        if( brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) == IntersectionState::trimmed){
-            // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
-            if( p_trimmed_domain ){
-                ++number_trimmed_elements;
-                ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw}, std::move(*p_trimmed_domain));
-
-                // Run point elimination
-                const auto residual = QuadratureTrimmedElementTester<ElementType>::AssembleIPs(element, {2, 2, 2}, 1e-8, std::nullopt);
-
-                // Check if residual is smaller than targeted.
-                QuESo_CHECK_LT(residual, 1e-8);
-
-                // Must be more points than p*p*p.
-                auto& r_points = element.GetIntegrationPoints();
-                QuESo_CHECK_LT(r_points.size(), 28);
-                QuESo_CHECK_GT(r_points.size(), 7);
-
-                // Get copy of points.
-                ElementType::IntegrationPointVectorType copy_points(r_points);
-
-                // Compute constant terms.
-                std::vector<double> constant_terms{};
-                auto boundary_ips = element.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>();
-                QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, {2, 2, 2});
-
-                // Run moment fitting again.
-                const auto residual_2 = QuadratureTrimmedElementTester<ElementType>::MomentFitting(constant_terms, r_points, element, {2, 2, 2});
-
-                // Check if residual and weights are the same.
-                QuESo_CHECK_LT( residual, residual_2+EPS4 );
-                QuESo_CHECK_LT( residual_2, residual+EPS4 );
-                double volume = 0.0;
-                for( IndexType i = 0; i < r_points.size(); ++i){
-                    const double weight1 = r_points[i].Weight();
-                    QuESo_CHECK_GT(weight1, EPS4);
-                    const double weight2 = copy_points[i].Weight();
-                    const double error = std::abs(weight1 - weight2)/ weight1;
-                    QuESo_CHECK_LT( error , EPS2 );
-                    volume += weight1*element.DetJ(); // Multiplied with det(J).
-                }
-
-                // Check if integration points contain correct volume;
-                const auto& r_mesh = element.GetActiveDomainBoundaryMesh();
-                const double ref_volume = MeshUtilities::Volume(r_mesh);
-                const double volume_error = std::abs(volume - ref_volume);
-                QuESo_CHECK_LT(volume_error, 1e-7);
-            }
-        }
-    }
-    QuESo_CHECK_EQUAL(number_trimmed_elements, 153);
+    constexpr PointEliminationCase test_case{ .stl_filename = "elephant.stl",
+                                              .grid_type = GridType::hexahedral_fe_grid,
+                                              .lower_bound_xyz = { -0.4, -0.6, -0.35 },
+                                              .upper_bound_xyz = { 0.4, 0.6, 0.35 },
+                                              .lower_bound_uvw = { -1.0, -1.0, -1.0 },
+                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                              .number_of_elements = { 8, 12, 7 },
+                                              .integration_order = { 2, 2, 2 },
+                                              .target_residual = 1e-8,
+                                              .residual_tolerance = 1e-8,
+                                              .volume_tolerance = 1e-7,
+                                              .max_number_of_points = 28,
+                                              .expected_trimmed_elements = 153 };
+    RunPointEliminationCase(test_case);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // End namespace Testing
-} // End namespace queso
+}  // namespace queso::Testing

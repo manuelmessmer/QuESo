@@ -25,8 +25,8 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/includes/register_keys.hpp"
 #include "queso/includes/timer.hpp"
+#include "queso/quadrature/moment_fitting.hpp"
 #include "queso/quadrature/tensor_product.hpp"
-#include "queso/quadrature/trimmed_element.hpp"
 
 namespace queso {
 
@@ -119,8 +119,12 @@ public:
         ElementType element(Id, rBounds, std::move(*p_domain));
 
         Timer timer_fitting{};
-        QuadratureTrimmedElement<ElementType>::AssembleIPs(
-            element, mPolynomialOrder, mMomentFittingResidual, mAlpha, mEchoLevel
+        quadrature::moment_fitting::Compute(
+            element,
+            { .integration_order = mPolynomialOrder,
+              .residual = mMomentFittingResidual,
+              .fictitious_domain_alpha = mAlpha,
+              .echo_level = mEchoLevel }
         );
         mElapsedMomentFittingTime.fetch_add(timer_fitting.Measure(), std::memory_order_relaxed);
 

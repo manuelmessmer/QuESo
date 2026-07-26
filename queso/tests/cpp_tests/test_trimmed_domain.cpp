@@ -13,50 +13,62 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+//// STL includes
+#include <array>
 //// Project includes
+#include "queso/containers/boundary_integration_point.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/untrimmed_element.hpp"
+#include "queso/embedding/brep_operator.h"
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
-#include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/untrimmed_element.hpp"
-#include "queso/containers/triangle_mesh.hpp"
 #include "queso/io/io_utilities.h"
-#include "queso/embedding/brep_operator.h"
+#include "queso/quadrature/moment_fitting_assembly.hpp"
+#include "queso/quadrature/moment_fitting_types.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/triangle_utilities.hpp"
-#include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 
 #include "queso/tests/cpp_tests/global_config.hpp"
 
-namespace queso {
-namespace Testing {
+// This suite tests trimmed-domain boundary extraction, boundary orientation and constant-term assembly against
+// reference data from STL geometries. Related coverage: test_moment_fitting_assembly.cpp checks assembly details on
+// analytic boxes, and test_point_elimination.cpp checks reduced quadrature rules on trimmed domains.
 
-BOOST_AUTO_TEST_SUITE( TrimmedDomainTestSuite )
+namespace queso::Testing {
 
-void CheckTriangleOrientation(TriangleMeshView rTriangleMesh){
-    rTriangleMesh.VisitEachTriangle<WithNormals>([&](const auto &triangle){
-        if( TriangleUtilities::Area(triangle) > EPS3 ){
+BOOST_AUTO_TEST_SUITE(TrimmedDomainTestSuite)
+
+void CheckTriangleOrientation(TriangleMeshView rTriangleMesh)
+{
+    rTriangleMesh.VisitEachTriangle<WithNormals>([&](const auto& triangle) {
+        if (TriangleUtilities::Area(triangle) > EPS3) {
             const Vector3d A = triangle.P2 - triangle.P1;
             const Vector3d B = triangle.P3 - triangle.P2;
 
             PointType normal_cross = Math::Cross(A, B);
             normal_cross /= Math::Norm(normal_cross);
 
-            PointType normal_stored = {triangle.Normal[0], triangle.Normal[1], triangle.Normal[2]};
+            PointType normal_stored = { triangle.Normal[0], triangle.Normal[1], triangle.Normal[2] };
 
             QuESo_CHECK_POINT_NEAR(normal_cross, normal_stored, EPS2);
         }
     });
 }
 
-void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValuesTypeTag>& rSettings,
-            const std::string& rResultsFilename, IndexType NumTrimmedElements){
+void RunTest(
+    const std::string& rFilename,
+    const Dictionary<queso::key::MainValuesTypeTag>& rSettings,
+    const std::string& rResultsFilename,
+    IndexType NumTrimmedElements
+)
+{
 
     rSettings[MainSettings::trimmed_quadrature_rule_settings].CheckRequired();
     rSettings[MainSettings::background_grid_settings].CheckRequired();
 
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+    using IntegrationPointType = IntegrationPoint;
+    using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
+    using ElementType = UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
 
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, rFilename.c_str());
@@ -64,26 +76,30 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
     // Build brep_operator
     BRepOperator brep_operator(triangle_mesh);
 
-    //std::ofstream file_out{};
+    // std::ofstream file_out{};
     std::ifstream file(rResultsFilename);
     std::string line{};
 
-    //file_out.open("test.txt");
+    // file_out.open("test.txt");
     const double volume_ref = MeshUtilities::Volume(triangle_mesh.View());
     double volume_test = 0.0;
     const double area_ref = MeshUtilities::Area(triangle_mesh.View());
     double area_test = 0.0;
 
-    const double min_vol_ratio = rSettings[MainSettings::trimmed_quadrature_rule_settings].
-        GetRequiredValue<double>(TrimmedQuadratureRuleSettings::min_element_volume_ratio);
-    const IndexType min_num_triangles = rSettings[MainSettings::trimmed_quadrature_rule_settings].
-        GetRequiredValue<IndexType>(TrimmedQuadratureRuleSettings::min_num_boundary_triangles);
-    const Vector3i order =  rSettings[MainSettings::background_grid_settings].
-        GetRequiredValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+    const double min_vol_ratio = rSettings[MainSettings::trimmed_quadrature_rule_settings].GetRequiredValue<double>(
+        TrimmedQuadratureRuleSettings::min_element_volume_ratio
+    );
+    const IndexType min_num_triangles =
+        rSettings[MainSettings::trimmed_quadrature_rule_settings].GetRequiredValue<IndexType>(
+            TrimmedQuadratureRuleSettings::min_num_boundary_triangles
+        );
+    const Vector3i order = rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(
+        BackgroundGridSettings::polynomial_order
+    );
 
     GridIndexer grid_indexer(rSettings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+    for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.lower;
         const Vector3d upper_bound_xyz = bounding_box.upper;
@@ -92,16 +108,17 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
         const Vector3d lower_bound_uvw = bounding_box_uvw.lower;
         const Vector3d upper_bound_uvw = bounding_box_uvw.upper;
 
-        ElementType element(1, ElementBounds{bounding_box, bounding_box_uvw});
+        ElementType element(1, ElementBounds{ bounding_box, bounding_box_uvw });
 
         auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area_test += MeshUtilities::Area(clipped_mesh.Mesh().View());
 
 
-        const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz );
-        if( status == IntersectionState::trimmed){
+        const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz);
+        if (status == IntersectionState::trimmed) {
             // Get trimmed domain
-            auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
+            auto p_trimmed_domain =
+                brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
 
             // Get triangle mesh
             const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
@@ -113,22 +130,23 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
             volume_test += MeshUtilities::Volume(mesh_view);
 
             // Get boundary integration points
-            const ElementBounds element_bounds{bounding_box, bounding_box_uvw};
+            const ElementBounds element_bounds{ bounding_box, bounding_box_uvw };
             auto boundary_ips =
                 p_trimmed_domain->GetBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>(element_bounds);
 
-            std::vector<double> constant_terms{};
-            QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(constant_terms, boundary_ips, element, order);
+            auto constant_terms = quadrature::moment_fitting::detail::ComputeConstantTerms(
+                boundary_ips,
+                element.GetCellBounds<CoordinateSpace::global>(),
+                quadrature::moment_fitting::detail::MakeIntegrationOrderInfo(order)
+            );
 
             // Read and ignore header
             getline(file, line);
-            //file_out << "E: " << number_trimmed_elements << std::endl;
+            // file_out << "E: " << number_trimmed_elements << std::endl;
             double surface_area = 0.0;
-            for( auto& ip : boundary_ips){
-                surface_area += ip.Weight();
-            }
-            //file_out << std::setprecision(16) << surface_area << std::endl;
-            // Read ref surface area
+            for (auto& ip : boundary_ips) { surface_area += ip.Weight(); }
+            // file_out << std::setprecision(16) << surface_area << std::endl;
+            //  Read ref surface area
             getline(file, line);
             double ref_surface_area = std::stod(line);
             QuESo_CHECK_RELATIVE_NEAR(surface_area, ref_surface_area, 1e-10);
@@ -136,104 +154,165 @@ void RunTest(const std::string& rFilename, const Dictionary<queso::key::MainValu
             double error = 0.0;
             double norm = 0.0;
             double norm_ref = 0.0;
-            for( auto& value : constant_terms ){
-                //file_out << std::setprecision(16) << value << std::endl;
+            for (auto& value : constant_terms) {
+                // file_out << std::setprecision(16) << value << std::endl;
                 getline(file, line);
                 double ref_value = std::stod(line);
-                error += std::abs(value-ref_value);
+                error += std::abs(value - ref_value);
                 norm_ref += std::abs(ref_value);
                 norm += std::abs(value);
             }
 
-            if( norm_ref/constant_terms.size() > 1e-12 ){
-                QuESo_CHECK_LT( error/norm_ref, 1e-6);
+            if (norm_ref / constant_terms.size() > 1e-12) {
+                QuESo_CHECK_LT(error / norm_ref, 1e-6);
             } else {
-                QuESo_CHECK_LT( norm/constant_terms.size(), 1e-12);
+                QuESo_CHECK_LT(norm / constant_terms.size(), 1e-12);
             }
             number_trimmed_elements++;
-        }
-        else if( status == IntersectionState::inside ){
-            volume_test += delta_xyz[0]*delta_xyz[1]*delta_xyz[2];
+        } else if (status == IntersectionState::inside) {
+            volume_test += delta_xyz[0] * delta_xyz[1] * delta_xyz[2];
         }
     }
-    //file_out.close();
+    // file_out.close();
     file.close();
     QuESo_CHECK_RELATIVE_NEAR(area_test, area_ref, 1e-12);
     QuESo_CHECK_RELATIVE_NEAR(volume_test, volume_ref, 1e-12);
     QuESo_CHECK_EQUAL(number_trimmed_elements, NumTrimmedElements);
 }
 
-BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest) {
+BOOST_AUTO_TEST_CASE(TrimemdDomainElephantTest)
+{
+    // Verifies elephant trimmed-domain boundary integration and constant terms against reference data.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Elephant" << std::endl;
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
 
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-0.4, -0.6, -0.35});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{0.5, 0.7, 0.45});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{0.0, 0.0, 0.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{9, 13, 8});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::grid_type, GridType::b_spline_grid
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::lower_bound_xyz, PointType{ -0.4, -0.6, -0.35 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::upper_bound_xyz, PointType{ 0.5, 0.7, 0.45 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::number_of_elements, Vector3i{ 9, 13, 8 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 }
+    );
 
-    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 200u);
-    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+        TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 200u
+    );
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+        TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
+    );
 
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-    RunTest(base_dir + "/data/elephant.stl", r_settings,
-        base_dir + "/results/surface_integral_elephant.txt", 166);
+    RunTest(base_dir + "/data/elephant.stl", r_settings, base_dir + "/results/surface_integral_elephant.txt", 166);
 }
 
-BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest) {
+BOOST_AUTO_TEST_CASE(TrimmedDomainBunnyTest)
+{
+    // Verifies bunny trimmed-domain boundary integration and constant terms against reference data.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Bunny" << std::endl;
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
 
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-24.0, -43.0, 5.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{85, 46.0, 115});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-24.0, -43.0, 5.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{85, 46.0, 115});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{8, 6, 8});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::grid_type, GridType::b_spline_grid
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::lower_bound_xyz, PointType{ -24.0, -43.0, 5.0 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::upper_bound_xyz, PointType{ 85, 46.0, 115 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::lower_bound_uvw, PointType{ -24.0, -43.0, 5.0 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::upper_bound_uvw, PointType{ 85, 46.0, 115 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::number_of_elements, Vector3i{ 8, 6, 8 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 }
+    );
 
-    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u);
-    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+        TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u
+    );
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+        TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
+    );
 
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-    RunTest(base_dir + "/data/stanford_bunny.stl", r_settings,
-        base_dir + "/results/surface_integral_bunny.txt", 186);
+    RunTest(base_dir + "/data/stanford_bunny.stl", r_settings, base_dir + "/results/surface_integral_bunny.txt", 186);
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest) {
+BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest)
+{
+    // Verifies cylinder trimmed-domain boundary integration and constant terms against reference data.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cylinder" << std::endl;
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
 
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid);
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{-1.5, -1.5, -1});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{1.5, 1.5, 12});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{-1.0, -1.0, -1.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{1.0, 1.0, 1.0});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::number_of_elements, Vector3i{3, 3, 13});
-    r_settings[MainSettings::background_grid_settings].SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::grid_type, GridType::hexahedral_fe_grid
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::lower_bound_xyz, PointType{ -1.5, -1.5, -1 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::upper_bound_xyz, PointType{ 1.5, 1.5, 12 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::lower_bound_uvw, PointType{ -1.0, -1.0, -1.0 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::number_of_elements, Vector3i{ 3, 3, 13 }
+    );
+    r_settings[MainSettings::background_grid_settings].SetValue(
+        BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 }
+    );
 
-    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u);
-    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+        TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 100u
+    );
+    r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+        TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
+    );
 
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-    RunTest(base_dir + "/data/cylinder.stl", r_settings,
-        base_dir + "/results/surface_integral_cylinder.txt", 80);
+    RunTest(base_dir + "/data/cylinder.stl", r_settings, base_dir + "/results/surface_integral_cylinder.txt", 80);
 }
 
 
-void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, const PointType rUpperBound,
-    const PointType Perturbation ){
+void RunCubeWithCavity(
+    const PointType rDelta,
+    const PointType rLowerBound,
+    const PointType rUpperBound,
+    const PointType Perturbation
+)
+{
 
-    Vector3i number_of_elements = {1, 1, 1};
+    constexpr Vector3i number_of_elements{ 1, 1, 1 };
 
     auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
     auto& r_settings = *p_settings;
@@ -245,8 +324,8 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
     r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, rLowerBound);
     r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, rUpperBound);
     r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, number_of_elements);
-    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{2,2,2});
-	r_grid_settings.CheckRequired();
+    r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+    r_grid_settings.CheckRequired();
 
     TriangleMesh triangle_mesh{};
     std::string base_dir = GlobalConfig::GetInstance().BaseDir;
@@ -254,23 +333,24 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
 
     TriangleMesh perturbed_mesh{};
     perturbed_mesh.Reserve(triangle_mesh.NumOfTriangles() * 3);
-    for (const auto &triangle : triangle_mesh.Triangles<WithNormals>()) {
+    for (const auto& triangle : triangle_mesh.Triangles<WithNormals>()) {
         const IndexType v0 = perturbed_mesh.AddVertex(
-            {triangle.P1[0] + Perturbation[0], triangle.P1[1] + Perturbation[1], triangle.P1[2] + Perturbation[2]});
+            { triangle.P1[0] + Perturbation[0], triangle.P1[1] + Perturbation[1], triangle.P1[2] + Perturbation[2] }
+        );
         const IndexType v1 = perturbed_mesh.AddVertex(
-            {triangle.P2[0] + Perturbation[0], triangle.P2[1] + Perturbation[1], triangle.P2[2] + Perturbation[2]});
+            { triangle.P2[0] + Perturbation[0], triangle.P2[1] + Perturbation[1], triangle.P2[2] + Perturbation[2] }
+        );
         const IndexType v2 = perturbed_mesh.AddVertex(
-            {triangle.P3[0] + Perturbation[0], triangle.P3[1] + Perturbation[1], triangle.P3[2] + Perturbation[2]});
-        perturbed_mesh.AddTriangle(
-            {v0, v1, v2},
-            {triangle.Normal[0], triangle.Normal[1], triangle.Normal[2]});
+            { triangle.P3[0] + Perturbation[0], triangle.P3[1] + Perturbation[1], triangle.P3[2] + Perturbation[2] }
+        );
+        perturbed_mesh.AddTriangle({ v0, v1, v2 }, { triangle.Normal[0], triangle.Normal[1], triangle.Normal[2] });
     }
 
     // Build brep_operator
     BRepOperator brep_operator(perturbed_mesh);
 
-    const double min_vol_ratio = 0.0;
-    const IndexType min_num_triangles = 100;
+    constexpr double min_vol_ratio = 0.0;
+    constexpr IndexType min_num_triangles = 100;
 
     const double volume_ref = MeshUtilities::Volume(perturbed_mesh.View());
     const double area_ref = MeshUtilities::Area(perturbed_mesh.View());
@@ -279,7 +359,7 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
 
     GridIndexer grid_indexer(r_settings);
     IndexType number_trimmed_elements = 0;
-    for( IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i){
+    for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.lower;
         const Vector3d upper_bound_xyz = bounding_box.upper;
@@ -287,8 +367,9 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
         area += MeshUtilities::Area(clipped_mesh.Mesh().View());
         // Get Trimmed domain
-        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
-        if( p_trimmed_domain ){
+        auto p_trimmed_domain =
+            brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
+        if (p_trimmed_domain) {
             auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
             // Check triangle orientations.
             CheckTriangleOrientation(mesh_view);
@@ -298,95 +379,114 @@ void RunCubeWithCavity(const PointType rDelta, const PointType rLowerBound, cons
         }
     }
 
-    QuESo_CHECK_RELATIVE_NEAR(area, area_ref, 1e-10 );
-    QuESo_CHECK_RELATIVE_NEAR(volume, volume_ref, 1e-9 );
+    QuESo_CHECK_RELATIVE_NEAR(area, area_ref, 1e-10);
+    QuESo_CHECK_RELATIVE_NEAR(volume, volume_ref, 1e-9);
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test) {
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube1Test)
+{
+    // Verifies cube-with-cavity trimming robustness for positive x perturbations.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 1" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
+    constexpr std::array<double, 11> perturbations = { 1e-6,  1e-7,  1e-8,  1e-9,  1e-10, 1e-11,
+                                                       1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
-    for( IndexType i = 0; i < perturbations.size(); ++i ){
-        PointType lower_bound = {-3.0, -3.0, -3.0};
-        PointType upper_bound = {3.0, 3.0, 3.0};
-        PointType delta = {1.5, 1.5, 1.5};
-        PointType perturbation = {perturbations[i], 0.0 , 0.0};
+    for (IndexType i = 0; i < perturbations.size(); ++i) {
+        constexpr PointType lower_bound = { -3.0, -3.0, -3.0 };
+        constexpr PointType upper_bound = { 3.0, 3.0, 3.0 };
+        constexpr PointType delta = { 1.5, 1.5, 1.5 };
+        const PointType perturbation = { perturbations[i], 0.0, 0.0 };
         RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube2Test) {
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube2Test)
+{
+    // Verifies cube-with-cavity trimming robustness for positive y perturbations.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 2" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
+    constexpr std::array<double, 11> perturbations = { 1e-6,  1e-7,  1e-8,  1e-9,  1e-10, 1e-11,
+                                                       1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
-    for( IndexType i = 0; i < perturbations.size(); ++i ){
-        PointType lower_bound = {-3.0, -3.0, -3.0};
-        PointType upper_bound = {3.0, 3.0, 3.0};
-        PointType delta = {1.5, 1.5, 1.5};
-        PointType perturbation = {0.0, perturbations[i], 0.0};
+    for (IndexType i = 0; i < perturbations.size(); ++i) {
+        constexpr PointType lower_bound = { -3.0, -3.0, -3.0 };
+        constexpr PointType upper_bound = { 3.0, 3.0, 3.0 };
+        constexpr PointType delta = { 1.5, 1.5, 1.5 };
+        const PointType perturbation = { 0.0, perturbations[i], 0.0 };
         RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube3Test) {
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube3Test)
+{
+    // Verifies cube-with-cavity trimming robustness for negative z perturbations.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 3" << std::endl;
 
-    std::vector<double> perturbations = { 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
+    constexpr std::array<double, 10> perturbations = {
+        1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16
+    };
 
-    for( IndexType i = 0; i < perturbations.size(); ++i ){
-        PointType lower_bound = {-3.0, -3.0, -3.0};
-        PointType upper_bound = {3.0, 3.0, 3.0};
-        PointType delta = {1.5, 1.5, 1.5};
-        PointType perturbation = {0.0, 0.0, -perturbations[i]};
+    for (IndexType i = 0; i < perturbations.size(); ++i) {
+        constexpr PointType lower_bound = { -3.0, -3.0, -3.0 };
+        constexpr PointType upper_bound = { 3.0, 3.0, 3.0 };
+        constexpr PointType delta = { 1.5, 1.5, 1.5 };
+        const PointType perturbation = { 0.0, 0.0, -perturbations[i] };
         RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube4Test) {
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube4Test)
+{
+    // Verifies cube-with-cavity trimming robustness for negative x perturbations.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 4" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6}; //, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
+    constexpr std::array<double, 1> perturbations = {
+        1e-6
+    };  //, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
-    for( IndexType i = 0; i < perturbations.size(); ++i ){
-        PointType lower_bound = {-3.0, -3.0, -3.0};
-        PointType upper_bound = {3.0, 3.0, 3.0};
-        PointType delta = {1.5, 1.5, 1.5};
-        PointType perturbation = {-perturbations[i], 0.0 , 0.0};
+    for (IndexType i = 0; i < perturbations.size(); ++i) {
+        constexpr PointType lower_bound = { -3.0, -3.0, -3.0 };
+        constexpr PointType upper_bound = { 3.0, 3.0, 3.0 };
+        constexpr PointType delta = { 1.5, 1.5, 1.5 };
+        const PointType perturbation = { -perturbations[i], 0.0, 0.0 };
         RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube5Test) {
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube5Test)
+{
+    // Verifies cube-with-cavity trimming robustness for negative y perturbations.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 5" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
+    constexpr std::array<double, 11> perturbations = { 1e-6,  1e-7,  1e-8,  1e-9,  1e-10, 1e-11,
+                                                       1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
-    for( IndexType i = 0; i < perturbations.size(); ++i ){
-        PointType lower_bound = {-3.0, -3.0, -3.0};
-        PointType upper_bound = {3.0, 3.0, 3.0};
-        PointType delta = {1.5, 1.5, 1.5};
-        PointType perturbation = {0.0, -perturbations[i], 0.0};
+    for (IndexType i = 0; i < perturbations.size(); ++i) {
+        constexpr PointType lower_bound = { -3.0, -3.0, -3.0 };
+        constexpr PointType upper_bound = { 3.0, 3.0, 3.0 };
+        constexpr PointType delta = { 1.5, 1.5, 1.5 };
+        const PointType perturbation = { 0.0, -perturbations[i], 0.0 };
         RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
-BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube6Test) {
+BOOST_AUTO_TEST_CASE(TestTrimemdDomainCube6Test)
+{
+    // Verifies cube-with-cavity trimming robustness for negative z perturbations.
     QuESo_INFO << "Testing :: Test Trimmed Domain :: Cube 6" << std::endl;
 
-    std::vector<double> perturbations = { 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
+    constexpr std::array<double, 11> perturbations = { 1e-6,  1e-7,  1e-8,  1e-9,  1e-10, 1e-11,
+                                                       1e-12, 1e-13, 1e-14, 1e-15, 1e-16 };
 
-    for( IndexType i = 0; i < perturbations.size(); ++i ){
-        PointType lower_bound = {-3.0, -3.0, -3.0};
-        PointType upper_bound = {3.0, 3.0, 3.0};
-        PointType delta = {1.5, 1.5, 1.5};
-        PointType perturbation = {0.0, 0.0, -perturbations[i]};
+    for (IndexType i = 0; i < perturbations.size(); ++i) {
+        constexpr PointType lower_bound = { -3.0, -3.0, -3.0 };
+        constexpr PointType upper_bound = { 3.0, 3.0, 3.0 };
+        constexpr PointType delta = { 1.5, 1.5, 1.5 };
+        const PointType perturbation = { 0.0, 0.0, -perturbations[i] };
         RunCubeWithCavity(delta, lower_bound, upper_bound, perturbation);
     }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // End namespace Testing
-} // End namespace queso
+}  // namespace queso::Testing

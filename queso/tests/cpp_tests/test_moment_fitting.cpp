@@ -13,226 +13,164 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+
 //// STL includes
-#include "math.h"
-// Project includes
+#include <cmath>
+
+//// Project includes
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/untrimmed_element.hpp"
 #include "queso/includes/checks.hpp"
+#include "queso/quadrature/moment_fitting.hpp"
 #include "queso/quadrature/tensor_product.hpp"
-#include "queso/tests/cpp_tests/class_testers/trimmed_element_tester.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/triangle_utilities.hpp"
 
-namespace queso {
-namespace Testing {
+// This suite tests the moment-fitting NNLS solve on simple untrimmed boxes by verifying that fitted weights reproduce
+// tensor-product Gauss weights. Related coverage: test_moment_fitting_assembly.cpp checks matrix/RHS assembly details,
+// and test_point_elimination.cpp checks reduced quadrature rules on trimmed geometries.
 
-    BOOST_AUTO_TEST_SUITE(MomentFittingTestSuite)
+namespace queso::Testing {
 
-    BOOST_AUTO_TEST_CASE(MomentFittingP2)
+namespace {
+
+    using IntegrationPointType = IntegrationPoint;
+    using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
+    using ElementType = UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
+
+    ElementType::BoundaryIntegrationPointVectorType
+        MakeBoxBoundaryIps(const BoundingBoxType& rBounds, IndexType MinNumberOfBoundaryTriangles)
     {
-        QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
-
-        typedef IntegrationPoint IntegrationPointType;
-        typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-        typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-
-        const auto bounds_xyz = MakeBox({ 0, 0, 0 }, { 1, 1, 3.0 });
-        const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-        ElementType element(1, ElementBounds{ bounds_xyz, bounds_uvw });
-
-        // Construct cube over domian.
-        PointType point_a_domain = { 0.0, 0.0, 0.0 };
-        PointType point_b_domain = { 1.0, 1.0, 3.0 };
-        auto triangle_mesh = MeshUtilities::MakeMeshBox(point_a_domain, point_b_domain);
-
-        ElementType::BoundaryIntegrationPointVectorType boundary_ips{};
-        triangle_mesh.View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            const IndexType method = 3;  // This will create 6 points per triangle.
-            auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
-            boundary_ips.insert(boundary_ips.end(), new_points.begin(), new_points.end());
-        });
-
-        const Vector3i polynomial_order = { 2, 2, 2 };
-        const IntegrationMethod integration_method = IntegrationMethod::gauss;
-
-        // Distribtue Gauss points within element.
-        element.GetIntegrationPoints().clear();
-        quadrature::tensor_product::Compute(
-            element, { .integration_order = polynomial_order, .method = integration_method }
-        );
-        // Make sure weights are disturbed.
-        for (auto& point : element.GetIntegrationPoints()) { point.SetWeight(0.0); }
-
-        // Run Moment Fitting
-        std::vector<double> constant_terms{};
-        QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(
-            constant_terms, boundary_ips, element, polynomial_order
-        );
-        QuadratureTrimmedElementTester<ElementType>::MomentFitting(
-            constant_terms, element.GetIntegrationPoints(), element, polynomial_order
-        );
-        auto& points_moment_fitting = element.GetIntegrationPoints();
-
-        // Get Gauss points as reference
-        ElementType::IntegrationPointVectorType points_gauss_legendre{};
-        quadrature::tensor_product::Compute(
-            points_gauss_legendre,
-            element.GetCellBounds<CoordinateSpace::parametric>(),
-            { .integration_order = { 2, 2, 2 } }
-        );
-
-        double error_norm = 0.0;
-        // Check if weights are similar
-        for (int i = 0; i < 27; ++i) {
-            double weight_mf = points_moment_fitting[i].Weight();
-            double weight_gl = points_gauss_legendre[i].Weight();
-            double error = (weight_mf - weight_gl) / weight_gl;
-            error_norm += std::pow(error, 2);
-            QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-12);
+        auto triangle_mesh = MeshUtilities::MakeMeshBox(rBounds.lower, rBounds.upper);
+        if (MinNumberOfBoundaryTriangles > triangle_mesh.NumOfTriangles()) {
+            MeshUtilities::Refine(triangle_mesh, MinNumberOfBoundaryTriangles);
         }
 
-        QuESo_CHECK_LT(1.0 / 27.0 * std::sqrt(error_norm), 1e-10);
-    }  // End Testcase
-
-
-    BOOST_AUTO_TEST_CASE(MomentFittingP3)
-    {
-        QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
-
-        typedef IntegrationPoint IntegrationPointType;
-        typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-        typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-
-        const auto bounds_xyz = MakeBox({ 0, 0, 0 }, { 2.0, 2.0, 1.0 });
-        const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-        ElementType element(1, ElementBounds{ bounds_xyz, bounds_uvw });
-
-        // Construct cube over domian.
-        PointType point_a_domain = { 0.0, 0.0, 0.0 };
-        PointType point_b_domain = { 2.0, 2.0, 1.0 };
-        auto triangle_mesh = MeshUtilities::MakeMeshBox(point_a_domain, point_b_domain);
-
-        MeshUtilities::Refine(triangle_mesh, 500);
         ElementType::BoundaryIntegrationPointVectorType boundary_ips{};
-        triangle_mesh.View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            const IndexType method = 3;  // This will create 6 points per triangle.
-            auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
+        triangle_mesh.View().VisitEachTriangle<WithNormals>([&](const auto& rTriangle) {
+            constexpr IndexType method = 3;
+            auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(rTriangle, method);
             boundary_ips.insert(boundary_ips.end(), new_points.begin(), new_points.end());
         });
+        return boundary_ips;
+    }
 
-        const Vector3i polynomial_order = { 3, 3, 3 };
-        const IntegrationMethod integration_method = IntegrationMethod::gauss;
-
-        // Distribtue Gauss points within element.
-        element.GetIntegrationPoints().clear();
-        quadrature::tensor_product::Compute(
-            element, { .integration_order = polynomial_order, .method = integration_method }
-        );
-        // Make sure weights are disturbed.
-        for (auto& point : element.GetIntegrationPoints()) { point.SetWeight(0.0); }
-
-        // Run Moment Fitting
-        std::vector<double> constant_terms{};
-        QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(
-            constant_terms, boundary_ips, element, polynomial_order
-        );
-        QuadratureTrimmedElementTester<ElementType>::MomentFitting(
-            constant_terms, element.GetIntegrationPoints(), element, polynomial_order
-        );
-        auto& points_moment_fitting = element.GetIntegrationPoints();
-
-        // Get Gauss points as reference
-        ElementType::IntegrationPointVectorType points_gauss_legendre{};
-        quadrature::tensor_product::Compute(
-            points_gauss_legendre,
-            element.GetCellBounds<CoordinateSpace::parametric>(),
-            { .integration_order = { 3, 3, 3 } }
-        );
-
-        double error_norm = 0.0;
-        // Check if weights are similar
-        for (int i = 0; i < 64; ++i) {
-            double weight_mf = points_moment_fitting[i].Weight();
-            double weight_gl = points_gauss_legendre[i].Weight();
-            double error = (weight_mf - weight_gl) / weight_gl;
-            error_norm += std::pow(error, 2);
-            QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-6);
-        }
-        // QuESo_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
-
-        QuESo_CHECK_LT(1.0 / 64.0 * std::sqrt(error_norm), 1e-7);
-    }  // End Testcase
-
-    BOOST_AUTO_TEST_CASE(MomentFittingP4)
+    void ResetWeights(ElementType::IntegrationPointVectorType& rPoints)
     {
-        QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
+        for (auto& rPoint : rPoints) { rPoint.SetWeight(0.0); }
+    }
 
-        typedef IntegrationPoint IntegrationPointType;
-        typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-        typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-
-        const auto bounds_xyz = MakeBox({ 0, 0, 0 }, { 2.0, 2.0, 1.0 });
-        const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-        ElementType element(1, ElementBounds{ bounds_xyz, bounds_uvw });
-
-        // Construct cube over domian.
-        PointType point_a_domain = { 0.0, 0.0, 0.0 };
-        PointType point_b_domain = { 2.0, 2.0, 1.0 };
-        auto triangle_mesh = MeshUtilities::MakeMeshBox(point_a_domain, point_b_domain);
-
-        MeshUtilities::Refine(triangle_mesh, 2000);
-        ElementType::BoundaryIntegrationPointVectorType boundary_ips{};
-        triangle_mesh.View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            const IndexType method = 3;  // This will create 6 points per triangle.
-            auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
-            boundary_ips.insert(boundary_ips.end(), new_points.begin(), new_points.end());
-        });
-
-        const Vector3i polynomial_order = { 4, 4, 4 };
-        const IntegrationMethod integration_method = IntegrationMethod::gauss;
-
-        // Distribtue Gauss points within element.
-        element.GetIntegrationPoints().clear();
-        quadrature::tensor_product::Compute(
-            element, { .integration_order = polynomial_order, .method = integration_method }
-        );
-        // Make sure weights are disturbed.param
-        for (auto& point : element.GetIntegrationPoints()) { point.SetWeight(0.0); }
-
-        // Run Moment Fitting
-        std::vector<double> constant_terms{};
-        QuadratureTrimmedElementTester<ElementType>::ComputeConstantTerms(
-            constant_terms, boundary_ips, element, polynomial_order
-        );
-        QuadratureTrimmedElementTester<ElementType>::MomentFitting(
-            constant_terms, element.GetIntegrationPoints(), element, polynomial_order
-        );
-        auto& points_moment_fitting = element.GetIntegrationPoints();
-
-        // Get Gauss points as reference
-        ElementType::IntegrationPointVectorType points_gauss_legendre{};
-        quadrature::tensor_product::Compute(
-            points_gauss_legendre,
-            element.GetCellBounds<CoordinateSpace::parametric>(),
-            { .integration_order = polynomial_order }
-        );
-
+    double RelativeWeightErrorNorm(
+        const ElementType::IntegrationPointVectorType& rMomentFittingPoints,
+        const ElementType::IntegrationPointVectorType& rReferencePoints
+    )
+    {
         double error_norm = 0.0;
-        // Check if weights are similar
-        for (int i = 0; i < 125; ++i) {
-            double weight_mf = points_moment_fitting[i].Weight();
-            double weight_gl = points_gauss_legendre[i].Weight();
-            double error = (weight_mf - weight_gl) / weight_gl;
-            error_norm += std::pow(error, 2);
-            QuESo_CHECK_RELATIVE_NEAR(weight_mf, weight_gl, 1e-6);
+        for (IndexType i = 0; i < rReferencePoints.size(); ++i) {
+            const double weight_mf = rMomentFittingPoints[i].Weight();
+            const double weight_ref = rReferencePoints[i].Weight();
+            const double error = (weight_mf - weight_ref) / weight_ref;
+            error_norm += error * error;
         }
-        // QuESo_INFO << "Error Norm: " << 1.0/64.0*std::sqrt(error_norm) << std::endl;
+        return std::sqrt(error_norm / rReferencePoints.size());
+    }
 
-        QuESo_CHECK_LT(1.0 / 125.0 * std::sqrt(error_norm), 1e-7);
-    }  // End Testcase
+    void CheckMomentFittingRecoversTensorProductWeights(
+        const BoundingBoxType& rBoundsXYZ,
+        const BoundingBoxType& rBoundsUVW,
+        const Vector3i& rPolynomialOrder,
+        IndexType MinNumberOfBoundaryTriangles,
+        double WeightTolerance,
+        double ErrorNormTolerance
+    )
+    {
+        ElementType element(1, ElementBounds{ rBoundsXYZ, rBoundsUVW });
+        const auto boundary_ips = MakeBoxBoundaryIps(rBoundsXYZ, MinNumberOfBoundaryTriangles);
 
-    BOOST_AUTO_TEST_SUITE_END()
+        quadrature::tensor_product::Compute(
+            element, { .integration_order = rPolynomialOrder, .method = IntegrationMethod::gauss }
+        );
+        ResetWeights(element.GetIntegrationPoints());
 
-}  // End namespace Testing
-}  // End namespace queso
+        quadrature::moment_fitting::detail::MomentFittingScratch scratch{};
+        auto constant_terms = quadrature::moment_fitting::detail::ComputeConstantTerms(
+            boundary_ips,
+            element.GetCellBounds<CoordinateSpace::global>(),
+            quadrature::moment_fitting::detail::MakeIntegrationOrderInfo(rPolynomialOrder)
+        );
+        const quadrature::moment_fitting::detail::MomentFittingProblem problem(std::move(constant_terms));
+        const quadrature::moment_fitting::detail::IntegrationGeometry geometry{
+            element.GetCellBounds<CoordinateSpace::parametric>(), element.DetJ()
+        };
+        quadrature::moment_fitting::detail::MomentFitting<ElementType>(
+            element.GetIntegrationPoints(),
+            geometry,
+            quadrature::moment_fitting::detail::MakeIntegrationOrderInfo(rPolynomialOrder),
+            problem,
+            scratch
+        );
+        const auto& r_points_moment_fitting = element.GetIntegrationPoints();
+
+        ElementType::IntegrationPointVectorType reference_points{};
+        quadrature::tensor_product::Compute(
+            reference_points,
+            element.GetCellBounds<CoordinateSpace::parametric>(),
+            { .integration_order = rPolynomialOrder }
+        );
+
+        QuESo_CHECK_EQUAL(r_points_moment_fitting.size(), reference_points.size());
+        for (IndexType i = 0; i < reference_points.size(); ++i) {
+            QuESo_CHECK_RELATIVE_NEAR(
+                r_points_moment_fitting[i].Weight(), reference_points[i].Weight(), WeightTolerance
+            );
+        }
+        QuESo_CHECK_LT(RelativeWeightErrorNorm(r_points_moment_fitting, reference_points), ErrorNormTolerance);
+    }
+
+}  // namespace
+
+BOOST_AUTO_TEST_SUITE(MomentFittingTestSuite)
+
+BOOST_AUTO_TEST_CASE(MomentFittingP1)
+{
+    // Verifies that a linear moment-fitting solve reproduces the tensor-product Gauss rule on a box.
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=1" << std::endl;
+    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 3.0 });
+    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+    constexpr Vector3i polynomial_order{ 1, 1, 1 };
+    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 0, 1e-12, 1e-10);
+}
+
+BOOST_AUTO_TEST_CASE(MomentFittingP2)
+{
+    // Verifies that a quadratic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
+    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 3.0 });
+    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+    constexpr Vector3i polynomial_order{ 2, 2, 2 };
+    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 0, 1e-12, 1e-10);
+}
+
+BOOST_AUTO_TEST_CASE(MomentFittingP3)
+{
+    // Verifies that a cubic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
+    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 2.0, 1.0 });
+    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+    constexpr Vector3i polynomial_order{ 3, 3, 3 };
+    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 500, 1e-6, 1e-7);
+}
+
+BOOST_AUTO_TEST_CASE(MomentFittingP4)
+{
+    // Verifies that a quartic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
+    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
+    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 2.0, 1.0 });
+    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+    constexpr Vector3i polynomial_order{ 4, 4, 4 };
+    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 2000, 1e-6, 1e-7);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace queso::Testing
