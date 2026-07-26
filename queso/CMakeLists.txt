@@ -17,6 +17,7 @@ set(UTILITIES_SOURCES
     utilities/mesh_utilities.cpp
 )
 set(QUADRATURE_SOURCES
+    quadrature/moment_fitting_assembly.cpp
     quadrature/integration_points_1d/gauss_legendre_integration_points.cpp
     quadrature/integration_points_1d/precomputed_ggq_rules_optimal.cpp
     quadrature/integration_points_1d/precomputed_ggq_rules_reduced1.cpp

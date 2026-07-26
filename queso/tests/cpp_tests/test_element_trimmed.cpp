@@ -15,55 +15,19 @@
 #include <boost/test/unit_test.hpp>
 
 //// Project includes
-#include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/integration_point.hpp"
-#include "queso/containers/trimmed_element.hpp"
-#include "queso/embedding/brep_operator.h"
 #include "queso/includes/checks.hpp"
-#include "queso/io/io_utilities.h"
-#include "queso/tests/cpp_tests/global_config.hpp"
+#include "queso/tests/cpp_tests/trimmed_element_test_helpers.hpp"
 #include "queso/utilities/mesh_utilities.h"
+
+// This suite tests the TrimmedElement container API on a representative trimmed cell. Related coverage:
+// test_moment_fitting_compute.cpp checks public moment-fitting Compute behavior on trimmed elements, and
+// test_point_elimination.cpp checks reduced rules on larger trimmed geometries.
 
 namespace queso::Testing {
 
 namespace {
 
-    using IntegrationPointType = IntegrationPoint;
-    using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
-    using TrimmedElementType = TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType>;
-
-    /// Cell that intersects the cylinder surface (cylinder radius ~1, centered at origin).
-    /// Corners at r = sqrt(0.5) ≈ 0.71 (inside) and r = sqrt(2.5) ≈ 1.58 (outside).
-    constexpr BoundingBoxType MakeCellBoundsXYZ()
-    { return MakeBox({ 0.5, -0.5, 0.0 }, { 1.5, 0.5, 1.0 }); }
-
-    /// Parametric bounds chosen to give a clean DetJ = (1/2)^3 = 0.125.
-    constexpr BoundingBoxType MakeCellBoundsUVW()
-    { return MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 }); }
-
-    constexpr double ReferenceDetJ()
-    {
-        // Δxyz = {1.0, 1.0, 1.0}, Δuvw = {2.0, 2.0, 2.0}
-        return (1.0 / 2.0) * (1.0 / 2.0) * (1.0 / 2.0);
-    }
-
-    /// Reads cylinder.stl and constructs a TrimmedElement for the pre-selected trimmed cell.
-    /// Requires that the chosen cell is actually trimmed — asserted via BOOST_REQUIRE.
-    TrimmedElementType MakeTrimmedElement()
-    {
-        const std::string stl_path = GlobalConfig::GetInstance().BaseDir + "/data/cylinder.stl";
-        TriangleMesh mesh{};
-        IO::ReadMeshFromSTL(mesh, stl_path.c_str());
-        BRepOperator brep_op(mesh);
-
-        constexpr auto xyz = MakeCellBoundsXYZ();
-        BOOST_REQUIRE_EQUAL(brep_op.GetIntersectionState(xyz.lower, xyz.upper), IntersectionState::trimmed);
-
-        auto p_domain = brep_op.pGetTrimmedDomain(xyz.lower, xyz.upper, 0.0, 100);
-        BOOST_REQUIRE(p_domain != nullptr);
-
-        return TrimmedElementType(7, ElementBounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() }, std::move(*p_domain));
-    }
+    using namespace TrimmedElementTestHelpers;
 
     double SumWeights(const std::vector<BoundaryIntegrationPointType>& rIps)
     {
@@ -72,12 +36,13 @@ namespace {
         return sum;
     }
 
-}// namespace
+}  // namespace
 
 BOOST_AUTO_TEST_SUITE(TrimmedElementTestSuite)
 
 BOOST_AUTO_TEST_CASE(ConstructionAndDefaults)
 {
+    // Verifies basic construction state for a representative trimmed element.
     QuESo_INFO << "Testing :: TrimmedElement :: ConstructionAndDefaults" << std::endl;
 
     const auto element = MakeTrimmedElement();
@@ -88,6 +53,7 @@ BOOST_AUTO_TEST_CASE(ConstructionAndDefaults)
 
 BOOST_AUTO_TEST_CASE(CellBoundsVsActiveDomainBounds)
 {
+    // Verifies cell bounds remain exact and active-domain bounds are mapped consistently.
     QuESo_INFO << "Testing :: TrimmedElement :: CellBoundsVsActiveDomainBounds" << std::endl;
 
     const auto element = MakeTrimmedElement();
@@ -114,6 +80,7 @@ BOOST_AUTO_TEST_CASE(CellBoundsVsActiveDomainBounds)
 
 BOOST_AUTO_TEST_CASE(DetJ)
 {
+    // Verifies the element Jacobian determinant for the chosen affine cell mapping.
     QuESo_INFO << "Testing :: TrimmedElement :: DetJ" << std::endl;
 
     const auto element = MakeTrimmedElement();
@@ -122,6 +89,7 @@ BOOST_AUTO_TEST_CASE(DetJ)
 
 BOOST_AUTO_TEST_CASE(IntegrationPoints)
 {
+    // Verifies storage and global mapping/scaling of element integration points.
     QuESo_INFO << "Testing :: TrimmedElement :: IntegrationPoints" << std::endl;
 
     auto element = MakeTrimmedElement();
@@ -155,6 +123,7 @@ BOOST_AUTO_TEST_CASE(IntegrationPoints)
 
 BOOST_AUTO_TEST_CASE(BoundaryMeshAndBoundaryIps)
 {
+    // Verifies boundary mesh and boundary integration points are available in both coordinate spaces.
     QuESo_INFO << "Testing :: TrimmedElement :: BoundaryMeshAndBoundaryIps" << std::endl;
 
     const auto element = MakeTrimmedElement();
@@ -179,17 +148,18 @@ BOOST_AUTO_TEST_CASE(BoundaryMeshAndBoundaryIps)
 
 BOOST_AUTO_TEST_CASE(IsInsideActiveDomain)
 {
+    // Verifies active-domain point classification for representative inside/outside points.
     QuESo_INFO << "Testing :: TrimmedElement :: IsInsideActiveDomain" << std::endl;
 
     const auto element = MakeTrimmedElement();
 
-    // Well inside the cylinder (r = 0.5 < 1) and inside the cell.
-    QuESo_CHECK_IS_FALSE(!element.IsInsideActiveDomain<CoordinateSpace::global>({ 0.5, 0.0, 0.5 }));
+    // Inside the embedded unit box and inside the trimmed cell.
+    QuESo_CHECK_IS_FALSE(!element.IsInsideActiveDomain<CoordinateSpace::global>({ 0.75, 0.5, 0.5 }));
 
-    // Outside the cylinder (r = 1.3 > 1) but still inside the cell.
-    QuESo_CHECK_IS_FALSE(element.IsInsideActiveDomain<CoordinateSpace::global>({ 1.3, 0.0, 0.5 }));
+    // Outside the embedded unit box but still inside the trimmed cell.
+    QuESo_CHECK_IS_FALSE(element.IsInsideActiveDomain<CoordinateSpace::global>({ 1.25, 0.5, 0.5 }));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
-}// End namespace queso::Testing
+}  // End namespace queso::Testing

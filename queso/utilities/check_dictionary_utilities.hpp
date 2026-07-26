@@ -15,8 +15,8 @@
 #define CHECK_DICTIONARY_UTILITIES_INCLUDE_HPP
 
 //// Project includes
-#include "queso/includes/define.hpp"
 #include "queso/containers/dictionary.hpp"
+#include "queso/includes/define.hpp"
 #include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
@@ -25,49 +25,71 @@ namespace CheckDictionaryUtilities {
 
     /// @brief Throws if the input settings are not set properly.
     /// @param rSettings
-    inline void CheckSettings( const MainDictionaryType& rSettings ) {
+    inline void CheckSettings(const MainDictionaryType& rSettings)
+    {
         rSettings.CheckRequired();
 
-        const IndexType echo_level = rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level);
+        const IndexType echo_level =
+            rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level);
 
         // Check 'polynomial_order' related settings.
-        const Vector3i order = rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(BackgroundGridSettings::polynomial_order);
+        const Vector3i order = rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(
+            BackgroundGridSettings::polynomial_order
+        );
 
-        const IndexType min_order =  Math::Min( order );
-        const IndexType max_order =  Math::Max( order );
+        const IndexType min_order = Math::Min(order);
+        const IndexType max_order = Math::Max(order);
         QuESo_ERROR_IF(min_order < 1) << "Invalid Input. The polynomial order must be p > 0. \n";
-        QuESo_INFO_IF(max_order > 4) << "Warning :: QuESo is designed to construct efficient quadrature rules for 1 <= p <= 4. "
-            << "For higher polynomial degrees, the process might become slow. It is recommended to use quadratic bases. Generally, they offer the best performance and accuracy.\n";
+        QuESo_ERROR_IF(max_order > 8) << "Moment-fitting quadrature supports polynomial orders up to p=8.\n";
+        QuESo_INFO_IF(
+            max_order > 4
+        ) << "Warning :: QuESo is designed to construct efficient quadrature rules for 1 <= p <= 4. "
+          << "For higher polynomial degrees, the process might become slow. It is recommended to use quadratic bases. "
+             "Generally, they offer the best performance and accuracy.\n";
 
-        QuESo_INFO_IF(min_order == 1 && echo_level > 0) << "Info :: When using LINEAR finite elements in combination with rather complex geometries, it can be beneficial to employ quadratic quadrature rules within cut elements. "
-            << "Linear quadrature rules will converge to the correct solution when using fine discretizations. However, quadratic quadrature rules "
-            << "are simply more suited to capture complex cut domains and can hence provide better results for coarse meshes. "
-            << "Thus, if you are integrating LINEAR finite elements, consider using '\"polynomial_order\" : [2, 2, 2]' and '\"integration_method\" : \"Gauss_Reduced1\"'. This will generate quadratic quadrature rules in all cut elements "
+        QuESo_INFO_IF(min_order == 1 && echo_level > 0)
+            << "Info :: When using LINEAR finite elements in combination with rather complex geometries, it can be "
+               "beneficial to employ quadratic quadrature rules within cut elements. "
+            << "Linear quadrature rules will converge to the correct solution when using fine discretizations. "
+               "However, quadratic quadrature rules "
+            << "are simply more suited to capture complex cut domains and can hence provide better results for coarse "
+               "meshes. "
+            << "Thus, if you are integrating LINEAR finite elements, consider using '\"polynomial_order\" : [2, 2, 2]' "
+               "and '\"integration_method\" : \"Gauss_Reduced1\"'. This will generate quadratic quadrature rules in "
+               "all cut elements "
             << "and linear Gauss rules for all full/interior elements.\n";
 
         // Check 'number_of_elements' related settings.
-        const Vector3i num_elements = rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(BackgroundGridSettings::number_of_elements);
-        const IndexType tot_num_elements = num_elements[0]*num_elements[1]*num_elements[2];
-        QuESo_INFO_IF( tot_num_elements < 2 && echo_level > 0 ) << "You are using only one single element.\n";
+        const Vector3i num_elements = rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(
+            BackgroundGridSettings::number_of_elements
+        );
+        const IndexType tot_num_elements = num_elements[0] * num_elements[1] * num_elements[2];
+        QuESo_INFO_IF(tot_num_elements < 2 && echo_level > 0) << "You are using only one single element.\n";
 
-        const IntegrationMethod integration_method = rSettings[MainSettings::non_trimmed_quadrature_rule_settings]
-            .GetRequiredValue<IntegrationMethod>(NonTrimmedQuadratureRuleSettings::integration_method);
+        const IntegrationMethod integration_method =
+            rSettings[MainSettings::non_trimmed_quadrature_rule_settings].GetRequiredValue<IntegrationMethod>(
+                NonTrimmedQuadratureRuleSettings::integration_method
+            );
 
-        QuESo_ERROR_IF( min_order < 2 && integration_method == IntegrationMethod::gauss_reduced_2)
+        QuESo_ERROR_IF(min_order < 2 && integration_method == IntegrationMethod::gauss_reduced_2)
             << "'Gauss_Reduced2' is only applicable to background grids with at least p=2.\n";
 
         // Check if ggq_rules are feasible.
-        const bool ggq_rule_ise_used =  static_cast<int>(integration_method) >= 3;
-        QuESo_ERROR_IF(ggq_rule_ise_used && max_order > 4) << "Generalized Gauss Quadrature (GGQ) rules are only available for p <= 4.\n";
+        const bool ggq_rule_ise_used = static_cast<int>(integration_method) >= 3;
+        QuESo_ERROR_IF(ggq_rule_ise_used && max_order > 4)
+            << "Generalized Gauss Quadrature (GGQ) rules are only available for p <= 4.\n";
 
-        const GridType grid_type = rSettings[MainSettings::background_grid_settings]
-            .GetRequiredValue<GridType>(BackgroundGridSettings::grid_type);
-        QuESo_ERROR_IF( ggq_rule_ise_used && (grid_type != GridType::b_spline_grid)) << "GGQ_Rules can only be used in combination with 'grid_type' : 'b_spline_grid'.\n";
+        const GridType grid_type = rSettings[MainSettings::background_grid_settings].GetRequiredValue<GridType>(
+            BackgroundGridSettings::grid_type
+        );
+        QuESo_ERROR_IF(ggq_rule_ise_used && (grid_type != GridType::b_spline_grid))
+            << "GGQ_Rules can only be used in combination with 'grid_type' : 'b_spline_grid'.\n";
 
-        QuESo_ERROR_IF(ggq_rule_ise_used && min_order < 2) << "Generalized Gauss Quadrature (GGQ) rules are only applicable to B-Spline meshes with at least p=2.\n";
+        QuESo_ERROR_IF(ggq_rule_ise_used && min_order < 2)
+            << "Generalized Gauss Quadrature (GGQ) rules are only applicable to B-Spline meshes with at least p=2.\n";
     }
 
-} // End namespace CheckSettingsUtilities
-} // End namespace queso
+}  // namespace CheckDictionaryUtilities
+}  // End namespace queso
 
-#endif // CHECK_DICTIONARY_UTILITIES_INCLUDE_HPP
+#endif  // CHECK_DICTIONARY_UTILITIES_INCLUDE_HPP

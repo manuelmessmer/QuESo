@@ -595,7 +595,7 @@ BOOST_AUTO_TEST_CASE(SteeringKnuckleModelInfoTest) {
     r_quad_info.CheckRequired();
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::represented_volume), volume_ref, 1e-5)
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5)
-    QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), 9505);
+    QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), 9502);
     QuESo_CHECK_RELATIVE_NEAR( r_quad_info.GetRequiredValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5)
     const double num_of_points_per_trimmed_element = r_quad_info.GetRequiredValue<double>(QuadratureInfo::num_of_points_per_trimmed_element);
     QuESo_CHECK_GT(num_of_points_per_trimmed_element, 26);

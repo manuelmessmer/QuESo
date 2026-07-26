@@ -25,8 +25,8 @@
 #include "queso/embedding/brep_operator.h"
 #include "queso/includes/register_keys.hpp"
 #include "queso/includes/timer.hpp"
-#include "queso/quadrature/single_element.hpp"
-#include "queso/quadrature/trimmed_element.hpp"
+#include "queso/quadrature/moment_fitting.hpp"
+#include "queso/quadrature/tensor_product.hpp"
 
 namespace queso {
 
@@ -94,9 +94,7 @@ public:
                   TrimmedQuadratureRuleSettings::activate_fictitious_domain_with_alpha
               )
           ),
-          mEchoLevel(
-              rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level)
-          )
+          mEchoLevel(rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level))
     {}
 
     ///@}
@@ -121,8 +119,12 @@ public:
         ElementType element(Id, rBounds, std::move(*p_domain));
 
         Timer timer_fitting{};
-        QuadratureTrimmedElement<ElementType>::AssembleIPs(
-            element, mPolynomialOrder, mMomentFittingResidual, mAlpha, mEchoLevel
+        quadrature::moment_fitting::Compute(
+            element,
+            { .integration_order = mPolynomialOrder,
+              .residual = mMomentFittingResidual,
+              .fictitious_domain_alpha = mAlpha,
+              .echo_level = mEchoLevel }
         );
         mElapsedMomentFittingTime.fetch_add(timer_fitting.Measure(), std::memory_order_relaxed);
 
@@ -152,7 +154,7 @@ private:
     bool mNeglectIfStlIsFlawed;
     Vector3i mPolynomialOrder;
     double mMomentFittingResidual;
-	std::optional<double> mAlpha;
+    std::optional<double> mAlpha;
     IndexType mEchoLevel;
 
     std::atomic<double> mElapsedIntersectionTime{ 0.0 };
@@ -214,7 +216,9 @@ public:
     {
         ElementType element(Id, rBounds);
         if (!mUsesGgqRule) {
-            QuadratureSingleElement<ElementType>::AssembleIPs(element, mPolynomialOrder, mIntegrationMethod);
+            quadrature::tensor_product::Compute(
+                element, { .integration_order = mPolynomialOrder, .method = mIntegrationMethod }
+            );
         }
         return element;
     }
@@ -243,4 +247,4 @@ private:
 };
 ///@}
 
-}// namespace queso
+}  // namespace queso
