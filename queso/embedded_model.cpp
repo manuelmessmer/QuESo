@@ -16,7 +16,8 @@
 
 //// Project includes
 #include "queso/embedded_model.h"
-#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/boundary_mesh_embedder.h"
+#include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/embedding/element_builders.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/quadrature/multiple_elements.hpp"
@@ -39,29 +40,29 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView& rTriangleMesh)
 
     // Get global settings.
     const auto& r_settings = GetSettings();
+    const GridIndexer& r_grid_indexer = mBackgroundGrid.GetGridIndexer();
 
     // Start timer.
     Timer timer_total{};
-    const IndexType global_number_of_elements = mGridIndexer.NumberOfElements();
+    const IndexType global_number_of_elements = r_grid_indexer.NumberOfElements();
 
-    // Construct BRepOperator.
-    BRepOperator brep_operator(rTriangleMesh);
+    // Prepare the domain mesh and grid relationship once.
+    embedding::DomainMeshEmbedder domain_mesh_embedder(rTriangleMesh, r_grid_indexer);
 
     // Classify all elements.
     Timer timer_check_intersect{};
-    Unique<BRepOperator::StatusVectorType> p_classifications = brep_operator.pGetElementClassifications(r_settings);
-    auto& r_classifications = *p_classifications;
+    auto classifications = domain_mesh_embedder.Classify();
     auto& r_volume_time_info = r_model_info[MainInfo::elapsed_time_info][ElapsedTimeInfo::volume_time_info];
     r_volume_time_info.SetValue(VolumeTimeInfo::classification_of_elements, timer_check_intersect.Measure());
 
     // Lets first get all active elements and reserve capacity in the grid.
-    const auto active_indices = [&grid = mBackgroundGrid, &r_classifications, global_number_of_elements] {
+    const auto active_indices = [&grid = mBackgroundGrid, &classifications, global_number_of_elements] {
         std::vector<IndexType> active;
         active.reserve(global_number_of_elements);
         IndexType trimmed = 0;
         IndexType untrimmed = 0;
         for (IndexType i = 0; i < global_number_of_elements; ++i) {
-            switch (r_classifications[i]) {
+            switch (classifications[i]) {
             case IntersectionState::trimmed:
                 active.push_back(i);
                 ++trimmed;
@@ -82,23 +83,23 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView& rTriangleMesh)
     }();
 
     // Construct builders from settings (once, before the loop).
-    TrimmedElementBuilder<IntegrationPoint, BoundaryIntegrationPoint> trimmed_builder(r_settings, brep_operator);
+    TrimmedElementBuilder<IntegrationPoint, BoundaryIntegrationPoint> trimmed_builder(r_settings, domain_mesh_embedder);
     UntrimmedElementBuilder<IntegrationPoint, BoundaryIntegrationPoint> untrimmed_builder(r_settings);
 
-// Loop over all elements.
+    // Loop over all elements.
+#ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
+#endif
     for (int i = 0; i < static_cast<int>(active_indices.size()); ++i) {
         const IndexType index = active_indices[static_cast<IndexType>(i)];
-        const auto status = r_classifications[index];
+        const auto status = classifications[index];
 
-        const ElementBounds bounds{ mGridIndexer.GetBoundingBoxXYZFromIndex(index),
-                                    mGridIndexer.GetBoundingBoxUVWFromIndex(index) };
         if (status == IntersectionState::trimmed) {
-            mBackgroundGrid.MakeElement(trimmed_builder, index + 1, bounds);
+            mBackgroundGrid.MakeElement(trimmed_builder, index);
         } else {
-            mBackgroundGrid.MakeElement(untrimmed_builder, index + 1, bounds);
+            mBackgroundGrid.MakeElement(untrimmed_builder, index);
         }
-    }// End omp parallel for.
+    }  // End omp parallel for.
 
     mBackgroundGrid.LockElements();
 
@@ -140,7 +141,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView& rTriangleMesh)
     const IndexType num_active_elements = mBackgroundGrid.NumberOfActiveElements();
     const IndexType num_trimmed_elements = mBackgroundGrid.NumberOfTrimmedElements();
     const IndexType num_full_elements = num_active_elements - num_trimmed_elements;
-    const IndexType num_inactive_elements = mGridIndexer.NumberOfElements() - num_active_elements;
+    const IndexType num_inactive_elements = r_grid_indexer.NumberOfElements() - num_active_elements;
 
     r_model_info[MainInfo::background_grid_info].SetValue(BackgroundGridInfo::num_active_elements, num_active_elements);
     r_model_info[MainInfo::background_grid_info].SetValue(
@@ -199,7 +200,6 @@ void EmbeddedModel::ComputeCondition(
     const MainDictionaryType& rConditionSettings
 )
 {
-
     CheckIfMeshIsWithinBoundingBox(rTriangleMesh);
 
     // Start timer.
@@ -227,35 +227,35 @@ void EmbeddedModel::ComputeCondition(
     // Get again the reference to the just created condition info.
     auto& r_new_condition_info = *(r_model_info.GetList(MainInfo::conditions_infos_list).back());
 
-    // Create new condition and brep_operator.
+    // Create one segment per parent cell. Inactive canonical parents remain valid segments.
     ConditionType new_condition(rConditionSettings, r_new_condition_info);
-    BRepOperator brep_operator(rTriangleMesh);
+    embedding::BoundaryMeshEmbedder boundary_mesh_embedder(rTriangleMesh, mBackgroundGrid);
 
     /// Initialize info variables.
     double surf_area_in_active_domain = 0.0;
+    const auto parent_cell_indices = boundary_mesh_embedder.GetParentCellIndices();
+    using ConditionSegmentType = ConditionType::ConditionSegmentType;
+    std::vector<std::optional<ConditionSegmentType>> segments(parent_cell_indices.size());
 
-    // Loop over background grid.
+    // Each parent index is unique, so workers consume disjoint section-cache slots and write disjoint segment slots.
+#ifdef _OPENMP
 #pragma omp parallel for reduction(+ : surf_area_in_active_domain) schedule(dynamic)
-    for (int for_index = 0; for_index < static_cast<int>(mGridIndexer.NumberOfElements()); ++for_index) {
-        const auto index = static_cast<IndexType>(for_index);
-        // Clip embedded geoemetry with the current element (bounding box).
-        const auto bounding_box_xyz = mGridIndexer.GetBoundingBoxXYZFromIndex(index);
-        auto new_mesh = brep_operator.ClipTriangleMeshUnique(bounding_box_xyz.lower, bounding_box_xyz.upper);
-
-        if (new_mesh.NumOfTriangles() > 0) {
-            const auto p_el = mBackgroundGrid.GetElementView(index + 1);
-            const double surf_area_segment = MeshUtilities::Area(new_mesh.MeshView());
-
-            // If p_el != nullptr, the current condition is within an active element.
-            // Otherwise, the current condition is outside the active domain.
-            auto new_segment = p_el ? ConditionType::ConditionSegmentType(index, std::move(new_mesh), *p_el)
-                                    : ConditionType::ConditionSegmentType(index, std::move(new_mesh));
-            surf_area_in_active_domain += p_el ? surf_area_segment : 0.0;
-
-            // Add condition segment to condition.
-#pragma omp critical
-            new_condition.AddSegment(std::move(new_segment));
+#endif
+    for (std::int64_t raw_index = 0; raw_index < static_cast<std::int64_t>(parent_cell_indices.size()); ++raw_index) {
+        const IndexType index = static_cast<IndexType>(raw_index);
+        const IndexType cell_index = parent_cell_indices[index];
+        auto section = boundary_mesh_embedder.TakeBoundarySection(cell_index);
+        const auto element = mBackgroundGrid.GetElementView(cell_index + 1);
+        if (element) {
+            surf_area_in_active_domain += MeshUtilities::Area(section.View());
+            segments[index].emplace(cell_index, std::move(section), *element);
+        } else {
+            segments[index].emplace(cell_index, std::move(section));
         }
+    }
+    for (auto& r_segment : segments) {
+        QuESo_ASSERT(r_segment.has_value(), "Every listed boundary parent must produce one condition segment.");
+        new_condition.AddSegment(std::move(*r_segment));
     }
 
     // Add condition to background grid.
@@ -468,4 +468,4 @@ void EmbeddedModel::PrintConditionsElapsedTimeInfo() const
     }
 }
 
-}// End namespace queso
+}  // End namespace queso

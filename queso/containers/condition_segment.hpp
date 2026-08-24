@@ -17,7 +17,7 @@
 #include <optional>
 
 //// Project includes
-#include "queso/containers/clipped_triangle_mesh.hpp"
+#include "queso/containers/triangle_mesh.hpp"
 #include "queso/includes/define.hpp"
 
 namespace queso {
@@ -44,17 +44,17 @@ public:
 
     /// @brief Constructor
     /// @param Index index in the background grid. @see GridIndexer.
-    /// @param rClippedTriangleMesh clipped triangle mesh of this segment. ConditionSegment takes ownership.
-    ConditionSegment(IndexType Index, ClippedTriangleMesh&& rTriangleMesh)
-        : mBackgroundGridIndex(Index), mClippedTriangleMesh(std::move(rTriangleMesh))
+    /// @param rTriangleMesh Triangle mesh of this segment. ConditionSegment takes ownership.
+    ConditionSegment(IndexType Index, TriangleMesh&& rTriangleMesh)
+        : mParentCellIndex(Index), mTriangleMesh(std::move(rTriangleMesh))
     {}
 
     /// @brief Constructor
     /// @param Index index in the background grid. @see GridIndexer.
-    /// @param rClippedTriangleMesh clipped triangle mesh of this segment. ConditionSegment takes ownership.
+    /// @param rTriangleMesh Triangle mesh of this segment. ConditionSegment takes ownership.
     /// @param rElement parent element.
-    ConditionSegment(IndexType Index, ClippedTriangleMesh&& rClippedTriangleMesh, const ElementViewType& rElement)
-        : mBackgroundGridIndex(Index), mClippedTriangleMesh(std::move(rClippedTriangleMesh)), mParentElement(rElement)
+    ConditionSegment(IndexType Index, TriangleMesh&& rTriangleMesh, const ElementViewType& rElement)
+        : mParentCellIndex(Index), mTriangleMesh(std::move(rTriangleMesh)), mParentElement(rElement)
     {}
 
     /// Destructor
@@ -75,7 +75,12 @@ public:
     /// @brief Returns the triangle mesh representing the condition segment.
     /// @return const TriangleMesh&
     [[nodiscard]] const TriangleMesh& GetTriangleMesh() const
-    { return mClippedTriangleMesh.Mesh(); }
+    { return mTriangleMesh; }
+
+    /// @brief Returns the parent background-grid cell index.
+    /// @return Index of the parent cell.
+    [[nodiscard]] IndexType GetParentCellIndex() const noexcept
+    { return mParentCellIndex; }
 
     /// @brief Returns true if the condition segment is contained within an active parent element.
     /// @return bool
@@ -92,12 +97,12 @@ private:
     ///@name Private member variables
     ///@{
 
-    IndexType mBackgroundGridIndex{};
-    ClippedTriangleMesh mClippedTriangleMesh{};
+    IndexType mParentCellIndex{};
+    TriangleMesh mTriangleMesh{};
     std::optional<ElementViewType> mParentElement{};
     // BoundaryIntegrationPointVectorType mIntegrationPoints;
 
     ///@}
-};// End class ConditionSegment
+};  // End class ConditionSegment
 ///@}
-}// namespace queso
+}  // namespace queso

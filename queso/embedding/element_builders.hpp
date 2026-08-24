@@ -22,11 +22,12 @@
 #include "queso/containers/background_grid.hpp"
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/untrimmed_element.hpp"
-#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/includes/register_keys.hpp"
 #include "queso/includes/timer.hpp"
 #include "queso/quadrature/moment_fitting.hpp"
 #include "queso/quadrature/tensor_product.hpp"
+#include "queso/utilities/mesh_utilities.h"
 
 namespace queso {
 
@@ -58,9 +59,9 @@ public:
     /// @brief Constructs a TrimmedElementBuilder from the main settings dictionary.
     /// @param rSettings  The full settings dictionary. Reads trimmed quadrature,
     ///                   background-grid and general-settings sub-dictionaries.
-    /// @param rBrepOperator  BRep operator used for domain extraction. Stored by reference.
-    TrimmedElementBuilder(const MainDictionaryType& rSettings, const BRepOperator& rBrepOperator)
-        : mBrepOperator(std::cref(rBrepOperator)),
+    /// @param rDomainMeshEmbedder Prepared domain embedder consumed during element construction. Stored by reference.
+    TrimmedElementBuilder(const MainDictionaryType& rSettings, embedding::DomainMeshEmbedder& rDomainMeshEmbedder)
+        : mDomainMeshEmbedder(std::ref(rDomainMeshEmbedder)),
           mMinVolRatio(
               std::max<double>(
                   rSettings[MainSettings::trimmed_quadrature_rule_settings].GetRequiredValue<double>(
@@ -103,20 +104,24 @@ public:
 
     /// @brief Builds a trimmed element: extracts the trimmed domain, assembles
     ///        integration points via moment fitting, and returns the element.
-    /// @param Id      Element id.
+    /// @param CellIndex Zero-based background-grid cell index.
     /// @param rBounds Element bounds in global and parametric space.
     /// @return The built element, or std::nullopt if the domain is absent or all IPs are removed.
-    [[nodiscard]] std::optional<ElementType> Build(IndexType Id, const ElementBounds& rBounds)
+    [[nodiscard]] std::optional<ElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
     {
         Timer timer_intersection{};
-        auto p_domain = mBrepOperator.get().pGetTrimmedDomain(
-            rBounds.global.lower, rBounds.global.upper, mMinVolRatio, mMinNumBoundaryTriangles, mNeglectIfStlIsFlawed
-        );
+        auto domain = mDomainMeshEmbedder.get().MakeTrimmedDomain(CellIndex, mMinNumBoundaryTriangles);
         mElapsedIntersectionTime.fetch_add(timer_intersection.Measure(), std::memory_order_relaxed);
 
-        if (!p_domain) { return std::nullopt; }
+        const PointType delta = rBounds.global.upper - rBounds.global.lower;
+        const double cell_volume = delta[0] * delta[1] * delta[2];
+        const auto boundary_mesh = domain.GetBoundaryMesh();
+        const double volume_ratio = MeshUtilities::Volume(boundary_mesh) / cell_volume;
+        const double quality = MeshUtilities::EstimateQuality(boundary_mesh);
+        if (volume_ratio <= mMinVolRatio) { return std::nullopt; }
+        if (mNeglectIfStlIsFlawed && quality > 1e-2) { return std::nullopt; }
 
-        ElementType element(Id, rBounds, std::move(*p_domain));
+        ElementType element(CellIndex + 1, rBounds, std::move(domain));
 
         Timer timer_fitting{};
         quadrature::moment_fitting::Compute(
@@ -148,7 +153,7 @@ private:
     ///@name Private members
     ///@{
 
-    std::reference_wrapper<const BRepOperator> mBrepOperator;
+    std::reference_wrapper<embedding::DomainMeshEmbedder> mDomainMeshEmbedder;
     double mMinVolRatio;
     IndexType mMinNumBoundaryTriangles;
     bool mNeglectIfStlIsFlawed;
@@ -209,12 +214,12 @@ public:
     /// @brief Builds an untrimmed element and optionally assembles standard Gauss IPs.
     /// @details No-op IP assembly when GGQ is active; GGQ points are assembled later
     ///          outside the element loop via QuadratureMultipleElements.
-    /// @param Id      Element id.
+    /// @param CellIndex Zero-based background-grid cell index.
     /// @param rBounds Element bounds in global and parametric space.
     /// @return The built element (always valid).
-    [[nodiscard]] std::optional<ElementType> Build(IndexType Id, const ElementBounds& rBounds)
+    [[nodiscard]] std::optional<ElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
     {
-        ElementType element(Id, rBounds);
+        ElementType element(CellIndex + 1, rBounds);
         if (!mUsesGgqRule) {
             quadrature::tensor_product::Compute(
                 element, { .integration_order = mPolynomialOrder, .method = mIntegrationMethod }

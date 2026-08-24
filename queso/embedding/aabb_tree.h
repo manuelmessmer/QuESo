@@ -11,102 +11,70 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef AABB_tree_INCLUDE_H
-#define AABB_tree_INCLUDE_H
+#pragma once
+
+//// STL includes
+#include <vector>
 
 //// External includes
 #include "aabb_tree/AABB_base.h"
+
 //// Project includes
-#include "queso/includes/define.hpp"
-#include "queso/embedding/aabb_primitive_base.h"
 #include "queso/containers/triangle_mesh_view.hpp"
+#include "queso/includes/define.hpp"
 
-namespace queso {
+namespace queso::embedding {
 
-///@name QuESo Classes
-///@{
+class Ray;
 
-/**
- * @class  AABB_tree
- * @author Manuel Messmer
- * @brief  Derives from AABB_base, see: https://github.com/lohedges/aabbcc.
-*/
-class AABB_tree : public aabb_base::Tree_base {
+namespace detail {
 
-public:
-    ///@name Type Definitions
-    ///@{
-    typedef aabb_base::Tree_base BaseTreeType;
-    typedef aabb_base::AABB_base BaseAABBType;
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    /// Constructor.
-    /// @param Dimension
-    /// @param rTriangleMesh
-    /// @param SkinThickness The skin thickness for fattened AABBs, as a fraction
-    ///                      of the AABB_base base length.
-    /// @param TouchIsOverlap Does touching count as overlapping in query operations?
-    AABB_tree(const TriangleMeshView& rTriangleMesh) :
-            aabb_base::Tree_base(3, 0.0, 16,  false)
+    /// @brief Immutable AABB acceleration structure over one triangle mesh view.
+    /// @details Adapts the external dynamic tree for construction-once, query-only use. Candidate queries are
+    ///          conservative and return triangle IDs in tree-traversal order. The referenced mesh must remain
+    ///          unchanged and outlive the tree.
+    class AabbTree : private aabb_base::Tree_base
     {
-        mLowerBound = {MAXD, MAXD, MAXD};
-        mUpperBound = {LOWESTD, LOWESTD, LOWESTD};
-        rTriangleMesh.VisitEachTriangle<WithoutNormals>([&, i = int{0}](const auto &rTriangle) mutable {
-			const auto &p1 = rTriangle.P1;
-			const auto &p2 = rTriangle.P2;
-			const auto &p3 = rTriangle.P3;
+    public:
+        /// @brief Builds one tree node per source triangle bounding box.
+        /// @param rTriangleMesh Immutable source mesh view.
+        explicit AabbTree(const TriangleMeshView& rTriangleMesh);
 
-			const PointType x_values{p1[0], p2[0], p3[0]};
-			const PointType y_values{p1[1], p2[1], p3[1]};
-			const PointType z_values{p1[2], p2[2], p3[2]};
+        /// @brief Returns whether a point lies inside the complete mesh bounding box.
+        /// @param rPoint Query point.
+        /// @return True when the point lies within the closed bounds.
+        [[nodiscard]] bool IsWithinBoundingBox(PointView rPoint) const noexcept;
 
-			auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
-			auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
-			auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
+        /// @brief Returns the complete triangle-mesh bounding box.
+        /// @details An empty tree retains sentinel bounds; MeshQuery exposes empty bounds as std::nullopt.
+        /// @return Mesh bounds or empty-tree sentinels.
+        [[nodiscard]] BoundingBoxType BoundingBox() const noexcept
+        { return { mLowerBound, mUpperBound }; }
 
-			const PointType lower_bound{*x_min_max.first, *y_min_max.first, *z_min_max.first};
-			const PointType upper_bound{*x_min_max.second, *y_min_max.second, *z_min_max.second};
-			this->insertParticle(static_cast<unsigned int>(i++), lower_bound, upper_bound);
+        /// @brief Returns conservative candidates overlapping an axis-aligned query box.
+        /// @param rLowerBound Lower query bound.
+        /// @param rUpperBound Upper query bound.
+        /// @return Candidate triangle IDs in tree-traversal order.
+        [[nodiscard]] std::vector<IndexType> Query(PointView rLowerBound, PointView rUpperBound) const;
 
-			mLowerBound[0] = std::min<double>(*x_min_max.first, mLowerBound[0]);
-			mUpperBound[0] = std::max<double>(*x_min_max.second, mUpperBound[0]);
+        /// @brief Returns conservative candidates intersected by a ray.
+        /// @param rRay Ray query.
+        /// @return Candidate triangle IDs in tree-traversal order.
+        [[nodiscard]] std::vector<IndexType> Query(const Ray& rRay) const;
 
-			mLowerBound[1] = std::min<double>(*y_min_max.first, mLowerBound[1]);
-			mUpperBound[1] = std::max<double>(*y_min_max.second, mUpperBound[1]);
+    private:
+        using BaseTreeType = aabb_base::Tree_base;
 
-			mLowerBound[2] = std::min<double>(*z_min_max.first, mLowerBound[2]);
-			mUpperBound[2] = std::max<double>(*z_min_max.second, mUpperBound[2]);
-        });
-    }
+        /// @brief Traverses tree nodes accepted by rIntersects and collects leaf triangle IDs.
+        /// @tparam TPredicate Callable accepting lower and upper node bounds.
+        /// @param rIntersects Node-intersection predicate.
+        /// @return Candidate triangle IDs in deterministic traversal order.
+        template<typename TPredicate>
+        [[nodiscard]] std::vector<IndexType> QueryImpl(TPredicate&& rIntersects) const;
 
-    ///@}
-    ///@name Operations
-    ///@{
+        PointType mLowerBound{};  ///< Lower bound across all source triangles.
+        PointType mUpperBound{};  ///< Upper bound across all source triangles.
+    };
 
-    ///@brief Return true if point lies inside outer bounding box.
-    ///@param rPoint
-    ///@return bool
-    bool IsWithinBoundingBox(PointView rPoint) const;
-
-    ///@brief Get all potential interesections of Ray. Checks against bounding box of triangles.
-    ///@param rRay
-    ///@return std::vector<unsigned int> Holds Id's of triangles.
-    ///@todo Should return ptr to std::vector<unsigned int>;
-    std::vector<IndexType> Query(const AABB_primitive_base& rAABB_primitive) const;
-
-    ///@}
-
-private:
-    ///@name Private Member variables
-    ///@{
-    PointType mLowerBound{};
-    PointType mUpperBound{};
-    ///@}
-}; // End AABB_tree class
-///@} // End QuESo classes
-
-} // End namespace queso
-
-#endif //AABB_tree_INCLUDE_H
+}  // namespace detail
+}  // namespace queso::embedding

@@ -18,8 +18,8 @@
 #include <queue>
 
 //// Project includes
-#include "queso/includes/define.hpp"
 #include "queso/containers/background_grid.hpp"
+#include "queso/includes/define.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
@@ -29,11 +29,17 @@ namespace queso {
 
 /// @class  QuadratureMultipleElements.
 /// @author Manuel Messmer
-/// @brief  Provides assembly operations for tensor-product quadrature rules that can be used for multiple non-trimmed elements.
+/// @brief  Provides assembly operations for tensor-product quadrature rules that can be used for multiple non-trimmed
+/// elements.
 ///         Available quadrature rules: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
 /// @details Implements algorithm from Section 3.2.1 in 10.1016/j.cma.2022.115584.
 template<typename TElementType>
-class QuadratureMultipleElements {
+class QuadratureMultipleElements
+{
+
+    inline static constexpr double CoefficientComparisonTolerance = 1e-14;  ///< GGQ coefficient tie-break cutoff.
+    inline static constexpr double ParametricOwnershipTolerance = 1e-12;  ///< Excludes shared parametric boundaries.
+    inline static constexpr double ParametricNearLowerBoundaryTolerance = 1e-10;  ///< Triggers interior relocation.
 
 public:
     ///@name Type Defintitions
@@ -55,24 +61,25 @@ public:
     /// @param rGrid
     /// @param rIntegrationOrder
     /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
-    static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method) {
+    static void AssembleIPs(BackgroundGridType& rGrid, const Vector3i& rIntegrationOrder, IntegrationMethodType Method)
+    {
         // Initialize
         ComputeNeighborCoefficients(rGrid);
 
         // Create priority queue for all non-trimmed elements. The element with the highest neighbor coefficient is
         // always at front.
         std::priority_queue<ElementType*, ElementVectorType, CompareByCoefficient> unvisited_elements;
-        for( auto& r_el : rGrid.template GetElements<BackgroundGridType::ElementFilter::untrimmed>() ) {
+        for (auto& r_el : rGrid.template GetElements<BackgroundGridType::ElementFilter::untrimmed>()) {
             r_el.SetValue(ElementValues::is_visited, false);
             unvisited_elements.push(&r_el);
         }
 
         // Repeat until all elements are visited.
-        while( !unvisited_elements.empty()  ){
+        while (!unvisited_elements.empty()) {
             ElementType* p_max_el = unvisited_elements.top();
             unvisited_elements.pop();
-            if( p_max_el->template GetValue<bool>(ElementValues::is_visited) ) {
-                continue; // Skip already visited elements.
+            if (p_max_el->template GetValue<bool>(ElementValues::is_visited)) {
+                continue;  // Skip already visited elements.
             }
             p_max_el->SetValue(ElementValues::is_visited, true);
 
@@ -80,10 +87,9 @@ public:
             ElementVectorType current_box{};
             current_box.reserve(10000);
             current_box.push_back(p_max_el);
-            Vector3i current_box_sizes = {1, 1, 1};
+            Vector3i current_box_sizes = { 1, 1, 1 };
             BoundingBoxType current_box_bounds = p_max_el->template GetCellBounds<CoordinateSpace::parametric>();
-            while( TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds) ){
-            }
+            while (TryToExpandCurrentBox(rGrid, current_box, current_box_sizes, current_box_bounds)) {}
 
             // Assemble integration points.
             AssembleGGQRulesOnBox(current_box, current_box_sizes, current_box_bounds, rIntegrationOrder, Method);
@@ -98,11 +104,13 @@ private:
     using ElementVectorType = std::vector<ElementType*>;
 
     /// Helper struct to define the order in the priority queue.
-    struct CompareByCoefficient {
-        bool operator()(const ElementType* pLHS, const ElementType* pRHS) const {
+    struct CompareByCoefficient
+    {
+        bool operator()(const ElementType* pLHS, const ElementType* pRHS) const
+        {
             double l_value = pLHS->template GetValue<double>(ElementValues::neighbor_coefficient);
             double r_value = pRHS->template GetValue<double>(ElementValues::neighbor_coefficient);
-            if(std::abs(l_value - r_value) < ZEROTOL) {
+            if (std::abs(l_value - r_value) < CoefficientComparisonTolerance) {
                 return (pLHS->GetId() > pRHS->GetId());
             }
             return l_value < r_value;
@@ -116,10 +124,13 @@ private:
     /// @brief Computes the neighbor coefficients for each full element in the given grid.
     /// @details Implements algorithm from Fig. 8 in 10.1016/j.cma.2022.115584.
     /// @param rElements
-    static void ComputeNeighborCoefficients(BackgroundGridType& rElements) {
+    static void ComputeNeighborCoefficients(BackgroundGridType& rElements)
+    {
         // Loop over all forward directions.
-        constexpr std::array<Direction, 3> directions = {Direction::x_forward, Direction::y_forward, Direction::z_forward};
-        for( auto dir : directions ){
+        constexpr std::array<Direction, 3> directions = { Direction::x_forward,
+                                                          Direction::y_forward,
+                                                          Direction::z_forward };
+        for (auto dir : directions) {
             bool local_end = false;
             IndexType current_id = 1;
             IndexType next_id = 0;
@@ -127,23 +138,21 @@ private:
             neighbors.reserve(20);
             // Check if element with index=1 is part of rElements.
             const auto first_element = rElements.template pGetElement<BackgroundGridType::ElementFilter::untrimmed>(1);
-            if( first_element )
-                neighbors.push_back(first_element);
+            if (first_element) neighbors.push_back(first_element);
 
             IndexType el_counter = 1;
             // Loop until all elements in rElements have beend visited/found
-            while( el_counter < rElements.NumberOfUntrimmedElements() ){
-                const auto next_element_result = rElements.template GetNextElement<BackgroundGridType::ElementFilter::untrimmed>(current_id, dir);
+            while (el_counter < rElements.NumberOfUntrimmedElements()) {
+                const auto next_element_result =
+                    rElements.template GetNextElement<BackgroundGridType::ElementFilter::untrimmed>(current_id, dir);
                 ElementType* neighbour = next_element_result.p_element;
                 next_id = next_element_result.next_id;
                 local_end = next_element_result.is_end;
-                if( neighbour ){
+                if (neighbour) {
                     el_counter++;
                     neighbors.push_back(neighbour);
                 }
-                if( local_end ){
-                    AssignNeighborCoefficients(neighbors);
-                }
+                if (local_end) { AssignNeighborCoefficients(neighbors); }
                 current_id = next_id;
             }
             AssignNeighborCoefficients(neighbors);
@@ -153,14 +162,15 @@ private:
     /// @brief Assigns the neighbor coefficients.
     /// @details Implements algorithm from Fig. 8 in 10.1016/j.cma.2022.115584.
     /// @param rNeighbors (Neighboring elements in a row/column).
-    static void AssignNeighborCoefficients(ElementVectorType& rNeighbors) {
+    static void AssignNeighborCoefficients(ElementVectorType& rNeighbors)
+    {
         const IndexType number_neighbours = rNeighbors.size();
-        if( number_neighbours > 1) {
+        if (number_neighbours > 1) {
             const auto el_it_begin = rNeighbors.begin();
-            for(IndexType i = 0; i < number_neighbours; ++i){
+            for (IndexType i = 0; i < number_neighbours; ++i) {
                 auto el_ptr = *(el_it_begin + static_cast<std::ptrdiff_t>(i));
                 const double old_value = el_ptr->template GetValue<double>(ElementValues::neighbor_coefficient);
-                el_ptr->SetValue(ElementValues::neighbor_coefficient, old_value*LinearFunction(i, number_neighbours));
+                el_ptr->SetValue(ElementValues::neighbor_coefficient, old_value * LinearFunction(i, number_neighbours));
             }
         }
         rNeighbors.clear();
@@ -173,23 +183,26 @@ private:
     /// @param [out] rBoxSize of current box.
     /// @param [out] rBoxBounds of current box.
     /// @return true if expansion was successful.
-    static bool TryToExpandCurrentBox(BackgroundGridType& rGrid,
-                                      ElementVectorType& rCurrentBox,
-                                      Vector3i& rBoxSize,
-                                      BoundingBoxType& rBoxBounds) {
+    static bool TryToExpandCurrentBox(
+        BackgroundGridType& rGrid,
+        ElementVectorType& rCurrentBox,
+        Vector3i& rBoxSize,
+        BoundingBoxType& rBoxBounds
+    )
+    {
         // Find neighbors of rCurrentBox.
-        std::array<ElementVectorType,6> neighbours{}; // <- List of neighbors for each direction.
-        std::array<double, 6> neighbour_coeffs = {0.0}; // <- Coefficients in each direction.
-        for( const auto* p_element : rCurrentBox ){
+        std::array<ElementVectorType, 6> neighbours{};  // <- List of neighbors for each direction.
+        std::array<double, 6> neighbour_coeffs = { 0.0 };  // <- Coefficients in each direction.
+        for (const auto* p_element : rCurrentBox) {
             IndexType current_id = p_element->GetId();
-            for( auto direction : EnumRange<GridIndexer::Direction>() ){
+            for (auto direction : EnumRange<GridIndexer::Direction>()) {
                 const IndexType dir_index = static_cast<IndexType>(direction);
-                ElementType* p_neighbour = pNextElement(rGrid, current_id, direction );
-                if( p_neighbour ){
+                ElementType* p_neighbour = pNextElement(rGrid, current_id, direction);
+                if (p_neighbour) {
                     const bool is_visited = p_neighbour->template GetValue<bool>(ElementValues::is_visited);
-                    if( !is_visited ){
+                    if (!is_visited) {
                         double coeff = p_neighbour->template GetValue<double>(ElementValues::neighbor_coefficient);
-                        neighbour_coeffs[dir_index] += coeff; // <- Sum up coefficients.
+                        neighbour_coeffs[dir_index] += coeff;  // <- Sum up coefficients.
                         neighbours[dir_index].push_back(p_neighbour);
                     }
                 }
@@ -198,24 +211,25 @@ private:
 
         // Lets move towards the direction with the highest coefficient.
         // There are six possible directions, e.i., six attempts.
-        for( IndexType attempts = 0; attempts < 6; ++attempts ){
-            IndexType move_dir_index = static_cast<IndexType>(std::distance(neighbour_coeffs.begin(),
-                std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end()))); // <- Index of move direction.
-            const auto& candidates_to_add =  neighbours[move_dir_index]; // <- Neighbors with highest coefficients.
+        for (IndexType attempts = 0; attempts < 6; ++attempts) {
+            IndexType move_dir_index = static_cast<IndexType>(std::distance(
+                neighbour_coeffs.begin(), std::max_element(neighbour_coeffs.begin(), neighbour_coeffs.end())
+            ));  // <- Index of move direction.
+            const auto& candidates_to_add = neighbours[move_dir_index];  // <- Neighbors with highest coefficients.
 
             // Get the number of neighbors on the plane orthogonal to the move direction.
             IndexType dimension_index = move_dir_index / 2;
-            constexpr std::array<std::pair<IndexType, IndexType>, 3> dimension_index_map = {{
-                {1, 2}, // for dimension_index 0
-                {0, 2}, // for dimension_index 1
-                {0, 1}  // for dimension_index 2
-            }};
+            constexpr std::array<std::pair<IndexType, IndexType>, 3> dimension_index_map = { {
+                { 1, 2 },  // for dimension_index 0
+                { 0, 2 },  // for dimension_index 1
+                { 0, 1 }  // for dimension_index 2
+            } };
             const auto [i, j] = dimension_index_map[dimension_index];
             IndexType required_number_neighbors = rBoxSize[i] * rBoxSize[j];
 
             // Add candidates if their inclusion preserves the box shape.
-            if( candidates_to_add.size() == required_number_neighbors ){
-                for( auto* p_element : candidates_to_add ) {
+            if (candidates_to_add.size() == required_number_neighbors) {
+                for (auto* p_element : candidates_to_add) {
                     p_element->SetValue(ElementValues::is_visited, true);
                     rCurrentBox.push_back(p_element);
                     // Update bounds of current box
@@ -227,9 +241,8 @@ private:
                 }
                 rBoxSize[dimension_index]++;
                 return true;
-            }
-            else { // No valid move direction.
-                neighbour_coeffs[move_dir_index] = 0.0; // <- Exclude this one from the potential move directions
+            } else {  // No valid move direction.
+                neighbour_coeffs[move_dir_index] = 0.0;  // <- Exclude this one from the potential move directions
                 // in next iteration.
             }
         }
@@ -242,37 +255,42 @@ private:
     /// @param rBounds Bounds of the box in parametric space.
     /// @param rIntegrationOrder
     /// @param Method Integration method - Options: {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}.
-    static void AssembleGGQRulesOnBox(ElementVectorType& rElements,
-                                      const Vector3i& rNumberKnotspans,
-                                      const BoundingBoxType& rBounds,
-                                      const Vector3i& rIntegrationOrder,
-                                      IntegrationMethodType Method) {
+    static void AssembleGGQRulesOnBox(
+        ElementVectorType& rElements,
+        const Vector3i& rNumberKnotspans,
+        const BoundingBoxType& rBounds,
+        const Vector3i& rIntegrationOrder,
+        IntegrationMethodType Method
+    )
+    {
 
         // Loop over all elements
-        for( auto* p_el : rElements ){
+        for (auto* p_el : rElements) {
 
             // Local lower and upper points
             const auto lower_point_param = p_el->template GetCellBounds<CoordinateSpace::parametric>().lower;
             const auto upper_point_param = p_el->template GetCellBounds<CoordinateSpace::parametric>().upper;
 
-            std::array<std::vector<std::array<double,2>>, 3> tmp_integration_points{};
+            std::array<std::vector<std::array<double, 2>>, 3> tmp_integration_points{};
 
-            for( IndexType direction = 0; direction < 3; ++direction){
+            for (IndexType direction = 0; direction < 3; ++direction) {
                 const double distance_global = rBounds.upper[direction] - rBounds.lower[direction];
                 const double length_global = std::abs(rBounds.upper[direction] - rBounds.lower[direction]);
 
-                const IntegrationPointFactory1D::Ip1DVectorPtrType p_ggq_points =
-                    IntegrationPointFactory1D::GetGGQ(rIntegrationOrder[direction], rNumberKnotspans[direction], Method);
+                const IntegrationPointFactory1D::Ip1DVectorPtrType p_ggq_points = IntegrationPointFactory1D::GetGGQ(
+                    rIntegrationOrder[direction], rNumberKnotspans[direction], Method
+                );
                 const IntegrationPointFactory1D::Ip1DVectorType& r_ggq_points = *p_ggq_points;
 
-                for( IndexType j = 0; j < r_ggq_points.size(); ++j){
-                    const double position = rBounds.lower[direction] + distance_global* (r_ggq_points)[j][0];
-                    const double weight = length_global *  (r_ggq_points)[j][1];
-                    std::array<double, 2> tmp_point = {position, weight};
-                    if( lower_point_param[direction]-EPS3 <= position && position < upper_point_param[direction]-EPS3){
-                        if( lower_point_param[direction]+EPS2 > position) {
+                for (IndexType j = 0; j < r_ggq_points.size(); ++j) {
+                    const double position = rBounds.lower[direction] + distance_global * (r_ggq_points)[j][0];
+                    const double weight = length_global * (r_ggq_points)[j][1];
+                    std::array<double, 2> tmp_point = { position, weight };
+                    if (lower_point_param[direction] - ParametricOwnershipTolerance <= position
+                        && position < upper_point_param[direction] - ParametricOwnershipTolerance) {
+                        if (lower_point_param[direction] + ParametricNearLowerBoundaryTolerance > position) {
                             // Make sure point is clearly inside one element.
-                            tmp_point[0] = lower_point_param[direction]+2*EPS3;
+                            tmp_point[0] = lower_point_param[direction] + 2.0 * ParametricOwnershipTolerance;
                         }
                         tmp_integration_points[direction].push_back(tmp_point);
                     }
@@ -287,12 +305,15 @@ private:
 
             for (SizeType u = 0; u < PointsInU; ++u) {
                 for (SizeType v = 0; v < PointsInV; ++v) {
-                    for( SizeType w = 0; w < PointsInW; ++w) {
-                        const double weight = tmp_integration_points[0][u][1]*tmp_integration_points[1][v][1]*tmp_integration_points[2][w][1];
-                        r_integration_points.emplace_back(tmp_integration_points[0][u][0],
-                                                          tmp_integration_points[1][v][0],
-                                                          tmp_integration_points[2][w][0],
-                                                          weight);
+                    for (SizeType w = 0; w < PointsInW; ++w) {
+                        const double weight = tmp_integration_points[0][u][1] * tmp_integration_points[1][v][1]
+                                              * tmp_integration_points[2][w][1];
+                        r_integration_points.emplace_back(
+                            tmp_integration_points[0][u][0],
+                            tmp_integration_points[1][v][0],
+                            tmp_integration_points[2][w][0],
+                            weight
+                        );
                     }
                 }
             }
@@ -304,32 +325,35 @@ private:
     /// @param CurrentId
     /// @param Dir
     /// @return ElementType*
-	/// TODO: Remove this function.
-    static ElementType* pNextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir ) {
-        return rElements.template GetNextElement<BackgroundGridType::ElementFilter::untrimmed>(CurrentId, Dir).p_element;
+    /// TODO: Remove this function.
+    static ElementType* pNextElement(BackgroundGridType& rElements, IndexType CurrentId, Direction Dir)
+    {
+        return rElements.template GetNextElement<BackgroundGridType::ElementFilter::untrimmed>(CurrentId, Dir)
+            .p_element;
     }
 
     /// @brief Helper function to compute the neighbor coefficient using a linear function.
     /// @param X Value
     /// @param NumNeighbors
     /// @return double.
-    static double LinearFunction(IndexType X, IndexType NumNeighbors) {
-        const double center = static_cast<double>(NumNeighbors-1) / 2.0;
+    static double LinearFunction(IndexType X, IndexType NumNeighbors)
+    {
+        const double center = static_cast<double>(NumNeighbors - 1) / 2.0;
         const double delta = std::abs(center - static_cast<double>(X));
 
-        const double value = (1.0 - (0.9/center)*delta)*static_cast<double>(NumNeighbors);
+        const double value = (1.0 - (0.9 / center) * delta) * static_cast<double>(NumNeighbors);
 
-        QuESo_ERROR_IF(value < ZEROTOL) << "Value too low\n";
+        QuESo_ERROR_IF(value < CoefficientComparisonTolerance) << "Value too low\n";
 
         return value;
     }
 
     ///@}
 
-}; // End Class QuadratureMultipleElements.
+};  // End Class QuadratureMultipleElements.
 
 ///@} End QuESo Classes.
 
-} // End namespace queso.
+}  // End namespace queso.
 
-#endif // MULITPLE_ELEMENTS_INCLUDE_HPP
+#endif  // MULITPLE_ELEMENTS_INCLUDE_HPP

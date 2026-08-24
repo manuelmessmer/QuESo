@@ -21,7 +21,7 @@
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/containers/trimmed_element.hpp"
-#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
@@ -151,28 +151,25 @@ namespace {
         const std::string stl_path = GlobalConfig::GetInstance().BaseDir + "/data/" + std::string(rCase.stl_filename);
         IO::ReadMeshFromSTL(triangle_mesh, stl_path);
 
-        BRepOperator brep_operator(triangle_mesh);
         constexpr double min_vol_ratio = 1e-3;
         constexpr IndexType min_num_triangles = 500;
 
         GridIndexer grid_indexer(settings);
+        embedding::DomainMeshEmbedder domain_embedder(triangle_mesh.View(), grid_indexer);
+        const auto states = domain_embedder.Classify();
         IndexType number_trimmed_elements = 0;
         for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
             const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-            const auto& lower_bound_xyz = bounding_box.lower;
-            const auto& upper_bound_xyz = bounding_box.upper;
+            if (states[i] != IntersectionState::trimmed) { continue; }
 
-            if (brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz) != IntersectionState::trimmed) {
-                continue;
-            }
-
-            auto p_trimmed_domain =
-                brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
-            if (!p_trimmed_domain) { continue; }
+            auto trimmed_domain = domain_embedder.MakeTrimmedDomain(i, min_num_triangles);
+            const PointType delta = bounding_box.upper - bounding_box.lower;
+            const double cell_volume = delta[0] * delta[1] * delta[2];
+            if (MeshUtilities::Volume(trimmed_domain.GetBoundaryMesh()) / cell_volume <= min_vol_ratio) { continue; }
 
             ++number_trimmed_elements;
             const BoundingBoxType bounding_box_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(i);
-            ElementType element(1, ElementBounds{ bounding_box, bounding_box_uvw }, std::move(*p_trimmed_domain));
+            ElementType element(1, ElementBounds{ bounding_box, bounding_box_uvw }, std::move(trimmed_domain));
             CheckReturnedRule(element, rCase);
         }
         QuESo_CHECK_EQUAL(number_trimmed_elements, rCase.expected_trimmed_elements);

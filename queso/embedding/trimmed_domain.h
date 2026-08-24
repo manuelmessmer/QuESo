@@ -15,10 +15,15 @@
 
 /// STL includes
 #include <algorithm>
+#include <cmath>
+#include <functional>
 #include <iterator>
+#include <span>
+#include <vector>
 /// Project includes
-#include "queso/embedding/geometry_query.h"
-#include "queso/embedding/trimmed_domain_on_plane.h"
+#include "queso/embedding/cell_face_closure.h"
+#include "queso/embedding/local_surface_classifier.h"
+#include "queso/embedding/mesh_query.h"
 #include "queso/utilities/mapping_utilities.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/triangle_utilities.hpp"
@@ -45,69 +50,19 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// @brief Constructor for a trimmed domain.
-    /// @param rTriangleMesh Clipped triangle mesh. It must contain edges on the boundary planes of the enclosing AABB
-    ///                      (see TrimmedDomainOnPlane).
-    /// @param rLowerBound Lower bound of the enclosing AABB.
-    /// @param rUpperBound Upper bound of the enclosing AABB.
-    /// @param pOperator Pointer to the BRepOperator used as a fallback for IsInside() queries if
-    ///                  IsInsideTrimmedDomain() is inconclusive.
-    /// @param MinNumberOfTriangles Minimum number of triangles used to discretize the boundary of this trimmed domain.
-    /// @param SwitchPlaneOrientation If true, the orientation of edges on TrimmedDomainOnPlane is switched.
+    /// @brief Constructs a trimmed domain with a construction-only global fallback classifier.
+    /// @details The fallback is called only when a local clipped-surface query is inconclusive. It is not retained by
+    ///          the completed domain.
+    /// @param rSection Source surface, exact cell bounds, contours, and tolerance.
+    /// @param rGlobalIsInside Closed-source-mesh point classifier available during construction.
+    /// @param MinNumberOfTriangles Minimum number of triangles used to discretize the completed boundary.
     TrimmedDomain(
-        ClippedTriangleMesh&& rTriangleMesh,
-        const PointType& rLowerBound,
-        const PointType& rUpperBound,
-        const BRepOperator* pOperator,
-        IndexType MinNumberOfTriangles = 100,
-        bool SwitchPlaneOrientation = false
+        embedding::CellSurfaceSection&& rSection,
+        const std::function<bool(PointView)>& rGlobalIsInside,
+        IndexType MinNumberOfTriangles = 100
     )
-        : mpBrepOperatorGlobal(pOperator), mClippedMesh(std::move(rTriangleMesh)), mClosedMesh(mClippedMesh.Mesh()),
-          mGeometryQuery(mClippedMesh.MeshView(), false)
-    {
-        // Set relative snap tolerance.
-        mSnapTolerance = RelativeSnapTolerance(rLowerBound, rUpperBound);
-
-        // Construct trimmed domain on plane upper bound of AABB.
-        bool upper_bound = true;
-        auto p_trimmed_domain_upper_x =
-            MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, rLowerBound, rUpperBound, this, SwitchPlaneOrientation);
-        auto p_trimmed_domain_upper_y =
-            MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, rLowerBound, rUpperBound, this, SwitchPlaneOrientation);
-        auto p_trimmed_domain_upper_z =
-            MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, rLowerBound, rUpperBound, this, SwitchPlaneOrientation);
-        // Construct trimmed domain on plane lower bound of AABB.
-        upper_bound = false;
-        auto p_trimmed_domain_lower_x =
-            MakeUnique<TrimmedDomainOnPlane>(0, upper_bound, rLowerBound, rUpperBound, this, SwitchPlaneOrientation);
-        auto p_trimmed_domain_lower_y =
-            MakeUnique<TrimmedDomainOnPlane>(1, upper_bound, rLowerBound, rUpperBound, this, SwitchPlaneOrientation);
-        auto p_trimmed_domain_lower_z =
-            MakeUnique<TrimmedDomainOnPlane>(2, upper_bound, rLowerBound, rUpperBound, this, SwitchPlaneOrientation);
-
-        if (mClippedMesh.NumOfTriangles() != 0) {
-            auto p_t1 = p_trimmed_domain_lower_x->pGetTriangulation(mClippedMesh);
-            auto p_t2 = p_trimmed_domain_upper_x->pGetTriangulation(mClippedMesh);
-            auto p_t3 = p_trimmed_domain_lower_y->pGetTriangulation(mClippedMesh);
-            auto p_t4 = p_trimmed_domain_upper_y->pGetTriangulation(mClippedMesh);
-            auto p_t5 = p_trimmed_domain_lower_z->pGetTriangulation(mClippedMesh);
-            auto p_t6 = p_trimmed_domain_upper_z->pGetTriangulation(mClippedMesh);
-
-            const IndexType num_triangles = p_t1->NumOfTriangles() + p_t2->NumOfTriangles() + p_t3->NumOfTriangles()
-                                            + p_t4->NumOfTriangles() + p_t5->NumOfTriangles() + p_t6->NumOfTriangles();
-
-            mClosedMesh.Reserve(2UL * num_triangles);
-
-            MeshUtilities::Append(mClosedMesh, p_t1->Mesh());
-            MeshUtilities::Append(mClosedMesh, p_t2->Mesh());
-            MeshUtilities::Append(mClosedMesh, p_t3->Mesh());
-            MeshUtilities::Append(mClosedMesh, p_t4->Mesh());
-            MeshUtilities::Append(mClosedMesh, p_t5->Mesh());
-            MeshUtilities::Append(mClosedMesh, p_t6->Mesh());
-
-            MeshUtilities::Refine(mClosedMesh, MinNumberOfTriangles);
-        }
-    }
+        : TrimmedDomain(PrepareClosure(std::move(rSection), rGlobalIsInside), MinNumberOfTriangles)
+    {}
 
     /// Destructor
     ~TrimmedDomain() = default;
@@ -117,21 +72,23 @@ public:
     TrimmedDomain& operator=(const TrimmedDomain& rOther) = delete;
 
     /// Move constructor
-    TrimmedDomain(TrimmedDomain&& rOther) noexcept
-        : mpBrepOperatorGlobal(rOther.mpBrepOperatorGlobal), mClippedMesh(std::move(rOther.mClippedMesh)),
-          mClosedMesh(std::move(rOther.mClosedMesh)), mGeometryQuery(mClippedMesh.MeshView(), false),
-          mSnapTolerance(rOther.mSnapTolerance)
+    TrimmedDomain(TrimmedDomain&& rOther)
+        : mClippedMesh(std::move(rOther.mClippedMesh)), mClosedMesh(std::move(rOther.mClosedMesh)),
+          mMeshQuery(mClippedMesh.View(), embedding::MeshQueryMode::OrientedSurface, rOther.mGeometryTolerance),
+          mGeometryTolerance(rOther.mGeometryTolerance), mActiveBounds(rOther.mActiveBounds)
     {}
 
     /// Move assignment operator
-    TrimmedDomain& operator=(TrimmedDomain&& rOther) noexcept
+    TrimmedDomain& operator=(TrimmedDomain&& rOther)
     {
         if (this != &rOther) {
-            mpBrepOperatorGlobal = rOther.mpBrepOperatorGlobal;
             mClippedMesh = std::move(rOther.mClippedMesh);
             mClosedMesh = std::move(rOther.mClosedMesh);
-            mGeometryQuery = GeometryQuery(mClippedMesh.MeshView(), false);
-            mSnapTolerance = rOther.mSnapTolerance;
+            mMeshQuery = embedding::MeshQuery(
+                mClippedMesh.View(), embedding::MeshQueryMode::OrientedSurface, rOther.mGeometryTolerance
+            );
+            mGeometryTolerance = rOther.mGeometryTolerance;
+            mActiveBounds = rOther.mActiveBounds;
         }
         return *this;
     }
@@ -184,11 +141,10 @@ public:
     [[nodiscard]] BoundingBoxType GetBounds([[maybe_unused]] const ElementBounds& rBounds) const
     {
         if constexpr (TSpace == CoordinateSpace::global) {
-            return GetBoundingBoxOfTrimmedDomain();
+            return mActiveBounds;
         } else {
-            const auto global_bounds = GetBoundingBoxOfTrimmedDomain();
             return MakeBox(
-                mapping::ToParametric(global_bounds.lower, rBounds), mapping::ToParametric(global_bounds.upper, rBounds)
+                mapping::ToParametric(mActiveBounds.lower, rBounds), mapping::ToParametric(mActiveBounds.upper, rBounds)
             );
         }
     }
@@ -224,21 +180,21 @@ public:
     /// @param rLowerBound Lower bound of the query box.
     /// @param rUpperBound Upper bound of the query box.
     /// @param rBounds Element-local bounds used for coordinate transformations.
-    /// @param Tolerance Shrink tolerance applied to the query box.
+    /// @param Policy AABB boundary-touching policy.
     /// @return IntersectionStateType
     template<CoordinateSpace TSpace = CoordinateSpace::global>
     [[nodiscard]] IntersectionStateType GetIntersectionState(
         const PointType& rLowerBound,
         const PointType& rUpperBound,
         const ElementBounds& rBounds,
-        double Tolerance = SNAPTOL
+        AabbIntersectionPolicy Policy = AabbIntersectionPolicy::Exact
     ) const
     {
         if constexpr (TSpace == CoordinateSpace::global) {
-            return GetIntersectionState(rLowerBound, rUpperBound, Tolerance);
+            return GetIntersectionState(rLowerBound, rUpperBound, Policy);
         } else {
             return GetIntersectionState(
-                mapping::ToGlobal(rLowerBound, rBounds), mapping::ToGlobal(rUpperBound, rBounds), Tolerance
+                mapping::ToGlobal(rLowerBound, rBounds), mapping::ToGlobal(rUpperBound, rBounds), Policy
             );
         }
     }
@@ -249,15 +205,65 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// @brief Returns the bounding box of the trimmed domain.
-    /// @details The result may be smaller than the full element domain.
-    /// @return BoundingBoxType
-    [[nodiscard]] BoundingBoxType GetBoundingBoxOfTrimmedDomain() const;
+    struct PreparedClosure
+    {
+        TriangleMesh clipped_surface;
+        TriangleMesh closed_mesh;
+        GeometryTolerance tolerance;
+    };
+
+    [[nodiscard]] static PreparedClosure
+        PrepareClosure(embedding::CellSurfaceSection&& rSection, const std::function<bool(PointView)>& rGlobalIsInside)
+    {
+        const GeometryTolerance tolerance = rSection.GetGeometryTolerance();
+        const BoundingBoxType bounds = rSection.CellBounds();
+        TriangleMesh clipped_surface = rSection.TakeSurface();
+        const auto IsInside = [&](PointView rPoint) {
+            const PointType point{ rPoint[0], rPoint[1], rPoint[2] };
+            const auto local =
+                embedding::detail::ClassifyOnBoundedSide(point, clipped_surface.View(), tolerance.ZeroLength());
+            if (local == embedding::detail::LocalSurfaceClassification::Inside) { return true; }
+            if (local == embedding::detail::LocalSurfaceClassification::Outside) { return false; }
+            // The global classifier exists only during construction and is never retained by the completed domain.
+            return rGlobalIsInside ? rGlobalIsInside(point) : false;
+        };
+        const auto BuildClosedMesh = [&](bool SwitchAxes) {
+            TriangleMesh result = clipped_surface;
+            for (IndexType face_index = 0; face_index < 6; ++face_index) {
+                const embedding::CellFace face = embedding::CellFace::FromIndex(face_index);
+                const TriangleMesh closure = embedding::detail::BuildCellFaceClosure(
+                    rSection.FaceSegments(face), bounds, face, tolerance, IsInside, SwitchAxes
+                );
+                MeshUtilities::Append(result, closure);
+            }
+            return result;
+        };
+
+        TriangleMesh closed_mesh = BuildClosedMesh(false);
+        const double fixed_frame_quality = MeshUtilities::EstimateQuality(closed_mesh.View());
+        TriangleMesh switched_mesh = BuildClosedMesh(true);
+        const double swapped_frame_quality = MeshUtilities::EstimateQuality(switched_mesh.View());
+        if (swapped_frame_quality < fixed_frame_quality) { closed_mesh = std::move(switched_mesh); }
+        return { std::move(clipped_surface), std::move(closed_mesh), tolerance };
+    }
+
+    TrimmedDomain(PreparedClosure&& rPrepared, IndexType MinNumberOfTriangles)
+        : mClippedMesh(std::move(rPrepared.clipped_surface)), mClosedMesh(std::move(rPrepared.closed_mesh)),
+          mMeshQuery(mClippedMesh.View(), embedding::MeshQueryMode::OrientedSurface, rPrepared.tolerance),
+          mGeometryTolerance(rPrepared.tolerance)
+    {
+        MeshUtilities::Refine(mClosedMesh, MinNumberOfTriangles, mGeometryTolerance.ZeroArea());
+        mActiveBounds = ComputeBounds(mClosedMesh);
+    }
+
+    [[nodiscard]] static BoundingBoxType ComputeBounds(const TriangleMesh& rMesh)
+    {
+        const auto [lower, upper] = MeshUtilities::BoundingBox(rMesh.View());
+        return MakeBox(lower, upper);
+    }
 
     /// @brief Returns whether a global-space point lies inside the trimmed domain.
-    /// @details Performs a fast local test first via
-    ///          IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess). If that test is inconclusive,
-    ///          a fallback query is performed using the BRepOperator when available.
+    /// @details Performs a deterministic local clipped-section query. Inconclusive queries classify as outside.
     /// @param rPoint Query point in global coordinates.
     /// @return bool
     [[nodiscard]] bool IsInsideTrimmedDomain(const PointType& rPoint) const;
@@ -276,26 +282,24 @@ private:
     /// @note This test is performed only on `mClippedMesh` for efficiency. This is primarily used by the octree.
     /// @param rLowerBound Lower bound of the query AABB.
     /// @param rUpperBound Upper bound of the query AABB.
-    /// @param Tolerance Shrink tolerance applied to the query AABB. If `Tolerance == 0`, touching counts as an
-    ///                  intersection. If `Tolerance > 0`, touching is not treated as an intersection.
+    /// @param Policy AABB boundary-touching policy.
     /// @return IntersectionStateType with values `Inside`, `Outside`, or `Trimmed`.
     [[nodiscard]] IntersectionStateType GetIntersectionState(
         const PointType& rLowerBound,
         const PointType& rUpperBound,
-        double Tolerance = SNAPTOL
+        AabbIntersectionPolicy Policy = AabbIntersectionPolicy::Exact
     ) const;
 
     ///@}
     ///@name Private Members
     ///@{
 
-    const BRepOperator* mpBrepOperatorGlobal;
-
-    ClippedTriangleMesh mClippedMesh;
+    TriangleMesh mClippedMesh;
     TriangleMesh mClosedMesh;
-    GeometryQuery mGeometryQuery;
-    double mSnapTolerance;
+    embedding::MeshQuery mMeshQuery;
+    GeometryTolerance mGeometryTolerance;
+    BoundingBoxType mActiveBounds;
     ///@}
 };
 ///@}
-}// namespace queso
+}  // namespace queso

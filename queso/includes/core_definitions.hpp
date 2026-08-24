@@ -63,22 +63,8 @@ inline constexpr double INFINITYD = std::numeric_limits<double>::infinity();
 // Is NaN
 inline constexpr double QUIETNAND = std::numeric_limits<double>::quiet_NaN();
 
-// Tolerances
-inline constexpr double SNAPTOL = 1e-12;
-inline constexpr double ZEROTOL = 1e-14;
-
-inline constexpr double RelativeSnapTolerance(PointView rLowerBound, PointView rUpperBound, double Tolerance = SNAPTOL){
-    const Vector3d delta{rUpperBound[0] - rLowerBound[0],
-                         rUpperBound[1] - rLowerBound[1],
-                         rUpperBound[2] - rLowerBound[2]};
-    return std::max( std::max(delta[0], std::max(delta[1], delta[2]))*Tolerance, Tolerance);
-}
-
-inline constexpr double RelativeSnapTolerance(const PointView& rDelta, double Tolerance = SNAPTOL){
-    return std::max( std::max(rDelta[0], std::max(rDelta[1], rDelta[2]))*Tolerance, Tolerance);
-}
-
-// Tolerances for Testing
+// Legacy assertion tolerances for tests only. Production code must use named local policies, numerical guards, or
+// GeometryTolerance as appropriate.
 inline constexpr double EPS0 = 1e-7;
 inline constexpr double EPS1 = 1e-8;
 inline constexpr double EPS2 = 1e-10;

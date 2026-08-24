@@ -176,6 +176,7 @@ public:
     template<ElementFilter TFilter = ElementFilter::all>
     [[nodiscard]] auto GetElementViews() const
     {
+        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         if constexpr (TFilter == ElementFilter::all) {
             const auto num_untrimmed = mUntrimmedElements.size();
             const auto num_total = num_untrimmed + mTrimmedElements.size();
@@ -197,12 +198,13 @@ public:
     /// @details ElementFilter::all is not valid (the two containers have different element types).
     ///          Returns std::span<const UntrimmedElementType> or std::span<const TrimmedElementType>.
     template<ElementFilter TFilter>
-    [[nodiscard]] auto GetElements() const noexcept
+    [[nodiscard]] auto GetElements() const noexcept(NOTDEBUG)
     {
         static_assert(
             TFilter != ElementFilter::all,
             "ElementFilter::all is not valid for GetElements — use GetElementViews() instead."
         );
+        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         if constexpr (TFilter == ElementFilter::untrimmed)
             return std::span<const UntrimmedElementType>(mUntrimmedElements);
         else
@@ -211,14 +213,16 @@ public:
 
     /// @brief Returns a mutable span over the raw element container matching TFilter.
     /// @details ElementFilter::all is not valid (the two containers have different element types).
-    ///          Returns std::span<UntrimmedElementType> or std::span<TrimmedElementType>.
+    ///          Returns std::span<UntrimmedElementType> or std::span<TrimmedElementType>. Callers may mutate element
+    ///          state but must not replace elements or change IDs and bounds tracked by the grid.
     template<ElementFilter TFilter>
-    [[nodiscard]] auto GetElements() noexcept
+    [[nodiscard]] auto GetElements() noexcept(NOTDEBUG)
     {
         static_assert(
             TFilter != ElementFilter::all,
             "ElementFilter::all is not valid for GetElements — use GetElementViews() instead."
         );
+        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         if constexpr (TFilter == ElementFilter::untrimmed)
             return std::span<UntrimmedElementType>(mUntrimmedElements);
         else
@@ -229,6 +233,16 @@ public:
     /// @return const ConditionContainerType&
     [[nodiscard]] const ConditionContainerType& GetConditions() const noexcept
     { return mConditions; }
+
+    /// @brief Returns the authoritative background-grid indexer.
+    /// @return Grid indexer owned by this background grid.
+    [[nodiscard]] const GridIndexer& GetGridIndexer() const noexcept
+    { return mGridIndexer; }
+
+    /// @brief Returns whether volume-element construction has been completed.
+    /// @return True after `LockElements()` has been called.
+    [[nodiscard]] bool ElementsAreLocked() const noexcept
+    { return mElementsLocked; }
 
     /// @brief Adds a new condition to the background grid.
     /// @param rCondition Condition moved into the container.
@@ -256,9 +270,11 @@ public:
     { return mTrimmedElements.size(); }
 
     /// @brief Reserves capacity for the element containers.
-    /// @param NewCapacity.
+    /// @param NumUntrimmedElements Expected number of untrimmed elements.
+    /// @param NumTrimmedElements Expected number of trimmed elements.
     void ReserveElements(IndexType NumUntrimmedElements, IndexType NumTrimmedElements)
     {
+        QuESo_ERROR_IF(mElementsLocked) << "Cannot reserve element storage after LockElements() was called.\n";
         mElementIdMap.reserve(NumUntrimmedElements + NumTrimmedElements);
 
         mUntrimmedElements.reserve(NumUntrimmedElements);
@@ -316,20 +332,31 @@ public:
     [[nodiscard]] bool IsEnd(IndexType CurrentId, Direction Dir) const
     { return mGridIndexer.IsEnd(CurrentId - 1, Dir); }
 
-    /// @brief Calls rBuilder.Build() and inserts the element into the corresponding storage.
+    /// @brief Calls rBuilder.Build() with authoritative cell bounds and inserts the resulting element.
     /// @details The target storage is selected from `TBuilderType::Builds` (e.g., ElementFilter::trimmed).
     ///          If Build() returns an empty result, no element is inserted.
     ///          The critical section protects concurrent writes from the OpenMP loop.
+    /// @tparam TBuilderType Builder declaring the supported ElementFilter and accepting a cell index and bounds.
+    /// @param rBuilder Element builder.
+    /// @param CellIndex Zero-based background-grid cell index.
     /// @return true if an element was built and inserted, false otherwise.
     template<typename TBuilderType>
-    bool MakeElement(TBuilderType& rBuilder, IndexType Id, const ElementBounds& rBounds)
+    bool MakeElement(TBuilderType& rBuilder, IndexType CellIndex)
     {
-        QuESo_ASSERT(!mElementsLocked, "Cannot add elements after LockElements() was called.");
-        auto result = rBuilder.Build(Id, rBounds);
+        QuESo_ERROR_IF(mElementsLocked) << "Cannot add elements after LockElements() was called.\n";
+        QuESo_ASSERT(CellIndex < mGridIndexer.NumberOfElements(), "Cell index is out-of-bounds.");
+        const ElementBounds bounds{ mGridIndexer.GetBoundingBoxXYZFromIndex(CellIndex),
+                                    mGridIndexer.GetBoundingBoxUVWFromIndex(CellIndex) };
+        auto result = rBuilder.Build(CellIndex, bounds);
         if (!result) return false;
+        const IndexType element_id = CellIndex + 1;
+        QuESo_ERROR_IF(result->GetId() != element_id)
+            << "Builder returned element ID '" << result->GetId() << "' for expected ID '" << element_id << "'.\n";
+#ifdef _OPENMP
 #pragma omp critical
+#endif
         {
-            QuESo_ERROR_IF(mElementIdMap.contains(Id)) << "Element ID '" << Id << "' already exists.\n";
+            QuESo_ERROR_IF(mElementIdMap.contains(element_id)) << "Element ID '" << element_id << "' already exists.\n";
             const auto location = [&]() {
                 if constexpr (TBuilderType::Builds == ElementFilter::trimmed) {
                     const IndexType index = mTrimmedElements.size();
@@ -346,7 +373,7 @@ public:
                     return ElementStorageLocation{ false, index };
                 }
             }();
-            mElementIdMap.emplace(Id, location);
+            mElementIdMap.emplace(element_id, location);
         }
         return true;
     }
@@ -378,7 +405,7 @@ private:
         case Direction::_end:
             Unreachable("Direction::_end is a sentinel, not a runtime value.");
         }
-		Unreachable("Invalid Direction value.");
+        Unreachable("Invalid Direction value.");
     }
 
     /// @brief Applies a GridIndexer step, fetches the corresponding element, and packages the traversal result.
@@ -420,7 +447,7 @@ private:
     bool mElementsLocked = false;
 
     ///@}
-};// End class BackgroundGrid
+};  // End class BackgroundGrid
 ///@} // End QuESo classes
 
-}// End namespace queso
+}  // End namespace queso

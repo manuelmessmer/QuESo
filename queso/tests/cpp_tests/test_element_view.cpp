@@ -19,10 +19,11 @@
 #include "queso/containers/integration_point.hpp"
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/untrimmed_element.hpp"
-#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/mesh_operator.h"
 #include "queso/includes/checks.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/tests/cpp_tests/global_config.hpp"
+#include "queso/tests/cpp_tests/trimmed_domain_test_helpers.hpp"
 
 namespace queso::Testing {
 
@@ -59,14 +60,14 @@ namespace {
     TrimmedElementType MakeTrimmedElement()
     {
         const std::string stl_path = GlobalConfig::GetInstance().BaseDir + "/data/cylinder.stl";
-        TriangleMesh mesh{};
-        IO::ReadMeshFromSTL(mesh, stl_path.c_str());
-        BRepOperator brep_op(mesh);
-
+        static const TriangleMesh mesh = [&]() {
+            TriangleMesh result;
+            IO::ReadMeshFromSTL(result, stl_path.c_str());
+            return result;
+        }();
         constexpr auto xyz = MakeTrimmedCellBoundsXYZ();
-        BOOST_REQUIRE_EQUAL(brep_op.GetIntersectionState(xyz.lower, xyz.upper), IntersectionState::trimmed);
-
-        auto p_domain = brep_op.pGetTrimmedDomain(xyz.lower, xyz.upper, 0.0, 100);
+        const embedding::MeshOperator mesh_operator(mesh.View(), TrimmedDomainTestHelpers::MakeTolerance(xyz));
+        auto p_domain = TrimmedDomainTestHelpers::MakeTrimmedDomain(mesh_operator, xyz, 100);
         BOOST_REQUIRE(p_domain != nullptr);
 
         return TrimmedElementType(
@@ -74,7 +75,7 @@ namespace {
         );
     }
 
-}// namespace
+}  // namespace
 
 BOOST_AUTO_TEST_SUITE(ElementViewTestSuite)
 
@@ -181,7 +182,7 @@ BOOST_AUTO_TEST_CASE(ViewIsCopyable)
     element.GetIntegrationPoints().push_back(ip);
 
     const auto view_original = element.View();
-    const auto view_copy = view_original;// NOLINT(performance-unnecessary-copy-initialization)
+    const auto view_copy = view_original;  // NOLINT(performance-unnecessary-copy-initialization)
 
     QuESo_CHECK_EQUAL(view_copy.GetId(), view_original.GetId());
     QuESo_CHECK_IS_FALSE(view_copy.IsTrimmed() != view_original.IsTrimmed());
@@ -200,4 +201,4 @@ BOOST_AUTO_TEST_CASE(ViewIsCopyable)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-}// End namespace queso::Testing
+}  // End namespace queso::Testing

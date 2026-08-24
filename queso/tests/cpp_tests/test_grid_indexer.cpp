@@ -13,6 +13,12 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+//// STL includes
+#include <array>
+#include <initializer_list>
+#include <limits>
+#include <set>
+#include <vector>
 //// Project includes
 #include "queso/containers/grid_indexer.hpp"
 #include "queso/includes/checks.hpp"
@@ -21,6 +27,26 @@
 
 namespace queso {
 namespace Testing {
+
+    namespace {
+
+        [[nodiscard]] Unique<Dictionary<queso::key::MainValuesTypeTag>>
+            MakeGridSettings(const BoundingBoxType& rBounds, const Vector3i& rNumberOfElements)
+        {
+            auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+            auto& r_grid_settings = (*p_settings)[MainSettings::background_grid_settings];
+            r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, rBounds.lower);
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, rBounds.upper);
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, rBounds.lower);
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, rBounds.upper);
+            r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+            r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElements);
+            r_grid_settings.CheckRequired();
+            return p_settings;
+        }
+
+    }  // namespace
 
     BOOST_AUTO_TEST_SUITE(GridIndexerTestSuite)
 
@@ -667,7 +693,142 @@ namespace Testing {
     }
 
 
+    BOOST_AUTO_TEST_CASE(RejectsCellsBelowSnapToleranceScale)
+    {
+        auto p_settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 1e-15, 1e-15, 1e-15 }), { 1, 1, 1 });
+        BOOST_CHECK_THROW((void)GridIndexer(*p_settings), queso::Exception);
+    }
+
+    BOOST_AUTO_TEST_CASE(GeometryToleranceDependsOnCellScaleNotCellCount)
+    {
+        auto one_cell_settings = MakeGridSettings(MakeBox({ -0.5, -0.5, -0.5 }, { 0.5, 0.5, 0.5 }), { 1, 1, 1 });
+        auto two_cell_settings = MakeGridSettings(MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 }), { 2, 2, 2 });
+        const GridIndexer one_cell(*one_cell_settings);
+        const GridIndexer two_cells(*two_cell_settings);
+
+        QuESo_CHECK_EQUAL(
+            one_cell.GetGeometryTolerance().SnapDistance(), two_cells.GetGeometryTolerance().SnapDistance()
+        );
+        QuESo_CHECK_EQUAL(one_cell.GetGeometryTolerance().ZeroLength(), two_cells.GetGeometryTolerance().ZeroLength());
+    }
+
+    BOOST_AUTO_TEST_CASE(GeometryToleranceAccountsForCoordinateMagnitude)
+    {
+        auto origin_settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 }), { 1, 1, 1 });
+        auto translated_settings =
+            MakeGridSettings(MakeBox({ 1e12, 1e12, 1e12 }, { 1e12 + 1.0, 1e12 + 1.0, 1e12 + 1.0 }), { 1, 1, 1 });
+        const GridIndexer origin(*origin_settings);
+        const GridIndexer translated(*translated_settings);
+        const double expected = 32.0 * std::numeric_limits<double>::epsilon() * (1e12 + 1.0);
+
+        QuESo_CHECK_EQUAL(translated.GetGeometryTolerance().SnapDistance(), expected);
+        QuESo_CHECK_GT(translated.GetGeometryTolerance().SnapDistance(), origin.GetGeometryTolerance().SnapDistance());
+    }
+
+    BOOST_AUTO_TEST_CASE(GeometryToleranceUsesLargestCellDimension)
+    {
+        auto p_settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 4.0, 2.0, 1.0 }), { 1, 1, 1 });
+        const GridIndexer grid_indexer(*p_settings);
+
+        const GeometryTolerance unit = GeometryTolerance::FromScale({ .length_scale = 1.0, .coordinate_scale = 1.0 });
+        const auto& r_tolerance = grid_indexer.GetGeometryTolerance();
+        QuESo_CHECK_EQUAL(r_tolerance.SnapDistance(), 4.0 * unit.SnapDistance());
+        QuESo_CHECK_EQUAL(r_tolerance.ZeroLength(), 4.0 * unit.ZeroLength());
+        QuESo_CHECK_EQUAL(r_tolerance.ZeroArea(), 16.0 * unit.ZeroArea());
+        QuESo_CHECK_EQUAL(r_tolerance.ZeroVolume(), 64.0 * unit.ZeroVolume());
+    }
+
+    BOOST_AUTO_TEST_CASE(RejectsMalformedGridConfiguration)
+    {
+        auto zero_count = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 }), { 0, 1, 1 });
+        BOOST_CHECK_THROW((void)GridIndexer(*zero_count), queso::Exception);
+
+        auto inverted = MakeGridSettings(MakeBox({ 1.0, 0.0, 0.0 }, { 0.0, 1.0, 1.0 }), { 1, 1, 1 });
+        BOOST_CHECK_THROW((void)GridIndexer(*inverted), queso::Exception);
+
+        auto non_finite = MakeGridSettings(
+            MakeBox({ 0.0, 0.0, 0.0 }, { std::numeric_limits<double>::infinity(), 1.0, 1.0 }), { 1, 1, 1 }
+        );
+        BOOST_CHECK_THROW((void)GridIndexer(*non_finite), queso::Exception);
+    }
+
+    BOOST_AUTO_TEST_CASE(RejectsOneThinCellDirection)
+    {
+        auto p_settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 1e-15, 1.0, 1.0 }), { 1, 1, 1 });
+        BOOST_CHECK_THROW((void)GridIndexer(*p_settings), queso::Exception);
+    }
+
+    BOOST_AUTO_TEST_CASE(NonBinaryGridPlanesPreserveOwnership)
+    {
+        auto ownership_settings = MakeGridSettings(MakeBox({ 0.1, 0.1, 0.1 }, { 1.1, 1.1, 1.1 }), { 4, 4, 4 });
+        const GridIndexer ownership_indexer(*ownership_settings);
+        const PointType internal_planes{
+            ownership_indexer.GetFaceCoordinate(ownership_indexer.GetFace(0, GridIndexer::Direction::x_forward)),
+            ownership_indexer.GetFaceCoordinate(ownership_indexer.GetFace(0, GridIndexer::Direction::y_forward)),
+            ownership_indexer.GetFaceCoordinate(ownership_indexer.GetFace(0, GridIndexer::Direction::z_forward))
+        };
+        QuESo_CHECK_EQUAL(
+            ownership_indexer.GetMatrixIndicesFromVectorIndex(ownership_indexer.GetContainingCell(internal_planes)),
+            (Vector3i{ 1, 1, 1 })
+        );
+        QuESo_CHECK_EQUAL(ownership_indexer.GetContainingCell(PointType{ 0.1, 0.1, 0.1 }), IndexType{ 0 });
+        QuESo_CHECK_EQUAL(
+            ownership_indexer.GetMatrixIndicesFromVectorIndex(
+                ownership_indexer.GetContainingCell(PointType{ 1.1, 1.1, 1.1 })
+            ),
+            (Vector3i{ 3, 3, 3 })
+        );
+    }
+
+    BOOST_AUTO_TEST_CASE(PhysicalFaceIdsAreDenseOnAsymmetricGrid)
+    {
+        constexpr Vector3i counts{ 2, 3, 4 };
+        auto p_settings = MakeGridSettings(MakeBox({ -1.0, 0.5, 2.0 }, { 3.0, 6.5, 10.0 }), counts);
+        const GridIndexer grid_indexer(*p_settings);
+        std::set<IndexType> face_ids;
+        for (IndexType cell = 0; cell < grid_indexer.NumberOfElements(); ++cell) {
+            for (const auto direction : EnumRange<GridIndexer::Direction>()) {
+                const GridFaceId face = grid_indexer.GetFace(cell, direction);
+                QuESo_CHECK(face.value < grid_indexer.NumberOfFaces());
+                face_ids.insert(face.value);
+                QuESo_CHECK(grid_indexer.GetAdjacentCell(face, grid_indexer.GetAdjacentSide(face, cell)) == cell);
+                QuESo_CHECK_EQUAL(grid_indexer.GetFaceAxis(face), static_cast<IndexType>(direction) / 2);
+                if (!grid_indexer.IsEnd(cell, direction)) {
+                    const auto [neighbor, info] = grid_indexer.GetNextIndex(cell, direction);
+                    QuESo_CHECK(info == GridIndexer::IndexInfo::middle);
+                    QuESo_CHECK(grid_indexer.GetFace(neighbor, GridIndexer::ReverseDirection(direction)) == face);
+                }
+            }
+        }
+        QuESo_CHECK_EQUAL(face_ids.size(), grid_indexer.NumberOfFaces());
+    }
+
+    BOOST_AUTO_TEST_CASE(PhysicalFaceNavigation)
+    {
+        auto p_settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 1.0, 1.0 }), { 2, 1, 1 });
+        const GridIndexer grid_indexer(*p_settings);
+
+        QuESo_CHECK_EQUAL(grid_indexer.NumberOfFaces(), 11);
+        const GridFaceId shared_from_left = grid_indexer.GetFace(0, GridIndexer::Direction::x_forward);
+        const GridFaceId shared_from_right = grid_indexer.GetFace(1, GridIndexer::Direction::x_backward);
+        QuESo_CHECK(shared_from_left == shared_from_right);
+        QuESo_CHECK_EQUAL(*grid_indexer.GetAdjacentCell(shared_from_left, GridFaceSide::negative), IndexType{ 0 });
+        QuESo_CHECK_EQUAL(*grid_indexer.GetAdjacentCell(shared_from_left, GridFaceSide::positive), IndexType{ 1 });
+        QuESo_CHECK_EQUAL(grid_indexer.GetCanonicalAdjacentCell(shared_from_left), IndexType{ 1 });
+
+        const GridFaceId negative_exterior = grid_indexer.GetFace(0, GridIndexer::Direction::x_backward);
+        QuESo_CHECK(!grid_indexer.GetAdjacentCell(negative_exterior, GridFaceSide::negative));
+        QuESo_CHECK_EQUAL(*grid_indexer.GetAdjacentCell(negative_exterior, GridFaceSide::positive), IndexType{ 0 });
+        QuESo_CHECK_EQUAL(grid_indexer.GetCanonicalAdjacentCell(negative_exterior), IndexType{ 0 });
+
+        const GridFaceId positive_exterior = grid_indexer.GetFace(1, GridIndexer::Direction::x_forward);
+        QuESo_CHECK_EQUAL(*grid_indexer.GetAdjacentCell(positive_exterior, GridFaceSide::negative), IndexType{ 1 });
+        QuESo_CHECK(!grid_indexer.GetAdjacentCell(positive_exterior, GridFaceSide::positive));
+        QuESo_CHECK_EQUAL(grid_indexer.GetCanonicalAdjacentCell(positive_exterior), IndexType{ 1 });
+        QuESo_CHECK_EQUAL(Opposite(GridFaceSide::negative), GridFaceSide::positive);
+    }
+
     BOOST_AUTO_TEST_SUITE_END()
 
-}// End namespace Testing
-}// End namespace queso
+}  // End namespace Testing
+}  // End namespace queso

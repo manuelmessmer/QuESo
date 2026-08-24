@@ -20,6 +20,7 @@
 #include <vector>
 
 //// Project includes
+#include "queso/containers/geometry_tolerance.hpp"
 #include "queso/embedding/octree.h"
 #include "queso/quadrature/moment_fitting_assembly.hpp"
 #include "queso/quadrature/moment_fitting_types.hpp"
@@ -66,7 +67,7 @@ namespace detail {
     /// @param Tolerance Weight cutoff.
     /// @return `true` if at least one point was erased.
     template<typename TIntegrationPointVectorType>
-    bool EraseSmallWeightPoints(TIntegrationPointVectorType& rPoints, double Tolerance = ZEROTOL)
+    bool EraseSmallWeightPoints(TIntegrationPointVectorType& rPoints, double Tolerance = detail::SmallWeightThreshold)
     {
         const auto old_size = rPoints.size();
         std::erase_if(rPoints, [Tolerance](const auto& rPoint) { return rPoint.Weight() < Tolerance; });
@@ -215,9 +216,9 @@ namespace detail {
     {
         const IndexType number_reduced_points = rIntegrationPoint.size();
         QuESo_ERROR_IF(number_reduced_points == 0) << "Moment fitting requires at least one integration point.\n";
-        QuESo_ERROR_IF(rProblem.constant_terms_l2_norm <= ZEROTOL)
+        QuESo_ERROR_IF(rProblem.constant_terms_l2_norm <= detail::MinimumConstantTermsL2Norm)
             << "Moment-fitting constant terms must have a non-zero L2 norm.\n";
-        QuESo_ERROR_IF(std::abs(rGeometry.det_j) <= ZEROTOL)
+        QuESo_ERROR_IF(std::abs(rGeometry.det_j) <= rGeometry.minimum_det_j)
             << "Moment fitting requires a non-zero Jacobian determinant.\n";
 
         // Assemble moment fitting matrix.
@@ -382,8 +383,10 @@ std::optional<double> Compute(TElementType& rElement, const Parameters& rParamet
     const auto bounds_xyz = rElement.template GetActiveDomainBounds<CoordinateSpace::global>();
     const auto bounds_uvw = rElement.template GetActiveDomainBounds<CoordinateSpace::parametric>();
     Octree<TElementType> octree(&rElement, bounds_xyz, bounds_uvw);
+    const BoundingBoxType cell_bounds_xyz = rElement.template GetCellBounds<CoordinateSpace::global>();
     const detail::IntegrationGeometry geometry{ rElement.template GetCellBounds<CoordinateSpace::parametric>(),
-                                                rElement.DetJ() };
+                                                rElement.DetJ(),
+                                                GeometryTolerance::FromBounds(cell_bounds_xyz).ZeroVolume() };
 
     const SizeType max_iteration = (Math::Max(rParameters.integration_order) == 2) ? 3 : 2;
     constexpr double min_residual = 1e-2;
