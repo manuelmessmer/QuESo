@@ -2,7 +2,6 @@
 
 [![License: BSD4](https://img.shields.io/badge/License-BSD4-yellow.svg)](https://github.com/manuelmessmer/QuESo/blob/main/LICENSE) [![C++][c++-image]][c++standard] 
 [![CI](https://github.com/manuelmessmer/QuESo/actions/workflows/ci.yml/badge.svg)](https://github.com/manuelmessmer/QuESo/actions)
-[![Docker](https://img.shields.io/badge/Docker-Repository-blue?style=flat-square)](https://github.com/manuelmessmer/docker-queso)
 ![GitHub stars](https://img.shields.io/github/stars/manuelmessmer/QuESo?style=social)
 
 [c++-image]: https://img.shields.io/badge/C++-20-blue.svg?style=flat&logo=c%2B%2B
