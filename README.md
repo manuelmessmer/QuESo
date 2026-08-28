@@ -5,7 +5,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Repository-blue?style=flat-square)](https://github.com/manuelmessmer/docker-queso)
 ![GitHub stars](https://img.shields.io/github/stars/manuelmessmer/QuESo?style=social)
 
-[c++-image]: https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B
+[c++-image]: https://img.shields.io/badge/C++-20-blue.svg?style=flat&logo=c%2B%2B
 [c++standard]: https://isocpp.org/std/the-standard
 
 QuESo (formerly TIBRA) is a preprocessor to generate analysis-ready embedded finite element models from arbitrarily complex solids described in boundary representation (B-Rep). The geometry is processed as a standard STL file. QuESo is designed to provide highly efficient quadrature rules that can be used in any embedded or immersed boundary method. To this end, the STL model is embedded into a background mesh defined by a regular grid, i.e., with hexahedral integration domains (finite elements). The user can specify the polynomial degree and the number of elements in each spatial direction. QuESo reads the STL file and computes the integration points required for a subsequent FE analysis. Both classical $C^0$ finite elements and isogeometric elements defined on trivariate B-Spline domains are supported. An interface to the FE framework [Kratos Multiphysics](https://github.com/KratosMultiphysics/Kratos) is provided. The integration points have the following characteristics:
