@@ -21,7 +21,7 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
             weights = element.CalculateOnIntegrationPoints(KratosMultiphysics.INTEGRATION_WEIGHT, model_part.ProcessInfo)
             for value, weight in zip(values, weights):
                 strain_energy += value*weight
-        self.assertAlmostEqual(strain_energy, 21.777, delta=tolerance)
+        self.assertAlmostEqual(strain_energy, 21.785, delta=tolerance)
 
     def test_1(self):
         self.run_test("queso/tests/steering_knuckle_kratos/QuESoSettings1.json", 0.005)

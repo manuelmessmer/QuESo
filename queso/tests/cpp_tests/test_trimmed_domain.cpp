@@ -1,4 +1,4 @@
-//   ____        ______  _____
+// ____        ______  _____
 //  / __ \      |  ____|/ ____|
 // | |  | |_   _| |__  | (___   ___
 // | |  | | | | |  __|  \___ \ / _ \'
@@ -19,7 +19,8 @@
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/containers/untrimmed_element.hpp"
-#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/domain_mesh_embedder.h"
+#include "queso/embedding/mesh_partitioner.h"
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
@@ -55,6 +56,21 @@ void CheckTriangleOrientation(TriangleMeshView rTriangleMesh)
     });
 }
 
+[[nodiscard]] double PartitionedArea(const TriangleMeshView& rMesh, const GridIndexer& rGridIndexer)
+{
+    embedding::MeshPartitioner<embedding::CellProduct::Domain> partitioner(rMesh, rGridIndexer);
+    double area{};
+    for (const IndexType cell_index : partitioner.GetCellIndices()) {
+        const auto section = partitioner.TakeCellProduct(cell_index);
+        area += MeshUtilities::Area(section.SurfaceView());
+    }
+    for (const GridFaceId face : partitioner.GetFaceIds()) {
+        const auto section = partitioner.TakeGridFaceSurface(face);
+        area += MeshUtilities::Area(section.View());
+    }
+    return area;
+}
+
 void RunTest(
     const std::string& rFilename,
     const Dictionary<queso::key::MainValuesTypeTag>& rSettings,
@@ -73,9 +89,6 @@ void RunTest(
     TriangleMesh triangle_mesh{};
     IO::ReadMeshFromSTL(triangle_mesh, rFilename.c_str());
 
-    // Build brep_operator
-    BRepOperator brep_operator(triangle_mesh);
-
     // std::ofstream file_out{};
     std::ifstream file(rResultsFilename);
     std::string line{};
@@ -86,9 +99,6 @@ void RunTest(
     const double area_ref = MeshUtilities::Area(triangle_mesh.View());
     double area_test = 0.0;
 
-    const double min_vol_ratio = rSettings[MainSettings::trimmed_quadrature_rule_settings].GetRequiredValue<double>(
-        TrimmedQuadratureRuleSettings::min_element_volume_ratio
-    );
     const IndexType min_num_triangles =
         rSettings[MainSettings::trimmed_quadrature_rule_settings].GetRequiredValue<IndexType>(
             TrimmedQuadratureRuleSettings::min_num_boundary_triangles
@@ -98,6 +108,9 @@ void RunTest(
     );
 
     GridIndexer grid_indexer(rSettings);
+    area_test = PartitionedArea(triangle_mesh.View(), grid_indexer);
+    embedding::DomainMeshEmbedder domain_embedder(triangle_mesh.View(), grid_indexer);
+    const auto states = domain_embedder.Classify();
     IndexType number_trimmed_elements = 0;
     for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
@@ -110,18 +123,13 @@ void RunTest(
 
         ElementType element(1, ElementBounds{ bounding_box, bounding_box_uvw });
 
-        auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
-        area_test += MeshUtilities::Area(clipped_mesh.Mesh().View());
-
-
-        const auto status = brep_operator.GetIntersectionState(lower_bound_xyz, upper_bound_xyz);
+        const auto status = states[i];
         if (status == IntersectionState::trimmed) {
             // Get trimmed domain
-            auto p_trimmed_domain =
-                brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
+            auto trimmed_domain = domain_embedder.MakeTrimmedDomain(i, min_num_triangles);
 
             // Get triangle mesh
-            const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
+            const auto mesh_view = trimmed_domain.GetBoundaryMesh();
 
             // Check orientation
             CheckTriangleOrientation(mesh_view);
@@ -132,7 +140,7 @@ void RunTest(
             // Get boundary integration points
             const ElementBounds element_bounds{ bounding_box, bounding_box_uvw };
             auto boundary_ips =
-                p_trimmed_domain->GetBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>(element_bounds);
+                trimmed_domain.GetBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>(element_bounds);
 
             auto constant_terms = quadrature::moment_fitting::detail::ComputeConstantTerms(
                 boundary_ips,
@@ -303,6 +311,21 @@ BOOST_AUTO_TEST_CASE(TestTrimmedDomainCylinderTest)
     RunTest(base_dir + "/data/cylinder.stl", r_settings, base_dir + "/results/surface_integral_cylinder.txt", 80);
 }
 
+BOOST_AUTO_TEST_CASE(InconclusiveLocalPointQueryClassifiesOutside)
+{
+    TriangleMesh surface;
+    const IndexType first = surface.AddVertex({ 0.0, 0.0, 0.0 });
+    const IndexType second = surface.AddVertex({ 1.0, 0.0, 0.0 });
+    const IndexType third = surface.AddVertex({ 2.0, 0.0, 0.0 });
+    surface.AddTriangle({ first, second, third }, { 0.0, 0.0, 0.0 });
+    const BoundingBoxType bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 3.0, 1.0, 1.0 });
+    const GeometryTolerance tolerance = GeometryTolerance::FromScale({ .length_scale = 4.0, .coordinate_scale = 3.0 });
+    embedding::CellFaceContours contours;
+    embedding::CellSurfaceSection section(std::move(surface), std::move(contours), bounds, tolerance);
+    TrimmedDomain domain(std::move(section), 0);
+    QuESo_CHECK(!domain.IsInside(PointType{ 0.0, 0.5, 0.0 }));
+}
+
 
 void RunCubeWithCavity(
     const PointType rDelta,
@@ -346,10 +369,6 @@ void RunCubeWithCavity(
         perturbed_mesh.AddTriangle({ v0, v1, v2 }, { triangle.Normal[0], triangle.Normal[1], triangle.Normal[2] });
     }
 
-    // Build brep_operator
-    BRepOperator brep_operator(perturbed_mesh);
-
-    constexpr double min_vol_ratio = 0.0;
     constexpr IndexType min_num_triangles = 100;
 
     const double volume_ref = MeshUtilities::Volume(perturbed_mesh.View());
@@ -358,24 +377,26 @@ void RunCubeWithCavity(
     double area = 0.0;
 
     GridIndexer grid_indexer(r_settings);
+    area = PartitionedArea(perturbed_mesh.View(), grid_indexer);
+    embedding::DomainMeshEmbedder domain_embedder(perturbed_mesh.View(), grid_indexer);
+    const auto states = domain_embedder.Classify();
     IndexType number_trimmed_elements = 0;
     for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
         const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
         const Vector3d lower_bound_xyz = bounding_box.lower;
         const Vector3d upper_bound_xyz = bounding_box.upper;
 
-        auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(lower_bound_xyz, upper_bound_xyz);
-        area += MeshUtilities::Area(clipped_mesh.Mesh().View());
-        // Get Trimmed domain
-        auto p_trimmed_domain =
-            brep_operator.pGetTrimmedDomain(lower_bound_xyz, upper_bound_xyz, min_vol_ratio, min_num_triangles);
-        if (p_trimmed_domain) {
-            auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
+        if (states[i] == IntersectionState::trimmed) {
+            auto trimmed_domain = domain_embedder.MakeTrimmedDomain(i, min_num_triangles);
+            auto mesh_view = trimmed_domain.GetBoundaryMesh();
             // Check triangle orientations.
             CheckTriangleOrientation(mesh_view);
 
             volume += MeshUtilities::Volume(mesh_view);
             number_trimmed_elements++;
+        } else if (states[i] == IntersectionState::inside) {
+            const PointType delta = upper_bound_xyz - lower_bound_xyz;
+            volume += delta[0] * delta[1] * delta[2];
         }
     }
 

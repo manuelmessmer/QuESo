@@ -1,17 +1,22 @@
 cmake_minimum_required(VERSION 3.21)
 
 set(EMBEDDING_SOURCES
-    embedding/aabb_primitive.cpp
+    embedding/aabb_triangle_intersector.cpp
     embedding/aabb_tree.cpp
-    embedding/brep_operator.cpp
+    embedding/boundary_mesh_embedder.cpp
+    embedding/cell_face_closure.cpp
+    embedding/cell_surface_section.cpp
     embedding/clipper.cpp
+    embedding/convex_polygon.cpp
+    embedding/domain_mesh_embedder.cpp
     embedding/flood_fill.cpp
-    embedding/geometry_query.cpp
+    embedding/mesh_operator.cpp
+    embedding/mesh_partitioner.cpp
+    embedding/mesh_query.cpp
     embedding/octree.cpp
-    embedding/polygon.cpp
-    embedding/ray_aabb_primitive.cpp
-    embedding/trimmed_domain_on_plane.cpp
+    embedding/ray.cpp
     embedding/trimmed_domain.cpp
+    embedding/local_surface_classifier.cpp
 )
 set(UTILITIES_SOURCES
     utilities/mesh_utilities.cpp

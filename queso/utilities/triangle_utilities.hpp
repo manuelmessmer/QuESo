@@ -16,9 +16,13 @@
 #pragma once
 
 //// Project includes
+#include <numbers>
+
+//// Project includes
 #include "queso/containers/integration_point.hpp"
-#include "queso/containers/triangle_mesh_concepts.hpp"
+#include "queso/containers/triangle_proxies.hpp"
 #include "queso/includes/define.hpp"
+#include "queso/includes/numerical_guards.hpp"
 #include "queso/utilities/math_utilities.hpp"
 #include "queso/utilities/triangle_gauss_legendre_integration_points.hpp"
 
@@ -32,10 +36,10 @@ namespace TriangleUtilities {
     template<class Mode>
     inline double Area(const TriangleProxy<Mode>& rTriangle)
     {
-        const Vector3d A = rTriangle.P2 - rTriangle.P1;
-        const Vector3d B = rTriangle.P3 - rTriangle.P1;
+        const Vector3d edge_a = rTriangle.P2 - rTriangle.P1;
+        const Vector3d edge_b = rTriangle.P3 - rTriangle.P1;
 
-        return 0.5 * Math::Norm(Math::Cross(A, B));
+        return 0.5 * Math::Norm(Math::Cross(edge_a, edge_b));
     }
 
     /// @brief Returns normal computed via vertices.
@@ -45,25 +49,25 @@ namespace TriangleUtilities {
     template<class Mode>
     inline Vector3d Normal(const TriangleProxy<Mode>& rTriangle)
     {
-        const Vector3d A = rTriangle.P2 - rTriangle.P1;
-        const Vector3d B = rTriangle.P3 - rTriangle.P2;
-        const Vector3d C = rTriangle.P1 - rTriangle.P3;
+        const Vector3d edge_a = rTriangle.P2 - rTriangle.P1;
+        const Vector3d edge_b = rTriangle.P3 - rTriangle.P2;
+        const Vector3d edge_c = rTriangle.P1 - rTriangle.P3;
 
-        const double lenght_A = Math::Norm(A);
-        const double lenght_B = Math::Norm(B);
-        const double lenght_C = Math::Norm(C);
+        const double length_a = Math::Norm(edge_a);
+        const double length_b = Math::Norm(edge_b);
+        const double length_c = Math::Norm(edge_c);
 
         PointType normal{};
-        if (lenght_A >= lenght_C - ZEROTOL && lenght_B >= lenght_C - ZEROTOL) {
-            normal = Math::Cross(A, B);
-        } else if (lenght_A >= lenght_B - ZEROTOL && lenght_C >= lenght_B - ZEROTOL) {
-            normal = Math::Cross(C, A);
+        if (length_a >= length_c && length_b >= length_c) {
+            normal = Math::Cross(edge_a, edge_b);
+        } else if (length_a >= length_b && length_c >= length_b) {
+            normal = Math::Cross(edge_c, edge_a);
         } else {
-            normal = Math::Cross(B, C);
+            normal = Math::Cross(edge_b, edge_c);
         }
 
         const double norm = Math::Norm(normal);
-        if (norm > ZEROTOL) {
+        if (numerical_guards::IsSafeDivisor(norm)) {
             normal *= 1.0 / norm;
         } else {
             normal = { 0.0, 0.0, 0.0 };
@@ -80,18 +84,15 @@ namespace TriangleUtilities {
     {
         const auto area = Area(rTriangle);
 
-        const double a = Math::Norm(rTriangle.P2 - rTriangle.P1);// length a
-        const double b = Math::Norm(rTriangle.P3 - rTriangle.P2);// length b
-        const double c = Math::Norm(rTriangle.P1 - rTriangle.P3);// length c
+        const double a = Math::Norm(rTriangle.P2 - rTriangle.P1);  // length a
+        const double b = Math::Norm(rTriangle.P3 - rTriangle.P2);  // length b
+        const double c = Math::Norm(rTriangle.P1 - rTriangle.P3);  // length c
 
-        const double max_edge = std::max(std::max(a, b), c);
+        const double max_edge = std::max({ a, b, c });
 
-        const double square_root_3 = 1.73205080756887729;
-        if (area > EPS4) {
-            return max_edge * (a + b + c) / (4.0 * square_root_3 * area);
-        } else {
-            return 1e10;
-        }
+        if (!numerical_guards::IsSafeDivisor(area)) { return std::numeric_limits<double>::infinity(); }
+
+        return max_edge * (a + b + c) / (4.0 * std::numbers::sqrt3_v<double> * area);
     }
 
     /// @brief Center of triangles in global coordinates.
@@ -101,13 +102,13 @@ namespace TriangleUtilities {
     template<class Mode>
     inline Vector3d Center(const TriangleProxy<Mode>& rTriangle)
     {
-        const auto& P1 = rTriangle.P1;
-        const auto& P2 = rTriangle.P2;
-        const auto& P3 = rTriangle.P3;
+        const auto& p1 = rTriangle.P1;
+        const auto& p2 = rTriangle.P2;
+        const auto& p3 = rTriangle.P3;
 
-        return { 1.0 / 3.0 * (P1[0] + P2[0] + P3[0]),
-                 1.0 / 3.0 * (P1[1] + P2[1] + P3[1]),
-                 1.0 / 3.0 * (P1[2] + P2[2] + P3[2]) };
+        return { 1.0 / 3.0 * (p1[0] + p2[0] + p3[0]),
+                 1.0 / 3.0 * (p1[1] + p2[1] + p3[1]),
+                 1.0 / 3.0 * (p1[2] + p2[2] + p3[2]) };
     }
 
     namespace detail {
@@ -141,7 +142,7 @@ namespace TriangleUtilities {
             }
             QuESo_ERROR << "Wrong Index of Shape Function.\n";
         }
-    }// namespace detail
+    }  // namespace detail
 
     /// @brief Get boundary integration points in global space.
     /// @tparam TBoundaryIntegrationPointType
@@ -166,22 +167,22 @@ namespace TriangleUtilities {
 
         auto global_integration_points = std::vector<TBoundaryIntegrationPointType>();
 
-        const auto& P1 = rTriangle.P1;
-        const auto& P2 = rTriangle.P2;
-        const auto& P3 = rTriangle.P3;
+        const auto& p1 = rTriangle.P1;
+        const auto& p2 = rTriangle.P2;
+        const auto& p3 = rTriangle.P3;
 
         for (IndexType i = 0; i < point_numbers; ++i) {
-            const double x = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[0]
-                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * P2[0]
-                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * P3[0];
+            const double x = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * p1[0]
+                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * p2[0]
+                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * p3[0];
 
-            const double y = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[1]
-                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * P2[1]
-                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * P3[1];
+            const double y = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * p1[1]
+                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * p2[1]
+                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * p3[1];
 
-            const double z = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * P1[2]
-                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * P2[2]
-                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * P3[2];
+            const double z = detail::ShapeFunctionValue(0, s_integration_points[i].Point()) * p1[2]
+                             + detail::ShapeFunctionValue(1, s_integration_points[i].Point()) * p2[2]
+                             + detail::ShapeFunctionValue(2, s_integration_points[i].Point()) * p3[2];
 
             // Normalize weights to 1 by multiplying by 2.
             const double weight = 2.0 * s_integration_points[i].Weight() * Area(rTriangle);
@@ -191,5 +192,5 @@ namespace TriangleUtilities {
         return global_integration_points;
     }
 
-}// namespace TriangleUtilities
-}// namespace queso
+}  // namespace TriangleUtilities
+}  // namespace queso

@@ -15,10 +15,13 @@
 
 //// STL includes
 #include <algorithm>
+#include <cmath>
 #include <optional>
 
 //// Project includes
+#include "queso/containers/geometry_tolerance.hpp"
 #include "queso/containers/triangle_mesh_view.hpp"
+#include "queso/includes/aabb_intersection_policy.hpp"
 #include "queso/includes/define.hpp"
 #include "queso/utilities/mapping_utilities.hpp"
 #include "queso/utilities/mesh_utilities.h"
@@ -36,11 +39,14 @@ namespace queso {
 class CellDomain
 {
 public:
-    ///@name Life cycle
+    ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     CellDomain() = default;
+    CellDomain(const CellDomain&) = delete;
+    CellDomain& operator=(const CellDomain&) = delete;
+    CellDomain(CellDomain&&) = default;
+    CellDomain& operator=(CellDomain&&) = default;
 
     ///@}
     ///@name Operations
@@ -107,24 +113,25 @@ public:
     /// @tparam TSpace Coordinate space.
     /// @param rLowerBound Lower bound of query AABB in the coordinate space specified by TSpace.
     /// @param rUpperBound Upper bound of query AABB in the coordinate space specified by TSpace.
-    /// @param Tolerance Query-box shrink tolerance.
+    /// @param Policy AABB boundary-touching policy.
     /// @return IntersectionStateType
     template<CoordinateSpace TSpace = CoordinateSpace::global>
     [[nodiscard]] IntersectionStateType GetIntersectionState(
         const PointType& rLowerBound,
         const PointType& rUpperBound,
         const ElementBounds& rBounds,
-        double Tolerance = SNAPTOL
-    ) const noexcept
+        AabbIntersectionPolicy Policy = AabbIntersectionPolicy::Exact
+    ) const
     {
-        const double lower_x = rLowerBound[0] + Tolerance;
-        const double lower_y = rLowerBound[1] + Tolerance;
-        const double lower_z = rLowerBound[2] + Tolerance;
-        const double upper_x = rUpperBound[0] - Tolerance;
-        const double upper_y = rUpperBound[1] - Tolerance;
-        const double upper_z = rUpperBound[2] - Tolerance;
-
         const auto& bounds = GetBounds<TSpace>(rBounds);
+        const double inset =
+            Policy == AabbIntersectionPolicy::SnapEroded ? GeometryTolerance::FromBounds(bounds).SnapDistance() : 0.0;
+        const double lower_x = rLowerBound[0] + inset;
+        const double lower_y = rLowerBound[1] + inset;
+        const double lower_z = rLowerBound[2] + inset;
+        const double upper_x = rUpperBound[0] - inset;
+        const double upper_y = rUpperBound[1] - inset;
+        const double upper_z = rUpperBound[2] - inset;
         const bool disjoint = upper_x < bounds.lower[0] || bounds.upper[0] < lower_x || upper_y < bounds.lower[1]
                               || bounds.upper[1] < lower_y || upper_z < bounds.lower[2] || bounds.upper[2] < lower_z;
         if (disjoint) { return IntersectionState::outside; }
@@ -157,4 +164,4 @@ private:
     ///@}
 };
 ///@}
-}// namespace queso
+}  // namespace queso

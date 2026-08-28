@@ -27,6 +27,11 @@
 
 namespace queso::quadrature::moment_fitting::detail {
 
+/// @brief Numerical cutoff for removing negligible solved integration weights.
+inline constexpr double SmallWeightThreshold = 1e-14;
+/// @brief Numerical minimum RHS norm required before relative-residual normalization.
+inline constexpr double MinimumConstantTermsL2Norm = 1e-14;
+
 /// @brief Derived polynomial-order data used by moment-fitting assembly and point elimination.
 /// @details The number of moment functions is `(order_u + 1) * (order_v + 1) * (order_w + 1)`.
 struct IntegrationOrderInfo
@@ -60,6 +65,8 @@ struct IntegrationGeometry
     BoundingBoxType bounds_param;
     /// Determinant of the mapping Jacobian used to scale solved weights back to solver convention.
     double det_j;
+    /// Minimum physical Jacobian magnitude resolved by the high-level element owner.
+    double minimum_det_j;
 };
 
 /// @brief Computes the Euclidean norm of a vector.
@@ -111,7 +118,7 @@ struct WeightStats
             min_weight_index = Index;
         }
 
-        if (Weight < ZEROTOL) { ++number_of_small_weights; }
+        if (Weight < SmallWeightThreshold) { ++number_of_small_weights; }
     }
 
     double max_weight = MIND;

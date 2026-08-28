@@ -21,7 +21,7 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
         volume = 0.0
         for element in pyqueso.GetElements():
             for point in element.GetIntegrationPoints():
-                volume += point.Weight()
+                volume += point.weight
         model_info = pyqueso.GetModelInfo()
         settings = pyqueso.GetSettings()
 
@@ -37,13 +37,13 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
         self.assertAlmostEqual(json_dict["embedded_geometry_info"]["volume"], volume, places=4)
         # quadrature_info
         self.assertAlmostEqual(model_info["quadrature_info"].GetDouble("percentage_of_geometry_volume"), 100.0, places=5)
-        self.assertEqual(model_info["quadrature_info"].GetInt("tot_num_points"), 13251)
+        self.assertEqual(model_info["quadrature_info"].GetInt("tot_num_points"), 13252)
         self.assertAlmostEqual(model_info["quadrature_info"].GetDouble("num_of_points_per_full_element"), 23.25, places=5)
         self.assertGreater(model_info["quadrature_info"].GetDouble("num_of_points_per_trimmed_element"), 26)
         self.assertLess(model_info["quadrature_info"].GetDouble("num_of_points_per_trimmed_element"), 27)
 
         self.assertAlmostEqual(json_dict["quadrature_info"]["percentage_of_geometry_volume"], 100.0, places=5)
-        self.assertEqual(json_dict["quadrature_info"]["tot_num_points"], 13251)
+        self.assertEqual(json_dict["quadrature_info"]["tot_num_points"], 13252)
         self.assertAlmostEqual(json_dict["quadrature_info"]["num_of_points_per_full_element"], 23.25, places=5)
         self.assertGreater(json_dict["quadrature_info"]["num_of_points_per_trimmed_element"], 26)
         self.assertLess(json_dict["quadrature_info"]["num_of_points_per_trimmed_element"], 27)
@@ -84,13 +84,14 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
         conditions_info_list_json = json_dict["conditions_infos_list"]
 
         surf_areas_ref = [332.3775399, 577.9781408, 921.1636352, 1183.543044]
+        active_area_percentages_ref = [100.0, 100.0, 100.0, 100.0]
         for i, (info, info_json) in enumerate(zip(conditions_info_list, conditions_info_list_json)):
             self.assertEqual(info.GetInt("condition_id"), (i+1) )
             self.assertEqual(info_json["condition_id"], (i+1) )
             self.assertAlmostEqual(info.GetDouble("surf_area"), surf_areas_ref[i], places=5 )
             self.assertAlmostEqual(info_json["surf_area"], surf_areas_ref[i], places=5 )
-            self.assertAlmostEqual(info.GetDouble("perc_surf_area_in_active_domain"), 100.0, places=5 )
-            self.assertAlmostEqual(info_json["perc_surf_area_in_active_domain"], 100.0, places=5 )
+            self.assertAlmostEqual(info.GetDouble("perc_surf_area_in_active_domain"), active_area_percentages_ref[i], places=5 )
+            self.assertAlmostEqual(info_json["perc_surf_area_in_active_domain"], active_area_percentages_ref[i], places=5 )
 
     def test_1(self):
         self.run_test("queso/tests/steering_knuckle/QuESoSettings1.json", 0.005)
@@ -102,6 +103,3 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-

@@ -16,14 +16,17 @@
 
 //// STL includes
 #include <algorithm>
+#include <cmath>
 #include <span>
 
 //// Project includes
 #include "queso/containers/background_grid.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/clipped_triangle_mesh.hpp"
+#include "queso/embedding/cell_surface_section.h"
+#include "queso/embedding/trimmed_domain.h"
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
+#include "queso/utilities/mesh_utilities.h"
 
 namespace queso::Testing {
 
@@ -62,12 +65,32 @@ namespace {
         return std::move(r_settings);
     }
 
-	struct NoOpBuilder
-	{
-		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
-		[[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
-		{ return UntrimmedElementType(Id, rBounds); }
-	};
+    struct NoOpBuilder
+    {
+        static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
+        [[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
+        { return UntrimmedElementType(CellIndex + 1, rBounds); }
+    };
+
+    struct WrongIdBuilder
+    {
+        static constexpr ElementFilter Builds = ElementFilter::untrimmed;
+
+        [[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType, const ElementBounds& rBounds)
+        { return UntrimmedElementType(999, rBounds); }
+    };
+
+    struct CapturingBuilder
+    {
+        static constexpr ElementFilter Builds = ElementFilter::untrimmed;
+        std::optional<ElementBounds> bounds;
+
+        [[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
+        {
+            bounds = rBounds;
+            return UntrimmedElementType(CellIndex + 1, rBounds);
+        }
+    };
 
     [[nodiscard]] BackgroundGridType CreateUntrimmedTraversalGrid(const Vector3i& rNumberOfElements)
     {
@@ -75,42 +98,54 @@ namespace {
         auto& r_settings = settings;
 
         BackgroundGridType grid(r_settings);
-        GridIndexer grid_indexer(r_settings);
         const IndexType number_of_elements = rNumberOfElements[0] * rNumberOfElements[1] * rNumberOfElements[2];
 
 
         NoOpBuilder builder{};
-        for (IndexType element_id = 1; element_id <= number_of_elements; ++element_id) {
-            if (element_id == 17) continue;
-            const auto bounds_xyz = grid_indexer.GetBoundingBoxXYZFromIndex(element_id - 1);
-            const auto bounds_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(element_id - 1);
-            grid.MakeElement(builder, element_id, ElementBounds{ bounds_xyz, bounds_uvw });
+        for (IndexType cell_index = 0; cell_index < number_of_elements; ++cell_index) {
+            if (cell_index + 1 == 17) continue;
+            grid.MakeElement(builder, cell_index);
         }
 
         grid.LockElements();
         return grid;
     }
 
-	struct UntrimmedBuilder
-	{
-		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
-		[[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
-		{ return UntrimmedElementType(Id, rBounds); }
-	};
+    struct UntrimmedBuilder
+    {
+        static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
+        [[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
+        { return UntrimmedElementType(CellIndex + 1, rBounds); }
+    };
 
-	struct TrimmedBuilder
-	{
-		static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::trimmed;
-		[[nodiscard]] std::optional<TrimmedElementType> Build(IndexType Id, const ElementBounds& rBounds)
-		{
-			ClippedTriangleMesh clipped_mesh{};
-			return TrimmedElementType(
-					Id,
-					rBounds,
-					TrimmedDomain(std::move(clipped_mesh), rBounds.global.lower, rBounds.global.upper, nullptr, 0)
-					);
-		}
-	};
+    [[nodiscard]] TrimmedDomain MakeClosedDomain(const BoundingBoxType& rBounds)
+    {
+        const PointType delta = rBounds.upper - rBounds.lower;
+        const double length_scale = std::max({ delta[0], delta[1], delta[2] });
+        const double coordinate_scale = std::max(
+            { 1.0,
+              std::abs(rBounds.lower[0]),
+              std::abs(rBounds.lower[1]),
+              std::abs(rBounds.lower[2]),
+              std::abs(rBounds.upper[0]),
+              std::abs(rBounds.upper[1]),
+              std::abs(rBounds.upper[2]) }
+        );
+        const GeometryTolerance tolerance =
+            GeometryTolerance::FromScale({ .length_scale = length_scale, .coordinate_scale = coordinate_scale });
+        embedding::CellFaceContours contours;
+        embedding::CellSurfaceSection section(
+            MeshUtilities::MakeMeshBox(rBounds.lower, rBounds.upper), std::move(contours), rBounds, tolerance
+        );
+        return TrimmedDomain(std::move(section), [](PointView) { return false; }, 0);
+    }
+
+    struct TrimmedBuilder
+    {
+        static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::trimmed;
+        [[nodiscard]] std::optional<TrimmedElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
+        { return TrimmedElementType(CellIndex + 1, rBounds, MakeClosedDomain(rBounds.global)); }
+    };
 
     [[nodiscard]] BackgroundGridType CreateMixedGrid(bool Lock = true)
     {
@@ -119,7 +154,6 @@ namespace {
         auto& r_settings = settings;
 
         BackgroundGridType grid(r_settings);
-        GridIndexer grid_indexer(r_settings);
 
 
         const std::vector<IndexType> untrimmed_ids{ 1, 3, 6 };
@@ -130,14 +164,10 @@ namespace {
 
         for (IndexType element_id = 1; element_id <= 8; ++element_id) {
             if (element_id == 4 || element_id == 7) continue;
-            const auto bounds_xyz = grid_indexer.GetBoundingBoxXYZFromIndex(element_id - 1);
-            const auto bounds_uvw = grid_indexer.GetBoundingBoxUVWFromIndex(element_id - 1);
-            const ElementBounds bounds{ bounds_xyz, bounds_uvw };
-
             if (std::ranges::find(untrimmed_ids, element_id) != untrimmed_ids.end()) {
-                grid.MakeElement(untrimmed_builder, element_id, bounds);
+                grid.MakeElement(untrimmed_builder, element_id - 1);
             } else {
-                grid.MakeElement(trimmed_builder, element_id, bounds);
+                grid.MakeElement(trimmed_builder, element_id - 1);
             }
         }
 
@@ -153,7 +183,7 @@ namespace {
         return ids;
     }
 
-}// namespace
+}  // namespace
 
 BOOST_AUTO_TEST_CASE(TypeChecks)
 {
@@ -192,10 +222,54 @@ BOOST_AUTO_TEST_CASE(AccessRequiresLock)
 
     if constexpr (!NOTDEBUG) {
         auto grid = CreateMixedGrid(false);
+        QuESo_CHECK(!grid.ElementsAreLocked());
 
         BOOST_CHECK_THROW((void)grid.GetElementView(1), queso::Exception);
         BOOST_CHECK_THROW((void)grid.pGetElement<ElementFilter::untrimmed>(1), queso::Exception);
+        BOOST_CHECK_THROW((void)grid.GetElementViews(), queso::Exception);
+        BOOST_CHECK_THROW((void)grid.GetElements<ElementFilter::untrimmed>(), queso::Exception);
+        const auto& r_const_grid = grid;
+        BOOST_CHECK_THROW((void)r_const_grid.GetElements<ElementFilter::trimmed>(), queso::Exception);
+        grid.LockElements();
+        QuESo_CHECK(grid.ElementsAreLocked());
     }
+
+    auto locked_grid = CreateMixedGrid();
+    BOOST_CHECK_THROW(locked_grid.ReserveElements(100, 100), queso::Exception);
+    NoOpBuilder builder;
+    BOOST_CHECK_THROW((void)locked_grid.MakeElement(builder, 3), queso::Exception);
+}
+
+BOOST_AUTO_TEST_CASE(MakeElementValidatesCellIndexAndBuilderId)
+{
+    auto settings = MakeSettings({ 2, 2, 2 });
+    BackgroundGridType grid(settings);
+    NoOpBuilder valid_builder;
+    if constexpr (!NOTDEBUG) {
+        BOOST_CHECK_THROW(
+            (void)grid.MakeElement(valid_builder, grid.GetGridIndexer().NumberOfElements()), queso::Exception
+        );
+    }
+
+    WrongIdBuilder wrong_id_builder;
+    BOOST_CHECK_THROW((void)grid.MakeElement(wrong_id_builder, 0), queso::Exception);
+}
+
+BOOST_AUTO_TEST_CASE(MakeElementUsesAuthoritativeCellBounds)
+{
+    auto settings = MakeSettings({ 2, 2, 2 });
+    BackgroundGridType grid(settings);
+    CapturingBuilder builder;
+    constexpr IndexType cell_index = 3;
+    BOOST_REQUIRE(grid.MakeElement(builder, cell_index));
+    BOOST_REQUIRE(builder.bounds.has_value());
+    const auto& r_indexer = grid.GetGridIndexer();
+    const auto expected_xyz = r_indexer.GetBoundingBoxXYZFromIndex(cell_index);
+    const auto expected_uvw = r_indexer.GetBoundingBoxUVWFromIndex(cell_index);
+    QuESo_CHECK_EQUAL(builder.bounds->global.lower, expected_xyz.lower);
+    QuESo_CHECK_EQUAL(builder.bounds->global.upper, expected_xyz.upper);
+    QuESo_CHECK_EQUAL(builder.bounds->parametric.lower, expected_uvw.lower);
+    QuESo_CHECK_EQUAL(builder.bounds->parametric.upper, expected_uvw.upper);
 }
 
 BOOST_AUTO_TEST_CASE(CountsForMixedGrid)
@@ -205,6 +279,7 @@ BOOST_AUTO_TEST_CASE(CountsForMixedGrid)
     const auto grid = CreateMixedGrid();
 
     QuESo_CHECK_EQUAL(grid.NumberOfActiveElements(), 6UL);
+    QuESo_CHECK_EQUAL(grid.GetGridIndexer().NumberOfElements(), 8UL);
     QuESo_CHECK_EQUAL(grid.NumberOfUntrimmedElements(), 3UL);
     QuESo_CHECK_EQUAL(grid.NumberOfTrimmedElements(), 3UL);
 }
@@ -572,4 +647,4 @@ BOOST_AUTO_TEST_CASE(GetNextElementViewAllZ)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-}// namespace queso::Testing
+}  // namespace queso::Testing

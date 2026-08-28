@@ -17,8 +17,10 @@
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/integration_point.hpp"
 #include "queso/containers/trimmed_element.hpp"
-#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/mesh_operator.h"
+#include "queso/embedding/trimmed_domain.h"
 #include "queso/includes/checks.hpp"
+#include "queso/tests/cpp_tests/trimmed_domain_test_helpers.hpp"
 #include "queso/utilities/mesh_utilities.h"
 
 namespace queso::Testing::TrimmedElementTestHelpers {
@@ -50,13 +52,10 @@ constexpr double ReferenceDetJ()
 inline TrimmedElementType MakeTrimmedElement()
 {
     constexpr auto embedded_box = MakeEmbeddedBoxBounds();
-    auto mesh = MeshUtilities::MakeMeshBox(embedded_box.lower, embedded_box.upper);
-    BRepOperator brep_op(mesh);
-
+    static const TriangleMesh mesh = MeshUtilities::MakeMeshBox(embedded_box.lower, embedded_box.upper);
     constexpr auto xyz = MakeCellBoundsXYZ();
-    QuESo_CHECK_EQUAL(brep_op.GetIntersectionState(xyz.lower, xyz.upper), IntersectionState::trimmed);
-
-    auto p_domain = brep_op.pGetTrimmedDomain(xyz.lower, xyz.upper, 0.0, 100);
+    const embedding::MeshOperator mesh_operator(mesh.View(), TrimmedDomainTestHelpers::MakeTolerance(xyz));
+    auto p_domain = TrimmedDomainTestHelpers::MakeTrimmedDomain(mesh_operator, xyz, 100);
     QuESo_CHECK(p_domain != nullptr);
 
     return TrimmedElementType(7, ElementBounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() }, std::move(*p_domain));

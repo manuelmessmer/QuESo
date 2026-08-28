@@ -43,7 +43,11 @@ namespace {
     {
         auto triangle_mesh = MeshUtilities::MakeMeshBox(rBounds.lower, rBounds.upper);
         if (MinNumberOfBoundaryTriangles > triangle_mesh.NumOfTriangles()) {
-            MeshUtilities::Refine(triangle_mesh, MinNumberOfBoundaryTriangles);
+            MeshUtilities::Refine(
+                triangle_mesh,
+                MinNumberOfBoundaryTriangles,
+                GeometryTolerance::FromScale({ .length_scale = 1.0, .coordinate_scale = 1.0 }).ZeroArea()
+            );
         }
 
         ElementType::BoundaryIntegrationPointVectorType boundary_ips{};

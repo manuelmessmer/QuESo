@@ -12,401 +12,394 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
+#ifdef _OPENMP
 #include <omp.h>
-#include <cstdlib>
+#endif
+
+//// STL includes
+#include <algorithm>
+#include <cstdint>
+#include <iterator>
+#include <limits>
+#include <stack>
 
 //// Project includes
+#include "queso/embedding/domain_topology.hpp"
 #include "queso/embedding/flood_fill.h"
-#include "queso/embedding/brep_operator.h"
 
-namespace queso {
+namespace queso::embedding {
+namespace {
 
-typedef FloodFill::StatusVectorType StatusVectorType;
-typedef FloodFill::StatusVectorType StatusVectorType;
-typedef FloodFill::GroupSetVectorType GroupSetVectorType;
+    using Direction = GridIndexer::Direction;
+    using PartitionBox = PartitionBoxType;
+    using PartitionBoxes = std::vector<PartitionBox>;
 
-Unique<StatusVectorType> FloodFill::ClassifyElements() const {
-    GroupSetVectorType element_groups;
-    return ClassifyElements(element_groups);
-}
+    /// @brief Tracks whether a fillable cell has been assigned to a partition-local component.
+    enum class VisitState : std::uint8_t {
+        unvisited,  ///< Cell remains available as a component seed.
+        visited  ///< Cell is trimmed or belongs to one discovered component.
+    };
 
-std::pair<Unique<StatusVectorType>, Unique<GroupSetVectorType>> FloodFill::ClassifyElementsForTest() const {
-    GroupSetVectorType element_groups;
-    auto p_states = ClassifyElements(element_groups);
-    return std::make_pair( std::move(p_states), MakeUnique<GroupSetVectorType>(element_groups) );
-}
-
-Unique<StatusVectorType> FloodFill::ClassifyElements(GroupSetVectorType& rGroupsOutput) const {
-    const IndexType total_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
-
-    // Set all elements as outside.
-    StatusVectorType states(total_num_elements);
-    std::fill(states.begin(), states.end(), IntersectionState::outside );
-
-    // Get max num elements. Partition will happen along side with max_elements.
-    IndexType max_num_elements_per_dir = std::max<IndexType>( std::max<IndexType>(
-            mNumberOfElements[0], mNumberOfElements[1] ), mNumberOfElements[2] );
-
-    // Direction along we apply partition.
-    IndexType partition_index = 0;
-    std::array<IndexType, 2> directions;
-    if( mNumberOfElements[0] == max_num_elements_per_dir ){
-        partition_index = 0;
-        directions[0] = 0; // +x
-        directions[1] = 1; // -x
-    } else if ( mNumberOfElements[1] == max_num_elements_per_dir ) {
-        partition_index = 1;
-        directions[0] = 2; // +y
-        directions[1] = 3; // -y
-    } else if ( mNumberOfElements[2] == max_num_elements_per_dir ) {
-        partition_index = 2;
-        directions[0] = 4; // +z
-        directions[1] = 5; // -z
-    }
-
-    // Partition domain in "num_threads" partitions along the direction with 'max_num_elements_per_dir';
-    std::vector<PartitionBoxType> partitions;
-    IndexType num_threads = 1;
-    #pragma omp parallel
+    /// @brief Connected non-trimmed cells discovered globally or within one partition.
+    /// @details Partition-local fragments retain signed classification evidence and physical exterior contact so these
+    ///          properties can be combined when interfaces are reconciled.
+    struct Component
     {
-        num_threads = static_cast<IndexType>(omp_get_num_threads());
-    }
+        std::vector<IndexType> cell_indices;  ///< Zero-based cells belonging to this component or fragment.
+        std::int64_t classification_vote{};  ///< Signed sum of blocked-face classification evidence.
+        bool touches_grid_exterior{};  ///< Whether any member cell reaches the physical grid exterior.
+    };
 
-    const IndexType partition_size = std::max<IndexType>( static_cast<IndexType>(std::ceil( static_cast<double>(mNumberOfElements[partition_index]) /
-        static_cast<double>(num_threads) ) ), 1);
+    using Components = std::vector<Component>;
 
-    Vector3i partition_lower_bound{0, 0, 0};
-    Vector3i partition_upper_bound{mNumberOfElements[0]-1, mNumberOfElements[1]-1, mNumberOfElements[2]-1};
-    for( IndexType i = 0; i < num_threads; ++i ){
-        if( partition_size*i < mNumberOfElements[partition_index] ){
-            partition_lower_bound[partition_index] = partition_size*i;
-            partition_upper_bound[partition_index] = std::min<IndexType>(partition_size*(i+1), mNumberOfElements[partition_index])-1;
-            partitions.push_back( std::make_pair(partition_lower_bound,  partition_upper_bound) );
-        }
-    }
-
-    // const IndexType partition_size = std::max<IndexType>( static_cast<IndexType>(std::ceil( static_cast<double>(mNumberOfElements[partition_index]-1) /
-    //     static_cast<double>(num_threads) ) ), 1);
-
-    // Vector3i partition_lower_bound{0, 0, 0};
-    // Vector3i partition_upper_bound{mNumberOfElements[0]-1, mNumberOfElements[1]-1, mNumberOfElements[2]-1};
-    // for( IndexType i = 0; i < num_threads; ++i ){
-    //     if( partition_size*i < mNumberOfElements[partition_index] ){
-    //         partition_lower_bound[partition_index] = partition_size*i;
-    //         partition_upper_bound[partition_index] = std::min<IndexType>(partition_size*(i+1), mNumberOfElements[partition_index]-1);
-    //         partitions.push_back( std::make_pair(partition_lower_bound,  partition_upper_bound) );
-    //     }
-    // }
-
-    // Start filling.
-    GroupSetVectorType groups;
-    PartitionedFill(groups, partitions, states);
-
-    // Merge groups from all partitions.
-    MergeGroups( groups, rGroupsOutput, partition_index, partitions);
-
-    // Mark states
-    for( auto& r_group : rGroupsOutput ){
-        int inside_count = std::get<2>(r_group);
-        auto state = (inside_count > 0) ? IntersectionState::inside : IntersectionState::outside;
-        for( auto group_it = std::get<1>(r_group).begin(); group_it !=  std::get<1>(r_group).end(); ++group_it){
-            states[*group_it] = state;
-        }
-    }
-
-    return MakeUnique<StatusVectorType>(states);
-}
-
-void FloodFill::PartitionedFill(GroupSetVectorType& rGroupSetVector, PartitionBoxVectorType& rPartitions, StatusVectorType& rStates) const {
-    // Loop through current partition
-     const IndexType total_num_elements = mNumberOfElements[0]*mNumberOfElements[1]*mNumberOfElements[2];
-    BoolVectorType visited(total_num_elements, false);
-    #pragma omp parallel for firstprivate(visited) schedule(static, 1)
-    for( int p_i = 0; p_i < static_cast<int>(rPartitions.size()); ++p_i){
-        const auto& partition = rPartitions[static_cast<IndexType>(p_i)];
-        for( IndexType i = partition.first[0]; i <= partition.second[0]; ++i ){
-            for( IndexType j = partition.first[1]; j <= partition.second[1]; ++j ) {
-                for( IndexType k = partition.first[2]; k <= partition.second[2]; ++k ) {
-                    const IndexType index = mGridIndexer.GetVectorIndexFromMatrixIndices(i, j, k);
-                    if( !visited[index] ) { // Unvisited
-                        GroupSetType new_group; // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
-                        std::get<0>(new_group) = static_cast<IndexType>(p_i); // Partition index
-                        Fill(index, new_group, partition, rStates, visited);
-                        if( std::get<1>(new_group).size() > 0 ){
-                            #pragma omp critical
-                            rGroupSetVector.push_back(new_group);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void FloodFill::Fill(IndexType Index, GroupSetType& rGroupSet, const PartitionBoxType& rPartition,
-        StatusVectorType& rStates, BoolVectorType& rVisited ) const {
-
-    // Set Index as visited
-    rVisited[Index] = true;
-    const auto box = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
-    // Only start filling if current element is not trimmed.
-    if( mpBrepOperator->IsTrimmed(box.lower, box.upper) ){
-        rStates[Index] = IntersectionState::trimmed;
-    } else {
-        // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
-        std::get<1>(rGroupSet).insert(Index);
-
-        // If box is not trimmed, run flood fill.
-        IndexStackType index_stack;
-        index_stack.push( Index );
-        std::array<std::optional<IndexType>, 6> new_indices;
-        while( !index_stack.empty() ){
-            /// 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
-            const IndexType current_index = index_stack.top();
-            for( auto direction : EnumRange<GridIndexer::Direction>()){
-                new_indices[static_cast<IndexType>(direction)] = Move(current_index, direction, rGroupSet, rPartition, rStates, rVisited );
-            }
-
-            index_stack.pop();
-            for( IndexType direction = 0; direction < 6; ++direction){
-                if( new_indices[direction].has_value() ){
-                    index_stack.push(new_indices[direction].value());
-                }
-            }
-        }
-    }
-
-}
-
-std::optional<IndexType> FloodFill::Move(IndexType Index, Direction Dir, GroupSetType& rGroupSet,
-        const PartitionBoxType& rPartition, StatusVectorType& rStates, BoolVectorType& rVisited ) const {
-
-    const IndexType index = Index;
-
-    const auto [lower_perturb, upper_perturb] = GetOffsets(Dir);
-    const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, Dir, rPartition);
-
-    // Check if out-of-range
-    if( index_info != GridIndexer::IndexInfo::middle ) {
-        return std::nullopt;
-    }
-
-    // If next box is trimmed, add inside count.
-    // Note that next box is slightly shifted towards original box to capture trims directly at the boundary.
-    auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-    if( mpBrepOperator->IsTrimmed( (box_next.lower + lower_perturb) , (box_next.upper + upper_perturb) )){
-        // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
-        std::get<2>(rGroupSet) += GetIsInsideCount(index, next_index, lower_perturb, upper_perturb);
-        return std::nullopt;
-    }
-
-    // Already visited.
-    if( rVisited[next_index] ) {
-        return std::nullopt;
-    }
-
-    // Is trimmed.
-    if( mpBrepOperator->IsTrimmed(box_next.lower, box_next.upper) ){
-        rVisited[next_index] = true;
-        rStates[next_index] = IntersectionState::trimmed;
-        return std::nullopt;
-    }
-
-    // Add next_index to current group.
-    rVisited[next_index] = true;
-    // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
-    std::get<1>(rGroupSet).insert(next_index);
-
-    return next_index;
-}
-
-void FloodFill::MergeGroups(GroupSetVectorType& rGroups, GroupSetVectorType& rMergedGroup,
-        IndexType PartitionDir, PartitionBoxVectorType& rPartitions) const {
-
-    const IndexType num_groups = rGroups.size();
-
-    // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
-    const std::array<Direction, 2> walk_directions = {static_cast<Direction>(2*PartitionDir),
-                                                      static_cast<Direction>((2*PartitionDir)+1)};
-
-    // Compute bounding box for each group (only along PartitionDir).
-    std::vector<Partition1DBoxType> group_bounding_boxes(num_groups);
-    std::fill(group_bounding_boxes.begin(), group_bounding_boxes.end(),
-        std::make_pair( static_cast<int>(mNumberOfElements[PartitionDir]+1),  -1 ) );
-
-    // We compute the indices of all element are located on the boundary of a group.
-    BoundaryIndicesVectorType group_boundary_indices(num_groups);
-    for( IndexType i = 0; i < num_groups; ++i){
-        group_boundary_indices[i].resize(2);
-    }
-
-    #pragma omp parallel for
-    for( int group_index = 0; group_index < static_cast<int>(num_groups);  ++group_index){
-        auto& group_set = rGroups[static_cast<IndexType>(group_index)];
-        // Tuple: get<0> -> partition_index, get<1> -> index_set, get<2> -> is_inside_count.
-        const auto& index_set = std::get<1>(group_set);
-        const auto partition_index = std::get<0>(group_set);
-
-        auto& group_bounding_box = group_bounding_boxes[static_cast<IndexType>(group_index)];
-        auto& boundary_indices = group_boundary_indices[static_cast<IndexType>(group_index)];
-
-        // Loop over elements in active group.
-        for(auto& index : index_set ){
-            const auto indices = mGridIndexer.GetMatrixIndicesFromVectorIndex(index);
-
-            //// Find boundary indices. We consider only boundary indices that also bound the bounding box of each element.
-            // Upper bound
-            if( static_cast<int>(indices[PartitionDir]) >= std::get<1>( group_bounding_box ) ){
-                const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[0]);
-                const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[0]);
-                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( !mpBrepOperator->IsTrimmed((box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ) {
-                    if( static_cast<int>(indices[PartitionDir]) > std::get<1>( group_bounding_box ) ){
-                        std::get<1>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
-                        boundary_indices[1].clear();
-                    }
-                    boundary_indices[1].insert(index);
-                }
-            }
-            // Lower bound
-            if( static_cast<int>(indices[PartitionDir]) <= std::get<0>( group_bounding_box ) ){
-                const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[1]);
-                const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[1]);
-                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( !mpBrepOperator->IsTrimmed( (box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ){
-                    if( static_cast<int>(indices[PartitionDir]) < std::get<0>( group_bounding_box ) ){
-                        std::get<0>( group_bounding_box ) = static_cast<int>(indices[PartitionDir]);
-                        boundary_indices[0].clear();
-                    }
-                    boundary_indices[0].insert(index);
-                }
-            }
-
-            //// We add the GetIsInsideCount() to all elements at the partition boundaries.
-            // Upper bound.
-            if( indices[PartitionDir] == std::get<1>(rPartitions[partition_index])[PartitionDir] ) {
-                const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[0]);
-                const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[0]);
-                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( mpBrepOperator->IsTrimmed( (box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ){
-                    std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
-                }
-            }
-            // Lower bound.
-            if( indices[PartitionDir] == std::get<0>(rPartitions[partition_index])[PartitionDir] ) {
-                const auto [lower_offset, upper_offset] = GetOffsets(walk_directions[1]);
-                const auto [next_index, index_info] = mGridIndexer.GetNextIndex(index, walk_directions[1]);
-                auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(next_index);
-                if( mpBrepOperator->IsTrimmed( (box_next.lower + lower_offset), (box_next.upper + upper_offset) ) ){
-                    std::get<2>(group_set) += GetIsInsideCount(index, next_index, lower_offset, upper_offset);
-                }
-            }
+    /// @brief Union-find structure used to merge partition-local component fragments.
+    class DisjointSet
+    {
+    public:
+        /// @brief Creates Size singleton sets.
+        explicit DisjointSet(IndexType Size) : mParents(Size), mRanks(Size, 0)
+        {
+            for (IndexType index = 0; index < Size; ++index) { mParents[index] = index; }
         }
 
-    }
-
-    // Run group fill. Must be single-thread.
-    BoolVectorType visited(num_groups, false);
-    for( IndexType group_index = 0; group_index < num_groups; ++group_index){
-        if( !visited[group_index] ){
-            GroupFill(group_index, rGroups, rMergedGroup, group_boundary_indices, PartitionDir, visited);
-        }
-    }
-
-}
-
-void FloodFill::GroupFill(IndexType GroupIndex, GroupSetVectorType& rGroupSetVector, GroupSetVectorType& rMergedGroups,
-        const BoundaryIndicesVectorType& rBoundaryIndices, IndexType PartitionDir, BoolVectorType& rVisited ) const {
-
-    // Mapping of directions: 0:+x, 1:-x, 2:+y, 3:-y, 4:+z, 5:-z
-    const std::array<Direction, 2> walk_directions = {static_cast<Direction>(2*PartitionDir),
-                                                      static_cast<Direction>((2*PartitionDir)+1)};
-
-    // Set index as visited
-    rVisited[GroupIndex] = true;
-
-    // Add GroupIndex to stack. This is where group flood fill will start,
-    IndexStackType index_stack;
-    index_stack.push( GroupIndex );
-
-    rMergedGroups.push_back( rGroupSetVector[GroupIndex] );
-
-    // Loop over stack and perform group flood fill.
-    while( !index_stack.empty() ){
-        const IndexType current_group_index = index_stack.top();
-        index_stack.pop();
-        const IndexType partition_index = std::get<0>(rGroupSetVector[current_group_index]);
-        const auto& current_boundary_indices = rBoundaryIndices[current_group_index];
-
-        for( IndexType i = 0; i < rGroupSetVector.size(); ++i ){
-            auto other_partition_index = std::get<0>(rGroupSetVector[i]);
-            if( !rVisited[i] && std::abs( static_cast<int>(partition_index-other_partition_index)) <=1 ){
-                const auto& other_boundary_indices = rBoundaryIndices[i];
-                bool are_neighbours = false;
-                for( auto direction : walk_directions){
-                    if( are_neighbours ){
-                        break;
-                    }
-                    for( auto& iii : current_boundary_indices[static_cast<IndexType>(GridIndexer::ReverseDirection(direction)) % 2] ) {
-                        const auto [next_index, index_info] = mGridIndexer.GetNextIndex(iii, direction);
-                        if( index_info != GridIndexer::IndexInfo::middle ) { break; }
-                        if( other_boundary_indices[static_cast<IndexType>(direction) % 2].find(next_index)
-                                != other_boundary_indices[static_cast<IndexType>(direction) % 2].end() ){
-                            are_neighbours = true;
-                            break;
-                        }
-                    }
-                }
-
-                if( are_neighbours ) {
-                    // Add group to merged groups.
-                    auto& merged_group = rMergedGroups[rMergedGroups.size()-1];
-                    auto &new_set = std::get<1>(rGroupSetVector[i]);
-
-                    std::get<1>(merged_group).insert( new_set.begin(), new_set.end() );
-                    std::get<2>(merged_group) += std::get<2>(rGroupSetVector[i]);
-
-                    rVisited[i] = true;
-                    index_stack.push(i);
-                }
+        /// @brief Returns the representative of one set and compresses the traversed path.
+        [[nodiscard]] IndexType Find(IndexType Index)
+        {
+            IndexType root = Index;
+            while (mParents[root] != root) { root = mParents[root]; }
+            while (mParents[Index] != Index) {
+                const IndexType parent = mParents[Index];
+                mParents[Index] = root;
+                Index = parent;
             }
+            return root;
         }
+
+        /// @brief Merges two sets using rank to keep the parent trees shallow.
+        void Union(IndexType First, IndexType Second)
+        {
+            IndexType first_root = Find(First);
+            IndexType second_root = Find(Second);
+            if (first_root == second_root) { return; }
+            if (mRanks[first_root] < mRanks[second_root]) { std::swap(first_root, second_root); }
+            mParents[second_root] = first_root;
+            if (mRanks[first_root] == mRanks[second_root]) { ++mRanks[first_root]; }
+        }
+
+    private:
+        std::vector<IndexType> mParents;  ///< Parent index for each component.
+        std::vector<std::uint8_t> mRanks;  ///< Upper bound on each root tree's height.
+    };
+
+    /// @brief Selects the longest grid axis for slab partitioning.
+    /// @details Equal axis sizes retain the first axis in x, y, z order.
+    [[nodiscard]] IndexType PartitionAxis(const Vector3i& rNumberOfElements) noexcept
+    {
+        IndexType axis = 0;
+        for (IndexType i = 1; i < 3; ++i) {
+            if (rNumberOfElements[i] > rNumberOfElements[axis]) { axis = i; }
+        }
+        return axis;
     }
-}
 
-int FloodFill::GetIsInsideCount( IndexType Index, IndexType NextIndex, const PointType& rLowerOffset, const PointType& rUpperOffset ) const{
-    const auto box_current = mGridIndexer.GetBoundingBoxXYZFromIndex(Index);
-    const auto box_next = mGridIndexer.GetBoundingBoxXYZFromIndex(NextIndex);
-    const PointType center_box = (0.5 * (box_current.lower + box_current.upper));
-
-    if( mpBrepOperator->OnBoundedSideOfClippedSection(center_box, (box_next.lower + rLowerOffset) , (box_next.upper + rUpperOffset) ) ) {
+    /// @brief Resolves the number of flood-fill slabs.
+    /// @details Explicit options are validated against the selected axis. Automatic selection uses the available
+    ///          OpenMP thread count when enabled and one partition otherwise.
+    [[nodiscard]] IndexType PartitionCount(IndexType LargestAxisSize, const FloodFillOptions& rOptions)
+    {
+        if (rOptions.partition_count.has_value()) {
+            QuESo_ERROR_IF(*rOptions.partition_count == 0) << "Flood-fill partition count must be positive.\n";
+            QuESo_ERROR_IF(*rOptions.partition_count > LargestAxisSize)
+                << "Flood-fill partition count cannot exceed the largest grid direction.\n";
+            return *rOptions.partition_count;
+        }
+#ifdef _OPENMP
+        return std::min(LargestAxisSize, static_cast<IndexType>(omp_get_max_threads()));
+#else
+        static_cast<void>(LargestAxisSize);
         return 1;
-    } else {
-        return -1;
+#endif
     }
-}
 
-
-BoundingBoxType FloodFill::GetOffsets(Direction Dir ) const {
-    const double tolerance = 10*RelativeSnapTolerance(mDelta, SNAPTOL);
-    switch(Dir){
-        case Direction::x_forward:
-            return MakeBox(PointType{-tolerance, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
-        case Direction::x_backward:
-            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{tolerance, 0.0, 0.0});
-        case Direction::y_forward:
-            return MakeBox(PointType{0.0, -tolerance, 0.0}, PointType{0.0, 0.0, 0.0});
-        case Direction::y_backward:
-            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{0.0, tolerance, 0.0});
-        case Direction::z_forward:
-            return MakeBox(PointType{0.0, 0.0, -tolerance}, PointType{0.0, 0.0, 0.0});
-        case Direction::z_backward:
-            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, tolerance});
-        default:
-            assert(false);
-            return MakeBox(PointType{0.0, 0.0, 0.0}, PointType{0.0, 0.0, 0.0});
+    /// @brief Divides the grid into contiguous, exhaustive, non-overlapping slabs.
+    /// @details Slab sizes differ by at most one cell, with larger slabs ordered first.
+    [[nodiscard]] PartitionBoxes
+        CreatePartitions(const Vector3i& rNumberOfElements, IndexType PartitionAxisIndex, IndexType NumberOfPartitions)
+    {
+        PartitionBoxes partitions;
+        partitions.reserve(NumberOfPartitions);
+        const IndexType axis_size = rNumberOfElements[PartitionAxisIndex];
+        const IndexType base_size = axis_size / NumberOfPartitions;
+        const IndexType remainder = axis_size % NumberOfPartitions;
+        IndexType begin = 0;
+        for (IndexType partition_index = 0; partition_index < NumberOfPartitions; ++partition_index) {
+            const IndexType size = base_size + (partition_index < remainder ? 1 : 0);
+            Vector3i lower{ 0, 0, 0 };
+            Vector3i upper{ rNumberOfElements[0] - 1, rNumberOfElements[1] - 1, rNumberOfElements[2] - 1 };
+            lower[PartitionAxisIndex] = begin;
+            upper[PartitionAxisIndex] = begin + size - 1;
+            partitions.emplace_back(lower, upper);
+            begin += size;
+        }
+        return partitions;
     }
-}
 
+    /// @brief Returns whether one cell is excluded from fill as trimmed.
+    [[nodiscard]] bool IsTrimmed(const detail::DomainTopology& rTopology, IndexType CellIndex) noexcept
+    { return rTopology.cell_topology[CellIndex].is_trimmed; }
 
-} // End namespace queso
+    /// @brief Validates topology invariants required by serial and partitioned flood fill.
+    /// @details Validation is performed serially before OpenMP traversal. The topology must reference the supplied
+    ///          indexer, contain one cell record per grid cell, block every exterior face, and block every face
+    ///          adjacent to a trimmed cell.
+    void ValidateTopology(const GridIndexer& rGridIndexer, const detail::DomainTopology& rTopology)
+    {
+        QuESo_ERROR_IF(rTopology.cell_topology.size() != rGridIndexer.NumberOfElements())
+            << "Domain topology and GridIndexer must describe the same number of cells.\n";
+
+        for (IndexType cell_index = 0; cell_index < rGridIndexer.NumberOfElements(); ++cell_index) {
+            for (const Direction direction : EnumRange<Direction>()) {
+                const auto face_state = rTopology.face_topology.Get(cell_index, direction);
+                QuESo_ERROR_IF(
+                    rGridIndexer.IsEnd(cell_index, direction) && face_state != detail::GridFaceState::blocked
+                ) << "Exterior grid faces must be blocked before flood fill.\n";
+                QuESo_ERROR_IF(IsTrimmed(rTopology, cell_index) && face_state != detail::GridFaceState::blocked)
+                    << "Every face adjacent to a trimmed cell must be blocked before flood fill.\n";
+            }
+        }
+    }
+
+    /// @brief Processes one directed cell face and optionally discovers a fillable neighbor.
+    /// @details Physical exterior faces record conclusive exterior contact. Internal partition boundaries are deferred
+    ///          to reconciliation. Blocked faces contribute their directed vote, while traversable faces may add one
+    ///          previously unvisited neighbor to the component.
+    [[nodiscard]] std::optional<IndexType> Move(
+        const GridIndexer& rGridIndexer,
+        const detail::DomainTopology& rTopology,
+        IndexType CellIndex,
+        Direction FaceDirection,
+        const PartitionBox& rPartition,
+        Component& rComponent,
+        std::vector<VisitState>& rVisitStates
+    )
+    {
+        // A physical grid boundary is also a slab boundary, but it must first mark the component as exterior-connected.
+        if (rGridIndexer.IsEnd(CellIndex, FaceDirection)) {
+            QuESo_ASSERT(
+                rTopology.face_topology.Get(CellIndex, FaceDirection) == detail::GridFaceState::blocked,
+                "Exterior grid faces must be blocked."
+            );
+            rComponent.touches_grid_exterior = true;
+            return std::nullopt;
+        }
+        if (rGridIndexer.IsEnd(CellIndex, FaceDirection, rPartition)) { return std::nullopt; }
+
+        const auto [next_index, index_info] = rGridIndexer.GetNextIndex(CellIndex, FaceDirection);
+        QuESo_ASSERT(index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell.");
+        if (rTopology.face_topology.Get(CellIndex, FaceDirection) == detail::GridFaceState::blocked) {
+            rComponent.classification_vote += rTopology.face_votes.Get(CellIndex, FaceDirection);
+            return std::nullopt;
+        }
+
+        QuESo_ASSERT(!IsTrimmed(rTopology, next_index), "A traversable face cannot lead into a trimmed cell.");
+        if (rVisitStates[next_index] == VisitState::visited) { return std::nullopt; }
+        rVisitStates[next_index] = VisitState::visited;
+        rComponent.cell_indices.push_back(next_index);
+        return next_index;
+    }
+
+    /// @brief Discovers one connected component within a single partition.
+    /// @details Uses iterative depth-first traversal and never crosses the supplied slab boundary.
+    void Fill(
+        const GridIndexer& rGridIndexer,
+        const detail::DomainTopology& rTopology,
+        IndexType CellIndex,
+        const PartitionBox& rPartition,
+        Component& rComponent,
+        std::vector<VisitState>& rVisitStates
+    )
+    {
+        rVisitStates[CellIndex] = VisitState::visited;
+        rComponent.cell_indices.push_back(CellIndex);
+        std::stack<IndexType> pending_indices;
+        pending_indices.push(CellIndex);
+        while (!pending_indices.empty()) {
+            const IndexType current_index = pending_indices.top();
+            pending_indices.pop();
+            for (const Direction direction : EnumRange<Direction>()) {
+                if (const auto next_index =
+                        Move(rGridIndexer, rTopology, current_index, direction, rPartition, rComponent, rVisitStates)) {
+                    pending_indices.push(*next_index);
+                }
+            }
+        }
+    }
+
+    /// @brief Discovers independent component fragments inside all flood-fill partitions.
+    /// @details Partitions are processed independently and may run concurrently because traversal cannot cross slab
+    ///          interfaces. Fragment vectors are concatenated deterministically in partition order.
+    [[nodiscard]] Components PartitionedFill(
+        const GridIndexer& rGridIndexer,
+        const detail::DomainTopology& rTopology,
+        const PartitionBoxes& rPartitions,
+        std::vector<VisitState>& rVisitStates
+    )
+    {
+        std::vector<Components> components_by_partition(rPartitions.size());
+        // Slabs are disjoint and Move never crosses a partition boundary, so workers mutate disjoint visit-state cells.
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static, 1)
+#endif
+        for (std::int64_t raw_partition_index = 0; raw_partition_index < static_cast<std::int64_t>(rPartitions.size());
+             ++raw_partition_index) {
+            const IndexType partition_index = static_cast<IndexType>(raw_partition_index);
+            const auto& r_partition = rPartitions[partition_index];
+            auto& r_components = components_by_partition[partition_index];
+            for (IndexType z = r_partition.first[2]; z <= r_partition.second[2]; ++z) {
+                for (IndexType y = r_partition.first[1]; y <= r_partition.second[1]; ++y) {
+                    for (IndexType x = r_partition.first[0]; x <= r_partition.second[0]; ++x) {
+                        const IndexType cell_index = rGridIndexer.GetVectorIndexFromMatrixIndices(x, y, z);
+                        if (rVisitStates[cell_index] == VisitState::visited) { continue; }
+                        Component component;
+                        Fill(rGridIndexer, rTopology, cell_index, r_partition, component, rVisitStates);
+                        r_components.push_back(std::move(component));
+                    }
+                }
+            }
+        }
+
+        Components components;
+        for (auto& r_partition_components : components_by_partition) {
+            components.insert(
+                components.end(),
+                std::make_move_iterator(r_partition_components.begin()),
+                std::make_move_iterator(r_partition_components.end())
+            );
+        }
+        return components;
+    }
+
+    /// @brief Reconciles partition-local fragments into global connected components.
+    /// @details Traversable interfaces union fragments. Blocked interfaces keep fragments separate and add each
+    ///          directed side's vote to its adjacent component before merged vote and exterior state are accumulated.
+    [[nodiscard]] Components MergeComponents(
+        const GridIndexer& rGridIndexer,
+        const detail::DomainTopology& rTopology,
+        Components& rComponents,
+        IndexType PartitionAxisIndex,
+        const PartitionBoxes& rPartitions
+    )
+    {
+        const IndexType invalid_component = std::numeric_limits<IndexType>::max();
+        std::vector<IndexType> component_indices(rGridIndexer.NumberOfElements(), invalid_component);
+        for (IndexType component_index = 0; component_index < rComponents.size(); ++component_index) {
+            for (const IndexType cell_index : rComponents[component_index].cell_indices) {
+                component_indices[cell_index] = component_index;
+            }
+        }
+
+        DisjointSet disjoint_set(rComponents.size());
+        const Direction forward_direction = static_cast<Direction>(2 * PartitionAxisIndex);
+        const Direction backward_direction = GridIndexer::ReverseDirection(forward_direction);
+        // Traversable interfaces join local fragments. Blocked interfaces retain both directed votes separately.
+        for (IndexType partition_index = 0; partition_index + 1 < rPartitions.size(); ++partition_index) {
+            const auto& r_partition = rPartitions[partition_index];
+            for (IndexType z = r_partition.first[2]; z <= r_partition.second[2]; ++z) {
+                for (IndexType y = r_partition.first[1]; y <= r_partition.second[1]; ++y) {
+                    for (IndexType x = r_partition.first[0]; x <= r_partition.second[0]; ++x) {
+                        Vector3i indices{ x, y, z };
+                        if (indices[PartitionAxisIndex] != r_partition.second[PartitionAxisIndex]) { continue; }
+
+                        const IndexType left_index = rGridIndexer.GetVectorIndexFromMatrixIndices(indices);
+                        const auto [right_index, index_info] = rGridIndexer.GetNextIndex(left_index, forward_direction);
+                        QuESo_ASSERT(
+                            index_info == GridIndexer::IndexInfo::middle,
+                            "Adjacent flood-fill partitions must share a physical grid face."
+                        );
+                        const IndexType left_component = component_indices[left_index];
+                        const IndexType right_component = component_indices[right_index];
+                        if (rTopology.face_topology.Get(left_index, forward_direction)
+                            == detail::GridFaceState::traversable) {
+                            QuESo_ASSERT(
+                                left_component != invalid_component && right_component != invalid_component,
+                                "A traversable partition face must connect two fillable cells."
+                            );
+                            disjoint_set.Union(left_component, right_component);
+                            continue;
+                        }
+
+                        if (left_component != invalid_component) {
+                            rComponents[left_component].classification_vote +=
+                                rTopology.face_votes.Get(left_index, forward_direction);
+                        }
+                        if (right_component != invalid_component) {
+                            rComponents[right_component].classification_vote +=
+                                rTopology.face_votes.Get(right_index, backward_direction);
+                        }
+                    }
+                }
+            }
+        }
+
+        Components merged_components;
+        std::vector<IndexType> merged_indices(rComponents.size(), invalid_component);
+        for (IndexType component_index = 0; component_index < rComponents.size(); ++component_index) {
+            const IndexType root = disjoint_set.Find(component_index);
+            if (merged_indices[root] == invalid_component) {
+                merged_indices[root] = merged_components.size();
+                merged_components.emplace_back();
+            }
+            auto& r_merged = merged_components[merged_indices[root]];
+            auto& r_component = rComponents[component_index];
+            r_merged.cell_indices.insert(
+                r_merged.cell_indices.end(), r_component.cell_indices.begin(), r_component.cell_indices.end()
+            );
+            r_merged.classification_vote += r_component.classification_vote;
+            r_merged.touches_grid_exterior = r_merged.touches_grid_exterior || r_component.touches_grid_exterior;
+        }
+        return merged_components;
+    }
+
+}  // namespace
+
+namespace detail {
+
+    ElementStates FloodFill(const DomainTopology& rTopology, FloodFillOptions Options)
+    {
+        const GridIndexer& rGridIndexer = rTopology.GetGridIndexer();
+        const IndexType number_of_cells = rGridIndexer.NumberOfElements();
+        QuESo_ERROR_IF(number_of_cells == 0) << "Flood fill requires a non-empty grid.\n";
+        ValidateTopology(rGridIndexer, rTopology);
+
+        ElementStates states(number_of_cells, IntersectionState::outside);
+        std::vector<VisitState> visit_states(number_of_cells, VisitState::unvisited);
+        // Trimmed cells are final states, not fillable component members. Topology validation guarantees blocked
+        // neighbors.
+        for (IndexType cell_index = 0; cell_index < number_of_cells; ++cell_index) {
+            if (IsTrimmed(rTopology, cell_index)) {
+                states[cell_index] = IntersectionState::trimmed;
+                visit_states[cell_index] = VisitState::visited;
+            }
+        }
+
+        const Vector3i number_of_elements = rGridIndexer.ElementCounts();
+        const IndexType partition_axis = PartitionAxis(number_of_elements);
+        const auto partitions = CreatePartitions(
+            number_of_elements, partition_axis, PartitionCount(number_of_elements[partition_axis], Options)
+        );
+        auto components = PartitionedFill(rGridIndexer, rTopology, partitions, visit_states);
+        const auto merged_components = MergeComponents(rGridIndexer, rTopology, components, partition_axis, partitions);
+
+        // Physical exterior contact is conclusive outside evidence. Only enclosed components use their signed vote sum.
+        for (const auto& r_component : merged_components) {
+            const IntersectionState state = !r_component.touches_grid_exterior && r_component.classification_vote > 0
+                                                ? IntersectionState::inside
+                                                : IntersectionState::outside;
+            for (const IndexType cell_index : r_component.cell_indices) { states[cell_index] = state; }
+        }
+        return states;
+    }
+
+}  // namespace detail
+
+}  // namespace queso::embedding

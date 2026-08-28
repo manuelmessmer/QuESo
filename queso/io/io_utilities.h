@@ -28,13 +28,14 @@ namespace queso {
 /// @author Manuel Messmer
 /// @brief  Provides methods to read and write data from an to files.
 ///         Supports STL and VTK file extensions.
-class IO {
+class IO
+{
 public:
     ///@}
     ///@name Type definitions
     ///@{
 
-    enum class EncodingType {binary, ascii};
+    enum class EncodingType { binary, ascii };
 
     ///@name Operations
     ///@{
@@ -46,8 +47,7 @@ public:
     ///        ReadMeshFromSTL_Ascii() or ReadMeshFromSTL_Binary().
     /// @param rTriangleMesh
     /// @param rFilename
-    static void ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
-                                 const std::string& rFilename);
+    static void ReadMeshFromSTL(TriangleMesh& rTriangleMesh, const std::string& rFilename);
 
     /*--- Write operations ---*/
 
@@ -56,38 +56,27 @@ public:
     ///@param rDictionary
     ///@param rFilename
     template<typename TDictType>
-    static void WriteDictionaryToJSON(const TDictType& rDictionary,
-                                      const std::string& rFilename);
+    static void WriteDictionaryToJSON(const TDictType& rDictionary, const std::string& rFilename);
 
     /// @brief Writes TriangleMesh to VTK file.
     /// @param rTriangleMesh
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
-    static void WriteMeshToVTK(const TriangleMeshView& rTriangleMesh,
-                               const std::string& rFilename,
-                               EncodingType Encoding);
+    static void
+        WriteMeshToVTK(const TriangleMeshView& rTriangleMesh, const std::string& rFilename, EncodingType Encoding);
 
-    static void WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
-                               const std::string& rFilename,
-                               EncodingType Encoding)
-    {
-        WriteMeshToVTK(TriangleMeshView(rTriangleMesh), rFilename, Encoding);
-    }
+    static void WriteMeshToVTK(const TriangleMesh& rTriangleMesh, const std::string& rFilename, EncodingType Encoding)
+    { WriteMeshToVTK(TriangleMeshView(rTriangleMesh), rFilename, Encoding); }
 
     /// @brief Writes TriangleMesh to STL file.
     /// @param rTriangleMesh
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
-    static void WriteMeshToSTL(const TriangleMeshView& rTriangleMesh,
-                                const std::string& rFilename,
-                                EncodingType Encoding);
+    static void
+        WriteMeshToSTL(const TriangleMeshView& rTriangleMesh, const std::string& rFilename, EncodingType Encoding);
 
-    static void WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
-                               const std::string& rFilename,
-                               EncodingType Encoding)
-    {
-        WriteMeshToSTL(TriangleMeshView(rTriangleMesh), rFilename, Encoding);
-    }
+    static void WriteMeshToSTL(const TriangleMesh& rTriangleMesh, const std::string& rFilename, EncodingType Encoding)
+    { WriteMeshToSTL(TriangleMeshView(rTriangleMesh), rFilename, Encoding); }
 
     /// @brief Writes triangle mesh associated with given condition to STL file.
     /// @tparam TElementType
@@ -95,9 +84,11 @@ public:
     /// @param rFilename
     /// @param Encoding Options: {binary, ascii}.
     template<typename TElementType>
-    static void WriteConditionToSTL(const Condition<TElementType>& rCondition,
-                                    const std::string& rFilename,
-                                    EncodingType Encoding);
+    static void WriteConditionToSTL(
+        const Condition<TElementType>& rCondition,
+        const std::string& rFilename,
+        EncodingType Encoding
+    );
 
     /// @brief Writes elements to VTK file.
     /// @tparam TIntegrationPointType
@@ -108,8 +99,9 @@ public:
     template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
     static void WriteElementsToVTK(
         const BackgroundGrid<TIntegrationPointType, TBoundaryIntegrationPointType>& rBackgroundGrid,
-                                    const std::string& rFilename,
-                                    EncodingType Encoding);
+        const std::string& rFilename,
+        EncodingType Encoding
+    );
 
     /// @brief Write points to VTK file.
     /// @tparam TIntegrationPointType
@@ -120,29 +112,36 @@ public:
     template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
     static void WritePointsToVTK(
         const BackgroundGrid<TIntegrationPointType, TBoundaryIntegrationPointType>& rBackgroundGrid,
-                                 const std::string& rFilename,
-                                 EncodingType Encoding);
+        const std::string& rFilename,
+        EncodingType Encoding
+    );
+
 private:
     ///@}
     ///@name Type definitions
     ///@{
 
-    struct PointComparison {
-        bool operator() (const PointType& lhs, const PointType& rhs) const {
+    /// @brief Import-local vertex welding distance used while reconstructing STL connectivity.
+    inline static constexpr double ImportWeldDistance = 1e-12;
+
+    struct PointComparison
+    {
+        bool operator()(const PointType& lhs, const PointType& rhs) const
+        {
             const double dx = lhs[0] - rhs[0];
             const double dy = lhs[1] - rhs[1];
             const double dz = lhs[2] - rhs[2];
 
-            if (std::abs(dx) < SNAPTOL) {
-                if (std::abs(dy) < SNAPTOL) {
+            if (std::abs(dx) < ImportWeldDistance) {
+                if (std::abs(dy) < ImportWeldDistance) {
                     // x and y close enough, compare z
-                    return dz < -SNAPTOL;
+                    return dz < -ImportWeldDistance;
                 }
                 // x close enough, compare y
-                return dy < -SNAPTOL;
+                return dy < -ImportWeldDistance;
             }
             // compare x
-            return dx < -SNAPTOL;
+            return dx < -ImportWeldDistance;
         }
     };
 
@@ -159,39 +158,37 @@ private:
     ///@param rTriangleMesh
     ///@param rFilename
     ///@see ReadMeshFromSTL_Binary().
-    static void ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
-                                      const std::string& rFilename);
+    static void ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh, const std::string& rFilename);
 
     ///@brief  Reads TriangleMesh from STL file in Binary-format.
     ///@param rTriangleMesh
     ///@param rFilename
     ///@see ReadMeshFromSTL_Ascii().
-    static void ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
-                                       const std::string& rFilename);
+    static void ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh, const std::string& rFilename);
 
     /// @brief Helper function to get vertices of hexahedron defined by lower and upper bounds.
     /// @param rLowerBound
     /// @param rUpperBound
     /// @return std::array<PointType, 8>
-    static std::array<PointType, 8> GetHexahedronVertices(const PointType& rLowerBound, const PointType& rUpperBound) {
-        return {{
-            {{rLowerBound[0], rLowerBound[1], rLowerBound[2]}},
-            {{rUpperBound[0], rLowerBound[1], rLowerBound[2]}},
-            {{rUpperBound[0], rUpperBound[1], rLowerBound[2]}},
-            {{rLowerBound[0], rUpperBound[1], rLowerBound[2]}},
-            {{rLowerBound[0], rLowerBound[1], rUpperBound[2]}},
-            {{rUpperBound[0], rLowerBound[1], rUpperBound[2]}},
-            {{rUpperBound[0], rUpperBound[1], rUpperBound[2]}},
-            {{rLowerBound[0], rUpperBound[1], rUpperBound[2]}} }};
+    static std::array<PointType, 8> GetHexahedronVertices(const PointType& rLowerBound, const PointType& rUpperBound)
+    {
+        return { { { { rLowerBound[0], rLowerBound[1], rLowerBound[2] } },
+                   { { rUpperBound[0], rLowerBound[1], rLowerBound[2] } },
+                   { { rUpperBound[0], rUpperBound[1], rLowerBound[2] } },
+                   { { rLowerBound[0], rUpperBound[1], rLowerBound[2] } },
+                   { { rLowerBound[0], rLowerBound[1], rUpperBound[2] } },
+                   { { rUpperBound[0], rLowerBound[1], rUpperBound[2] } },
+                   { { rUpperBound[0], rUpperBound[1], rUpperBound[2] } },
+                   { { rLowerBound[0], rUpperBound[1], rUpperBound[2] } } } };
     }
 
     ///@}
-}; // End class IO
+};  // End class IO
 ///@} End QuESo Classes
 
-} // End namespace queso
+}  // End namespace queso
 
 // Include template definitions.
 #include "queso/io/io_utilities.tpp"
 
-#endif // IO_UTILTIES_H
+#endif  // IO_UTILTIES_H

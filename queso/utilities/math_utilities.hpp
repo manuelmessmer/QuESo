@@ -69,6 +69,15 @@ namespace Math {
         return std::sqrt( rLhs[0]*rLhs[0] + rLhs[1]*rLhs[1] + rLhs[2]*rLhs[2] );
     }
 
+    /// @brief Returns the squared Euclidean norm of a vector.
+    /// @details Use for comparisons against a non-negative distance tolerance squared to avoid an unnecessary square
+    ///          root. Use Norm() when the vector magnitude itself is required.
+    /// @param rLhs Vector.
+    /// @return Squared vector magnitude.
+    inline double SquaredNorm(PointView rLhs) {
+        return rLhs[0]*rLhs[0] + rLhs[1]*rLhs[1] + rLhs[2]*rLhs[2];
+    }
+
     /// @brief Returns max value of vector
     /// @tparam T
     /// @param rVector

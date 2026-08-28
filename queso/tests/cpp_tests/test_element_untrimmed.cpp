@@ -60,7 +60,7 @@ namespace {
         return sum;
     }
 
-}// namespace
+}  // namespace
 
 BOOST_AUTO_TEST_SUITE(UntrimmedElementTestSuite)
 
@@ -163,38 +163,38 @@ BOOST_AUTO_TEST_CASE(InsideAndIntersectionState)
 
     QuESo_CHECK_EQUAL(
         element.GetIntersectionState<CoordinateSpace::global>(
-            PointType{ -20.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }, 0.0
+            PointType{ -20.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }
         ),
         queso::IntersectionState::inside
     );
     QuESo_CHECK_EQUAL(
         element.GetIntersectionState<CoordinateSpace::global>(
-            PointType{ 100.0, -100.0, 8.5 }, PointType{ 110.0, -90.0, 12.0 }, 0.0
+            PointType{ 100.0, -100.0, 8.5 }, PointType{ 110.0, -90.0, 12.0 }
         ),
         queso::IntersectionState::outside
     );
     QuESo_CHECK_EQUAL(
         element.GetIntersectionState<CoordinateSpace::global>(
-            PointType{ -30.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }, 0.0
+            PointType{ -30.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }
         ),
         queso::IntersectionState::trimmed
     );
 
     QuESo_CHECK_EQUAL(
         element.GetIntersectionState<CoordinateSpace::parametric>(
-            PointType{ -8.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }, 0.0
+            PointType{ -8.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }
         ),
         queso::IntersectionState::inside
     );
     QuESo_CHECK_EQUAL(
         element.GetIntersectionState<CoordinateSpace::parametric>(
-            PointType{ 3.0, -1.0, 3.0 }, PointType{ 4.0, 8.0, 14.0 }, 0.0
+            PointType{ 3.0, -1.0, 3.0 }, PointType{ 4.0, 8.0, 14.0 }
         ),
         queso::IntersectionState::outside
     );
     QuESo_CHECK_EQUAL(
         element.GetIntersectionState<CoordinateSpace::parametric>(
-            PointType{ -11.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }, 0.0
+            PointType{ -11.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }
         ),
         queso::IntersectionState::trimmed
     );
@@ -219,4 +219,4 @@ BOOST_AUTO_TEST_CASE(DetJAndDataSet)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-}// End namespace queso::Testing
+}  // End namespace queso::Testing

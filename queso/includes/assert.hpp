@@ -36,16 +36,21 @@ constexpr bool NOTDEBUG = true;
 constexpr bool NOTDEBUG = false;
 
 namespace detail {
-    template<typename A>
-    constexpr void
-        Assert(A assertion, std::string_view message, const char* file, const char* function, std::size_t line)
+    template<typename TAssertion>
+    constexpr void Assert(
+        const TAssertion& rAssertion,
+        std::string_view Message,
+        const char* pFile,
+        const char* pFunction,
+        std::size_t Line
+    )
     {
-        if (assertion) return;
+        if (rAssertion) return;
 
         if (std::is_constant_evaluated()) {
-            throw message;
+            throw Message;
         } else {
-            throw Exception(file, function, line) << message;
+            throw Exception(pFile, pFunction, Line) << Message;
         }
     }
 

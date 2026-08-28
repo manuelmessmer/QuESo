@@ -13,314 +13,271 @@
 
 //// External includes
 #include <boost/test/unit_test.hpp>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
+
 //// STL includes
+#include <cstdint>
+#include <fstream>
 #include <string>
+
 //// Project includes
-#include "queso/includes/dictionary_factory.hpp"
+#include "queso/containers/background_grid.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
-#include "queso/containers/untrimmed_element.hpp"
 #include "queso/containers/triangle_mesh.hpp"
-#include "queso/io/io_utilities.h"
-#include "queso/embedding/brep_operator.h"
-#include "queso/utilities/mesh_utilities.h"
+#include "queso/containers/untrimmed_element.hpp"
+#include "queso/embedding/boundary_mesh_embedder.h"
+#include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/embedding/flood_fill.h"
-#include "queso/tests/cpp_tests/class_testers/flood_fill_tester.hpp"
+#include "queso/includes/dictionary_factory.hpp"
+#include "queso/io/io_utilities.h"
+#include "queso/utilities/mesh_utilities.h"
 
-namespace queso {
-namespace Testing{
+namespace queso::Testing {
+namespace {
 
+    using BackgroundGridType = BackgroundGrid<IntegrationPoint, BoundaryIntegrationPoint>;
+    using UntrimmedElementType = BackgroundGridType::UntrimmedElementType;
 
-BOOST_AUTO_TEST_SUITE( Thingi10KTestSuite )
+    struct ActiveCellBuilder
+    {
+        static constexpr BackgroundGridType::ElementFilter Builds = BackgroundGridType::ElementFilter::untrimmed;
 
-BOOST_AUTO_TEST_CASE( STLEmbeddingTest ) {
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+        [[nodiscard]] std::optional<UntrimmedElementType> Build(IndexType CellIndex, const ElementBounds& rBounds)
+        { return UntrimmedElementType(CellIndex + 1, rBounds); }
+    };
 
+    [[nodiscard]] Unique<MainDictionaryType>
+        MakeSettings(const std::string& rFilename, const BoundingBoxType& rBounds, const Vector3i& rNumberOfElements)
+    {
+        auto p_settings = factories::CreateSettings();
+        p_settings->operator[](MainSettings::general_settings).SetValue(GeneralSettings::input_filename, rFilename);
+        auto& r_grid_settings = (*p_settings)[MainSettings::background_grid_settings];
+        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, rBounds.lower);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, rBounds.upper);
+        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, rBounds.lower);
+        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, rBounds.upper);
+        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, rNumberOfElements);
+        r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+        p_settings->CheckRequired();
+        return p_settings;
+    }
+
+    [[nodiscard]] std::vector<std::string> GetFilenames(
+        int ArgumentCount,
+        char** pArguments,
+        IndexType NumberOfElementsMin,
+        IndexType NumberOfElementsMax,
+        std::string_view TestName
+    )
+    {
+        QuESo_ERROR_IF(ArgumentCount != 6)
+            << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
+
+        std::vector<std::string> filenames;
+        filenames.reserve(5000);
+        const std::string option = pArguments[1];
+        if (option == "single") {
+            filenames.emplace_back(pArguments[2]);
+            QuESo_INFO << TestName << " :: Testing single STL: " << filenames.front()
+                       << " with n_min: " << NumberOfElementsMin << ", n_max: " << NumberOfElementsMax << ".\n";
+            return filenames;
+        }
+
+        QuESo_ERROR_IF(option != "small_set" && option != "large_set")
+            << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << option;
+        const std::string list_filename = std::string(pArguments[5]) + "/model_ids_" + option + ".txt";
+        std::ifstream file(list_filename);
+        QuESo_ERROR_IF(!file) << "Could not open model list: " << list_filename << '\n';
+        std::string model_id;
+        while (std::getline(file, model_id)) { filenames.emplace_back(std::string(pArguments[2]) + model_id + ".stl"); }
+        QuESo_INFO << "Testing '" << option << "' containing " << filenames.size()
+                   << " STLs with n_min: " << NumberOfElementsMin << ", n_max: " << NumberOfElementsMax << ".\n";
+        return filenames;
+    }
+
+    struct GridConfiguration
+    {
+        BoundingBoxType bounds;
+        Vector3i number_of_elements;
+    };
+
+    [[nodiscard]] GridConfiguration MakeGridConfiguration(
+        const TriangleMeshView& rMesh,
+        IndexType NumberOfElementsMin,
+        IndexType NumberOfElementsMax
+    )
+    {
+        const auto [lower, upper] = MeshUtilities::BoundingBox(rMesh);
+        const PointType delta = upper - lower;
+        const double cell_size =
+            1.2 * std::min(Math::Max(delta) / NumberOfElementsMax, Math::Min(delta) / NumberOfElementsMin);
+        const PointType grid_lower = lower - 0.1 * delta;
+        Vector3i number_of_elements{};
+        PointType grid_upper{};
+        for (IndexType axis = 0; axis < 3; ++axis) {
+            number_of_elements[axis] = static_cast<IndexType>(std::ceil(1.2 * delta[axis] / cell_size));
+            grid_upper[axis] = grid_lower[axis] + number_of_elements[axis] * cell_size;
+        }
+        return { { grid_lower, grid_upper }, number_of_elements };
+    }
+
+    [[nodiscard]] BackgroundGridType
+        MakeActiveGrid(const MainDictionaryType& rSettings, const embedding::ElementStates& rStates)
+    {
+        BackgroundGridType grid(rSettings);
+        ActiveCellBuilder builder;
+        grid.ReserveElements(
+            std::ranges::count_if(rStates, [](IntersectionState State) { return State != IntersectionState::outside; }),
+            0
+        );
+        for (IndexType cell_index = 0; cell_index < rStates.size(); ++cell_index) {
+            if (rStates[cell_index] == IntersectionState::outside) { continue; }
+            QuESo_ERROR_IF(!grid.MakeElement(builder, cell_index))
+                << "Failed to construct active placeholder for cell " << cell_index << ".\n";
+        }
+        grid.LockElements();
+        return grid;
+    }
+
+}  // namespace
+
+BOOST_AUTO_TEST_SUITE(Thingi10KTestSuite)
+
+BOOST_AUTO_TEST_CASE(STLEmbeddingTest)
+{
     QuESo_INFO << "Testing :: Test Thingi10k :: STL embedding test.\n";
     Timer timer;
+    const auto& r_master_suite = boost::unit_test::framework::master_test_suite();
+    const IndexType number_of_elements_min = static_cast<IndexType>(std::stoi(r_master_suite.argv[3]));
+    const IndexType number_of_elements_max = static_cast<IndexType>(std::stoi(r_master_suite.argv[4]));
+    const auto filenames = GetFilenames(
+        r_master_suite.argc,
+        r_master_suite.argv,
+        number_of_elements_min,
+        number_of_elements_max,
+        "Thingi10KSTLEmbeddingTest"
+    );
 
-    int argc_ = boost::unit_test::framework::master_test_suite().argc;
-    char** argv_ = boost::unit_test::framework::master_test_suite().argv;
+    std::int64_t successful_tests = 0;
+    double max_relative_volume_error = 0.0;
+    double max_relative_area_error = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel for reduction(+ : successful_tests) schedule(dynamic)
+#endif
+    for (std::int64_t raw_file_index = 0; raw_file_index < static_cast<std::int64_t>(filenames.size());
+         ++raw_file_index) {
+        const std::string& r_filename = filenames[static_cast<IndexType>(raw_file_index)];
+        TriangleMesh mesh;
+        IO::ReadMeshFromSTL(mesh, r_filename);
 
-    QuESo_ERROR_IF(argc_ != 6 ) << "Please provide following arguments: -- single/all Filename/Directory n_min n_max\n";
+        const GridConfiguration configuration =
+            MakeGridConfiguration(mesh.View(), number_of_elements_min, number_of_elements_max);
+        auto p_settings = MakeSettings(r_filename, configuration.bounds, configuration.number_of_elements);
+        BackgroundGridType active_grid(*p_settings);
+        const GridIndexer& r_grid_indexer = active_grid.GetGridIndexer();
+        embedding::DomainMeshEmbedder domain_embedder(mesh.View(), r_grid_indexer);
+        const auto states = domain_embedder.Classify();
+        active_grid = MakeActiveGrid(*p_settings, states);
 
-    const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
-    const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
-
-    std::vector<std::string> filenames;
-    filenames.reserve(5000);
-    std::string option = argv_[1];
-    if( option == "single"){
-        filenames.push_back(argv_[2]);
-        QuESo_INFO << "Thingi10KSTLEmbeddingTest :: Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
-            << ", n_max : " << std::to_string(n_max) << ".\n";
-    } else if( option == "small_set" || option == "large_set") {
-        std::string filename = std::string(argv_[5]) + "/model_ids_" + option + ".txt";
-		std::cout << "Filename- " << filename << std::endl;
-        std::ifstream file(filename);
-        std::string buffer;
-        while( std::getline(file, buffer) ){
-            std::string name = argv_[2] +  buffer + ".stl";
-            filenames.push_back( name );
-        }
-        QuESo_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
-            << ", n_max: " << std::to_string(n_max) << ".\n";
-    } else {
-        QuESo_ERROR << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
-    }
-
-    IndexType count = 0;
-    #pragma omp parallel for reduction(+ : count) schedule(dynamic)
-    for( int i = 0; i < static_cast<int>(filenames.size()); ++i ){
-        std::string filename = filenames[i];
-        // Read triangle mesh
-        TriangleMesh triangle_mesh{};
-        IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
-
-        // Get min/max of triangle mesh
-        auto bounding_box_stl = MeshUtilities::BoundingBox(triangle_mesh.View());
-        PointType lower_bound_stl = bounding_box_stl.first;
-        PointType upper_bound_stl = bounding_box_stl.second;
-
-        auto delta_stl = (upper_bound_stl - lower_bound_stl);
-        double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
-
-        PointType lower_bound = (lower_bound_stl - (0.1 * delta_stl));
-
-        Vector3i num_elements;
-        num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));
-        num_elements[1] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[1] / h ));
-        num_elements[2] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[2] / h ));
-
-        PointType upper_bound;
-        upper_bound[0] = lower_bound[0] + num_elements[0]*h;
-        upper_bound[1] = lower_bound[1] + num_elements[1]*h;
-        upper_bound[2] = lower_bound[2] + num_elements[2]*h;
-
-        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-        auto& r_settings = *p_settings;
-
-        r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, num_elements);
-
-        double test_volume = 0.0;
-        double test_area = 0.0;
-
-        const double min_vol_ratio = 0.0;
-        const IndexType min_num_triangles = 10;
-
-        BRepOperator brep_operator(triangle_mesh);
-        FloodFill filler(&brep_operator, r_settings);
-        auto p_states = filler.ClassifyElements();
-        GridIndexer grid_indexer(r_settings);
-        for(IndexType i = 0; i < num_elements[0]; ++i ){
-            for(IndexType j = 0; j < num_elements[1]; ++j ){
-                for(IndexType k = 0; k < num_elements[2]; ++k ){
-                    IndexType index = grid_indexer.GetVectorIndexFromMatrixIndices(i, j, k);
-                    auto box = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
-
-                    const auto bounds_uvw = MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
-                    ElementType element(1, ElementBounds{box, bounds_uvw});
-
-                    auto clipped_mesh = brep_operator.ClipTriangleMeshUnique(box.lower, box.upper );
-                    test_area += MeshUtilities::Area(clipped_mesh.Mesh().View());
-
-                    auto status = brep_operator.GetIntersectionState(element);
-                    if( status != (*p_states)[index] ){
-                        BOOST_CHECK(false);
-                    }
-                    if( status == IntersectionState::trimmed){
-                        // Get trimmed domain
-                        auto p_trimmed_domain = brep_operator.pGetTrimmedDomain(box.lower, box.upper, min_vol_ratio, min_num_triangles);
-                        if( p_trimmed_domain ){
-                            const auto mesh_view = p_trimmed_domain->GetBoundaryMesh();
-                            test_volume += MeshUtilities::Volume(mesh_view);
-                        }
-                    } else if( status == IntersectionState::inside ){
-                        test_volume += (box.upper[0] - box.lower[0])
-                                     * (box.upper[1] - box.lower[1])
-                                     * (box.upper[2] - box.lower[2]);
-                    }
-                }
+        double represented_volume = 0.0;
+        constexpr IndexType minimum_boundary_triangles = 10;
+        for (IndexType cell_index = 0; cell_index < states.size(); ++cell_index) {
+            const BoundingBoxType bounds = r_grid_indexer.GetBoundingBoxXYZFromIndex(cell_index);
+            if (states[cell_index] == IntersectionState::trimmed) {
+                represented_volume += MeshUtilities::Volume(
+                    domain_embedder.MakeTrimmedDomain(cell_index, minimum_boundary_triangles).GetBoundaryMesh()
+                );
+            } else if (states[cell_index] == IntersectionState::inside) {
+                const PointType delta = bounds.upper - bounds.lower;
+                represented_volume += delta[0] * delta[1] * delta[2];
             }
         }
 
-        const double area_ref = MeshUtilities::Area(triangle_mesh.View());
-        const double error_area = std::abs(test_area - area_ref)/area_ref;
+        embedding::BoundaryMeshEmbedder boundary_embedder(mesh.View(), active_grid);
+        double represented_area = 0.0;
+        IndexType consumed_sections = 0;
+        for (const IndexType cell_index : boundary_embedder.GetParentCellIndices()) {
+            auto section = boundary_embedder.TakeBoundarySection(cell_index);
+            represented_area += MeshUtilities::Area(section.View());
+            ++consumed_sections;
+        }
+        const double reference_area = MeshUtilities::Area(mesh.View());
+        const double area_error = std::abs(represented_area - reference_area) / reference_area;
+        const double reference_volume = MeshUtilities::Volume(mesh.View());
+        const double volume_error = std::abs(represented_volume - reference_volume) / reference_volume;
+#ifdef _OPENMP
+#pragma omp critical(thingi10k_error_maximum)
+#endif
+        {
+            max_relative_volume_error = std::max(max_relative_volume_error, volume_error);
+            max_relative_area_error = std::max(max_relative_area_error, area_error);
+        }
 
-        const double volume_ref = MeshUtilities::Volume(triangle_mesh.View());
-        const double error_volume = std::abs( test_volume - volume_ref)/ volume_ref;
-
-        BOOST_CHECK_LT(error_volume, 3e-10);
-        BOOST_CHECK_LT(error_area, 1e-10);
-
-        if( error_volume < 3e-10 && error_area < 1e-10 ){
-            count++;
+        constexpr double volume_tolerance = 1e-8;
+        constexpr double area_tolerance = 1e-10;
+        BOOST_CHECK_LT(volume_error, volume_tolerance);
+        BOOST_CHECK_LT(area_error, area_tolerance);
+        if (volume_error < volume_tolerance && area_error < area_tolerance) {
+            ++successful_tests;
         } else {
-            QuESo_INFO << "Test failed for filename: " << filename << std::endl;
+            QuESo_INFO << "Test failed for filename: " << r_filename << ", volume error: " << volume_error
+                       << ", area error: " << area_error
+                       << ", listed sections: " << boundary_embedder.GetParentCellIndices().size()
+                       << ", consumed sections: " << consumed_sections << '\n';
         }
     }
 
-    QuESo_INFO << "Successfull tests: " << count << '\n';
-    QuESo_INFO << "Elpased time: " << timer.Measure() << " sec\n";
+    QuESo_INFO << "Successful tests: " << successful_tests << '\n';
+    QuESo_INFO << "Maximum relative volume error: " << max_relative_volume_error << '\n';
+    QuESo_INFO << "Maximum relative area error: " << max_relative_area_error << '\n';
+    QuESo_INFO << "Elapsed time: " << timer.Measure() << " sec\n";
 }
 
-BOOST_AUTO_TEST_CASE( ElementClassificationTest ) {
-    typedef IntegrationPoint IntegrationPointType;
-    typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-    typedef UntrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-
+BOOST_AUTO_TEST_CASE(ElementClassificationTest)
+{
     QuESo_INFO << "Testing :: Test Thingi10k :: Element classification.\n";
     Timer timer;
+    const auto& r_master_suite = boost::unit_test::framework::master_test_suite();
+    const IndexType number_of_elements_min = static_cast<IndexType>(std::stoi(r_master_suite.argv[3]));
+    const IndexType number_of_elements_max = static_cast<IndexType>(std::stoi(r_master_suite.argv[4]));
+    const auto filenames = GetFilenames(
+        r_master_suite.argc,
+        r_master_suite.argv,
+        number_of_elements_min,
+        number_of_elements_max,
+        "Thingi10KElementClassificationTest"
+    );
 
-    // This test does not paralize the outer loop, such that FloodFillTester::ClassifyElementsForTest() (inside the loop) can be run locally in parallel.
-    // Therefore, this test is quite slow.
+    IndexType successful_tests = 0;
+    for (const std::string& r_filename : filenames) {
+        TriangleMesh mesh;
+        IO::ReadMeshFromSTL(mesh, r_filename);
+        const GridConfiguration configuration =
+            MakeGridConfiguration(mesh.View(), number_of_elements_min, number_of_elements_max);
+        const auto p_settings = MakeSettings(r_filename, configuration.bounds, configuration.number_of_elements);
+        GridIndexer grid_indexer(*p_settings);
+        embedding::DomainMeshEmbedder domain_embedder(mesh.View(), grid_indexer);
+        const auto states = domain_embedder.Classify();
+        embedding::DomainMeshEmbedder serial_domain_embedder(mesh.View(), grid_indexer);
+        const auto serial_states = serial_domain_embedder.Classify({ .partition_count = 1 });
 
-    int argc_ = boost::unit_test::framework::master_test_suite().argc;
-    char** argv_ = boost::unit_test::framework::master_test_suite().argv;
-
-    QuESo_ERROR_IF(argc_ != 6 ) << "Please provide following arguments: -- single/small_set/large_set Filename/Directory n_min n_max\n";
-
-    const IndexType n_min = static_cast<IndexType>(std::stoi(argv_[3]));
-    const IndexType n_max = static_cast<IndexType>(std::stoi(argv_[4]));
-
-    std::vector<std::string> filenames;
-    filenames.reserve(5000);
-    std::string option = argv_[1];
-    if( option == "single"){
-        filenames.push_back(argv_[2]);
-        QuESo_INFO << "Testing single STL:" + filenames[0] + " with n_min: " << std::to_string(n_min)
-            << ", n_max : " << std::to_string(n_max) << ".\n";
-    } else if( option == "small_set" || option == "large_set") {
-        std::string filename = std::string(argv_[5]) + "/model_ids_" + option + ".txt";
-        std::ifstream file(filename);
-        std::string buffer;
-        while( std::getline(file, buffer) ){
-            std::string name = argv_[2] +  buffer + ".stl";
-            filenames.push_back( name );
+        QuESo_ERROR_IF(states.size() != serial_states.size())
+            << "Classification size mismatch for " << r_filename << ".\n";
+        for (IndexType cell_index = 0; cell_index < states.size(); ++cell_index) {
+            QuESo_ERROR_IF(states[cell_index] != serial_states[cell_index])
+                << "Partition-dependent classification for " << r_filename << " at cell " << cell_index << ".\n";
         }
-        QuESo_INFO << "Testing '" + option + "' containing " + std::to_string(filenames.size()) + " STLs with n_min: " << std::to_string(n_min)
-            << ", n_max : " << std::to_string(n_max) << ".\n";
-    } else {
-        QuESo_ERROR << "First argument must be: 'single', 'small_set', or 'large_set'. Provided: " << argv_[1];
+        ++successful_tests;
     }
 
-
-
-    IndexType count = 0;
-    for( int i = 0; i < static_cast<int>(filenames.size()); ++i ){
-        std::string filename = filenames[i];
-
-        // Read triangle mesh
-        TriangleMesh triangle_mesh{};
-        IO::ReadMeshFromSTL(triangle_mesh, filename.c_str());
-
-        // Get min/max of triangle mesh
-        auto bounding_box_stl = MeshUtilities::BoundingBox(triangle_mesh.View());
-        PointType lower_bound_stl = bounding_box_stl.first;
-        PointType upper_bound_stl = bounding_box_stl.second;
-
-        count++;
-        auto delta_stl = (upper_bound_stl - lower_bound_stl);
-        double h = 1.2*std::min( Math::Max(delta_stl)/n_max, Math::Min(delta_stl)/n_min );
-
-        PointType lower_bound = (0.1 * (lower_bound_stl - delta_stl));
-
-        Vector3i num_elements{};
-        num_elements[0] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[0] / h ));
-        num_elements[1] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[1] / h ));
-        num_elements[2] = static_cast<IndexType>(std::ceil( 1.2* delta_stl[2] / h ));
-
-        PointType upper_bound{};
-        upper_bound[0] = lower_bound[0] + num_elements[0]*h;
-        upper_bound[1] = lower_bound[1] + num_elements[1]*h;
-        upper_bound[2] = lower_bound[2] + num_elements[2]*h;
-
-        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-        auto& r_settings = *p_settings;
-
-        r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, filename);
-        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, lower_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, upper_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, lower_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, upper_bound);
-        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, num_elements);
-
-        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_num_boundary_triangles, 10u);
-        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0);
-
-        BRepOperator brep_operator(triangle_mesh);
-        FloodFillTester filler(&brep_operator, r_settings);
-        auto result = filler.ClassifyElementsForTest();
-
-        auto p_states = std::move(result.first);
-        auto p_groups = std::move(result.second);
-
-        std::pair<Unique<FloodFill::StatusVectorType>, Unique<FloodFill::GroupSetVectorType>> results_single;
-
-        omp_set_num_threads(1);
-        results_single = filler.ClassifyElementsForTest();
-        omp_set_num_threads(omp_get_num_procs());
-        auto p_states_single = std::move(results_single.first);
-        auto p_groups_single = std::move(results_single.second);
-
-        BOOST_CHECK_EQUAL( p_groups->size(), p_groups_single->size() );
-
-        // Sort groups, such that they can be compared. Single-thread and multi-thread does not necessarily
-        // provide groups in same order.
-        std::sort(p_groups->begin(), p_groups->end(), [](auto &rLHs, auto &rRHS) -> bool
-            { if( std::get<1>(rLHs) == std::get<1>(rRHS) ) { return std::get<2>(rLHs) < std::get<2>(rRHS); }
-              else { return std::get<1>(rLHs) < std::get<1>(rRHS); } });
-
-        std::sort(p_groups_single->begin(), p_groups_single->end(), [](auto &rLHs, auto &rRHS) -> bool
-            { if( std::get<1>(rLHs) == std::get<1>(rRHS) ) { return std::get<2>(rLHs) < std::get<2>(rRHS); }
-            else { return std::get<1>(rLHs) < std::get<1>(rRHS); } });
-
-        for( IndexType i = 0; i < p_groups->size(); ++i){
-            auto group_size = std::get<1>((*p_groups)[i]).size();
-            auto group_size_single = std::get<1>((*p_groups_single)[i]).size();
-            BOOST_CHECK_EQUAL(group_size, group_size_single);
-            auto group_inside_count = std::get<2>((*p_groups)[i]);
-            auto group_inside_count_single = std::get<2>((*p_groups_single)[i]);
-            BOOST_CHECK_EQUAL(group_inside_count, group_inside_count_single);
-        }
-
-        GridIndexer grid_indexer(r_settings);
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(num_elements[0]); ++i ){
-            for(IndexType j = 0; j < num_elements[1]; ++j ){
-                for(IndexType k = 0; k < num_elements[2]; ++k ){
-                    IndexType index = grid_indexer.GetVectorIndexFromMatrixIndices(i, j, k);
-                    auto box = grid_indexer.GetBoundingBoxXYZFromIndex(i, j, k);
-
-                    const auto bounds_uvw = MakeBox({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0});
-                    ElementType element(1, ElementBounds{box, bounds_uvw});
-
-                    auto status = brep_operator.GetIntersectionState(element);
-                    // Boost unit test framework throws warning when comparing enum's.
-                    if( status != (*p_states)[index] ){
-                        BOOST_CHECK(false);
-                    }
-                }
-            }
-        }
-    }
-
-    std::cout << "Successfull tests: " << count << std::endl;
-    QuESo_INFO << "Elpased time: " << timer.Measure() << " sec\n";
+    QuESo_INFO << "Successful tests: " << successful_tests << '\n';
+    QuESo_INFO << "Elapsed time: " << timer.Measure() << " sec\n";
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} // End namespace Testing
-} // End namespace queso
+}  // namespace queso::Testing
+

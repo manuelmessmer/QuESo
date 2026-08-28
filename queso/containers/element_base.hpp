@@ -170,15 +170,15 @@ public:
     /// @tparam TSpace Coordinate space of the query bounds.
     /// @param rLowerBound Lower bound of the query box.
     /// @param rUpperBound Upper bound of the query box.
-    /// @param Tolerance Shrink tolerance applied to the query box.
+    /// @param Policy AABB boundary-touching policy.
     /// @return IntersectionStateType
     template<CoordinateSpace TSpace = CoordinateSpace::global>
     [[nodiscard]] IntersectionStateType GetIntersectionState(
         const PointType& rLowerBound,
         const PointType& rUpperBound,
-        double Tolerance = SNAPTOL
+        AabbIntersectionPolicy Policy = AabbIntersectionPolicy::Exact
     ) const
-    { return mDomain.template GetIntersectionState<TSpace>(rLowerBound, rUpperBound, mCore.bounds, Tolerance); }
+    { return mDomain.template GetIntersectionState<TSpace>(rLowerBound, rUpperBound, mCore.bounds, Policy); }
 
     ///@}
 protected:
@@ -190,4 +190,4 @@ protected:
     ///@}
 };
 ///@}
-}// namespace queso
+}  // namespace queso

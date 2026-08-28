@@ -14,16 +14,45 @@
 #pragma once
 
 //// STL includes
+#include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
+#include <limits>
+#include <optional>
 #include <ostream>
 #include <utility>
 
 //// Project includes
 #include "queso/containers/dictionary.hpp"
+#include "queso/containers/geometry_tolerance.hpp"
 #include "queso/includes/define.hpp"
 
 namespace queso {
+
+/// @brief Dense identity of one physical background-grid face.
+struct GridFaceId
+{
+    IndexType value;
+
+    friend bool operator==(const GridFaceId&, const GridFaceId&) = default;
+};
+
+/// @brief Selects an adjacent cell by its position relative to a physical grid face.
+/// @details For an internal face, the positive side is the canonical side under the grid's lower-inclusive,
+///          upper-exclusive convention. An exterior face canonically belongs to its only adjacent cell, regardless
+///          of side.
+enum class GridFaceSide : std::uint8_t { negative, positive };
+
+/// @brief Returns the opposite adjacent side of a physical grid face.
+/// @param Side Side to reverse.
+/// @return Opposite side.
+[[nodiscard]] constexpr GridFaceSide Opposite(GridFaceSide Side) noexcept
+{ return Side == GridFaceSide::negative ? GridFaceSide::positive : GridFaceSide::negative; }
+
+/// @brief Writes a GridFaceSide value to an output stream.
+inline std::ostream& operator<<(std::ostream& rStream, GridFaceSide Side)
+{ return rStream << (Side == GridFaceSide::negative ? "negative" : "positive"); }
 
 ///@name QuESo classes
 ///@{
@@ -47,57 +76,12 @@ public:
     ///@{
 
     /// @brief Constructs the indexer from the background-grid settings.
-    /// @param rSettings
-    explicit GridIndexer(const MainDictionaryType& rSettings)
-        : mBoundXYZ(MakeBox(
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(
-                  BackgroundGridSettings::lower_bound_xyz
-              ),
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(
-                  BackgroundGridSettings::upper_bound_xyz
-              )
-          )),
-          mBoundUVW(MakeBox(
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(
-                  BackgroundGridSettings::lower_bound_uvw
-              ),
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<PointType>(
-                  BackgroundGridSettings::upper_bound_uvw
-              )
-          )),
-          mNumberOfElementsX(
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(
-                  BackgroundGridSettings::number_of_elements
-              )[0]
-          ),
-          mNumberOfElementsY(
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(
-                  BackgroundGridSettings::number_of_elements
-              )[1]
-          ),
-          mNumberOfElementsZ(
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(
-                  BackgroundGridSettings::number_of_elements
-              )[2]
-          ),
-          mNumberOfElementsXY(mNumberOfElementsX * mNumberOfElementsY),
-          mDeltaXYZ(Delta(mBoundXYZ.lower, mBoundXYZ.upper)), mDeltaUVW(Delta(mBoundUVW.lower, mBoundUVW.upper)),
-          mGlobalPartition(
-              std::make_pair(
-                  Vector3i({ 0, 0, 0 }),
-                  Vector3i({ mNumberOfElementsX - 1, mNumberOfElementsY - 1, mNumberOfElementsZ - 1 })
-              )
-          ),
-          mIsBSplineGrid(
-              rSettings[MainSettings::background_grid_settings].GetRequiredValue<GridType>(
-                  BackgroundGridSettings::grid_type
-              )
-              == GridType::b_spline_grid
-          )
+    /// @param rSettings Settings providing grid bounds, element counts, and grid type.
+    explicit GridIndexer(const MainDictionaryType& rSettings) : GridIndexer(ValidateAndExtract(rSettings))
     {}
 
     ///@}
-    ///@name Public Operations
+    ///@name Cell Indexing and Geometry
     ///@{
 
     /// @brief Maps a zero-based linear index to zero-based matrix indices.
@@ -200,6 +184,164 @@ public:
     /// @return IndexType.
     [[nodiscard]] IndexType NumberOfElements() const noexcept
     { return mNumberOfElementsX * mNumberOfElementsY * mNumberOfElementsZ; }
+
+    /// @brief Returns the number of cells along the x, y, and z axes.
+    /// @return Cell counts as {x, y, z}.
+    [[nodiscard]] Vector3i ElementCounts() const noexcept
+    { return { mNumberOfElementsX, mNumberOfElementsY, mNumberOfElementsZ }; }
+
+    ///@}
+    ///@name Face Topology
+    ///@{
+
+    /// @brief Returns the number of physical faces normal to the x, y, and z axes.
+    /// @return Face counts as {x-normal, y-normal, z-normal}.
+    [[nodiscard]] Vector3i FaceCounts() const noexcept
+    {
+        return { (mNumberOfElementsX + 1) * mNumberOfElementsY * mNumberOfElementsZ,
+                 mNumberOfElementsX * (mNumberOfElementsY + 1) * mNumberOfElementsZ,
+                 mNumberOfElementsXY * (mNumberOfElementsZ + 1) };
+    }
+
+    /// @brief Returns the total number of physical grid faces, including exterior faces.
+    /// @return Number of dense face IDs.
+    [[nodiscard]] IndexType NumberOfFaces() const noexcept
+    {
+        const Vector3i counts = FaceCounts();
+        return counts[0] + counts[1] + counts[2];
+    }
+
+    /// @brief Resolves a cell-local direction to one stable physical grid-face identity.
+    /// @details Opposite directions from neighboring cells resolve to the same face. The returned identity contains
+    ///          no state, geometry, activity, or parent assignment.
+    /// @param CellIndex Zero-based adjacent cell index.
+    /// @param FaceDirection Cell-local face direction.
+    /// @return Dense physical face identity.
+    [[nodiscard]] GridFaceId GetFace(IndexType CellIndex, Direction FaceDirection) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(CellIndex < NumberOfElements(), "Cell index is out-of-bounds.");
+        QuESo_ASSERT(FaceDirection != Direction::_end, "Direction::_end is not a physical grid face.");
+
+        const Vector3i indices = GetMatrixIndicesFromVectorIndex(CellIndex);
+        switch (FaceDirection) {
+        case Direction::x_forward:
+            return MakeFaceId(0, indices[0] + 1, indices[1], indices[2]);
+        case Direction::x_backward:
+            return MakeFaceId(0, indices[0], indices[1], indices[2]);
+        case Direction::y_forward:
+            return MakeFaceId(1, indices[0], indices[1] + 1, indices[2]);
+        case Direction::y_backward:
+            return MakeFaceId(1, indices[0], indices[1], indices[2]);
+        case Direction::z_forward:
+            return MakeFaceId(2, indices[0], indices[1], indices[2] + 1);
+        case Direction::z_backward:
+            return MakeFaceId(2, indices[0], indices[1], indices[2]);
+        case Direction::_end:
+            Unreachable("Direction::_end is not a physical grid face.");
+        }
+        Unreachable("Invalid grid-face direction.");
+    }
+
+    /// @brief Returns the cell adjacent to a physical face on the selected side.
+    /// @details Internal faces have cells on both sides. Exterior faces return `std::nullopt` for the side outside
+    ///          the grid. This operation performs topology navigation only and does not consider cell activity.
+    /// @param Face Physical grid face.
+    /// @param Side Negative or positive adjacent side.
+    /// @return Adjacent cell index, or `std::nullopt` when that side lies outside the grid.
+    [[nodiscard]] std::optional<IndexType> GetAdjacentCell(GridFaceId Face, GridFaceSide Side) const noexcept(NOTDEBUG)
+    {
+        const auto [axis, indices] = GetFaceIndices(Face);
+        Vector3i cell_indices = indices;
+        if (Side == GridFaceSide::negative) {
+            if (indices[axis] == 0) { return std::nullopt; }
+            --cell_indices[axis];
+        } else {
+            const Vector3i counts = ElementCounts();
+            if (indices[axis] == counts[axis]) { return std::nullopt; }
+        }
+        return GetVectorIndexFromMatrixIndices(cell_indices);
+    }
+
+    /// @brief Returns which side of a physical face contains the supplied adjacent cell.
+    /// @param Face Physical grid face.
+    /// @param CellIndex Zero-based cell index adjacent to the face.
+    /// @return Negative or positive adjacent side.
+    [[nodiscard]] GridFaceSide GetAdjacentSide(GridFaceId Face, IndexType CellIndex) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(CellIndex < NumberOfElements(), "Cell index is out-of-bounds.");
+        if (GetAdjacentCell(Face, GridFaceSide::negative) == CellIndex) { return GridFaceSide::negative; }
+        QuESo_ASSERT(
+            GetAdjacentCell(Face, GridFaceSide::positive) == CellIndex, "Cell is not adjacent to the physical face."
+        );
+        return GridFaceSide::positive;
+    }
+
+    /// @brief Returns the canonical adjacent cell of a physical grid face.
+    /// @details An internal face canonically selects its positive-side cell. An exterior face canonically selects its
+    ///          only adjacent cell, including a positive exterior face whose cell lies on the negative side. Cell
+    ///          activity does not affect this fixed topology rule.
+    /// @param Face Physical grid face.
+    /// @return Canonical adjacent cell index.
+    [[nodiscard]] IndexType GetCanonicalAdjacentCell(GridFaceId Face) const noexcept(NOTDEBUG)
+    {
+        if (const auto cell = GetAdjacentCell(Face, GridFaceSide::positive)) { return *cell; }
+        const auto cell = GetAdjacentCell(Face, GridFaceSide::negative);
+        QuESo_ASSERT(cell.has_value(), "A physical grid face must have an adjacent cell.");
+        return *cell;
+    }
+
+    /// @brief Returns the coordinate axis normal to a physical grid face.
+    /// @param Face Physical grid face.
+    /// @return Axis in `[0, 3)`.
+    [[nodiscard]] IndexType GetFaceAxis(GridFaceId Face) const noexcept(NOTDEBUG)
+    { return GetFaceIndices(Face).first; }
+
+    /// @brief Returns the exact physical plane coordinate of a grid face.
+    /// @param Face Physical grid face.
+    /// @return Plane coordinate along `GetFaceAxis(Face)`.
+    [[nodiscard]] double GetFaceCoordinate(GridFaceId Face) const noexcept(NOTDEBUG)
+    {
+        const auto [axis, indices] = GetFaceIndices(Face);
+        return mBoundXYZ.lower[axis] + mDeltaXYZ[axis] * static_cast<double>(indices[axis]);
+    }
+
+    ///@}
+    ///@name Spatial Lookup and Bounds
+    ///@{
+
+    /// @brief Returns the unique half-open cell containing a point within the closed grid AABB.
+    /// @details Points on internal planes select the positive-side cell. Points on a positive exterior plane select
+    ///          the last cell because no positive-side cell exists.
+    /// @param rPoint Point within the closed physical grid bounds.
+    /// @return Zero-based containing cell index.
+    [[nodiscard]] IndexType GetContainingCell(PointView rPoint) const noexcept(NOTDEBUG)
+    {
+        const Vector3i counts = ElementCounts();
+        Vector3i indices{};
+        for (IndexType axis = 0; axis < 3; ++axis) {
+            QuESo_ASSERT(
+                rPoint[axis] >= mBoundXYZ.lower[axis] && rPoint[axis] <= mBoundXYZ.upper[axis],
+                "Point is outside the closed background-grid bounds."
+            );
+            const double position = SnapGridPosition((rPoint[axis] - mBoundXYZ.lower[axis]) / mDeltaXYZ[axis]);
+            indices[axis] = std::min(static_cast<IndexType>(std::floor(position)), counts[axis] - 1);
+        }
+        return GetVectorIndexFromMatrixIndices(indices);
+    }
+
+    /// @brief Returns the physical bounds of the complete background grid.
+    /// @return Global-space grid bounds.
+    [[nodiscard]] const BoundingBoxType& BoundsXYZ() const noexcept
+    { return mBoundXYZ; }
+
+    /// @brief Returns the authoritative cell-scale geometry tolerance.
+    /// @return Immutable geometry tolerance resolved from cell size and grid coordinate magnitude.
+    [[nodiscard]] const GeometryTolerance& GetGeometryTolerance() const noexcept
+    { return mGeometryTolerance; }
+
+    ///@}
+    ///@name Traversal
+    ///@{
 
     /// @brief Returns the next linear index in the given traversal direction.
     /// @param Index Current zero-based linear index.
@@ -350,6 +492,154 @@ public:
     ///@}
 
 private:
+    ///@name Configuration
+    ///@{
+
+    /// @brief Validated values extracted from the background-grid settings.
+    struct Configuration
+    {
+        BoundingBoxType bounds_xyz;  ///< Physical grid bounds.
+        BoundingBoxType bounds_uvw;  ///< Parametric grid bounds.
+        Vector3i number_of_elements;  ///< Cell counts along x, y, and z.
+        bool is_b_spline_grid;  ///< Whether UVW bounds are subdivided per cell.
+    };
+
+    /// @brief Initializes the indexer from values extracted and validated by ValidateAndExtract().
+    /// @param rConfiguration Validated grid configuration.
+    explicit GridIndexer(const Configuration& rConfiguration)
+        : mBoundXYZ(rConfiguration.bounds_xyz), mBoundUVW(rConfiguration.bounds_uvw),
+          mNumberOfElementsX(rConfiguration.number_of_elements[0]),
+          mNumberOfElementsY(rConfiguration.number_of_elements[1]),
+          mNumberOfElementsZ(rConfiguration.number_of_elements[2]),
+          mNumberOfElementsXY(mNumberOfElementsX * mNumberOfElementsY),
+          mDeltaXYZ(Delta(mBoundXYZ.lower, mBoundXYZ.upper)), mDeltaUVW(Delta(mBoundUVW.lower, mBoundUVW.upper)),
+          mGeometryTolerance(
+              GeometryTolerance::FromScale(
+                  { .length_scale = std::max({ mDeltaXYZ[0], mDeltaXYZ[1], mDeltaXYZ[2] }),
+                    .coordinate_scale = std::max(
+                        { 1.0,
+                          std::abs(mBoundXYZ.lower[0]),
+                          std::abs(mBoundXYZ.lower[1]),
+                          std::abs(mBoundXYZ.lower[2]),
+                          std::abs(mBoundXYZ.upper[0]),
+                          std::abs(mBoundXYZ.upper[1]),
+                          std::abs(mBoundXYZ.upper[2]) }
+                    ) }
+              )
+          ),
+          mGlobalPartition(
+              std::make_pair(
+                  Vector3i({ 0, 0, 0 }),
+                  Vector3i({ mNumberOfElementsX - 1, mNumberOfElementsY - 1, mNumberOfElementsZ - 1 })
+              )
+          ),
+          mIsBSplineGrid(rConfiguration.is_b_spline_grid)
+    {
+        const double tolerance = mGeometryTolerance.SnapDistance();
+        QuESo_ERROR_IF(
+            mDeltaXYZ[0] <= 2.0 * tolerance || mDeltaXYZ[1] <= 2.0 * tolerance || mDeltaXYZ[2] <= 2.0 * tolerance
+        ) << "Background-grid cells must be larger than twice their geometry snap distance.\n";
+    }
+
+    /// @brief Extracts and validates the settings required to initialize the indexer.
+    /// @param rSettings Background-grid settings.
+    /// @return Validated configuration read exactly once from the settings.
+    [[nodiscard]] static Configuration ValidateAndExtract(const MainDictionaryType& rSettings)
+    {
+        const auto& r_grid_settings = rSettings[MainSettings::background_grid_settings];
+        const Vector3i counts = r_grid_settings.GetRequiredValue<Vector3i>(BackgroundGridSettings::number_of_elements);
+        const PointType lower_xyz =
+            r_grid_settings.GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_xyz);
+        const PointType upper_xyz =
+            r_grid_settings.GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_xyz);
+        const PointType lower_uvw =
+            r_grid_settings.GetRequiredValue<PointType>(BackgroundGridSettings::lower_bound_uvw);
+        const PointType upper_uvw =
+            r_grid_settings.GetRequiredValue<PointType>(BackgroundGridSettings::upper_bound_uvw);
+        const GridType grid_type = r_grid_settings.GetRequiredValue<GridType>(BackgroundGridSettings::grid_type);
+        for (IndexType axis = 0; axis < 3; ++axis) {
+            QuESo_ERROR_IF(counts[axis] == 0)
+                << "Background-grid element counts must be positive. Axis: " << axis << ".\n";
+            QuESo_ERROR_IF(
+                !std::isfinite(lower_xyz[axis]) || !std::isfinite(upper_xyz[axis]) || lower_xyz[axis] >= upper_xyz[axis]
+            ) << "Background-grid XYZ bounds must be finite and strictly increasing. Axis: "
+              << axis << ".\n";
+        }
+        return { .bounds_xyz = MakeBox(lower_xyz, upper_xyz),
+                 .bounds_uvw = MakeBox(lower_uvw, upper_uvw),
+                 .number_of_elements = counts,
+                 .is_b_spline_grid = grid_type == GridType::b_spline_grid };
+    }
+
+    ///@}
+    ///@name Numerical Helpers
+    ///@{
+
+    /// @brief Normalizes a dimensionless grid position affected only by floating-point roundoff.
+    /// @details Values within a machine-epsilon-scale neighborhood of an integer are replaced by that integer. This is
+    ///          not a geometric snapping tolerance.
+    /// @param Position Position measured in cell widths from the grid lower bound.
+    /// @return Position with near-integer roundoff removed.
+    [[nodiscard]] static double SnapGridPosition(double Position) noexcept
+    {
+        const double nearest = std::round(Position);
+        const double tolerance = 16.0 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::abs(Position));
+        return std::abs(Position - nearest) <= tolerance ? nearest : Position;
+    }
+
+    ///@}
+    ///@name Face Indexing Helpers
+    ///@{
+
+    /// @brief Creates a dense physical-face ID from its axis-specific integer coordinates.
+    /// @param Axis Face-normal axis in `[0, 3)`.
+    /// @param X Face-grid x coordinate.
+    /// @param Y Face-grid y coordinate.
+    /// @param Z Face-grid z coordinate.
+    /// @return Dense physical-face identity.
+    [[nodiscard]] GridFaceId MakeFaceId(IndexType Axis, IndexType X, IndexType Y, IndexType Z) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(Axis < 3, "Grid-face axis is out-of-bounds.");
+        const Vector3i face_counts = FaceCounts();
+        if (Axis == 0) {
+            return { Z * (mNumberOfElementsX + 1) * mNumberOfElementsY + Y * (mNumberOfElementsX + 1) + X };
+        }
+        if (Axis == 1) {
+            return { face_counts[0] + Z * mNumberOfElementsX * (mNumberOfElementsY + 1) + Y * mNumberOfElementsX + X };
+        }
+        return { face_counts[0] + face_counts[1] + Z * mNumberOfElementsXY + Y * mNumberOfElementsX + X };
+    }
+
+    /// @brief Decodes a dense physical-face ID into its normal axis and axis-specific integer coordinates.
+    /// @param Face Physical grid-face identity.
+    /// @return Pair containing the normal axis and face-grid coordinates.
+    [[nodiscard]] std::pair<IndexType, Vector3i> GetFaceIndices(GridFaceId Face) const noexcept(NOTDEBUG)
+    {
+        QuESo_ASSERT(Face.value < NumberOfFaces(), "Grid-face ID is out-of-bounds.");
+        const Vector3i face_counts = FaceCounts();
+        if (Face.value < face_counts[0]) {
+            const IndexType plane_size = (mNumberOfElementsX + 1) * mNumberOfElementsY;
+            const IndexType z = Face.value / plane_size;
+            const IndexType in_plane = Face.value - z * plane_size;
+            return { 0, { in_plane % (mNumberOfElementsX + 1), in_plane / (mNumberOfElementsX + 1), z } };
+        }
+        const IndexType y_offset = Face.value - face_counts[0];
+        if (y_offset < face_counts[1]) {
+            const IndexType plane_size = mNumberOfElementsX * (mNumberOfElementsY + 1);
+            const IndexType z = y_offset / plane_size;
+            const IndexType in_plane = y_offset - z * plane_size;
+            return { 1, { in_plane % mNumberOfElementsX, in_plane / mNumberOfElementsX, z } };
+        }
+        const IndexType z_offset = y_offset - face_counts[1];
+        const IndexType z = z_offset / mNumberOfElementsXY;
+        const IndexType in_plane = z_offset - z * mNumberOfElementsXY;
+        return { 2, { in_plane % mNumberOfElementsX, in_plane / mNumberOfElementsX, z } };
+    }
+
+    ///@}
+    ///@name Traversal Helpers
+    ///@{
+
     /// @brief Returns the next index in x-forward traversal order within a partition.
     /// @param i Current zero-based linear index.
     /// @param rPartition Inclusive zero-based partition bounds.
@@ -525,7 +815,17 @@ private:
     [[nodiscard]] bool IsEndZBackward(IndexType i, const PartitionBoxType& rPartition) const noexcept
     { return (i / mNumberOfElementsXY) == rPartition.first[2]; }
 
+    ///@}
+    ///@name Cell Geometry Helpers
+    ///@{
+
     /// @brief Creates a cell bounding box from zero-based matrix indices and a precomputed grid spacing.
+    /// @param RowIndex Zero-based x cell index.
+    /// @param ColumnIndex Zero-based y cell index.
+    /// @param DepthIndex Zero-based z cell index.
+    /// @param rLowerBound Lower bound of the complete grid.
+    /// @param rDelta Cell size along each axis.
+    /// @return Cell bounding box.
     [[nodiscard]] BoundingBoxType GetBoundingBoxFromIndex(
         IndexType RowIndex,
         IndexType ColumnIndex,
@@ -544,6 +844,9 @@ private:
     }
 
     /// @brief Calculates the grid spacing for the configured number of elements.
+    /// @param rLowerBound Lower grid bound.
+    /// @param rUpperBound Upper grid bound.
+    /// @return Cell size along x, y, and z.
     [[nodiscard]] PointType Delta(const PointType& rLowerBound, const PointType& rUpperBound) const noexcept
     {
         return PointType{ std::abs(rUpperBound[0] - rLowerBound[0]) / static_cast<double>(mNumberOfElementsX),
@@ -551,6 +854,7 @@ private:
                           std::abs(rUpperBound[2] - rLowerBound[2]) / static_cast<double>(mNumberOfElementsZ) };
     }
 
+    ///@}
     ///@name Private Members
     ///@{
 
@@ -564,6 +868,8 @@ private:
 
     PointType mDeltaXYZ;
     PointType mDeltaUVW;
+
+    GeometryTolerance mGeometryTolerance;
 
     PartitionBoxType mGlobalPartition;
 

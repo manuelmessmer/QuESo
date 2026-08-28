@@ -11,39 +11,34 @@
 //
 //  Authors:    Manuel Messmer
 
-//// STL includes
-
 //// Project includes
-#include "queso/includes/define.hpp"
-#include "queso/embedding/brep_operator.h"
 #include "queso/embedding/trimmed_domain.h"
-#include "queso/embedding/ray_aabb_primitive.h"
+#include "queso/embedding/ray.h"
+#include "queso/includes/define.hpp"
+#include "queso/utilities/math_utilities.hpp"
 #include "queso/utilities/triangle_utilities.hpp"
 
 namespace queso {
 
-bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const {
+bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint) const
+{
     bool success = true;
     const bool val = IsInsideTrimmedDomain(rPoint, success);
-    if( success ){
-        return val;
-    }
-    return mpBrepOperatorGlobal->IsInside(rPoint); // This test is more costly, but also more precise.
+    return success && val;
 }
 
-bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const {
+bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const
+{
 
     const IndexType num_triangles = mClippedMesh.NumOfTriangles();
-    if( num_triangles == 0){
-        return true;
-    }
+    if (num_triangles == 0) { return true; }
     rSuccess = true;
     bool success_local = false;
     bool is_inside = false;
     IndexType current_id = 0;
-    while( !success_local ){
+    while (!success_local) {
         // Return false if all triangles are tested, but non valid (all are parallel or on_boundary)
-        if( current_id >= num_triangles ){
+        if (current_id >= num_triangles) {
             rSuccess = false;
             return false;
         }
@@ -53,50 +48,33 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
         const auto center_triangle = TriangleUtilities::Center(triangle);
         Vector3d direction = center_triangle - rPoint;
 
-        // Normalize
-        double norm_direction = Math::Norm( direction );
-        direction /= norm_direction;
+        if (Math::SquaredNorm(direction) <= mGeometryTolerance.ZeroLength() * mGeometryTolerance.ZeroLength()) {
+            ++current_id;
+            continue;
+        }
 
         // Construct ray
-        Ray_AABB_primitive ray(rPoint, direction);
+        embedding::Ray ray(rPoint, direction);
 
-        // Get vertices of current triangle
-        // Make sure target triangle is not parallel and has a significant area.
-        const double area = TriangleUtilities::Area(triangle);
-        if( !ray.is_parallel(triangle.P1, triangle.P2, triangle.P3, 100.0*mSnapTolerance) && area >  100*ZEROTOL) {
-            std::tie(is_inside, success_local) = mGeometryQuery.IsInside(ray);
+        // Make sure the target triangle is not parallel or degenerate.
+        if (!ray.IsParallel(triangle)) {
+            const auto classification = mMeshQuery.Classify(ray);
+            is_inside = classification.is_inside;
+            success_local = classification.is_conclusive;
         }
         current_id++;
     }
     return is_inside;
 }
 
-BoundingBoxType TrimmedDomain::GetBoundingBoxOfTrimmedDomain() const {
-    // Initialize bounding box
-    BoundingBoxType bounding_box = { {MAXD, MAXD, MAXD},
-                                     {LOWESTD, LOWESTD, LOWESTD} };
-
-    // Loop over all vertices
-    const auto vertices = mClosedMesh.Vertices();
-    for( auto& v : vertices ){
-        // Loop over all 3 dimensions
-        for( IndexType i = 0; i < 3; ++i){
-            if( v[i] < bounding_box.lower[i] ){ // Find min values
-                bounding_box.lower[i] = v[i];
-            }
-            if( v[i] > bounding_box.upper[i] ){ // Find max values
-                bounding_box.upper[i] = v[i];
-            }
-        }
-    }
-
-    return bounding_box;
-}
-
 IntersectionStateType TrimmedDomain::GetIntersectionState(
-        const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance) const
+    const PointType& rLowerBound,
+    const PointType& rUpperBound,
+    AabbIntersectionPolicy Policy
+) const
 {
-    if( mGeometryQuery.DoIntersect(rLowerBound, rUpperBound, Tolerance) ){
+    const auto candidate_ids = mMeshQuery.GetAabbCandidates(rLowerBound, rUpperBound);
+    if (mMeshQuery.IntersectsAabb(candidate_ids, rLowerBound, rUpperBound, Policy)) {
         return IntersectionState::trimmed;
     }
 
@@ -108,4 +86,4 @@ IntersectionStateType TrimmedDomain::GetIntersectionState(
     return status;
 }
 
-} // End namespace queso
+}  // End namespace queso

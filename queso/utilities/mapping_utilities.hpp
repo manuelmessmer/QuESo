@@ -20,6 +20,7 @@
 #include "queso/containers/element_core.hpp"
 #include "queso/containers/integration_point_concepts.hpp"
 #include "queso/includes/define.hpp"
+#include "queso/includes/numerical_guards.hpp"
 #include "queso/utilities/math_utilities.hpp"
 
 namespace queso::mapping {
@@ -33,9 +34,9 @@ namespace detail {
     [[nodiscard]] inline Vector3d
         ComputeScale(const BoundingBoxType& rFrom, const BoundingBoxType& rTo) noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(std::abs(rFrom.upper[0] - rFrom.lower[0]) > ZEROTOL, "Degenerate bounding box.");
-        QuESo_ASSERT(std::abs(rFrom.upper[1] - rFrom.lower[1]) > ZEROTOL, "Degenerate bounding box.");
-        QuESo_ASSERT(std::abs(rFrom.upper[2] - rFrom.lower[2]) > ZEROTOL, "Degenerate bounding box.");
+        QuESo_ASSERT(numerical_guards::IsSafeDivisor(rFrom.upper[0] - rFrom.lower[0]), "Degenerate bounding box.");
+        QuESo_ASSERT(numerical_guards::IsSafeDivisor(rFrom.upper[1] - rFrom.lower[1]), "Degenerate bounding box.");
+        QuESo_ASSERT(numerical_guards::IsSafeDivisor(rFrom.upper[2] - rFrom.lower[2]), "Degenerate bounding box.");
         return { std::abs(rTo.upper[0] - rTo.lower[0]) / std::abs(rFrom.upper[0] - rFrom.lower[0]),
                  std::abs(rTo.upper[1] - rTo.lower[1]) / std::abs(rFrom.upper[1] - rFrom.lower[1]),
                  std::abs(rTo.upper[2] - rTo.lower[2]) / std::abs(rFrom.upper[2] - rFrom.lower[2]) };
@@ -60,7 +61,7 @@ namespace detail {
     {
         auto transformed = TransformAreaVector(rNormal, rScale);
         const double norm = Math::Norm(transformed);
-        if (norm > ZEROTOL) {
+        if (numerical_guards::IsSafeDivisor(norm)) {
             transformed *= 1.0 / norm;
         } else {
             transformed = { 0.0, 0.0, 0.0 };
@@ -68,7 +69,7 @@ namespace detail {
         return { transformed, norm };
     }
 
-}// namespace detail
+}  // namespace detail
 
 /// @brief Maps a point from global to parametric space using element-local bounds.
 /// @param rPoint Point in global coordinates.
@@ -167,4 +168,4 @@ template<concepts::BoundaryIntegrationPoint TBoundaryIp>
     return TBoundaryIp(ToGlobal(rIp.Point(), rBounds), rIp.Weight() * area_scale, normal);
 }
 
-}// namespace queso::mapping
+}  // namespace queso::mapping
