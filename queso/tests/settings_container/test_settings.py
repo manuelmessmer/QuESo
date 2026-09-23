@@ -1,7 +1,7 @@
 # Project imports
-import QuESoPythonModule as QuESo
-from QuESoPythonModule.scripts.json_io import JsonIO
-from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
+import pyqueso
+from pyqueso.scripts.json_io import JsonIO
+from pyqueso.scripts.queso_unit_test import QuESoTestCase
 
 # External imports
 import unittest
@@ -12,76 +12,76 @@ class TestSettingsContainer(QuESoTestCase):
         # Check general_settings
         general_settings = settings["general_settings"]
 
-        self.assertTrue(general_settings.IsSet("input_filename"))
-        input_filename = general_settings.GetString("input_filename")
+        self.assertTrue(general_settings.is_set("input_filename"))
+        input_filename = general_settings.get_string("input_filename")
         self.assertEqual(input_filename, "dummy.stl")
 
-        self.assertTrue(general_settings.IsSet("output_directory_name"))
-        output_directory_name = general_settings.GetString("output_directory_name")
+        self.assertTrue(general_settings.is_set("output_directory_name"))
+        output_directory_name = general_settings.get_string("output_directory_name")
         self.assertEqual(output_directory_name, "new_output")
 
-        self.assertTrue(general_settings.IsSet("echo_level"))
-        echo_level = general_settings.GetInt("echo_level")
+        self.assertTrue(general_settings.is_set("echo_level"))
+        echo_level = general_settings.get_int("echo_level")
         self.assertEqual(echo_level, 2)
 
-        self.assertTrue(general_settings.IsSet("write_output_to_file"))
-        write_output_to_file = general_settings.GetBool("write_output_to_file")
+        self.assertTrue(general_settings.is_set("write_output_to_file"))
+        write_output_to_file = general_settings.get_bool("write_output_to_file")
         self.assertFalse(write_output_to_file)
 
         # Check background_grid_settings
         background_grid_settings = settings["background_grid_settings"]
 
-        self.assertTrue(background_grid_settings.IsSet("grid_type"))
-        grid_type = background_grid_settings.GetGridType("grid_type")
-        self.assertEqual(grid_type, QuESo.GridType.b_spline_grid) # type: ignore (TODO: add .pyi)
+        self.assertTrue(background_grid_settings.is_set("grid_type"))
+        grid_type = background_grid_settings.get_grid_type("grid_type")
+        self.assertEqual(grid_type, pyqueso.GridType.B_SPLINE_GRID)
 
-        self.assertTrue(background_grid_settings.IsSet("lower_bound_xyz"))
-        lower_bound_xyz = background_grid_settings.GetDoubleVector("lower_bound_xyz")
+        self.assertTrue(background_grid_settings.is_set("lower_bound_xyz"))
+        lower_bound_xyz = background_grid_settings.get_double_vector("lower_bound_xyz")
         self.assertListsAlmostEqual(lower_bound_xyz, [-130, -110, -110], 8 )
 
-        self.assertTrue(background_grid_settings.IsSet("upper_bound_xyz"))
-        upper_bound_xyz = background_grid_settings.GetDoubleVector("upper_bound_xyz")
+        self.assertTrue(background_grid_settings.is_set("upper_bound_xyz"))
+        upper_bound_xyz = background_grid_settings.get_double_vector("upper_bound_xyz")
         self.assertListsAlmostEqual(upper_bound_xyz, [20, 190, 190], 8 )
 
-        self.assertTrue(background_grid_settings.IsSet("lower_bound_uvw"))
-        lower_bound_uvw = background_grid_settings.GetDoubleVector("lower_bound_uvw")
+        self.assertTrue(background_grid_settings.is_set("lower_bound_uvw"))
+        lower_bound_uvw = background_grid_settings.get_double_vector("lower_bound_uvw")
         self.assertListsAlmostEqual(lower_bound_uvw, [1.23, 3.334, 5.66], 8 )
 
-        self.assertTrue(background_grid_settings.IsSet("upper_bound_uvw"))
-        upper_bound_uvw = background_grid_settings.GetDoubleVector("upper_bound_uvw")
+        self.assertTrue(background_grid_settings.is_set("upper_bound_uvw"))
+        upper_bound_uvw = background_grid_settings.get_double_vector("upper_bound_uvw")
         self.assertListsAlmostEqual(upper_bound_uvw, [4.4, 5.5, 2.2], 8 )
 
-        self.assertTrue(background_grid_settings.IsSet("polynomial_order"))
-        polynomial_order = background_grid_settings.GetIntVector("polynomial_order")
+        self.assertTrue(background_grid_settings.is_set("polynomial_order"))
+        polynomial_order = background_grid_settings.get_int_vector("polynomial_order")
         self.assertListsEqual(polynomial_order, [2, 3, 2] )
 
-        self.assertTrue(background_grid_settings.IsSet("number_of_elements"))
-        number_of_elements = background_grid_settings.GetIntVector("number_of_elements")
+        self.assertTrue(background_grid_settings.is_set("number_of_elements"))
+        number_of_elements = background_grid_settings.get_int_vector("number_of_elements")
         self.assertListsEqual(number_of_elements, [5, 2, 13] )
 
         # Check trimmed_quadrature_rule_settings
         trimmed_quadrature_rule_settings = settings["trimmed_quadrature_rule_settings"]
 
-        self.assertTrue(trimmed_quadrature_rule_settings.IsSet("moment_fitting_residual"))
-        moment_fitting_residual = trimmed_quadrature_rule_settings.GetDouble("moment_fitting_residual")
+        self.assertTrue(trimmed_quadrature_rule_settings.is_set("moment_fitting_residual"))
+        moment_fitting_residual = trimmed_quadrature_rule_settings.get_double("moment_fitting_residual")
         self.assertAlmostEqual(moment_fitting_residual, 0.0023, 8)
 
-        self.assertTrue(trimmed_quadrature_rule_settings.IsSet("min_element_volume_ratio"))
-        min_element_volume_ratio = trimmed_quadrature_rule_settings.GetDouble("min_element_volume_ratio")
+        self.assertTrue(trimmed_quadrature_rule_settings.is_set("min_element_volume_ratio"))
+        min_element_volume_ratio = trimmed_quadrature_rule_settings.get_double("min_element_volume_ratio")
         self.assertAlmostEqual(min_element_volume_ratio, 0.012, 8)
 
-        self.assertTrue(trimmed_quadrature_rule_settings.IsSet("min_num_boundary_triangles"))
-        min_num_boundary_triangles = trimmed_quadrature_rule_settings.GetInt("min_num_boundary_triangles")
+        self.assertTrue(trimmed_quadrature_rule_settings.is_set("min_num_boundary_triangles"))
+        min_num_boundary_triangles = trimmed_quadrature_rule_settings.get_int("min_num_boundary_triangles")
         self.assertEqual(min_num_boundary_triangles, 233)
 
         # Check non_trimmed_quadrature_rule_settings
         non_trimmed_quadrature_rule_settings = settings["non_trimmed_quadrature_rule_settings"]
 
-        self.assertTrue(non_trimmed_quadrature_rule_settings.IsSet("integration_method"))
-        integration_method = non_trimmed_quadrature_rule_settings.GetIntegrationMethod("integration_method")
-        self.assertEqual(integration_method, QuESo.IntegrationMethod.GGQ_Optimal) # type: ignore (TODO: add .pyi)
+        self.assertTrue(non_trimmed_quadrature_rule_settings.is_set("integration_method"))
+        integration_method = non_trimmed_quadrature_rule_settings.get_integration_method("integration_method")
+        self.assertEqual(integration_method, pyqueso.IntegrationMethod.GGQ_OPTIMAL)
 
-        conditions_settings_list = settings.GetList("conditions_settings_list")
+        conditions_settings_list = settings.get_list("conditions_settings_list")
         self.assertEqual(len(conditions_settings_list), 4)
 
         ref_condition_settings = {
@@ -131,105 +131,105 @@ class TestSettingsContainer(QuESoTestCase):
 
     def check_condition_customized_values(self, ref_settings, settings):
         if ref_settings["condition_id"] == "Not set":
-            self.assertFalse(settings.IsSet("condition_id"))
+            self.assertFalse(settings.is_set("condition_id"))
         else:
-            self.assertTrue(settings.IsSet("condition_id"))
-            self.assertEqual(ref_settings["condition_id"], settings.GetInt("condition_id") )
+            self.assertTrue(settings.is_set("condition_id"))
+            self.assertEqual(ref_settings["condition_id"], settings.get_int("condition_id") )
 
         if ref_settings["condition_type"] == "Not set":
-            self.assertFalse(settings.IsSet("condition_type"))
+            self.assertFalse(settings.is_set("condition_type"))
         else:
-            self.assertTrue(settings.IsSet("condition_type"))
-            self.assertEqual(ref_settings["condition_type"], settings.GetString("condition_type") )
+            self.assertTrue(settings.is_set("condition_type"))
+            self.assertEqual(ref_settings["condition_type"], settings.get_string("condition_type") )
 
         if ref_settings["input_filename"] == "Not set":
-            self.assertFalse(settings.IsSet("input_filename"))
+            self.assertFalse(settings.is_set("input_filename"))
         else:
-            self.assertTrue(settings.IsSet("input_filename"))
-            self.assertEqual(ref_settings["input_filename"], settings.GetString("input_filename") )
+            self.assertTrue(settings.is_set("input_filename"))
+            self.assertEqual(ref_settings["input_filename"], settings.get_string("input_filename") )
 
         if ref_settings["modulus"] == "Not set":
-                self.assertFalse(settings.IsSet("modulus"))
+                self.assertFalse(settings.is_set("modulus"))
         else:
-            self.assertTrue(settings.IsSet("modulus"))
-            self.assertAlmostEqual(ref_settings["modulus"], settings.GetDouble("modulus"), 8 )
+            self.assertTrue(settings.is_set("modulus"))
+            self.assertAlmostEqual(ref_settings["modulus"], settings.get_double("modulus"), 8 )
 
         if ref_settings["direction"] == "Not set":
-            self.assertFalse(settings.IsSet("direction"))
+            self.assertFalse(settings.is_set("direction"))
         else:
-            self.assertTrue(settings.IsSet("direction"))
-            self.assertListsAlmostEqual(ref_settings["direction"], settings.GetDoubleVector("direction"), 8 )
+            self.assertTrue(settings.is_set("direction"))
+            self.assertListsAlmostEqual(ref_settings["direction"], settings.get_double_vector("direction"), 8 )
 
         if ref_settings["value"] == "Not set":
-            self.assertFalse(settings.IsSet("value"))
+            self.assertFalse(settings.is_set("value"))
         else:
-            self.assertTrue(settings.IsSet("value"))
-            self.assertListsAlmostEqual(ref_settings["value"], settings.GetDoubleVector("value"), 8 )
+            self.assertTrue(settings.is_set("value"))
+            self.assertListsAlmostEqual(ref_settings["value"], settings.get_double_vector("value"), 8 )
 
         if ref_settings["penalty_factor"] == "Not set":
-            self.assertFalse(settings.IsSet("penalty_factor"))
+            self.assertFalse(settings.is_set("penalty_factor"))
         else:
-            self.assertTrue(settings.IsSet("penalty_factor"))
-            self.assertAlmostEqual(ref_settings["penalty_factor"], settings.GetDouble("penalty_factor"), 8 )
+            self.assertTrue(settings.is_set("penalty_factor"))
+            self.assertAlmostEqual(ref_settings["penalty_factor"], settings.get_double("penalty_factor"), 8 )
 
     def check_default_values(self, settings):
         # Check general_settings
         general_settings = settings["general_settings"]
 
-        self.assertFalse(general_settings.IsSet("input_filename"))
+        self.assertFalse(general_settings.is_set("input_filename"))
 
-        self.assertTrue(general_settings.IsSet("output_directory_name"))
-        output_directory_name = general_settings.GetString("output_directory_name")
+        self.assertTrue(general_settings.is_set("output_directory_name"))
+        output_directory_name = general_settings.get_string("output_directory_name")
         self.assertEqual(output_directory_name, "queso_output")
 
-        self.assertTrue(general_settings.IsSet("echo_level"))
-        echo_level = general_settings.GetInt("echo_level")
+        self.assertTrue(general_settings.is_set("echo_level"))
+        echo_level = general_settings.get_int("echo_level")
         self.assertEqual(echo_level, 1)
 
-        self.assertTrue(general_settings.IsSet("write_output_to_file"))
-        write_output_to_file = general_settings.GetBool("write_output_to_file")
+        self.assertTrue(general_settings.is_set("write_output_to_file"))
+        write_output_to_file = general_settings.get_bool("write_output_to_file")
         self.assertTrue(write_output_to_file)
 
         # Check background_grid_settings
         background_grid_settings = settings["background_grid_settings"]
 
-        self.assertFalse(background_grid_settings.IsSet("grid_type"))
+        self.assertFalse(background_grid_settings.is_set("grid_type"))
 
-        self.assertFalse(background_grid_settings.IsSet("lower_bound_xyz"))
+        self.assertFalse(background_grid_settings.is_set("lower_bound_xyz"))
 
-        self.assertFalse(background_grid_settings.IsSet("upper_bound_xyz"))
+        self.assertFalse(background_grid_settings.is_set("upper_bound_xyz"))
 
-        self.assertFalse(background_grid_settings.IsSet("lower_bound_uvw"))
+        self.assertFalse(background_grid_settings.is_set("lower_bound_uvw"))
 
-        self.assertFalse(background_grid_settings.IsSet("upper_bound_uvw"))
+        self.assertFalse(background_grid_settings.is_set("upper_bound_uvw"))
 
-        self.assertFalse(background_grid_settings.IsSet("polynomial_order"))
+        self.assertFalse(background_grid_settings.is_set("polynomial_order"))
 
-        self.assertFalse(background_grid_settings.IsSet("number_of_elements"))
+        self.assertFalse(background_grid_settings.is_set("number_of_elements"))
 
         # Check trimmed_quadrature_rule_settings
         trimmed_quadrature_rule_settings = settings["trimmed_quadrature_rule_settings"]
 
-        self.assertTrue(trimmed_quadrature_rule_settings.IsSet("moment_fitting_residual"))
-        moment_fitting_residual = trimmed_quadrature_rule_settings.GetDouble("moment_fitting_residual")
+        self.assertTrue(trimmed_quadrature_rule_settings.is_set("moment_fitting_residual"))
+        moment_fitting_residual = trimmed_quadrature_rule_settings.get_double("moment_fitting_residual")
         self.assertAlmostEqual(moment_fitting_residual, 1e-10, 12)
 
-        self.assertTrue(trimmed_quadrature_rule_settings.IsSet("min_element_volume_ratio"))
-        min_element_volume_ratio = trimmed_quadrature_rule_settings.GetDouble("min_element_volume_ratio")
+        self.assertTrue(trimmed_quadrature_rule_settings.is_set("min_element_volume_ratio"))
+        min_element_volume_ratio = trimmed_quadrature_rule_settings.get_double("min_element_volume_ratio")
         self.assertAlmostEqual(min_element_volume_ratio, 0.001, 8)
 
-        self.assertTrue(trimmed_quadrature_rule_settings.IsSet("min_num_boundary_triangles"))
-        min_num_boundary_triangles = trimmed_quadrature_rule_settings.GetInt("min_num_boundary_triangles")
+        self.assertTrue(trimmed_quadrature_rule_settings.is_set("min_num_boundary_triangles"))
+        min_num_boundary_triangles = trimmed_quadrature_rule_settings.get_int("min_num_boundary_triangles")
         self.assertEqual(min_num_boundary_triangles, 100)
 
         # Check non_trimmed_quadrature_rule_settings
         non_trimmed_quadrature_rule_settings = settings["non_trimmed_quadrature_rule_settings"]
 
-        self.assertTrue(non_trimmed_quadrature_rule_settings.IsSet("integration_method"))
-        integration_method = non_trimmed_quadrature_rule_settings.GetIntegrationMethod("integration_method")
-        self.assertEqual(integration_method, QuESo.IntegrationMethod.Gauss) # type: ignore (TODO: add .pyi)
+        self.assertTrue(non_trimmed_quadrature_rule_settings.is_set("integration_method"))
+        integration_method = non_trimmed_quadrature_rule_settings.get_integration_method("integration_method")
+        self.assertEqual(integration_method, pyqueso.IntegrationMethod.GAUSS)
 
-        conditions_settings_list = settings.GetList("conditions_settings_list")
+        conditions_settings_list = settings.get_list("conditions_settings_list")
         self.assertEqual(len(conditions_settings_list), 4)
 
         for i, condition_setting in enumerate(conditions_settings_list):
@@ -237,38 +237,38 @@ class TestSettingsContainer(QuESoTestCase):
             self.check_condition_default_values(conditions_settings_list[i])
 
     def check_condition_default_values(self, settings):
-        self.assertFalse(settings.IsSet("condition_id"))
-        self.assertFalse(settings.IsSet("condition_type"))
-        self.assertFalse(settings.IsSet("input_filename"))
-        self.assertFalse(settings.IsSet("modulus"))
-        self.assertFalse(settings.IsSet("direction"))
-        self.assertFalse(settings.IsSet("value"))
-        self.assertFalse(settings.IsSet("penalty_factor"))
+        self.assertFalse(settings.is_set("condition_id"))
+        self.assertFalse(settings.is_set("condition_type"))
+        self.assertFalse(settings.is_set("input_filename"))
+        self.assertFalse(settings.is_set("modulus"))
+        self.assertFalse(settings.is_set("direction"))
+        self.assertFalse(settings.is_set("value"))
+        self.assertFalse(settings.is_set("penalty_factor"))
 
     def test_customized_values(self):
         settings_holder = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_1.json")
-        settings = settings_holder.GetObject()
+        settings = settings_holder.dictionary
         self.check_customized_values(settings)
 
         JsonIO.write_settings(settings, self.new_file_name_1)
         settings_holder_new = JsonIO.read_settings(self.new_file_name_1)
-        settings_new = settings_holder_new.GetObject()
+        settings_new = settings_holder_new.dictionary
         self.check_customized_values(settings_new)
         os.remove(self.new_file_name_1)
 
         settings_holder2 = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_custom_2.json")
-        settings2 = settings_holder2.GetObject()
+        settings2 = settings_holder2.dictionary
         self.check_customized_values(settings2)
 
         JsonIO.write_settings(settings2, self.new_file_name_2)
         settings_holder2_new = JsonIO.read_settings(self.new_file_name_2)
-        settings2_new = settings_holder2_new.GetObject()
+        settings2_new = settings_holder2_new.dictionary
         self.check_customized_values(settings2_new)
         os.remove(self.new_file_name_2)
 
     def test_default_values(self):
         settings_holder = JsonIO.read_settings("queso/tests/settings_container/QuESoSettings_default.json")
-        settings = settings_holder.GetObject()
+        settings = settings_holder.dictionary
         self.check_default_values(settings)
 
     def setUp(self):
@@ -285,4 +285,3 @@ class TestSettingsContainer(QuESoTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -1,8 +1,8 @@
 import numpy as np
 from typing import List, Tuple
 # Import QuESo
-import QuESoPythonModule as QuESo
-from QuESoPythonModule.scripts.helper import *
+import pyqueso
+from pyqueso.scripts.helper import *
 # Import Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
@@ -17,7 +17,7 @@ class WeakBcsBase():
     Derived classes must override `apply()`.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bcs_triangles: pyqueso.mesh.TriangleMesh,
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D]
         ) -> None:
@@ -58,7 +58,7 @@ class PenaltySupport(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bcs_triangles: pyqueso.mesh.TriangleMesh,
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
             prescribed: Tuple[float, float, float],
@@ -89,7 +89,7 @@ class PenaltySupport(WeakBcsBase):
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
         kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
 
-        for tri in self.bcs_triangles.Triangles():
+        for tri in self.bcs_triangles.triangles():
             # Map triangle points to parametric space
             params = [
                 point_from_global_to_param_space(tri.p1, self.bounds_xyz, self.bounds_uvw),
@@ -97,7 +97,7 @@ class PenaltySupport(WeakBcsBase):
                 point_from_global_to_param_space(tri.p3, self.bounds_xyz, self.bounds_uvw),
             ]
 
-            if tri.AspectRatio() >= 1e8:
+            if tri.aspect_ratio() >= 1e8:
                 continue  # Skip badly shaped triangles
 
             # Create triangle geometry
@@ -127,7 +127,7 @@ class LagrangeSupport(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bcs_triangles: pyqueso.mesh.TriangleMesh,
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
             prescribed: Tuple[float, float, float]
@@ -155,7 +155,7 @@ class LagrangeSupport(WeakBcsBase):
         kratos_prescribed = KM.Vector(self.prescribed)
 
         # Iterate over all triangles
-        for tri in self.bcs_triangles.Triangles():
+        for tri in self.bcs_triangles.triangles():
             # Map triangle vertices to parametric space
             params = [
                 point_from_global_to_param_space(tri.p1, self.bounds_xyz, self.bounds_uvw),
@@ -164,7 +164,7 @@ class LagrangeSupport(WeakBcsBase):
             ]
 
             # Skip bad quality triangles
-            if tri.AspectRatio() >= 1e8:
+            if tri.aspect_ratio() >= 1e8:
                 continue
 
             # Create triangle geometry
@@ -195,7 +195,7 @@ class SurfaceLoad(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bcs_triangles: pyqueso.mesh.TriangleMesh,
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
             modulus: float,
@@ -229,9 +229,9 @@ class SurfaceLoad(WeakBcsBase):
         properties = model_part.GetProperties()[1]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        for tri in self.bcs_triangles.Triangles():
+        for tri in self.bcs_triangles.triangles():
             #Get points in physical space.
-            points = tri.GetIPsGlobal(1)
+            points = tri.integration_points_global(1)
 
             #Create kratos condition on each point.
             for point in points:
@@ -266,7 +266,7 @@ class PressureLoad(WeakBcsBase):
     Derived from WeakBcsBase.
     """
     def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            bcs_triangles: pyqueso.mesh.TriangleMesh,
             bounds_xyz: Tuple[Point3D, Point3D],
             bounds_uvw: Tuple[Point3D, Point3D],
             modulus: float
@@ -292,9 +292,9 @@ class PressureLoad(WeakBcsBase):
         properties = model_part.GetProperties()[1]
         nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-        for tri in self.bcs_triangles.Triangles():
+        for tri in self.bcs_triangles.triangles():
             #Get points in physical space.
-            points = tri.GetIPsGlobal(1)
+            points = tri.integration_points_global(1)
 
             #Create kratos condition on each point.
             for point in points:

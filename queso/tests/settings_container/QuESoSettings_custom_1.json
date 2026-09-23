@@ -8,7 +8,6 @@
     "background_grid_settings"     : {
         "grid_type" : "b_spline_grid",
         "lower_bound_xyz": [-130.0, -110.0, -110.0],
-        "lower_bound_xyz": [-130.0, -110.0, -110.0],
         "upper_bound_xyz": [20.0, 190.0, 190.0],
         "lower_bound_uvw": [1.23, 3.334, 5.66],
         "upper_bound_uvw": [4.4, 5.5, 2.2],

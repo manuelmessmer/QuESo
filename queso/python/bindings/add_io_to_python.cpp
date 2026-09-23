@@ -17,22 +17,28 @@
 /// To export
 #include "queso/io/io_utilities.h"
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
 namespace py = pybind11;
 
-void AddIoToPython(pybind11::module& m) {
+void AddIoToPython(pybind11::module& m)
+{
     using DictionaryType = Dictionary<key::MainValuesTypeTag>;
 
-    /// Export IoUtilities
-    py::class_<IO>(m,"IO")
-        .def_static("ReadMeshFromSTL", &IO::ReadMeshFromSTL)
-        .def_static("WriteDictionaryToJSON", &IO::WriteDictionaryToJSON<DictionaryType>)
-    ;
+    m.def(
+        "read_mesh_from_stl",
+        &IO::ReadMeshFromSTL,
+        py::arg("mesh"),
+        py::arg("filename"),
+        "Read an STL file into a mutable triangle mesh."
+    );
+    m.def(
+        "write_dictionary_to_json",
+        &IO::WriteDictionaryToJSON<DictionaryType>,
+        py::arg("dictionary"),
+        py::arg("filename"),
+        "Write a dictionary to a JSON file."
+    );
+}
 
-} // End AddIoToPython
-
-} // End namespace Python
-} // End namespace queso
-
+}  // namespace queso::python

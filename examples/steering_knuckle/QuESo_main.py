@@ -1,9 +1,9 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+import pyqueso
 
 def main():
-    pyqueso = PyQuESo("QuESoSettings.json")
-    pyqueso.Run()
+    model = pyqueso.Model(json_filename="QuESoSettings.json")
+    model.create()
 
 if __name__ == "__main__":
     main()

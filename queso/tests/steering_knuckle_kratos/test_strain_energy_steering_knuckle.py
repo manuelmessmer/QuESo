@@ -1,6 +1,6 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
-from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
+import pyqueso
+from pyqueso.scripts.queso_unit_test import QuESoTestCase
 # Kratos imports
 import KratosMultiphysics
 # External imports
@@ -8,12 +8,12 @@ import unittest
 
 class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
     def run_test(self, filename, tolerance):
-        pyqueso = PyQuESo(filename)
-        pyqueso.Run()
-        pyqueso.RunKratosAnalysis("queso/tests/steering_knuckle_kratos/KratosParameters.json")
+        model = pyqueso.Model(json_filename=filename)
+        model.create()
+        model.run_kratos_analysis("queso/tests/steering_knuckle_kratos/KratosParameters.json")
 
-        analysis = pyqueso.GetAnalysis()
-        model_part = analysis.GetModelPart()
+        analysis = model.analysis
+        model_part = analysis.model_part
         strain_energy = 0.0
 
         for element in model_part.Elements:
@@ -37,6 +37,4 @@ class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
 

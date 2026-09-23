@@ -1,8 +1,6 @@
 # Project imports
-import QuESoPythonModule as QuESo_APP
-from QuESoPythonModule.scripts.helper import *
-from QuESoPythonModule.scripts.json_import import JsonImport
-from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
+import pyqueso
+from pyqueso.scripts.queso_unit_test import QuESoTestCase
 
 try:
     import KratosMultiphysics as KM
@@ -13,9 +11,9 @@ except:
 
 if kratos_available:
     import json
-    from QuESoPythonModule.kratos_interface.kratos_analysis import Analysis
-    from QuESoPythonModule.kratos_interface.bounding_box_bcs import DirichletCondition
-    from QuESoPythonModule.kratos_interface.bounding_box_bcs import NeumannCondition
+    from pyqueso.kratos_interface.kratos_analysis import Analysis
+    from pyqueso.kratos_interface.bounding_box_bcs import DirichletCondition
+    from pyqueso.kratos_interface.bounding_box_bcs import NeumannCondition
 
 # External imports
 import unittest
@@ -25,25 +23,13 @@ import numpy as np
 #        Test ist currently disabled.
 def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
     if kratos_available:
-        settings = JsonImport.read_settings("queso/tests/ggq_cantilever_kratos/QuESoSettings.json")
-
-        grid_settings = settings[QuESo_APP.MainSettings.background_grid_settings]
-
-        grid_settings.SetValue(QuESo_APP.BackgroundGridSettings.number_of_elements, [number_cross_elements, number_cross_elements, number_z_elements])
-        grid_settings.SetValue(QuESo_APP.BackgroundGridSettings.polynomial_order, polynomial_degree)
-
-        non_trimmed_quad_rule_settings = settings[QuESo_APP.MainSettings.non_trimmed_quadrature_rule_settings]
-        if reduction_flag == False:
-            method = QuESo_APP.IntegrationMethod.Gauss
-            non_trimmed_quad_rule_settings.SetValue(QuESo_APP.NonTrimmedQuadratureRuleSettings.integration_method, method)
-        else:
-            method = QuESo_APP.IntegrationMethod.GGQ_Optimal
-            non_trimmed_quad_rule_settings.SetValue(QuESo_APP.NonTrimmedQuadratureRuleSettings.integration_method, method)
-
-        embedder = QuESo_APP.QuESo(settings)
-        embedder.Run()
-
-        elements = embedder.GetElements()
+        model = pyqueso.Model(json_filename="queso/tests/ggq_cantilever_kratos/QuESoSettings.json")
+        grid_settings = model.settings["background_grid_settings"]
+        grid_settings.set_value("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
+        grid_settings.set_value("polynomial_order", polynomial_degree)
+        integration_method = pyqueso.IntegrationMethod.GGQ_OPTIMAL if reduction_flag else pyqueso.IntegrationMethod.GAUSS
+        model.settings["non_trimmed_quadrature_rule_settings"].set_value("integration_method", integration_method)
+        model.create()
 
         p = 100
         boundary_condition = []
@@ -52,8 +38,8 @@ def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polyn
 
 
         kratos_settings_filename = "queso/tests/ggq_cantilever_kratos/KratosParameters.json"
-        analysis = Analysis(settings, kratos_settings_filename, elements, boundary_condition, embedder.GetTriangleMesh())
-        model_part = analysis.GetModelPart()
+        analysis = Analysis(model.settings, kratos_settings_filename, model.elements, boundary_condition)
+        model_part = analysis.model_part
         geometry = model_part.GetGeometry("NurbsVolume")
 
         number_of_quad_points = 0

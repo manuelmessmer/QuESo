@@ -1,8 +1,8 @@
 import os
 # Import QuESo
-import QuESoPythonModule as QuESo
+import pyqueso
 # Project imports
-from QuESoPythonModule.kratos_interface.custom_analysis_stage import CustomAnalysisStage
+from .custom_analysis_stage import CustomAnalysisStage
 # Import Kratos
 import KratosMultiphysics as KM
 
@@ -17,10 +17,10 @@ class Analysis():
     It sets up the model, creates the elements, applies the boundary conditions, and executes the analysis.
     """
     def __init__(self,
-            settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
+            settings: pyqueso.Dictionary,
             kratos_settings_filename: str,
-            elements: list[QuESo.Element], # type: ignore (TODO: add .pyi)
-            boundary_conditions: list[QuESo.Condition] # type: ignore (TODO: add .pyi)
+            elements: list[pyqueso.Element],
+            boundary_conditions: list[pyqueso.Condition],
         ) -> None:
         """
         Constructor for the `Analysis` class.
@@ -38,7 +38,8 @@ class Analysis():
         analysis = CustomAnalysisStage(self.model, settings, kratos_settings_filename, elements, boundary_conditions)
         analysis.Run()
 
-    def GetModelPart(self) -> KM.ModelPart:
+    @property
+    def model_part(self) -> KM.ModelPart:
         """
         Returns the Kratos model part created in the analysis.
 

@@ -1,5 +1,5 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+import pyqueso
 
 import unittest
 import json
@@ -25,18 +25,18 @@ class TestGGQTube(unittest.TestCase):
         self.RunTest("queso/tests/ggq_tube/QuESoSettings6.json", "queso/tests/ggq_tube/result_ips_reduced_order2.json")
 
     def RunTest(self,filename, filename_result):
-        self.pyqueso = PyQuESo(filename)
-        self.pyqueso.Run()
+        self.model = pyqueso.Model(json_filename=filename)
+        self.model.create()
 
         ips = {}
         num_el_inside = 0
-        for element in self.pyqueso.GetElements():
-            if not element.IsTrimmed():
+        for element in self.model.elements:
+            if not element.is_trimmed:
                 num_el_inside += 1
                 tmp_list = []
-                for point in element.GetIntegrationPoints():
+                for point in element.integration_points:
                     tmp_list.append( [point.x, point.y, point.z, point.weight] )
-                ips[element.ID()] = tmp_list
+                ips[element.id] = tmp_list
 
         # with open("test.json", 'w') as file:
         #     json.dump(ips, file )

@@ -22,7 +22,7 @@ if kratos_available:
 import unittest
 import sys
 
-def PyQuESoTestSuite():
+def pyqueso_test_suite():
     test_suite = unittest.TestSuite()
     if kratos_available:
         #test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestGGQCantileverKratos))
@@ -45,7 +45,7 @@ def main():
     project_root = Path(__file__).resolve().parent.parent.parent
     os.chdir(project_root)
 
-    test_suite = PyQuESoTestSuite()
+    test_suite = pyqueso_test_suite()
     runner = unittest.TextTestRunner()
     result = runner.run(test_suite)
 

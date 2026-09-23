@@ -79,7 +79,7 @@ else()
 endif()
 
 # Install target.
-install(TARGETS QuESo DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule)
+install(TARGETS QuESo DESTINATION ${CMAKE_INSTALL_PREFIX}/pyqueso)
 
 # Create Python module.
 add_subdirectory(python)

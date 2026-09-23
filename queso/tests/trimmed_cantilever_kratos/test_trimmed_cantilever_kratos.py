@@ -1,8 +1,7 @@
 # Project imports
 from platform import release
 import re
-import QuESoPythonModule as QuESo_App
-from QuESoPythonModule.PyQuESo import PyQuESo
+import pyqueso
 
 try:
     import KratosMultiphysics as KM
@@ -41,11 +40,11 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #el=1000
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings3.json", 0.0005)
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
-            if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
+        for element in self.model.elements:
+            if element.is_trimmed:
+                self.assertLessEqual(len(element.integration_points), 27)
             else:
-                ips_inside += len(element.GetIntegrationPoints())
+                ips_inside += len(element.integration_points)
 
         self.assertEqual(ips_inside, 2592)
 
@@ -57,11 +56,11 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings4.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
-            if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
+        for element in self.model.elements:
+            if element.is_trimmed:
+                self.assertLessEqual(len(element.integration_points), 27)
             else:
-                ips_inside += len(element.GetIntegrationPoints())
+                ips_inside += len(element.integration_points)
         self.assertEqual(ips_inside, 1275)
 
     def test_5(self):
@@ -72,11 +71,11 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings5.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
-            if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
+        for element in self.model.elements:
+            if element.is_trimmed:
+                self.assertLessEqual(len(element.integration_points), 27)
             else:
-                ips_inside += len(element.GetIntegrationPoints())
+                ips_inside += len(element.integration_points)
         self.assertEqual(ips_inside, 572)
 
     def test_6(self):
@@ -87,11 +86,11 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings6.json", 0.0005)
 
         ips_inside = 0
-        for element in self.pyqueso.GetElements():
-            if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPoints()), 27)
+        for element in self.model.elements:
+            if element.is_trimmed:
+                self.assertLessEqual(len(element.integration_points), 27)
             else:
-                ips_inside += len(element.GetIntegrationPoints())
+                ips_inside += len(element.integration_points)
         self.assertEqual(ips_inside, 243)
 
     def test_7(self):
@@ -99,34 +98,34 @@ class TestTrimmedCantileverKratos(unittest.TestCase):
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings7.json", 0.0008)
-        for element in self.pyqueso.GetElements():
-            if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPoints()), 4*4*4)
+        for element in self.model.elements:
+            if element.is_trimmed:
+                self.assertLessEqual(len(element.integration_points), 4*4*4)
 
     def test_8(self):
         #p=3
         #"number_of_elements" : [2,2,2]
         #"integration_method : "Gauss"
         self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings8.json", 0.0008)
-        for element in self.pyqueso.GetElements():
-            if element.IsTrimmed():
-                self.assertLessEqual(len(element.GetIntegrationPoints()), 5*5*5)
+        for element in self.model.elements:
+            if element.is_trimmed:
+                self.assertLessEqual(len(element.integration_points), 5*5*5)
 
     def RunTest(self,filename, tolerance):
         if kratos_available:
-            self.pyqueso = PyQuESo(filename)
-            self.pyqueso.Run()
+            self.model = pyqueso.Model(json_filename=filename)
+            self.model.create()
 
             # Direct Analysis with kratos
-            self.pyqueso.RunKratosAnalysis("queso/tests/trimmed_cantilever_kratos/KratosParameters.json")
+            self.model.run_kratos_analysis("queso/tests/trimmed_cantilever_kratos/KratosParameters.json")
 
-            model_part = self.pyqueso.GetAnalysis().GetModelPart()
+            model_part = self.model.analysis.model_part
             nurbs_volume = model_part.GetGeometry("NurbsVolume")
 
-            settings = self.pyqueso.GetSettings()
+            settings = self.model.settings
             grid_settings = settings["background_grid_settings"]
-            lower_bound = grid_settings.GetDoubleVector("lower_bound_xyz")
-            upper_bound = grid_settings.GetDoubleVector("upper_bound_xyz")
+            lower_bound = grid_settings.get_double_vector("lower_bound_xyz")
+            upper_bound = grid_settings.get_double_vector("upper_bound_xyz")
             self.CheckErrorInDisplacement(lower_bound, upper_bound, nurbs_volume, tolerance)
 
     def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):

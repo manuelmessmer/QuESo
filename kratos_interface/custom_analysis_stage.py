@@ -1,11 +1,11 @@
 # Import QuESo
-import QuESoPythonModule as QuESo
+import pyqueso
 
 # Import Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IgaApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-from QuESoPythonModule.kratos_interface.model_part_utilities import ModelPartUtilities
+from .model_part_utilities import ModelPartUtilities
 import KratosMultiphysics.LinearSolversApplication
 
 class CustomAnalysisStage(StructuralMechanicsAnalysis):
@@ -19,10 +19,10 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
     """
     def __init__(self,
             model: KM.Model,
-            queso_settings: QuESo.Dictionary, # type: ignore (TODO: add .pyi)
+            queso_settings: pyqueso.Dictionary,
             kratos_settings_filename: str,
-            elements: list[QuESo.Element],  # type: ignore (TODO: add .pyi)
-            boundary_conditions: list[QuESo.Condition] # type: ignore (TODO: add .pyi)
+            elements: list[pyqueso.Element],
+            boundary_conditions: list[pyqueso.Condition],
         ) -> None:
         """
         Constructor for CustomAnalysisStage.
@@ -49,8 +49,8 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         self.lagrange_dofs_required = False
 
         # Set up model part
-        for condition_param in self.queso_settings.GetList("conditions_settings_list"):
-            if( condition_param.GetString("condition_type") == "LagrangeSupportCondition" ):
+        for condition_param in self.queso_settings.get_list("conditions_settings_list"):
+            if condition_param.get_string("condition_type") == "LagrangeSupportCondition":
                 self.lagrange_dofs_required = True
         nurbs_model_part = model.CreateModelPart("NurbsMesh")
         nurbs_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
@@ -65,19 +65,19 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             if modeler["modeler_name"].GetString() == "NurbsGeometryModeler":
                 parameters = modeler["Parameters"]
                 parameters.AddEmptyValue("lower_point_xyz")
-                parameters["lower_point_xyz"].SetVector(grid_settings.GetDoubleVector("lower_bound_xyz"))
+                parameters["lower_point_xyz"].SetVector(grid_settings.get_double_vector("lower_bound_xyz"))
                 parameters.AddEmptyValue("upper_point_xyz")
-                parameters["upper_point_xyz"].SetVector(grid_settings.GetDoubleVector("upper_bound_xyz"))
+                parameters["upper_point_xyz"].SetVector(grid_settings.get_double_vector("upper_bound_xyz"))
 
                 parameters.AddEmptyValue("lower_point_uvw")
-                parameters["lower_point_uvw"].SetVector(grid_settings.GetDoubleVector("lower_bound_uvw"))
+                parameters["lower_point_uvw"].SetVector(grid_settings.get_double_vector("lower_bound_uvw"))
                 parameters.AddEmptyValue("upper_point_uvw")
-                parameters["upper_point_uvw"].SetVector(grid_settings.GetDoubleVector("upper_bound_uvw"))
+                parameters["upper_point_uvw"].SetVector(grid_settings.get_double_vector("upper_bound_uvw"))
 
                 parameters.AddEmptyValue("polynomial_order")
-                parameters["polynomial_order"].SetVector(grid_settings.GetIntVector("polynomial_order"))
+                parameters["polynomial_order"].SetVector(grid_settings.get_int_vector("polynomial_order"))
                 parameters.AddEmptyValue("number_of_knot_spans")
-                parameters["number_of_knot_spans"].SetVector(grid_settings.GetIntVector("number_of_elements"))
+                parameters["number_of_knot_spans"].SetVector(grid_settings.get_int_vector("number_of_elements"))
 
         self.Initialized = False
         super().__init__(model, analysis_parameters)
@@ -94,9 +94,9 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         embedded_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         embedded_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         embedded_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-        filename = self.queso_settings["general_settings"].GetString("input_filename")
-        self.triangle_mesh = QuESo.TriangleMesh() # type: ignore (TODO: add .pyi)
-        QuESo.IO.ReadMeshFromSTL(self.triangle_mesh, filename) # type: ignore (TODO: add .pyi)
+        filename = self.queso_settings["general_settings"].get_string("input_filename")
+        self.triangle_mesh = pyqueso.mesh.TriangleMesh()
+        pyqueso.io.read_mesh_from_stl(self.triangle_mesh, filename)
         ModelPartUtilities.read_model_part_from_triangle_mesh(embedded_model_part, self.triangle_mesh)
 
         for modeler in self._GetListOfModelers():
@@ -120,10 +120,10 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
         ModelPartUtilities.remove_all_conditions(model_part)
         ModelPartUtilities.add_elements_to_model_part(model_part, self.elements)
         grid_settings = self.queso_settings["background_grid_settings"]
-        bounds_xyz = (grid_settings.GetDoubleVector("lower_bound_xyz"),
-                      grid_settings.GetDoubleVector("upper_bound_xyz"))
-        bounds_uvw = (grid_settings.GetDoubleVector("lower_bound_uvw"),
-                      grid_settings.GetDoubleVector("upper_bound_uvw"))
+        bounds_xyz = (grid_settings.get_double_vector("lower_bound_xyz"),
+                      grid_settings.get_double_vector("upper_bound_xyz"))
+        bounds_uvw = (grid_settings.get_double_vector("lower_bound_uvw"),
+                      grid_settings.get_double_vector("upper_bound_uvw"))
         ModelPartUtilities.add_conditions_to_model_part(model_part, self.boundary_conditions, bounds_xyz, bounds_uvw)
 
         # Add Dofs
@@ -135,5 +135,4 @@ class CustomAnalysisStage(StructuralMechanicsAnalysis):
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION_X, model_part) # type: ignore
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION_Y, model_part) # type: ignore
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, IgaApplication.VECTOR_LAGRANGE_MULTIPLIER_REACTION_Z, model_part) # type: ignore
-
 

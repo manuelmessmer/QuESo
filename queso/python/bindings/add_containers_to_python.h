@@ -11,18 +11,13 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef ADD_CONTAINERS_TO_PYTHON_INCLUDE_H
-#define ADD_CONTAINERS_TO_PYTHON_INCLUDE_H
+#pragma once
 
 // External includes
 #include <pybind11/pybind11.h>
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
-    void AddContainersToPython(pybind11::module& m);
+void AddContainersToPython(pybind11::module& rModule, pybind11::module& rMeshModule);
 
-} // End namespace Python
-} // End namespace queso
-
-#endif // ADD_CONTAINERS_TO_PYTHON_INCLUDE_H
+}  // namespace queso::python

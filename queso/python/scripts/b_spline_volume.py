@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 import scipy.interpolate as si
 # import QuESo
-import QuESoPythonModule as QuESo
+import pyqueso as QuESo
 
 class BSplineVolume:
     """Class to construct a 3D B-Spline volume using the QuESo settings.
@@ -22,12 +22,12 @@ class BSplineVolume:
             Exception: If an invalid `knot_vector_type` is provided.
         """
         grid_settings = settings["background_grid_settings"]
-        self.Order = grid_settings.GetIntVector("polynomial_order")
-        NumElements = grid_settings.GetIntVector("number_of_elements")
-        LowerBoundXYZ = grid_settings.GetDoubleVector("lower_bound_xyz")
-        UpperBoundXYZ = grid_settings.GetDoubleVector("upper_bound_xyz")
-        LowerBoundUVW = grid_settings.GetDoubleVector("lower_bound_uvw")
-        UpperBoundUVW = grid_settings.GetDoubleVector("upper_bound_uvw")
+        self._order = grid_settings.get_int_vector("polynomial_order")
+        num_elements = grid_settings.get_int_vector("number_of_elements")
+        lower_bound_xyz = grid_settings.get_double_vector("lower_bound_xyz")
+        upper_bound_xyz = grid_settings.get_double_vector("upper_bound_xyz")
+        lower_bound_uvw = grid_settings.get_double_vector("lower_bound_uvw")
+        upper_bound_uvw = grid_settings.get_double_vector("upper_bound_uvw")
         if( knot_vector_type == "open_knot_vector" ):
             open_knot_vector = True
         elif( knot_vector_type == "non_open_knot_vector" ):
@@ -37,13 +37,13 @@ class BSplineVolume:
             message += "' not valid. Available options are: 'open_knot_vector' and 'non_open_knot_vector'."
             raise Exception(message)
         self.spline_u = self._construct_b_spline(
-           self.Order[0], NumElements[0], LowerBoundXYZ[0], UpperBoundXYZ[0], LowerBoundUVW[0], UpperBoundUVW[0], open_knot_vector)
+           self._order[0], num_elements[0], lower_bound_xyz[0], upper_bound_xyz[0], lower_bound_uvw[0], upper_bound_uvw[0], open_knot_vector)
         self.spline_v = self._construct_b_spline(
-            self.Order[1], NumElements[1], LowerBoundXYZ[1], UpperBoundXYZ[1], LowerBoundUVW[1], UpperBoundUVW[1], open_knot_vector)
+            self._order[1], num_elements[1], lower_bound_xyz[1], upper_bound_xyz[1], lower_bound_uvw[1], upper_bound_uvw[1], open_knot_vector)
         self.spline_w = self._construct_b_spline(
-            self.Order[2], NumElements[2], LowerBoundXYZ[2], UpperBoundXYZ[2], LowerBoundUVW[2], UpperBoundUVW[2], open_knot_vector)
+            self._order[2], num_elements[2], lower_bound_xyz[2], upper_bound_xyz[2], lower_bound_uvw[2], upper_bound_uvw[2], open_knot_vector)
 
-    def GetSpline(self, Index: int) -> si.BSpline:
+    def spline(self, index: int) -> si.BSpline:
         """Returns the B-spline along the specified direction.
 
         Args:
@@ -55,16 +55,16 @@ class BSplineVolume:
         Raises:
             Exception: If index is out of the valid range.
         """
-        if( Index == 0 ):
+        if index == 0:
             return self.spline_u
-        elif( Index == 1 ):
+        elif index == 1:
             return self.spline_v
-        elif( Index == 2 ):
+        elif index == 2:
             return self.spline_w
-        else:
-            raise Exception("BSplineVolume :: GetSpline :: Index out of scope.")
+        raise IndexError("Spline index must be 0, 1, or 2.")
 
-    def ControlPoints(self) -> List[List[float]]:
+    @property
+    def control_points(self) -> List[List[float]]:
         ''' Returns control points of B-Spline volume in a list.
 
             The point indices are linearized and can be accessed the following:
@@ -88,7 +88,8 @@ class BSplineVolume:
                     cps.append( [x, y, z] )
         return cps
 
-    def ControlPointsMatrix(self) -> np.ndarray:
+    @property
+    def control_points_matrix(self) -> np.ndarray:
         ''' Returns control points of B-Spline volume in a matrix.
 
             Points can be accessed as:
@@ -102,9 +103,9 @@ class BSplineVolume:
             Returns:
                 np.ndarray: A NumPy array of shape (n_u, n_v, n_w, 3) containing control points.
         '''
-        n_cps_u = self.NumberControlPointsInU()
-        n_cps_v = self.NumberControlPointsInV()
-        n_cps_w = self.NumberControlPointsInW()
+        n_cps_u = self.num_control_points_u
+        n_cps_v = self.num_control_points_v
+        n_cps_w = self.num_control_points_w
         n_cps = n_cps_u*n_cps_v*n_cps_w
 
         cps = np.zeros(n_cps*3).reshape(n_cps_u, n_cps_v, n_cps_w, 3)
@@ -115,7 +116,8 @@ class BSplineVolume:
 
         return cps
 
-    def KnotsU(self) -> List[float]:
+    @property
+    def knots_u(self) -> List[float]:
         """Returns knot vector along the u-direction.
 
         Returns:
@@ -123,7 +125,8 @@ class BSplineVolume:
         """
         return self.spline_u.t.flatten().tolist()
 
-    def KnotsV(self) -> List[float]:
+    @property
+    def knots_v(self) -> List[float]:
         """Returns knot vector along the v-direction.
 
         Returns:
@@ -131,7 +134,8 @@ class BSplineVolume:
         """
         return self.spline_v.t.flatten().tolist()
 
-    def KnotsW(self) -> List[float]:
+    @property
+    def knots_w(self) -> List[float]:
         """Returns knot vector along the w-direction.
 
         Returns:
@@ -139,15 +143,17 @@ class BSplineVolume:
         """
         return self.spline_w.t.flatten().tolist()
 
-    def PolynomialOrder(self) -> List[float]:
+    @property
+    def polynomial_order(self) -> List[float]:
         """Returns the polynomial order in each direction.
 
         Returns:
             List[float]: [order_u, order_v, order_w]
         """
-        return self.Order
+        return self._order
 
-    def NumberControlPointsInU(self) -> int:
+    @property
+    def num_control_points_u(self) -> int:
         """Returns number of control points in u-direction.
 
         Returns:
@@ -155,7 +161,8 @@ class BSplineVolume:
         """
         return len(self.spline_u.c)
 
-    def NumberControlPointsInV(self) -> int:
+    @property
+    def num_control_points_v(self) -> int:
         """Returns number of control points in v-direction.
 
         Returns:
@@ -163,7 +170,8 @@ class BSplineVolume:
         """
         return len(self.spline_v.c)
 
-    def NumberControlPointsInW(self) -> int:
+    @property
+    def num_control_points_w(self) -> int:
         """Returns number of control points in w-direction.
 
         Returns:
@@ -222,4 +230,3 @@ class BSplineVolume:
         spline_u.c = spline_u.c[:num_cps]
 
         return spline_u
-

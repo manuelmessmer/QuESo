@@ -2,11 +2,11 @@ from typing import Literal, Tuple
 # Import Kratos
 import KratosMultiphysics as KM
 # Import QuESo modules
-import QuESoPythonModule as QuESo
-from QuESoPythonModule.kratos_interface.weak_bcs import PenaltySupport
-from QuESoPythonModule.kratos_interface.weak_bcs import LagrangeSupport
-from QuESoPythonModule.kratos_interface.weak_bcs import SurfaceLoad
-from QuESoPythonModule.kratos_interface.weak_bcs import PressureLoad
+import pyqueso
+from .weak_bcs import PenaltySupport
+from .weak_bcs import LagrangeSupport
+from .weak_bcs import SurfaceLoad
+from .weak_bcs import PressureLoad
 
 # Type definition
 Point3D = Tuple[float, float, float]
@@ -47,7 +47,7 @@ class ModelPartUtilities:
     @staticmethod
     def read_model_part_from_triangle_mesh(
             KratosModelPart: KM.ModelPart,
-            TriangleMesh: QuESo.TriangleMesh # type: ignore (TODO: add .pyi)
+            TriangleMesh: pyqueso.mesh.TriangleMesh
         ) -> None:
         """
         Reads a Kratos ModelPart from a QuESo triangle mesh.
@@ -56,12 +56,12 @@ class ModelPartUtilities:
             KratosModelPart (KM.ModelPart): The Kratos ModelPart to populate with data from the triangle mesh.
             TriangleMesh (QuESo.TriangleMesh): The QuESo triangle mesh from which the model part is read.
         """
-        vertices = list(TriangleMesh.Vertices())
+        vertices = list(TriangleMesh.vertices())
         id_map = {tuple(vertex): v_id for v_id, vertex in enumerate(vertices)}
         for v_id, vertex in enumerate(vertices):
             KratosModelPart.CreateNewNode(v_id+1, vertex[0], vertex[1], vertex[2])
 
-        for t_id, tri in enumerate(TriangleMesh.Triangles()):
+        for t_id, tri in enumerate(TriangleMesh.triangles()):
             node_ids = [
                 id_map[tuple(tri.p1)] + 1,
                 id_map[tuple(tri.p2)] + 1,
@@ -71,7 +71,7 @@ class ModelPartUtilities:
 
     @staticmethod
     def read_triangle_mesh_grom_model_part(
-            TriangleMesh: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
+            TriangleMesh: pyqueso.mesh.TriangleMesh,
             KratosModelPart: KM.ModelPart,
             type: Literal["Elements", "Conditions"] ="Elements"
         ) -> None:
@@ -88,7 +88,7 @@ class ModelPartUtilities:
         """
         id_map = {node.Id: queso_id for queso_id, node in enumerate(KratosModelPart.Nodes)}
         for node in KratosModelPart.Nodes: # type: ignore
-            TriangleMesh.AddVertex((node.X, node.Y, node.Z))
+            TriangleMesh.add_vertex((node.X, node.Y, node.Z))
 
         if( type == "Elements"):
             entity_list = KratosModelPart.Elements
@@ -109,12 +109,12 @@ class ModelPartUtilities:
 
             # Get the node ids for the triangle
             node_ids = tuple(id_map[node.Id] for node in geometry)
-            TriangleMesh.AddTriangle(node_ids)
+            TriangleMesh.add_triangle(node_ids)
 
     @staticmethod
     def add_elements_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Elements: list[QuESo.Element] # type: ignore (TODO: add .pyi)
+            Elements: list[pyqueso.Element]
         ) -> None:
         """
         Adds the QuESo elements to the Kratos NurbsVolume ModelPart.
@@ -131,7 +131,7 @@ class ModelPartUtilities:
             # Collect valid integration points
             integration_points = [
                 [point.x, point.y, point.z, point.weight]
-                for point in element.GetIntegrationPoints()
+                for point in element.integration_points
                 if(point.weight > 0)
             ]
 
@@ -151,7 +151,7 @@ class ModelPartUtilities:
     @staticmethod
     def add_conditions_to_model_part(
             KratosNurbsVolumeModelPart: KM.ModelPart,
-            Conditions: list[QuESo.Condition], # type: ignore (TODO: add .pyi)
+            Conditions: list[pyqueso.Condition],
             BoundsXYZ: Tuple[Point3D, Point3D],
             BoundsUVW: Tuple[Point3D, Point3D]
         ) -> None:
@@ -168,38 +168,38 @@ class ModelPartUtilities:
         # Define a mapping of condition types to their handlers
         condition_handlers = {
             "PenaltySupportCondition": lambda settings, segment: PenaltySupport(
-                segment.GetTriangleMesh(),
+                segment.triangle_mesh,
                 BoundsXYZ,
                 BoundsUVW,
-                settings.GetDoubleVector("value"),
-                settings.GetDouble("penalty_factor")
+                settings.get_double_vector("value"),
+                settings.get_double("penalty_factor")
             ),
             "LagrangeSupportCondition": lambda settings, segment: LagrangeSupport(
-                segment.GetTriangleMesh(),
+                segment.triangle_mesh,
                 BoundsXYZ,
                 BoundsUVW,
-                settings.GetDoubleVector("value")
+                settings.get_double_vector("value")
             ),
             "SurfaceLoadCondition": lambda settings, segment: SurfaceLoad(
-                segment.GetTriangleMesh(),
+                segment.triangle_mesh,
                 BoundsXYZ,
                 BoundsUVW,
-                settings.GetDouble("modulus"),
-                settings.GetDoubleVector("direction")
+                settings.get_double("modulus"),
+                settings.get_double_vector("direction")
             ),
             "PressureLoadCondition": lambda settings, segment: PressureLoad(
-                segment.GetTriangleMesh(),
+                segment.triangle_mesh,
                 BoundsXYZ,
                 BoundsUVW,
-                settings.GetDouble("modulus")
+                settings.get_double("modulus")
             )
         }
 
         boundary_conditions = []
         for bc in Conditions:
             if bc.is_weak_condition():
-                condition_settings = bc.GetSettings()
-                type_name = condition_settings.GetString("condition_type")
+                condition_settings = bc.settings
+                type_name = condition_settings.get_string("condition_type")
 
                 if type_name not in condition_handlers:
                     available_conditions = (
@@ -212,7 +212,7 @@ class ModelPartUtilities:
                     raise Exception(f"Given condition type '{type_name}' is not available. Available options are: {options}.")
 
                 handler = condition_handlers[type_name]
-                for segment in bc.GetSegments():
+                for segment in bc.segments:
                     boundary_conditions.append(handler(condition_settings, segment))
             else:
                 boundary_conditions.append(bc)

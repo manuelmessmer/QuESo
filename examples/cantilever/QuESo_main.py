@@ -1,12 +1,12 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
+import pyqueso
 
 def main():
-    pyqueso = PyQuESo("QuESoSettings.json")
-    pyqueso.Run()
+    model = pyqueso.Model(json_filename="QuESoSettings.json")
+    model.create()
 
     # Direct Analysis with kratos
-    pyqueso.RunKratosAnalysis()
+    model.run_kratos_analysis()
 
 if __name__ == "__main__":
     main()

@@ -11,13 +11,12 @@
 //
 //  Authors:    Manuel Messmer
 
-/// Project inlcudes
-#include "queso/python/bindings/define_python.hpp"
+// Project includes
 #include "queso/python/bindings/add_dictionary_to_python.h"
-#include "queso/python/bindings/dictionary_binder_helper.hpp"
-// To export
-#include "queso/includes/dictionary_factory.hpp"
 #include "queso/containers/dictionary.hpp"
+#include "queso/includes/dictionary_factory.hpp"
+#include "queso/python/bindings/define_python.hpp"
+#include "queso/python/bindings/dictionary_binder_helper.hpp"
 
 // Note: PYBIND11_MAKE_OPAQUE can not be captured within namespace
 using DictionaryType = queso::Dictionary<queso::key::MainValuesTypeTag>;
@@ -25,47 +24,73 @@ using DictionaryPtrType = queso::Unique<DictionaryType>;
 using DictionaryVectorPtrType = std::vector<DictionaryPtrType>;
 PYBIND11_MAKE_OPAQUE(DictionaryVectorPtrType);
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
 using MainDictionaryHolderType = UniqueHolder<MainDictionaryType>;
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
-void AddDictionaryToPython(pybind11::module& m) {
+void AddDictionaryToPython(pybind11::module& m)
+{
+    py::class_<MainDictionaryHolderType>(m, "DictionaryHolder", "Temporary owner used to transfer a dictionary.")
+        .def_property_readonly(
+            "dictionary",
+            &MainDictionaryHolderType::GetObject,
+            py::return_value_policy::reference_internal,
+            "Dictionary owned by this holder."
+        );
 
-    // Export DictionaryHolder
-    py::class_<MainDictionaryHolderType>(m,"DictionaryHolder")
-        .def("GetObject", &MainDictionaryHolderType::GetObject, py::return_value_policy::reference_internal)
-    ;
+    py::class_<DictionaryType, DictionaryPtrType> DictionaryBinder(
+        m, "Dictionary", "Hierarchical settings dictionary."
+    );
 
-    // Export Dictionary
-    py::class_<DictionaryType, DictionaryPtrType> dictionary_base_type_binder(m,"Dictionary");
+    DictionaryBinderHelper<DictionaryType>(DictionaryBinder);
+    DictionaryBinder.def_static(
+        "create",
+        [](const std::string& rName) -> MainDictionaryHolderType {
+            return MainDictionaryHolderType(DictionaryFactory<DictionaryType::KeySetValuesTypeTag>::Create(rName));
+        },
+        "name"_a,
+        py::return_value_policy::move,
+        "Create a dictionary with the named schema."
+    );
 
-    // Export methods
-    DictionaryBinderHelper<DictionaryType>(dictionary_base_type_binder);
+    py::class_<DictionaryVectorPtrType>(
+        m, "DictionaryList", "Mutable list of dictionaries owned by a parent dictionary."
+    )
+        .def(
+            "__getitem__",
+            [](DictionaryVectorPtrType& self, py::ssize_t Index) {
+                const auto size = static_cast<py::ssize_t>(self.size());
+                if (Index < 0) { Index += size; }
+                if (Index < 0 || Index >= size) { throw py::index_error(); }
+                return self[static_cast<IndexType>(Index)].get();
+            },
+            py::return_value_policy::reference_internal,
+            "Return a dictionary by index."
+        )
+        .def(
+            "__len__", [](const DictionaryVectorPtrType& self) { return self.size(); }, "Number of dictionaries."
+        )
+        .def(
+            "__iter__",
+            [](DictionaryVectorPtrType& self) {
+                return py::make_iterator(dereference_iterator(self.begin()), dereference_iterator(self.end()));
+            },
+            py::keep_alive<0, 1>()
+        )
+        .def(
+            "append",
+            [](DictionaryVectorPtrType& self, MainDictionaryHolderType& rDictionaryHolder) {
+                if (!rDictionaryHolder.HasObject()) {
+                    throw py::value_error("DictionaryHolder no longer owns a dictionary.");
+                }
+                self.push_back(std::move(rDictionaryHolder.Release()));
+            },
+            "dictionary_holder"_a,
+            "Move a dictionary from ``dictionary_holder`` into this list. The holder is empty afterward."
+        );
+}
 
-
-    // Export static methods
-    dictionary_base_type_binder.def_static("Create", [](const std::string& rName) -> MainDictionaryHolderType {
-        return MainDictionaryHolderType(DictionaryFactory<DictionaryType::KeySetValuesTypeTag>::Create(rName)); },
-            py::return_value_policy::move );
-
-    // Export vector
-    py::class_<DictionaryVectorPtrType>(m, "DictionaryList")
-        .def("__getitem__", [](DictionaryVectorPtrType &self, IndexType i)
-            { return &(*self[i]); }, py::return_value_policy::reference_internal)
-        .def("__len__", [](const DictionaryVectorPtrType &self) { return self.size(); })
-        .def("__iter__", [](DictionaryVectorPtrType &self) {
-            return py::make_iterator( dereference_iterator(self.begin()), dereference_iterator(self.end()) );
-        }, py::keep_alive<0, 1>() )
-        .def("append", [](DictionaryVectorPtrType& self, MainDictionaryHolderType& rDictionaryHolder){
-            self.push_back(std::move(rDictionaryHolder.Release()));
-        } )
-    ;
-
-} // End AddDictionaryToPython
-
-} // End namespace Python
-} // End namespace queso
-
+}  // namespace queso::python

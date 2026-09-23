@@ -1,7 +1,7 @@
 //   ____        ______  _____
 //  / __ \      |  ____|/ ____|
 // | |  | |_   _| |__  | (___   ___
-// | |  | | | | |  __|  \___ \ / _ \'
+// | |  | | | | |  __|  \___ \ / _ \
 // | |__| | |_| | |____ ____) | (_) |
 //  \___\_\\__,_|______|_____/ \___/
 //         Quadrature for Embedded Solids
@@ -18,6 +18,6 @@
 
 namespace queso::python {
 
-void AddIoToPython(pybind11::module& m);
+void AddTestHelpersToPython(pybind11::module& rModule);
 
 }  // namespace queso::python

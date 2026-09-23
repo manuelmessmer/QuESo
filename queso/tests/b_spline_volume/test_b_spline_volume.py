@@ -1,7 +1,7 @@
 # Project imports
-from QuESoPythonModule.PyQuESo import PyQuESo
-from QuESoPythonModule.scripts.helper import *
-from QuESoPythonModule.scripts.queso_unit_test import QuESoTestCase
+import pyqueso
+from pyqueso.scripts.helper import *
+from pyqueso.scripts.queso_unit_test import QuESoTestCase
 # External imports
 import unittest
 import numpy as np
@@ -74,13 +74,13 @@ class TestBSplineVolume(QuESoTestCase):
 
 
     def RunTest(self, input_filename, results_filename):
-        pyqueso = PyQuESo(input_filename)
-        volume_open = pyqueso.GetBSplineVolume("open_knot_vector")
-        cps = volume_open.ControlPoints()
-        knots_u = volume_open.KnotsU()
-        knots_v = volume_open.KnotsV()
-        knots_w = volume_open.KnotsW()
-        polynomial_order = volume_open.PolynomialOrder()
+        model = pyqueso.Model(json_filename=input_filename)
+        volume_open = model.b_spline_volume("open_knot_vector")
+        cps = volume_open.control_points
+        knots_u = volume_open.knots_u
+        knots_v = volume_open.knots_v
+        knots_w = volume_open.knots_w
+        polynomial_order = volume_open.polynomial_order
 
         # To write results:
         # dict_a = {}
@@ -98,9 +98,9 @@ class TestBSplineVolume(QuESoTestCase):
             res = json.load(file)
 
         # Check number of control points
-        n_cps_u = volume_open.NumberControlPointsInU()
-        n_cps_v = volume_open.NumberControlPointsInV()
-        n_cps_w = volume_open.NumberControlPointsInW()
+        n_cps_u = volume_open.num_control_points_u
+        n_cps_v = volume_open.num_control_points_v
+        n_cps_w = volume_open.num_control_points_w
         n_cps = n_cps_u*n_cps_v*n_cps_w
         self.assertEqual(n_cps, len(res["cps"]))
         # Check number of knot vectros
@@ -116,7 +116,7 @@ class TestBSplineVolume(QuESoTestCase):
             self.assertAlmostEqual(cp1[2], cp2[2], 12)
 
         # Check control points matrix
-        cps_matrix = volume_open.ControlPointsMatrix()
+        cps_matrix = volume_open.control_points_matrix
         self.assertEqual(n_cps_u, cps_matrix.shape[0])
         self.assertEqual(n_cps_v, cps_matrix.shape[1])
         self.assertEqual(n_cps_w, cps_matrix.shape[2])
@@ -143,11 +143,11 @@ class TestBSplineVolume(QuESoTestCase):
         for k1, k2 in zip(res["knots_w"], knots_w):
             self.assertAlmostEqual(k1, k2, 12)
 
-        volume_non_open = pyqueso.GetBSplineVolume("non_open_knot_vector")
+        volume_non_open = model.b_spline_volume("non_open_knot_vector")
 
-        self.__CompareOpenVsNonOpen(volume_open.GetSpline(0), volume_non_open.GetSpline(0))
-        self.__CompareOpenVsNonOpen(volume_open.GetSpline(1), volume_non_open.GetSpline(1))
-        self.__CompareOpenVsNonOpen(volume_open.GetSpline(2), volume_non_open.GetSpline(2))
+        self.__CompareOpenVsNonOpen(volume_open.spline(0), volume_non_open.spline(0))
+        self.__CompareOpenVsNonOpen(volume_open.spline(1), volume_non_open.spline(1))
+        self.__CompareOpenVsNonOpen(volume_open.spline(2), volume_non_open.spline(2))
 
 if __name__ == "__main__":
     unittest.main()
