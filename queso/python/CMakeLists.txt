@@ -11,9 +11,10 @@ set(PythonSource
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/QuESoPythonModule.cpp
 )
 
-# Find pybind11.
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/pybind11Tools.cmake)
+# Find Python and the bundled pybind11 CMake package.
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
+set(pybind11_DIR "${CMAKE_SOURCE_DIR}/external_libraries/pybind11/share/cmake/pybind11")
+find_package(pybind11 CONFIG REQUIRED)
 
 # Create Python Module.
 pybind11_add_module(_QuESoPythonModule ${PythonSource})
