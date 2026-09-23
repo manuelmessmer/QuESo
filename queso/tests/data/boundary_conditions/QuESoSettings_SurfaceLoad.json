@@ -1,0 +1,37 @@
+{
+  "global_settings": {
+    "write_output_to_file": false,
+    "echo_level": 0
+  },
+  "components": [
+    {
+      "component_name": "main",
+      "input_filename": "../steering_knuckle/steering_knuckle.stl",
+      "background_grid_settings": {
+        "grid_type": "b_spline_grid",
+        "lower_bound_xyz": [-130.0, -110.0, -110.0],
+        "upper_bound_xyz": [20.0, 190.0, 190.0],
+        "lower_bound_uvw": [-130.0, -110.0, -110.0],
+        "upper_bound_uvw": [20.0, 190.0, 190.0],
+        "polynomial_order": [2, 2, 2],
+        "number_of_elements": [10, 10, 10]
+      },
+      "trimmed_quadrature_rule_settings": {
+        "moment_fitting_residual": 1E-8
+      },
+      "non_trimmed_quadrature_rule_settings": {
+        "integration_method": "Gauss"
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "condition_id": 1,
+      "condition_type": "SurfaceLoadCondition",
+      "input_filename": "../steering_knuckle/N1.stl",
+      "modulus": 5.0,
+      "direction": [1.0, 1.0, 1.0],
+      "component_name": "main"
+    }
+  ]
+}

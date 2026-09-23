@@ -17,6 +17,7 @@
 //// STL includes
 #include <functional>
 #include <optional>
+#include <sstream>
 #include <vector>
 #include <variant>
 
@@ -95,12 +96,46 @@ public:
         void operator()(const Vector3i& rValue){mOstream << '[' << rValue[0] << ", " << rValue[1] << ", " << rValue[2] << ']';};
         void operator()(const IndexType& rValue){ mOstream << rValue;};
         void operator()(const double& rValue){mOstream << rValue;};
-        void operator()(const std::string& rValue){mOstream << '\"' << rValue << '\"';};
+        void operator()(const std::string& rValue){ WriteJsonString(rValue); };
         void operator()(const bool& rValue){std::string out = (rValue) ? "true" : "false"; mOstream << out; };
-        void operator()(const IntegrationMethodType& rValue){ mOstream << '\"' << rValue << '\"'; };
-        void operator()(const GridTypeType& rValue){ mOstream << '\"' << rValue << '\"'; };
+        void operator()(const IntegrationMethodType& rValue){ WriteJsonString(ToString(rValue)); };
+        void operator()(const GridTypeType& rValue){ WriteJsonString(ToString(rValue)); };
 
     private:
+        template<typename TValueType>
+        static std::string ToString(const TValueType& rValue)
+        {
+            std::ostringstream stream;
+            stream << rValue;
+            return stream.str();
+        }
+
+        void WriteJsonString(const std::string& rValue)
+        {
+            constexpr char hex_digits[] = "0123456789abcdef";
+            mOstream << '\"';
+            for (const char raw_character : rValue) {
+                const auto character = static_cast<unsigned char>(raw_character);
+                switch (character) {
+                case '\"': mOstream << "\\\""; break;
+                case '\\': mOstream << "\\\\"; break;
+                case '\b': mOstream << "\\b"; break;
+                case '\f': mOstream << "\\f"; break;
+                case '\n': mOstream << "\\n"; break;
+                case '\r': mOstream << "\\r"; break;
+                case '\t': mOstream << "\\t"; break;
+                default:
+                    if (character < 0x20) {
+                        mOstream << "\\u00" << hex_digits[character >> 4] << hex_digits[character & 0x0f];
+                    } else {
+                        mOstream << static_cast<char>(character);
+                    }
+                    break;
+                }
+            }
+            mOstream << '\"';
+        }
+
         std::ostream& mOstream;
     };
 

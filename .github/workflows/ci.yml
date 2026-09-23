@@ -28,11 +28,11 @@ jobs:
       - name: Build
         run: |
           cmake --preset linux -DQUESO_BUILD_TESTING=ON -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_CXX_FLAGS="-Og"
-          cmake --build --preset linux --target install
+          cmake --build --preset linux --target install _core test_queso
 
       - name: Install Python dependencies
         run: |
-          pip3 install numpy scipy
+          python3 -m pip install numpy scipy pytest
 
       - name: Test py
         run: |
@@ -85,16 +85,18 @@ jobs:
       - name: Build
         run: |
           cmake --preset win -DQUESO_BUILD_TESTING=ON -DBoost_ROOT="${{ github.workspace }}/vcpkg/installed/x64-windows"
-          cmake --build --preset win --target install
+          cmake --build --preset win --target install _core test_queso
 
       - name: Install Python dependencies
         run: |
-          pip install numpy scipy
+          python -m pip install numpy scipy pytest
 
       - name: Test py
-        run: out/build/win/bin/run_tests.cmd py
+        run: out\build\win\bin\run_tests.cmd py
+        shell: cmd
 
       - name: Test cpp
-        run: out/build/win/bin/run_tests.cmd cpp
+        run: out\build\win\bin\run_tests.cmd cpp
+        shell: cmd
         env:
           PATH: ${{ env.PATH }};${{ github.workspace }}\vcpkg\installed\x64-windows\bin
