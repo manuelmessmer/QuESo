@@ -1,158 +1,97 @@
-# Project imports
-from platform import release
-import re
-import pyqueso
+"""Kratos regression tests for trimmed cantilever quadrature rules."""
 
-try:
-    import KratosMultiphysics as KM
-    kratos_available = True
-except:
-    print("KratosMultiphysics is not available")
-    kratos_available = False
-
-import unittest
 import math
+import unittest
+from pathlib import Path
+
+import KratosMultiphysics as KM
 import numpy as np
+from pyqueso.kratos_interface import Analysis
 
-def neumann_condition(x, y, z):
-    return (z > (10 - 1e-6) )
+DIRECTORY = Path(__file__).parent
 
-def dirichlet_condition(x, y, z):
-    return (z < (0.0 + 1e-6))
 
 class TestTrimmedCantileverKratos(unittest.TestCase):
-    def test_1(self):
-        #p=2
-        #"number_of_elements" : [2,2,10]
-        #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings1.json", 0.002)
+    """Verify displacement accuracy and point counts through Analysis."""
 
-    def test_2(self):
-        #p=2
-        #"number_of_elements" : [2,2,4]
-        #el=3000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings2.json", 0.015)
+    def _run_test(self, settings_name: str, tolerance: float):
+        analysis = Analysis(
+            queso_settings_path=DIRECTORY / settings_name,
+            analysis_settings_path=DIRECTORY / "AnalysisSettings.json",
+            kratos_parameters_path=DIRECTORY / "KratosParameters.json",
+        )
+        analysis.run()
+        model_part = analysis.kratos_model.GetModelPart("NurbsMesh")
+        geometry = model_part.GetGeometry("NurbsVolume")
+        grid = analysis.queso_model.settings("main")["background_grid_settings"]
+        self._check_displacement(
+            grid["lower_bound_xyz"], grid["upper_bound_xyz"], geometry, tolerance
+        )
+        return analysis.queso_model
 
-    def test_3(self):
-        #p=2
-        #"number_of_elements" : [8,8,10]
-        #"integration_method" : "Gauss"
-        #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings3.json", 0.0005)
-        ips_inside = 0
-        for element in self.model.elements:
-            if element.is_trimmed:
-                self.assertLessEqual(len(element.integration_points), 27)
-            else:
-                ips_inside += len(element.integration_points)
+    def test_gauss_rule(self) -> None:
+        self._run_test("QuESoSettings1.json", 0.002)
 
-        self.assertEqual(ips_inside, 2592)
+    def test_coarse_grid(self) -> None:
+        self._run_test("QuESoSettings2.json", 0.015)
 
-    def test_4(self):
-        #p=2
-        #"number_of_elements" : [8,8,10]
-        #"integration_method : "GGQ_Optimal"
-        #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings4.json", 0.0005)
+    def test_gauss_point_count(self) -> None:
+        model = self._run_test("QuESoSettings3.json", 0.0005)
+        inside_points = sum(
+            len(element.integration_points)
+            for element in model.elements("main")
+            if not element.is_trimmed
+        )
+        self.assertEqual(inside_points, 2592)
 
-        ips_inside = 0
-        for element in self.model.elements:
-            if element.is_trimmed:
-                self.assertLessEqual(len(element.integration_points), 27)
-            else:
-                ips_inside += len(element.integration_points)
-        self.assertEqual(ips_inside, 1275)
+    def test_ggq_optimal(self) -> None:
+        self._run_test("QuESoSettings4.json", 0.0005)
 
-    def test_5(self):
-        #p=2
-        #"number_of_elements" : [8,8,10]
-        #"integration_method : "GGQ_Reduced1"
-        #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings5.json", 0.0005)
+    def test_ggq_reduced_one(self) -> None:
+        self._run_test("QuESoSettings5.json", 0.0005)
 
-        ips_inside = 0
-        for element in self.model.elements:
-            if element.is_trimmed:
-                self.assertLessEqual(len(element.integration_points), 27)
-            else:
-                ips_inside += len(element.integration_points)
-        self.assertEqual(ips_inside, 572)
+    def test_ggq_reduced_two(self) -> None:
+        self._run_test("QuESoSettings6.json", 0.0005)
 
-    def test_6(self):
-        #p=2
-        #"number_of_elements" : [8,8,10]
-        #"integration_method : "GGQ_Reduced2"
-        #el=1000
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings6.json", 0.0005)
+    def test_cubic_gauss(self) -> None:
+        self._run_test("QuESoSettings7.json", 0.0008)
 
-        ips_inside = 0
-        for element in self.model.elements:
-            if element.is_trimmed:
-                self.assertLessEqual(len(element.integration_points), 27)
-            else:
-                ips_inside += len(element.integration_points)
-        self.assertEqual(ips_inside, 243)
+    def test_cubic_reduced(self) -> None:
+        self._run_test("QuESoSettings8.json", 0.0008)
 
-    def test_7(self):
-        #p=3
-        #"number_of_elements" : [2,2,2]
-        #"integration_method : "Gauss"
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings7.json", 0.0008)
-        for element in self.model.elements:
-            if element.is_trimmed:
-                self.assertLessEqual(len(element.integration_points), 4*4*4)
+    def _check_displacement(
+        self, lower: list[float], upper: list[float], geometry, tolerance: float
+    ) -> None:
+        inertia = math.pi / 4.0
+        length = 10.0
+        young_modulus = 100.0
+        poisson_ratio = 0.0
+        load = -0.1 * math.pi
+        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio))
+        shear_factor = (6.0 + 12.0 * poisson_ratio + 6.0 * poisson_ratio**2) / (
+            7.0 + 12.0 * poisson_ratio + 4.0 * poisson_ratio**2
+        )
+        reference = -(
+            load * length**3 / (3.0 * young_modulus * inertia)
+            + load * length / (shear_modulus * math.pi * shear_factor)
+        )
+        errors = []
+        for coordinate in np.arange(0.0, length + 0.001, 0.1):
+            parameter = KM.Vector(3)
+            parameter[0] = (0.0 - lower[0]) / abs(lower[0] - upper[0])
+            parameter[1] = (0.0 - lower[1]) / abs(lower[1] - upper[1])
+            parameter[2] = (coordinate - lower[2]) / abs(lower[2] - upper[2])
+            displacement = geometry.GlobalCoordinates(parameter)[1]
+            expected = -(
+                load
+                * coordinate**2
+                * (3.0 * length - coordinate)
+                / (6.0 * young_modulus * inertia)
+                + load * coordinate / (shear_modulus * math.pi * shear_factor)
+            )
+            errors.append(abs(displacement - expected) / abs(reference))
+        self.assertLess(max(errors), tolerance)
 
-    def test_8(self):
-        #p=3
-        #"number_of_elements" : [2,2,2]
-        #"integration_method : "Gauss"
-        self.RunTest("queso/tests/trimmed_cantilever_kratos/QuESoSettings8.json", 0.0008)
-        for element in self.model.elements:
-            if element.is_trimmed:
-                self.assertLessEqual(len(element.integration_points), 5*5*5)
-
-    def RunTest(self,filename, tolerance):
-        if kratos_available:
-            self.model = pyqueso.Model(json_filename=filename)
-            self.model.create()
-
-            # Direct Analysis with kratos
-            self.model.run_kratos_analysis("queso/tests/trimmed_cantilever_kratos/KratosParameters.json")
-
-            model_part = self.model.analysis.model_part
-            nurbs_volume = model_part.GetGeometry("NurbsVolume")
-
-            settings = self.model.settings
-            grid_settings = settings["background_grid_settings"]
-            lower_bound = grid_settings.get_double_vector("lower_bound_xyz")
-            upper_bound = grid_settings.get_double_vector("upper_bound_xyz")
-            self.CheckErrorInDisplacement(lower_bound, upper_bound, nurbs_volume, tolerance)
-
-    def CheckErrorInDisplacement(self,lower_point, upper_point, nurbs_volume, tolerance):
-        # Compare to analytical solution (Timoshenko Beam)
-        I = math.pi / 4
-        L = 10
-        E = 100
-        p = -0.1*math.pi
-        nu = 0
-        kappa_circle = (6 + 12*nu + 6*nu**2)/(7+12*nu+4*nu**2)
-        G = E/ ( 2*(1+nu))
-
-        x_test_array = np.arange(0.0,10.001,0.1)
-        relative_errors = []
-        xx = L
-        u_ref_inf = -(p*xx*xx*(3*L-xx)/(6*E*I) + p*xx / (G*math.pi*kappa_circle))
-        for xx in x_test_array:
-            param = KM.Vector(3)
-            param[0] = (0 - lower_point[0])/ abs(lower_point[0] - upper_point[0])
-            param[1] = (0 - lower_point[1])/ abs(lower_point[1] - upper_point[1])
-            param[2] = (xx- lower_point[2])/ abs(lower_point[2]-upper_point[2])
-            u_y = nurbs_volume.GlobalCoordinates(param)[1]
-            u_ref =  -(p*xx*xx*(3*L-xx)/(6*E*I) + p*xx / (G*math.pi*kappa_circle))
-            relative_errors.append( abs(u_y-u_ref)/ abs(u_ref_inf))
-
-        inf_norm = max(relative_errors)
-        self.assertLess(inf_norm, tolerance)
 
 if __name__ == "__main__":
     unittest.main()

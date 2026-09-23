@@ -1,8 +1,8 @@
 # Project imports
-import pyqueso
-
 import unittest
+
 import numpy as np
+import pyqueso
 from scipy.interpolate import BSpline
 
 #import scipy

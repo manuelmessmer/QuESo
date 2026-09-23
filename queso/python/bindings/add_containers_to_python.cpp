@@ -357,6 +357,11 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
             &ConditionSegmentType::GetTriangleMesh,
             py::return_value_policy::reference_internal,
             "Boundary triangle mesh for this segment."
+        )
+        .def_property_readonly(
+            "is_in_active_element",
+            &ConditionSegmentType::IsInActiveElement,
+            "Whether the segment has an active parent element."
         );
 
     using ConditionSegmentRangeType = std::span<const ConditionSegmentType>;
@@ -399,9 +404,9 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
         )
         .def_property_readonly("settings", &EmbeddedComponent::GetSettings, py::return_value_policy::reference_internal)
         .def_property_readonly(
-            "model_info",
+            "component_info",
             static_cast<const EmbeddedComponent::MainDictionaryType& (EmbeddedComponent::*)() const>(
-                &EmbeddedComponent::GetModelInfo
+                &EmbeddedComponent::GetComponentInfo
             ),
             py::return_value_policy::reference_internal
         );

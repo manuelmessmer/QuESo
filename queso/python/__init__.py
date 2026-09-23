@@ -8,8 +8,8 @@ if sys.version_info < MIN_PYTHON_VERSION:
     raise RuntimeError(f"pyqueso requires Python {version} or higher.")
 
 try:
-    from . import _core
+    from . import _core  # noqa: F401
 except ImportError as exc:
     raise ImportError(f"Failed to import pyqueso._core: {exc}") from exc
 
-from .model import Model
+from .model import Model as Model

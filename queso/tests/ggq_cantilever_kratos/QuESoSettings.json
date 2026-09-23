@@ -1,23 +1,46 @@
 {
-    "general_settings"   : {
-        "input_filename"  : "queso/tests/ggq_cantilever_kratos/cylinder.stl",
-        "write_output_to_file" : false,
-        "echo_level"      : 0
-    },
-    "background_grid_settings"     : {
-        "grid_type"      : "b_spline_grid",
-        "lower_bound_xyz": [0.0, 0.0, 0.0],
-        "upper_bound_xyz": [2.0, 2.0, 10.0],
+  "global_settings": {
+    "write_output_to_file": false,
+    "echo_level": 0
+  },
+  "components": [
+    {
+      "component_name": "main",
+      "input_filename": "cylinder_refined.stl",
+      "background_grid_settings": {
+        "grid_type": "b_spline_grid",
+        "lower_bound_xyz": [-1.5, -1.5, -0.1],
+        "upper_bound_xyz": [1.5, 1.5, 10.1],
         "lower_bound_uvw": [0.0, 0.0, 0.0],
         "upper_bound_uvw": [1.0, 1.0, 1.0],
-        "polynomial_order" : [2, 2, 2],
-        "number_of_elements" : [2,2,20]
-    },
-    "trimmed_quadrature_rule_settings"     : {
-        "min_num_boundary_triangles"  : 5000,
-        "moment_fitting_residual": 1e-8
-    },
-    "non_trimmed_quadrature_rule_settings" : {
-        "integration_method" : "Gauss"
+        "polynomial_order": [2, 2, 2],
+        "number_of_elements": [2, 2, 20]
+      },
+      "trimmed_quadrature_rule_settings": {
+        "min_num_boundary_triangles": 5000,
+        "moment_fitting_residual": 1E-8
+      },
+      "non_trimmed_quadrature_rule_settings": {
+        "integration_method": "Gauss"
+      }
     }
+  ],
+  "conditions": [
+    {
+      "condition_id": 1,
+      "condition_type": "PenaltySupportCondition",
+      "component_name": "main",
+      "input_filename": "base.stl",
+      "value": [0.0, 0.0, 0.0],
+      "penalty_factor": 10000000000.0
+    },
+    {
+      "condition_id": 2,
+      "condition_type": "SurfaceLoadCondition",
+      "component_name": "main",
+      "input_filename": "tip.stl",
+      "modulus": 100.0,
+      "direction": [0.0, 1.0, 0.0]
+    }
+  ]
 }

@@ -1,0 +1,68 @@
+{
+  "global_settings": {
+    "echo_level": 1,
+    "write_output_to_file": true,
+    "output_directory_name": "queso_output"
+  },
+  "components": [
+    {
+      "component_name": "left",
+      "input_filename": "data/left.stl",
+      "background_grid_settings": {
+        "grid_type": "b_spline_grid",
+        "lower_bound_xyz": [-1.5, -1.5, -1.0],
+        "upper_bound_xyz": [1.5, 1.5, 11.0],
+        "lower_bound_uvw": [-1.5, -1.5, -1.0],
+        "upper_bound_uvw": [1.5, 1.5, 11.0],
+        "polynomial_order": [2, 2, 2],
+        "number_of_elements": [5, 5, 20]
+      },
+      "trimmed_quadrature_rule_settings": {
+        "moment_fitting_residual": 1e-8
+      },
+      "non_trimmed_quadrature_rule_settings": {
+        "integration_method": "Gauss"
+      }
+    },
+    {
+      "component_name": "right",
+      "input_filename": "data/right.stl",
+      "background_grid_settings": {
+        "from_other_component": "left"
+      },
+      "trimmed_quadrature_rule_settings": {
+        "moment_fitting_residual": 1e-8
+      },
+      "non_trimmed_quadrature_rule_settings": {
+        "integration_method": "Gauss"
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "condition_id": 1,
+      "condition_type": "PenaltySupportCondition",
+      "component_name": "left",
+      "input_filename": "data/base.stl",
+      "value": [0.0, 0.0, 0.0],
+      "penalty_factor": 1e10
+    },
+    {
+      "condition_id": 2,
+      "condition_type": "SurfaceLoadCondition",
+      "component_name": "right",
+      "input_filename": "data/tip.stl",
+      "modulus": 0.1,
+      "direction": [0.0, 1.0, 0.0]
+    },
+    {
+      "condition_id": 10,
+      "condition_type": "CouplingPenaltyCondition",
+      "component_name": "left",
+      "coupling_partner": "right",
+      "input_filename": "data/interface.stl",
+      "penalty_factor": 1e10,
+      "slip": false
+    }
+  ]
+}

@@ -1,11 +1,14 @@
 # Project imports
+import json
+
+# External imports
+import unittest
+
+import numpy as np
 import pyqueso
 from pyqueso.scripts.helper import *
 from pyqueso.scripts.queso_unit_test import QuESoTestCase
-# External imports
-import unittest
-import numpy as np
-import json
+
 
 class TestBSplineVolume(QuESoTestCase):
     def test1(self):
@@ -74,8 +77,8 @@ class TestBSplineVolume(QuESoTestCase):
 
 
     def RunTest(self, input_filename, results_filename):
-        model = pyqueso.Model(json_filename=input_filename)
-        volume_open = model.b_spline_volume("open_knot_vector")
+        model = pyqueso.Model(input_filename)
+        volume_open = model.b_spline_volume("main", "open_knot_vector")
         cps = volume_open.control_points
         knots_u = volume_open.knots_u
         knots_v = volume_open.knots_v
@@ -143,7 +146,7 @@ class TestBSplineVolume(QuESoTestCase):
         for k1, k2 in zip(res["knots_w"], knots_w):
             self.assertAlmostEqual(k1, k2, 12)
 
-        volume_non_open = model.b_spline_volume("non_open_knot_vector")
+        volume_non_open = model.b_spline_volume("main", "non_open_knot_vector")
 
         self.__CompareOpenVsNonOpen(volume_open.spline(0), volume_non_open.spline(0))
         self.__CompareOpenVsNonOpen(volume_open.spline(1), volume_non_open.spline(1))

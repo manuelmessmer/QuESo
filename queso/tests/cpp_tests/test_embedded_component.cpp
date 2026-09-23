@@ -41,9 +41,10 @@ namespace Testing {
             auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
             auto& r_settings = *p_settings;
 
-            r_settings[MainSettings::general_settings].SetValue(GeneralSettings::input_filename, rFilename);
-            r_settings[MainSettings::general_settings].SetValue(GeneralSettings::echo_level, 0u);
-            r_settings[MainSettings::general_settings].SetValue(GeneralSettings::write_output_to_file, false);
+            r_settings.SetValue(MainSettings::component_name, std::string("main"));
+            r_settings.SetValue(MainSettings::input_filename, rFilename);
+            r_settings.SetValue(MainSettings::echo_level, 0u);
+            r_settings.SetValue(MainSettings::write_output_to_file, false);
 
             return p_settings;
         }
@@ -1113,7 +1114,7 @@ namespace Testing {
         EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
         /// Check model info
-        const auto& r_model_info = embedded_component.GetModelInfo();
+        const auto& r_model_info = embedded_component.GetComponentInfo();
         // embedded_geometry_info
         const auto& r_geo_info = r_model_info[MainInfo::embedded_geometry_info];
         r_geo_info.CheckRequired();

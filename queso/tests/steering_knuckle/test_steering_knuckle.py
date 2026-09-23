@@ -1,29 +1,30 @@
 # Project imports
-import pyqueso
-from pyqueso.scripts.queso_unit_test import QuESoTestCase
+import json
+import os
+import shutil
 
 # External imports
 import unittest
-import shutil
-import os
-import json
+
+import pyqueso
+from pyqueso.scripts.queso_unit_test import QuESoTestCase
+
 
 class TestStrainEnergySteeringKnuckleKratos(QuESoTestCase):
     def run_test(self, filename, tolerance):
-        model = pyqueso.Model(json_filename=filename)
+        model = pyqueso.Model(filename)
         model.create()
 
-        json_filename = "queso/tests/steering_knuckle/output/model_info.json"
+        json_filename = "queso/tests/steering_knuckle/output/main/component_info.json"
         # Note: Precision of json_dict is slightly lower. Double are written with std::setprecision n=10.
         with open(json_filename, 'r') as file:
             json_dict = json.load(file)
 
         volume = 0.0
-        for element in model.elements:
+        for element in model.elements("main"):
             for point in element.integration_points:
                 volume += point.weight
-        model_info = model.model_info
-        settings = model.settings
+        model_info = model.component_info("main")
 
         volume_info = model_info["quadrature_info"].get_double("represented_volume")
         self.assertAlmostEqual(volume, volume_info, places=7)

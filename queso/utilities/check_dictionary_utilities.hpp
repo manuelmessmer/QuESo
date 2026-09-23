@@ -29,8 +29,7 @@ namespace CheckDictionaryUtilities {
     {
         rSettings.CheckRequired();
 
-        const IndexType echo_level =
-            rSettings[MainSettings::general_settings].GetRequiredValue<IndexType>(GeneralSettings::echo_level);
+        const IndexType echo_level = rSettings.GetRequiredValue<IndexType>(MainSettings::echo_level);
 
         // Check 'polynomial_order' related settings.
         const Vector3i order = rSettings[MainSettings::background_grid_settings].GetRequiredValue<Vector3i>(

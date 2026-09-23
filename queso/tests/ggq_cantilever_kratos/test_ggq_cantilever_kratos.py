@@ -1,216 +1,77 @@
-# Project imports
-import pyqueso
-from pyqueso.scripts.queso_unit_test import QuESoTestCase
+"""Kratos regression tests comparing full and GGQ-reduced cantilever rules."""
 
-try:
-    import KratosMultiphysics as KM
-    kratos_available = True
-except:
-    print("KratosMultiphysics is not available")
-    kratos_available = False
-
-if kratos_available:
-    import json
-    from pyqueso.kratos_interface.kratos_analysis import Analysis
-    from pyqueso.kratos_interface.bounding_box_bcs import DirichletCondition
-    from pyqueso.kratos_interface.bounding_box_bcs import NeumannCondition
-
-# External imports
+import json
+import tempfile
 import unittest
-import numpy as np
+from pathlib import Path
 
-## TODO: This needs to be done on python level without 'embedding_flag#
-#        Test ist currently disabled.
-def run_analysis(number_cross_elements, number_z_elements, reduction_flag, polynomial_degree):
-    if kratos_available:
-        model = pyqueso.Model(json_filename="queso/tests/ggq_cantilever_kratos/QuESoSettings.json")
-        grid_settings = model.settings["background_grid_settings"]
-        grid_settings.set_value("number_of_elements", [number_cross_elements, number_cross_elements, number_z_elements])
-        grid_settings.set_value("polynomial_order", polynomial_degree)
-        integration_method = pyqueso.IntegrationMethod.GGQ_OPTIMAL if reduction_flag else pyqueso.IntegrationMethod.GAUSS
-        model.settings["non_trimmed_quadrature_rule_settings"].set_value("integration_method", integration_method)
-        model.create()
+import KratosMultiphysics as KM
+from pyqueso.kratos_interface import Analysis
 
-        p = 100
-        boundary_condition = []
-        boundary_condition.append( DirichletCondition([-100, -100, -0.01], [100, 100, 0.01], [1,1,1]) )
-        boundary_condition.append( NeumannCondition([-100, -100, 9.99], [100, 100, 10.01], [0, p, 0]) )
+DIRECTORY = Path(__file__).parent
 
 
-        kratos_settings_filename = "queso/tests/ggq_cantilever_kratos/KratosParameters.json"
-        analysis = Analysis(model.settings, kratos_settings_filename, model.elements, boundary_condition)
-        model_part = analysis.model_part
+class TestGGQCantileverKratos(unittest.TestCase):
+    """Compare displacement and quadrature counts for full and GGQ rules."""
+
+    def _run_analysis(
+        self, cross_elements: int, axial_elements: int, integration_method: str
+    ) -> tuple[float, int]:
+        settings = json.loads((DIRECTORY / "QuESoSettings.json").read_text())
+        component = settings["components"][0]
+        grid = component["background_grid_settings"]
+        grid["number_of_elements"] = [cross_elements, cross_elements, axial_elements]
+        component["non_trimmed_quadrature_rule_settings"]["integration_method"] = (
+            integration_method
+        )
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", dir=DIRECTORY, delete=False
+        ) as file:
+            json.dump(settings, file)
+            settings_path = Path(file.name)
+        try:
+            analysis = Analysis(
+                queso_settings_path=settings_path,
+                analysis_settings_path=DIRECTORY / "AnalysisSettings.json",
+                kratos_parameters_path=DIRECTORY / "KratosParameters.json",
+            )
+            analysis.run()
+        finally:
+            settings_path.unlink(missing_ok=True)
+
+        model_part = analysis.kratos_model.GetModelPart("NurbsMesh")
         geometry = model_part.GetGeometry("NurbsVolume")
+        parameter = KM.Vector([0.5, 0.5, 1.0])
+        displacement = geometry.GlobalCoordinates(parameter)[1] - 1.0
+        quadrature_points = sum(
+            len(element.integration_points)
+            for element in analysis.queso_model.elements("main")
+        )
+        return displacement, quadrature_points
 
-        number_of_quad_points = 0
-        for el in model_part.Elements:
-            number_of_quad_points += el.GetGeometry().IntegrationPointsNumber()
+    def _compare_full_and_reduced(self, axial_elements: int) -> None:
+        reduced_displacement, reduced_points = self._run_analysis(
+            8, axial_elements, "GGQ_Optimal"
+        )
+        full_displacement, full_points = self._run_analysis(8, axial_elements, "Gauss")
+        self.assertLess(reduced_points, full_points)
+        self.assertAlmostEqual(reduced_displacement, full_displacement, places=10)
 
-        param = KM.Vector(3)
-        param[0] = 0.5
-        param[1] = 0.5
-        param[2] = 1
-        coord = geometry.GlobalCoordinates(param)
-        disp_simulation = coord[1]-1
+    def test_three_axial_elements(self) -> None:
+        self._compare_full_and_reduced(3)
 
-        return [disp_simulation, number_of_quad_points]
+    def test_four_axial_elements(self) -> None:
+        self._compare_full_and_reduced(4)
 
-class TestGGQCantileverKratos(QuESoTestCase):
-    def compare_full_vs_reduced_p_2(self, number_knotspans):
-        number_knot_spans_cross = 2
-        [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[2,2,2])
-        [disp_full, n_integration_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[2,2,2])
+    def test_five_axial_elements(self) -> None:
+        self._compare_full_and_reduced(5)
 
-        n_integration_full_ref = (number_knot_spans_cross*3) * (number_knot_spans_cross*3) * (number_knotspans*3)
-        order = 4
-        continuity = 0
-        red_continuity = order - continuity
-        ndof = (order+1)*number_knotspans - (order-red_continuity+1)*(number_knotspans-1)
-        ndof_2 = (order+1)*number_knot_spans_cross - (order-red_continuity+1)*(number_knot_spans_cross-1)
-        n_integration_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
+    def test_six_axial_elements(self) -> None:
+        self._compare_full_and_reduced(6)
 
-        self.assertEqual(n_integration_full, n_integration_full_ref)
-        self.assertEqual(n_integration_reduced, n_integration_reduced_ref)
+    def test_seven_axial_elements(self) -> None:
+        self._compare_full_and_reduced(7)
 
-        print("disp_reduced: ", disp_reduced)
-        print("disp_full: ", disp_full)
-        print( "Rel error: ", (disp_reduced-disp_full)/disp_full )
-        self.assertAlmostEqual(disp_reduced, disp_full, 12)
-
-    def compare_full_vs_reduced_p_3(self, number_knotspans):
-        number_knot_spans_cross = 1
-        [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[3,3,3])
-        [disp_full, n_integration_points] = run_analysis(number_knot_spans_cross, number_knotspans, False,[3,3,3])
-
-        n_integration_full_ref = (number_knot_spans_cross*4) * (number_knot_spans_cross*4) * (number_knotspans*4)
-        order = 6
-        continuity = 1
-        red_continuity = order - continuity
-        ndof = (order+1)*number_knotspans - (order-red_continuity+1)*(number_knotspans-1)
-        ndof_2 = (order+1)*number_knot_spans_cross - (order-red_continuity+1)*(number_knot_spans_cross-1)
-        n_integration_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
-
-        self.assertEqual(n_integration_points, n_integration_full_ref)
-        self.assertEqual(n_integration_reduced, n_integration_reduced_ref)
-        self.assertAlmostEqual(disp_reduced, disp_full, 11)
-
-    def compare_full_vs_reduced_p_4(self, number_knotspans):
-        number_knot_spans_cross = 1
-        [disp_reduced, n_integration_reduced] = run_analysis(number_knot_spans_cross, number_knotspans, True,[4,4,4])
-        [disp_full, n_integration_full] = run_analysis(number_knot_spans_cross, number_knotspans, False,[4,4,4])
-
-        n_integration_full_ref = (number_knot_spans_cross*5) * (number_knot_spans_cross*5) * (number_knotspans*5)
-        order = 8
-        continuity = 2
-        red_continuity = order - continuity
-        ndof = (order+1)*number_knotspans - (order-red_continuity+1)*(number_knotspans-1)
-        ndof_2 = (order+1)*number_knot_spans_cross - (order-red_continuity+1)*(number_knot_spans_cross-1)
-        n_integration_reduced_ref = np.ceil(ndof_2/2) * np.ceil(ndof_2/2) * np.ceil(ndof/2)
-
-        self.assertEqual(n_integration_full, n_integration_full_ref)
-        self.assertEqual(n_integration_reduced, n_integration_reduced_ref)
-        print( "Rel error: ", (disp_reduced-disp_full)/disp_full )
-        self.assertAlmostEqual(disp_reduced, disp_full, 10)
-
-    def test_1_knotspans(self):
-        self.compare_full_vs_reduced_p_2(1)
-        self.compare_full_vs_reduced_p_3(1)
-        self.compare_full_vs_reduced_p_4(1)
-
-    def test_2_knotspans(self):
-        self.compare_full_vs_reduced_p_2(2)
-        self.compare_full_vs_reduced_p_3(2)
-        self.compare_full_vs_reduced_p_4(2)
-
-    def test_3_knotspans(self):
-        self.compare_full_vs_reduced_p_2(3)
-        self.compare_full_vs_reduced_p_3(3)
-        self.compare_full_vs_reduced_p_4(3)
-
-    def test_4_knotspans(self):
-        self.compare_full_vs_reduced_p_2(4)
-        self.compare_full_vs_reduced_p_3(4)
-        self.compare_full_vs_reduced_p_4(4)
-
-    def test_5_knotspans(self):
-        self.compare_full_vs_reduced_p_2(5)
-        self.compare_full_vs_reduced_p_3(5)
-        self.compare_full_vs_reduced_p_4(5)
-
-    # def test_6_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(6)
-    #     self.compare_full_vs_reduced_p_3(6)
-    #     self.compare_full_vs_reduced_p_4(6)
-
-    # def test_7_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(7)
-    #     self.compare_full_vs_reduced_p_3(7)
-    #     self.compare_full_vs_reduced_p_4(7)
-
-    # def test_8_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(8)
-    #     self.compare_full_vs_reduced_p_3(8)
-    #     self.compare_full_vs_reduced_p_4(8)
-
-    # def test_9_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(9)
-    #     self.compare_full_vs_reduced_p_3(9)
-    #     self.compare_full_vs_reduced_p_4(9)
-
-    # def test_10_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(10)
-    #     self.compare_full_vs_reduced_p_3(10)
-    #     self.compare_full_vs_reduced_p_4(10)
-
-    # def test_11_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(11)
-    #     self.compare_full_vs_reduced_p_3(11)
-    #     self.compare_full_vs_reduced_p_4(11)
-
-    # def test_12_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(12)
-    #     self.compare_full_vs_reduced_p_3(12)
-    #     self.compare_full_vs_reduced_p_4(12)
-
-    # def test_13_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(13)
-    #     self.compare_full_vs_reduced_p_3(13)
-    #     self.compare_full_vs_reduced_p_4(13)
-
-    # def test_14_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(14)
-    #     self.compare_full_vs_reduced_p_3(14)
-    #     self.compare_full_vs_reduced_p_4(14)
-
-    # def test_15_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(15)
-    #     self.compare_full_vs_reduced_p_3(15)
-    #     self.compare_full_vs_reduced_p_4(15)
-
-    # def test_16_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(16)
-    #     self.compare_full_vs_reduced_p_3(16)
-    #     self.compare_full_vs_reduced_p_4(16)
-
-    # def test_17_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(17)
-    #     self.compare_full_vs_reduced_p_3(17)
-    #     self.compare_full_vs_reduced_p_4(17)
-
-    # def test_18_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(18)
-    #     self.compare_full_vs_reduced_p_3(18)
-    #     self.compare_full_vs_reduced_p_4(18)
-
-    # def test_19_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(19)
-    #     self.compare_full_vs_reduced_p_3(19)
-    #     self.compare_full_vs_reduced_p_4(19)
-
-    # def test_20_knotspans(self):
-    #     self.compare_full_vs_reduced_p_2(20)
-    #     self.compare_full_vs_reduced_p_3(20)
-    #     self.compare_full_vs_reduced_p_4(20)
 
 if __name__ == "__main__":
     unittest.main()

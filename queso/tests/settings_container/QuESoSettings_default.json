@@ -1,18 +1,17 @@
 {
-    "general_settings"   : {
-    },
-    "background_grid_settings"     : {
-    },
-    "trimmed_quadrature_rule_settings"     : {
-    },
-    "non_trimmed_quadrature_rule_settings" : {
-    },
-    "conditions_settings_list"    :  [
-        {
-        },{
-        },{
-        },{
-        }
-    ]
+  "components": [
+    {
+      "component_name": "main",
+      "input_filename": "dummy.stl",
+      "background_grid_settings": {
+        "grid_type": "b_spline_grid",
+        "lower_bound_xyz": [0.0, 0.0, 0.0],
+        "upper_bound_xyz": [1.0, 1.0, 1.0],
+        "lower_bound_uvw": [0.0, 0.0, 0.0],
+        "upper_bound_uvw": [1.0, 1.0, 1.0],
+        "polynomial_order": [2, 2, 2],
+        "number_of_elements": [1, 1, 1]
+      }
+    }
+  ]
 }
-

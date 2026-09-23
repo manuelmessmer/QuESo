@@ -1,111 +1,103 @@
-"""High-level QuESo model API."""
+"""High-level multi-component QuESo model API."""
 
-import os
-import shutil
-from typing import Optional
+from __future__ import annotations
 
-from . import IntegrationPointVector
-from ._internal import _EmbeddedComponent
+import json
+from pathlib import Path
+from typing import Any
+
+from . import IntegrationPointVector  # type: ignore
+from ._internal import _EmbeddedComponent  # type: ignore
 from .scripts.b_spline_volume import BSplineVolume
 from .scripts.json_io import JsonIO
+from .scripts.settings_parser import parse_settings_by_component
 
 
 class Model:
-    """Load settings and create an embedded finite-element model."""
+    """Load, validate, and create one or more embedded components."""
 
-    def __init__(self, json_filename: str) -> None:
-        """Load model settings from ``json_filename``."""
-        self._settings_holder = JsonIO.read_settings(json_filename)
-        self._component: Optional[_EmbeddedComponent] = None
-        self._analysis = None
+    def __init__(self, settings_path: str | Path) -> None:
+        """Load public QuESo settings from a JSON file.
 
-        settings = self._settings_holder.dictionary
-        general_settings = settings["general_settings"]
-        write_output_to_file = general_settings.get_bool("write_output_to_file")
-        output_directory_name = general_settings.get_string("output_directory_name")
-        if write_output_to_file:
-            folder_path = os.path.join(".", output_directory_name)
-            if os.path.exists(folder_path):
-                shutil.rmtree(folder_path)
-            os.mkdir(folder_path)
+        Args:
+            settings_path: Path to the public multi-component settings file.
+
+        Raises:
+            OSError: If the settings file cannot be read.
+            json.JSONDecodeError: If the file does not contain valid JSON.
+            ValueError: If the settings schema is invalid.
+        """
+        self._settings_path = Path(settings_path).expanduser().resolve()
+        with self._settings_path.open("r", encoding="utf-8") as settings_file:
+            raw_settings = json.load(settings_file)
+        self._component_settings = parse_settings_by_component(
+            raw_settings, self._settings_path
+        )
+        self._components: dict[str, _EmbeddedComponent] | None = None
+
+    @property
+    def component_names(self) -> tuple[str, ...]:
+        """Configured component names in definition order."""
+        return tuple(self._component_settings)
 
     def create(self) -> None:
-        """Create all model data from the loaded settings."""
-        if self._component is not None:
-            raise RuntimeError("Model has already been created.")
-        self._component = _EmbeddedComponent(self._settings_holder)
-        self._settings_holder = None
-        self._component.create_all_from_settings()
+        """Create every configured embedded component exactly once."""
+        if self._components is not None:
+            raise RuntimeError("Model.create() may only be called once.")
 
-    @property
-    def elements(self):
-        """Active elements in the created model."""
-        return self._created_component.elements
+        components: dict[str, _EmbeddedComponent] = {}
+        for component_name, settings in self._component_settings.items():
+            if settings["write_output_to_file"]:
+                Path(settings["output_directory_name"]).mkdir(
+                    parents=True, exist_ok=True
+                )
+            settings_holder = JsonIO.read_settings(settings)
+            component = _EmbeddedComponent(settings_holder)
+            component.create_all_from_settings()
+            components[component_name] = component
+        self._components = components
 
-    @property
-    def conditions(self):
-        """Conditions in the created model."""
-        return self._created_component.conditions
+    def settings(self, component_name: str) -> dict[str, Any]:
+        """Return normalized settings for a configured component."""
+        self._verify_configured_component(component_name)
+        return self._component_settings[component_name]
 
-    @property
-    def settings(self):
-        """Settings loaded for this model."""
-        if self._settings_holder is not None:
-            return self._settings_holder.dictionary
-        return self._created_component.settings
+    def elements(self, component_name: str):
+        """Return the created component's lazy element range."""
+        return self._component(component_name).elements
 
-    @property
-    def model_info(self):
-        """Information produced while creating the model."""
-        return self._created_component.model_info
+    def conditions(self, component_name: str):
+        """Return the created component's conditions."""
+        return self._component(component_name).conditions
 
-    def b_spline_volume(self, knot_vector_type: str) -> BSplineVolume:
-        """Construct a B-spline volume from the model settings."""
-        return BSplineVolume(self.settings, knot_vector_type)
+    def component_info(self, component_name: str):
+        """Return information generated while creating a component."""
+        return self._component(component_name).component_info
 
-    @property
-    def integration_points(self) -> IntegrationPointVector:
-        """All positive-weight integration points in the created model."""
+    def integration_points(self, component_name: str) -> IntegrationPointVector:
+        """Return all positive-weight volume integration points for a component."""
         integration_points = IntegrationPointVector()
-        for element in self.elements:
-            if element.is_trimmed:
-                for point in element.integration_points:
-                    if point.weight > 0:
-                        integration_points.append(point)
-            else:
-                for point in element.integration_points:
+        for element in self.elements(component_name):
+            for point in element.integration_points:
+                if point.weight > 0.0:
                     integration_points.append(point)
         return integration_points
 
-    @property
-    def analysis(self):
-        """Kratos analysis created by :meth:`run_kratos_analysis`."""
-        if self._analysis is None:
-            raise RuntimeError("Kratos analysis has not been created.")
-        return self._analysis
+    def b_spline_volume(
+        self, component_name: str, knot_vector_type: str
+    ) -> BSplineVolume:
+        """Construct a B-spline helper from one component's grid settings."""
+        settings_holder = JsonIO.read_settings(self.settings(component_name))
+        return BSplineVolume(settings_holder.dictionary, knot_vector_type)
 
-    def run_kratos_analysis(
-        self, kratos_settings_filename: str = "KratosParameters.json"
-    ) -> None:
-        """Run a Kratos analysis using the created QuESo model."""
-        try:
-            import KratosMultiphysics  # noqa: F401
-        except ImportError as exc:
-            raise ImportError("KratosMultiphysics is not available.") from exc
+    def _verify_configured_component(self, component_name: str) -> None:
+        if component_name not in self._component_settings:
+            raise KeyError(f"Unknown component '{component_name}'.")
 
-        from .kratos_interface.kratos_analysis import Analysis
-
-        self._analysis = Analysis(
-            self.settings,
-            kratos_settings_filename,
-            self.elements,
-            self.conditions,
-        )
-
-    @property
-    def _created_component(self) -> _EmbeddedComponent:
-        if self._component is None:
+    def _component(self, component_name: str) -> _EmbeddedComponent:
+        self._verify_configured_component(component_name)
+        if self._components is None:
             raise RuntimeError(
-                "Model.create() must be called before accessing model results."
+                "Model.create() must be called before accessing generated results."
             )
-        return self._component
+        return self._components[component_name]

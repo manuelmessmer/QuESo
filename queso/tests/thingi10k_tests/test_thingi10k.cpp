@@ -52,7 +52,8 @@ namespace {
         MakeSettings(const std::string& rFilename, const BoundingBoxType& rBounds, const Vector3i& rNumberOfElements)
     {
         auto p_settings = factories::CreateSettings();
-        p_settings->operator[](MainSettings::general_settings).SetValue(GeneralSettings::input_filename, rFilename);
+        p_settings->SetValue(MainSettings::component_name, std::string("main"));
+        p_settings->SetValue(MainSettings::input_filename, rFilename);
         auto& r_grid_settings = (*p_settings)[MainSettings::background_grid_settings];
         r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
         r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, rBounds.lower);
@@ -280,4 +281,3 @@ BOOST_AUTO_TEST_CASE(ElementClassificationTest)
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace queso::Testing
-

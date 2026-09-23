@@ -36,7 +36,7 @@ namespace queso {
  *         created active elements and conditions. Each active element stores its integrations points. Each condition is
  *         split into ConditionSegment's (that conform to the boundaries of the elements in the background grid).
  *         The corresponding boundary integration points are stored on these ConditionSegments.
- *         EmbeddedComponent also stores some information regearding the created model in mModelInfo.
+ *         EmbeddedComponent also stores information regarding the created component in mComponentInfo.
  **/
 class EmbeddedComponent
 {
@@ -69,7 +69,7 @@ private:
     /// @param pSettings (EmbeddedComponent takes unique ownership).
     EmbeddedComponent(Unique<MainDictionaryType>&& pSettings)
         : mpSettings(std::move(pSettings)), mBackgroundGrid(*mpSettings),
-          mpModelInfo(DictionaryFactory<key::MainValuesTypeTag>::Create("ModelInfo"))
+          mpComponentInfo(DictionaryFactory<key::MainValuesTypeTag>::Create("ComponentInfo"))
     {}
 
 public:
@@ -86,7 +86,7 @@ public:
     ///@name Operations
     ///@{
 
-    ///@brief Main function to create embedded model.
+    ///@brief Main function to create the embedded component.
     ///       Creates integration points for both the embedded volume and all embedded conditions.
     ///       The respective geometries (TriangleMeshes) are taken from input STL files specified in mSettings.
     ///@todo Add try{} catch{} plus error handler
@@ -94,12 +94,11 @@ public:
     {
         QuESo_ERROR_IF(mBackgroundGrid.ElementsAreLocked()) << "Volume elements have already been constructed.\n";
         // Create volume
-        const auto& r_general_settings = GetSettings()[MainSettings::general_settings];
-        const IndexType echo_level = r_general_settings.GetRequiredValue<IndexType>(GeneralSettings::echo_level);
+        const IndexType echo_level = GetSettings().GetRequiredValue<IndexType>(MainSettings::echo_level);
         QuESo_INFO_IF(echo_level > 0) << "QuESo: Create Volume -------------------------------------- START"
                                       << std::endl;
 
-        const auto& r_filename = r_general_settings.GetRequiredValue<std::string>(GeneralSettings::input_filename);
+        const auto& r_filename = GetSettings().GetRequiredValue<std::string>(MainSettings::input_filename);
         TriangleMesh domain_mesh;
         IO::ReadMeshFromSTL(domain_mesh, r_filename.c_str());
         ComputeVolume(domain_mesh.View());
@@ -153,10 +152,10 @@ public:
     void CreateCondition(const TriangleMeshView& rTriangleMesh, const MainDictionaryType& rConditionSettings)
     { ComputeCondition(rTriangleMesh, rConditionSettings); }
 
-    /// @brief Writes this model to file.
+    /// @brief Writes this component to file.
     ///        Elements and integrations points are written to VTK files.
     ///        Conditions are written to STL files.
-    ///        mpModelInfo is written to JSON file.
+    ///        mpComponentInfo is written to JSON file.
     void WriteModelToFile() const;
 
     /// @brief Returns a lazy range of ElementView over all matching elements.
@@ -181,25 +180,25 @@ public:
     const MainDictionaryType& GetSettings() const
     { return *mpSettings; }
 
-    ///@brief Returns the ModelInfo (const version).
+    ///@brief Returns the component information (const version).
     ///@return const MainDictionaryType&
-    const MainDictionaryType& GetModelInfo() const
-    { return *mpModelInfo; }
+    const MainDictionaryType& GetComponentInfo() const
+    { return *mpComponentInfo; }
 
-    ///@brief Returns the ModelInfo (non-const version).
+    ///@brief Returns the component information (non-const version).
     ///@return MainDictionaryType&
-    MainDictionaryType& GetModelInfo()
-    { return *mpModelInfo; }
+    MainDictionaryType& GetComponentInfo()
+    { return *mpComponentInfo; }
 
     ///@}
 private:
     ///@name Private Member Operations
     ///@{
 
-    ///@brief Returns the ModelInfo as non-const reference. May be called from const member funtions.
+    ///@brief Returns component information as a non-const reference from const member functions.
     ///@return MainDictionaryType&
-    MainDictionaryType& GetModelInfoMutable() const
-    { return *mpModelInfo; }
+    MainDictionaryType& GetComponentInfoMutable() const
+    { return *mpComponentInfo; }
 
     ///@brief Main function to compute the integration points for a volume enclosed/defined by rTriangleMesh.
     ///@param rTriangleMesh
@@ -226,11 +225,11 @@ private:
     void PrintConditionInfo(const MainDictionaryType& rConditionInfo) const;
 
     ///@brief Prints some info to the console regarding the elapsed computing times required to create the volume.
-    ///       Info to be printed is taken from mModelInfo[MainInfo::elapsed_time_info].
+    ///       Info to be printed is taken from mComponentInfo[MainInfo::elapsed_time_info].
     void PrintVolumeElapsedTimeInfo() const;
 
     ///@brief Prints some info to the console regarding the elapsed computing times required to create the conditions.
-    ///       Info to be printed is taken from mModelInfo[MainInfo::elapsed_time_info].
+    ///       Info to be printed is taken from mComponentInfo[MainInfo::elapsed_time_info].
     void PrintConditionsElapsedTimeInfo() const;
 
     ///@}
@@ -238,7 +237,7 @@ private:
     ///@{
     Unique<const MainDictionaryType> mpSettings;
     BackgroundGridType mBackgroundGrid;
-    Unique<MainDictionaryType> mpModelInfo;
+    Unique<MainDictionaryType> mpComponentInfo;
     ///@}
 };
 ///@} End QuESo Classes

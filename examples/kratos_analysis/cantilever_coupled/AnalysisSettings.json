@@ -1,0 +1,33 @@
+{
+    "model_parts": [
+        {
+            "name": "Structure",
+            "geometries": [
+                {
+                    "name": "LeftVolume",
+                    "queso_components": [
+                        {
+                            "component_name": "left",
+                            "element_settings": {
+                                "property_id": 1,
+                                "element_type": "UpdatedLagrangianElement3D8N"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "RightVolume",
+                    "queso_components": [
+                        {
+                            "component_name": "right",
+                            "element_settings": {
+                                "property_id": 2,
+                                "element_type": "UpdatedLagrangianElement3D8N"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
