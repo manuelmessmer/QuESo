@@ -18,7 +18,7 @@
 #include <utility>
 
 // Project includes
-#include "queso/embedded_model.h"
+#include "queso/embedded_component.h"
 #include "queso/python/bindings/add_containers_to_python.h"
 #include "queso/python/bindings/define_python.hpp"
 #include "queso/utilities/triangle_utilities.hpp"
@@ -380,26 +380,28 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
         )
         .def_property_readonly("num_segments", &ConditionType::NumberOfSegments, "Number of clipped surface segments.");
 
-    py::class_<EmbeddedModel>(InternalModule, "_EmbeddedModel", "Private C++ model implementation.")
+    py::class_<EmbeddedComponent>(InternalModule, "_EmbeddedComponent", "Private C++ component implementation.")
         .def(py::init([](MainDictionaryHolderType& rSettings) {
-            return MakeUnique<EmbeddedModel>(EmbeddedModel::Create(rSettings.Release()));
+            return MakeUnique<EmbeddedComponent>(EmbeddedComponent::Create(rSettings.Release()));
         }))
-        .def("create_all_from_settings", &EmbeddedModel::CreateAllFromSettings)
+        .def("create_all_from_settings", &EmbeddedComponent::CreateAllFromSettings)
         .def_property_readonly(
             "elements",
             py::cpp_function(
-                [](const EmbeddedModel& rEmbeddedModel) {
-                    return PythonElementRange{ rEmbeddedModel.GetElementViews() };
+                [](const EmbeddedComponent& rEmbeddedComponent) {
+                    return PythonElementRange{ rEmbeddedComponent.GetElementViews() };
                 },
                 py::keep_alive<0, 1>()
             )
         )
-        .def_property_readonly("conditions", &EmbeddedModel::GetConditions, py::return_value_policy::reference_internal)
-        .def_property_readonly("settings", &EmbeddedModel::GetSettings, py::return_value_policy::reference_internal)
+        .def_property_readonly(
+            "conditions", &EmbeddedComponent::GetConditions, py::return_value_policy::reference_internal
+        )
+        .def_property_readonly("settings", &EmbeddedComponent::GetSettings, py::return_value_policy::reference_internal)
         .def_property_readonly(
             "model_info",
-            static_cast<const EmbeddedModel::MainDictionaryType& (EmbeddedModel::*)() const>(
-                &EmbeddedModel::GetModelInfo
+            static_cast<const EmbeddedComponent::MainDictionaryType& (EmbeddedComponent::*)() const>(
+                &EmbeddedComponent::GetModelInfo
             ),
             py::return_value_policy::reference_internal
         );

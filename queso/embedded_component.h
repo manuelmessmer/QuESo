@@ -11,8 +11,7 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef EMBEDDED_MODEL_INCLUDE_H
-#define EMBEDDED_MODEL_INCLUDE_H
+#pragma once
 
 /// Project includes
 #include "queso/containers/background_grid.hpp"
@@ -29,17 +28,17 @@ namespace queso {
 
 ////
 /**
- * @class  EmbeddedModel
+ * @class  EmbeddedComponent
  * @author Manuel Messmer
  * @brief  Main class of QuESo.
  *         Provides interface to create integration points for embedded volumes and embedded conditions (boundaries)
- *         based on the settings provided in mSettings. EmbeddedModel aggregates a BackgroundGrid, which stores the
+ *         based on the settings provided in mSettings. EmbeddedComponent aggregates a BackgroundGrid, which stores the
  *         created active elements and conditions. Each active element stores its integrations points. Each condition is
  *         split into ConditionSegment's (that conform to the boundaries of the elements in the background grid).
  *         The corresponding boundary integration points are stored on these ConditionSegments.
- *         EmbeddedModel also stores some information regearding the created model in mModelInfo.
+ *         EmbeddedComponent also stores some information regearding the created model in mModelInfo.
  **/
-class EmbeddedModel
+class EmbeddedComponent
 {
 public:
     ///@name Type Definitions
@@ -56,32 +55,32 @@ public:
     ///@name  Life Cycle
     ///@{
 
-    /// @brief Helper to create EmbeddedModel.
-    /// @param pSettings (EmbeddedModel takes unique ownership).
-    /// @return EmbeddedModel.
-    static EmbeddedModel Create(Unique<MainDictionaryType>&& pSettings)
+    /// @brief Helper to create EmbeddedComponent.
+    /// @param pSettings (EmbeddedComponent takes unique ownership).
+    /// @return EmbeddedComponent.
+    static EmbeddedComponent Create(Unique<MainDictionaryType>&& pSettings)
     {
         CheckDictionaryUtilities::CheckSettings(*pSettings);
-        return EmbeddedModel(std::move(pSettings));
+        return EmbeddedComponent(std::move(pSettings));
     }
 
 private:
     /// @brief Constructor
-    /// @param pSettings (EmbeddedModel takes unique ownership).
-    EmbeddedModel(Unique<MainDictionaryType>&& pSettings)
+    /// @param pSettings (EmbeddedComponent takes unique ownership).
+    EmbeddedComponent(Unique<MainDictionaryType>&& pSettings)
         : mpSettings(std::move(pSettings)), mBackgroundGrid(*mpSettings),
           mpModelInfo(DictionaryFactory<key::MainValuesTypeTag>::Create("ModelInfo"))
     {}
 
 public:
     /// Copy Constructor
-    EmbeddedModel(const EmbeddedModel& rOther) = delete;
+    EmbeddedComponent(const EmbeddedComponent& rOther) = delete;
     /// Copy Assignement
-    EmbeddedModel& operator=(const EmbeddedModel& rOther) = delete;
+    EmbeddedComponent& operator=(const EmbeddedComponent& rOther) = delete;
     /// Move constructor
-    EmbeddedModel(EmbeddedModel&& rOther) noexcept = default;
+    EmbeddedComponent(EmbeddedComponent&& rOther) noexcept = default;
     /// Move assignement operator
-    EmbeddedModel& operator=(EmbeddedModel&& rOther) noexcept = default;
+    EmbeddedComponent& operator=(EmbeddedComponent&& rOther) noexcept = default;
 
     ///@}
     ///@name Operations
@@ -219,7 +218,7 @@ private:
     void CheckIfMeshIsWithinBoundingBox(const TriangleMeshView& rTriangleMesh) const;
 
     ///@brief Prints some info to the console regarding the computed volume.
-    ///       Since only one volume per EmbeddedModel can be created no arguments have to be passed.
+    ///       Since only one volume per EmbeddedComponent can be created no arguments have to be passed.
     void PrintVolumeInfo() const;
 
     ///@brief Prints some info to the console regarding the computed condition.
@@ -244,5 +243,3 @@ private:
 };
 ///@} End QuESo Classes
 }  // End namespace queso
-
-#endif  // EMBEDDED_MODEL_INCLUDE_H

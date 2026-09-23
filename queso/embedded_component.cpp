@@ -15,7 +15,7 @@
 #include <omp.h>
 
 //// Project includes
-#include "queso/embedded_model.h"
+#include "queso/embedded_component.h"
 #include "queso/embedding/boundary_mesh_embedder.h"
 #include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/embedding/element_builders.hpp"
@@ -25,7 +25,7 @@
 
 namespace queso {
 
-void EmbeddedModel::ComputeVolume(const TriangleMeshView& rTriangleMesh)
+void EmbeddedComponent::ComputeVolume(const TriangleMeshView& rTriangleMesh)
 {
 
     CheckIfMeshIsWithinBoundingBox(rTriangleMesh);
@@ -195,7 +195,7 @@ void EmbeddedModel::ComputeVolume(const TriangleMeshView& rTriangleMesh)
     PrintVolumeInfo();
 }
 
-void EmbeddedModel::ComputeCondition(
+void EmbeddedComponent::ComputeCondition(
     const TriangleMeshView& rTriangleMesh,
     const MainDictionaryType& rConditionSettings
 )
@@ -287,7 +287,7 @@ void EmbeddedModel::ComputeCondition(
     PrintConditionInfo(r_new_condition_info);
 }
 
-void EmbeddedModel::WriteModelToFile() const
+void EmbeddedComponent::WriteModelToFile() const
 {
     const auto& r_settings = GetSettings();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
@@ -342,7 +342,7 @@ void EmbeddedModel::WriteModelToFile() const
     }
 }
 
-void EmbeddedModel::CheckIfMeshIsWithinBoundingBox(const TriangleMeshView& rTriangleMesh) const
+void EmbeddedComponent::CheckIfMeshIsWithinBoundingBox(const TriangleMeshView& rTriangleMesh) const
 {
     const auto& r_settings = GetSettings();
     // Check if bounding box fully contains the triangle mesh.
@@ -370,7 +370,7 @@ void EmbeddedModel::CheckIfMeshIsWithinBoundingBox(const TriangleMeshView& rTria
     }
 }
 
-void EmbeddedModel::PrintVolumeInfo() const
+void EmbeddedComponent::PrintVolumeInfo() const
 {
     const auto& r_settings = GetSettings();
     const auto& r_model_info = GetModelInfo();
@@ -401,7 +401,7 @@ void EmbeddedModel::PrintVolumeInfo() const
     }
 }
 
-void EmbeddedModel::PrintVolumeElapsedTimeInfo() const
+void EmbeddedComponent::PrintVolumeElapsedTimeInfo() const
 {
     const auto& r_settings = GetSettings();
     const auto& r_model_info = GetModelInfo();
@@ -432,7 +432,7 @@ void EmbeddedModel::PrintVolumeElapsedTimeInfo() const
     }
 }
 
-void EmbeddedModel::PrintConditionInfo(const MainDictionaryType& rConditionInfo) const
+void EmbeddedComponent::PrintConditionInfo(const MainDictionaryType& rConditionInfo) const
 {
     const auto& r_settings = GetSettings();
     const auto& r_general_settings = r_settings[MainSettings::general_settings];
@@ -453,7 +453,7 @@ void EmbeddedModel::PrintConditionInfo(const MainDictionaryType& rConditionInfo)
     }
 }
 
-void EmbeddedModel::PrintConditionsElapsedTimeInfo() const
+void EmbeddedComponent::PrintConditionsElapsedTimeInfo() const
 {
     const auto& r_settings = GetSettings();
     const auto& r_model_info = GetModelInfo();

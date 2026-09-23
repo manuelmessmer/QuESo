@@ -5,7 +5,7 @@ import shutil
 from typing import Optional
 
 from . import IntegrationPointVector
-from ._internal import _EmbeddedModel
+from ._internal import _EmbeddedComponent
 from .scripts.b_spline_volume import BSplineVolume
 from .scripts.json_io import JsonIO
 
@@ -16,7 +16,7 @@ class Model:
     def __init__(self, json_filename: str) -> None:
         """Load model settings from ``json_filename``."""
         self._settings_holder = JsonIO.read_settings(json_filename)
-        self._component: Optional[_EmbeddedModel] = None
+        self._component: Optional[_EmbeddedComponent] = None
         self._analysis = None
 
         settings = self._settings_holder.dictionary
@@ -33,7 +33,7 @@ class Model:
         """Create all model data from the loaded settings."""
         if self._component is not None:
             raise RuntimeError("Model has already been created.")
-        self._component = _EmbeddedModel(self._settings_holder)
+        self._component = _EmbeddedComponent(self._settings_holder)
         self._settings_holder = None
         self._component.create_all_from_settings()
 
@@ -103,7 +103,7 @@ class Model:
         )
 
     @property
-    def _created_component(self) -> _EmbeddedModel:
+    def _created_component(self) -> _EmbeddedComponent:
         if self._component is None:
             raise RuntimeError(
                 "Model.create() must be called before accessing model results."

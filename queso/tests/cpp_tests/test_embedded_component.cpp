@@ -19,7 +19,7 @@
 #include <numeric>  // std::accumulate
 #include <optional>
 //// Project includes
-#include "queso/embedded_model.h"
+#include "queso/embedded_component.h"
 #include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
@@ -121,16 +121,16 @@ namespace Testing {
             rSettings.GetList(MainSettings::conditions_settings_list).push_back(std::move(p_cond_settings));
         }
 
-        EmbeddedModel CreateEmbeddedModel(MainDictionaryPtrType pSettings)
+        EmbeddedComponent CreateEmbeddedComponent(MainDictionaryPtrType pSettings)
         {
-            EmbeddedModel embedded_model = EmbeddedModel::Create(std::move(pSettings));
-            embedded_model.CreateAllFromSettings();
-            return embedded_model;
+            EmbeddedComponent embedded_component = EmbeddedComponent::Create(std::move(pSettings));
+            embedded_component.CreateAllFromSettings();
+            return embedded_component;
         }
 
     }  // namespace
 
-    BOOST_AUTO_TEST_SUITE(EmbeddedModelTestSuite)
+    BOOST_AUTO_TEST_SUITE(EmbeddedComponentTestSuite)
 
     BOOST_AUTO_TEST_CASE(IntersectedElementTest)
     {
@@ -143,11 +143,11 @@ namespace Testing {
         auto& r_settings = *p_settings;
         ConfigureCylinderIntersectedElement(r_settings);
 
-        EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+        EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
-        const auto elements = embedded_model.GetElementViews();
+        const auto elements = embedded_component.GetElementViews();
         const auto trimmed_elements =
-            embedded_model.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+            embedded_component.GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
 
         QuESo_CHECK_EQUAL(elements.size(), 1);
         QuESo_CHECK_EQUAL(trimmed_elements.size(), 1UL);
@@ -190,16 +190,17 @@ namespace Testing {
             auto& r_settings = *p_settings;
             ConfigureCylinderIntersectedElement(r_settings, Alpha);
 
-            return CreateEmbeddedModel(std::move(p_settings));
+            return CreateEmbeddedComponent(std::move(p_settings));
         };
 
-        auto embedded_model_without_alpha = create_model(std::nullopt);
-        auto embedded_model_with_alpha = create_model(0.25);
+        auto embedded_component_without_alpha = create_model(std::nullopt);
+        auto embedded_component_with_alpha = create_model(0.25);
 
         const auto trimmed_without_alpha =
-            embedded_model_without_alpha.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+            embedded_component_without_alpha
+                .GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
         const auto trimmed_with_alpha =
-            embedded_model_with_alpha.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+            embedded_component_with_alpha.GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
 
         QuESo_CHECK_EQUAL(trimmed_without_alpha.size(), 1UL);
         QuESo_CHECK_EQUAL(trimmed_with_alpha.size(), 1UL);
@@ -238,20 +239,20 @@ namespace Testing {
             Vector3i{ 3, 3, 3 },
             Vector3i{ 2, 2, 2 }
         );
-        auto embedded_model = EmbeddedModel::Create(std::move(p_settings));
+        auto embedded_component = EmbeddedComponent::Create(std::move(p_settings));
 
         {
             const TriangleMesh mesh = MeshUtilities::MakeMeshBox({ 0.75, 0.75, 0.75 }, { 2.25, 2.25, 2.25 });
-            embedded_model.CreateVolume(mesh.View());
+            embedded_component.CreateVolume(mesh.View());
         }
 
         const auto trimmed_elements =
-            embedded_model.GetElements<EmbeddedModel::BackgroundGridType::ElementFilter::trimmed>();
+            embedded_component.GetElements<EmbeddedComponent::BackgroundGridType::ElementFilter::trimmed>();
         BOOST_REQUIRE(!trimmed_elements.empty());
         QuESo_CHECK(trimmed_elements.front().IsInsideActiveDomain(PointType{ 0.9, 0.9, 0.9 }));
 
         const TriangleMesh replacement = MeshUtilities::MakeMeshBox({ 1.0, 1.0, 1.0 }, { 2.0, 2.0, 2.0 });
-        BOOST_CHECK_THROW(embedded_model.CreateVolume(replacement.View()), queso::Exception);
+        BOOST_CHECK_THROW(embedded_component.CreateVolume(replacement.View()), queso::Exception);
         QuESo_CHECK(trimmed_elements.front().IsInsideActiveDomain(PointType{ 0.9, 0.9, 0.9 }));
     }
 
@@ -289,9 +290,9 @@ namespace Testing {
             NonTrimmedQuadratureRuleSettings::integration_method, IntegrationMethod
         );
 
-        EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+        EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
-        const auto elements = embedded_model.GetElementViews();
+        const auto elements = embedded_component.GetElementViews();
 
         // Compute total volume
         double volume_trimmed = 0.0;
@@ -760,10 +761,10 @@ namespace Testing {
         AddConditionSettings(r_settings, 3u, base_dir + "/data/steering_knuckle_N2.stl", "SurfaceLoadCondition");
         AddConditionSettings(r_settings, 4u, base_dir + "/data/steering_knuckle_N3.stl", "SurfaceLoadCondition");
 
-        EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+        EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
         /// Test volume
-        const auto elements = embedded_model.GetElementViews();
+        const auto elements = embedded_component.GetElementViews();
 
         // Compute total volume
         double volume_trimmed = 0.0;
@@ -811,7 +812,7 @@ namespace Testing {
         QuESo_CHECK_RELATIVE_NEAR(volume_tot, ref_volume_tot, Tolerance);
 
         /// Test conditions
-        const auto& conditions = embedded_model.GetConditions();
+        const auto& conditions = embedded_component.GetConditions();
         QuESo_CHECK_EQUAL(conditions.size(), 4);
         constexpr std::array<double, 4> active_parent_areas{
             1183.5430441558535, 331.61806756170204, 577.9619341880289, 921.16363515346893
@@ -1109,10 +1110,10 @@ namespace Testing {
 
         AddConditionSettings(r_settings, 1u, base_dir + "/data/steering_knuckle_D1.stl", "PenaltySupportCondition");
 
-        EmbeddedModel embedded_model = CreateEmbeddedModel(std::move(p_settings));
+        EmbeddedComponent embedded_component = CreateEmbeddedComponent(std::move(p_settings));
 
         /// Check model info
-        const auto& r_model_info = embedded_model.GetModelInfo();
+        const auto& r_model_info = embedded_component.GetModelInfo();
         // embedded_geometry_info
         const auto& r_geo_info = r_model_info[MainInfo::embedded_geometry_info];
         r_geo_info.CheckRequired();
@@ -1171,13 +1172,13 @@ namespace Testing {
         QuESo_CHECK_RELATIVE_NEAR(total_time, (et_volume_total + et_condition_total + et_write_file_total), 1e-5);
 
         const auto& r_condition_info_1 = *r_model_info.GetList(MainInfo::conditions_infos_list)[0];
-        const auto& r_condition_1 = embedded_model.GetConditions()[0];
+        const auto& r_condition_1 = embedded_component.GetConditions()[0];
         const auto& r_condition_info_1_other = r_condition_1.GetInfo();
         QuESo_CHECK_EQUAL(std::addressof(r_condition_info_1), std::addressof(r_condition_info_1_other));
         r_condition_info_1.CheckRequired();
         QuESo_CHECK_EQUAL(r_condition_info_1.GetRequiredValue<IndexType>(ConditionInfo::condition_id), 1);
 
-        const auto& r_settings_obtained = embedded_model.GetSettings();
+        const auto& r_settings_obtained = embedded_component.GetSettings();
         const auto& r_cond_settings_1 = *r_settings_obtained.GetList(MainSettings::conditions_settings_list)[0];
         const std::string& r_filename =
             r_cond_settings_1.GetRequiredValue<std::string>(ConditionSettings::input_filename);
