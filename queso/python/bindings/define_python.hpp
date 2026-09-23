@@ -11,40 +11,44 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef DEFINE_PYTHON_INCLUDE_HPP
-#define DEFINE_PYTHON_INCLUDE_HPP
+#pragma once
 
 /// External includes
+#include <pybind11/functional.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
-#include <pybind11/functional.h>
 
 /// Project includes
 #include "queso/includes/define.hpp"
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
 /// @brief Allows to pass unique ownership from Python to C++.
 /// @tparam TType
 template<typename TType>
-struct UniqueHolder {
+struct UniqueHolder
+{
     /// @brief Constructor (Takes ownership).
     /// @param NewData
     UniqueHolder(Unique<TType> NewData) : mpData(std::move(NewData))
-    {
-    }
+    {}
 
     /// @brief Returns reference to the underlying object.
     /// @return TType&
-    TType& GetObject(){
+    TType& GetObject()
+    {
         QuESo_ERROR_IF(!mpData) << "The underlying data has been released already.\n";
         return *mpData;
     }
 
+    /// @brief Returns whether this holder still owns an object.
+    [[nodiscard]] bool HasObject() const noexcept
+    { return static_cast<bool>(mpData); }
+
     /// @brief Releases the ownership of the underlying object.
     /// @return Unique<TType>
-    Unique<TType> Release() {
+    Unique<TType> Release()
+    {
         QuESo_ERROR_IF(!mpData) << "The underlying data has been released already.\n";
         return std::move(mpData);
     }
@@ -58,13 +62,11 @@ struct UniqueHolder {
 /// @param rObject
 /// @return std::string
 template<class TType>
-std::string PrintObject(const TType& rObject) {
+std::string PrintObject(const TType& rObject)
+{
     std::stringstream ss;
     ss << rObject;
     return ss.str();
 }
 
-} // End namespace Python
-} // End namespace queso
-
-#endif // DEFINE_PYTHON_INCLUDE_HPP
+}  // namespace queso::python

@@ -6,14 +6,28 @@ set arg2=%2
 set "PYTHONPATH=@CMAKE_BINARY_DIR@;%PYTHONPATH%"
 set "PATH=@CMAKE_BINARY_DIR@/bin;%PATH%"
 
-IF "%arg1%" == "py" ( python @PYTHON_TEST_EXE_DIR_IN@/test_queso.py )
+IF "%arg1%" == "py" (
+    python -m pytest @PYTHON_TEST_SOURCE_DIR_IN@ -m "not kratos"
+    IF ERRORLEVEL 1 exit /b 1
+    exit /b 0
+)
 
-IF "%arg1%" == "cpp" ( call "@CPP_TEST_EXE_DIR_IN@/test_queso.exe" -- @CPP_TEST_SOURCE_DIR_IN@)
+IF "%arg1%" == "cpp" (
+    call "@CPP_TEST_EXE_DIR_IN@/test_queso.exe" -- @TEST_DATA_DIR_IN@
+    IF ERRORLEVEL 1 exit /b 1
+    exit /b 0
+)
 
 IF "%arg1%" == "thingi10k" (
     call "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k.exe" --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set %arg2% 5 50 @THINGI10K_ID_DIR@
-	call "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k.exe" --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set %arg2% 2 10 @THINGI10K_ID_DIR@
+    IF ERRORLEVEL 1 exit /b 1
+    call "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k.exe" --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set %arg2% 2 10 @THINGI10K_ID_DIR@
+    IF ERRORLEVEL 1 exit /b 1
     call "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k.exe" --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set %arg2% 5 50 @THINGI10K_ID_DIR@
+    IF ERRORLEVEL 1 exit /b 1
     call "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k.exe" --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set %arg2% 2 10 @THINGI10K_ID_DIR@
+    IF ERRORLEVEL 1 exit /b 1
+    exit /b 0
 )
-endlocal
+
+endlocal & exit /b 2

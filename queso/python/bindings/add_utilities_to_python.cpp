@@ -17,22 +17,24 @@
 /// To export
 #include "queso/utilities/mesh_utilities.h"
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
 namespace py = pybind11;
 
-void AddUtilitiesToPython(pybind11::module& m) {
-    auto mesh_util = m.def_submodule("MeshUtil");
+void AddUtilitiesToPython(pybind11::module& m)
+{
+    m.def(
+        "volume",
+        [](const TriangleMesh& rMesh) { return MeshUtilities::VolumeOMP(rMesh.View()); },
+        py::arg("mesh"),
+        "Compute the signed volume enclosed by a triangle mesh."
+    );
+    m.def(
+        "area",
+        [](const TriangleMesh& rMesh) { return MeshUtilities::AreaOMP(rMesh.View()); },
+        py::arg("mesh"),
+        "Compute the surface area of a triangle mesh."
+    );
+}
 
-    mesh_util.def("Volume", [](const TriangleMesh &rMesh) {
-        return MeshUtilities::VolumeOMP(rMesh.View());
-    });
-    mesh_util.def("Area", [](const TriangleMesh &rMesh) {
-        return MeshUtilities::AreaOMP(rMesh.View());
-    });
-
-} // End AddUtilitiesToPython
-
-} // End namespace Python
-} // End namespace queso
+}  // namespace queso::python

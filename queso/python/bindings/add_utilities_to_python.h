@@ -11,18 +11,13 @@
 //
 //  Authors:    Manuel Messmer
 
-#ifndef ADD_UTILITIES_TO_PYTHON_INCLUDE_H
-#define ADD_UTILITIES_TO_PYTHON_INCLUDE_H
+#pragma once
 
 // External includes
 #include <pybind11/pybind11.h>
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
-    void AddUtilitiesToPython(pybind11::module& m);
+void AddUtilitiesToPython(pybind11::module& m);
 
-} // End namespace Python
-} // End namespace queso
-
-#endif // ADD_UTILITIES_TO_PYTHON_INCLUDE_H
+}  // namespace queso::python

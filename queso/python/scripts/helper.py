@@ -1,13 +1,14 @@
-from typing import Tuple, cast
+from typing import cast
 
 # Type definitions
-Point3D = Tuple[float, float, float]
+Point3D = tuple[float, float, float]
+
 
 def point_from_global_to_param_space(
-        point: Point3D,
-        bound_xyz: Tuple[Point3D, Point3D],
-        bound_uvw: Tuple[Point3D, Point3D]
-    ) -> Point3D:
+    point: Point3D,
+    bound_xyz: tuple[Point3D, Point3D],
+    bound_uvw: tuple[Point3D, Point3D],
+) -> Point3D:
     """
     Maps a point from global Cartesian space to parametric space.
 
@@ -15,30 +16,34 @@ def point_from_global_to_param_space(
     defined by `bound_xyz` to the parametric domain defined by `bound_uvw`.
 
     Args:
-        point (List[float]): A list of 3 floats representing the Cartesian coordinates [x, y, z].
-        bound_xyz (List[List[float]]): A list of two 3D points [[x_min, y_min, z_min], [x_max, y_max, z_max]]
+        point (list[float]): A list of 3 floats representing the Cartesian coordinates [x, y, z].
+        bound_xyz (list[list[float]]): A list of two 3D points [[x_min, y_min, z_min], [x_max, y_max, z_max]]
             representing the bounds in physical space.
-        bound_uvw (List[List[float]]): A list of two 3D points [[u_min, v_min, w_min], [u_max, v_max, w_max]]
+        bound_uvw (list[list[float]]): A list of two 3D points [[u_min, v_min, w_min], [u_max, v_max, w_max]]
             representing the bounds in parametric space.
 
     Returns:
-        List[float]: A list of 3 floats representing the corresponding parametric coordinates [u, v, w].
+        list[float]: A list of 3 floats representing the corresponding parametric coordinates [u, v, w].
     """
     lower_xyz, upper_xyz = bound_xyz
     lower_uvw, upper_uvw = bound_uvw
 
     result = tuple(
-        (point[i] - lower_xyz[i]) * abs(upper_uvw[i] - lower_uvw[i]) / abs(upper_xyz[i] - lower_xyz[i]) + lower_uvw[i]
+        (point[i] - lower_xyz[i])
+        * abs(upper_uvw[i] - lower_uvw[i])
+        / abs(upper_xyz[i] - lower_xyz[i])
+        + lower_uvw[i]
         for i in range(3)
     )
 
     return cast(Point3D, result)
 
+
 def point_from_param_to_global_space(
-        point: Point3D,
-        bound_xyz: Tuple[Point3D, Point3D],
-        bound_uvw: Tuple[Point3D, Point3D]
-    ) -> Point3D:
+    point: Point3D,
+    bound_xyz: tuple[Point3D, Point3D],
+    bound_uvw: tuple[Point3D, Point3D],
+) -> Point3D:
     """
     Maps a point from parametric space to global Cartesian space.
 
@@ -46,20 +51,23 @@ def point_from_param_to_global_space(
     defined by `bound_uvw` to the physical domain defined by `bound_xyz`.
 
     Args:
-        point (List[float]): A list of 3 floats representing the parametric coordinates [u, v, w].
-        bound_xyz (List[List[float]]): A list of two 3D points [[x_min, y_min, z_min], [x_max, y_max, z_max]]
+        point (list[float]): A list of 3 floats representing the parametric coordinates [u, v, w].
+        bound_xyz (list[list[float]]): A list of two 3D points [[x_min, y_min, z_min], [x_max, y_max, z_max]]
             representing the bounds in physical space.
-        bound_uvw (List[List[float]]): A list of two 3D points [[u_min, v_min, w_min], [u_max, v_max, w_max]]
+        bound_uvw (list[list[float]]): A list of two 3D points [[u_min, v_min, w_min], [u_max, v_max, w_max]]
             representing the bounds in parametric space.
 
     Returns:
-        List[float]: A list of 3 floats representing the corresponding Cartesian coordinates [x, y, z].
+        list[float]: A list of 3 floats representing the corresponding Cartesian coordinates [x, y, z].
     """
     lower_xyz, upper_xyz = bound_xyz
     lower_uvw, upper_uvw = bound_uvw
 
     result = tuple(
-        (point[i] - lower_uvw[i]) * abs(upper_xyz[i] - lower_xyz[i]) / abs(upper_uvw[i] - lower_uvw[i]) + lower_xyz[i]
+        (point[i] - lower_uvw[i])
+        * abs(upper_xyz[i] - lower_xyz[i])
+        / abs(upper_uvw[i] - lower_uvw[i])
+        + lower_xyz[i]
         for i in range(3)
     )
     return cast(Point3D, result)

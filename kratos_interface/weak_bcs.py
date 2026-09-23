@@ -1,328 +1,277 @@
-import numpy as np
-from typing import List, Tuple
-# Import QuESo
-import QuESoPythonModule as QuESo
-from QuESoPythonModule.scripts.helper import *
-# Import Kratos
+"""Create Kratos weak boundary and coupling conditions from QuESo surfaces."""
+
+from collections.abc import Sequence
+from typing import Any
+
 import KratosMultiphysics as KM
-import KratosMultiphysics.IgaApplication as IgaApplication
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.IgaApplication as IGA
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import numpy as np
+from pyqueso.scripts.helper import point_from_global_to_param_space
 
-# Type definition
-Point3D = Tuple[float, float, float]
+Point3D = tuple[float, float, float]
+Bounds = tuple[Sequence[float], Sequence[float]]
 
-class WeakBcsBase():
-    """Base class for applying weak boundary conditions.
 
-    Derived classes must override `apply()`.
-    """
-    def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
-            bounds_xyz: Tuple[Point3D, Point3D],
-            bounds_uvw: Tuple[Point3D, Point3D]
-        ) -> None:
-        """Initializes WeakBcsBase.
+def _triangle_geometry(
+    triangle: Any, bounds_xyz: Bounds, bounds_uvw: Bounds, reverse: bool = False
+) -> Any:
+    points = [triangle.p1, triangle.p2, triangle.p3]
+    if reverse:
+        points[1], points[2] = points[2], points[1]
+    parameters = [
+        point_from_global_to_param_space(point, bounds_xyz, bounds_uvw)
+        for point in points
+    ]
+    nodes = [
+        KM.Node(index + 1, *parameter) for index, parameter in enumerate(parameters)
+    ]
+    return KM.Triangle3D3(*nodes)
 
-        Args:
-            bcs_triangles (QuESo.TriangleMesh): Triangle mesh of boundary.
-            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-        """
-        self.bcs_triangles = bcs_triangles
+
+def _surface_geometry(volume: Any, triangle_geometry: Any) -> Any:
+    return KM.SurfaceInNurbsVolumeGeometry(volume, triangle_geometry)
+
+
+def _quadrature_geometry(surface: Any) -> Any:
+    quadrature_geometries = KM.GeometriesVector()
+    surface.CreateQuadraturePointGeometries(quadrature_geometries, 2)
+    return quadrature_geometries[0]
+
+
+class WeakCondition:
+    """Base data shared by Kratos weak conditions."""
+
+    def __init__(
+        self,
+        triangle_mesh: Any,
+        bounds_xyz: Bounds,
+        bounds_uvw: Bounds,
+        property_id: int,
+        geometry_name: str,
+    ) -> None:
+        self.triangle_mesh = triangle_mesh
         self.bounds_xyz = bounds_xyz
         self.bounds_uvw = bounds_uvw
+        self.property_id = property_id
+        self.geometry_name = geometry_name
 
-    def apply(self, model_part: KM.ModelPart) -> None:
-        """Applies the boundary condition (to be overridden).
 
-        Args:
-            model_part (KM.ModelPart): Kratos model part.
+class PenaltySupport(WeakCondition):
+    """Create penalty support conditions from one condition segment."""
 
-        Raises:
-            Exception: Always raised. This function must be overridden.
-        """
-        raise Exception("WeakBcsBase :: Function of base class is called!")
+    def __init__(
+        self, *args: Any, value: Sequence[float], penalty_factor: float, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.value = value
+        self.penalty_factor = penalty_factor
 
-    @staticmethod
-    def is_weak_condition() -> bool:
-        """Checks if the condition is weak.
-
-        Returns:
-            bool: Always True.
-        """
-        return True
-
-class PenaltySupport(WeakBcsBase):
-    """PenaltySupport.
-
-    Derived from WeakBcsBase.
-    """
-    def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
-            bounds_xyz: Tuple[Point3D, Point3D],
-            bounds_uvw: Tuple[Point3D, Point3D],
-            prescribed: Tuple[float, float, float],
-            penalty: float
-        ) -> None:
-        """Initializes PenaltySupport.
-
-        Args:
-            bcs_triangles (QuESo.TriangleMesh): Triangle mesh for BC.
-            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            prescribed (Tuple[float, float, float]): Prescribed displacement vector.
-            penalty (float): Penalty factor.
-        """
-        super(PenaltySupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
-        self.prescribed = prescribed
-        self.penalty = penalty
-
-    def apply(self, model_part: KM.ModelPart) -> None:
-        """Applies the penalty support condition.
-
-        Args:
-            model_part (KM.ModelPart): Kratos model part.
-        """
-        id_counter = model_part.NumberOfConditions() + 1
-        properties = model_part.GetProperties()[1]
-        properties.SetValue(IgaApplication.PENALTY_FACTOR, self.penalty) # type: ignore
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
-        kratos_prescribed = KM.Vector([self.prescribed[0], self.prescribed[1], self.prescribed[2]])
-
-        for tri in self.bcs_triangles.Triangles():
-            # Map triangle points to parametric space
-            params = [
-                point_from_global_to_param_space(tri.p1, self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(tri.p2, self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(tri.p3, self.bounds_xyz, self.bounds_uvw),
-            ]
-
-            if tri.AspectRatio() >= 1e8:
-                continue  # Skip badly shaped triangles
-
-            # Create triangle geometry
-            nodes = [KM.Node(i + 1, *param) for i, param in enumerate(params)]
-            geom = KM.Triangle3D3(*nodes)
-            quadrature_point_geometries = KM.GeometriesVector()
-
-            # Create conditions
-            surface_in_nurbs_volume = KM.SurfaceInNurbsVolumeGeometry(nurbs_volume, geom)
-            surface_in_nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
-
-            if surface_in_nurbs_volume.Area() <= 1e-14:
-                continue  # Skip negligible surfaces
-
-            condition = model_part.CreateNewCondition(
-                'SupportPenaltyCondition',
-                id_counter,
-                quadrature_point_geometries[0],
-                properties
-            )
-            condition.SetValue(KM.DISPLACEMENT, kratos_prescribed)
-            id_counter += 1
-
-class LagrangeSupport(WeakBcsBase):
-    """LagrangeMultiplierSupport.
-
-    Derived from WeakBcsBase.
-    """
-    def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
-            bounds_xyz: Tuple[Point3D, Point3D],
-            bounds_uvw: Tuple[Point3D, Point3D],
-            prescribed: Tuple[float, float, float]
-        ) -> None:
-        """Initializes LagrangeMultiplierSupport.
-
-        Args:
-            bcs_triangles (QuESo.TriangleMes): Triangle mesh.
-            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            prescribed (Tuple[float, float, float]): Prescribed displacement.
-        """
-        super(LagrangeSupport, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
-        self.prescribed = prescribed
-
-    def apply(self, model_part: KM.ModelPart) -> None:
-        """Applies the Lagrange support condition.
-
-        Args:
-            model_part (KM.ModelPart): Kratos model part.
-        """
-        id_counter = model_part.NumberOfConditions() + 1
-        properties = model_part.GetProperties()[1]
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
-        kratos_prescribed = KM.Vector(self.prescribed)
-
-        # Iterate over all triangles
-        for tri in self.bcs_triangles.Triangles():
-            # Map triangle vertices to parametric space
-            params = [
-                point_from_global_to_param_space(tri.p1, self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(tri.p2, self.bounds_xyz, self.bounds_uvw),
-                point_from_global_to_param_space(tri.p3, self.bounds_xyz, self.bounds_uvw),
-            ]
-
-            # Skip bad quality triangles
-            if tri.AspectRatio() >= 1e8:
+    def apply(self, model_part: Any) -> list[int]:
+        """Create conditions and return their root-model-part IDs."""
+        properties = model_part.GetProperties()[self.property_id]
+        properties.SetValue(IGA.PENALTY_FACTOR, self.penalty_factor)
+        volume = model_part.GetGeometry(self.geometry_name)
+        condition_ids: list[int] = []
+        for triangle in self.triangle_mesh.triangles():
+            if triangle.aspect_ratio() >= 1.0e8:
                 continue
-
-            # Create triangle geometry
-            nodes = [KM.Node(i + 1, *param) for i, param in enumerate(params)]
-            geom = KM.Triangle3D3(*nodes)
-            quadrature_point_geometries = KM.GeometriesVector()
-
-            # Generate quadrature points and area
-            surface_in_volume = KM.SurfaceInNurbsVolumeGeometry(nurbs_volume, geom)
-            surface_in_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
-
-            if surface_in_volume.Area() <= 1e-14:
-                continue
-
-            # Create condition
-            condition = model_part.CreateNewCondition(
-                'SupportLagrangeCondition',
-                id_counter,
-                quadrature_point_geometries[0],
-                properties
+            surface = _surface_geometry(
+                volume, _triangle_geometry(triangle, self.bounds_xyz, self.bounds_uvw)
             )
-            condition.SetValue(KM.DISPLACEMENT, kratos_prescribed)
-            id_counter += 1
+            if surface.Area() <= 1.0e-14:
+                continue
+            condition_id = model_part.GetRootModelPart().NumberOfConditions() + 1
+            condition = model_part.CreateNewCondition(
+                "SupportPenaltyCondition",
+                condition_id,
+                _quadrature_geometry(surface),
+                properties,
+            )
+            condition.SetValue(KM.DISPLACEMENT, KM.Vector(self.value))
+            condition_ids.append(condition_id)
+        return condition_ids
 
-class SurfaceLoad(WeakBcsBase):
-    """SurfaceLoad.
 
-    Derived from WeakBcsBase.
-    """
-    def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
-            bounds_xyz: Tuple[Point3D, Point3D],
-            bounds_uvw: Tuple[Point3D, Point3D],
-            modulus: float,
-            direction: Tuple[float, float, float]
-        ) -> None:
-        """Initializes SurfaceLoad.
+class LagrangeSupport(WeakCondition):
+    """Create Lagrange-multiplier support conditions."""
 
-        Args:
-            bcs_triangles (QuESo.TriangleMesh): Triangle mesh.
-            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            modulus (float): Load magnitude.
-            direction (Tuple[float, float, float]): Load direction vector.
-        """
-        super(SurfaceLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
+    def __init__(self, *args: Any, value: Sequence[float], **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.value = value
 
-        direction_array = np.array(direction)
-        norm_direction = np.linalg.norm(direction_array)
-        if norm_direction < 1e-10:
-            Exception("SurfaceLoad :: Norm of 'direction' is close to zero.")
-        normalized_direction = direction_array / norm_direction
-        self.force = modulus * normalized_direction
+    def apply(self, model_part: Any) -> list[int]:
+        """Create conditions and return their root-model-part IDs."""
+        properties = model_part.GetProperties()[self.property_id]
+        volume = model_part.GetGeometry(self.geometry_name)
+        condition_ids: list[int] = []
+        for triangle in self.triangle_mesh.triangles():
+            if triangle.aspect_ratio() >= 1.0e8:
+                continue
+            surface = _surface_geometry(
+                volume, _triangle_geometry(triangle, self.bounds_xyz, self.bounds_uvw)
+            )
+            if surface.Area() <= 1.0e-14:
+                continue
+            condition_id = model_part.GetRootModelPart().NumberOfConditions() + 1
+            condition = model_part.CreateNewCondition(
+                "SupportLagrangeCondition",
+                condition_id,
+                _quadrature_geometry(surface),
+                properties,
+            )
+            condition.SetValue(KM.DISPLACEMENT, KM.Vector(self.value))
+            condition_ids.append(condition_id)
+        return condition_ids
 
-    def apply(self, model_part: KM.ModelPart) -> None:
-        """Applies the surface load.
 
-        Args:
-            model_part (KM.ModelPart): Kratos model part.
-        """
-        id_counter = model_part.NumberOfConditions() + 1
-        properties = model_part.GetProperties()[1]
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
+class SurfaceLoad(WeakCondition):
+    """Create area-distributed load conditions."""
 
-        for tri in self.bcs_triangles.Triangles():
-            #Get points in physical space.
-            points = tri.GetIPsGlobal(1)
+    def __init__(
+        self, *args: Any, modulus: float, direction: Sequence[float], **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        direction_array = np.asarray(direction, dtype=float)
+        norm = np.linalg.norm(direction_array)
+        if norm <= 1.0e-14:
+            raise ValueError("SurfaceLoadCondition direction must be non-zero.")
+        self.force_density = float(modulus) * direction_array / norm
 
-            #Create kratos condition on each point.
-            for point in points:
-                global_point = (point.x, point.y, point.z)
-                #Map points to local space of B-Spline box
-                local_point = point_from_global_to_param_space(global_point, self.bounds_xyz, self.bounds_uvw)
-
-                # Create quadrature points
-                integration_points = [[local_point[0], local_point[1], local_point[2], point.weight]]
-                quadrature_point_geometries_boundary = KM.GeometriesVector()
-                nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
-
-                weight = point.weight # Weight contains all mapping terms.
-                if weight < 1e-14:
-                    continue # Skip insignificant weights
-
-                condition = model_part.CreateNewCondition(
-                    "LoadCondition",
-                    id_counter,
-                    quadrature_point_geometries_boundary[0],
-                    properties
+    def apply(self, model_part: Any) -> list[int]:
+        """Create conditions and return their root-model-part IDs."""
+        properties = model_part.GetProperties()[self.property_id]
+        volume = model_part.GetGeometry(self.geometry_name)
+        condition_ids: list[int] = []
+        for triangle in self.triangle_mesh.triangles():
+            for point in triangle.integration_points_global(1):
+                if point.weight <= 1.0e-14:
+                    continue
+                local_point = point_from_global_to_param_space(
+                    (point.x, point.y, point.z), self.bounds_xyz, self.bounds_uvw
                 )
-                force = weight * np.array(self.force)
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0]) # type: ignore
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1]) # type: ignore
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2]) # type: ignore
-                id_counter += 1
-
-class PressureLoad(WeakBcsBase):
-    """PressureLoad.
-
-    Derived from WeakBcsBase.
-    """
-    def __init__(self,
-            bcs_triangles: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
-            bounds_xyz: Tuple[Point3D, Point3D],
-            bounds_uvw: Tuple[Point3D, Point3D],
-            modulus: float
-        ) -> None:
-        """Initializes PressureLoad.
-
-        Args:
-            bcs_triangles (QuESo.TriangleMesh): Triangle mesh.
-            bounds_xyz (Tuple[Point3D, Point3D]): Global coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            bounds_uvw (Tuple[Point3D, Point3D]): Parametric coordinate bounds ([[min_x, min_y, min_z], [max_x, max_y, max_z]]).
-            modulus (float): Pressure value (magnitude).
-        """
-        super(PressureLoad, self).__init__(bcs_triangles, bounds_xyz, bounds_uvw)
-        self.modulus = modulus
-
-    def apply(self, model_part: KM.ModelPart) -> None:
-        """Applies the PressureLoad.
-
-        Args:
-            model_part (KM.ModelPart): Kratos model part.
-        """
-        id_counter = model_part.NumberOfConditions() + 1
-        properties = model_part.GetProperties()[1]
-        nurbs_volume = model_part.GetGeometry("NurbsVolume")
-
-        for tri in self.bcs_triangles.Triangles():
-            #Get points in physical space.
-            points = tri.GetIPsGlobal(1)
-
-            #Create kratos condition on each point.
-            for point in points:
-                global_point = (point.x, point.y, point.z)
-
-                # Map points to local space of B-Spline box
-                local_point = point_from_global_to_param_space(global_point, self.bounds_xyz, self.bounds_uvw)
-
-                # Create quadrature points
-                integration_points = [[local_point[0], local_point[1], local_point[2], point.weight]]
-                quadrature_point_geometries_boundary = KM.GeometriesVector()
-                nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries_boundary, 2, integration_points)
-
-                weight = point.weight # Weight contains all mapping terms.
-                if weight < 1e-14:
-                    continue  # Skip insignificant weights
-
-                condition = model_part.CreateNewCondition(
-                    "LoadCondition",
-                    id_counter,
-                    quadrature_point_geometries_boundary[0],
-                    properties
+                geometries = KM.GeometriesVector()
+                volume.CreateQuadraturePointGeometries(
+                    geometries, 2, [[*local_point, point.weight]]
                 )
+                condition_id = model_part.GetRootModelPart().NumberOfConditions() + 1
+                condition = model_part.CreateNewCondition(
+                    "LoadCondition", condition_id, geometries[0], properties
+                )
+                force = point.weight * self.force_density
+                condition.SetValue(SMA.POINT_LOAD_X, float(force[0]))
+                condition.SetValue(SMA.POINT_LOAD_Y, float(force[1]))
+                condition.SetValue(SMA.POINT_LOAD_Z, float(force[2]))
+                condition_ids.append(condition_id)
+        return condition_ids
 
-                normal = point.normal
-                force = -1.0 * weight * self.modulus * np.array(normal)
 
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_X, force[0]) # type: ignore
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Y, force[1]) # type: ignore
-                condition.SetValue(StructuralMechanicsApplication.POINT_LOAD_Z, force[2]) # type: ignore
-                id_counter += 1
+class PressureLoad(WeakCondition):
+    """Create pressure load conditions."""
+
+    def __init__(self, *args: Any, modulus: float, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.modulus = float(modulus)
+
+    def apply(self, model_part: Any) -> list[int]:
+        """Create conditions and return their root-model-part IDs."""
+        properties = model_part.GetProperties()[self.property_id]
+        volume = model_part.GetGeometry(self.geometry_name)
+        condition_ids: list[int] = []
+        for triangle in self.triangle_mesh.triangles():
+            for point in triangle.integration_points_global(1):
+                if point.weight <= 1.0e-14:
+                    continue
+                local_point = point_from_global_to_param_space(
+                    (point.x, point.y, point.z), self.bounds_xyz, self.bounds_uvw
+                )
+                geometries = KM.GeometriesVector()
+                volume.CreateQuadraturePointGeometries(
+                    geometries, 2, [[*local_point, point.weight]]
+                )
+                condition_id = model_part.GetRootModelPart().NumberOfConditions() + 1
+                condition = model_part.CreateNewCondition(
+                    "LoadCondition", condition_id, geometries[0], properties
+                )
+                force = -point.weight * self.modulus * np.asarray(point.normal)
+                condition.SetValue(SMA.POINT_LOAD_X, float(force[0]))
+                condition.SetValue(SMA.POINT_LOAD_Y, float(force[1]))
+                condition.SetValue(SMA.POINT_LOAD_Z, float(force[2]))
+                condition_ids.append(condition_id)
+        return condition_ids
+
+
+class CouplingPenalty(WeakCondition):
+    """Create penalty coupling conditions from master-owned interface segments."""
+
+    def __init__(
+        self,
+        *args: Any,
+        slave_bounds_xyz: Bounds,
+        slave_bounds_uvw: Bounds,
+        slave_geometry_name: str,
+        penalty_factor: float,
+        slip: bool,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.slave_bounds_xyz = slave_bounds_xyz
+        self.slave_bounds_uvw = slave_bounds_uvw
+        self.slave_geometry_name = slave_geometry_name
+        self.penalty_factor = float(penalty_factor)
+        self.slip = bool(slip)
+
+        #TODO: Add KM.CouplingGeometry to Kratos master.
+        if not hasattr(KM, "CouplingGeometry"):
+            raise RuntimeError(
+                "CouplingPenaltyCondition requires "
+                "KratosMultiphysics.CouplingGeometry, which is not yet part of "
+                "Kratos master. Use https://github.com/manuelmessmer/Kratos instead."
+            )
+
+    def apply(self, master_model_part: Any, slave_model_part: Any) -> list[int]:
+        """Create coupling conditions and return their root-model-part IDs."""
+        properties = master_model_part.GetProperties()[self.property_id]
+        properties.SetValue(IGA.PENALTY_FACTOR, self.penalty_factor)
+        if hasattr(IGA, "COUPLING_SLIP"):
+            properties.SetValue(IGA.COUPLING_SLIP, self.slip)
+        master_volume = master_model_part.GetGeometry(self.geometry_name)
+        slave_volume = slave_model_part.GetGeometry(self.slave_geometry_name)
+        condition_ids: list[int] = []
+
+        # TODO: Clip the interface against both grids and merge both clips into
+        # one common interface partition before creating coupling triangles.
+        for triangle in self.triangle_mesh.triangles():
+            if triangle.aspect_ratio() >= 1.0e8:
+                continue
+            master_surface = _surface_geometry(
+                master_volume,
+                _triangle_geometry(triangle, self.bounds_xyz, self.bounds_uvw),
+            )
+            slave_surface = _surface_geometry(
+                slave_volume,
+                _triangle_geometry(
+                    triangle,
+                    self.slave_bounds_xyz,
+                    self.slave_bounds_uvw,
+                    reverse=True,
+                ),
+            )
+            condition_id = master_model_part.GetRootModelPart().NumberOfConditions() + 1
+            coupling_geometry = KM.CouplingGeometry(
+                _quadrature_geometry(master_surface),
+                _quadrature_geometry(slave_surface),
+            )
+            master_model_part.AddGeometry(coupling_geometry)
+            condition = master_model_part.CreateNewCondition(
+                "CouplingPenaltyCondition",
+                condition_id,
+                coupling_geometry,
+                properties,
+            )
+            condition.Set(IGA.IgaFlags.FIX_DISPLACEMENT_X, True)
+            condition.Set(IGA.IgaFlags.FIX_DISPLACEMENT_Y, True)
+            condition.Set(IGA.IgaFlags.FIX_DISPLACEMENT_Z, True)
+
+            condition_ids.append(condition_id)
+        return condition_ids

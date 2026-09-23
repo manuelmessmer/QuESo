@@ -1,245 +1,202 @@
-from typing import Literal, Tuple
-# Import Kratos
+"""Utilities for transferring QuESo entities into Kratos model parts."""
+
+from collections.abc import Sequence
+from typing import Any, Callable
+
 import KratosMultiphysics as KM
-# Import QuESo modules
-import QuESoPythonModule as QuESo
-from QuESoPythonModule.kratos_interface.weak_bcs import PenaltySupport
-from QuESoPythonModule.kratos_interface.weak_bcs import LagrangeSupport
-from QuESoPythonModule.kratos_interface.weak_bcs import SurfaceLoad
-from QuESoPythonModule.kratos_interface.weak_bcs import PressureLoad
+import pyqueso
 
-# Type definition
-Point3D = Tuple[float, float, float]
+from .weak_bcs import (
+    CouplingPenalty,
+    LagrangeSupport,
+    PenaltySupport,
+    PressureLoad,
+    SurfaceLoad,
+)
 
-class ModelPartUtilities:
-    """
-    Utility class for managing Kratos ModelPart operations related to QuESo triangle meshes, elements, and conditions.
+Bounds = tuple[Sequence[float], Sequence[float]]
 
-    This class provides various static methods to interact with Kratos model parts, including reading from and writing
-    to STL files, transferring triangle meshes between QuESo and Kratos, and adding elements and conditions to Kratos
-    model parts.
-    """
 
-    @staticmethod
-    def _write_model_part_to_stl(
-            KratosModelPart: KM.ModelPart,
-            Filename: str
-        ) -> None:
-        """
-        Deprecated method. Writes a Kratos ModelPart to an STL file.
+def embedded_model_part_name(component_name: str) -> str:
+    """Return the Kratos model-part name used for one source volume mesh."""
+    return f"EmbeddedModelPart_{component_name}"
 
-        Args:
-            KratosModelPart (KM.ModelPart): The Kratos ModelPart to be written to the STL file.
-            Filename (str): The path to the STL file to be written.
 
-        Deprecated:
-            This method is deprecated.
-        """
-        io_settings = KM.Parameters(
-            """{
-                "open_mode" : "write",
-                "new_entity_type" : "geometry"
-            }""")
+def add_triangle_mesh_to_model_part(model_part: Any, triangle_mesh: Any) -> None:
+    """Populate a Kratos model part with shell elements from a QuESo triangle mesh."""
+    root = model_part.GetRootModelPart()
+    if not root.HasProperties(1):
+        root.CreateNewProperties(1)
+    vertices = list(triangle_mesh.vertices())
+    vertex_ids = {vertex: index + 1 for index, vertex in enumerate(vertices)}
+    for vertex_id, vertex in enumerate(vertices, start=1):
+        model_part.CreateNewNode(vertex_id, *vertex)
+    for triangle_id, triangle in enumerate(triangle_mesh.triangles(), start=1):
+        node_ids = [
+            vertex_ids[triangle.p1],
+            vertex_ids[triangle.p2],
+            vertex_ids[triangle.p3],
+        ]
+        model_part.CreateNewElement(
+            "ShellThinElement3D3N",
+            triangle_id,
+            node_ids,
+            root.GetProperties()[1],
+        )
 
-        stl_io = KM.StlIO(Filename, io_settings) # type: ignore
-        stl_io.WriteModelPart(KratosModelPart)
 
-    @staticmethod
-    def read_model_part_from_triangle_mesh(
-            KratosModelPart: KM.ModelPart,
-            TriangleMesh: QuESo.TriangleMesh # type: ignore (TODO: add .pyi)
-        ) -> None:
-        """
-        Reads a Kratos ModelPart from a QuESo triangle mesh.
+def read_triangle_mesh_to_model_part(model_part: Any, filename: str) -> None:
+    """Read an STL source volume and populate a Kratos model part from it."""
+    triangle_mesh = pyqueso.mesh.TriangleMesh()
+    pyqueso.io.read_mesh_from_stl(triangle_mesh, filename)
+    add_triangle_mesh_to_model_part(model_part, triangle_mesh)
 
-        Args:
-            KratosModelPart (KM.ModelPart): The Kratos ModelPart to populate with data from the triangle mesh.
-            TriangleMesh (QuESo.TriangleMesh): The QuESo triangle mesh from which the model part is read.
-        """
-        vertices = list(TriangleMesh.Vertices())
-        id_map = {tuple(vertex): v_id for v_id, vertex in enumerate(vertices)}
-        for v_id, vertex in enumerate(vertices):
-            KratosModelPart.CreateNewNode(v_id+1, vertex[0], vertex[1], vertex[2])
 
-        for t_id, tri in enumerate(TriangleMesh.Triangles()):
-            node_ids = [
-                id_map[tuple(tri.p1)] + 1,
-                id_map[tuple(tri.p2)] + 1,
-                id_map[tuple(tri.p3)] + 1,
-            ]
-            KratosModelPart.CreateNewElement("ShellThinElement3D3N", t_id+1, node_ids, KratosModelPart.GetProperties()[1])
-
-    @staticmethod
-    def read_triangle_mesh_grom_model_part(
-            TriangleMesh: QuESo.TriangleMesh, # type: ignore (TODO: add .pyi)
-            KratosModelPart: KM.ModelPart,
-            type: Literal["Elements", "Conditions"] ="Elements"
-        ) -> None:
-        """
-        Reads a QuESo triangle mesh from a Kratos ModelPart.
-
-        Args:
-            TriangleMesh (QuESo.TriangleMesh): The QuESo triangle mesh to populate.
-            KratosModelPart (KM.ModelPart): The Kratos ModelPart containing the elements or conditions to be read.
-            type (Literal["Elements", "Conditions"]): Type of entities to read from the model part. Options are "Elements" or "Conditions". Defaults to "Elements".
-
-        Raises:
-            Exception: If the type is not one of the allowed options or if the geometry does not consist of triangles.
-        """
-        id_map = {node.Id: queso_id for queso_id, node in enumerate(KratosModelPart.Nodes)}
-        for node in KratosModelPart.Nodes: # type: ignore
-            TriangleMesh.AddVertex((node.X, node.Y, node.Z))
-
-        if( type == "Elements"):
-            entity_list = KratosModelPart.Elements
-        elif(type == "Conditions"):
-            entity_list = KratosModelPart.Conditions
+def ensure_model_part(model: Any, full_name: str) -> Any:
+    """Create a full Kratos model-part path and return its final model part."""
+    segments = full_name.split(".")
+    root_name = segments[0]
+    if model.HasModelPart(root_name):
+        model_part = model.GetModelPart(root_name)
+    else:
+        model_part = model.CreateModelPart(root_name)
+    current_name = root_name
+    for segment in segments[1:]:
+        current_name = f"{current_name}.{segment}"
+        if model.HasModelPart(current_name):
+            model_part = model.GetModelPart(current_name)
         else:
-            message = (
-                f"Given condition type '{type_name}' is not available. "
-                f"Available options are: 'Elements' and 'Conditions'.")
-            raise Exception(message)
+            model_part = model_part.CreateSubModelPart(segment)
+    return model_part
 
-        for entity in entity_list: # type: ignore
-            geometry = entity.GetGeometry()
 
-            # Ensure the geometry is a triangle
-            if( len(geometry) != 3 ):
-                raise Exception("ModelPartUtilities :: read_triangle_mesh_grom_model_part :: Queso only allows triangles.")
+def add_elements(
+    geometry_model_part: Any,
+    component_model_part: Any,
+    elements: Any,
+    property_id: int,
+    geometry_name: str,
+    element_type: str,
+) -> None:
+    """Create QuESo volume elements and assign them to a component submodelpart."""
+    volume = geometry_model_part.GetGeometry(geometry_name)
+    properties = geometry_model_part.GetProperties()[property_id]
+    root = geometry_model_part.GetRootModelPart()
+    created_ids: list[int] = []
+    for element in elements:
+        integration_points = [
+            [point.x, point.y, point.z, point.weight]
+            for point in element.integration_points
+            if point.weight > 0.0
+        ]
+        if not integration_points:
+            continue
+        geometries = KM.GeometriesVector()
+        volume.CreateQuadraturePointGeometries(geometries, 2, integration_points)
+        element_id = root.NumberOfElements() + 1
+        geometry_model_part.CreateNewElement(
+            element_type, element_id, geometries[0], properties
+        )
+        created_ids.append(element_id)
+    _assign_entities(component_model_part, created_ids, "elements")
 
-            # Get the node ids for the triangle
-            node_ids = tuple(id_map[node.Id] for node in geometry)
-            TriangleMesh.AddTriangle(node_ids)
 
-    @staticmethod
-    def add_elements_to_model_part(
-            KratosNurbsVolumeModelPart: KM.ModelPart,
-            Elements: list[QuESo.Element] # type: ignore (TODO: add .pyi)
-        ) -> None:
-        """
-        Adds the QuESo elements to the Kratos NurbsVolume ModelPart.
-
-        Args:
-            KratosNurbsVolumeModelPart (KM.ModelPart): The Kratos model part to which the elements will be added.
-            Elements (list[QuESo.Element]): List of QuESo elements to add to the model part.
-        """
-        nurbs_volume = KratosNurbsVolumeModelPart.GetGeometry("NurbsVolume")
-        volume_properties = KratosNurbsVolumeModelPart.GetProperties()[1]
-
-        el_count = 0
-        for element in Elements:
-            # Collect valid integration points
-            integration_points = [
-                [point.x, point.y, point.z, point.weight]
-                for point in element.GetIntegrationPoints()
-                if(point.weight > 0)
-            ]
-
-            # Create elements
-            if integration_points:
-                el_count += 1
-                # Create quadrature_point_geometries
-                quadrature_point_geometries = KM.GeometriesVector()
-                nurbs_volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 2, integration_points)
-                KratosNurbsVolumeModelPart.CreateNewElement(
-                    'SmallDisplacementElement3D8N',
-                    el_count,
-                    quadrature_point_geometries[0],
-                    volume_properties
+def add_conditions(
+    geometry_model_part: Any,
+    component_model_part: Any,
+    conditions: Any,
+    bounds_xyz: Bounds,
+    bounds_uvw: Bounds,
+    geometry_name: str,
+    property_id_for_condition: Callable[[int], int],
+    coupling_target: Callable[[str], dict[str, Any]],
+) -> None:
+    """Create all active ordinary and coupling conditions for one component."""
+    for condition in conditions:
+        settings = condition.settings
+        condition_id = settings.get_int("condition_id")
+        condition_type = settings.get_string("condition_type")
+        property_id = property_id_for_condition(condition_id)
+        created_ids: list[int] = []
+        for segment in condition.segments:
+            if not segment.is_in_active_element:
+                continue
+            common = {
+                "triangle_mesh": segment.triangle_mesh,
+                "bounds_xyz": bounds_xyz,
+                "bounds_uvw": bounds_uvw,
+                "property_id": property_id,
+                "geometry_name": geometry_name,
+            }
+            if condition_type == "PenaltySupportCondition":
+                boundary_condition = PenaltySupport(
+                    **common,
+                    value=settings.get_double_vector("value"),
+                    penalty_factor=settings.get_double("penalty_factor"),
                 )
-
-    @staticmethod
-    def add_conditions_to_model_part(
-            KratosNurbsVolumeModelPart: KM.ModelPart,
-            Conditions: list[QuESo.Condition], # type: ignore (TODO: add .pyi)
-            BoundsXYZ: Tuple[Point3D, Point3D],
-            BoundsUVW: Tuple[Point3D, Point3D]
-        ) -> None:
-        """
-        Adds the QuESo conditions to the Kratos NurbsVolume ModelPart.
-
-        Args:
-            KratosNurbsVolumeModelPart (KM.ModelPart): The Kratos model part to which the conditions will be added.
-            Conditions (list[QuESo.Condition]): List of QuESo boundary conditions to add to the model part.
-            BoundsXYZ (Tuple[Point3D, Point3D]): Lower and upper bounds in XYZ coordinates for the conditions.
-            BoundsUVW (Tuple[Point3D, Point3D]): Lower and upper bounds in UVW coordinates for the conditions.
-        """
-
-        # Define a mapping of condition types to their handlers
-        condition_handlers = {
-            "PenaltySupportCondition": lambda settings, segment: PenaltySupport(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDoubleVector("value"),
-                settings.GetDouble("penalty_factor")
-            ),
-            "LagrangeSupportCondition": lambda settings, segment: LagrangeSupport(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDoubleVector("value")
-            ),
-            "SurfaceLoadCondition": lambda settings, segment: SurfaceLoad(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDouble("modulus"),
-                settings.GetDoubleVector("direction")
-            ),
-            "PressureLoadCondition": lambda settings, segment: PressureLoad(
-                segment.GetTriangleMesh(),
-                BoundsXYZ,
-                BoundsUVW,
-                settings.GetDouble("modulus")
-            )
-        }
-
-        boundary_conditions = []
-        for bc in Conditions:
-            if bc.is_weak_condition():
-                condition_settings = bc.GetSettings()
-                type_name = condition_settings.GetString("condition_type")
-
-                if type_name not in condition_handlers:
-                    available_conditions = (
-                        "PenaltySupportCondition",
-                        "LagrangeSupportCondition",
-                        "SurfaceLoadCondition",
-                        "PressureLoadCondition"
-                    )
-                    options = ', '.join(f'"{cond}"' for cond in available_conditions)
-                    raise Exception(f"Given condition type '{type_name}' is not available. Available options are: {options}.")
-
-                handler = condition_handlers[type_name]
-                for segment in bc.GetSegments():
-                    boundary_conditions.append(handler(condition_settings, segment))
+                created_ids.extend(boundary_condition.apply(geometry_model_part))
+            elif condition_type == "LagrangeSupportCondition":
+                boundary_condition = LagrangeSupport(
+                    **common, value=settings.get_double_vector("value")
+                )
+                created_ids.extend(boundary_condition.apply(geometry_model_part))
+            elif condition_type == "SurfaceLoadCondition":
+                boundary_condition = SurfaceLoad(
+                    **common,
+                    modulus=settings.get_double("modulus"),
+                    direction=settings.get_double_vector("direction"),
+                )
+                created_ids.extend(boundary_condition.apply(geometry_model_part))
+            elif condition_type == "PressureLoadCondition":
+                boundary_condition = PressureLoad(
+                    **common, modulus=settings.get_double("modulus")
+                )
+                created_ids.extend(boundary_condition.apply(geometry_model_part))
+            elif condition_type == "CouplingPenaltyCondition":
+                partner_name = settings.get_string("coupling_partner")
+                target = coupling_target(partner_name)
+                boundary_condition = CouplingPenalty(
+                    **common,
+                    slave_bounds_xyz=target["bounds_xyz"],
+                    slave_bounds_uvw=target["bounds_uvw"],
+                    slave_geometry_name=target["geometry_name"],
+                    penalty_factor=settings.get_double("penalty_factor"),
+                    slip=settings.get_bool("slip"),
+                )
+                created_ids.extend(
+                    boundary_condition.apply(geometry_model_part, target["model_part"])
+                )
             else:
-                boundary_conditions.append(bc)
+                raise ValueError(f"Unsupported condition type '{condition_type}'.")
+        _assign_entities(component_model_part, created_ids, "conditions")
 
-        for bc in boundary_conditions:
-            bc.apply(KratosNurbsVolumeModelPart)
 
-    @staticmethod
-    def remove_all_elements(KratosModelPart: KM.ModelPart) -> None:
-        """
-        Removes all elements from the Kratos ModelPart.
+def remove_all_elements(model_part: Any) -> None:
+    """Remove all elements from a Kratos model part."""
+    for element in model_part.Elements:
+        element.Set(KM.TO_ERASE, True)
+    model_part.RemoveElements(KM.TO_ERASE)
 
-        Args:
-            KratosModelPart (KM.ModelPart): The Kratos ModelPart from which all elements will be removed.
-        """
-        for element in KratosModelPart.Elements:
-            element.Set(KM.TO_ERASE, True)
-        KratosModelPart.RemoveElements(KM.TO_ERASE)
 
-    @staticmethod
-    def remove_all_conditions(KratosModelPart: KM.ModelPart) -> None:
-        """
-        Removes all conditions from the Kratos ModelPart.
+def remove_all_conditions(model_part: Any) -> None:
+    """Remove all conditions from a Kratos model part."""
+    for condition in model_part.Conditions:
+        condition.Set(KM.TO_ERASE, True)
+    model_part.RemoveConditions(KM.TO_ERASE)
 
-        Args:
-            KratosModelPart (KM.ModelPart): The Kratos ModelPart from which all conditions will be removed.
-        """
-        for condition in KratosModelPart.Conditions:
-            condition.Set(KM.TO_ERASE, True)
-        KratosModelPart.RemoveConditions(KM.TO_ERASE)
+
+def _assign_entities(
+    component_model_part: Any, entity_ids: list[int], entity_type: str
+) -> None:
+    if not entity_ids:
+        return
+    root = component_model_part.GetRootModelPart()
+    if entity_type == "elements":
+        component_model_part.AddElements(entity_ids)
+        entities = [root.GetElement(entity_id) for entity_id in entity_ids]
+    else:
+        component_model_part.AddConditions(entity_ids)
+        entities = [root.GetCondition(entity_id) for entity_id in entity_ids]
+    node_ids = sorted({node.Id for entity in entities for node in entity.GetGeometry()})
+    if node_ids:
+        component_model_part.AddNodes(node_ids)

@@ -15,16 +15,19 @@ set(Boost_USE_STATIC_LIBS OFF)
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
 # Add test sources
-file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/cpp_tests/*.cpp)
-file(GLOB TEST_THINGI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/thingi10k_tests/*.cpp)
+file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_*.cpp)
+set(TEST_MAIN ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_queso.cpp)
+set(TEST_THINGI_MAIN ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_queso_thingi10k.cpp)
+set(TEST_THINGI_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_thingi10k.cpp)
+list(REMOVE_ITEM TEST_SRCS ${TEST_MAIN} ${TEST_THINGI_MAIN} ${TEST_THINGI_SOURCE})
 
 # Extract test names
-get_filename_component(testName ${CMAKE_CURRENT_SOURCE_DIR}/test_queso.cpp NAME_WE)
-get_filename_component(testThingiName ${CMAKE_CURRENT_SOURCE_DIR}/test_queso_thingi10k.cpp NAME_WE)
+get_filename_component(testName ${TEST_MAIN} NAME_WE)
+get_filename_component(testThingiName ${TEST_THINGI_MAIN} NAME_WE)
 
 # Add test executables
-add_executable(${testName} ${CMAKE_CURRENT_SOURCE_DIR}/test_queso.cpp ${TEST_SRCS})
-add_executable(${testThingiName} ${CMAKE_CURRENT_SOURCE_DIR}/test_queso_thingi10k.cpp ${TEST_THINGI_SRCS})
+add_executable(${testName} ${TEST_MAIN} ${TEST_SRCS})
+add_executable(${testThingiName} ${TEST_THINGI_MAIN} ${TEST_THINGI_SOURCE})
 
 # Target compile definitions
 target_compile_definitions(${testName} PRIVATE QUESO_BUILD_TESTING=1)
@@ -42,10 +45,10 @@ set_target_properties(${testName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TestExec
 set_target_properties(${testThingiName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TestExecutableDir})
 
 # Configure shell script
-set(PYTHON_TEST_EXE_DIR_IN ${CMAKE_CURRENT_SOURCE_DIR})
-set(CPP_TEST_SOURCE_DIR_IN ${CMAKE_CURRENT_SOURCE_DIR}/cpp_tests)
+set(PYTHON_TEST_SOURCE_DIR_IN ${CMAKE_CURRENT_SOURCE_DIR}/python)
+set(TEST_DATA_DIR_IN ${CMAKE_CURRENT_SOURCE_DIR}/data)
 set(CPP_TEST_EXE_DIR_IN ${TestExecutableDir})
-set(THINGI10K_ID_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thingi10k_tests)
+set(THINGI10K_ID_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data/thingi10k)
 
 if( CMAKE_HOST_WIN32 )
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cmd.in ${CMAKE_BINARY_DIR}/bin/run_tests.cmd @ONLY)

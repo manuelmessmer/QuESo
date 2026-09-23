@@ -11,41 +11,67 @@
 //
 //  Authors:    Manuel Messmer
 
-//// Project includes
+// External includes
+#include <pybind11/pybind11.h>
+
+// Project includes
 #include "queso/includes/define.hpp"
 
-/// To export
-#include "queso/python/bindings/add_dictionary_to_python.h"
+// To export
 #include "queso/python/bindings/add_containers_to_python.h"
+#include "queso/python/bindings/add_dictionary_to_python.h"
 #include "queso/python/bindings/add_globals_to_python.h"
-#include "queso/python/bindings/add_utilities_to_python.h"
 #include "queso/python/bindings/add_io_to_python.h"
+#if defined(QUESO_PYTHON_BUILD_TEST_HELPERS)
+#include "queso/python/bindings/add_test_helpers_to_python.h"
+#endif
+#include "queso/python/bindings/add_utilities_to_python.h"
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
-PYBIND11_MODULE(_QuESoPythonModule,m) {
+namespace py = pybind11;
 
-    m.doc() = "This is a Python binding for QuESo";
-
-    m.def("PrintLogo", []()
+namespace {
+    void AddAllToPython(py::module& rPyQuESo)
     {
-    QuESo_INFO << " Importing QuESo \n"
-        << "   ____        ______  _____        \n"
-        << "  / __ \\      |  ____|/ ____|       \n"
-        << " | |  | |_   _| |__  | (___   ___   \n"
-        << " | |  | | | | |  __|  \\___ \\ / _ \\  \n"
-        << " | |__| | |_| | |____ ____) | (_) | \n"
-        << "  \\___\\_\\\\__,_|______|_____/ \\___/  \n"
-        << "\t Quadrature for Embedded Solids \n\n";
-    }, "Print Logo");
+        auto MeshModule = rPyQuESo.def_submodule("mesh", "Triangle mesh types and algorithms.");
+        auto IoModule = rPyQuESo.def_submodule("io", "Mesh and settings input/output functions.");
 
-    AddGlobalsToPython(m);
-    AddDictionaryToPython(m);
-    AddContainersToPython(m);
-    AddUtilitiesToPython(m);
-    AddIoToPython(m);
+        AddGlobalsToPython(rPyQuESo);
+        AddDictionaryToPython(rPyQuESo);
+        AddContainersToPython(rPyQuESo, MeshModule);
+        AddUtilitiesToPython(MeshModule);
+        AddIoToPython(IoModule);
+
+#if defined(QUESO_PYTHON_BUILD_TEST_HELPERS)
+        auto TestingModule = rPyQuESo.def_submodule("testing", "Testing-only helpers.");
+        AddTestHelpersToPython(TestingModule);
+#endif
+    }
+}  // namespace
+
+PYBIND11_MODULE(_core, m)
+{
+    m.doc() = "Private extension module for pyqueso.";
+
+    m.def(
+        "print_logo",
+        []() {
+            QuESo_INFO << " Importing QuESo \n"
+                       << "   ____        ______  _____        \n"
+                       << "  / __ \\      |  ____|/ ____|       \n"
+                       << " | |  | |_   _| |__  | (___   ___   \n"
+                       << " | |  | | | | |  __|  \\___ \\ / _ \\  \n"
+                       << " | |__| | |_| | |____ ____) | (_) | \n"
+                       << "  \\___\\_\\\\__,_|______|_____/ \\___/  \n"
+                       << "\t Quadrature for Embedded Solids \n\n";
+        },
+        "Print the QuESo logo."
+    );
+
+    auto Sys = py::module::import("sys");
+    auto PyQuESo = Sys.attr("modules")["pyqueso"].cast<py::module>();
+    AddAllToPython(PyQuESo);
 }
 
-}// End namespace Python
-}// End namespace queso
+}  // namespace queso::python

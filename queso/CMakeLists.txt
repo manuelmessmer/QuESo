@@ -46,7 +46,7 @@ add_library(QuESo SHARED
 	${QUADRATURE_SOURCES}
 	${SOLVERS_SOURCES}
 	${IO_SOURCES}
-	embedded_model.cpp
+    embedded_component.cpp
 )
 add_library(QuESo::QuESo ALIAS QuESo)
 
@@ -79,7 +79,7 @@ else()
 endif()
 
 # Install target.
-install(TARGETS QuESo DESTINATION ${CMAKE_INSTALL_PREFIX}/QuESoPythonModule)
+install(TARGETS QuESo DESTINATION ${CMAKE_INSTALL_PREFIX}/pyqueso)
 
 # Create Python module.
 add_subdirectory(python)

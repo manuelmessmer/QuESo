@@ -1,0 +1,21 @@
+{
+  "model_parts": [
+    {
+      "name": "Structure",
+      "geometries": [
+        {
+          "name": "NurbsVolume",
+          "queso_components": [
+            {
+              "component_name": "main",
+              "element_settings": {
+                "property_id": 1,
+                "element_type": "SmallDisplacementElement3D8N"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

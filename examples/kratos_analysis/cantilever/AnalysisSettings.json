@@ -1,0 +1,21 @@
+{
+    "model_parts": [
+        {
+            "name": "Structure",
+            "geometries": [
+                {
+                    "name": "CantileverVolume",
+                    "queso_components": [
+                        {
+                            "component_name": "cantilever",
+                            "element_settings": {
+                                "property_id": 1,
+                                "element_type": "UpdatedLagrangianElement3D8N"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

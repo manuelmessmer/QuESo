@@ -16,31 +16,26 @@
 // To export
 #include "queso/includes/define.hpp"
 
-namespace queso {
-namespace Python {
+namespace queso::python {
 
 namespace py = pybind11;
 
-void AddGlobalsToPython(pybind11::module& m) {
+void AddGlobalsToPython(pybind11::module& m)
+{
 
     /// Export enum IntegrationMethod
     py::enum_<IntegrationMethod>(m, "IntegrationMethod")
-        .value("Gauss", IntegrationMethod::gauss)
-        .value("Gauss_Reduced1", IntegrationMethod::gauss_reduced_1)
-        .value("Gauss_Reduced2", IntegrationMethod::gauss_reduced_2)
-        .value("GGQ_Optimal", IntegrationMethod::ggq_optimal)
-        .value("GGQ_Reduced1", IntegrationMethod::ggq_reduced_1)
-        .value("GGQ_Reduced2", IntegrationMethod::ggq_reduced_2)
-    ;
+        .value("GAUSS", IntegrationMethod::gauss, "Full Gauss quadrature.")
+        .value("GAUSS_REDUCED_1", IntegrationMethod::gauss_reduced_1, "First reduced Gauss rule.")
+        .value("GAUSS_REDUCED_2", IntegrationMethod::gauss_reduced_2, "Second reduced Gauss rule.")
+        .value("GGQ_OPTIMAL", IntegrationMethod::ggq_optimal, "Optimal generalized Gaussian quadrature.")
+        .value("GGQ_REDUCED_1", IntegrationMethod::ggq_reduced_1, "First reduced GGQ rule.")
+        .value("GGQ_REDUCED_2", IntegrationMethod::ggq_reduced_2, "Second reduced GGQ rule.");
 
     /// Export enum GridType
     py::enum_<GridType>(m, "GridType")
-        .value("b_spline_grid", GridType::b_spline_grid)
-        .value("hexahedral_fe_grid", GridType::hexahedral_fe_grid)
-    ;
+        .value("B_SPLINE_GRID", GridType::b_spline_grid, "B-spline background grid.")
+        .value("HEXAHEDRAL_FE_GRID", GridType::hexahedral_fe_grid, "Hexahedral finite-element grid.");
+}
 
-} // End AddGlobalsToPython
-
-} // End namespace Python
-} // End namespace queso
-
+}  // namespace queso::python
