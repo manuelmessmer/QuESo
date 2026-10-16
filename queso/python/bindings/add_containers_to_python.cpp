@@ -12,6 +12,7 @@
 //  Authors:    Manuel Messmer
 
 // STL includes
+#include <concepts>
 #include <iterator>
 #include <ranges>
 #include <span>
@@ -56,13 +57,21 @@ namespace {
 
     using PythonTriangleProxy = TriangleProxy<WithNormals>;
 
+    struct KeepAlive
+    {
+    };
+
     template<class TRange>
     struct PythonRange
     {
         TRange range;
     };
 
-    template<class TRange, py::return_value_policy TPolicy = py::return_value_policy::reference_internal>
+    template<
+        class TRange,
+        py::return_value_policy TPolicy = py::return_value_policy::reference_internal,
+        class TLifetime = void>
+        requires(std::same_as<TLifetime, void> || std::same_as<TLifetime, KeepAlive>)
     void BindRange(py::module& rModule, const char* pName)
     {
         auto range_binder = py::class_<PythonRange<TRange>>(rModule, pName);
@@ -72,24 +81,32 @@ namespace {
         }
 
         if constexpr (std::ranges::random_access_range<TRange> && std::ranges::sized_range<TRange>) {
-            range_binder.def(
-                "__getitem__",
-                [](PythonRange<TRange>& self, py::ssize_t Index) -> decltype(auto) {
-                    const auto size = static_cast<py::ssize_t>(std::ranges::size(self.range));
-                    if (Index < 0) { Index += size; }
-                    if (Index < 0 || Index >= size) { throw py::index_error(); }
+            auto getitem = [](PythonRange<TRange>& self, py::ssize_t Index) -> decltype(auto) {
+                const auto size = static_cast<py::ssize_t>(std::ranges::size(self.range));
+                if (Index < 0) { Index += size; }
+                if (Index < 0 || Index >= size) { throw py::index_error(); }
 
-                    using DifferenceType = std::iter_difference_t<decltype(std::ranges::begin(self.range))>;
-                    return *std::ranges::next(std::ranges::begin(self.range), static_cast<DifferenceType>(Index));
-                },
-                py::return_value_policy::reference_internal
-            );
+                using DifferenceType = std::iter_difference_t<decltype(std::ranges::begin(self.range))>;
+                return *std::ranges::next(std::ranges::begin(self.range), static_cast<DifferenceType>(Index));
+            };
+            if constexpr (std::same_as<TLifetime, KeepAlive>) {
+                range_binder.def("__getitem__", getitem, TPolicy, py::keep_alive<0, 1>());
+            } else {
+                range_binder.def("__getitem__", getitem, TPolicy);
+            }
         }
 
         range_binder.def(
             "__iter__",
             [](PythonRange<TRange>& self) {
-                return py::make_iterator<TPolicy>(std::ranges::begin(self.range), std::ranges::end(self.range));
+                if constexpr (std::same_as<TLifetime, KeepAlive>) {
+                    // By-value views need an explicit link to their borrowed storage.
+                    return py::make_iterator<TPolicy>(
+                        std::ranges::begin(self.range), std::ranges::end(self.range), py::keep_alive<0, 1>()
+                    );
+                } else {
+                    return py::make_iterator<TPolicy>(std::ranges::begin(self.range), std::ranges::end(self.range));
+                }
             },
             py::keep_alive<0, 1>()
         );
@@ -116,8 +133,8 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
     using PythonTriangleRange = PythonRange<TriangleRangeType>;
     using VertexRangeType = decltype(VerticesAsTuples(std::declval<const TriangleMesh&>()));
     using PythonVertexRange = PythonRange<VertexRangeType>;
-    BindRange<TriangleRangeType>(MeshInternalModule, "_TriangleRange");
-    BindRange<VertexRangeType>(MeshInternalModule, "_VertexRange");
+    BindRange<TriangleRangeType, py::return_value_policy::move, KeepAlive>(MeshInternalModule, "_TriangleRange");
+    BindRange<VertexRangeType, py::return_value_policy::move>(MeshInternalModule, "_VertexRange");
 
     py::class_<PythonTriangleProxy>(rMeshModule, "Triangle", "Read-only view of a triangle mesh face.")
         .def_property_readonly(
@@ -334,7 +351,7 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
     using GridType = BackgroundGridType;
     using ElementRangeType = decltype(std::declval<const GridType&>().GetElementViews());
     using PythonElementRange = PythonRange<ElementRangeType>;
-    BindRange<ElementRangeType>(InternalModule, "_ElementRange");
+    BindRange<ElementRangeType, py::return_value_policy::move, KeepAlive>(InternalModule, "_ElementRange");
 
     py::class_<GridType>(m, "BackgroundGrid", "Background grid containing active elements and conditions.")
         .def(py::init<const GridType::MainDictionaryType&>())
@@ -366,7 +383,9 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
 
     using ConditionSegmentRangeType = std::span<const ConditionSegmentType>;
     using PythonConditionSegmentRange = PythonRange<ConditionSegmentRangeType>;
-    BindRange<ConditionSegmentRangeType>(InternalModule, "_ConditionSegmentRange");
+    BindRange<ConditionSegmentRangeType, py::return_value_policy::reference_internal>(
+        InternalModule, "_ConditionSegmentRange"
+    );
 
     py::class_<ConditionType, ConditionPtrType>(m, "Condition", "Boundary or loading condition.")
         .def_static("is_weak_condition", []() -> bool { return true; })
