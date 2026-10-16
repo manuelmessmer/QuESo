@@ -270,7 +270,7 @@ void IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
             // Note: STL are often given in single precision. Therefore, we compute normals from
             // the converted double precision vertices.
             const auto tri_proxy = TriangleProxy<WithoutNormals>{ vertices[0], vertices[1], vertices[2] };
-            rTriangleMesh.AddTriangle(triangle, TriangleUtilities::Normal(tri_proxy));
+            rTriangleMesh.AddTriangle(triangle, triangle_utilities::Normal(tri_proxy));
 
             std::getline(file, line); // endloop
             if (!file.good() || line.find("endloop") == std::string::npos) {
@@ -349,7 +349,7 @@ void IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
         // Note: STL are often given in single precision. Therefore, we compute normals from
         // the converted double precision vertices.
         const auto tri_proxy = TriangleProxy<WithoutNormals>{ vertices[0], vertices[1], vertices[2] };
-        rTriangleMesh.AddTriangle(triangle, TriangleUtilities::Normal(tri_proxy));
+        rTriangleMesh.AddTriangle(triangle, triangle_utilities::Normal(tri_proxy));
 
         // Read so-called attribute byte count and ignore it
         std::uint16_t attribute_byte_count;

@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <utility>
 
 //// Project includes
 #include "queso/containers/geometry_tolerance.hpp"
@@ -81,17 +82,16 @@ public:
         std::vector<TBoundaryIntegrationPointType> boundary_ips{};
         const auto boundary_mesh = GetOrCreateBoundaryMesh(rBounds).View();
 
-        boundary_ips.reserve(boundary_mesh.NumOfTriangles() * 12UL);
-        constexpr IndexType method = 3;
+        constexpr auto order = triangle_utilities::TriangleQuadratureOrder::Degree6;
+        boundary_ips.reserve(boundary_mesh.NumOfTriangles() * triangle_utilities::NumberOfIntegrationPoints(order));
         boundary_mesh.template VisitEachTriangle<WithNormals>([&](const auto& rTriangle) {
-            auto new_points = TriangleUtilities::GetIPsGlobal<TBoundaryIntegrationPointType>(rTriangle, method);
-            if constexpr (TSpace == CoordinateSpace::global) {
-                std::ranges::copy(new_points, std::back_inserter(boundary_ips));
-            } else {
-                std::ranges::transform(new_points, std::back_inserter(boundary_ips), [&](const auto& rPoint) {
-                    return mapping::ToParametric(rPoint, rBounds);
-                });
-            }
+            triangle_utilities::VisitBoundaryIps<TBoundaryIntegrationPointType>(rTriangle, order, [&](auto&& rPoint) {
+                if constexpr (TSpace == CoordinateSpace::global) {
+                    boundary_ips.push_back(std::move(rPoint));
+                } else {
+                    boundary_ips.push_back(mapping::ToParametric(rPoint, rBounds));
+                }
+            });
         });
 
         return boundary_ips;

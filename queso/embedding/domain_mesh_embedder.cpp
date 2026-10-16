@@ -59,7 +59,7 @@ void DomainMeshEmbedder::PrepareFaceSection(GridFaceId Face, TriangleMesh&& rSec
     mTopology.face_topology.Get(Face) = detail::GridFaceState::blocked;
     Vector3d weighted_normal{};
     for (const auto& r_triangle : rSection.Triangles<WithNormals>()) {
-        weighted_normal += TriangleUtilities::Area(r_triangle) * r_triangle.Normal;
+        weighted_normal += triangle_utilities::Area(r_triangle) * r_triangle.Normal;
     }
     const double normal_component = weighted_normal[r_grid_indexer.GetFaceAxis(Face)];
     QuESo_ASSERT(

@@ -16,6 +16,7 @@
 
 //// STL includes
 #include <cmath>
+#include <utility>
 
 //// Project includes
 #include "queso/containers/boundary_integration_point.hpp"
@@ -52,9 +53,10 @@ namespace {
 
         ElementType::BoundaryIntegrationPointVectorType boundary_ips{};
         triangle_mesh.View().VisitEachTriangle<WithNormals>([&](const auto& rTriangle) {
-            constexpr IndexType method = 3;
-            auto new_points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(rTriangle, method);
-            boundary_ips.insert(boundary_ips.end(), new_points.begin(), new_points.end());
+            constexpr auto order = triangle_utilities::TriangleQuadratureOrder::Degree6;
+            triangle_utilities::VisitBoundaryIps<BoundaryIntegrationPointType>(rTriangle, order, [&](auto&& rPoint) {
+                boundary_ips.push_back(std::move(rPoint));
+            });
         });
         return boundary_ips;
     }

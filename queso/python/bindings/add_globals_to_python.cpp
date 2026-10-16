@@ -11,10 +11,14 @@
 //
 //  Authors:    Manuel Messmer
 
-/// Project inlcudes
+// External includes
+#include <pybind11/native_enum.h>
+
+// Project includes
 #include "queso/python/bindings/add_globals_to_python.h"
 // To export
 #include "queso/includes/define.hpp"
+#include "queso/utilities/triangle_gauss_legendre_integration_points.hpp"
 
 namespace queso::python {
 
@@ -22,6 +26,23 @@ namespace py = pybind11;
 
 void AddGlobalsToPython(pybind11::module& m)
 {
+    using triangle_utilities::TriangleQuadratureOrder;
+    py::native_enum<TriangleQuadratureOrder>(
+        m,
+        "TriangleQuadratureOrder",
+        "enum.Enum",
+        "Maximum polynomial degree integrated exactly by triangle quadrature.\n\n"
+        "Members:\n"
+        "- DEGREE_1: One point. Exact through degree 1.\n"
+        "- DEGREE_2: Three points. Exact through degree 2.\n"
+        "- DEGREE_4: Six points. Exact through degree 4.\n"
+        "- DEGREE_6: Twelve points. Exact through degree 6."
+    )
+        .value("DEGREE_1", TriangleQuadratureOrder::Degree1)
+        .value("DEGREE_2", TriangleQuadratureOrder::Degree2)
+        .value("DEGREE_4", TriangleQuadratureOrder::Degree4)
+        .value("DEGREE_6", TriangleQuadratureOrder::Degree6)
+        .finalize();
 
     /// Export enum IntegrationMethod
     py::enum_<IntegrationMethod>(m, "IntegrationMethod")

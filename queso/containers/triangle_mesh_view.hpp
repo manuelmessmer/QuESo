@@ -255,7 +255,7 @@ private:
         r_normals.reserve(NumOfTriangles());
 
         VisitEachTriangle<WithoutNormals>(
-            [&r_normals](const auto &r_triangle) { r_normals.push_back(TriangleUtilities::Normal(r_triangle)); });
+            [&r_normals](const auto &r_triangle) { r_normals.push_back(triangle_utilities::Normal(r_triangle)); });
     }
 
     /// @brief Returns normals as a span regardless of storage backend.

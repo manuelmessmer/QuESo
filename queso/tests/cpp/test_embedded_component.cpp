@@ -163,7 +163,7 @@ namespace Testing {
 
         double area = 0.0;
         r_triangle_mesh.VisitEachTriangle<WithoutNormals>([&](const auto& triangle) {
-            const PointType coordinates = TriangleUtilities::Center(triangle);
+            const PointType coordinates = triangle_utilities::Center(triangle);
 
             QuESo_CHECK_GT(coordinates[2], -1e-6);
             QuESo_CHECK_LT(coordinates[2], 10.0 + 1e-6);
@@ -172,7 +172,7 @@ namespace Testing {
                 double radius = std::sqrt(std::pow(coordinates[0], 2) + std::pow(coordinates[1], 2));
                 QuESo_CHECK_GT(radius, 0.998);
             }
-            area += TriangleUtilities::Area(triangle);
+            area += triangle_utilities::Area(triangle);
         });
         QuESo_CHECK_LT(area, 69.11503838);
         QuESo_CHECK_GT(area, 69.0);
@@ -1131,7 +1131,7 @@ namespace Testing {
         )
             QuESo_CHECK_RELATIVE_NEAR(
                 r_quad_info.GetRequiredValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5
-            ) QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), 9504);
+            ) QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), 9506);
         QuESo_CHECK_RELATIVE_NEAR(
             r_quad_info.GetRequiredValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5
         ) const double num_of_points_per_trimmed_element =

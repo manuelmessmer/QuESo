@@ -113,7 +113,7 @@ namespace Testing {
         triangle_mesh.AddVertex({ -1.0, 1.0, 1.0 });
         triangle_mesh.AddTriangle(
             { 0, 1, 2 },
-            TriangleUtilities::Normal(
+            triangle_utilities::Normal(
                 TriangleProxy<WithoutNormals>{
                     triangle_mesh.Vertex(0), triangle_mesh.Vertex(1), triangle_mesh.Vertex(2) }
             )

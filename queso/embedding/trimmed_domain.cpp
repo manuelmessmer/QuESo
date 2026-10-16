@@ -45,7 +45,7 @@ bool TrimmedDomain::IsInsideTrimmedDomain(const PointType& rPoint, bool& rSucces
 
         // Get direction
         const auto triangle = mClippedMesh.Triangle<WithoutNormals>(current_id);
-        const auto center_triangle = TriangleUtilities::Center(triangle);
+        const auto center_triangle = triangle_utilities::Center(triangle);
         Vector3d direction = center_triangle - rPoint;
 
         if (Math::SquaredNorm(direction) <= mGeometryTolerance.ZeroLength() * mGeometryTolerance.ZeroLength()) {
