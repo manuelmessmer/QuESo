@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(OwnsSurfaceContoursBoundsAndTolerance)
 
 BOOST_AUTO_TEST_CASE(RejectsInvalidBoundsAndToleranceSnapshot)
 {
-    if constexpr (NOTDEBUG) { return; }
+    if (!QuESo_DIAGNOSTICS_ENABLED()) { return; }
     const GeometryTolerance tolerance = GeometryTolerance::FromScale({ .length_scale = 1.0, .coordinate_scale = 1.0 });
     BOOST_CHECK_THROW(
         embedding::CellSurfaceSection(
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(RejectsInvalidBoundsAndToleranceSnapshot)
 
 BOOST_AUTO_TEST_CASE(RejectsInvalidSegmentGeometry)
 {
-    if constexpr (NOTDEBUG) { return; }
+    if (!QuESo_DIAGNOSTICS_ENABLED()) { return; }
     const BoundingBoxType bounds = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 });
     const GeometryTolerance tolerance = GeometryTolerance::FromScale({ .length_scale = 1.0, .coordinate_scale = 1.0 });
 
@@ -118,6 +118,23 @@ BOOST_AUTO_TEST_CASE(RejectsInvalidSegmentGeometry)
     BOOST_CHECK_THROW(
         embedding::CellSurfaceSection(MakeSurface(), std::move(non_finite), bounds, tolerance), Exception
     );
+}
+
+BOOST_AUTO_TEST_CASE(RejectsNonFiniteSurfaceDataWhenDiagnosticsAreEnabled)
+{
+    if (!QuESo_DIAGNOSTICS_ENABLED()) { return; }
+    const BoundingBoxType bounds = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 });
+    const GeometryTolerance tolerance = GeometryTolerance::FromScale({ .length_scale = 1.0, .coordinate_scale = 1.0 });
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    TriangleMesh invalid_vertices;
+    invalid_vertices.AddVertex({ nan, 0.0, 0.0 });
+    BOOST_CHECK_THROW(embedding::CellSurfaceSection(std::move(invalid_vertices), {}, bounds, tolerance), Exception);
+    TriangleMesh invalid_normals;
+    invalid_normals.AddVertex({ 0.0, 0.0, 0.0 });
+    invalid_normals.AddVertex({ 1.0, 0.0, 0.0 });
+    invalid_normals.AddVertex({ 0.0, 1.0, 0.0 });
+    invalid_normals.AddTriangle({ 0, 1, 2 }, { nan, 0.0, 1.0 });
+    BOOST_CHECK_THROW(embedding::CellSurfaceSection(std::move(invalid_normals), {}, bounds, tolerance), Exception);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

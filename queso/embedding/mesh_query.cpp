@@ -22,7 +22,6 @@ namespace queso::embedding {
 
 namespace {
 
-#ifndef NDEBUG
     [[nodiscard]] bool BoundsAreValid(PointView rLowerBound, PointView rUpperBound) noexcept
     {
         for (IndexType axis = 0; axis < 3; ++axis) {
@@ -42,7 +41,6 @@ namespace {
         }
         return true;
     }
-#endif
 
 }  // namespace
 
@@ -60,10 +58,7 @@ std::optional<BoundingBoxType> MeshQuery::BoundingBox() const noexcept
 
 std::vector<IndexType> MeshQuery::GetAabbCandidates(PointView rLowerBound, PointView rUpperBound) const
 {
-#ifndef NDEBUG
-    // TODO: Add a QuESo_DEBUG environment-controlled diagnostic mode that validates AABB contracts in release builds.
-    QuESo_ASSERT(BoundsAreValid(rLowerBound, rUpperBound), "AABB bounds must be finite and non-inverted.");
-#endif
+    QuESo_DIAGNOSTIC_ASSERT(BoundsAreValid(rLowerBound, rUpperBound), "AABB bounds must be finite and non-inverted.");
     return mTree.Query(rLowerBound, rUpperBound);
 }
 
@@ -74,18 +69,19 @@ bool MeshQuery::IntersectsAabb(
     AabbIntersectionPolicy Policy
 ) const
 {
+    QuESo_DEBUG_ASSERT(
+        Policy == AabbIntersectionPolicy::Exact || Policy == AabbIntersectionPolicy::SnapEroded,
+        "Invalid AABB intersection policy."
+    );
     const double inset = Policy == AabbIntersectionPolicy::SnapEroded ? mGeometryTolerance.SnapDistance() : 0.0;
-#ifndef NDEBUG
-    // TODO: Add a QuESo_DEBUG environment-controlled diagnostic mode that validates AABB contracts in release builds.
-    QuESo_ASSERT(BoundsAreValid(rLowerBound, rUpperBound), "AABB bounds must be finite and non-inverted.");
-    QuESo_ASSERT(
+    QuESo_DIAGNOSTIC_ASSERT(BoundsAreValid(rLowerBound, rUpperBound), "AABB bounds must be finite and non-inverted.");
+    QuESo_DIAGNOSTIC_ASSERT(
         Policy != AabbIntersectionPolicy::SnapEroded || BoundsSupportInset(rLowerBound, rUpperBound, inset),
         "Snap-eroded AABB must retain positive extent."
     );
-#endif
     if constexpr (!NOTDEBUG) {
         for ([[maybe_unused]] const IndexType triangle_id : rCandidateIds) {
-            QuESo_ASSERT(triangle_id < mTriangleMesh.NumOfTriangles(), "MeshQuery candidate ID is out-of-bounds.");
+            QuESo_DEBUG_ASSERT(triangle_id < mTriangleMesh.NumOfTriangles(), "MeshQuery candidate ID is out-of-bounds.");
         }
     }
     const detail::AabbTriangleIntersector aabb(rLowerBound, rUpperBound);
@@ -106,13 +102,10 @@ std::vector<IndexType> MeshQuery::GetIntersectedTriangleIds(
     PointView rUpperBound
 ) const
 {
-#ifndef NDEBUG
-    // TODO: Add a QuESo_DEBUG environment-controlled diagnostic mode that validates AABB contracts in release builds.
-    QuESo_ASSERT(BoundsAreValid(rLowerBound, rUpperBound), "AABB bounds must be finite and non-inverted.");
-#endif
+    QuESo_DIAGNOSTIC_ASSERT(BoundsAreValid(rLowerBound, rUpperBound), "AABB bounds must be finite and non-inverted.");
     if constexpr (!NOTDEBUG) {
         for ([[maybe_unused]] const IndexType triangle_id : rCandidateIds) {
-            QuESo_ASSERT(triangle_id < mTriangleMesh.NumOfTriangles(), "MeshQuery candidate ID is out-of-bounds.");
+            QuESo_DEBUG_ASSERT(triangle_id < mTriangleMesh.NumOfTriangles(), "MeshQuery candidate ID is out-of-bounds.");
         }
     }
     const detail::AabbTriangleIntersector aabb(rLowerBound, rUpperBound);

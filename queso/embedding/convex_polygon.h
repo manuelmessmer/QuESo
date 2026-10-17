@@ -48,7 +48,7 @@ public:
     /// @return Read-only point view.
     [[nodiscard]] PointView Vertex(IndexType Index) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(Index < mNumberOfVertices, "Polygon vertex index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(Index < mNumberOfVertices, "Polygon vertex index is out-of-bounds.");
         return mVertices[Index];
     }
 
@@ -70,14 +70,14 @@ public:
     /// @param rPoint Vertex coordinates.
     void AddVertex(PointView rPoint) noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(mNumberOfVertices < max_vertices, "ConvexPolygon vertex capacity exceeded.");
+        QuESo_DEBUG_ASSERT(mNumberOfVertices < max_vertices, "ConvexPolygon vertex capacity exceeded.");
         mVertices[mNumberOfVertices++] = PointType{ rPoint[0], rPoint[1], rPoint[2] };
     }
 
     /// @brief Removes the final ordered vertex.
     void RemoveLastVertex() noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(mNumberOfVertices > 0, "Cannot remove a vertex from an empty polygon.");
+        QuESo_DEBUG_ASSERT(mNumberOfVertices > 0, "Cannot remove a vertex from an empty polygon.");
         --mNumberOfVertices;
     }
 

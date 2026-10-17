@@ -183,17 +183,23 @@ public:
     /// @tparam TValueType
     /// @param rQueryKey
     /// @param rNewValue
-    /// @note Only throws in DEBUG mode.
+    /// @pre The key belongs to this data set's key set. Checked in debug builds.
     template<typename TKeyType, typename TValueType>
-    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue,
-                  std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) noexcept(NOTDEBUG) {
+    void SetValue(
+        const TKeyType& rQueryKey,
+        const TValueType& rNewValue,
+        std::enable_if_t<is_key_v<TKeyType>>* = nullptr
+    )
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value ||
                        (std::is_same<typename TKeyType::KeyToWhat, IndexType>::value && is_unsigned_index<TValueType>::value) );
 
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        QuESo_DEBUG_ASSERT(
+            mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
 
         if constexpr( is_unsigned_index_v<TValueType> ) { // Accept different unsigned integer types.
             // Note: is_unsigned_index_v implies that rNewValue is castable to IndexType.
@@ -208,20 +214,28 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-	/// @note Only throws in debug mode. In release mode, no checks are performed to
-	///       verify that TKeyType has the correct type or that a value is set.
+    /// @pre The key belongs to this data set and CheckRequired() has completed successfully.
+    /// @details Preconditions are checked in debug builds.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetRequiredValue(const TKeyType& rQueryKey,
-                                       std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+    const TValueType& GetRequiredValue(
+        const TKeyType& rQueryKey,
+        std::enable_if_t<is_key_v<TKeyType>>* = nullptr
+    ) const noexcept(NOTDEBUG)
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
         static_assert( TKeyType::msIsRequired );
 
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex() ),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-        QuESo_ASSERT( mCheckedRequired,
-            "CheckRequired() must be called before accessing required value to Key: '" + std::string(rQueryKey.Name()) + "'.\n" );
+        QuESo_DEBUG_ASSERT(
+            mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
+        QuESo_DEBUG_ASSERT(
+            mCheckedRequired,
+            "CheckRequired() must be called before accessing required value to Key: '" + std::string(rQueryKey.Name())
+                + "'.\n"
+        );
 
         return std::get<TValueType>(mData[rQueryKey.Index()]);
     }
@@ -231,22 +245,21 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return std::optional<std::reference_wrapper<const TValueType>> Empty if unset.
-	/// @note Only throws in debug mode. In release mode, no checks is performed to
-	///       verify that TKeyType has the correct type.
+    /// @pre The key belongs to this data set's key set. Checked in debug builds.
     template<typename TValueType, typename TKeyType>
-    std::optional<std::reference_wrapper<const TValueType>> TryGetValue(
-        	const TKeyType& rQueryKey,
-        	std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+    std::optional<std::reference_wrapper<const TValueType>>
+        TryGetValue(const TKeyType& rQueryKey, std::enable_if_t<is_key_v<TKeyType>>* = nullptr) const noexcept(NOTDEBUG)
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, TValueType>::value );
         static_assert( !TKeyType::msIsRequired );
 
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
-		if (!IsSet(rQueryKey)) {
-            return std::nullopt;
-        }
+        QuESo_DEBUG_ASSERT(
+            mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
+        if (!IsSet(rQueryKey)) { return std::nullopt; }
 
         return std::cref(std::get<TValueType>(mData[rQueryKey.Index()]));
     }
@@ -255,14 +268,16 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return bool
-    /// @note Only throws in debug mode.
+    /// @pre The key belongs to this data set's key set. Checked in debug builds.
     template<typename TKeyType>
-    bool IsSet(const TKeyType& rQueryKey,
-               std::enable_if_t<is_key_v<TKeyType>>* = nullptr ) const noexcept(NOTDEBUG) {
+    bool IsSet(const TKeyType& rQueryKey, std::enable_if_t<is_key_v<TKeyType>>* = nullptr) const noexcept(NOTDEBUG)
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, TKeySetValuesTypeTag>::value );
-        QuESo_ASSERT( mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        QuESo_DEBUG_ASSERT(
+            mpKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
 
         return !std::holds_alternative<std::monostate>(mData[rQueryKey.Index()]);
     }

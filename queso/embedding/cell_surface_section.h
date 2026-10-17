@@ -39,7 +39,7 @@ namespace embedding {
         /// @return Dense face index with lower/upper faces adjacent for each axis.
         [[nodiscard]] IndexType Index() const noexcept(NOTDEBUG)
         {
-            QuESo_ASSERT(axis < 3, "Cell-face axis is out-of-bounds.");
+            QuESo_DEBUG_ASSERT(axis < 3, "Cell-face axis is out-of-bounds.");
             return 2 * axis + static_cast<IndexType>(is_upper);
         }
 
@@ -48,7 +48,7 @@ namespace embedding {
         /// @return Cell face identity.
         [[nodiscard]] static CellFace FromIndex(IndexType Index) noexcept(NOTDEBUG)
         {
-            QuESo_ASSERT(Index < 6, "Cell-face index is out-of-bounds.");
+            QuESo_DEBUG_ASSERT(Index < 6, "Cell-face index is out-of-bounds.");
             return { Index / 2, Index % 2 == 1 };
         }
 
@@ -76,8 +76,10 @@ namespace embedding {
     {
     public:
         /// @brief Constructs a cell surface section with checked mesh connectivity.
-        /// @details Debug builds additionally validate bounds, clipped geometry, and face-segment invariants. Release
-        ///          callers must provide finite bounds and geometry generated under the supplied tolerance.
+        /// @details Mesh connectivity is checked in every build. Bounds, clipped geometry, and face-segment invariants
+        ///          are checked in debug builds and when release diagnostics are enabled.
+        /// @pre Bounds are finite and strictly increasing, with extents greater than twice the snap distance.
+        /// @pre Geometry and contours were generated under the supplied tolerance.
         /// @param rSurface Clipped source-surface geometry.
         /// @param rContours Oriented traces grouped by cell face.
         /// @param rCellBounds Exact original cell bounds.

@@ -47,7 +47,7 @@ namespace Testing {
                 ),
                 MinNumberOfTriangles
             );
-            QuESo_ASSERT(p_domain, "Octree fixture requires a non-empty clipped section.");
+            BOOST_REQUIRE_MESSAGE(p_domain, "Octree fixture requires a non-empty clipped section.");
             return p_domain;
         }
 

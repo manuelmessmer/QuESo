@@ -26,6 +26,7 @@
 //// Project includes
 #include "queso/embedding/domain_topology.hpp"
 #include "queso/embedding/flood_fill.h"
+#include "queso/includes/parallel_exception.hpp"
 
 namespace queso::embedding {
 namespace {
@@ -185,7 +186,7 @@ namespace {
     {
         // A physical grid boundary is also a slab boundary, but it must first mark the component as exterior-connected.
         if (rGridIndexer.IsEnd(CellIndex, FaceDirection)) {
-            QuESo_ASSERT(
+            QuESo_DEBUG_ASSERT(
                 rTopology.face_topology.Get(CellIndex, FaceDirection) == detail::GridFaceState::blocked,
                 "Exterior grid faces must be blocked."
             );
@@ -195,13 +196,13 @@ namespace {
         if (rGridIndexer.IsEnd(CellIndex, FaceDirection, rPartition)) { return std::nullopt; }
 
         const auto [next_index, index_info] = rGridIndexer.GetNextIndex(CellIndex, FaceDirection);
-        QuESo_ASSERT(index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell.");
+        QuESo_DEBUG_ASSERT(index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell.");
         if (rTopology.face_topology.Get(CellIndex, FaceDirection) == detail::GridFaceState::blocked) {
             rComponent.classification_vote += rTopology.face_votes.Get(CellIndex, FaceDirection);
             return std::nullopt;
         }
 
-        QuESo_ASSERT(!IsTrimmed(rTopology, next_index), "A traversable face cannot lead into a trimmed cell.");
+        QuESo_DEBUG_ASSERT(!IsTrimmed(rTopology, next_index), "A traversable face cannot lead into a trimmed cell.");
         if (rVisitStates[next_index] == VisitState::visited) { return std::nullopt; }
         rVisitStates[next_index] = VisitState::visited;
         rComponent.cell_indices.push_back(next_index);
@@ -246,6 +247,7 @@ namespace {
     )
     {
         std::vector<Components> components_by_partition(rPartitions.size());
+        queso::detail::ParallelException worker_failure;
         // Slabs are disjoint and Move never crosses a partition boundary, so workers mutate disjoint visit-state cells.
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static, 1)
@@ -253,20 +255,23 @@ namespace {
         for (std::int64_t raw_partition_index = 0; raw_partition_index < static_cast<std::int64_t>(rPartitions.size());
              ++raw_partition_index) {
             const IndexType partition_index = static_cast<IndexType>(raw_partition_index);
-            const auto& r_partition = rPartitions[partition_index];
-            auto& r_components = components_by_partition[partition_index];
-            for (IndexType z = r_partition.first[2]; z <= r_partition.second[2]; ++z) {
-                for (IndexType y = r_partition.first[1]; y <= r_partition.second[1]; ++y) {
-                    for (IndexType x = r_partition.first[0]; x <= r_partition.second[0]; ++x) {
-                        const IndexType cell_index = rGridIndexer.GetVectorIndexFromMatrixIndices(x, y, z);
-                        if (rVisitStates[cell_index] == VisitState::visited) { continue; }
-                        Component component;
-                        Fill(rGridIndexer, rTopology, cell_index, r_partition, component, rVisitStates);
-                        r_components.push_back(std::move(component));
+            worker_failure.Execute([&] {
+                const auto& r_partition = rPartitions[partition_index];
+                auto& r_components = components_by_partition[partition_index];
+                for (IndexType z = r_partition.first[2]; z <= r_partition.second[2]; ++z) {
+                    for (IndexType y = r_partition.first[1]; y <= r_partition.second[1]; ++y) {
+                        for (IndexType x = r_partition.first[0]; x <= r_partition.second[0]; ++x) {
+                            const IndexType cell_index = rGridIndexer.GetVectorIndexFromMatrixIndices(x, y, z);
+                            if (rVisitStates[cell_index] == VisitState::visited) { continue; }
+                            Component component;
+                            Fill(rGridIndexer, rTopology, cell_index, r_partition, component, rVisitStates);
+                            r_components.push_back(std::move(component));
+                        }
                     }
                 }
-            }
+            });
         }
+        worker_failure.Rethrow();
 
         Components components;
         for (auto& r_partition_components : components_by_partition) {
@@ -312,7 +317,7 @@ namespace {
 
                         const IndexType left_index = rGridIndexer.GetVectorIndexFromMatrixIndices(indices);
                         const auto [right_index, index_info] = rGridIndexer.GetNextIndex(left_index, forward_direction);
-                        QuESo_ASSERT(
+                        QuESo_DEBUG_ASSERT(
                             index_info == GridIndexer::IndexInfo::middle,
                             "Adjacent flood-fill partitions must share a physical grid face."
                         );
@@ -320,7 +325,7 @@ namespace {
                         const IndexType right_component = component_indices[right_index];
                         if (rTopology.face_topology.Get(left_index, forward_direction)
                             == detail::GridFaceState::traversable) {
-                            QuESo_ASSERT(
+                            QuESo_DEBUG_ASSERT(
                                 left_component != invalid_component && right_component != invalid_component,
                                 "A traversable partition face must connect two fillable cells."
                             );

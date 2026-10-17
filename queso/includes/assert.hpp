@@ -14,8 +14,8 @@
 #pragma once
 
 /// STL includes
-#include <assert.h>
-#include <type_traits>
+#include <source_location>
+#include <string_view>
 
 /// Project includes
 // IWYU pragma: begin_exports
@@ -29,36 +29,50 @@ namespace queso {
 
 constexpr bool NOTDEBUG = true;
 
-#define QuESo_ASSERT(Assertation, Message) (assert(0))
-
 #else  // asserts enabled
 
 constexpr bool NOTDEBUG = false;
 
+#endif  // NDEBUG
+
 namespace detail {
-    template<typename TAssertion>
-    constexpr void Assert(
-        const TAssertion& rAssertion,
+    /// @brief Reports an assertion failure at the caller's source location.
+    /// @param Expression Failed expression text.
+    /// @param Message Explanation of the violated requirement.
+    /// @param Location Assertion call site.
+    [[noreturn]] inline void AssertionFailed(
+        std::string_view Expression,
         std::string_view Message,
-        const char* pFile,
-        const char* pFunction,
-        std::size_t Line
+        std::source_location Location = std::source_location::current()
     )
     {
-        if (rAssertion) return;
-
-        if (std::is_constant_evaluated()) {
-            throw Message;
-        } else {
-            throw Exception(pFile, pFunction, Line) << Message;
-        }
+        throw Exception(Location.file_name(), Location.function_name(), Location.line())
+            << "Assertion failed: " << Expression << ". " << Message;
     }
 
-#define QuESo_ASSERT(Assertation, Message) \
-    queso::detail::Assert(Assertation, Message, __FILE__, QuESo_CURRENT_FUNCTION, __LINE__)
-
+    /// @brief Returns whether optional validation should execute.
+    /// @details The release environment setting is cached on first use in the library.
+    /// @return Always true in debug builds. In release, true only when QUESO_DEBUG was exactly "1" at initialization.
+    [[nodiscard]] bool DiagnosticsEnabled() noexcept;
 }  // namespace detail
 
-#endif  // NDEBUG
+// Conditions are evaluated once. Messages are evaluated only on failure.
+// Disabled assertions evaluate neither argument. Conditions must have no side effects.
+#define QuESo_CONTRACT_ASSERT(Condition, Message)                                      \
+    do {                                                                               \
+        if (!(Condition)) { ::queso::detail::AssertionFailed(#Condition, (Message)); } \
+    } while (false)
+
+#ifndef NDEBUG
+#define QuESo_DEBUG_ASSERT(Condition, Message) QuESo_CONTRACT_ASSERT(Condition, Message)
+#else
+#define QuESo_DEBUG_ASSERT(Condition, Message) ((void)0)
+#endif
+
+#define QuESo_DIAGNOSTICS_ENABLED() (::queso::detail::DiagnosticsEnabled())
+#define QuESo_DIAGNOSTIC_ASSERT(Condition, Message)                                     \
+    do {                                                                                \
+        if (QuESo_DIAGNOSTICS_ENABLED()) { QuESo_CONTRACT_ASSERT(Condition, Message); } \
+    } while (false)
 
 }  // namespace queso

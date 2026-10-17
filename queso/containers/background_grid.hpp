@@ -25,6 +25,7 @@
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/containers/untrimmed_element.hpp"
 #include "queso/includes/define.hpp"
+#include "queso/includes/parallel_exception.hpp"
 
 namespace queso {
 
@@ -126,7 +127,7 @@ public:
     template<ElementFilter TFilter = ElementFilter::all>
     [[nodiscard]] std::optional<ElementViewType> GetElementView(IndexType ElementId) const
     {
-        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
+        QuESo_DEBUG_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         auto found_key = mElementIdMap.find(ElementId);
         if (found_key == mElementIdMap.end()) { return std::nullopt; }
         const auto& r_location = found_key->second;
@@ -153,7 +154,7 @@ public:
             TFilter != ElementFilter::all,
             "ElementFilter::all is not valid for pGetElement — use GetElementView() instead."
         );
-        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
+        QuESo_DEBUG_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
 
         auto found_key = mElementIdMap.find(ElementId);
         if constexpr (TFilter == ElementFilter::untrimmed) {
@@ -176,7 +177,7 @@ public:
     template<ElementFilter TFilter = ElementFilter::all>
     [[nodiscard]] auto GetElementViews() const
     {
-        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
+        QuESo_DEBUG_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         if constexpr (TFilter == ElementFilter::all) {
             const auto num_untrimmed = mUntrimmedElements.size();
             const auto num_total = num_untrimmed + mTrimmedElements.size();
@@ -204,7 +205,7 @@ public:
             TFilter != ElementFilter::all,
             "ElementFilter::all is not valid for GetElements — use GetElementViews() instead."
         );
-        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
+        QuESo_DEBUG_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         if constexpr (TFilter == ElementFilter::untrimmed)
             return std::span<const UntrimmedElementType>(mUntrimmedElements);
         else
@@ -222,7 +223,7 @@ public:
             TFilter != ElementFilter::all,
             "ElementFilter::all is not valid for GetElements — use GetElementViews() instead."
         );
-        QuESo_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
+        QuESo_DEBUG_ASSERT(mElementsLocked, "Elements must be locked (call `LockElements`) before access.");
         if constexpr (TFilter == ElementFilter::untrimmed)
             return std::span<UntrimmedElementType>(mUntrimmedElements);
         else
@@ -343,38 +344,45 @@ public:
     template<typename TBuilderType>
     bool MakeElement(TBuilderType& rBuilder, IndexType CellIndex)
     {
-        QuESo_ERROR_IF(mElementsLocked) << "Cannot add elements after LockElements() was called.\n";
-        QuESo_ASSERT(CellIndex < mGridIndexer.NumberOfElements(), "Cell index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(!mElementsLocked, "Cannot add elements after LockElements() was called.");
+        QuESo_DEBUG_ASSERT(CellIndex < mGridIndexer.NumberOfElements(), "Cell index is out-of-bounds.");
         const ElementBounds bounds{ mGridIndexer.GetBoundingBoxXYZFromIndex(CellIndex),
                                     mGridIndexer.GetBoundingBoxUVWFromIndex(CellIndex) };
         auto result = rBuilder.Build(CellIndex, bounds);
         if (!result) return false;
         const IndexType element_id = CellIndex + 1;
-        QuESo_ERROR_IF(result->GetId() != element_id)
-            << "Builder returned element ID '" << result->GetId() << "' for expected ID '" << element_id << "'.\n";
+        QuESo_DEBUG_ASSERT(result->GetId() == element_id, "Builder returned an element with an unexpected ID.");
+        detail::ParallelException insertion_failure;
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical(QuESoElementInsertion)
 #endif
         {
-            QuESo_ERROR_IF(mElementIdMap.contains(element_id)) << "Element ID '" << element_id << "' already exists.\n";
-            const auto location = [&]() {
-                if constexpr (TBuilderType::Builds == ElementFilter::trimmed) {
-                    const IndexType index = mTrimmedElements.size();
-                    mTrimmedElements.emplace_back(std::move(*result));
-                    return ElementStorageLocation{ true, index };
-                } else {
-                    static_assert(
-                        TBuilderType::Builds == ElementFilter::untrimmed,
-                        "The builder must either support trimmed or untrimmed element construction."
-                    );
+            insertion_failure.Execute([&] {
+                QuESo_DEBUG_ASSERT(!mElementIdMap.contains(element_id), "Element ID already exists.");
+                auto& r_elements = [&]() -> auto& {
+                    if constexpr (TBuilderType::Builds == ElementFilter::trimmed) {
+                        return mTrimmedElements;
+                    } else {
+                        static_assert(
+                            TBuilderType::Builds == ElementFilter::untrimmed,
+                            "The builder must either support trimmed or untrimmed element construction."
+                        );
 
-                    const IndexType index = mUntrimmedElements.size();
-                    mUntrimmedElements.emplace_back(std::move(*result));
-                    return ElementStorageLocation{ false, index };
+                        return mUntrimmedElements;
+                    }
+                }();
+                const ElementStorageLocation location{ TBuilderType::Builds == ElementFilter::trimmed,
+                                                       r_elements.size() };
+                r_elements.emplace_back(std::move(*result));
+                try {
+                    mElementIdMap.emplace(element_id, location);
+                } catch (...) {
+                    r_elements.pop_back();
+                    throw;
                 }
-            }();
-            mElementIdMap.emplace(element_id, location);
+            });
         }
+        insertion_failure.Rethrow();
         return true;
     }
 

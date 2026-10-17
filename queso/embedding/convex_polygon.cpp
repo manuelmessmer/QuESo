@@ -68,7 +68,7 @@ double ConvexPolygon::Area() const noexcept
 PolygonSplit
     SplitByPlane(const ConvexPolygon& rPolygon, IndexType Axis, double Coordinate, const GeometryTolerance& rTolerance)
 {
-    QuESo_ASSERT(Axis < 3, "Plane axis is out-of-bounds.");
+    QuESo_DEBUG_ASSERT(Axis < 3, "Plane axis is out-of-bounds.");
     const double snap_distance = rTolerance.SnapDistance();
 
     ConvexPolygon negative(rPolygon.Normal());
@@ -159,12 +159,12 @@ void AppendCellSurfacePolygon(
                 continue;
             }
 
-            const auto SnapToFaceRectangle = [&](PointView rPoint) noexcept(NOTDEBUG) {
+            const auto SnapToFaceRectangle = [&](PointView rPoint) {
                 PointType result{ rPoint[0], rPoint[1], rPoint[2] };
                 result[face.axis] = coordinate;
                 for (IndexType axis = 0; axis < 3; ++axis) {
                     if (axis == face.axis) { continue; }
-                    QuESo_ASSERT(
+                    QuESo_DIAGNOSTIC_ASSERT(
                         result[axis] >= rBounds.lower[axis] - rTolerance.SnapDistance()
                             && result[axis] <= rBounds.upper[axis] + rTolerance.SnapDistance(),
                         "Cell-face segment endpoint is outside the face rectangle."

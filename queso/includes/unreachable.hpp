@@ -23,7 +23,7 @@ namespace queso {
 [[noreturn]] inline void
     Unreachable([[maybe_unused]] std::string_view Msg = "Reached an unreachable code path") noexcept(NOTDEBUG)
 {
-    QuESo_ASSERT(false, Msg);
+    QuESo_DEBUG_ASSERT(false, Msg);
 
 #if defined(__GNUC__) || defined(__clang__)
     __builtin_unreachable();

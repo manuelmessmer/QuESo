@@ -35,6 +35,9 @@ target_compile_definitions(${testThingiName} PRIVATE QUESO_BUILD_TESTING=1)
 
 # Link to Boost libraries and QuESo
 target_link_libraries(${testName} PRIVATE Boost::unit_test_framework QuESo::QuESo)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${testName} PRIVATE OpenMP::OpenMP_CXX)
+endif()
 target_link_libraries(${testThingiName} PRIVATE Boost::unit_test_framework QuESo::QuESo OpenMP::OpenMP_CXX)
 target_compile_definitions(${testName} PRIVATE BOOST_TEST_DYN_LINK)
 target_compile_definitions(${testThingiName} PRIVATE BOOST_TEST_DYN_LINK)
@@ -43,6 +46,12 @@ target_compile_definitions(${testThingiName} PRIVATE BOOST_TEST_DYN_LINK)
 set(TestExecutableDir ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set_target_properties(${testName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TestExecutableDir})
 set_target_properties(${testThingiName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TestExecutableDir})
+
+# Register cpp tests.
+add_test(NAME queso_cpp
+    COMMAND $<TARGET_FILE:${testName}> --log_level=test_suite -- ${CMAKE_CURRENT_SOURCE_DIR}/data)
+set_tests_properties(queso_cpp
+    PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # Configure shell script
 set(PYTHON_TEST_SOURCE_DIR_IN ${CMAKE_CURRENT_SOURCE_DIR}/python)

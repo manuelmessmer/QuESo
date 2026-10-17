@@ -154,10 +154,11 @@ public:
     /// @tparam TValueType
     /// @param rQueryKey
     /// @param rNewValue
-    /// @note Only throws in DEBUG mode.
+    /// @pre A data set exists and the key belongs to it. Checked in debug builds.
     template<typename TKeyType, typename TValueType>
-    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue) noexcept(NOTDEBUG) {
-        QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
+    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue)
+    {
+        QuESo_DEBUG_ASSERT(mpDataSet != nullptr, "This dictionary has an empty data set.\n");
         mpDataSet->SetValue(rQueryKey, rNewValue);
     }
 
@@ -166,11 +167,12 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const TValueType&
-	/// @note Only throws in debug mode. In release mode, no checks are performed to verify that the DataSet is non-empty, 
-	///       the TKeyType has the correct type, or that the value is set.
+    /// @pre A data set exists, the key belongs to it, and CheckRequired() has succeeded.
+    /// @details Preconditions are checked in debug builds.
     template<typename TValueType, typename TKeyType>
-    const TValueType& GetRequiredValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
-        QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
+    const TValueType& GetRequiredValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG)
+    {
+        QuESo_DEBUG_ASSERT(mpDataSet != nullptr, "This dictionary has an empty data set.\n");
         return mpDataSet->template GetRequiredValue<TValueType>(rQueryKey);
     }
 
@@ -179,11 +181,12 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return std::optional<std::reference_wrapper<const TValueType>>
-	/// @note Only throws in debug mode. In release mode, no checks are performed to verify that the DataSet is non-empty, 
-	///       or that the TKeyType has the correct type.
+    /// @pre A data set exists and the key belongs to it. Checked in debug builds.
     template<typename TValueType, typename TKeyType>
-    std::optional<std::reference_wrapper<const TValueType>> TryGetValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
-        QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
+    std::optional<std::reference_wrapper<const TValueType>>
+        TryGetValue(const TKeyType& rQueryKey) const noexcept(NOTDEBUG)
+    {
+        QuESo_DEBUG_ASSERT(mpDataSet != nullptr, "This dictionary has an empty data set.\n");
         return mpDataSet->template TryGetValue<TValueType>(rQueryKey);
     }
 
@@ -191,29 +194,36 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return bool
-	/// @note Only throws in debug mode. In release mode, no checks are performed to verify that the DataSet is non-empty, 
-	///       or that the TKeyType has the correct type.
+    /// @pre A data set exists and the key belongs to it. Checked in debug builds.
     template<typename TKeyType>
-    bool IsSet(const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
-        QuESo_ASSERT( mpDataSet != nullptr, "This dictionary has an empty data set.\n");
+    bool IsSet(const TKeyType& rQueryKey) const noexcept(NOTDEBUG)
+    {
+        QuESo_DEBUG_ASSERT(mpDataSet != nullptr, "This dictionary has an empty data set.\n");
         return mpDataSet->IsSet(rQueryKey);
     }
 
-    /// @brief Sets a SubDictionary associated with the given key. Dictionary takes unique ownership of the SubDictionary.
+    /// @brief Sets a SubDictionary associated with the given key. Dictionary takes unique ownership of the
+    /// SubDictionary.
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @param rNewDictionary
-    /// @note Only throws in debug mode.
+    /// @pre The dictionary supports the supplied subdictionary key. Checked in debug builds.
     template<typename TKeyType>
-    void SetSubDictionary(const TKeyType& rQueryKey, Unique<Dictionary>&& rNewDictionary,
-                           std::enable_if_t<is_key_v<TKeyType>>* = nullptr  ) noexcept(NOTDEBUG) {
+    void SetSubDictionary(
+        const TKeyType& rQueryKey,
+        Unique<Dictionary>&& rNewDictionary,
+        std::enable_if_t<is_key_v<TKeyType>>* = nullptr
+    ) noexcept(NOTDEBUG)
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, key::SubDictTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, key::SubDictTypeTag>::value );
 
-        QuESo_ASSERT( mpSubDictKeySetInfo != nullptr, "This dictionary does not contain any sub-dictionaries.\n");
-        QuESo_ASSERT( mpSubDictKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        QuESo_DEBUG_ASSERT(mpSubDictKeySetInfo != nullptr, "This dictionary does not contain any sub-dictionaries.\n");
+        QuESo_DEBUG_ASSERT(
+            mpSubDictKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
 
         mSubDictionaries[rQueryKey.Index()] = std::move(rNewDictionary);
     }
@@ -222,21 +232,27 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const Dictionary&
-    /// @note Only throws in debug mode.
-    template<typename TKeyType,
-             typename = std::enable_if_t<is_key_v<TKeyType>>>
-    const Dictionary& operator[](const TKeyType& rQueryKey) const noexcept(NOTDEBUG) {
+    /// @pre The key belongs to this dictionary and its subdictionary is set. checked in debug builds.
+    template<typename TKeyType, typename = std::enable_if_t<is_key_v<TKeyType>>>
+    const Dictionary& operator[](const TKeyType& rQueryKey) const noexcept(NOTDEBUG)
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, key::SubDictTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, key::SubDictTypeTag>::value );
 
-        QuESo_ASSERT( mpSubDictKeySetInfo != nullptr, "This dictionary does not contain any sub-dictionaries.\n");
-        QuESo_ASSERT( mpSubDictKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n");
+        QuESo_DEBUG_ASSERT(mpSubDictKeySetInfo != nullptr, "This dictionary does not contain any sub-dictionaries.\n");
+        QuESo_DEBUG_ASSERT(
+            mpSubDictKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
 
-        QuESo_ASSERT( rQueryKey.Index() < mSubDictionaries.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n");
-        QuESo_ASSERT( mSubDictionaries[rQueryKey.Index()] != nullptr,
-            "Dictionary associated with Key: " + std::string( rQueryKey.Name() ) + " is not set.\n");
+        QuESo_DEBUG_ASSERT(
+            rQueryKey.Index() < mSubDictionaries.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n"
+        );
+        QuESo_DEBUG_ASSERT(
+            mSubDictionaries[rQueryKey.Index()] != nullptr,
+            "Dictionary associated with Key: " + std::string(rQueryKey.Name()) + " is not set.\n"
+        );
 
         return *(mSubDictionaries[rQueryKey.Index()]);
     }
@@ -245,31 +261,34 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return Dictionary&
-    /// @note Only throws in debug mode.
-    template<typename TKeyType,
-             typename = std::enable_if_t<is_key_v<TKeyType>>>
-    Dictionary& operator[](const TKeyType& rQueryKey) noexcept(NOTDEBUG) {
-        return const_cast<Dictionary&>( static_cast<const Dictionary&>(*this)[rQueryKey] );
-    }
+    /// @pre The key belongs to this dictionary and its subdictionary is set. Checked in debug builds.
+    template<typename TKeyType, typename = std::enable_if_t<is_key_v<TKeyType>>>
+    Dictionary& operator[](const TKeyType& rQueryKey) noexcept(NOTDEBUG)
+    { return const_cast<Dictionary&>(static_cast<const Dictionary&>(*this)[rQueryKey]); }
 
     /// @brief Returns List associated with the given Key (const version).
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const ListType&
-    /// @note Only throws in debug mode.
+    /// @pre The dictionary supports the supplied list key. Checked in debug builds.
     template<typename TKeyType>
-    const ListType& GetList(const TKeyType& rQueryKey,
-                            std::enable_if_t<is_key_v<TKeyType>>* = nullptr  ) const noexcept(NOTDEBUG) {
+    const ListType&
+        GetList(const TKeyType& rQueryKey, std::enable_if_t<is_key_v<TKeyType>>* = nullptr) const noexcept(NOTDEBUG)
+    {
 
         static_assert( std::is_same<typename TKeyType::KeySetInfoType::KeySetToWhat, key::ListTypeTag>::value );
         static_assert( std::is_same<typename TKeyType::KeyToWhat, key::ListTypeTag>::value );
 
-        QuESo_ASSERT( mpListKeySetInfo != nullptr, "This dictionary does not contain any lists.\n");
+        QuESo_DEBUG_ASSERT(mpListKeySetInfo != nullptr, "This dictionary does not contain any lists.\n");
 
-        QuESo_ASSERT( mpListKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
-            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n" );
+        QuESo_DEBUG_ASSERT(
+            mpListKeySetInfo->IsSameKeySet(rQueryKey.KeySetInfoTypeIndex()),
+            "Given Key: '" + std::string(rQueryKey.Name()) + "' is of wrong type.\n"
+        );
 
-        QuESo_ASSERT( rQueryKey.Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mListsOfDicts'.\n");
+        QuESo_DEBUG_ASSERT(
+            rQueryKey.Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mListsOfDicts'.\n"
+        );
 
         return mListsOfDicts[rQueryKey.Index()];
     }
@@ -278,12 +297,10 @@ public:
     /// @tparam TKeyType
     /// @param rQueryKey
     /// @return const ListType&
-    /// @note Only throws in debug mode.
+    /// @pre The dictionary supports the supplied list key. Checked in debug builds.
     template<typename TKeyType>
-    ListType& GetList(const TKeyType& rQueryKey,
-                      std::enable_if_t<is_key_v<TKeyType>>* = nullptr  ) noexcept(NOTDEBUG) {
-        return const_cast<ListType&>(static_cast<const Dictionary&>(*this).GetList(rQueryKey));
-    }
+    ListType& GetList(const TKeyType& rQueryKey, std::enable_if_t<is_key_v<TKeyType>>* = nullptr) noexcept(NOTDEBUG)
+    { return const_cast<ListType&>(static_cast<const Dictionary&>(*this).GetList(rQueryKey)); }
 
     /// @brief Throws if any required value in this dictionary or nested dictionaries is not set.
     void CheckRequired() const {
@@ -416,7 +433,9 @@ private:
         QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
                                << "'. Possible names are: " << mpSubDictKeySetInfo->GetAllKeyNames() << "\n.";
 
-        QuESo_ASSERT( p_key->Index() < mSubDictionaries.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n");
+        QuESo_DEBUG_ASSERT(
+            p_key->Index() < mSubDictionaries.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n"
+        );
 
         mSubDictionaries[p_key->Index()] = std::move(rNewDictionary);
     }
@@ -432,7 +451,9 @@ private:
         QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
                                << "'. Possible names are: " << mpSubDictKeySetInfo->GetAllKeyNames() << "\n.";
 
-        QuESo_ASSERT( p_key->Index() < mSubDictionaries.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n");
+        QuESo_DEBUG_ASSERT(
+            p_key->Index() < mSubDictionaries.size(), "It seems like, we forgot to resize 'mSubDictionaries'.\n"
+        );
 
         QuESo_ERROR_IF( !mSubDictionaries[p_key->Index()] )
             << "Dictionary associated with Key: " << std::string( p_key->Name() ) << " is not set.\n";
@@ -451,7 +472,9 @@ private:
         QuESo_ERROR_IF(!p_key) << "Invalid Key name: '" << rQueryKeyName
                                << "'. Possible names are: " << mpListKeySetInfo->GetAllKeyNames() << "\n.";
 
-        QuESo_ASSERT( p_key->Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mListsOfDicts'.\n");
+        QuESo_DEBUG_ASSERT(
+            p_key->Index() < mListsOfDicts.size(), "It seems like, we forgot to resize 'mListsOfDicts'.\n"
+        );
 
         return mListsOfDicts[p_key->Index()];
     }

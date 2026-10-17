@@ -55,7 +55,7 @@ public:
     /// bounds stored in the core and cached for the lifetime of the view.
     /// @param rCore  Element core to observe.  Must outlive this view.
     /// @param IsTrimmed  Whether the element represents a trimmed domain.
-    ElementView(const CoreType& rCore, bool IsTrimmed) noexcept
+    ElementView(const CoreType& rCore, bool IsTrimmed)
         : mCore(rCore), mDetJ(mapping::DetJ(rCore.bounds)), mIsTrimmed(IsTrimmed)
     {}
 

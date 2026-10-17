@@ -71,6 +71,23 @@ namespace {
 
 BOOST_AUTO_TEST_SUITE(MeshPartitionerTestSuite)
 
+BOOST_AUTO_TEST_CASE(ProductConsumptionPreconditionsAreCheckedInDebug)
+{
+    if constexpr (NOTDEBUG) { return; }
+    const auto grid = MakeGridIndexer({ 2, 1, 1 });
+    TriangleMesh mesh;
+    AddTriangle(mesh, PointType{ 0.2, 0.2, 0.5 }, PointType{ 0.8, 0.2, 0.5 }, PointType{ 0.2, 0.8, 0.5 });
+    SurfaceMeshPartitioner partitioner(mesh.View(), grid);
+    BOOST_CHECK_THROW((void)partitioner.TakeCellProduct(2), Exception);
+    BOOST_CHECK_THROW((void)partitioner.TakeCellProduct(1), Exception);
+    BOOST_CHECK_NO_THROW((void)partitioner.TakeCellProduct(0));
+    BOOST_CHECK_THROW((void)partitioner.TakeCellProduct(0), Exception);
+    BOOST_CHECK_THROW((void)partitioner.TakeGridFaceSurface(GridFaceId{ grid.NumberOfFaces() }), Exception);
+    BOOST_CHECK_THROW(
+        (void)partitioner.TakeGridFaceSurface(grid.GetFace(0, GridIndexer::Direction::x_forward)), Exception
+    );
+}
+
 BOOST_AUTO_TEST_CASE(ConvexPolygonSplitConservesArea)
 {
     embedding::detail::ConvexPolygon polygon(PointType{ 0.0, 0.0, 1.0 });

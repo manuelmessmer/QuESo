@@ -12,6 +12,8 @@ concurrency:
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
+    env:
+      QUESO_DEBUG: "1"
     strategy:
       fail-fast: false
       matrix:

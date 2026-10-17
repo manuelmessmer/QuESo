@@ -829,8 +829,10 @@ namespace Testing {
             };
             const auto AccumulateActiveArea = [](double Result, const auto& rSegment) {
                 if (!rSegment.IsInActiveElement()) { return Result; }
-                QuESo_ASSERT(rSegment.GetParentElement().has_value(), "An active segment must expose its parent.");
-                QuESo_ASSERT(
+                BOOST_REQUIRE_MESSAGE(
+                    rSegment.GetParentElement().has_value(), "An active segment must expose its parent."
+                );
+                BOOST_REQUIRE_MESSAGE(
                     rSegment.GetParentElement()->GetId() == rSegment.GetParentCellIndex() + 1,
                     "Condition parent element and cell index must agree."
                 );

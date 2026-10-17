@@ -9,7 +9,7 @@ case "${1:-}" in
         python3 -m pytest @PYTHON_TEST_SOURCE_DIR_IN@ -m "not kratos"
         ;;
     cpp)
-        @CPP_TEST_EXE_DIR_IN@/test_queso -- @TEST_DATA_DIR_IN@
+        "@CMAKE_CTEST_COMMAND@" --test-dir "@CMAKE_BINARY_DIR@" --verbose --output-on-failure
         ;;
     thingi10k)
         @CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set "${2:?Missing ThingI10K URL prefix}" 5 50 @THINGI10K_ID_DIR@

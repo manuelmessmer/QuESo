@@ -217,10 +217,11 @@ public:
     /// @param CellIndex Zero-based adjacent cell index.
     /// @param FaceDirection Cell-local face direction.
     /// @return Dense physical face identity.
+    /// @pre CellIndex is valid and FaceDirection is a physical direction; checked in debug builds.
     [[nodiscard]] GridFaceId GetFace(IndexType CellIndex, Direction FaceDirection) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(CellIndex < NumberOfElements(), "Cell index is out-of-bounds.");
-        QuESo_ASSERT(FaceDirection != Direction::_end, "Direction::_end is not a physical grid face.");
+        QuESo_DEBUG_ASSERT(CellIndex < NumberOfElements(), "Cell index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(static_cast<IndexType>(FaceDirection) < 6, "Invalid physical grid-face direction.");
 
         const Vector3i indices = GetMatrixIndicesFromVectorIndex(CellIndex);
         switch (FaceDirection) {
@@ -250,6 +251,7 @@ public:
     /// @return Adjacent cell index, or `std::nullopt` when that side lies outside the grid.
     [[nodiscard]] std::optional<IndexType> GetAdjacentCell(GridFaceId Face, GridFaceSide Side) const noexcept(NOTDEBUG)
     {
+        QuESo_DEBUG_ASSERT(Side == GridFaceSide::negative || Side == GridFaceSide::positive, "Invalid grid-face side.");
         const auto [axis, indices] = GetFaceIndices(Face);
         Vector3i cell_indices = indices;
         if (Side == GridFaceSide::negative) {
@@ -266,11 +268,12 @@ public:
     /// @param Face Physical grid face.
     /// @param CellIndex Zero-based cell index adjacent to the face.
     /// @return Negative or positive adjacent side.
+    /// @pre Face is valid and CellIndex is adjacent to it; checked in debug builds.
     [[nodiscard]] GridFaceSide GetAdjacentSide(GridFaceId Face, IndexType CellIndex) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(CellIndex < NumberOfElements(), "Cell index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(CellIndex < NumberOfElements(), "Cell index is out-of-bounds.");
         if (GetAdjacentCell(Face, GridFaceSide::negative) == CellIndex) { return GridFaceSide::negative; }
-        QuESo_ASSERT(
+        QuESo_DEBUG_ASSERT(
             GetAdjacentCell(Face, GridFaceSide::positive) == CellIndex, "Cell is not adjacent to the physical face."
         );
         return GridFaceSide::positive;
@@ -286,7 +289,7 @@ public:
     {
         if (const auto cell = GetAdjacentCell(Face, GridFaceSide::positive)) { return *cell; }
         const auto cell = GetAdjacentCell(Face, GridFaceSide::negative);
-        QuESo_ASSERT(cell.has_value(), "A physical grid face must have an adjacent cell.");
+        QuESo_DEBUG_ASSERT(cell.has_value(), "A physical grid face must have an adjacent cell.");
         return *cell;
     }
 
@@ -314,12 +317,13 @@ public:
     ///          the last cell because no positive-side cell exists.
     /// @param rPoint Point within the closed physical grid bounds.
     /// @return Zero-based containing cell index.
+    /// @pre rPoint lies within the closed physical grid bounds; checked in debug builds.
     [[nodiscard]] IndexType GetContainingCell(PointView rPoint) const noexcept(NOTDEBUG)
     {
         const Vector3i counts = ElementCounts();
         Vector3i indices{};
         for (IndexType axis = 0; axis < 3; ++axis) {
-            QuESo_ASSERT(
+            QuESo_DEBUG_ASSERT(
                 rPoint[axis] >= mBoundXYZ.lower[axis] && rPoint[axis] <= mBoundXYZ.upper[axis],
                 "Point is outside the closed background-grid bounds."
             );
@@ -360,6 +364,8 @@ public:
     [[nodiscard]] IndexReturnType
         GetNextIndex(IndexType Index, Direction Dir, const PartitionBoxType& rPartition) const noexcept(NOTDEBUG)
     {
+        QuESo_DEBUG_ASSERT(Index < NumberOfElements(), "Cell index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(static_cast<IndexType>(Dir) < 6, "Invalid traversal direction.");
         switch (Dir) {
         case Direction::x_forward:
             return GetNextIndexX(Index, rPartition);
@@ -426,6 +432,8 @@ public:
     /// @return bool
     [[nodiscard]] bool IsEnd(IndexType i, Direction Dir, const PartitionBoxType& rPartition) const noexcept(NOTDEBUG)
     {
+        QuESo_DEBUG_ASSERT(i < NumberOfElements(), "Cell index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(static_cast<IndexType>(Dir) < 6, "Invalid traversal direction.");
         switch (Dir) {
         case Direction::x_forward:
             return IsEndXForward(i, rPartition);
@@ -481,9 +489,9 @@ public:
     /// @brief Returns the opposite traversal direction.
     /// @param Dir Traversal direction. Must not be Direction::_end.
     /// @return Direction.
-    [[nodiscard]] static constexpr Direction ReverseDirection(Direction Dir) noexcept
+    [[nodiscard]] static constexpr Direction ReverseDirection(Direction Dir) noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(Dir != Direction::_end, "Direction::_end is a sentinel, not a runtime value.");
+        QuESo_DEBUG_ASSERT(static_cast<IndexType>(Dir) < 6, "Invalid traversal direction.");
         constexpr std::array<Direction, 6> map_direction = { Direction::x_backward, Direction::x_forward,
                                                              Direction::y_backward, Direction::y_forward,
                                                              Direction::z_backward, Direction::z_forward };
@@ -599,7 +607,7 @@ private:
     /// @return Dense physical-face identity.
     [[nodiscard]] GridFaceId MakeFaceId(IndexType Axis, IndexType X, IndexType Y, IndexType Z) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(Axis < 3, "Grid-face axis is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(Axis < 3, "Grid-face axis is out-of-bounds.");
         const Vector3i face_counts = FaceCounts();
         if (Axis == 0) {
             return { Z * (mNumberOfElementsX + 1) * mNumberOfElementsY + Y * (mNumberOfElementsX + 1) + X };
@@ -615,7 +623,7 @@ private:
     /// @return Pair containing the normal axis and face-grid coordinates.
     [[nodiscard]] std::pair<IndexType, Vector3i> GetFaceIndices(GridFaceId Face) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(Face.value < NumberOfFaces(), "Grid-face ID is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(Face.value < NumberOfFaces(), "Grid-face ID is out-of-bounds.");
         const Vector3i face_counts = FaceCounts();
         if (Face.value < face_counts[0]) {
             const IndexType plane_size = (mNumberOfElementsX + 1) * mNumberOfElementsY;

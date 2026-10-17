@@ -70,7 +70,7 @@ public:
 
     /// @brief Returns a lightweight read-only view of this element.
     /// @return ElementViewType
-    [[nodiscard]] ElementViewType View() const noexcept
+    [[nodiscard]] ElementViewType View() const
     { return ElementViewType(mCore, TIsTrimmed); }
 
     /// @brief Returns the element id.
@@ -124,7 +124,7 @@ public:
 
     /// @brief Returns the determinant of the element-local mapping Jacobian.
     /// @return double
-    [[nodiscard]] double DetJ() const noexcept
+    [[nodiscard]] double DetJ() const
     { return mapping::DetJ(mCore.bounds); }
 
     /// @brief Returns whether this element represents a trimmed domain.

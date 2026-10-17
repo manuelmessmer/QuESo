@@ -135,7 +135,6 @@ BOOST_AUTO_TEST_CASE(DictionaryKeyAccessTypeTest) {
     if constexpr (!NOTDEBUG) {
         // Dictionary does not contain any subdictionaries.
         BOOST_REQUIRE_THROW( r_subdict_2[TestKeys1::zero], std::exception );
-
     }
 
     QuESo_CHECK( r_subdict_2.IsSet(TestKeys3::zero) );

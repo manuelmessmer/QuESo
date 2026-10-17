@@ -20,6 +20,7 @@
 #include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/embedding/local_surface_classifier.h"
 #include "queso/embedding/mesh_partitioner.h"
+#include "queso/includes/parallel_exception.hpp"
 #include "queso/utilities/mesh_utilities.h"
 #include "queso/utilities/triangle_utilities.hpp"
 
@@ -62,7 +63,7 @@ void DomainMeshEmbedder::PrepareFaceSection(GridFaceId Face, TriangleMesh&& rSec
         weighted_normal += triangle_utilities::Area(r_triangle) * r_triangle.Normal;
     }
     const double normal_component = weighted_normal[r_grid_indexer.GetFaceAxis(Face)];
-    QuESo_ASSERT(
+    QuESo_DIAGNOSTIC_ASSERT(
         std::abs(normal_component) > r_grid_indexer.GetGeometryTolerance().ZeroArea(),
         "A face section must have a non-zero normal component."
     );
@@ -81,20 +82,26 @@ void DomainMeshEmbedder::PrepareFaceTopology()
     constexpr std::array forward_directions{ Direction::x_forward, Direction::y_forward, Direction::z_forward };
     const GridIndexer& r_grid_indexer = mGridIndexer.get();
     const auto number_of_cells = static_cast<std::int64_t>(r_grid_indexer.NumberOfElements());
+    queso::detail::ParallelException worker_failure;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
     for (std::int64_t raw_index = 0; raw_index < number_of_cells; ++raw_index) {
-        const IndexType cell_index = static_cast<IndexType>(raw_index);
-        for (const Direction direction : forward_directions) {
-            if (r_grid_indexer.IsEnd(cell_index, direction)) { continue; }
-            const auto [next_index, index_info] = r_grid_indexer.GetNextIndex(cell_index, direction);
-            QuESo_ASSERT(index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell.");
-            if (mTopology.cell_topology[cell_index].is_trimmed || mTopology.cell_topology[next_index].is_trimmed) {
-                mTopology.face_topology.Get(cell_index, direction) = detail::GridFaceState::blocked;
+        worker_failure.Execute([&] {
+            const IndexType cell_index = static_cast<IndexType>(raw_index);
+            for (const Direction direction : forward_directions) {
+                if (r_grid_indexer.IsEnd(cell_index, direction)) { continue; }
+                const auto [next_index, index_info] = r_grid_indexer.GetNextIndex(cell_index, direction);
+                QuESo_DEBUG_ASSERT(
+                    index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell."
+                );
+                if (mTopology.cell_topology[cell_index].is_trimmed || mTopology.cell_topology[next_index].is_trimmed) {
+                    mTopology.face_topology.Get(cell_index, direction) = detail::GridFaceState::blocked;
+                }
             }
-        }
+        });
     }
+    worker_failure.Rethrow();
 }
 
 void DomainMeshEmbedder::PrepareFaceVotes()
@@ -102,34 +109,40 @@ void DomainMeshEmbedder::PrepareFaceVotes()
     using Direction = GridIndexer::Direction;
     const GridIndexer& r_grid_indexer = mGridIndexer.get();
     const auto number_of_cells = static_cast<std::int64_t>(r_grid_indexer.NumberOfElements());
+    queso::detail::ParallelException worker_failure;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
     for (std::int64_t raw_index = 0; raw_index < number_of_cells; ++raw_index) {
-        const IndexType cell_index = static_cast<IndexType>(raw_index);
-        if (mTopology.cell_topology[cell_index].is_trimmed) { continue; }
-        const BoundingBoxType bounds = r_grid_indexer.GetBoundingBoxXYZFromIndex(cell_index);
-        const PointType center = 0.5 * (bounds.lower + bounds.upper);
-        for (const Direction direction : EnumRange<Direction>()) {
-            if (r_grid_indexer.IsEnd(cell_index, direction)
-                || mTopology.face_topology.Get(cell_index, direction) == detail::GridFaceState::traversable
-                || mTopology.face_votes.Get(cell_index, direction) != 0) {
-                continue;
+        worker_failure.Execute([&] {
+            const IndexType cell_index = static_cast<IndexType>(raw_index);
+            if (mTopology.cell_topology[cell_index].is_trimmed) { return; }
+            const BoundingBoxType bounds = r_grid_indexer.GetBoundingBoxXYZFromIndex(cell_index);
+            const PointType center = 0.5 * (bounds.lower + bounds.upper);
+            for (const Direction direction : EnumRange<Direction>()) {
+                if (r_grid_indexer.IsEnd(cell_index, direction)
+                    || mTopology.face_topology.Get(cell_index, direction) == detail::GridFaceState::traversable
+                    || mTopology.face_votes.Get(cell_index, direction) != 0) {
+                    continue;
+                }
+                const auto [next_index, index_info] = r_grid_indexer.GetNextIndex(cell_index, direction);
+                QuESo_DEBUG_ASSERT(
+                    index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell."
+                );
+                const auto& r_neighbor = mTopology.cell_topology[next_index];
+                if (!r_neighbor.is_trimmed || !r_neighbor.surface_section) { continue; }
+                mTopology.face_votes.Get(cell_index, direction) =
+                    detail::ClassifyOnBoundedSide(
+                        center,
+                        r_neighbor.surface_section->SurfaceView(),
+                        r_neighbor.surface_section->GetGeometryTolerance().ZeroLength()
+                    ) == detail::LocalSurfaceClassification::Inside
+                        ? 1
+                        : -1;
             }
-            const auto [next_index, index_info] = r_grid_indexer.GetNextIndex(cell_index, direction);
-            QuESo_ASSERT(index_info == GridIndexer::IndexInfo::middle, "Expected a physical neighboring grid cell.");
-            const auto& r_neighbor = mTopology.cell_topology[next_index];
-            if (!r_neighbor.is_trimmed || !r_neighbor.surface_section) { continue; }
-            mTopology.face_votes.Get(cell_index, direction) =
-                detail::ClassifyOnBoundedSide(
-                    center,
-                    r_neighbor.surface_section->SurfaceView(),
-                    r_neighbor.surface_section->GetGeometryTolerance().ZeroLength()
-                ) == detail::LocalSurfaceClassification::Inside
-                    ? 1
-                    : -1;
-        }
+        });
     }
+    worker_failure.Rethrow();
 }
 
 ElementStates DomainMeshEmbedder::Classify(FloodFillOptions Options)
@@ -140,12 +153,12 @@ ElementStates DomainMeshEmbedder::Classify(FloodFillOptions Options)
 
 TrimmedDomain DomainMeshEmbedder::MakeTrimmedDomain(IndexType CellIndex, IndexType MinNumberOfBoundaryTriangles)
 {
-    QuESo_ASSERT(CellIndex < mTopology.cell_topology.size(), "Cell index is out-of-bounds.");
+    QuESo_DEBUG_ASSERT(CellIndex < mTopology.cell_topology.size(), "Cell index is out-of-bounds.");
     auto& r_cell = mTopology.cell_topology[CellIndex];
-    QuESo_ASSERT(r_cell.is_trimmed, "Trimmed domains can be constructed only for trimmed cells.");
-    QuESo_ASSERT(!r_cell.input_consumed, "The cell surface section has already been consumed.");
-    QuESo_ASSERT(mStates.has_value(), "Trimmed-domain construction requires completed classification.");
-    QuESo_ASSERT(r_cell.surface_section.has_value(), "Trimmed cell has no prepared surface section.");
+    QuESo_DEBUG_ASSERT(r_cell.is_trimmed, "Trimmed domains can be constructed only for trimmed cells.");
+    QuESo_DEBUG_ASSERT(!r_cell.input_consumed, "The cell surface section has already been consumed.");
+    QuESo_DEBUG_ASSERT(mStates.has_value(), "Trimmed-domain construction requires completed classification.");
+    QuESo_DEBUG_ASSERT(r_cell.surface_section.has_value(), "Trimmed cell has no prepared surface section.");
 
     CellSurfaceSection section = std::move(*r_cell.surface_section);
     r_cell.surface_section.reset();
