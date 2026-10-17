@@ -37,7 +37,7 @@ namespace MeshUtilities {
         while (rTriangleMesh.NumOfTriangles() < MinNumberOfTriangles) {
             double max_area = 0.0;
             TriangleMeshView(rTriangleMesh).VisitEachTriangle<WithoutNormals>([&](const auto& triangle) {
-                max_area = std::max(max_area, TriangleUtilities::Area(triangle));
+                max_area = std::max(max_area, triangle_utilities::Area(triangle));
             });
 
             if (max_area <= ZeroArea) { break; }
@@ -68,7 +68,7 @@ namespace MeshUtilities {
             for (IndexType tid = 0; tid < old_triangles.size(); ++tid) {
                 const auto tri = old_triangles[tid];
                 const auto proxy = rTriangleMesh.Triangle<WithoutNormals>(tid);
-                const double area = TriangleUtilities::Area(proxy);
+                const double area = triangle_utilities::Area(proxy);
                 const auto& parent_normal = old_normals[tid];
 
                 if (area > split_threshold) {
@@ -149,7 +149,7 @@ namespace MeshUtilities {
     {
         double area = 0.0;
         rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto& triangle) {
-            area += TriangleUtilities::Area(triangle);
+            area += triangle_utilities::Area(triangle);
         });
         return area;
     }
@@ -160,7 +160,7 @@ namespace MeshUtilities {
         const IndexType num_triangles = rTriangleMeshView.NumOfTriangles();
 #pragma omp parallel for reduction(+ : area)
         for (int i = 0; i < static_cast<int>(num_triangles); ++i) {
-            area += TriangleUtilities::Area(rTriangleMeshView.Triangle<WithoutNormals>(static_cast<IndexType>(i)));
+            area += triangle_utilities::Area(rTriangleMeshView.Triangle<WithoutNormals>(static_cast<IndexType>(i)));
         }
         return area;
     }
@@ -170,8 +170,8 @@ namespace MeshUtilities {
         double volume = 0.0;
         double correction = 0.0;
         rTriangleMeshView.VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            const auto center = TriangleUtilities::Center(triangle);
-            const double contribution = Math::Dot(triangle.Normal, center) * TriangleUtilities::Area(triangle);
+            const auto center = triangle_utilities::Center(triangle);
+            const double contribution = Math::Dot(triangle.Normal, center) * triangle_utilities::Area(triangle);
             const double updated = volume + contribution;
             if (std::abs(volume) >= std::abs(contribution)) {
                 correction += (volume - updated) + contribution;
@@ -190,8 +190,8 @@ namespace MeshUtilities {
 #pragma omp parallel for reduction(+ : volume)
         for (int i = 0; i < static_cast<int>(num_triangles); ++i) {
             const auto triangle = rTriangleMeshView.Triangle<WithNormals>(static_cast<IndexType>(i));
-            const auto center = TriangleUtilities::Center(triangle);
-            volume += Math::Dot(triangle.Normal, center) * TriangleUtilities::Area(triangle);
+            const auto center = triangle_utilities::Center(triangle);
+            volume += Math::Dot(triangle.Normal, center) * triangle_utilities::Area(triangle);
         }
         return std::abs(volume / 3.0);
     }
@@ -202,8 +202,8 @@ namespace MeshUtilities {
 
         double volume = 0.0;
         rTriangleMeshView.VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            const auto center = TriangleUtilities::Center(triangle);
-            const double contribution = triangle.Normal[Dir] * center[Dir] * TriangleUtilities::Area(triangle);
+            const auto center = triangle_utilities::Center(triangle);
+            const double contribution = triangle.Normal[Dir] * center[Dir] * triangle_utilities::Area(triangle);
             volume += contribution;
         });
         return std::abs(volume);
@@ -213,7 +213,7 @@ namespace MeshUtilities {
     {
         double max_aspect_ratio = MIND;
         rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto& triangle) {
-            max_aspect_ratio = std::max(max_aspect_ratio, TriangleUtilities::AspectRatio(triangle));
+            max_aspect_ratio = std::max(max_aspect_ratio, triangle_utilities::AspectRatio(triangle));
         });
         return max_aspect_ratio;
     }
@@ -224,7 +224,7 @@ namespace MeshUtilities {
 
         double sum = 0.0;
         rTriangleMeshView.VisitEachTriangle<WithoutNormals>([&](const auto& triangle) {
-            sum += TriangleUtilities::AspectRatio(triangle);
+            sum += triangle_utilities::AspectRatio(triangle);
         });
         return sum / static_cast<double>(rTriangleMeshView.NumOfTriangles());
     }
@@ -238,8 +238,8 @@ namespace MeshUtilities {
         PointType directional_areas = { 0.0, 0.0, 0.0 };
 
         rTriangleMeshView.VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            const double area = TriangleUtilities::Area(triangle);
-            const auto center = TriangleUtilities::Center(triangle);
+            const double area = triangle_utilities::Area(triangle);
+            const auto center = triangle_utilities::Center(triangle);
 
             total_area += area;
             directional_areas[0] += area * triangle.Normal[0];

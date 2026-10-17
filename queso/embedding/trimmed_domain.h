@@ -19,6 +19,7 @@
 #include <functional>
 #include <iterator>
 #include <span>
+#include <utility>
 #include <vector>
 /// Project includes
 #include "queso/embedding/cell_face_closure.h"
@@ -112,22 +113,17 @@ public:
         GetBoundaryIps([[maybe_unused]] const ElementBounds& rBounds) const
     {
         std::vector<BoundaryIntegrationPointType> result{};
-        result.reserve(mClosedMesh.NumOfTriangles() * 12UL);
+        constexpr auto order = triangle_utilities::TriangleQuadratureOrder::Degree6;
+        result.reserve(mClosedMesh.NumOfTriangles() * triangle_utilities::NumberOfIntegrationPoints(order));
 
         mClosedMesh.View().VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            constexpr IndexType method = 3;
-
-            auto points = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(triangle, method);
-
-            if constexpr (TSpace == CoordinateSpace::global) {
-                result.insert(
-                    result.end(), std::make_move_iterator(points.begin()), std::make_move_iterator(points.end())
-                );
-            } else {
-                std::ranges::transform(points, std::back_inserter(result), [&](auto& rPoint) {
-                    return mapping::ToParametric(rPoint, rBounds);
-                });
-            }
+            triangle_utilities::VisitBoundaryIps<BoundaryIntegrationPointType>(triangle, order, [&](auto&& rPoint) {
+                if constexpr (TSpace == CoordinateSpace::global) {
+                    result.push_back(std::move(rPoint));
+                } else {
+                    result.push_back(mapping::ToParametric(rPoint, rBounds));
+                }
+            });
         });
 
         return result;

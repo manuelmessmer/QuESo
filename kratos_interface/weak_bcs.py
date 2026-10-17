@@ -7,6 +7,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication as IGA
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import numpy as np
+from pyqueso import TriangleQuadratureOrder
 from pyqueso.scripts.helper import point_from_global_to_param_space
 
 Point3D = tuple[float, float, float]
@@ -144,7 +145,9 @@ class SurfaceLoad(WeakCondition):
         volume = model_part.GetGeometry(self.geometry_name)
         condition_ids: list[int] = []
         for triangle in self.triangle_mesh.triangles():
-            for point in triangle.integration_points_global(1):
+            for point in triangle.integration_points_global(
+                order=TriangleQuadratureOrder.DEGREE_2
+            ):
                 if point.weight <= 1.0e-14:
                     continue
                 local_point = point_from_global_to_param_space(
@@ -179,7 +182,9 @@ class PressureLoad(WeakCondition):
         volume = model_part.GetGeometry(self.geometry_name)
         condition_ids: list[int] = []
         for triangle in self.triangle_mesh.triangles():
-            for point in triangle.integration_points_global(1):
+            for point in triangle.integration_points_global(
+                order=TriangleQuadratureOrder.DEGREE_2
+            ):
                 if point.weight <= 1.0e-14:
                     continue
                 local_point = point_from_global_to_param_space(

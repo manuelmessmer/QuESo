@@ -17,6 +17,7 @@
 #include <ranges>
 #include <span>
 #include <utility>
+#include <vector>
 
 // Project includes
 #include "queso/embedded_component.h"
@@ -126,6 +127,7 @@ using namespace pybind11::literals;
 
 void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
 {
+    using triangle_utilities::TriangleQuadratureOrder;
     auto InternalModule = m.def_submodule("_internal");
     auto MeshInternalModule = rMeshModule.def_submodule("_internal");
 
@@ -161,27 +163,32 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
         )
         .def(
             "area",
-            [](const PythonTriangleProxy& self) { return TriangleUtilities::Area(self); },
+            [](const PythonTriangleProxy& self) { return triangle_utilities::Area(self); },
             "Return the triangle area."
         )
         .def(
             "center",
-            [](const PythonTriangleProxy& self) { return ToTuple3(TriangleUtilities::Center(self)); },
+            [](const PythonTriangleProxy& self) { return ToTuple3(triangle_utilities::Center(self)); },
             "Return the triangle center."
         )
         .def(
             "aspect_ratio",
-            [](const PythonTriangleProxy& self) { return TriangleUtilities::AspectRatio(self); },
+            [](const PythonTriangleProxy& self) { return triangle_utilities::AspectRatio(self); },
             "Return the triangle aspect ratio."
         )
         .def(
             "integration_points_global",
-            [](const PythonTriangleProxy& self, IndexType Method) {
-                return TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPointType>(self, Method);
+            [](const PythonTriangleProxy& self, TriangleQuadratureOrder Order) {
+                BoundaryIpVectorType points;
+                points.reserve(triangle_utilities::NumberOfIntegrationPoints(Order));
+                triangle_utilities::VisitBoundaryIps<BoundaryIntegrationPointType>(self, Order, [&](auto&& rPoint) {
+                    points.push_back(std::move(rPoint));
+                });
+                return points;
             },
-            "method"_a,
+            "order"_a.noconvert() = TriangleQuadratureOrder::Degree2,
             py::return_value_policy::move,
-            "Construct global boundary integration points for this triangle."
+            "Return global boundary integration points for this triangle."
         );
 
     py::class_<IntegrationPointType>(m, "IntegrationPoint", "Weighted point in three-dimensional space.")
@@ -308,7 +315,7 @@ void AddContainersToPython(pybind11::module& m, pybind11::module& rMeshModule)
                     std::span<const double, 3>(vertices[triangle_indices[1]].data(), 3),
                     std::span<const double, 3>(vertices[triangle_indices[2]].data(), 3)
                 };
-                self.AddTriangle(triangle_indices, TriangleUtilities::Normal(triangle));
+                self.AddTriangle(triangle_indices, triangle_utilities::Normal(triangle));
             },
             "vertex_indices"_a,
             "Append a triangle from three vertex indices."

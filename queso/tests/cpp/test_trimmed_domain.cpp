@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_SUITE(TrimmedDomainTestSuite)
 void CheckTriangleOrientation(TriangleMeshView rTriangleMesh)
 {
     rTriangleMesh.VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-        if (TriangleUtilities::Area(triangle) > EPS3) {
+        if (triangle_utilities::Area(triangle) > EPS3) {
             const Vector3d A = triangle.P2 - triangle.P1;
             const Vector3d B = triangle.P3 - triangle.P2;
 

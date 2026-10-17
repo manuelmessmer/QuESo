@@ -61,7 +61,7 @@ LocalSurfaceClassification
     int inside_count = 0;
     while (success_count < 10 && current_id < num_triangles) {
         const auto triangle = rBoundarySection.Triangle<WithoutNormals>(current_id++);
-        Vector3d direction = TriangleUtilities::Center(triangle) - rPoint;
+        Vector3d direction = triangle_utilities::Center(triangle) - rPoint;
         if (Math::SquaredNorm(direction) <= ZeroLength * ZeroLength) { continue; }
 
         const Ray ray(rPoint, direction);

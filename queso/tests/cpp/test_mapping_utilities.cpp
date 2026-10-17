@@ -14,6 +14,10 @@
 //// External includes
 #include <boost/test/unit_test.hpp>
 
+//// STL includes
+#include <utility>
+#include <vector>
+
 //// Project includes
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/integration_point.hpp"
@@ -144,10 +148,15 @@ BOOST_AUTO_TEST_CASE(BoundaryIntegrationPointMatchesMappedTriangle)
         p1_parametric, p2_parametric, p3_parametric, parametric_normal
     };
 
-    constexpr IndexType method = 3;
-    const auto global_ips = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPoint>(global_triangle, method);
-    const auto parametric_reference_ips =
-        TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPoint>(parametric_triangle, method);
+    constexpr auto order = triangle_utilities::TriangleQuadratureOrder::Degree6;
+    std::vector<BoundaryIntegrationPoint> global_ips;
+    triangle_utilities::VisitBoundaryIps<BoundaryIntegrationPoint>(global_triangle, order, [&](auto&& rPoint) {
+        global_ips.push_back(std::move(rPoint));
+    });
+    std::vector<BoundaryIntegrationPoint> parametric_reference_ips;
+    triangle_utilities::VisitBoundaryIps<BoundaryIntegrationPoint>(parametric_triangle, order, [&](auto&& rPoint) {
+        parametric_reference_ips.push_back(std::move(rPoint));
+    });
 
     QuESo_CHECK_EQUAL(global_ips.size(), parametric_reference_ips.size());
 
@@ -159,7 +168,7 @@ BOOST_AUTO_TEST_CASE(BoundaryIntegrationPointMatchesMappedTriangle)
         QuESo_CHECK_NEAR(mapped_ip.Weight(), parametric_reference_ips[i].Weight(), 1e-12);
         parametric_area += mapped_ip.Weight();
     }
-    QuESo_CHECK_NEAR(parametric_area, TriangleUtilities::Area(parametric_triangle), 1e-12);
+    QuESo_CHECK_NEAR(parametric_area, triangle_utilities::Area(parametric_triangle), 1e-12);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

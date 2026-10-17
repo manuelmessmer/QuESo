@@ -78,12 +78,12 @@ namespace Testing {
         Vector3d weighted_normal{ 0.0, 0.0, 0.0 };
 
         rTriangleMesh.VisitEachTriangle<WithNormals>([&](const auto& triangle) {
-            area += TriangleUtilities::Area(triangle);
-            const auto ips = TriangleUtilities::GetIPsGlobal<BoundaryIntegrationPoint>(triangle, 1);
-            for (const auto& ip : ips) {
+            area += triangle_utilities::Area(triangle);
+            constexpr auto order = triangle_utilities::TriangleQuadratureOrder::Degree2;
+            triangle_utilities::VisitBoundaryIps<BoundaryIntegrationPoint>(triangle, order, [&](const auto& ip) {
                 const Vector3d n{ triangle.Normal[0], triangle.Normal[1], triangle.Normal[2] };
                 weighted_normal += (ip.Weight() * n);
-            }
+            });
         });
         return std::make_pair(area, weighted_normal);
     }
@@ -255,20 +255,20 @@ namespace Testing {
 
         double area_visit_all = 0.0;
         rView.Visit<WithNormals>([&](const auto& triangles) {
-            for (const auto& triangle : triangles) { area_visit_all += TriangleUtilities::Area(triangle); }
+            for (const auto& triangle : triangles) { area_visit_all += triangle_utilities::Area(triangle); }
         });
 
         IndexType num_without_normals = 0;
         double area_each_without_normals = 0.0;
         rView.VisitEachTriangle<WithoutNormals>([&](const auto& triangle) {
             ++num_without_normals;
-            area_each_without_normals += TriangleUtilities::Area(triangle);
+            area_each_without_normals += triangle_utilities::Area(triangle);
         });
 
         const auto subset_indices = std::views::iota(IndexType{ 0 }, IndexType{ 2 });
         double area_visit_subset = 0.0;
         rView.Visit<WithNormals>(subset_indices, [&](const auto& triangles) {
-            for (const auto& triangle : triangles) { area_visit_subset += TriangleUtilities::Area(triangle); }
+            for (const auto& triangle : triangles) { area_visit_subset += triangle_utilities::Area(triangle); }
         });
 
         IndexType visited_until_stop = 0;
