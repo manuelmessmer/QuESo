@@ -41,18 +41,22 @@ namespace detail {
 } // End namespace variable
 } // End namesapce queso
 
-#define QuESo_REGISTER_DATASET_VARIABLES(KeySet, ...) \
-    namespace variable {\
-    template<typename TType>\
-    inline bool IsCorrectType(KeySet::KeyToDataSet Key) {\
-        static const std::unordered_map<IndexType, std::type_index> type_index_map = { __VA_ARGS__ }; \
-        QuESo_ASSERT( queso::variable::detail::CheckIfAllKeysAreSet(type_index_map, key::KeySet##DataSet##KeyInfo::msEnumNames), "Types of Keys are not set correctly." );\
-        const auto map_it = type_index_map.find(static_cast<std::size_t>(Key));\
-        if (map_it != type_index_map.end()) {\
-            return map_it->second == std::type_index(typeid(TType));\
-        }\
-        QuESo_ERROR << "This should be unreachable.";\
-    }\
-    }\
+#define QuESo_REGISTER_DATASET_VARIABLES(KeySet, ...)                                                        \
+    namespace variable {                                                                                     \
+        template<typename TType>                                                                             \
+        inline bool IsCorrectType(KeySet::KeyToDataSet Key)                                                  \
+        {                                                                                                    \
+            static const std::unordered_map<IndexType, std::type_index> type_index_map = { __VA_ARGS__ };    \
+            QuESo_DEBUG_ASSERT(                                                                              \
+                queso::variable::detail::CheckIfAllKeysAreSet(                                               \
+                    type_index_map, key::KeySet##DataSet##KeyInfo::msEnumNames                               \
+                ),                                                                                           \
+                "Types of Keys are not set correctly."                                                       \
+            );                                                                                               \
+            const auto map_it = type_index_map.find(static_cast<std::size_t>(Key));                          \
+            if (map_it != type_index_map.end()) { return map_it->second == std::type_index(typeid(TType)); } \
+            QuESo_ERROR << "This should be unreachable.";                                                    \
+        }                                                                                                    \
+    }
 
 #endif // End VARIABLES_INCLUDE_HPP

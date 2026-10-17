@@ -85,18 +85,19 @@ public:
     [[nodiscard]] std::optional<BoundingBoxType> BoundingBox() const noexcept;
 
     /// @brief Returns conservative triangle candidates for an axis-aligned bounding box.
-    /// @details Bounds must be finite and non-inverted. Debug builds validate this precondition. Candidate order is
-    ///          unspecified.
+    /// @details Candidate order is unspecified.
+    /// @pre Bounds are finite and non-inverted; checked when diagnostics are enabled.
     /// @param rLowerBound Lower AABB bound.
     /// @param rUpperBound Upper AABB bound.
     /// @return Candidate triangle IDs. Candidates require an exact intersection test before use as intersections.
     [[nodiscard]] std::vector<IndexType> GetAabbCandidates(PointView rLowerBound, PointView rUpperBound) const;
 
     /// @brief Exact-tests supplied triangle candidates against an axis-aligned bounding box.
-    /// @details This operation does not query the AABB tree. Bounds must be finite and non-inverted; snap-eroded
-    ///          queries must retain positive extent. Debug builds validate these preconditions. Exact is the default
-    ///          and counts touching geometry as an intersection. Snap-eroded policy excludes geometry that only
-    ///          touches the query-box boundary.
+    /// @details This operation does not query the AABB tree. Exact queries count touching geometry as an intersection;
+    ///          snap-eroded queries exclude geometry that only touches the query-box boundary. Candidate IDs are
+    ///          all checked in debug builds before traversal. Exact testing stops at the first intersection.
+    /// @pre Bounds are finite and non-inverted and support the selected inset; checked when diagnostics are enabled.
+    /// @pre Every candidate ID identifies a triangle in this mesh.
     /// @param rCandidateIds Candidate triangle IDs produced by this query.
     /// @param rLowerBound Lower AABB bound.
     /// @param rUpperBound Upper AABB bound.
@@ -110,8 +111,9 @@ public:
     ) const;
 
     /// @brief Returns supplied candidate IDs that exactly intersect an axis-aligned bounding box.
-    /// @details This operation does not query the AABB tree. Bounds must be finite and non-inverted; debug builds
-    ///          validate this precondition. Touching geometry counts as an intersection.
+    /// @details This operation does not query the AABB tree. Touching geometry counts as an intersection.
+    /// @pre Bounds are finite and non-inverted; checked when diagnostics are enabled.
+    /// @pre Candidate IDs are valid; checked in debug builds.
     /// @param rCandidateIds Candidate triangle IDs produced by this query.
     /// @param rLowerBound Lower AABB bound.
     /// @param rUpperBound Upper AABB bound.

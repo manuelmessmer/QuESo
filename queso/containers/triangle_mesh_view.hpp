@@ -122,7 +122,7 @@ public:
     template<class Mode = WithNormals>
     TriangleProxy<Mode> Triangle(IndexType tid) const
     {
-        QuESo_ASSERT(tid < NumOfTriangles(), "Index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(tid < NumOfTriangles(), "Index is out-of-bounds.");
         const auto tri = mVTable->Triangle(mMesh, tid);
         if constexpr (std::is_same_v<Mode, WithoutNormals>) {
             return tri;

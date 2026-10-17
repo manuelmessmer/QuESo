@@ -237,7 +237,9 @@ BOOST_AUTO_TEST_CASE(AccessRequiresLock)
     auto locked_grid = CreateMixedGrid();
     BOOST_CHECK_THROW(locked_grid.ReserveElements(100, 100), queso::Exception);
     NoOpBuilder builder;
-    BOOST_CHECK_THROW((void)locked_grid.MakeElement(builder, 3), queso::Exception);
+    if constexpr (!NOTDEBUG) {
+        BOOST_CHECK_THROW((void)locked_grid.MakeElement(builder, 3), queso::Exception);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(MakeElementValidatesCellIndexAndBuilderId)
@@ -251,8 +253,10 @@ BOOST_AUTO_TEST_CASE(MakeElementValidatesCellIndexAndBuilderId)
         );
     }
 
-    WrongIdBuilder wrong_id_builder;
-    BOOST_CHECK_THROW((void)grid.MakeElement(wrong_id_builder, 0), queso::Exception);
+    if constexpr (!NOTDEBUG) {
+        WrongIdBuilder wrong_id_builder;
+        BOOST_CHECK_THROW((void)grid.MakeElement(wrong_id_builder, 0), queso::Exception);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(MakeElementUsesAuthoritativeCellBounds)

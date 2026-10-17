@@ -167,7 +167,7 @@ public:
     /// @brief Returns a span over the raw element container matching TFilter.
     /// @details ElementFilter::all is not valid — use GetElementViews() instead.
     template<BackgroundGridType::ElementFilter TFilter>
-    [[nodiscard]] auto GetElements() const noexcept
+    [[nodiscard]] auto GetElements() const noexcept(NOTDEBUG)
     { return mBackgroundGrid.template GetElements<TFilter>(); }
 
     /// @brief Returns all conditions.

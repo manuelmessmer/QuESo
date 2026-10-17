@@ -135,7 +135,17 @@ BOOST_AUTO_TEST_CASE(TrimmedDomainConsumesSectionAndRemainsSelfContained)
     {
         embedding::DomainMeshEmbedder embedder(mesh.View(), grid_indexer);
         const IndexType cell_index = grid_indexer.GetVectorIndexFromMatrixIndices(0, 0, 0);
+        if constexpr (!NOTDEBUG) {
+            BOOST_CHECK_THROW((void)embedder.MakeTrimmedDomain(grid_indexer.NumberOfElements(), 0), queso::Exception);
+            BOOST_CHECK_THROW((void)embedder.MakeTrimmedDomain(cell_index, 0), queso::Exception);
+        }
         static_cast<void>(embedder.Classify());
+        if constexpr (!NOTDEBUG) {
+            BOOST_CHECK_THROW(
+                (void)embedder.MakeTrimmedDomain(grid_indexer.GetVectorIndexFromMatrixIndices(1, 1, 1), 0),
+                queso::Exception
+            );
+        }
         domain.emplace(embedder.MakeTrimmedDomain(cell_index, 0));
         if constexpr (!NOTDEBUG) {
             BOOST_CHECK_THROW((void)embedder.MakeTrimmedDomain(cell_index, 0), queso::Exception);

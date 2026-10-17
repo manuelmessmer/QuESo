@@ -40,7 +40,7 @@ namespace Testing {
     {
         if constexpr (!NOTDEBUG) {
             const auto p_value = std::make_unique<int>(1);
-            QuESo_ASSERT(p_value, "A non-null unique pointer satisfies the assertion.");
+            QuESo_DEBUG_ASSERT(p_value, "A non-null unique pointer satisfies the assertion.");
         }
     }
 

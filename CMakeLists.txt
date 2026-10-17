@@ -19,6 +19,9 @@ add_library(QuESoOptions INTERFACE)
 
 include(cmake/ProjectOptions.cmake)
 queso_setup_options()
+if(QUESO_BUILD_TESTING)
+    enable_testing()
+endif()
 
 include(cmake/CompilerWarnings.cmake)
 queso_set_project_warnings(

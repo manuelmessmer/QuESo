@@ -41,6 +41,7 @@ if( WIN32 )
 endif()
 
 add_library(QuESo SHARED
+	includes/assert.cpp
 	${EMBEDDING_SOURCES}
 	${UTILITIES_SOURCES}
 	${QUADRATURE_SOURCES}
@@ -62,9 +63,11 @@ target_include_directories(QuESo
 )
 
 # Link necessary libraries.
+find_package(Threads REQUIRED)
 target_link_libraries(QuESo
     PRIVATE
         QuESo::QuESoWarnings
+        Threads::Threads
     PUBLIC
         QuESo::Externals
         QuESo::QuESoOptions

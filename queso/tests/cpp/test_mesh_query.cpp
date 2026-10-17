@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE(ClosedClassificationSupportsSmallScaleMeshes)
     QuESo_CHECK(is_inside);
 }
 
-BOOST_AUTO_TEST_CASE(BoundingBoxAndInvalidInputContracts)
+BOOST_AUTO_TEST_CASE(BoundingBoxAndInvalidInputDiagnostics)
 {
     const TriangleMesh mesh = MeshUtilities::MakeMeshBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 });
     const embedding::MeshQuery query(mesh.View(), embedding::MeshQueryMode::Closed, MakeTolerance());
@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE(BoundingBoxAndInvalidInputContracts)
     QuESo_CHECK(query.IsWithinBoundingBox(PointType{ 1.0, 1.0, 1.0 }));
     QuESo_CHECK(!query.IsWithinBoundingBox(PointType{ -1e-12, 0.5, 0.5 }));
     QuESo_CHECK(!query.IsWithinBoundingBox(PointType{ std::numeric_limits<double>::quiet_NaN(), 0.5, 0.5 }));
-    if constexpr (!NOTDEBUG) {
+    if (QuESo_DIAGNOSTICS_ENABLED()) {
         BOOST_CHECK_THROW(
             (void)query.GetAabbCandidates(PointType{ 1.0, 0.0, 0.0 }, PointType{ 0.0, 1.0, 1.0 }), Exception
         );
@@ -250,6 +250,28 @@ BOOST_AUTO_TEST_CASE(RejectsInvalidRayDirections)
     BOOST_CHECK_THROW(
         (void)Ray(PointType{}, Vector3d{ std::numeric_limits<double>::infinity(), 0.0, 0.0 }), queso::Exception
     );
+}
+
+BOOST_AUTO_TEST_CASE(RejectsInvalidAabbDiagnosticsAndDebugCandidatePreconditions)
+{
+    const TriangleMesh mesh = MeshUtilities::MakeMeshBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 });
+    const embedding::MeshQuery query(mesh.View(), embedding::MeshQueryMode::Closed, MakeTolerance());
+    const PointType lower{ 0.0, 0.0, 0.0 };
+    const PointType upper{ 1.0, 1.0, 1.0 };
+    const std::vector<IndexType> invalid_candidates{ mesh.NumOfTriangles() };
+    if constexpr (!NOTDEBUG) {
+        BOOST_CHECK_THROW((void)query.IntersectsAabb(invalid_candidates, lower, upper), Exception);
+        BOOST_CHECK_THROW((void)query.GetIntersectedTriangleIds(invalid_candidates, lower, upper), Exception);
+    }
+    if (!QuESo_DIAGNOSTICS_ENABLED()) { return; }
+    const PointType non_finite{ std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0 };
+    BOOST_CHECK_THROW((void)query.GetAabbCandidates(non_finite, upper), Exception);
+    BOOST_CHECK_THROW((void)query.GetIntersectedTriangleIds({}, upper, lower), Exception);
+    const double snap_distance = MakeTolerance().SnapDistance();
+    const PointType thin_upper{ snap_distance, snap_distance, snap_distance };
+    BOOST_CHECK_THROW((void)query.IntersectsAabb({}, lower, thin_upper, AabbIntersectionPolicy::SnapEroded), Exception);
+    const PointType inset_boundary{ 2.0 * snap_distance, 2.0 * snap_distance, 2.0 * snap_distance };
+    BOOST_CHECK_NO_THROW((void)query.IntersectsAabb({}, lower, inset_boundary, AabbIntersectionPolicy::SnapEroded));
 }
 
 BOOST_AUTO_TEST_CASE(DirectionMagnitudeDoesNotChangeClassification)

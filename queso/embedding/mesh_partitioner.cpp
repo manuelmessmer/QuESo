@@ -22,6 +22,7 @@
 //// Project includes
 #include "queso/embedding/convex_polygon.h"
 #include "queso/embedding/mesh_partitioner.h"
+#include "queso/includes/parallel_exception.hpp"
 
 namespace queso::embedding {
 namespace {
@@ -124,7 +125,7 @@ namespace {
                 if (polygon_minimum >= coordinate - snap_distance && polygon_maximum <= coordinate + snap_distance) {
                     // Keep one canonical copy of a polygon lying on a shared grid plane.
                     auto on_plane = detail::SplitByPlane(r_polygon, Axis, coordinate, rTolerance);
-                    QuESo_ASSERT(on_plane.positive.has_value(), "An on-plane polygon must remain non-empty.");
+                    QuESo_DEBUG_ASSERT(on_plane.positive.has_value(), "An on-plane polygon must remain non-empty.");
                     split_polygons.push_back(std::move(*on_plane.positive));
                     continue;
                 }
@@ -191,33 +192,39 @@ MeshPartitioner<TProduct>::MeshPartitioner(const TriangleMeshView& rMesh, const 
     std::vector<std::vector<PolygonRecord>> face_records(static_cast<IndexType>(number_of_triangles));
 
     // Clip each source triangle to the grid, split it at internal planes, and classify its pieces by target section.
+    queso::detail::ParallelException worker_failure;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
 #endif
     for (std::int64_t raw_triangle_id = 0; raw_triangle_id < number_of_triangles; ++raw_triangle_id) {
-        const IndexType triangle_id = static_cast<IndexType>(raw_triangle_id);
-        auto clipped_polygon =
-            ClipToGrid(MakePolygon(rMesh.Triangle<WithNormals>(triangle_id)), rGridIndexer.BoundsXYZ(), r_tolerance);
-        if (!clipped_polygon) { continue; }
+        worker_failure.Execute([&] {
+            const IndexType triangle_id = static_cast<IndexType>(raw_triangle_id);
+            auto clipped_polygon = ClipToGrid(
+                MakePolygon(rMesh.Triangle<WithNormals>(triangle_id)), rGridIndexer.BoundsXYZ(), r_tolerance
+            );
+            if (!clipped_polygon) { return; }
 
-        std::vector<ConvexPolygon> polygons{ std::move(*clipped_polygon) };
-        for (IndexType axis = 0; axis < 3 && !polygons.empty(); ++axis) {
-            SplitAtInternalPlanes(polygons, rGridIndexer, axis, r_tolerance);
-        }
-        IndexType piece = 0;
-        for (auto& r_polygon : polygons) {
-            if (const auto target = GetFaceTarget(r_polygon, rGridIndexer, r_tolerance)) {
-                face_records[triangle_id].push_back({ target->value, triangle_id, piece++, std::move(r_polygon) });
-                continue;
+            std::vector<ConvexPolygon> polygons{ std::move(*clipped_polygon) };
+            for (IndexType axis = 0; axis < 3 && !polygons.empty(); ++axis) {
+                SplitAtInternalPlanes(polygons, rGridIndexer, axis, r_tolerance);
             }
+            IndexType piece = 0;
+            for (auto& r_polygon : polygons) {
+                if (const auto target = GetFaceTarget(r_polygon, rGridIndexer, r_tolerance)) {
+                    face_records[triangle_id].push_back({ target->value, triangle_id, piece++, std::move(r_polygon) });
+                    continue;
+                }
 
-            PointType center{};
-            for (PointView r_vertex : r_polygon.Vertices()) { center += r_vertex; }
-            center /= static_cast<double>(r_polygon.NumberOfVertices());
-            const IndexType cell_index = rGridIndexer.GetContainingCell(center);
-            cell_records[triangle_id].push_back({ cell_index, triangle_id, piece++, std::move(r_polygon) });
-        }
+                PointType center{};
+                for (PointView r_vertex : r_polygon.Vertices()) { center += r_vertex; }
+                center /= static_cast<double>(r_polygon.NumberOfVertices());
+                const IndexType cell_index = rGridIndexer.GetContainingCell(center);
+                cell_records[triangle_id].push_back({ cell_index, triangle_id, piece++, std::move(r_polygon) });
+            }
+        });
     }
+
+    worker_failure.Rethrow();
 
     // Merge per-triangle results in source order, then sort by target and piece order for deterministic output.
     std::vector<PolygonRecord> cells;
@@ -252,7 +259,7 @@ MeshPartitioner<TProduct>::MeshPartitioner(const TriangleMeshView& rMesh, const 
         }
         for (const IndexType cell_index : mCellIndices) {
             auto& r_pending = pending_sections[cell_index];
-            QuESo_ASSERT(r_pending.has_value(), "Closure input was not assembled.");
+            QuESo_DEBUG_ASSERT(r_pending.has_value(), "Closure input was not assembled.");
             SortFaceSegments(r_pending->contours);
             mCellProducts[cell_index].emplace(
                 std::move(r_pending->surface),
@@ -285,8 +292,8 @@ template<CellProduct TProduct>
 typename MeshPartitioner<TProduct>::CellProductType
     MeshPartitioner<TProduct>::TakeCellProduct(IndexType CellIndex) noexcept(NOTDEBUG)
 {
-    QuESo_ASSERT(CellIndex < mCellProducts.size(), "Cell index is out-of-bounds.");
-    QuESo_ASSERT(mCellProducts[CellIndex].has_value(), "Cell product is missing or already consumed.");
+    QuESo_DEBUG_ASSERT(CellIndex < mCellProducts.size(), "Cell index is out-of-bounds.");
+    QuESo_DEBUG_ASSERT(mCellProducts[CellIndex].has_value(), "Cell product is missing or already consumed.");
     CellProductType result = std::move(*mCellProducts[CellIndex]);
     mCellProducts[CellIndex].reset();
     return result;
@@ -295,8 +302,8 @@ typename MeshPartitioner<TProduct>::CellProductType
 template<CellProduct TProduct>
 TriangleMesh MeshPartitioner<TProduct>::TakeGridFaceSurface(GridFaceId Face) noexcept(NOTDEBUG)
 {
-    QuESo_ASSERT(Face.value < mGridFaceSurfaces.size(), "Grid-face ID is out-of-bounds.");
-    QuESo_ASSERT(mGridFaceSurfaces[Face.value].has_value(), "Grid-face surface is missing or already consumed.");
+    QuESo_DEBUG_ASSERT(Face.value < mGridFaceSurfaces.size(), "Grid-face ID is out-of-bounds.");
+    QuESo_DEBUG_ASSERT(mGridFaceSurfaces[Face.value].has_value(), "Grid-face surface is missing or already consumed.");
     TriangleMesh result = std::move(*mGridFaceSurfaces[Face.value]);
     mGridFaceSurfaces[Face.value].reset();
     return result;

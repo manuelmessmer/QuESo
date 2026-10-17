@@ -13,7 +13,7 @@ IF "%arg1%" == "py" (
 )
 
 IF "%arg1%" == "cpp" (
-    call "@CPP_TEST_EXE_DIR_IN@/test_queso.exe" -- @TEST_DATA_DIR_IN@
+    "@CMAKE_CTEST_COMMAND@" --test-dir "@CMAKE_BINARY_DIR@" --verbose --output-on-failure
     IF ERRORLEVEL 1 exit /b 1
     exit /b 0
 )

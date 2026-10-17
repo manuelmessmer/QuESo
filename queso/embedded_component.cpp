@@ -19,6 +19,7 @@
 #include "queso/embedding/boundary_mesh_embedder.h"
 #include "queso/embedding/domain_mesh_embedder.h"
 #include "queso/embedding/element_builders.hpp"
+#include "queso/includes/parallel_exception.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/quadrature/multiple_elements.hpp"
 #include "queso/utilities/mesh_utilities.h"
@@ -87,19 +88,23 @@ void EmbeddedComponent::ComputeVolume(const TriangleMeshView& rTriangleMesh)
     UntrimmedElementBuilder<IntegrationPoint, BoundaryIntegrationPoint> untrimmed_builder(r_settings);
 
     // Loop over all elements.
+    detail::ParallelException worker_failure;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
 #endif
     for (int i = 0; i < static_cast<int>(active_indices.size()); ++i) {
-        const IndexType index = active_indices[static_cast<IndexType>(i)];
-        const auto status = classifications[index];
+        worker_failure.Execute([&] {
+            const IndexType index = active_indices[static_cast<IndexType>(i)];
+            const auto status = classifications[index];
 
-        if (status == IntersectionState::trimmed) {
-            mBackgroundGrid.MakeElement(trimmed_builder, index);
-        } else {
-            mBackgroundGrid.MakeElement(untrimmed_builder, index);
-        }
+            if (status == IntersectionState::trimmed) {
+                mBackgroundGrid.MakeElement(trimmed_builder, index);
+            } else {
+                mBackgroundGrid.MakeElement(untrimmed_builder, index);
+            }
+        });
     }  // End omp parallel for.
+    worker_failure.Rethrow();
 
     mBackgroundGrid.LockElements();
 
@@ -240,23 +245,27 @@ void EmbeddedComponent::ComputeCondition(
     std::vector<std::optional<ConditionSegmentType>> segments(parent_cell_indices.size());
 
     // Each parent index is unique, so workers consume disjoint section-cache slots and write disjoint segment slots.
+    detail::ParallelException worker_failure;
 #ifdef _OPENMP
 #pragma omp parallel for reduction(+ : surf_area_in_active_domain) schedule(dynamic)
 #endif
     for (std::int64_t raw_index = 0; raw_index < static_cast<std::int64_t>(parent_cell_indices.size()); ++raw_index) {
-        const IndexType index = static_cast<IndexType>(raw_index);
-        const IndexType cell_index = parent_cell_indices[index];
-        auto section = boundary_mesh_embedder.TakeBoundarySection(cell_index);
-        const auto element = mBackgroundGrid.GetElementView(cell_index + 1);
-        if (element) {
-            surf_area_in_active_domain += MeshUtilities::Area(section.View());
-            segments[index].emplace(cell_index, std::move(section), *element);
-        } else {
-            segments[index].emplace(cell_index, std::move(section));
-        }
+        worker_failure.Execute([&] {
+            const IndexType index = static_cast<IndexType>(raw_index);
+            const IndexType cell_index = parent_cell_indices[index];
+            auto section = boundary_mesh_embedder.TakeBoundarySection(cell_index);
+            const auto element = mBackgroundGrid.GetElementView(cell_index + 1);
+            if (element) {
+                surf_area_in_active_domain += MeshUtilities::Area(section.View());
+                segments[index].emplace(cell_index, std::move(section), *element);
+            } else {
+                segments[index].emplace(cell_index, std::move(section));
+            }
+        });
     }
+    worker_failure.Rethrow();
     for (auto& r_segment : segments) {
-        QuESo_ASSERT(r_segment.has_value(), "Every listed boundary parent must produce one condition segment.");
+        QuESo_DEBUG_ASSERT(r_segment.has_value(), "Every listed boundary parent must produce one condition segment.");
         new_condition.AddSegment(std::move(*r_segment));
     }
 

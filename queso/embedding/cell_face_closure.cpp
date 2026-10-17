@@ -72,7 +72,7 @@ namespace {
 
     [[nodiscard]] FaceFrame MakeFrame(const BoundingBoxType& rBounds, CellFace Face, bool SwitchAxes) noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(Face.axis < 3, "Cell-face axis is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(Face.axis < 3, "Cell-face axis is out-of-bounds.");
         const IndexType u_axis = (Face.axis + (SwitchAxes ? 2 : 1)) % 3;
         const IndexType v_axis = (Face.axis + (SwitchAxes ? 1 : 2)) % 3;
         return { Face,

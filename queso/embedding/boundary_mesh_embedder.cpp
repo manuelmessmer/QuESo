@@ -23,7 +23,7 @@ BoundaryMeshEmbedder::BoundaryMeshEmbedder(const TriangleMeshView& rMesh, const 
     : mBackgroundGrid(std::cref(rBackgroundGrid)), mSectionCache(rBackgroundGrid.GetGridIndexer().NumberOfElements())
 {
     // Active-element addresses and the authoritative cell-index map must be stable throughout preparation.
-    QuESo_ASSERT(rBackgroundGrid.ElementsAreLocked(), "BoundaryMeshEmbedder requires a locked BackgroundGrid.");
+    QuESo_DEBUG_ASSERT(rBackgroundGrid.ElementsAreLocked(), "BoundaryMeshEmbedder requires a locked BackgroundGrid.");
     Prepare(rMesh);
 }
 
@@ -41,7 +41,7 @@ IndexType BoundaryMeshEmbedder::GetFaceParent(GridFaceId Face) const
 
 void BoundaryMeshEmbedder::AssignSection(IndexType ParentCellIndex, TriangleMesh&& rSection)
 {
-    QuESo_ASSERT(ParentCellIndex < mSectionCache.size(), "Boundary parent cell index is out-of-bounds.");
+    QuESo_DEBUG_ASSERT(ParentCellIndex < mSectionCache.size(), "Boundary parent cell index is out-of-bounds.");
     if (rSection.NumOfTriangles() == 0) { return; }
     auto& r_cached_section = mSectionCache[ParentCellIndex];
     if (r_cached_section.has_value()) {
@@ -70,8 +70,10 @@ void BoundaryMeshEmbedder::Prepare(const TriangleMeshView& rMesh)
 
 TriangleMesh BoundaryMeshEmbedder::TakeBoundarySection(IndexType CellIndex) noexcept(NOTDEBUG)
 {
-    QuESo_ASSERT(CellIndex < mSectionCache.size(), "Boundary cell index is out-of-bounds.");
-    QuESo_ASSERT(mSectionCache[CellIndex].has_value(), "Boundary section is missing, unlisted, or already consumed.");
+    QuESo_DEBUG_ASSERT(CellIndex < mSectionCache.size(), "Boundary cell index is out-of-bounds.");
+    QuESo_DEBUG_ASSERT(
+        mSectionCache[CellIndex].has_value(), "Boundary section is missing, unlisted, or already consumed."
+    );
     TriangleMesh section = std::move(*mSectionCache[CellIndex]);
     mSectionCache[CellIndex].reset();
     return section;

@@ -31,12 +31,17 @@ namespace detail {
     /// @param rFrom Source bounds.
     /// @param rTo Target bounds.
     /// @return Vector3d
-    [[nodiscard]] inline Vector3d
-        ComputeScale(const BoundingBoxType& rFrom, const BoundingBoxType& rTo) noexcept(NOTDEBUG)
+    [[nodiscard]] inline Vector3d ComputeScale(const BoundingBoxType& rFrom, const BoundingBoxType& rTo)
     {
-        QuESo_ASSERT(numerical_guards::IsSafeDivisor(rFrom.upper[0] - rFrom.lower[0]), "Degenerate bounding box.");
-        QuESo_ASSERT(numerical_guards::IsSafeDivisor(rFrom.upper[1] - rFrom.lower[1]), "Degenerate bounding box.");
-        QuESo_ASSERT(numerical_guards::IsSafeDivisor(rFrom.upper[2] - rFrom.lower[2]), "Degenerate bounding box.");
+        QuESo_DIAGNOSTIC_ASSERT(
+            numerical_guards::IsSafeDivisor(rFrom.upper[0] - rFrom.lower[0]), "Degenerate bounding box."
+        );
+        QuESo_DIAGNOSTIC_ASSERT(
+            numerical_guards::IsSafeDivisor(rFrom.upper[1] - rFrom.lower[1]), "Degenerate bounding box."
+        );
+        QuESo_DIAGNOSTIC_ASSERT(
+            numerical_guards::IsSafeDivisor(rFrom.upper[2] - rFrom.lower[2]), "Degenerate bounding box."
+        );
         return { std::abs(rTo.upper[0] - rTo.lower[0]) / std::abs(rFrom.upper[0] - rFrom.lower[0]),
                  std::abs(rTo.upper[1] - rTo.lower[1]) / std::abs(rFrom.upper[1] - rFrom.lower[1]),
                  std::abs(rTo.upper[2] - rTo.lower[2]) / std::abs(rFrom.upper[2] - rFrom.lower[2]) };
@@ -75,7 +80,7 @@ namespace detail {
 /// @param rPoint Point in global coordinates.
 /// @param rBounds Element-local bounds.
 /// @return PointType
-[[nodiscard]] inline PointType ToParametric(PointView rPoint, const ElementBounds& rBounds) noexcept(NOTDEBUG)
+[[nodiscard]] inline PointType ToParametric(PointView rPoint, const ElementBounds& rBounds)
 {
     const auto scale = detail::ComputeScale(rBounds.global, rBounds.parametric);
     return { (rPoint[0] - rBounds.global.lower[0]) * scale[0] + rBounds.parametric.lower[0],
@@ -87,7 +92,7 @@ namespace detail {
 /// @param rPoint Point in parametric coordinates.
 /// @param rBounds Element-local bounds.
 /// @return PointType
-[[nodiscard]] inline PointType ToGlobal(PointView rPoint, const ElementBounds& rBounds) noexcept(NOTDEBUG)
+[[nodiscard]] inline PointType ToGlobal(PointView rPoint, const ElementBounds& rBounds)
 {
     const auto scale = detail::ComputeScale(rBounds.parametric, rBounds.global);
     return { (rPoint[0] - rBounds.parametric.lower[0]) * scale[0] + rBounds.global.lower[0],
@@ -98,7 +103,7 @@ namespace detail {
 /// @brief Returns the determinant of the element-local affine map Jacobian.
 /// @param rBounds Element-local bounds.
 /// @return double
-[[nodiscard]] inline double DetJ(const ElementBounds& rBounds) noexcept(NOTDEBUG)
+[[nodiscard]] inline double DetJ(const ElementBounds& rBounds)
 {
     const auto scale = detail::ComputeScale(rBounds.parametric, rBounds.global);
     return scale[0] * scale[1] * scale[2];

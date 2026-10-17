@@ -56,6 +56,20 @@ namespace {
 
 BOOST_AUTO_TEST_SUITE(MappingUtilitiesTestSuite)
 
+BOOST_AUTO_TEST_CASE(DegenerateSourceBoundsAreRejectedWhenDiagnosticsAreEnabled)
+{
+    if (!QuESo_DIAGNOSTICS_ENABLED()) { return; }
+    for (IndexType axis = 0; axis < 3; ++axis) {
+        auto bounds = MakeElementBounds();
+        bounds.global.upper[axis] = bounds.global.lower[axis];
+        BOOST_CHECK_THROW((void)mapping::ToParametric(PointType{}, bounds), Exception);
+        bounds = MakeElementBounds();
+        bounds.parametric.upper[axis] = bounds.parametric.lower[axis];
+        BOOST_CHECK_THROW((void)mapping::ToGlobal(PointType{}, bounds), Exception);
+        BOOST_CHECK_THROW((void)mapping::DetJ(bounds), Exception);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(BoundsAndDetJ)
 {
     QuESo_INFO << "Testing :: MappingUtilities :: BoundsAndDetJ" << std::endl;

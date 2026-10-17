@@ -92,7 +92,7 @@ public:
     /// @param rQueryKey Data-set key.
     /// @param rNewValue New value.
     template<typename TKeyType, typename TValueType>
-    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue) noexcept(NOTDEBUG)
+    void SetValue(const TKeyType& rQueryKey, const TValueType& rNewValue)
     { mDataSet.SetValue(rQueryKey, rNewValue); }
 
     /// @brief Returns a value stored in the element data set.

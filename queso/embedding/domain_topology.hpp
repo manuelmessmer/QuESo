@@ -65,13 +65,13 @@ public:
     /// @brief Returns the state of a canonical physical face.
     /// @param Face Physical grid-face identity.
     /// @return Current traversal state.
-    [[nodiscard]] GridFaceState Get(GridFaceId Face) const noexcept(NOTDEBUG)
+    [[nodiscard]] GridFaceState Get(GridFaceId Face) const noexcept
     { return mStates[Face.value]; }
 
     /// @brief Returns mutable access to the state of a canonical physical face.
     /// @param Face Physical grid-face identity.
     /// @return Mutable traversal state.
-    GridFaceState& Get(GridFaceId Face) noexcept(NOTDEBUG)
+    GridFaceState& Get(GridFaceId Face) noexcept
     { return mStates[Face.value]; }
 
     /// @brief Returns the state of a face addressed from one adjacent cell.
@@ -112,14 +112,14 @@ public:
     /// @param Face Physical grid-face identity.
     /// @param Side Adjacent side whose vote is requested.
     /// @return Signed classification vote.
-    [[nodiscard]] int Get(GridFaceId Face, GridFaceSide Side) const noexcept(NOTDEBUG)
+    [[nodiscard]] int Get(GridFaceId Face, GridFaceSide Side) const noexcept
     { return mVotes[Face.value][static_cast<IndexType>(Side)]; }
 
     /// @brief Returns mutable access to the vote for one side of a canonical physical face.
     /// @param Face Physical grid-face identity.
     /// @param Side Adjacent side whose vote is requested.
     /// @return Mutable signed classification vote.
-    int& Get(GridFaceId Face, GridFaceSide Side) noexcept(NOTDEBUG)
+    int& Get(GridFaceId Face, GridFaceSide Side) noexcept
     { return mVotes[Face.value][static_cast<IndexType>(Side)]; }
 
     /// @brief Returns the vote of the side adjacent to one cell-local face.

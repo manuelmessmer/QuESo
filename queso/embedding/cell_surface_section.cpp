@@ -19,14 +19,12 @@
 
 namespace queso::embedding {
 
-#ifndef NDEBUG
 namespace {
 
     [[nodiscard]] bool IsFinite(PointView rPoint) noexcept
     { return std::isfinite(rPoint[0]) && std::isfinite(rPoint[1]) && std::isfinite(rPoint[2]); }
 
 }  // namespace
-#endif
 
 CellSurfaceSection::CellSurfaceSection(
     TriangleMesh&& rSurface,
@@ -39,43 +37,43 @@ CellSurfaceSection::CellSurfaceSection(
 {
     mSurface.Check();
 
-#ifndef NDEBUG
-    // TODO: Add a QuESo_DEBUG environment-controlled diagnostic mode that runs these validations in release builds.
+    if (!QuESo_DIAGNOSTICS_ENABLED()) { return; }
+
     const double snap_distance = mGeometryTolerance.SnapDistance();
     for (IndexType axis = 0; axis < 3; ++axis) {
-        QuESo_ASSERT(
+        QuESo_DIAGNOSTIC_ASSERT(
             std::isfinite(mCellBounds.lower[axis]) && std::isfinite(mCellBounds.upper[axis])
                 && mCellBounds.lower[axis] < mCellBounds.upper[axis],
             "Cell-surface-section bounds must be finite and strictly increasing."
         );
-        QuESo_ASSERT(
+        QuESo_DIAGNOSTIC_ASSERT(
             mCellBounds.upper[axis] - mCellBounds.lower[axis] > 2.0 * snap_distance,
             "Cell-surface-section extent must exceed twice its snap distance."
         );
     }
 
     for (PointView r_vertex : mSurface.Vertices()) {
-        QuESo_ASSERT(IsFinite(r_vertex), "Cell-surface-section vertices must be finite.");
+        QuESo_DIAGNOSTIC_ASSERT(IsFinite(r_vertex), "Cell-surface-section vertices must be finite.");
     }
     for (Vector3dView r_normal : mSurface.Normals()) {
-        QuESo_ASSERT(IsFinite(r_normal), "Cell-surface-section normals must be finite.");
+        QuESo_DIAGNOSTIC_ASSERT(IsFinite(r_normal), "Cell-surface-section normals must be finite.");
     }
 
     for (IndexType face_index = 0; face_index < 6; ++face_index) {
         const CellFace face = CellFace::FromIndex(face_index);
         const double face_coordinate = face.is_upper ? mCellBounds.upper[face.axis] : mCellBounds.lower[face.axis];
         for (const CellFaceSegment& r_segment : mFaceContours.segments[face_index]) {
-            QuESo_ASSERT(
+            QuESo_DIAGNOSTIC_ASSERT(
                 IsFinite(r_segment.first) && IsFinite(r_segment.second) && IsFinite(r_segment.source_normal),
                 "Cell-face segment coordinates and normals must be finite."
             );
-            QuESo_ASSERT(
+            QuESo_DIAGNOSTIC_ASSERT(
                 r_segment.first[face.axis] == face_coordinate && r_segment.second[face.axis] == face_coordinate,
                 "Cell-face segment endpoints must lie exactly on their face plane."
             );
             for (IndexType axis = 0; axis < 3; ++axis) {
                 if (axis == face.axis) { continue; }
-                QuESo_ASSERT(
+                QuESo_DIAGNOSTIC_ASSERT(
                     r_segment.first[axis] >= mCellBounds.lower[axis] && r_segment.first[axis] <= mCellBounds.upper[axis]
                         && r_segment.second[axis] >= mCellBounds.lower[axis]
                         && r_segment.second[axis] <= mCellBounds.upper[axis],
@@ -84,7 +82,6 @@ CellSurfaceSection::CellSurfaceSection(
             }
         }
     }
-#endif
 }
 
 }  // namespace queso::embedding

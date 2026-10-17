@@ -85,9 +85,10 @@ public:
     /// @brief Removes a triangle.
     /// @details Swaps the to be deleted triangle with the last one and then pops the last element.
     /// @param tid Triangle index to remove.
+    /// @pre tid identifies a stored triangle; unchecked in release builds.
     void RemoveTriangle(IndexType tid)
     {
-        QuESo_ASSERT(tid < mTriangles.size(), "Index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(tid < mTriangles.size(), "Index is out-of-bounds.");
         mTriangles[tid] = mTriangles.back();
         mNormals[tid] = mNormals.back();
         mTriangles.pop_back();
@@ -109,10 +110,11 @@ public:
     /// @param tid Triangle index.
     /// @return Triangle proxy in the requested mode.
     /// @note May only throw in debug mode.
+    /// @pre tid identifies a stored triangle; unchecked in release builds.
     template<class Mode = WithNormals>
     TriangleProxy<Mode> Triangle(IndexType tid) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(tid < mTriangles.size(), "Index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(tid < mTriangles.size(), "Index is out-of-bounds.");
         const auto &tri = mTriangles[tid];
 
         if constexpr (std::is_same_v<Mode, WithNormals>) {
@@ -126,18 +128,20 @@ public:
     /// @param tid Triangle index.
     /// @return Const reference to the triangle normal.
     /// @note May only throw in debug mode.
+    /// @pre tid identifies a stored normal; unchecked in release builds.
     const Vector3d &Normal(IndexType tid) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(tid < mNormals.size(), "Index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(tid < mNormals.size(), "Index is out-of-bounds.");
         return mNormals[tid];
     }
 
     /// @brief Returns the vertex coordinates for a given vertex id.
     /// @param vid Vertex index.
     /// @return Const reference to the vertex coordinates.
+    /// @pre vid identifies a stored vertex; unchecked in release builds.
     const Vector3d &Vertex(IndexType vid) const noexcept(NOTDEBUG)
     {
-        QuESo_ASSERT(vid < mVertices.size(), "Index is out-of-bounds.");
+        QuESo_DEBUG_ASSERT(vid < mVertices.size(), "Index is out-of-bounds.");
         return mVertices[vid];
     }
 

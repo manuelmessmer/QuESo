@@ -752,6 +752,29 @@ namespace Testing {
         BOOST_CHECK_THROW((void)GridIndexer(*non_finite), queso::Exception);
     }
 
+    BOOST_AUTO_TEST_CASE(RejectsInvalidNavigationPreconditionsInDebug)
+    {
+        if constexpr (NOTDEBUG) { return; }
+        auto settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 3.0, 1.0, 1.0 }), { 3, 1, 1 });
+        const GridIndexer grid(*settings);
+        using Direction = GridIndexer::Direction;
+        BOOST_CHECK_THROW((void)grid.GetFace(3, Direction::x_forward), Exception);
+        BOOST_CHECK_THROW((void)grid.GetFace(0, Direction::_end), Exception);
+        BOOST_CHECK_THROW((void)grid.GetFaceAxis(GridFaceId{ grid.NumberOfFaces() }), Exception);
+        const auto face = grid.GetFace(0, Direction::x_forward);
+        BOOST_CHECK_THROW((void)grid.GetAdjacentSide(face, 2), Exception);
+        for (const Direction invalid : { Direction::_end, static_cast<Direction>(99) }) {
+            BOOST_CHECK_THROW((void)grid.GetFace(0, invalid), Exception);
+            BOOST_CHECK_THROW((void)grid.GetNextIndex(0, invalid), Exception);
+            BOOST_CHECK_THROW((void)grid.IsEnd(0, invalid), Exception);
+            BOOST_CHECK_THROW((void)GridIndexer::ReverseDirection(invalid), Exception);
+        }
+        BOOST_CHECK_THROW((void)grid.GetContainingCell(PointType{ -0.1, 0.5, 0.5 }), Exception);
+        BOOST_CHECK_THROW(
+            (void)grid.GetContainingCell(PointType{ std::numeric_limits<double>::quiet_NaN(), 0.5, 0.5 }), Exception
+        );
+    }
+
     BOOST_AUTO_TEST_CASE(RejectsOneThinCellDirection)
     {
         auto p_settings = MakeGridSettings(MakeBox({ 0.0, 0.0, 0.0 }, { 1e-15, 1.0, 1.0 }), { 1, 1, 1 });
