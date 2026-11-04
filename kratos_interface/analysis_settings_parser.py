@@ -93,12 +93,17 @@ def parse_analysis_settings(
                 component_location = (
                     f"{geometry_location}.queso_components[{component_index}]"
                 )
-                if not isinstance(raw_component, dict) or set(raw_component) != {
-                    "component_name",
-                    "element_settings",
-                }:
+                if not isinstance(raw_component, dict) or not set(
+                    raw_component
+                ).issubset(
+                    {"component_name", "element_settings", "postprocessing"}
+                ):
                     raise ValueError(
-                        f"{component_location} must define only 'component_name' "
+                        f"{component_location} contains unknown fields."
+                    )
+                if not {"component_name", "element_settings"}.issubset(raw_component):
+                    raise ValueError(
+                        f"{component_location} must define 'component_name' "
                         "and 'element_settings'."
                     )
                 component_name = _identifier(
@@ -146,6 +151,41 @@ def parse_analysis_settings(
                         "must be non-empty."
                     )
 
+                normalized_postprocessing: dict[str, list[str]] | None = None
+                if "postprocessing" in raw_component:
+                    postprocessing = raw_component["postprocessing"]
+                    if not isinstance(postprocessing, dict):
+                        raise ValueError(
+                            f"{component_location}.postprocessing must be an object."
+                        )
+                    if not set(postprocessing).issubset(
+                        {"nodal_results", "gauss_point_results"}
+                    ):
+                        raise ValueError(
+                            f"{component_location}.postprocessing contains "
+                            "unknown fields."
+                        )
+                    normalized_postprocessing = {}
+                    for result_field in ("nodal_results", "gauss_point_results"):
+                        if result_field not in postprocessing:
+                            continue
+                        results = postprocessing[result_field]
+                        if not isinstance(results, list):
+                            raise ValueError(
+                                f"{component_location}.postprocessing."
+                                f"{result_field} must be an array."
+                            )
+                        normalized_results: list[str] = []
+                        for result_index, result in enumerate(results):
+                            normalized_results.append(
+                                _identifier(
+                                    result,
+                                    f"{component_location}.postprocessing."
+                                    f"{result_field}[{result_index}]",
+                                )
+                            )
+                        normalized_postprocessing[result_field] = normalized_results
+
                 grid = queso_model.settings(component_name)["background_grid_settings"]
                 if reference_grid is None:
                     reference_grid = grid
@@ -154,15 +194,16 @@ def parse_analysis_settings(
                         f"Geometry '{geometry_name}' contains components with "
                         "different grids."
                     )
-                components.append(
-                    {
-                        "component_name": component_name,
-                        "element_settings": {
-                            "property_id": property_id,
-                            "element_type": element_type,
-                        },
-                    }
-                )
+                normalized_component = {
+                    "component_name": component_name,
+                    "element_settings": {
+                        "property_id": property_id,
+                        "element_type": element_type,
+                    },
+                }
+                if normalized_postprocessing is not None:
+                    normalized_component["postprocessing"] = normalized_postprocessing
+                components.append(normalized_component)
 
             normalized_geometries[geometry_name] = {
                 "model_part_name": model_part_name,
