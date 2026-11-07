@@ -26,7 +26,7 @@ template std::vector<double> ComputeConstantTerms<std::vector<BoundaryIntegratio
 );
 
 template void AssembleFittingMatrix<std::vector<IntegrationPoint>>(
-    NNLS::MatrixType& rFittingMatrix,
+    std::vector<double>& rFittingMatrix,
     const std::vector<IntegrationPoint>& rIntegrationPoints,
     const BoundingBoxType& rBoundsParam,
     const IntegrationOrderInfo& rOrderInfo

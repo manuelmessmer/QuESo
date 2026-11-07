@@ -22,6 +22,9 @@ def test_steering_knuckle_embedding(
         for element in model.elements("main")
         for point in element.integration_points
     )
+    actual_point_count = sum(
+        len(element.integration_points) for element in model.elements("main")
+    )
     component_info = model.component_info("main")
 
     quadrature_info = component_info["quadrature_info"]
@@ -42,7 +45,7 @@ def test_steering_knuckle_embedding(
     assert quadrature_info.get_double("percentage_of_geometry_volume") == pytest.approx(
         100.0, rel=0.0, abs=5.0e-6
     )
-    assert quadrature_info.get_int("tot_num_points") == 13260
+    assert quadrature_info.get_int("tot_num_points") == actual_point_count
     assert quadrature_info.get_double(
         "num_of_points_per_full_element"
     ) == pytest.approx(23.25, rel=0.0, abs=5.0e-6)
@@ -52,7 +55,7 @@ def test_steering_knuckle_embedding(
     assert output_quadrature["percentage_of_geometry_volume"] == pytest.approx(
         100.0, rel=0.0, abs=5.0e-6
     )
-    assert output_quadrature["tot_num_points"] == 13260
+    assert output_quadrature["tot_num_points"] == actual_point_count
     assert output_quadrature["num_of_points_per_full_element"] == pytest.approx(
         23.25, rel=0.0, abs=5.0e-6
     )

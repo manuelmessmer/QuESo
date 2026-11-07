@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [Release, FullDebug]
+        build-type: [Release, Debug]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -29,8 +29,8 @@ jobs:
 
       - name: Build
         run: |
-          cmake --preset linux -DQUESO_BUILD_TESTING=ON -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_CXX_FLAGS="-Og"
-          cmake --build --preset linux --target install _core test_queso
+          cmake --preset linux -DQUESO_BUILD_TESTING=ON -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_CXX_FLAGS="${{ matrix.build-type == 'Debug' && '-Og' || '' }}"
+          cmake --build --preset linux --target install _core test_queso --verbose
 
       - name: Install Python dependencies
         run: |

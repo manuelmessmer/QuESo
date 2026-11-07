@@ -18,7 +18,6 @@ QuESo is written in C++ and has a user-friendly Python interface. If you want to
 
 ## Special Thanks To
 * Lester Hedges for the [AABB tree](https://github.com/lohedges/aabbcc)
-* Mike Lapshin for the [NNLS solver](https://github.com/mlapshin/nnls)
 * [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 * [Boost](https://www.boost.org/users/download/) for the C++ unit test framework
   
@@ -39,6 +38,3 @@ QuESo has also been used in the scope of shape optimization of complex embedded 
 * Manuel Meßmer, Reza Najian Asl, Stefan Kollmannsberger, Roland Wüchner, Kai-Uwe Bletzinger, Shape optimization of embedded solids using implicit Vertex-Morphing, Comput. Methods Appl. Mech. Engrg.  426 (2024) 116999, [https://doi.org/10.1016/j.cma.2024.116999](https://doi.org/10.1016/j.cma.2024.116999)
   
 It would be great to hear from you if QuESo was of use in your project.
-
-
-

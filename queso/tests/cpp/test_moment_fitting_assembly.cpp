@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(FittingMatrixP1UsesPointColumnsAndBasisOrder)
         IntegrationPointType({ -0.25, 0.5, -0.75 }, 1.0),
     };
 
-    NNLS::MatrixType matrix{};
+    std::vector<double> matrix{};
     Assembly::AssembleFittingMatrix(matrix, points, bounds, Assembly::MakeIntegrationOrderInfo({ 1, 1, 1 }));
 
     QuESo_CHECK_EQUAL(matrix.size(), 16UL);
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(FittingMatrixMixedOrderHasExpectedSize)
         IntegrationPointType({ -0.5, 0.25, -0.25 }, 1.0),
     };
 
-    NNLS::MatrixType matrix{};
+    std::vector<double> matrix{};
     Assembly::AssembleFittingMatrix(matrix, points, bounds, Assembly::MakeIntegrationOrderInfo({ 2, 1, 3 }));
 
     QuESo_CHECK_EQUAL(matrix.size(), 3UL * 2UL * 4UL * points.size());
