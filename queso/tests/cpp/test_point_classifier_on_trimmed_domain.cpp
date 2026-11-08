@@ -12,20 +12,19 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/embedding/mesh_operator.h"
 #include "queso/embedding/trimmed_domain.h"
-#include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
 
-#include "queso/tests/cpp/helpers/global_config.hpp"
+#include "queso/tests/cpp/helpers/test_data.hpp"
 #include "queso/tests/cpp/helpers/trimmed_domain_test_helpers.hpp"
 
-namespace queso {
-namespace Testing {
+namespace queso::testing {
     namespace {
 
         [[nodiscard]] Unique<TrimmedDomain> MakeDomain(
@@ -47,264 +46,266 @@ namespace Testing {
 
     }  // namespace
 
-    BOOST_AUTO_TEST_SUITE(PointClassifierOnTrimmedDomainTestSuite)
-
-    BOOST_AUTO_TEST_CASE(PointClassifierOnTrimmedDomainTestSuite)
+    TEST_SUITE("PointClassifierOnTrimmedDomainTestSuite")
     {
 
-        QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cylinder Point Classifier" << std::endl;
+        TEST_CASE("PointClassifierOnTrimmedDomainTestSuite - Point Classifier On Trimmed Domain Test Suite")
+        {
 
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cylinder.stl");
 
-        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-        auto& r_settings = *p_settings;
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cylinder.stl");
 
-        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -1.5, -1.5, -1.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 1.5, 1.5, 12 });
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
-        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{ 6, 6, 26 });
-        r_grid_settings.CheckRequired();
-        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
-            TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
-        );
+            auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+            auto& r_settings = *p_settings;
 
-        // Instantiate brep_operator
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.5, .coordinate_scale = 2.0 })
-        );
+            auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
+            r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -1.5, -1.5, -1.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 1.5, 1.5, 12 });
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+            r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{ 6, 6, 26 });
+            r_grid_settings.CheckRequired();
+            r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+                TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
+            );
 
-        const IndexType min_num_triangles = 500;
+            // Instantiate brep_operator
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.5, .coordinate_scale = 2.0 })
+            );
 
-        GridIndexer grid_indexer(r_settings);
-        IndexType num_of_trimmed_elements = 0;
-        for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
-            const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-            const Vector3d lower_bound = bounding_box.lower;
-            const Vector3d upper_bound = bounding_box.upper;
-            if (auto p_trimmed_domain = MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
-                const double delta_p_x = 0.1;
-                const double delta_p_y = 0.1;
-                const double delta_p_z = 0.1;
-                for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
-                    for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1]; p_y += delta_p_y) {
-                        for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2]; p_z += delta_p_z) {
-                            // Make sure both functions produce the same result.
-                            PointType test_point = { p_x, p_y, p_z };
-                            bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
-                            bool res2 = mesh_operator.IsInside(test_point);
-                            QuESo_CHECK_EQUAL(res1, res2);
-                        }
-                    }
-                }
-                num_of_trimmed_elements++;
-            }
-        }
-        QuESo_CHECK_EQUAL(num_of_trimmed_elements, 240);
-    }
+            const IndexType min_num_triangles = 500;
 
-    BOOST_AUTO_TEST_CASE(CubePointClassifierOnTrimmedDomainTest)
-    {
-        QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Cube with Cavity Point Classifier"
-                   << std::endl;
-
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cube_with_cavity.stl");
-
-        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-        auto& r_settings = *p_settings;
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::grid_type, GridType::b_spline_grid
-        );
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::lower_bound_xyz, PointType{ 0.0, 0.0, 0.0 }
-        );
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::upper_bound_xyz, PointType{ 1.0, 1.0, 1.0 }
-        );
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 }
-        );
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 }
-        );
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 }
-        );
-        r_settings[MainSettings::background_grid_settings].SetValue(
-            BackgroundGridSettings::number_of_elements, Vector3i{ 1, 1, 1 }
-        );
-        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
-            TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
-        );
-
-        // Instantiate brep_operator
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.3, .coordinate_scale = 2.0 })
-        );
-
-        const IndexType min_num_triangles = 500;
-
-        const double delta_x = 0.15;
-        const double delta_y = 0.15;
-        const double delta_z = 0.15;
-
-        IndexType num_of_trimmed_elements = 0;
-        for (double x = -1.5001; x <= 1.5; x += delta_x) {
-            for (double y = -1.5001; y <= 1.5; y += delta_y) {
-                for (double z = -1.5001; z <= 1.5; z += delta_z) {
-                    Vector3d lower_bound = { x, y, z };
-                    Vector3d upper_bound = { x + delta_x, y + delta_y, z + delta_z };
-                    if (auto p_trimmed_domain =
-                            MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
-                        const double delta_p_x = 0.2;
-                        const double delta_p_y = 0.2;
-                        const double delta_p_z = 0.2;
-                        for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
-                            for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1];
-                                 p_y += delta_p_y) {
-                                for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2];
-                                     p_z += delta_p_z) {
-                                    // Make sure both functions produce the same result.
-                                    PointType test_point = { p_x, p_y, p_z };
-                                    bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
-                                    bool res2 = mesh_operator.IsInside(test_point);
-                                    QuESo_CHECK_EQUAL(res1, res2);
-                                }
+            GridIndexer grid_indexer(r_settings);
+            IndexType num_of_trimmed_elements = 0;
+            for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
+                const auto bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
+                const Vector3d lower_bound = bounding_box.lower;
+                const Vector3d upper_bound = bounding_box.upper;
+                if (auto p_trimmed_domain = MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
+                    const double delta_p_x = 0.1;
+                    const double delta_p_y = 0.1;
+                    const double delta_p_z = 0.1;
+                    for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
+                        for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1]; p_y += delta_p_y) {
+                            for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2];
+                                 p_z += delta_p_z) {
+                                // Make sure both functions produce the same result.
+                                PointType test_point = { p_x, p_y, p_z };
+                                bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
+                                bool res2 = mesh_operator.IsInside(test_point);
+                                CHECK((res1) == (res2));
                             }
                         }
-                        num_of_trimmed_elements++;
                     }
+                    num_of_trimmed_elements++;
                 }
             }
+            CHECK((num_of_trimmed_elements) == (240));
         }
-        QuESo_CHECK_EQUAL(num_of_trimmed_elements, 3226);
-    }
 
-    BOOST_AUTO_TEST_CASE(ElephantPointClassifierOnTrimmedDomainTest)
-    {
-        QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Elephant Point Classifier" << std::endl;
+        TEST_CASE("PointClassifierOnTrimmedDomainTestSuite - Cube Point Classifier On Trimmed Domain Test")
+        {
 
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/elephant.stl");
 
-        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-        auto& r_settings = *p_settings;
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cube_with_cavity.stl");
 
-        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -0.4, -0.6, -0.35 });
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 0.4, 0.6, 0.35 });
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
-        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{ 16, 24, 14 });
-        r_grid_settings.CheckRequired();
-        r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
-            TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
-        );
+            auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+            auto& r_settings = *p_settings;
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::grid_type, GridType::b_spline_grid
+            );
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::lower_bound_xyz, PointType{ 0.0, 0.0, 0.0 }
+            );
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::upper_bound_xyz, PointType{ 1.0, 1.0, 1.0 }
+            );
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 }
+            );
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 }
+            );
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 }
+            );
+            r_settings[MainSettings::background_grid_settings].SetValue(
+                BackgroundGridSettings::number_of_elements, Vector3i{ 1, 1, 1 }
+            );
+            r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+                TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
+            );
 
-        // Instantiate brep_operator
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.1, .coordinate_scale = 1.0 })
-        );
+            // Instantiate brep_operator
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.3, .coordinate_scale = 2.0 })
+            );
 
-        const IndexType min_num_triangles = 500;
+            const IndexType min_num_triangles = 500;
 
-        GridIndexer grid_indexer(r_settings);
-        IndexType num_of_trimmed_elements = 0;
-        for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
-            const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-            Vector3d lower_bound = bounding_box.lower;
-            Vector3d upper_bound = bounding_box.upper;
-            if (auto p_trimmed_domain = MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
-                const double delta_p_x = 0.01;
-                const double delta_p_y = 0.01;
-                const double delta_p_z = 0.01;
-                for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
-                    for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1]; p_y += delta_p_y) {
-                        for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2]; p_z += delta_p_z) {
-                            // Make sure both functions produce the same result.
-                            PointType test_point = { p_x, p_y, p_z };
-                            bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
-                            bool res2 = mesh_operator.IsInside(test_point);
-                            QuESo_CHECK_EQUAL(res1, res2);
+            const double delta_x = 0.15;
+            const double delta_y = 0.15;
+            const double delta_z = 0.15;
+
+            IndexType num_of_trimmed_elements = 0;
+            for (double x = -1.5001; x <= 1.5; x += delta_x) {
+                for (double y = -1.5001; y <= 1.5; y += delta_y) {
+                    for (double z = -1.5001; z <= 1.5; z += delta_z) {
+                        Vector3d lower_bound = { x, y, z };
+                        Vector3d upper_bound = { x + delta_x, y + delta_y, z + delta_z };
+                        if (auto p_trimmed_domain =
+                                MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
+                            const double delta_p_x = 0.2;
+                            const double delta_p_y = 0.2;
+                            const double delta_p_z = 0.2;
+                            for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0];
+                                 p_x += delta_p_x) {
+                                for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1];
+                                     p_y += delta_p_y) {
+                                    for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2];
+                                         p_z += delta_p_z) {
+                                        // Make sure both functions produce the same result.
+                                        PointType test_point = { p_x, p_y, p_z };
+                                        bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
+                                        bool res2 = mesh_operator.IsInside(test_point);
+                                        CHECK((res1) == (res2));
+                                    }
+                                }
+                            }
+                            num_of_trimmed_elements++;
                         }
                     }
                 }
-                num_of_trimmed_elements++;
             }
+            CHECK((num_of_trimmed_elements) == (3226));
         }
-        QuESo_CHECK_EQUAL(num_of_trimmed_elements, 701);
-    }
 
-    BOOST_AUTO_TEST_CASE(BunnyPointClassifierOnTrimmedDomainTest)
-    {
-        QuESo_INFO << "Testing :: Test Point Classifier On Trimmed Domain:: Bunny Point Classifier" << std::endl;
+        TEST_CASE("PointClassifierOnTrimmedDomainTestSuite - Elephant Point Classifier On Trimmed Domain Test")
+        {
 
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/stanford_bunny.stl");
 
-        auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
-        auto& r_settings = *p_settings;
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/elephant.stl");
 
-        auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
-        r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -24, -43, 5 });
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 85, 46, 115 });
-        r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
-        r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
-        r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{ 11, 9, 12 });
-        r_grid_settings.CheckRequired();
+            auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+            auto& r_settings = *p_settings;
 
-        // Instantiate brep_operator
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 10.0, .coordinate_scale = 115.0 })
-        );
+            auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
+            r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -0.4, -0.6, -0.35 });
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 0.4, 0.6, 0.35 });
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+            r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{ 16, 24, 14 });
+            r_grid_settings.CheckRequired();
+            r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
+                TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
+            );
 
-        const IndexType min_num_triangles = 500;
+            // Instantiate brep_operator
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.1, .coordinate_scale = 1.0 })
+            );
 
-        GridIndexer grid_indexer(r_settings);
-        IndexType num_of_trimmed_elements = 0;
-        for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
-            const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
-            Vector3d lower_bound = bounding_box.lower;
-            Vector3d upper_bound = bounding_box.upper;
-            if (auto p_trimmed_domain = MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
-                const double delta_p_x = 2;
-                const double delta_p_y = 2;
-                const double delta_p_z = 2;
-                for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
-                    for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1]; p_y += delta_p_y) {
-                        for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2]; p_z += delta_p_z) {
-                            // Make sure both functions produce the same result.
-                            PointType test_point = { p_x, p_y, p_z };
-                            bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
-                            bool res2 = mesh_operator.IsInside(test_point);
-                            QuESo_CHECK_EQUAL(res1, res2);
+            const IndexType min_num_triangles = 500;
+
+            GridIndexer grid_indexer(r_settings);
+            IndexType num_of_trimmed_elements = 0;
+            for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
+                const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
+                Vector3d lower_bound = bounding_box.lower;
+                Vector3d upper_bound = bounding_box.upper;
+                if (auto p_trimmed_domain = MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
+                    const double delta_p_x = 0.01;
+                    const double delta_p_y = 0.01;
+                    const double delta_p_z = 0.01;
+                    for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
+                        for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1]; p_y += delta_p_y) {
+                            for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2];
+                                 p_z += delta_p_z) {
+                                // Make sure both functions produce the same result.
+                                PointType test_point = { p_x, p_y, p_z };
+                                bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
+                                bool res2 = mesh_operator.IsInside(test_point);
+                                CHECK((res1) == (res2));
+                            }
                         }
                     }
+                    num_of_trimmed_elements++;
                 }
-                num_of_trimmed_elements++;
             }
+            CHECK((num_of_trimmed_elements) == (701));
         }
-        QuESo_CHECK_EQUAL(num_of_trimmed_elements, 419);
-    }
 
-    BOOST_AUTO_TEST_SUITE_END()
+        TEST_CASE("PointClassifierOnTrimmedDomainTestSuite - Bunny Point Classifier On Trimmed Domain Test")
+        {
 
-}  // End namespace Testing
-}  // End namespace queso
+
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/stanford_bunny.stl");
+
+            auto p_settings = DictionaryFactory<queso::key::MainValuesTypeTag>::Create("Settings");
+            auto& r_settings = *p_settings;
+
+            auto& r_grid_settings = r_settings[MainSettings::background_grid_settings];
+            r_grid_settings.SetValue(BackgroundGridSettings::grid_type, GridType::b_spline_grid);
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_xyz, PointType{ -24, -43, 5 });
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_xyz, PointType{ 85, 46, 115 });
+            r_grid_settings.SetValue(BackgroundGridSettings::lower_bound_uvw, PointType{ 0.0, 0.0, 0.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::upper_bound_uvw, PointType{ 1.0, 1.0, 1.0 });
+            r_grid_settings.SetValue(BackgroundGridSettings::polynomial_order, Vector3i{ 2, 2, 2 });
+            r_grid_settings.SetValue(BackgroundGridSettings::number_of_elements, Vector3i{ 11, 9, 12 });
+            r_grid_settings.CheckRequired();
+
+            // Instantiate brep_operator
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 10.0, .coordinate_scale = 115.0 })
+            );
+
+            const IndexType min_num_triangles = 500;
+
+            GridIndexer grid_indexer(r_settings);
+            IndexType num_of_trimmed_elements = 0;
+            for (IndexType i = 0; i < grid_indexer.NumberOfElements(); ++i) {
+                const BoundingBoxType bounding_box = grid_indexer.GetBoundingBoxXYZFromIndex(i);
+                Vector3d lower_bound = bounding_box.lower;
+                Vector3d upper_bound = bounding_box.upper;
+                if (auto p_trimmed_domain = MakeDomain(mesh_operator, lower_bound, upper_bound, min_num_triangles)) {
+                    const double delta_p_x = 2;
+                    const double delta_p_y = 2;
+                    const double delta_p_z = 2;
+                    for (double p_x = lower_bound[0] + delta_p_x / 2.0; p_x <= upper_bound[0]; p_x += delta_p_x) {
+                        for (double p_y = lower_bound[1] + delta_p_y / 2.0; p_y <= upper_bound[1]; p_y += delta_p_y) {
+                            for (double p_z = lower_bound[2] + delta_p_z / 2.0; p_z <= upper_bound[2];
+                                 p_z += delta_p_z) {
+                                // Make sure both functions produce the same result.
+                                PointType test_point = { p_x, p_y, p_z };
+                                bool res1 = p_trimmed_domain->IsInside<CoordinateSpace::global>(test_point);
+                                bool res2 = mesh_operator.IsInside(test_point);
+                                CHECK((res1) == (res2));
+                            }
+                        }
+                    }
+                    num_of_trimmed_elements++;
+                }
+            }
+            CHECK((num_of_trimmed_elements) == (419));
+        }
+
+    }  // TEST_SUITE
+
+} // namespace queso::testing

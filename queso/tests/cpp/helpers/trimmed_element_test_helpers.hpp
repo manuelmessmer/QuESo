@@ -14,16 +14,16 @@
 #pragma once
 
 //// Project includes
+#include "numerical_checks.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/integration_point.hpp"
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/embedding/mesh_operator.h"
 #include "queso/embedding/trimmed_domain.h"
-#include "queso/includes/checks.hpp"
 #include "queso/tests/cpp/helpers/trimmed_domain_test_helpers.hpp"
 #include "queso/utilities/mesh_utilities.h"
 
-namespace queso::Testing::TrimmedElementTestHelpers {
+namespace queso::testing::TrimmedElementTestHelpers {
 
 using IntegrationPointType = IntegrationPoint;
 using BoundaryIntegrationPointType = BoundaryIntegrationPoint;
@@ -56,9 +56,9 @@ inline TrimmedElementType MakeTrimmedElement()
     constexpr auto xyz = MakeCellBoundsXYZ();
     const embedding::MeshOperator mesh_operator(mesh.View(), TrimmedDomainTestHelpers::MakeTolerance(xyz));
     auto p_domain = TrimmedDomainTestHelpers::MakeTrimmedDomain(mesh_operator, xyz, 100);
-    QuESo_CHECK(p_domain != nullptr);
+    REQUIRE(p_domain != nullptr);
 
     return TrimmedElementType(7, ElementBounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() }, std::move(*p_domain));
 }
 
-}  // namespace queso::Testing::TrimmedElementTestHelpers
+}  // namespace queso::testing::TrimmedElementTestHelpers

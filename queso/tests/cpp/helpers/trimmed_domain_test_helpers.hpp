@@ -21,7 +21,7 @@
 #include "queso/embedding/mesh_operator.h"
 #include "queso/embedding/trimmed_domain.h"
 
-namespace queso::Testing::TrimmedDomainTestHelpers {
+namespace queso::testing::TrimmedDomainTestHelpers {
 
 [[nodiscard]] inline GeometryTolerance MakeTolerance(const BoundingBoxType& rBounds)
 {
@@ -61,4 +61,4 @@ namespace queso::Testing::TrimmedDomainTestHelpers {
     );
 }
 
-}  // namespace queso::Testing::TrimmedDomainTestHelpers
+}  // namespace queso::testing::TrimmedDomainTestHelpers

@@ -12,10 +12,10 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// Project includes
-#include "queso/includes/checks.hpp"
+#include "helpers/numerical_checks.hpp"
 #include "queso/tests/cpp/helpers/trimmed_element_test_helpers.hpp"
 #include "queso/utilities/mesh_utilities.h"
 
@@ -23,7 +23,7 @@
 // test_moment_fitting_compute.cpp checks public moment-fitting Compute behavior on trimmed elements, and
 // test_point_elimination.cpp checks reduced rules on larger trimmed geometries.
 
-namespace queso::Testing {
+namespace queso::testing {
 
 namespace {
 
@@ -38,128 +38,129 @@ namespace {
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(TrimmedElementTestSuite)
-
-BOOST_AUTO_TEST_CASE(ConstructionAndDefaults)
+TEST_SUITE("TrimmedElementTestSuite")
 {
-    // Verifies basic construction state for a representative trimmed element.
-    QuESo_INFO << "Testing :: TrimmedElement :: ConstructionAndDefaults" << std::endl;
 
-    const auto element = MakeTrimmedElement();
+    TEST_CASE("TrimmedElementTestSuite - Construction And Defaults")
+    {
+        // Verifies basic construction state for a representative trimmed element.
 
-    QuESo_CHECK_EQUAL(element.GetId(), 7UL);
-    QuESo_CHECK_IS_FALSE(!element.IsTrimmed());
-}
 
-BOOST_AUTO_TEST_CASE(CellBoundsVsActiveDomainBounds)
-{
-    // Verifies cell bounds remain exact and active-domain bounds are mapped consistently.
-    QuESo_INFO << "Testing :: TrimmedElement :: CellBoundsVsActiveDomainBounds" << std::endl;
+        const auto element = MakeTrimmedElement();
 
-    const auto element = MakeTrimmedElement();
-    constexpr auto xyz = MakeCellBoundsXYZ();
-    constexpr auto uvw = MakeCellBoundsUVW();
-
-    // Cell bounds must equal the construction bounds exactly.
-    QuESo_CHECK_POINT_NEAR(element.GetCellBounds<CoordinateSpace::global>().lower, xyz.lower, 1e-12);
-    QuESo_CHECK_POINT_NEAR(element.GetCellBounds<CoordinateSpace::global>().upper, xyz.upper, 1e-12);
-    QuESo_CHECK_POINT_NEAR(element.GetCellBounds<CoordinateSpace::parametric>().lower, uvw.lower, 1e-12);
-    QuESo_CHECK_POINT_NEAR(element.GetCellBounds<CoordinateSpace::parametric>().upper, uvw.upper, 1e-12);
-
-    // Active-domain bounds (global) must be contained within the cell bounds.
-    const auto active_global = element.GetActiveDomainBounds<CoordinateSpace::global>();
-    for (IndexType i = 0; i < 3; ++i) {
-        QuESo_CHECK_IS_FALSE(active_global.lower[i] < xyz.lower[i] - 1e-10);
-        QuESo_CHECK_IS_FALSE(active_global.upper[i] > xyz.upper[i] + 1e-10);
+        CHECK((element.GetId()) == (7UL));
+        CHECK_FALSE(!element.IsTrimmed());
     }
-    const auto active_parametric = element.GetActiveDomainBounds<CoordinateSpace::parametric>();
-    constexpr ElementBounds bounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() };
-    QuESo_CHECK_POINT_NEAR(active_global.lower, mapping::ToGlobal(active_parametric.lower, bounds), 1e-12);
-    QuESo_CHECK_POINT_NEAR(active_global.upper, mapping::ToGlobal(active_parametric.upper, bounds), 1e-12);
-}
 
-BOOST_AUTO_TEST_CASE(DetJ)
-{
-    // Verifies the element Jacobian determinant for the chosen affine cell mapping.
-    QuESo_INFO << "Testing :: TrimmedElement :: DetJ" << std::endl;
+    TEST_CASE("TrimmedElementTestSuite - Cell Bounds Vs Active Domain Bounds")
+    {
+        // Verifies cell bounds remain exact and active-domain bounds are mapped consistently.
 
-    const auto element = MakeTrimmedElement();
-    QuESo_CHECK_NEAR(element.DetJ(), ReferenceDetJ(), 1e-12);
-}
 
-BOOST_AUTO_TEST_CASE(IntegrationPoints)
-{
-    // Verifies storage and global mapping/scaling of element integration points.
-    QuESo_INFO << "Testing :: TrimmedElement :: IntegrationPoints" << std::endl;
+        const auto element = MakeTrimmedElement();
+        constexpr auto xyz = MakeCellBoundsXYZ();
+        constexpr auto uvw = MakeCellBoundsUVW();
 
-    auto element = MakeTrimmedElement();
-    constexpr IntegrationPointType ip_a({ -0.5, 0.0, 0.5 }, 1.5);
-    constexpr IntegrationPointType ip_b({ 0.3, -0.7, 0.1 }, 0.75);
+        // Cell bounds must equal the construction bounds exactly.
+        CheckPointNear(element.GetCellBounds<CoordinateSpace::global>().lower, xyz.lower, 1e-12);
+        CheckPointNear(element.GetCellBounds<CoordinateSpace::global>().upper, xyz.upper, 1e-12);
+        CheckPointNear(element.GetCellBounds<CoordinateSpace::parametric>().lower, uvw.lower, 1e-12);
+        CheckPointNear(element.GetCellBounds<CoordinateSpace::parametric>().upper, uvw.upper, 1e-12);
 
-    element.GetIntegrationPoints().push_back(ip_a);
-    element.GetIntegrationPoints().push_back(ip_b);
+        // Active-domain bounds (global) must be contained within the cell bounds.
+        const auto active_global = element.GetActiveDomainBounds<CoordinateSpace::global>();
+        for (IndexType i = 0; i < 3; ++i) {
+            CHECK_FALSE(active_global.lower[i] < xyz.lower[i] - 1e-10);
+            CHECK_FALSE(active_global.upper[i] > xyz.upper[i] + 1e-10);
+        }
+        const auto active_parametric = element.GetActiveDomainBounds<CoordinateSpace::parametric>();
+        constexpr ElementBounds bounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() };
+        CheckPointNear(active_global.lower, mapping::ToGlobal(active_parametric.lower, bounds), 1e-12);
+        CheckPointNear(active_global.upper, mapping::ToGlobal(active_parametric.upper, bounds), 1e-12);
+    }
 
-    // Parametric IPs are returned as-is.
-    const auto& r_param = static_cast<const TrimmedElementType&>(element).GetIntegrationPoints();
-    QuESo_CHECK_EQUAL(r_param.size(), 2UL);
-    QuESo_CHECK_POINT_NEAR(r_param[0].Point(), ip_a.Point(), 1e-12);
-    QuESo_CHECK_POINT_NEAR(r_param[1].Point(), ip_b.Point(), 1e-12);
+    TEST_CASE("TrimmedElementTestSuite - Det J")
+    {
+        // Verifies the element Jacobian determinant for the chosen affine cell mapping.
 
-    // Global IPs must be mapped by the element-local mapper and weights scaled by DetJ.
-    const auto global_ips =
-        static_cast<const TrimmedElementType&>(element).GetIntegrationPoints<CoordinateSpace::global>();
-    auto it = global_ips.begin();
-    const auto global_a = *it++;
-    const auto global_b = *it;
 
-    const double det_j = element.DetJ();
-    constexpr ElementBounds bounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() };
+        const auto element = MakeTrimmedElement();
+        CheckNear(element.DetJ(), ReferenceDetJ(), 1e-12);
+    }
 
-    QuESo_CHECK_POINT_NEAR(global_a.Point(), mapping::ToGlobal(ip_a.Point(), bounds), 1e-12);
-    QuESo_CHECK_NEAR(global_a.Weight(), ip_a.Weight() * det_j, 1e-12);
-    QuESo_CHECK_POINT_NEAR(global_b.Point(), mapping::ToGlobal(ip_b.Point(), bounds), 1e-12);
-    QuESo_CHECK_NEAR(global_b.Weight(), ip_b.Weight() * det_j, 1e-12);
-}
+    TEST_CASE("TrimmedElementTestSuite - Integration Points")
+    {
+        // Verifies storage and global mapping/scaling of element integration points.
 
-BOOST_AUTO_TEST_CASE(BoundaryMeshAndBoundaryIps)
-{
-    // Verifies boundary mesh and boundary integration points are available in both coordinate spaces.
-    QuESo_INFO << "Testing :: TrimmedElement :: BoundaryMeshAndBoundaryIps" << std::endl;
 
-    const auto element = MakeTrimmedElement();
+        auto element = MakeTrimmedElement();
+        constexpr IntegrationPointType ip_a({ -0.5, 0.0, 0.5 }, 1.5);
+        constexpr IntegrationPointType ip_b({ 0.3, -0.7, 0.1 }, 0.75);
 
-    // Trimmed boundary mesh must be non-empty and have positive area.
-    const auto boundary_mesh = element.GetActiveDomainBoundaryMesh();
-    QuESo_CHECK_IS_FALSE(!(boundary_mesh.NumOfTriangles() > 0UL));
-    QuESo_CHECK_IS_FALSE(!(MeshUtilities::Area(boundary_mesh) > 0.0));
+        element.GetIntegrationPoints().push_back(ip_a);
+        element.GetIntegrationPoints().push_back(ip_b);
 
-    // Global boundary IPs must carry positive total weight.
-    const auto bips_global =
-        element.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>();
-    QuESo_CHECK_IS_FALSE(bips_global.empty());
-    QuESo_CHECK_IS_FALSE(!(SumWeights(bips_global) > 0.0));
+        // Parametric IPs are returned as-is.
+        const auto& r_param = static_cast<const TrimmedElementType&>(element).GetIntegrationPoints();
+        REQUIRE((r_param.size()) == (2UL));
+        CheckPointNear(r_param[0].Point(), ip_a.Point(), 1e-12);
+        CheckPointNear(r_param[1].Point(), ip_b.Point(), 1e-12);
 
-    // Parametric boundary IPs must also have positive total weight.
-    const auto bips_parametric =
-        element.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::parametric>();
-    QuESo_CHECK_IS_FALSE(bips_parametric.empty());
-    QuESo_CHECK_IS_FALSE(!(SumWeights(bips_parametric) > 0.0));
-}
+        // Global IPs must be mapped by the element-local mapper and weights scaled by DetJ.
+        const auto global_ips =
+            static_cast<const TrimmedElementType&>(element).GetIntegrationPoints<CoordinateSpace::global>();
+        auto it = global_ips.begin();
+        const auto global_a = *it++;
+        const auto global_b = *it;
 
-BOOST_AUTO_TEST_CASE(IsInsideActiveDomain)
-{
-    // Verifies active-domain point classification for representative inside/outside points.
-    QuESo_INFO << "Testing :: TrimmedElement :: IsInsideActiveDomain" << std::endl;
+        const double det_j = element.DetJ();
+        constexpr ElementBounds bounds{ MakeCellBoundsXYZ(), MakeCellBoundsUVW() };
 
-    const auto element = MakeTrimmedElement();
+        CheckPointNear(global_a.Point(), mapping::ToGlobal(ip_a.Point(), bounds), 1e-12);
+        CheckNear(global_a.Weight(), ip_a.Weight() * det_j, 1e-12);
+        CheckPointNear(global_b.Point(), mapping::ToGlobal(ip_b.Point(), bounds), 1e-12);
+        CheckNear(global_b.Weight(), ip_b.Weight() * det_j, 1e-12);
+    }
 
-    // Inside the embedded unit box and inside the trimmed cell.
-    QuESo_CHECK_IS_FALSE(!element.IsInsideActiveDomain<CoordinateSpace::global>({ 0.75, 0.5, 0.5 }));
+    TEST_CASE("TrimmedElementTestSuite - Boundary Mesh And Boundary Ips")
+    {
+        // Verifies boundary mesh and boundary integration points are available in both coordinate spaces.
 
-    // Outside the embedded unit box but still inside the trimmed cell.
-    QuESo_CHECK_IS_FALSE(element.IsInsideActiveDomain<CoordinateSpace::global>({ 1.25, 0.5, 0.5 }));
-}
 
-BOOST_AUTO_TEST_SUITE_END()
+        const auto element = MakeTrimmedElement();
 
-}  // End namespace queso::Testing
+        // Trimmed boundary mesh must be non-empty and have positive area.
+        const auto boundary_mesh = element.GetActiveDomainBoundaryMesh();
+        CHECK_FALSE(!(boundary_mesh.NumOfTriangles() > 0UL));
+        CHECK_FALSE(!(MeshUtilities::Area(boundary_mesh) > 0.0));
+
+        // Global boundary IPs must carry positive total weight.
+        const auto bips_global =
+            element.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::global>();
+        CHECK_FALSE(bips_global.empty());
+        CHECK_FALSE(!(SumWeights(bips_global) > 0.0));
+
+        // Parametric boundary IPs must also have positive total weight.
+        const auto bips_parametric =
+            element.GetActiveDomainBoundaryIps<BoundaryIntegrationPointType, CoordinateSpace::parametric>();
+        CHECK_FALSE(bips_parametric.empty());
+        CHECK_FALSE(!(SumWeights(bips_parametric) > 0.0));
+    }
+
+    TEST_CASE("TrimmedElementTestSuite - Is Inside Active Domain")
+    {
+        // Verifies active-domain point classification for representative inside/outside points.
+
+
+        const auto element = MakeTrimmedElement();
+
+        // Inside the embedded unit box and inside the trimmed cell.
+        CHECK_FALSE(!element.IsInsideActiveDomain<CoordinateSpace::global>({ 0.75, 0.5, 0.5 }));
+
+        // Outside the embedded unit box but still inside the trimmed cell.
+        CHECK_FALSE(element.IsInsideActiveDomain<CoordinateSpace::global>({ 1.25, 0.5, 0.5 }));
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing

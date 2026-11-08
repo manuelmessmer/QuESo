@@ -12,28 +12,29 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// STL includes
 #include <limits>
 
 //// Project includes
-#include "queso/includes/checks.hpp"
+#include "helpers/numerical_checks.hpp"
 #include "queso/includes/numerical_guards.hpp"
 
-namespace queso::Testing {
+namespace queso::testing {
 
-BOOST_AUTO_TEST_SUITE(NumericalGuardsTestSuite)
-
-BOOST_AUTO_TEST_CASE(SafeDivisorRequiresFiniteMagnitudeAboveThreshold)
+TEST_SUITE("NumericalGuardsTestSuite")
 {
-    QuESo_CHECK_IS_FALSE(numerical_guards::IsSafeDivisor(0.0));
-    QuESo_CHECK_IS_FALSE(numerical_guards::IsSafeDivisor(numerical_guards::Small));
-    QuESo_CHECK(numerical_guards::IsSafeDivisor(2.0 * numerical_guards::Small));
-    QuESo_CHECK_IS_FALSE(numerical_guards::IsSafeDivisor(std::numeric_limits<double>::infinity()));
-    QuESo_CHECK_IS_FALSE(numerical_guards::IsSafeDivisor(std::numeric_limits<double>::quiet_NaN()));
-}
 
-BOOST_AUTO_TEST_SUITE_END()
+    TEST_CASE("NumericalGuardsTestSuite - Safe Divisor Requires Finite Magnitude Above Threshold")
+    {
+        CHECK_FALSE(numerical_guards::IsSafeDivisor(0.0));
+        CHECK_FALSE(numerical_guards::IsSafeDivisor(numerical_guards::Small));
+        CHECK(numerical_guards::IsSafeDivisor(2.0 * numerical_guards::Small));
+        CHECK_FALSE(numerical_guards::IsSafeDivisor(std::numeric_limits<double>::infinity()));
+        CHECK_FALSE(numerical_guards::IsSafeDivisor(std::numeric_limits<double>::quiet_NaN()));
+    }
 
-}  // namespace queso::Testing
+}  // TEST_SUITE
+
+}  // namespace queso::testing

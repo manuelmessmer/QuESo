@@ -12,16 +12,16 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// STL includes
 #include <cmath>
 #include <utility>
 
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/untrimmed_element.hpp"
-#include "queso/includes/checks.hpp"
 #include "queso/quadrature/moment_fitting.hpp"
 #include "queso/quadrature/tensor_product.hpp"
 #include "queso/utilities/mesh_utilities.h"
@@ -31,7 +31,7 @@
 // tensor-product Gauss weights. Related coverage: test_moment_fitting_assembly.cpp checks matrix/RHS assembly details,
 // and test_point_elimination.cpp checks reduced quadrature rules on trimmed geometries.
 
-namespace queso::Testing {
+namespace queso::testing {
 
 namespace {
 
@@ -124,59 +124,58 @@ namespace {
             { .integration_order = rPolynomialOrder }
         );
 
-        QuESo_CHECK_EQUAL(r_points_moment_fitting.size(), reference_points.size());
+        REQUIRE((r_points_moment_fitting.size()) == (reference_points.size()));
         for (IndexType i = 0; i < reference_points.size(); ++i) {
-            QuESo_CHECK_RELATIVE_NEAR(
-                r_points_moment_fitting[i].Weight(), reference_points[i].Weight(), WeightTolerance
-            );
+            CheckRelativeNear(r_points_moment_fitting[i].Weight(), reference_points[i].Weight(), WeightTolerance);
         }
-        QuESo_CHECK_LT(RelativeWeightErrorNorm(r_points_moment_fitting, reference_points), ErrorNormTolerance);
+        CHECK((RelativeWeightErrorNorm(r_points_moment_fitting, reference_points)) < (ErrorNormTolerance));
     }
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(MomentFittingTestSuite)
-
-BOOST_AUTO_TEST_CASE(MomentFittingP1)
+TEST_SUITE("MomentFittingTestSuite")
 {
-    // Verifies that a linear moment-fitting solve reproduces the tensor-product Gauss rule on a box.
-    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=1" << std::endl;
-    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 3.0 });
-    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    constexpr Vector3i polynomial_order{ 1, 1, 1 };
-    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 0, 1e-12, 1e-10);
-}
 
-BOOST_AUTO_TEST_CASE(MomentFittingP2)
-{
-    // Verifies that a quadratic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
-    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=2" << std::endl;
-    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 3.0 });
-    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    constexpr Vector3i polynomial_order{ 2, 2, 2 };
-    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 0, 1e-12, 1e-10);
-}
+    TEST_CASE("MomentFittingTestSuite - Moment Fitting P1")
+    {
+        // Verifies that a linear moment-fitting solve reproduces the tensor-product Gauss rule on a box.
 
-BOOST_AUTO_TEST_CASE(MomentFittingP3)
-{
-    // Verifies that a cubic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
-    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=3" << std::endl;
-    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 2.0, 1.0 });
-    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    constexpr Vector3i polynomial_order{ 3, 3, 3 };
-    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 500, 1e-6, 1e-7);
-}
+        constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 3.0 });
+        constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        constexpr Vector3i polynomial_order{ 1, 1, 1 };
+        CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 0, 1e-12, 1e-10);
+    }
 
-BOOST_AUTO_TEST_CASE(MomentFittingP4)
-{
-    // Verifies that a quartic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
-    QuESo_INFO << "Testing :: Test Moment Fitting :: Surface Integral p=4" << std::endl;
-    constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 2.0, 1.0 });
-    constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    constexpr Vector3i polynomial_order{ 4, 4, 4 };
-    CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 2000, 1e-6, 1e-7);
-}
+    TEST_CASE("MomentFittingTestSuite - Moment Fitting P2")
+    {
+        // Verifies that a quadratic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
 
-BOOST_AUTO_TEST_SUITE_END()
+        constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 3.0 });
+        constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        constexpr Vector3i polynomial_order{ 2, 2, 2 };
+        CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 0, 1e-12, 1e-10);
+    }
 
-}  // namespace queso::Testing
+    TEST_CASE("MomentFittingTestSuite - Moment Fitting P3")
+    {
+        // Verifies that a cubic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
+
+        constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 2.0, 1.0 });
+        constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        constexpr Vector3i polynomial_order{ 3, 3, 3 };
+        CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 500, 1e-6, 1e-7);
+    }
+
+    TEST_CASE("MomentFittingTestSuite - Moment Fitting P4")
+    {
+        // Verifies that a quartic moment-fitting solve reproduces the tensor-product Gauss rule on a box.
+
+        constexpr auto bounds_xyz = MakeBox({ 0.0, 0.0, 0.0 }, { 2.0, 2.0, 1.0 });
+        constexpr auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        constexpr Vector3i polynomial_order{ 4, 4, 4 };
+        CheckMomentFittingRecoversTensorProductWeights(bounds_xyz, bounds_uvw, polynomial_order, 2000, 1e-6, 1e-7);
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing

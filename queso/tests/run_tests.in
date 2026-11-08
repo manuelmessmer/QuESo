@@ -9,13 +9,13 @@ case "${1:-}" in
         python3 -m pytest @PYTHON_TEST_SOURCE_DIR_IN@ -m "not kratos"
         ;;
     cpp)
-        "@CMAKE_CTEST_COMMAND@" --test-dir "@CMAKE_BINARY_DIR@" --verbose --output-on-failure
+        "@CMAKE_CTEST_COMMAND@" --test-dir "@CMAKE_BINARY_DIR@" --output-on-failure
         ;;
     thingi10k)
-        @CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set "${2:?Missing ThingI10K URL prefix}" 5 50 @THINGI10K_ID_DIR@
-        @CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/ElementClassificationTest -- small_set "${2:?Missing ThingI10K URL prefix}" 2 10 @THINGI10K_ID_DIR@
-        @CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set "${2:?Missing ThingI10K URL prefix}" 5 50 @THINGI10K_ID_DIR@
-        @CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k --run_test=Thingi10KTestSuite/STLEmbeddingTest -- large_set "${2:?Missing ThingI10K URL prefix}" 2 10 @THINGI10K_ID_DIR@
+        "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k" --test-case="*Element Classification Test" -- small_set "${2:?Missing ThingI10K URL prefix}" 5 50 "@THINGI10K_ID_DIR@"
+        "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k" --test-case="*Element Classification Test" -- small_set "${2:?Missing ThingI10K URL prefix}" 2 10 "@THINGI10K_ID_DIR@"
+        "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k" --test-case="*STLEmbedding Test" -- large_set "${2:?Missing ThingI10K URL prefix}" 5 50 "@THINGI10K_ID_DIR@"
+        "@CPP_TEST_EXE_DIR_IN@/test_queso_thingi10k" --test-case="*STLEmbedding Test" -- large_set "${2:?Missing ThingI10K URL prefix}" 2 10 "@THINGI10K_ID_DIR@"
         ;;
     *)
         printf 'Usage: %s {py|cpp|thingi10k <url-prefix>}\n' "$0" >&2

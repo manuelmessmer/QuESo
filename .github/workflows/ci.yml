@@ -24,13 +24,10 @@ jobs:
         with:
           node-version: "20"
           
-      - name: Install Boost Test
-        run: sudo apt-get install -y libboost-test-dev
-
       - name: Build
         run: |
           cmake --preset linux -DQUESO_BUILD_TESTING=ON -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_CXX_FLAGS="${{ matrix.build-type == 'Debug' && '-Og' || '' }}"
-          cmake --build --preset linux --target install _core test_queso --verbose
+          cmake --build --preset linux --target install _core test_queso test_queso_thingi10k --verbose
 
       - name: Install Python dependencies
         run: |
@@ -61,33 +58,10 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Setup vcpkg
-        run: |
-          git clone https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          .\bootstrap-vcpkg.bat
-        shell: pwsh
-
-      - name: Cache vcpkg packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            vcpkg/installed
-            vcpkg/packages
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
-
-      - name: Install Boost Test
-        run: |
-          cd vcpkg
-          .\vcpkg install boost-test:x64-windows
-        shell: pwsh
-
       - name: Build
         run: |
-          cmake --preset win -DQUESO_BUILD_TESTING=ON -DBoost_ROOT="${{ github.workspace }}/vcpkg/installed/x64-windows"
-          cmake --build --preset win --target install _core test_queso
+          cmake --preset win -DQUESO_BUILD_TESTING=ON
+          cmake --build --preset win --target install _core test_queso test_queso_thingi10k
 
       - name: Install Python dependencies
         run: |
@@ -100,5 +74,3 @@ jobs:
       - name: Test cpp
         run: out\build\win\bin\run_tests.cmd cpp
         shell: cmd
-        env:
-          PATH: ${{ env.PATH }};${{ github.workspace }}\vcpkg\installed\x64-windows\bin

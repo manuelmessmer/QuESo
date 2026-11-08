@@ -12,24 +12,23 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 //// STL includes
 
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/embedding/mesh_operator.h"
 #include "queso/embedding/octree.h"
-#include "queso/includes/checks.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/utilities/mesh_utilities.h"
 
-#include "queso/tests/cpp/helpers/global_config.hpp"
+#include "queso/tests/cpp/helpers/test_data.hpp"
 #include "queso/tests/cpp/helpers/trimmed_domain_test_helpers.hpp"
 
-namespace queso {
-namespace Testing {
+namespace queso::testing {
     namespace {
 
         [[nodiscard]] Unique<TrimmedDomain> MakeDomain(
@@ -47,178 +46,178 @@ namespace Testing {
                 ),
                 MinNumberOfTriangles
             );
-            BOOST_REQUIRE_MESSAGE(p_domain, "Octree fixture requires a non-empty clipped section.");
+            REQUIRE_MESSAGE(p_domain, "Octree fixture requires a non-empty clipped section.");
             return p_domain;
         }
 
     }  // namespace
 
-    BOOST_AUTO_TEST_SUITE(Octree_TestSuite)
-
-    BOOST_AUTO_TEST_CASE(OctreeCubeTest1)
+    TEST_SUITE("Octree_TestSuite")
     {
-        QuESo_INFO << "Testing :: Test Octree :: Test Cube 1" << std::endl;
-        typedef IntegrationPoint IntegrationPointType;
-        typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-        typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-        /// Uniform refinement, each node has 8 children.
+        TEST_CASE("Octree_TestSuite - Octree Cube Test1")
+        {
 
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cube_with_cavity.stl");
+            typedef IntegrationPoint IntegrationPointType;
+            typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+            typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-        const IndexType min_num_triangles = 500;
+            /// Uniform refinement, each node has 8 children.
 
-        // Get trimmed domain.
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.7, .coordinate_scale = 2.0 })
-        );
-        const PointType lower_a = { -2.0, -2.0, -2.0 };
-        const PointType upper_a = { -1.3, -1.3, -1.3 };
-        auto p_trimmed_domain = MakeDomain(mesh_operator, lower_a, upper_a, min_num_triangles);
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cube_with_cavity.stl");
 
-        const auto bounds_xyz = MakeBox({ -1.5, -1.5, -1.5 }, { -1.3, -1.3, -1.3 });
-        const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-        ElementType element(0, ElementBounds{ bounds_xyz, bounds_uvw }, std::move(*p_trimmed_domain));
+            const IndexType min_num_triangles = 500;
 
-        // Construct octree.
-        Octree<ElementType> octree(
-            &element,
-            element.GetCellBounds<CoordinateSpace::global>(),
-            element.GetCellBounds<CoordinateSpace::parametric>()
-        );
+            // Get trimmed domain.
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.7, .coordinate_scale = 2.0 })
+            );
+            const PointType lower_a = { -2.0, -2.0, -2.0 };
+            const PointType upper_a = { -1.3, -1.3, -1.3 };
+            auto p_trimmed_domain = MakeDomain(mesh_operator, lower_a, upper_a, min_num_triangles);
 
-        // Refine octree to level 5.
-        octree.Refine(4, 4);
-        QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 4681UL);  // 8^0+8^1+8^2+8^3..+8^4
-        QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 4096UL);  // 8^4
+            const auto bounds_xyz = MakeBox({ -1.5, -1.5, -1.5 }, { -1.3, -1.3, -1.3 });
+            const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+            ElementType element(0, ElementBounds{ bounds_xyz, bounds_uvw }, std::move(*p_trimmed_domain));
 
-        // Refine octree to level 6.
-        octree.Refine(5, 5);
-        QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 37449UL);  // 8^0+8^1+8^2+8^3..+8^5
-        QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 32768UL);  // 8^5
+            // Construct octree.
+            Octree<ElementType> octree(
+                &element,
+                element.GetCellBounds<CoordinateSpace::global>(),
+                element.GetCellBounds<CoordinateSpace::parametric>()
+            );
 
-        Vector3i r_order{ 2, 3, 1 };
-        auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
-        QuESo_CHECK_EQUAL(p_points->size(), 786432);
-        double volume = 0.0;
-        for (auto point : (*p_points)) { volume += point.Weight(); }
-        QuESo_CHECK_LT(std::abs(volume - 8.0) / 8.0, 1e-10);
-    }  // End TouchingCubeTest1
+            // Refine octree to level 5.
+            octree.Refine(4, 4);
+            CHECK((octree.NumberOfNodes()) == (4681UL));  // 8^0+8^1+8^2+8^3..+8^4
+            CHECK((octree.NumberOfLeafs()) == (4096UL));  // 8^4
 
-    BOOST_AUTO_TEST_CASE(OctreeCubeTest2)
-    {
-        QuESo_INFO << "Testing :: Test Octree :: Test Cube 2" << std::endl;
+            // Refine octree to level 6.
+            octree.Refine(5, 5);
+            CHECK((octree.NumberOfNodes()) == (37449UL));  // 8^0+8^1+8^2+8^3..+8^5
+            CHECK((octree.NumberOfLeafs()) == (32768UL));  // 8^5
 
-        typedef IntegrationPoint IntegrationPointType;
-        typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-        typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
-        /// Refinement in only on trimmed nodes in one direction.
+            Vector3i r_order{ 2, 3, 1 };
+            auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
+            CHECK((p_points->size()) == (786432));
+            double volume = 0.0;
+            for (auto point : (*p_points)) { volume += point.Weight(); }
+            CHECK((std::abs(volume - 8.0) / 8.0) < (1e-10));
+        }  // End TouchingCubeTest1
 
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cube_with_cavity.stl");
+        TEST_CASE("Octree_TestSuite - Octree Cube Test2")
+        {
 
-        const IndexType min_num_triangles = 500;
 
-        // Get trimmed domain.
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.7, .coordinate_scale = 2.0 })
-        );
-        const PointType lower_b = { -2.0, -2.0, -2.0 };
-        const PointType upper_b = { -1.3, -1.3, -1.3 };
-        auto p_trimmed_domain = MakeDomain(mesh_operator, lower_b, upper_b, min_num_triangles);
+            typedef IntegrationPoint IntegrationPointType;
+            typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+            typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+            /// Refinement in only on trimmed nodes in one direction.
 
-        const auto bounds_xyz = MakeBox({ -1.50001, -1.49999, -1.49999 }, { -1.3, -1.3, -1.3 });
-        const auto bounds_uvw = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 });
-        ElementType element(0, ElementBounds{ bounds_xyz, bounds_uvw }, std::move(*p_trimmed_domain));
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/cube_with_cavity.stl");
 
-        // Construct octree.
-        Octree<ElementType> octree(
-            &element,
-            element.GetCellBounds<CoordinateSpace::global>(),
-            element.GetCellBounds<CoordinateSpace::parametric>()
-        );
+            const IndexType min_num_triangles = 500;
 
-        // Refine octree to level 5.
-        octree.Refine(0, 4);
-        QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 681UL);  // 1+4+4*4+4*4*4 + 4^1+4^2+4^3+4^4*2
-        QuESo_CHECK_EQUAL(octree.NumberOfLeafs(), 596UL);  // 4^1+4^2+4^3+4^4*2
+            // Get trimmed domain.
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 0.7, .coordinate_scale = 2.0 })
+            );
+            const PointType lower_b = { -2.0, -2.0, -2.0 };
+            const PointType upper_b = { -1.3, -1.3, -1.3 };
+            auto p_trimmed_domain = MakeDomain(mesh_operator, lower_b, upper_b, min_num_triangles);
 
-        Vector3i r_order{ 0, 0, 0 };
-        auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
+            const auto bounds_xyz = MakeBox({ -1.50001, -1.49999, -1.49999 }, { -1.3, -1.3, -1.3 });
+            const auto bounds_uvw = MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 });
+            ElementType element(0, ElementBounds{ bounds_xyz, bounds_uvw }, std::move(*p_trimmed_domain));
 
-        QuESo_CHECK_EQUAL(p_points->size(), 596);
-        double volume = 0.0;
-        for (auto point : (*p_points)) { volume += point.Weight(); }
-        QuESo_CHECK_LT(std::abs(volume - 1.0) / 1.0, 1e-4);
-    }  // End OctreeCubeTest2
+            // Construct octree.
+            Octree<ElementType> octree(
+                &element,
+                element.GetCellBounds<CoordinateSpace::global>(),
+                element.GetCellBounds<CoordinateSpace::parametric>()
+            );
 
-    BOOST_AUTO_TEST_CASE(OctreeElephantTest)
-    {
-        QuESo_INFO << "Testing :: Test Octree :: Test Elephant" << std::endl;
-        typedef IntegrationPoint IntegrationPointType;
-        typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
-        typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
+            // Refine octree to level 5.
+            octree.Refine(0, 4);
+            CHECK((octree.NumberOfNodes()) == (681UL));  // 1+4+4*4+4*4*4 + 4^1+4^2+4^3+4^4*2
+            CHECK((octree.NumberOfLeafs()) == (596UL));  // 4^1+4^2+4^3+4^4*2
 
-        // Compute volume of elephant through octree.
+            Vector3i r_order{ 0, 0, 0 };
+            auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
 
-        // Read mesh from STL file
-        TriangleMesh triangle_mesh{};
-        std::string base_dir = GlobalConfig::GetInstance().BaseDir;
-        IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/elephant.stl");
+            CHECK((p_points->size()) == (596));
+            double volume = 0.0;
+            for (auto point : (*p_points)) { volume += point.Weight(); }
+            CHECK((std::abs(volume - 1.0) / 1.0) < (1e-4));
+        }  // End OctreeCubeTest2
 
-        const IndexType min_num_triangles = 500;
+        TEST_CASE("Octree_TestSuite - Octree Elephant Test")
+        {
 
-        const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh.View());
-        // Get trimmed domain.
-        const embedding::MeshOperator mesh_operator(
-            triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 1.2, .coordinate_scale = 1.0 })
-        );
-        const PointType lower_c = { -0.4, -0.6, -0.35 };
-        const PointType upper_c = { 0.4, 0.6, 0.35 };
-        auto p_trimmed_domain = MakeDomain(mesh_operator, lower_c, upper_c, min_num_triangles);
+            typedef IntegrationPoint IntegrationPointType;
+            typedef BoundaryIntegrationPoint BoundaryIntegrationPointType;
+            typedef TrimmedElement<IntegrationPointType, BoundaryIntegrationPointType> ElementType;
 
-        const auto bounds_xyz = MakeBox({ -0.4, -0.6, -0.35 }, { 0.4, 0.6, 0.35 });
-        const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-        ElementType element(0, ElementBounds{ bounds_xyz, bounds_uvw }, std::move(*p_trimmed_domain));
+            // Compute volume of elephant through octree.
 
-        // Construct octree.
-        Octree<ElementType> octree(
-            &element,
-            element.GetCellBounds<CoordinateSpace::global>(),
-            element.GetCellBounds<CoordinateSpace::parametric>()
-        );
+            // Read mesh from STL file
+            TriangleMesh triangle_mesh{};
+            std::string base_dir = TestDataDirectory();
+            IO::ReadMeshFromSTL(triangle_mesh, base_dir + "/primitives/elephant.stl");
 
-        // Refine octree to level 5.
-        octree.Refine(0, 5);
+            const IndexType min_num_triangles = 500;
 
-        // Check if integration points contain same volume as ref_volume
-        Vector3i r_order{ 2, 2, 2 };
-        auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
+            const double ref_volume = MeshUtilities::VolumeOMP(triangle_mesh.View());
+            // Get trimmed domain.
+            const embedding::MeshOperator mesh_operator(
+                triangle_mesh.View(), GeometryTolerance::FromScale({ .length_scale = 1.2, .coordinate_scale = 1.0 })
+            );
+            const PointType lower_c = { -0.4, -0.6, -0.35 };
+            const PointType upper_c = { 0.4, 0.6, 0.35 };
+            auto p_trimmed_domain = MakeDomain(mesh_operator, lower_c, upper_c, min_num_triangles);
 
-        QuESo_CHECK_EQUAL(octree.NumberOfNodes(), 3887);
-        QuESo_CHECK_EQUAL(p_points->size(), 45186);
-        double volume = 0.0;
-        for (auto point : (*p_points)) {
-            volume += point.Weight() * (0.8 * 1.2 * 0.7) / 8.0;
-            ;
-        }
-        QuESo_CHECK_LT(std::abs(volume - ref_volume) / ref_volume, 2e-4);
+            const auto bounds_xyz = MakeBox({ -0.4, -0.6, -0.35 }, { 0.4, 0.6, 0.35 });
+            const auto bounds_uvw = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+            ElementType element(0, ElementBounds{ bounds_xyz, bounds_uvw }, std::move(*p_trimmed_domain));
 
-        // Refine inner levels -> volume must the same as before.
-        octree.Refine(5, 5);
-        auto p_points_2 = octree.pGetIntegrationPoints<ElementType>(r_order);
-        QuESo_CHECK_EQUAL(p_points_2->size(), 60873);
-        double volume_2 = 0.0;
-        for (auto point : (*p_points_2)) { volume_2 += point.Weight() * (0.8 * 1.2 * 0.7) / 8.0; }
-        QuESo_CHECK_LT(std::abs(volume - volume_2) / volume, 1e-10);
-    }  // End OctreeBunny
+            // Construct octree.
+            Octree<ElementType> octree(
+                &element,
+                element.GetCellBounds<CoordinateSpace::global>(),
+                element.GetCellBounds<CoordinateSpace::parametric>()
+            );
 
-    BOOST_AUTO_TEST_SUITE_END()
+            // Refine octree to level 5.
+            octree.Refine(0, 5);
 
-}  // End namespace Testing
-}  // End namespace queso
+            // Check if integration points contain same volume as ref_volume
+            Vector3i r_order{ 2, 2, 2 };
+            auto p_points = octree.pGetIntegrationPoints<ElementType>(r_order);
+
+            CHECK((octree.NumberOfNodes()) == (3887));
+            CHECK((p_points->size()) == (45186));
+            double volume = 0.0;
+            for (auto point : (*p_points)) {
+                volume += point.Weight() * (0.8 * 1.2 * 0.7) / 8.0;
+                ;
+            }
+            CHECK((std::abs(volume - ref_volume) / ref_volume) < (2e-4));
+
+            // Refine inner levels -> volume must the same as before.
+            octree.Refine(5, 5);
+            auto p_points_2 = octree.pGetIntegrationPoints<ElementType>(r_order);
+            CHECK((p_points_2->size()) == (60873));
+            double volume_2 = 0.0;
+            for (auto point : (*p_points_2)) { volume_2 += point.Weight() * (0.8 * 1.2 * 0.7) / 8.0; }
+            CHECK((std::abs(volume - volume_2) / volume) < (1e-10));
+        }  // End OctreeBunny
+
+    }  // TEST_SUITE
+
+} // namespace queso::testing

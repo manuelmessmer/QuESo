@@ -15,12 +15,12 @@
 #include <utility>
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/integration_point.hpp"
-#include "queso/includes/checks.hpp"
 #include "queso/quadrature/moment_fitting_assembly.hpp"
 #include "queso/quadrature/moment_fitting_types.hpp"
 #include "queso/utilities/mesh_utilities.h"
@@ -30,7 +30,7 @@
 // polynomial-order dispatch and validation. Related coverage: test_moment_fitting.cpp checks NNLS solves,
 // test_point_elimination.cpp checks reduced rules, and test_trimmed_domain.cpp checks STL reference data.
 
-namespace queso::Testing {
+namespace queso::testing {
 
 namespace {
 
@@ -63,84 +63,85 @@ namespace {
 
     void CheckOddFirstOrderConstantTermsAreZero(const std::vector<double>& rConstantTerms)
     {
-        QuESo_CHECK_NEAR(rConstantTerms[1], 0.0, 1e-12);
-        QuESo_CHECK_NEAR(rConstantTerms[2], 0.0, 1e-12);
-        QuESo_CHECK_NEAR(rConstantTerms[4], 0.0, 1e-12);
+        CheckNear(rConstantTerms[1], 0.0, 1e-12);
+        CheckNear(rConstantTerms[2], 0.0, 1e-12);
+        CheckNear(rConstantTerms[4], 0.0, 1e-12);
     }
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(MomentFittingAssemblyTestSuite)
-
-BOOST_AUTO_TEST_CASE(IntegrationOrderInfoAcceptsOnlySupportedPositiveOrders)
+TEST_SUITE("MomentFittingAssemblyTestSuite")
 {
-    // Verifies the assembly contract: moment-fitting supports positive polynomial orders up to p=8.
-    const auto order_info = Assembly::MakeIntegrationOrderInfo({ 1, 2, 3 });
-    QuESo_CHECK_EQUAL(order_info.order_u, 1UL);
-    QuESo_CHECK_EQUAL(order_info.order_v, 2UL);
-    QuESo_CHECK_EQUAL(order_info.order_w, 3UL);
-    QuESo_CHECK_EQUAL(order_info.number_of_functions, 24UL);
 
-    const auto max_order_info = Assembly::MakeIntegrationOrderInfo({ 8, 8, 8 });
-    QuESo_CHECK_EQUAL(max_order_info.number_of_functions, 729UL);
+    TEST_CASE("MomentFittingAssemblyTestSuite - Integration Order Info Accepts Only Supported Positive Orders")
+    {
+        // Verifies the assembly contract: moment-fitting supports positive polynomial orders up to p=8.
+        const auto order_info = Assembly::MakeIntegrationOrderInfo({ 1, 2, 3 });
+        CHECK((order_info.order_u) == (1UL));
+        CHECK((order_info.order_v) == (2UL));
+        CHECK((order_info.order_w) == (3UL));
+        CHECK((order_info.number_of_functions) == (24UL));
 
-    BOOST_REQUIRE_THROW(MakeAndDiscardIntegrationOrderInfo({ 0, 1, 1 }), std::exception);
-    BOOST_REQUIRE_THROW(MakeAndDiscardIntegrationOrderInfo({ 1, 9, 1 }), std::exception);
-}
+        const auto max_order_info = Assembly::MakeIntegrationOrderInfo({ 8, 8, 8 });
+        CHECK((max_order_info.number_of_functions) == (729UL));
 
-BOOST_AUTO_TEST_CASE(FittingMatrixP1UsesPointColumnsAndBasisOrder)
-{
-    // Verifies NNLS column-major point columns and the current basis ordering u -> v -> w.
-    constexpr auto bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    const std::vector<IntegrationPointType> points = {
-        IntegrationPointType({ 0.25, -0.5, 0.75 }, 1.0),
-        IntegrationPointType({ -0.25, 0.5, -0.75 }, 1.0),
-    };
-
-    std::vector<double> matrix{};
-    Assembly::AssembleFittingMatrix(matrix, points, bounds, Assembly::MakeIntegrationOrderInfo({ 1, 1, 1 }));
-
-    QuESo_CHECK_EQUAL(matrix.size(), 16UL);
-
-    constexpr std::array<double, 8> first_column = { 1.0, 0.75, -0.5, -0.375, 0.25, 0.1875, -0.125, -0.09375 };
-    constexpr std::array<double, 8> second_column = { 1.0, -0.75, 0.5, -0.375, -0.25, 0.1875, -0.125, 0.09375 };
-
-    for (IndexType i = 0; i < first_column.size(); ++i) { QuESo_CHECK_NEAR(matrix[i], first_column[i], 1e-12); }
-    for (IndexType i = 0; i < second_column.size(); ++i) {
-        QuESo_CHECK_NEAR(matrix[i + first_column.size()], second_column[i], 1e-12);
+        REQUIRE_THROWS_AS(MakeAndDiscardIntegrationOrderInfo({ 0, 1, 1 }), std::exception);
+        REQUIRE_THROWS_AS(MakeAndDiscardIntegrationOrderInfo({ 1, 9, 1 }), std::exception);
     }
-}
 
-BOOST_AUTO_TEST_CASE(FittingMatrixMixedOrderHasExpectedSize)
-{
-    // Verifies that mixed directional orders use the expected tensor-product number of moment functions.
-    constexpr auto bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    const std::vector<IntegrationPointType> points = {
-        IntegrationPointType({ 0.0, 0.0, 0.0 }, 1.0),
-        IntegrationPointType({ 0.5, -0.5, 0.25 }, 1.0),
-        IntegrationPointType({ -0.5, 0.25, -0.25 }, 1.0),
-    };
+    TEST_CASE("MomentFittingAssemblyTestSuite - Fitting Matrix P1 Uses Point Columns And Basis Order")
+    {
+        // Verifies NNLS column-major point columns and the current basis ordering u -> v -> w.
+        constexpr auto bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        const std::vector<IntegrationPointType> points = {
+            IntegrationPointType({ 0.25, -0.5, 0.75 }, 1.0),
+            IntegrationPointType({ -0.25, 0.5, -0.75 }, 1.0),
+        };
 
-    std::vector<double> matrix{};
-    Assembly::AssembleFittingMatrix(matrix, points, bounds, Assembly::MakeIntegrationOrderInfo({ 2, 1, 3 }));
+        std::vector<double> matrix{};
+        Assembly::AssembleFittingMatrix(matrix, points, bounds, Assembly::MakeIntegrationOrderInfo({ 1, 1, 1 }));
 
-    QuESo_CHECK_EQUAL(matrix.size(), 3UL * 2UL * 4UL * points.size());
-}
+        REQUIRE((matrix.size()) == (16UL));
 
-BOOST_AUTO_TEST_CASE(ConstantTermsForSymmetricBoxRecoverVolumeAndZeroOddMoments)
-{
-    // Verifies basic divergence-theorem assembly on a symmetric box without using external STL data.
-    constexpr auto bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-    const auto boundary_ips = MakeBoxBoundaryIps(bounds);
+        constexpr std::array<double, 8> first_column = { 1.0, 0.75, -0.5, -0.375, 0.25, 0.1875, -0.125, -0.09375 };
+        constexpr std::array<double, 8> second_column = { 1.0, -0.75, 0.5, -0.375, -0.25, 0.1875, -0.125, 0.09375 };
 
-    const auto constant_terms =
-        Assembly::ComputeConstantTerms(boundary_ips, bounds, Assembly::MakeIntegrationOrderInfo({ 1, 1, 1 }));
+        for (IndexType i = 0; i < first_column.size(); ++i) { CheckNear(matrix[i], first_column[i], 1e-12); }
+        for (IndexType i = 0; i < second_column.size(); ++i) {
+            CheckNear(matrix[i + first_column.size()], second_column[i], 1e-12);
+        }
+    }
 
-    QuESo_CHECK_EQUAL(constant_terms.size(), 8UL);
-    QuESo_CHECK_NEAR(constant_terms[0], BoxVolume(bounds), 1e-12);
-    CheckOddFirstOrderConstantTermsAreZero(constant_terms);
-}
+    TEST_CASE("MomentFittingAssemblyTestSuite - Fitting Matrix Mixed Order Has Expected Size")
+    {
+        // Verifies that mixed directional orders use the expected tensor-product number of moment functions.
+        constexpr auto bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        const std::vector<IntegrationPointType> points = {
+            IntegrationPointType({ 0.0, 0.0, 0.0 }, 1.0),
+            IntegrationPointType({ 0.5, -0.5, 0.25 }, 1.0),
+            IntegrationPointType({ -0.5, 0.25, -0.25 }, 1.0),
+        };
 
-BOOST_AUTO_TEST_SUITE_END()
+        std::vector<double> matrix{};
+        Assembly::AssembleFittingMatrix(matrix, points, bounds, Assembly::MakeIntegrationOrderInfo({ 2, 1, 3 }));
 
-}  // namespace queso::Testing
+        REQUIRE((matrix.size()) == (3UL * 2UL * 4UL * points.size()));
+    }
+
+    TEST_CASE("MomentFittingAssemblyTestSuite - Constant Terms For Symmetric Box Recover Volume And Zero Odd Moments")
+    {
+        // Verifies basic divergence-theorem assembly on a symmetric box without using external STL data.
+        constexpr auto bounds = MakeBox({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+        const auto boundary_ips = MakeBoxBoundaryIps(bounds);
+
+        const auto constant_terms =
+            Assembly::ComputeConstantTerms(boundary_ips, bounds, Assembly::MakeIntegrationOrderInfo({ 1, 1, 1 }));
+
+        REQUIRE((constant_terms.size()) == (8UL));
+        CheckNear(constant_terms[0], BoxVolume(bounds), 1e-12);
+        CheckOddFirstOrderConstantTermsAreZero(constant_terms);
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing

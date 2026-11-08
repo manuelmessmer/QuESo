@@ -12,15 +12,15 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/cell_domain.hpp"
-#include "queso/includes/checks.hpp"
 #include "queso/utilities/mesh_utilities.h"
 
-namespace queso::Testing {
+namespace queso::testing {
 
 namespace {
 
@@ -47,113 +47,115 @@ namespace {
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(CellDomainTestSuite)
-
-BOOST_AUTO_TEST_CASE(Bounds)
+TEST_SUITE("CellDomainTestSuite")
 {
-    QuESo_INFO << "Testing :: CellDomain :: Bounds" << std::endl;
 
-    const CellDomain cell_domain{};
-    constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
-    constexpr auto bounds_xyz = MakeBoundsXYZ();
-    constexpr auto bounds_uvw = MakeBoundsUVW();
+    TEST_CASE("CellDomainTestSuite - Bounds")
+    {
 
-    QuESo_CHECK_POINT_NEAR(cell_domain.GetBounds<CoordinateSpace::global>(bounds).lower, bounds_xyz.lower, 1e-12);
-    QuESo_CHECK_POINT_NEAR(cell_domain.GetBounds<CoordinateSpace::global>(bounds).upper, bounds_xyz.upper, 1e-12);
-    QuESo_CHECK_POINT_NEAR(cell_domain.GetBounds<CoordinateSpace::parametric>(bounds).lower, bounds_uvw.lower, 1e-12);
-    QuESo_CHECK_POINT_NEAR(cell_domain.GetBounds<CoordinateSpace::parametric>(bounds).upper, bounds_uvw.upper, 1e-12);
-}
 
-BOOST_AUTO_TEST_CASE(BoundaryMeshAndBoundaryIpsGlobal)
-{
-    QuESo_INFO << "Testing :: CellDomain :: BoundaryMeshAndBoundaryIpsGlobal" << std::endl;
+        const CellDomain cell_domain{};
+        constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
+        constexpr auto bounds_xyz = MakeBoundsXYZ();
+        constexpr auto bounds_uvw = MakeBoundsUVW();
 
-    const CellDomain cell_domain{};
-    constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
-    constexpr auto bounds_xyz = MakeBoundsXYZ();
+        CheckPointNear(cell_domain.GetBounds<CoordinateSpace::global>(bounds).lower, bounds_xyz.lower, 1e-12);
+        CheckPointNear(cell_domain.GetBounds<CoordinateSpace::global>(bounds).upper, bounds_xyz.upper, 1e-12);
+        CheckPointNear(cell_domain.GetBounds<CoordinateSpace::parametric>(bounds).lower, bounds_uvw.lower, 1e-12);
+        CheckPointNear(cell_domain.GetBounds<CoordinateSpace::parametric>(bounds).upper, bounds_uvw.upper, 1e-12);
+    }
 
-    const auto boundary_mesh = cell_domain.GetBoundaryMesh(bounds);
-    QuESo_CHECK_IS_FALSE(!(boundary_mesh.NumOfTriangles() > 0UL));
-    QuESo_CHECK_NEAR(MeshUtilities::Area(boundary_mesh), BoxSurfaceArea(bounds_xyz), 1e-12);
+    TEST_CASE("CellDomainTestSuite - Boundary Mesh And Boundary Ips Global")
+    {
 
-    const auto boundary_ips = cell_domain.GetBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::global>(bounds);
-    QuESo_CHECK_NEAR(SumWeights(boundary_ips), BoxSurfaceArea(bounds_xyz), 1e-10);
-}
 
-BOOST_AUTO_TEST_CASE(BoundaryIpsParametric)
-{
-    QuESo_INFO << "Testing :: CellDomain :: BoundaryIpsParametric" << std::endl;
+        const CellDomain cell_domain{};
+        constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
+        constexpr auto bounds_xyz = MakeBoundsXYZ();
 
-    const CellDomain cell_domain{};
-    constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
-    constexpr auto bounds_uvw = MakeBoundsUVW();
+        const auto boundary_mesh = cell_domain.GetBoundaryMesh(bounds);
+        CHECK_FALSE(!(boundary_mesh.NumOfTriangles() > 0UL));
+        CheckNear(MeshUtilities::Area(boundary_mesh), BoxSurfaceArea(bounds_xyz), 1e-12);
 
-    const auto boundary_ips = cell_domain.GetBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::parametric>(bounds);
-    QuESo_CHECK_NEAR(SumWeights(boundary_ips), BoxSurfaceArea(bounds_uvw), 1e-10);
-}
+        const auto boundary_ips = cell_domain.GetBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::global>(bounds);
+        CheckNear(SumWeights(boundary_ips), BoxSurfaceArea(bounds_xyz), 1e-10);
+    }
 
-BOOST_AUTO_TEST_CASE(IsInside)
-{
-    QuESo_INFO << "Testing :: CellDomain :: IsInside" << std::endl;
+    TEST_CASE("CellDomainTestSuite - Boundary Ips Parametric")
+    {
 
-    const CellDomain cell_domain{};
-    constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
 
-    QuESo_CHECK_IS_FALSE(!cell_domain.IsInside<CoordinateSpace::global>(PointType{ 0.0, -80.0, 10.0 }, bounds));
-    QuESo_CHECK_IS_FALSE(!cell_domain.IsInside<CoordinateSpace::global>(PointType{ -25.0, -111.44, 7.89 }, bounds));
-    QuESo_CHECK_IS_FALSE(cell_domain.IsInside<CoordinateSpace::global>(PointType{ -26.0, -80.0, 10.0 }, bounds));
+        const CellDomain cell_domain{};
+        constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
+        constexpr auto bounds_uvw = MakeBoundsUVW();
 
-    QuESo_CHECK_IS_FALSE(!cell_domain.IsInside<CoordinateSpace::parametric>(PointType{ -2.0, 4.0, 9.0 }, bounds));
-    QuESo_CHECK_IS_FALSE(!cell_domain.IsInside<CoordinateSpace::parametric>(PointType{ -10.0, -2.2, 2.0 }, bounds));
-    QuESo_CHECK_IS_FALSE(cell_domain.IsInside<CoordinateSpace::parametric>(PointType{ -10.1, 4.0, 9.0 }, bounds));
-}
+        const auto boundary_ips =
+            cell_domain.GetBoundaryIps<BoundaryIntegrationPoint, CoordinateSpace::parametric>(bounds);
+        CheckNear(SumWeights(boundary_ips), BoxSurfaceArea(bounds_uvw), 1e-10);
+    }
 
-BOOST_AUTO_TEST_CASE(IntersectionStateChecks)
-{
-    QuESo_INFO << "Testing :: CellDomain :: IntersectionState" << std::endl;
+    TEST_CASE("CellDomainTestSuite - Is Inside")
+    {
 
-    const CellDomain cell_domain{};
-    constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
 
-    QuESo_CHECK_EQUAL(
-        cell_domain.GetIntersectionState<CoordinateSpace::global>(
-            PointType{ -20.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }, bounds
-        ),
-        queso::IntersectionState::inside
-    );
-    QuESo_CHECK_EQUAL(
-        cell_domain.GetIntersectionState<CoordinateSpace::global>(
-            PointType{ 100.0, -100.0, 8.5 }, PointType{ 110.0, -90.0, 12.0 }, bounds
-        ),
-        queso::IntersectionState::outside
-    );
-    QuESo_CHECK_EQUAL(
-        cell_domain.GetIntersectionState<CoordinateSpace::global>(
-            PointType{ -30.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }, bounds
-        ),
-        queso::IntersectionState::trimmed
-    );
+        const CellDomain cell_domain{};
+        constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
 
-    QuESo_CHECK_EQUAL(
-        cell_domain.GetIntersectionState<CoordinateSpace::parametric>(
-            PointType{ -8.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }, bounds
-        ),
-        queso::IntersectionState::inside
-    );
-    QuESo_CHECK_EQUAL(
-        cell_domain.GetIntersectionState<CoordinateSpace::parametric>(
-            PointType{ 3.0, -1.0, 3.0 }, PointType{ 4.0, 8.0, 14.0 }, bounds
-        ),
-        queso::IntersectionState::outside
-    );
-    QuESo_CHECK_EQUAL(
-        cell_domain.GetIntersectionState<CoordinateSpace::parametric>(
-            PointType{ -11.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }, bounds
-        ),
-        queso::IntersectionState::trimmed
-    );
-}
+        CHECK_FALSE(!cell_domain.IsInside<CoordinateSpace::global>(PointType{ 0.0, -80.0, 10.0 }, bounds));
+        CHECK_FALSE(!cell_domain.IsInside<CoordinateSpace::global>(PointType{ -25.0, -111.44, 7.89 }, bounds));
+        CHECK_FALSE(cell_domain.IsInside<CoordinateSpace::global>(PointType{ -26.0, -80.0, 10.0 }, bounds));
 
-BOOST_AUTO_TEST_SUITE_END()
+        CHECK_FALSE(!cell_domain.IsInside<CoordinateSpace::parametric>(PointType{ -2.0, 4.0, 9.0 }, bounds));
+        CHECK_FALSE(!cell_domain.IsInside<CoordinateSpace::parametric>(PointType{ -10.0, -2.2, 2.0 }, bounds));
+        CHECK_FALSE(cell_domain.IsInside<CoordinateSpace::parametric>(PointType{ -10.1, 4.0, 9.0 }, bounds));
+    }
 
-}  // End namespace queso::Testing
+    TEST_CASE("CellDomainTestSuite - Intersection State Checks")
+    {
+
+
+        const CellDomain cell_domain{};
+        constexpr auto bounds = ElementBounds{ MakeBoundsXYZ(), MakeBoundsUVW() };
+
+        CHECK(
+            (cell_domain.GetIntersectionState<CoordinateSpace::global>(
+                PointType{ -20.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }, bounds
+            ))
+            == (queso::IntersectionState::inside)
+        );
+        CHECK(
+            (cell_domain.GetIntersectionState<CoordinateSpace::global>(
+                PointType{ 100.0, -100.0, 8.5 }, PointType{ 110.0, -90.0, 12.0 }, bounds
+            ))
+            == (queso::IntersectionState::outside)
+        );
+        CHECK(
+            (cell_domain.GetIntersectionState<CoordinateSpace::global>(
+                PointType{ -30.0, -100.0, 8.5 }, PointType{ 10.0, -70.0, 12.0 }, bounds
+            ))
+            == (queso::IntersectionState::trimmed)
+        );
+
+        CHECK(
+            (cell_domain.GetIntersectionState<CoordinateSpace::parametric>(
+                PointType{ -8.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }, bounds
+            ))
+            == (queso::IntersectionState::inside)
+        );
+        CHECK(
+            (cell_domain.GetIntersectionState<CoordinateSpace::parametric>(
+                PointType{ 3.0, -1.0, 3.0 }, PointType{ 4.0, 8.0, 14.0 }, bounds
+            ))
+            == (queso::IntersectionState::outside)
+        );
+        CHECK(
+            (cell_domain.GetIntersectionState<CoordinateSpace::parametric>(
+                PointType{ -11.0, -1.0, 3.0 }, PointType{ 0.0, 8.0, 14.0 }, bounds
+            ))
+            == (queso::IntersectionState::trimmed)
+        );
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing

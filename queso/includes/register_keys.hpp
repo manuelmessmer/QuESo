@@ -519,7 +519,7 @@ QuESo_REGISTER_KEY_SET(WriteFilesTimeInfo, MainValuesTypeTag, QuESo_KEY(WriteFil
 
 /* --- Keys for Testing --- */
 #if QUESO_BUILD_TESTING
-namespace Testing {
+namespace testing {
 
     // TestKeys1 :: SubDictTypeTag
     QuESo_DEFINE_KEY_SET(TestKeys1, SubDictTypeTag, QuESo_KEY_LIST(zero, one, two, three, four));
@@ -630,7 +630,7 @@ namespace Testing {
         QuESo_KEY(TestKeys5::eleven)
     );
 
-}  // namespace Testing
+}  // namespace testing
 #endif  // End QUESO_BUILD_TESTING
 
 }  // End namespace queso

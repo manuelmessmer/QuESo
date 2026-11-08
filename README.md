@@ -19,7 +19,7 @@ QuESo is written in C++ and has a user-friendly Python interface. If you want to
 ## Special Thanks To
 * Lester Hedges for the [AABB tree](https://github.com/lohedges/aabbcc)
 * [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
-* [Boost](https://www.boost.org/users/download/) for the C++ unit test framework
+* [doctest](https://github.com/doctest/doctest) for the C++ testing framework
   
 ## How to cite QuESo?
 Please use the following references when citing QuESo in your work.

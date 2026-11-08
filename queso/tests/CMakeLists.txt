@@ -1,21 +1,14 @@
 cmake_minimum_required(VERSION 3.21)
 
-# Use NEW policy for case-sensitive package root variables
-if(POLICY CMP0144)
-  cmake_policy(SET CMP0144 NEW)
-endif()
-
-# Use NEW policy for BoostConfig.cmake
-if(POLICY CMP0167)
-  cmake_policy(SET CMP0167 NEW)
-endif()
-
-# Find Boost
-set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+# Add doctest
+set(DoctestDirectory "${PROJECT_SOURCE_DIR}/external_libraries/doctest")
+add_library(QuESoDoctest INTERFACE)
+add_library(doctest::doctest ALIAS QuESoDoctest)
+target_include_directories(QuESoDoctest SYSTEM INTERFACE "${DoctestDirectory}")
+include("${DoctestDirectory}/scripts/cmake/doctest.cmake")
 
 # Add test sources
-file(GLOB TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_*.cpp)
+file(GLOB TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_*.cpp)
 set(TEST_MAIN ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_queso.cpp)
 set(TEST_THINGI_MAIN ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_queso_thingi10k.cpp)
 set(TEST_THINGI_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/cpp/test_thingi10k.cpp)
@@ -28,30 +21,42 @@ get_filename_component(testThingiName ${TEST_THINGI_MAIN} NAME_WE)
 # Add test executables
 add_executable(${testName} ${TEST_MAIN} ${TEST_SRCS})
 add_executable(${testThingiName} ${TEST_THINGI_MAIN} ${TEST_THINGI_SOURCE})
+target_sources(${testName} PRIVATE cpp/helpers/test_data.cpp)
+target_sources(${testThingiName} PRIVATE cpp/helpers/thingi10k_options.cpp)
 
 # Target compile definitions
 target_compile_definitions(${testName} PRIVATE QUESO_BUILD_TESTING=1)
 target_compile_definitions(${testThingiName} PRIVATE QUESO_BUILD_TESTING=1)
+foreach(TestTarget IN ITEMS ${testName} ${testThingiName})
+    target_compile_definitions(${TestTarget} PRIVATE QUESO_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+    target_link_libraries(${TestTarget} PRIVATE doctest::doctest QuESo::QuESo)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(${TestTarget} PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+endforeach()
 
-# Link to Boost libraries and QuESo
-target_link_libraries(${testName} PRIVATE Boost::unit_test_framework QuESo::QuESo)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(${testName} PRIVATE OpenMP::OpenMP_CXX)
-endif()
-target_link_libraries(${testThingiName} PRIVATE Boost::unit_test_framework QuESo::QuESo OpenMP::OpenMP_CXX)
-target_compile_definitions(${testName} PRIVATE BOOST_TEST_DYN_LINK)
-target_compile_definitions(${testThingiName} PRIVATE BOOST_TEST_DYN_LINK)
 
 # Move to TestExecutableDir
 set(TestExecutableDir ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set_target_properties(${testName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TestExecutableDir})
 set_target_properties(${testThingiName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TestExecutableDir})
 
-# Register cpp tests.
-add_test(NAME queso_cpp
-    COMMAND $<TARGET_FILE:${testName}> --log_level=test_suite -- ${CMAKE_CURRENT_SOURCE_DIR}/data)
-set_tests_properties(queso_cpp
-    PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+# Discovery launches the executable during the build, before run_tests.cmd sets PATH.
+if(WIN32)
+    foreach(TestTarget IN ITEMS ${testName} ${testThingiName})
+        add_custom_command(TARGET ${TestTarget} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:QuESo>" "$<TARGET_FILE_DIR:${TestTarget}>"
+            VERBATIM)
+    endforeach()
+endif()
+
+# Discovery only lists cases; test execution inherits the caller's QUESO_DEBUG setting.
+# Thingi10K requires explicit corpus arguments and is intentionally not auto-registered.
+doctest_discover_tests(${testName}
+    TEST_PREFIX "queso/"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    EXTRA_ARGS "--data-dir=${CMAKE_CURRENT_SOURCE_DIR}/data")
 
 # Configure shell script
 set(PYTHON_TEST_SOURCE_DIR_IN ${CMAKE_CURRENT_SOURCE_DIR}/python)

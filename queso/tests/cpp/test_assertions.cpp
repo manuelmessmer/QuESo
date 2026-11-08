@@ -12,7 +12,7 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// STL includes
 #include <array>
@@ -23,7 +23,7 @@
 #include "queso/includes/assert.hpp"
 #include "queso/includes/parallel_exception.hpp"
 
-namespace queso::Testing {
+namespace queso::testing {
 namespace {
 
     constexpr bool ValidConstantExpression()
@@ -37,115 +37,116 @@ namespace {
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(AssertionTestSuite)
-
-BOOST_AUTO_TEST_CASE(ContractsAlwaysThrowWithCallerContext)
+TEST_SUITE("AssertionTestSuite")
 {
-    const auto expected_line = __LINE__ + 2;
-    try {
-        QuESo_CONTRACT_ASSERT(false, "Required invariant.");
-        BOOST_FAIL("Contract did not throw.");
-    } catch (const Exception& r_error) {
-        const std::string message = r_error.what();
-        BOOST_CHECK(message.find("false") != std::string::npos);
-        BOOST_CHECK(message.find("Required invariant.") != std::string::npos);
-        BOOST_CHECK(message.find("test_assertions.cpp") != std::string::npos);
-        BOOST_CHECK(message.find("Line: " + std::to_string(expected_line)) != std::string::npos);
-        BOOST_CHECK(message.find("ContractsAlwaysThrowWithCallerContext") != std::string::npos);
+
+    TEST_CASE("AssertionTestSuite - Contracts Always Throw With Caller Context")
+    {
+        const auto expected_line = __LINE__ + 2;
+        try {
+            QuESo_CONTRACT_ASSERT(false, "Required invariant.");
+            FAIL("Contract did not throw.");
+        } catch (const Exception& r_error) {
+            const std::string message = r_error.what();
+            CHECK(message.find("false") != std::string::npos);
+            CHECK(message.find("Required invariant.") != std::string::npos);
+            CHECK(message.find("test_assertions.cpp") != std::string::npos);
+            CHECK(message.find("Line: " + std::to_string(expected_line)) != std::string::npos);
+            CHECK(message.find(__func__) != std::string::npos);
+        }
     }
-}
 
-BOOST_AUTO_TEST_CASE(ConditionsEvaluateOnceAndMessagesOnlyOnFailure)
-{
-    int condition_calls = 0;
-    int message_calls = 0;
-    const auto condition = [&] {
-        ++condition_calls;
-        return true;
-    };
-    const auto message = [&] {
-        ++message_calls;
-        return "Failure message.";
-    };
-    // Counters intentionally observe macro evaluation semantics, not application state.
-    QuESo_CONTRACT_ASSERT(condition(), message());
-    BOOST_CHECK_EQUAL(condition_calls, 1);
-    BOOST_CHECK_EQUAL(message_calls, 0);
-    BOOST_CHECK_THROW(QuESo_CONTRACT_ASSERT(!condition(), message()), Exception);
-    BOOST_CHECK_EQUAL(condition_calls, 2);
-    BOOST_CHECK_EQUAL(message_calls, 1);
+    TEST_CASE("AssertionTestSuite - Conditions Evaluate Once And Messages Only On Failure")
+    {
+        int condition_calls = 0;
+        int message_calls = 0;
+        const auto condition = [&] {
+            ++condition_calls;
+            return true;
+        };
+        const auto message = [&] {
+            ++message_calls;
+            return "Failure message.";
+        };
+        // Counters intentionally observe macro evaluation semantics, not application state.
+        QuESo_CONTRACT_ASSERT(condition(), message());
+        CHECK((condition_calls) == (1));
+        CHECK((message_calls) == (0));
+        CHECK_THROWS_AS(QuESo_CONTRACT_ASSERT(!condition(), message()), Exception);
+        CHECK((condition_calls) == (2));
+        CHECK((message_calls) == (1));
 
-    QuESo_DEBUG_ASSERT(condition(), message());
-    BOOST_CHECK_EQUAL(condition_calls, NOTDEBUG ? 2 : 3);
-    BOOST_CHECK_EQUAL(message_calls, 1);
-    const int before_diagnostic = condition_calls;
-    QuESo_DIAGNOSTIC_ASSERT(condition(), message());
-    BOOST_CHECK_EQUAL(condition_calls, before_diagnostic + static_cast<int>(QuESo_DIAGNOSTICS_ENABLED()));
-    BOOST_CHECK_EQUAL(message_calls, 1);
-}
-
-BOOST_AUTO_TEST_CASE(DisabledChecksDoNotEvaluateFailureArguments)
-{
-    int message_calls = 0;
-    const auto message = [&] {
-        ++message_calls;
-        return "Failure message.";
-    };
-    if constexpr (NOTDEBUG) {
-        QuESo_DEBUG_ASSERT(false, message());
-    } else {
-        BOOST_CHECK_THROW(QuESo_DEBUG_ASSERT(false, message()), Exception);
+        QuESo_DEBUG_ASSERT(condition(), message());
+        CHECK((condition_calls) == (NOTDEBUG ? 2 : 3));
+        CHECK((message_calls) == (1));
+        const int before_diagnostic = condition_calls;
+        QuESo_DIAGNOSTIC_ASSERT(condition(), message());
+        CHECK((condition_calls) == (before_diagnostic + static_cast<int>(QuESo_DIAGNOSTICS_ENABLED())));
+        CHECK((message_calls) == (1));
     }
-    BOOST_CHECK_EQUAL(message_calls, NOTDEBUG ? 0 : 1);
-    const int before_diagnostic = message_calls;
-    if (QuESo_DIAGNOSTICS_ENABLED()) {
-        BOOST_CHECK_THROW(QuESo_DIAGNOSTIC_ASSERT(false, message()), Exception);
-    } else {
-        QuESo_DIAGNOSTIC_ASSERT(false, message());
+
+    TEST_CASE("AssertionTestSuite - Disabled Checks Do Not Evaluate Failure Arguments")
+    {
+        int message_calls = 0;
+        const auto message = [&] {
+            ++message_calls;
+            return "Failure message.";
+        };
+        if constexpr (NOTDEBUG) {
+            QuESo_DEBUG_ASSERT(false, message());
+        } else {
+            CHECK_THROWS_AS(QuESo_DEBUG_ASSERT(false, message()), Exception);
+        }
+        CHECK((message_calls) == (NOTDEBUG ? 0 : 1));
+        const int before_diagnostic = message_calls;
+        if (QuESo_DIAGNOSTICS_ENABLED()) {
+            CHECK_THROWS_AS(QuESo_DIAGNOSTIC_ASSERT(false, message()), Exception);
+        } else {
+            QuESo_DIAGNOSTIC_ASSERT(false, message());
+        }
+        CHECK((message_calls) == (before_diagnostic + static_cast<int>(QuESo_DIAGNOSTICS_ENABLED())));
     }
-    BOOST_CHECK_EQUAL(message_calls, before_diagnostic + static_cast<int>(QuESo_DIAGNOSTICS_ENABLED()));
-}
 
-BOOST_AUTO_TEST_CASE(AssertionsAcceptExplicitBoolAndAreSingleStatements)
-{
-    const auto value = std::make_unique<int>(1);
-    QuESo_CONTRACT_ASSERT(value, "Noncopyable explicit Boolean.");
-    QuESo_DEBUG_ASSERT(value, "Noncopyable explicit Boolean.");
-    QuESo_DIAGNOSTIC_ASSERT(value, "Noncopyable explicit Boolean.");
-    if (value)
-        QuESo_CONTRACT_ASSERT(true, "Single statement.");
-    else
-        BOOST_FAIL("Unexpected else branch.");
-    if (value)
-        QuESo_DEBUG_ASSERT(true, "Single statement.");
-    else
-        BOOST_FAIL("Unexpected else branch.");
-    if (value)
-        QuESo_DIAGNOSTIC_ASSERT(true, "Single statement.");
-    else
-        BOOST_FAIL("Unexpected else branch.");
-}
+    TEST_CASE("AssertionTestSuite - Assertions Accept Explicit Bool And Are Single Statements")
+    {
+        const auto value = std::make_unique<int>(1);
+        QuESo_CONTRACT_ASSERT(value, "Noncopyable explicit Boolean.");
+        QuESo_DEBUG_ASSERT(value, "Noncopyable explicit Boolean.");
+        QuESo_DIAGNOSTIC_ASSERT(value, "Noncopyable explicit Boolean.");
+        if (value)
+            QuESo_CONTRACT_ASSERT(true, "Single statement.");
+        else
+            FAIL("Unexpected else branch.");
+        if (value)
+            QuESo_DEBUG_ASSERT(true, "Single statement.");
+        else
+            FAIL("Unexpected else branch.");
+        if (value)
+            QuESo_DIAGNOSTIC_ASSERT(true, "Single statement.");
+        else
+            FAIL("Unexpected else branch.");
+    }
 
-BOOST_AUTO_TEST_CASE(WorkerFailureIsRethrownAfterRegion)
-{
-    detail::ParallelException failure;
-    std::array<int, 8> completed{};
+    TEST_CASE("AssertionTestSuite - Worker Failure Is Rethrown After Region")
+    {
+        detail::ParallelException failure;
+        std::array<int, 8> completed{};
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int index = 0; index < 8; ++index) {
-        failure.Execute([&] {
-            completed[static_cast<std::size_t>(index)] = 1;
-            QuESo_CONTRACT_ASSERT(index != 3, "Worker contract failure.");
-        });
+        for (int index = 0; index < 8; ++index) {
+            failure.Execute([&] {
+                completed[static_cast<std::size_t>(index)] = 1;
+                QuESo_CONTRACT_ASSERT(index != 3, "Worker contract failure.");
+            });
+        }
+        for (int value : completed) { CHECK((value) == (1)); }
+        CHECK_THROWS_AS(failure.Rethrow(), Exception);
+        detail::ParallelException success;
+        success.Execute([] {});
+        CHECK_NOTHROW(success.Rethrow());
     }
-    for (int value : completed) { BOOST_CHECK_EQUAL(value, 1); }
-    BOOST_CHECK_THROW(failure.Rethrow(), Exception);
-    detail::ParallelException success;
-    success.Execute([] {});
-    BOOST_CHECK_NO_THROW(success.Rethrow());
-}
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // TEST_SUITE
 
-}  // namespace queso::Testing
+}  // namespace queso::testing

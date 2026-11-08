@@ -12,7 +12,7 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// STL includes
 #include <cmath>
@@ -20,23 +20,23 @@
 #include <vector>
 
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/containers/boundary_integration_point.hpp"
 #include "queso/containers/triangle_mesh.hpp"
 #include "queso/containers/trimmed_element.hpp"
 #include "queso/embedding/domain_mesh_embedder.h"
-#include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/io/io_utilities.h"
 #include "queso/quadrature/moment_fitting.hpp"
 #include "queso/utilities/mesh_utilities.h"
 
-#include "queso/tests/cpp/helpers/global_config.hpp"
+#include "queso/tests/cpp/helpers/test_data.hpp"
 
 // This suite tests point elimination on real trimmed geometries and verifies that returned reduced rules have stable,
 // current weights. Related coverage: test_moment_fitting_assembly.cpp checks assembly details, test_moment_fitting.cpp
 // checks unreduced NNLS solves, and test_element_trimmed.cpp checks public Compute API behavior.
 
-namespace queso::Testing {
+namespace queso::testing {
 
 namespace {
 
@@ -116,11 +116,11 @@ namespace {
         );
 
         for (IndexType i = 0; i < rPoints.size(); ++i) {
-            QuESo_CHECK_GT(rPoints[i].Weight(), EPS4);
-            QuESo_CHECK_RELATIVE_NEAR(rPoints[i].Weight(), rReferencePoints[i].Weight(), EPS2);
+            CHECK((rPoints[i].Weight()) > (EPS4));
+            CheckRelativeNear(rPoints[i].Weight(), rReferencePoints[i].Weight(), EPS2);
         }
 
-        QuESo_CHECK_NEAR(fitting_result.residual, static_cast<double>(moment_residual), 1e-14);
+        CheckNear(fitting_result.residual, static_cast<double>(moment_residual), 1e-14);
         return static_cast<double>(moment_residual);
     }
 
@@ -135,7 +135,7 @@ namespace {
     {
         const double volume = IntegratedVolume(rElement);
         const double reference_volume = MeshUtilities::Volume(rElement.GetActiveDomainBoundaryMesh());
-        QuESo_CHECK_RELATIVE_NEAR(volume, reference_volume, Tolerance);
+        CheckRelativeNear(volume, reference_volume, Tolerance);
     }
 
     void CheckReturnedRule(ElementType& rElement, const PointEliminationCase& rCase)
@@ -145,17 +145,17 @@ namespace {
                 rElement, { .integration_order = rCase.integration_order, .residual = rCase.target_residual }
             )
                 .value();
-        QuESo_CHECK_NEAR(residual, 0.0, rCase.residual_tolerance);
+        CheckNear(residual, 0.0, rCase.residual_tolerance);
 
         auto& r_points = rElement.GetIntegrationPoints();
-        QuESo_CHECK_LT(r_points.size(), rCase.max_number_of_points);
-        QuESo_CHECK_IS_FALSE(r_points.empty());
+        REQUIRE((r_points.size()) < (rCase.max_number_of_points));
+        CHECK_FALSE(r_points.empty());
 
         const ElementType::IntegrationPointVectorType reference_points(r_points);
         // Refit the returned point set to verify point elimination did not return stale weights.
         const double residual_after_refitting_returned_rule =
             RefitReturnedRuleAndCheckWeightsAreUnchanged(rElement, r_points, reference_points, rCase.integration_order);
-        QuESo_CHECK_NEAR(residual, residual_after_refitting_returned_rule, EPS4);
+        CheckNear(residual, residual_after_refitting_returned_rule, EPS4);
 
         CheckVolume(rElement, rCase.volume_tolerance);
     }
@@ -164,7 +164,7 @@ namespace {
     {
         const auto settings = MakeSettings(rCase);
         TriangleMesh triangle_mesh{};
-        const std::string stl_path = GlobalConfig::GetInstance().BaseDir + "/" + std::string(rCase.stl_filename);
+        const std::string stl_path = TestDataDirectory() + "/" + std::string(rCase.stl_filename);
         IO::ReadMeshFromSTL(triangle_mesh, stl_path);
 
         constexpr double min_vol_ratio = 1e-3;
@@ -188,113 +188,114 @@ namespace {
             ElementType element(1, ElementBounds{ bounding_box, bounding_box_uvw }, std::move(trimmed_domain));
             CheckReturnedRule(element, rCase);
         }
-        QuESo_CHECK_EQUAL(number_trimmed_elements, rCase.expected_trimmed_elements);
+        CHECK((number_trimmed_elements) == (rCase.expected_trimmed_elements));
     }
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(PointEliminationTestSuite)
-
-BOOST_AUTO_TEST_CASE(PointEliminationCylinder1Test)
+TEST_SUITE("PointEliminationTestSuite")
 {
-    // Verifies reduced quadratic rules on trimmed cylinder cells and re-solve stability of returned weights.
-    QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Quadratic" << std::endl;
-    constexpr PointEliminationCase test_case{ .stl_filename = "primitives/cylinder.stl",
-                                              .grid_type = GridType::b_spline_grid,
-                                              .lower_bound_xyz = { -1.5, -1.5, -1.0 },
-                                              .upper_bound_xyz = { 1.5, 1.5, 12.0 },
-                                              .lower_bound_uvw = { 0.0, 0.0, 0.0 },
-                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
-                                              .number_of_elements = { 6, 6, 13 },
-                                              .integration_order = { 2, 2, 2 },
-                                              .target_residual = 1e-8,
-                                              .residual_tolerance = 1e-6,
-                                              .volume_tolerance = 1e-6,
-                                              .max_number_of_points = 28,
-                                              .expected_trimmed_elements = 120 };
-    RunPointEliminationCase(test_case);
-}
 
-BOOST_AUTO_TEST_CASE(PointEliminationCylinder2Test)
-{
-    // Verifies reduced cubic rules on trimmed cylinder cells and re-solve stability of returned weights.
-    QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Cubic" << std::endl;
-    constexpr PointEliminationCase test_case{ .stl_filename = "primitives/cylinder.stl",
-                                              .grid_type = GridType::b_spline_grid,
-                                              .lower_bound_xyz = { -1.5, -1.5, -1.0 },
-                                              .upper_bound_xyz = { 1.5, 1.5, 12.0 },
-                                              .lower_bound_uvw = { 0.0, 0.0, 0.0 },
-                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
-                                              .number_of_elements = { 6, 6, 13 },
-                                              .integration_order = { 3, 3, 3 },
-                                              .target_residual = 1e-8,
-                                              .residual_tolerance = 1e-6,
-                                              .volume_tolerance = 1e-6,
-                                              .max_number_of_points = 65,
-                                              .expected_trimmed_elements = 120 };
-    RunPointEliminationCase(test_case);
-}
+    TEST_CASE("PointEliminationTestSuite - Point Elimination Cylinder1 Test")
+    {
+        // Verifies reduced quadratic rules on trimmed cylinder cells and re-solve stability of returned weights.
 
-BOOST_AUTO_TEST_CASE(PointEliminationCylinder4Test)
-{
-    // Verifies reduced mixed-order rules on trimmed cylinder cells and re-solve stability of returned weights.
-    QuESo_INFO << "Testing :: Test Point Elimination :: Cylinder Mixed" << std::endl;
-    constexpr PointEliminationCase test_case{ .stl_filename = "primitives/cylinder.stl",
-                                              .grid_type = GridType::b_spline_grid,
-                                              .lower_bound_xyz = { -1.5, -1.5, -1.0 },
-                                              .upper_bound_xyz = { 1.5, 1.5, 12.0 },
-                                              .lower_bound_uvw = { 0.0, 0.0, 0.0 },
-                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
-                                              .number_of_elements = { 6, 6, 13 },
-                                              .integration_order = { 2, 3, 4 },
-                                              .target_residual = 1e-7,
-                                              .residual_tolerance = 1e-6,
-                                              .volume_tolerance = 1e-5,
-                                              .max_number_of_points = 61,
-                                              .expected_trimmed_elements = 120 };
-    RunPointEliminationCase(test_case);
-}
+        constexpr PointEliminationCase test_case{ .stl_filename = "primitives/cylinder.stl",
+                                                  .grid_type = GridType::b_spline_grid,
+                                                  .lower_bound_xyz = { -1.5, -1.5, -1.0 },
+                                                  .upper_bound_xyz = { 1.5, 1.5, 12.0 },
+                                                  .lower_bound_uvw = { 0.0, 0.0, 0.0 },
+                                                  .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                                  .number_of_elements = { 6, 6, 13 },
+                                                  .integration_order = { 2, 2, 2 },
+                                                  .target_residual = 1e-8,
+                                                  .residual_tolerance = 1e-6,
+                                                  .volume_tolerance = 1e-6,
+                                                  .max_number_of_points = 28,
+                                                  .expected_trimmed_elements = 120 };
+        RunPointEliminationCase(test_case);
+    }
 
-BOOST_AUTO_TEST_CASE(PointEliminationKnuckleTest)
-{
-    // Verifies reduced rules on steering-knuckle geometry, including volume recovery and stable returned weights.
-    QuESo_INFO << "Testing :: Test Point Elimination :: Knuckle" << std::endl;
-    constexpr PointEliminationCase test_case{ .stl_filename = "steering_knuckle/steering_knuckle.stl",
-                                              .grid_type = GridType::b_spline_grid,
-                                              .lower_bound_xyz = { -130.0, -110.0, -110.0 },
-                                              .upper_bound_xyz = { -40.0, 10.0, 10.0 },
-                                              .lower_bound_uvw = { -130.0, -110.0, -110.0 },
-                                              .upper_bound_uvw = { -40.0, 10.0, 10.0 },
-                                              .number_of_elements = { 9, 12, 12 },
-                                              .integration_order = { 2, 2, 2 },
-                                              .target_residual = 1e-8,
-                                              .residual_tolerance = 1e-8,
-                                              .volume_tolerance = 1e-6,
-                                              .max_number_of_points = 28,
-                                              .expected_trimmed_elements = 80 };
-    RunPointEliminationCase(test_case);
-}
+    TEST_CASE("PointEliminationTestSuite - Point Elimination Cylinder2 Test")
+    {
+        // Verifies reduced cubic rules on trimmed cylinder cells and re-solve stability of returned weights.
 
-BOOST_AUTO_TEST_CASE(PointEliminationElephantTest)
-{
-    // Verifies reduced rules on elephant geometry, including volume recovery and stable returned weights.
-    QuESo_INFO << "Testing :: Test Point Elimination :: Elephant" << std::endl;
-    constexpr PointEliminationCase test_case{ .stl_filename = "primitives/elephant.stl",
-                                              .grid_type = GridType::hexahedral_fe_grid,
-                                              .lower_bound_xyz = { -0.4, -0.6, -0.35 },
-                                              .upper_bound_xyz = { 0.4, 0.6, 0.35 },
-                                              .lower_bound_uvw = { -1.0, -1.0, -1.0 },
-                                              .upper_bound_uvw = { 1.0, 1.0, 1.0 },
-                                              .number_of_elements = { 8, 12, 7 },
-                                              .integration_order = { 2, 2, 2 },
-                                              .target_residual = 1e-8,
-                                              .residual_tolerance = 1e-8,
-                                              .volume_tolerance = 1e-7,
-                                              .max_number_of_points = 28,
-                                              .expected_trimmed_elements = 153 };
-    RunPointEliminationCase(test_case);
-}
+        constexpr PointEliminationCase test_case{ .stl_filename = "primitives/cylinder.stl",
+                                                  .grid_type = GridType::b_spline_grid,
+                                                  .lower_bound_xyz = { -1.5, -1.5, -1.0 },
+                                                  .upper_bound_xyz = { 1.5, 1.5, 12.0 },
+                                                  .lower_bound_uvw = { 0.0, 0.0, 0.0 },
+                                                  .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                                  .number_of_elements = { 6, 6, 13 },
+                                                  .integration_order = { 3, 3, 3 },
+                                                  .target_residual = 1e-8,
+                                                  .residual_tolerance = 1e-6,
+                                                  .volume_tolerance = 1e-6,
+                                                  .max_number_of_points = 65,
+                                                  .expected_trimmed_elements = 120 };
+        RunPointEliminationCase(test_case);
+    }
 
-BOOST_AUTO_TEST_SUITE_END()
+    TEST_CASE("PointEliminationTestSuite - Point Elimination Cylinder4 Test")
+    {
+        // Verifies reduced mixed-order rules on trimmed cylinder cells and re-solve stability of returned weights.
 
-}  // namespace queso::Testing
+        constexpr PointEliminationCase test_case{ .stl_filename = "primitives/cylinder.stl",
+                                                  .grid_type = GridType::b_spline_grid,
+                                                  .lower_bound_xyz = { -1.5, -1.5, -1.0 },
+                                                  .upper_bound_xyz = { 1.5, 1.5, 12.0 },
+                                                  .lower_bound_uvw = { 0.0, 0.0, 0.0 },
+                                                  .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                                  .number_of_elements = { 6, 6, 13 },
+                                                  .integration_order = { 2, 3, 4 },
+                                                  .target_residual = 1e-7,
+                                                  .residual_tolerance = 1e-6,
+                                                  .volume_tolerance = 1e-5,
+                                                  .max_number_of_points = 61,
+                                                  .expected_trimmed_elements = 120 };
+        RunPointEliminationCase(test_case);
+    }
+
+    TEST_CASE("PointEliminationTestSuite - Point Elimination Knuckle Test")
+    {
+        // Verifies reduced rules on steering-knuckle geometry, including volume recovery and stable returned weights.
+
+        constexpr PointEliminationCase test_case{ .stl_filename = "steering_knuckle/steering_knuckle.stl",
+                                                  .grid_type = GridType::b_spline_grid,
+                                                  .lower_bound_xyz = { -130.0, -110.0, -110.0 },
+                                                  .upper_bound_xyz = { -40.0, 10.0, 10.0 },
+                                                  .lower_bound_uvw = { -130.0, -110.0, -110.0 },
+                                                  .upper_bound_uvw = { -40.0, 10.0, 10.0 },
+                                                  .number_of_elements = { 9, 12, 12 },
+                                                  .integration_order = { 2, 2, 2 },
+                                                  .target_residual = 1e-8,
+                                                  .residual_tolerance = 1e-8,
+                                                  .volume_tolerance = 1e-6,
+                                                  .max_number_of_points = 28,
+                                                  .expected_trimmed_elements = 80 };
+        RunPointEliminationCase(test_case);
+    }
+
+    TEST_CASE("PointEliminationTestSuite - Point Elimination Elephant Test")
+    {
+        // Verifies reduced rules on elephant geometry, including volume recovery and stable returned weights.
+
+        constexpr PointEliminationCase test_case{ .stl_filename = "primitives/elephant.stl",
+                                                  .grid_type = GridType::hexahedral_fe_grid,
+                                                  .lower_bound_xyz = { -0.4, -0.6, -0.35 },
+                                                  .upper_bound_xyz = { 0.4, 0.6, 0.35 },
+                                                  .lower_bound_uvw = { -1.0, -1.0, -1.0 },
+                                                  .upper_bound_uvw = { 1.0, 1.0, 1.0 },
+                                                  .number_of_elements = { 8, 12, 7 },
+                                                  .integration_order = { 2, 2, 2 },
+                                                  .target_residual = 1e-8,
+                                                  .residual_tolerance = 1e-8,
+                                                  .volume_tolerance = 1e-7,
+                                                  .max_number_of_points = 28,
+                                                  .expected_trimmed_elements = 153 };
+        RunPointEliminationCase(test_case);
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing

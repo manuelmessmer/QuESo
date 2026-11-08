@@ -18,15 +18,15 @@
 #include <span>
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 
 //// Project includes
+#include "helpers/numerical_checks.hpp"
 #include "queso/embedding/boundary_mesh_embedder.h"
-#include "queso/includes/checks.hpp"
 #include "queso/includes/dictionary_factory.hpp"
 #include "queso/utilities/mesh_utilities.h"
 
-namespace queso::Testing {
+namespace queso::testing {
 namespace {
 
     using BackgroundGridType = embedding::BoundaryMeshEmbedder::BackgroundGridType;
@@ -71,9 +71,7 @@ namespace {
         const auto p_settings = MakeSettings(rNumberOfElements);
         BackgroundGridType grid(*p_settings);
         UntrimmedBuilder builder;
-        for (const IndexType cell_index : rActiveCells) {
-            QuESo_CHECK(grid.MakeElement(builder, cell_index));
-        }
+        for (const IndexType cell_index : rActiveCells) { CHECK(grid.MakeElement(builder, cell_index)); }
         grid.LockElements();
         return grid;
     }
@@ -116,191 +114,192 @@ namespace {
 
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(BoundaryMeshEmbedderTestSuite)
-
-BOOST_AUTO_TEST_CASE(RequiresLockedBackgroundGrid)
+TEST_SUITE("BoundaryMeshEmbedderTestSuite")
 {
-    if constexpr (!NOTDEBUG) {
-        const auto p_settings = MakeSettings({ 2, 1, 1 });
-        const BackgroundGridType grid(*p_settings);
-        const TriangleMesh mesh = MakeTriangleAtX(0.5);
-        BOOST_CHECK_THROW((void)embedding::BoundaryMeshEmbedder(mesh.View(), grid), queso::Exception);
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Requires Locked Background Grid")
+    {
+        if constexpr (!NOTDEBUG) {
+            const auto p_settings = MakeSettings({ 2, 1, 1 });
+            const BackgroundGridType grid(*p_settings);
+            const TriangleMesh mesh = MakeTriangleAtX(0.5);
+            CHECK_THROWS_AS((void)embedding::BoundaryMeshEmbedder(mesh.View(), grid), queso::Exception);
+        }
     }
-}
 
-BOOST_AUTO_TEST_CASE(UsesActiveCanonicalOwnerOnce)
-{
-    constexpr std::array<IndexType, 1> active_cells{ 1 };
-    const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
-    const TriangleMesh mesh = MakeTriangleAtX(1.0);
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Uses Active Canonical Owner Once")
+    {
+        constexpr std::array<IndexType, 1> active_cells{ 1 };
+        const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
+        const TriangleMesh mesh = MakeTriangleAtX(1.0);
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
 
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 1);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices().front(), 1);
-    const auto section = embedder.TakeBoundarySection(1);
-    QuESo_CHECK_EQUAL(section.NumOfTriangles(), 1);
-    if constexpr (!NOTDEBUG) { BOOST_CHECK_THROW((void)embedder.TakeBoundarySection(1), queso::Exception); }
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices().front(), 1);
-}
-
-BOOST_AUTO_TEST_CASE(FallsBackToIncidentActiveCell)
-{
-    constexpr std::array<IndexType, 1> active_cells{ 0 };
-    const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
-    const TriangleMesh mesh = MakeTriangleAtX(1.0);
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 1);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices().front(), 0);
-    const auto section = embedder.TakeBoundarySection(0);
-    QuESo_CHECK_EQUAL(section.NumOfTriangles(), 1);
-    QuESo_CHECK_POINT_NEAR(section.Normal(0), mesh.Normal(0), 1e-12);
-}
-
-BOOST_AUTO_TEST_CASE(RetainsCanonicalParentWhenNeitherAdjacentCellIsActive)
-{
-    constexpr std::array<IndexType, 1> active_cells{ 2 };
-    const auto grid = MakeGrid({ 4, 1, 1 }, active_cells);
-    const TriangleMesh mesh = MakeTriangleAtX(1.0);
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 1);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices().front(), 1);
-    QuESo_CHECK_EQUAL(embedder.TakeBoundarySection(1).NumOfTriangles(), IndexType{ 1 });
-    if constexpr (!NOTDEBUG) { BOOST_CHECK_THROW((void)embedder.TakeBoundarySection(2), queso::Exception); }
-}
-
-BOOST_AUTO_TEST_CASE(RetainsInGridGeometryOutsideActiveCellHalo)
-{
-    constexpr std::array<IndexType, 1> active_cells{ 0 };
-    const auto grid = MakeGrid({ 4, 1, 1 }, active_cells);
-    const TriangleMesh mesh = MakeTriangleAtX(3.5);
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 1);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices().front(), 3);
-    QuESo_CHECK_EQUAL(embedder.TakeBoundarySection(3).NumOfTriangles(), IndexType{ 1 });
-}
-
-BOOST_AUTO_TEST_CASE(ReturnsSortedUniqueParents)
-{
-    constexpr std::array<IndexType, 2> active_cells{ 0, 2 };
-    const auto grid = MakeGrid({ 3, 1, 1 }, active_cells);
-    TriangleMesh mesh = MakeTriangleAtX(0.5);
-    AddTriangle(mesh, { 2.5, 0.2, 0.2 }, { 2.5, 0.8, 0.2 }, { 2.5, 0.2, 0.8 });
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 2);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[0], 0);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[1], 2);
-    if constexpr (!NOTDEBUG) { BOOST_CHECK_THROW((void)embedder.TakeBoundarySection(1), queso::Exception); }
-}
-
-BOOST_AUTO_TEST_CASE(AssignsAllSixFacesToCanonicalOrFallbackParent)
-{
-    const auto p_settings = MakeSettings({ 3, 3, 3 });
-    const GridIndexer indexer(*p_settings);
-    for (const SignedAxis face : EnumRange<SignedAxis>()) {
-        const IndexType face_index = static_cast<IndexType>(face);
-        const IndexType axis = face_index / 2;
-        const bool is_upper = face_index % 2 == 1;
-        Vector3i canonical_indices{ 1, 1, 1 };
-        if (is_upper) { ++canonical_indices[axis]; }
-        const IndexType canonical = indexer.GetVectorIndexFromMatrixIndices(canonical_indices);
-        const TriangleMesh mesh = MakeTriangleOnCenterCellFace(face);
-
-        const std::array canonical_active{ canonical };
-        const auto canonical_grid = MakeGrid({ 3, 3, 3 }, canonical_active);
-        embedding::BoundaryMeshEmbedder canonical_embedder(mesh.View(), canonical_grid);
-        BOOST_REQUIRE_EQUAL(canonical_embedder.GetParentCellIndices().size(), 1);
-        QuESo_CHECK_EQUAL(canonical_embedder.GetParentCellIndices().front(), canonical);
-
-        Vector3i fallback_indices = canonical_indices;
-        --fallback_indices[axis];
-        const IndexType fallback = indexer.GetVectorIndexFromMatrixIndices(fallback_indices);
-        const std::array fallback_active{ fallback };
-        const auto fallback_grid = MakeGrid({ 3, 3, 3 }, fallback_active);
-        embedding::BoundaryMeshEmbedder fallback_embedder(mesh.View(), fallback_grid);
-        BOOST_REQUIRE_EQUAL(fallback_embedder.GetParentCellIndices().size(), 1);
-        QuESo_CHECK_EQUAL(fallback_embedder.GetParentCellIndices().front(), fallback);
+        REQUIRE((embedder.GetParentCellIndices().size()) == (1));
+        CHECK((embedder.GetParentCellIndices().front()) == (1));
+        const auto section = embedder.TakeBoundarySection(1);
+        CHECK((section.NumOfTriangles()) == (1));
+        if constexpr (!NOTDEBUG) { CHECK_THROWS_AS((void)embedder.TakeBoundarySection(1), queso::Exception); }
+        CHECK((embedder.GetParentCellIndices().front()) == (1));
     }
-}
 
-BOOST_AUTO_TEST_CASE(AssignsMixedInteriorAndFaceSectionsIndependently)
-{
-    constexpr std::array<IndexType, 2> active_cells{ 0, 1 };
-    const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
-    TriangleMesh mesh = MakeTriangleAtX(1.0);
-    AddTriangle(mesh, { 0.2, 0.2, 0.2 }, { 0.8, 0.3, 0.2 }, { 0.3, 0.8, 0.7 });
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Falls Back To Incident Active Cell")
+    {
+        constexpr std::array<IndexType, 1> active_cells{ 0 };
+        const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
+        const TriangleMesh mesh = MakeTriangleAtX(1.0);
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
 
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 2);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[0], 0);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[1], 1);
-    const auto interior = embedder.TakeBoundarySection(0);
-    const auto face = embedder.TakeBoundarySection(1);
-    QuESo_CHECK_EQUAL(interior.NumOfTriangles(), 1);
-    QuESo_CHECK_EQUAL(face.NumOfTriangles(), 1);
-}
-
-BOOST_AUTO_TEST_CASE(CombinesInteriorAndFaceSectionsForOneParent)
-{
-    constexpr std::array<IndexType, 2> active_cells{ 0, 1 };
-    const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
-    TriangleMesh mesh = MakeTriangleAtX(1.0);
-    AddTriangle(mesh, { 1.2, 0.2, 0.2 }, { 1.8, 0.3, 0.2 }, { 1.3, 0.8, 0.7 });
-
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 1);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices().front(), 1);
-    const auto section = embedder.TakeBoundarySection(1);
-    QuESo_CHECK_EQUAL(section.NumOfTriangles(), IndexType{ 2 });
-    QuESo_CHECK_LT(std::abs(MeshUtilities::Area(section.View()) - MeshUtilities::Area(mesh.View())), 1e-12);
-}
-
-BOOST_AUTO_TEST_CASE(AssignsExteriorFaceSectionsToOnlyAdjacentCells)
-{
-    constexpr std::array<IndexType, 0> active_cells{};
-    const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
-    TriangleMesh mesh = MakeTriangleAtX(0.0);
-    AddTriangle(mesh, { 2.0, 0.2, 0.2 }, { 2.0, 0.8, 0.2 }, { 2.0, 0.2, 0.8 });
-
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 2);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[0], 0);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[1], 1);
-    double area{};
-    for (const IndexType cell_index : embedder.GetParentCellIndices()) {
-        const auto section = embedder.TakeBoundarySection(cell_index);
-        QuESo_CHECK_EQUAL(section.NumOfTriangles(), IndexType{ 1 });
-        area += MeshUtilities::Area(section.View());
+        REQUIRE((embedder.GetParentCellIndices().size()) == (1));
+        CHECK((embedder.GetParentCellIndices().front()) == (0));
+        const auto section = embedder.TakeBoundarySection(0);
+        CHECK((section.NumOfTriangles()) == (1));
+        CheckPointNear(section.Normal(0), mesh.Normal(0), 1e-12);
     }
-    QuESo_CHECK_LT(std::abs(area - MeshUtilities::Area(mesh.View())), 1e-12);
-}
 
-BOOST_AUTO_TEST_CASE(AssignsAsymmetricSplitPiecesExactlyOnce)
-{
-    constexpr std::array<IndexType, 0> active_cells{};
-    const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
-    TriangleMesh mesh;
-    AddTriangle(mesh, { 0.25, 0.2, 0.5 }, { 1.75, 0.2, 0.5 }, { 0.5, 0.8, 0.5 });
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Retains Canonical Parent When Neither Adjacent Cell Is Active")
+    {
+        constexpr std::array<IndexType, 1> active_cells{ 2 };
+        const auto grid = MakeGrid({ 4, 1, 1 }, active_cells);
+        const TriangleMesh mesh = MakeTriangleAtX(1.0);
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
 
-    embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
-    BOOST_REQUIRE_EQUAL(embedder.GetParentCellIndices().size(), 2);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[0], 0);
-    QuESo_CHECK_EQUAL(embedder.GetParentCellIndices()[1], 1);
-    const auto left = embedder.TakeBoundarySection(0);
-    const auto right = embedder.TakeBoundarySection(1);
-    QuESo_CHECK_LT(std::abs(MeshUtilities::Area(left.View()) - 0.315), 1e-12);
-    QuESo_CHECK_LT(std::abs(MeshUtilities::Area(right.View()) - 0.135), 1e-12);
-    QuESo_CHECK_LT(
-        std::abs(
-            MeshUtilities::Area(left.View()) + MeshUtilities::Area(right.View()) - MeshUtilities::Area(mesh.View())
-        ),
-        1e-12
-    );
-}
+        REQUIRE((embedder.GetParentCellIndices().size()) == (1));
+        CHECK((embedder.GetParentCellIndices().front()) == (1));
+        CHECK((embedder.TakeBoundarySection(1).NumOfTriangles()) == (IndexType{ 1 }));
+        if constexpr (!NOTDEBUG) { CHECK_THROWS_AS((void)embedder.TakeBoundarySection(2), queso::Exception); }
+    }
 
-BOOST_AUTO_TEST_SUITE_END()
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Retains In Grid Geometry Outside Active Cell Halo")
+    {
+        constexpr std::array<IndexType, 1> active_cells{ 0 };
+        const auto grid = MakeGrid({ 4, 1, 1 }, active_cells);
+        const TriangleMesh mesh = MakeTriangleAtX(3.5);
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
 
-}  // namespace queso::Testing
+        REQUIRE((embedder.GetParentCellIndices().size()) == (1));
+        CHECK((embedder.GetParentCellIndices().front()) == (3));
+        CHECK((embedder.TakeBoundarySection(3).NumOfTriangles()) == (IndexType{ 1 }));
+    }
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Returns Sorted Unique Parents")
+    {
+        constexpr std::array<IndexType, 2> active_cells{ 0, 2 };
+        const auto grid = MakeGrid({ 3, 1, 1 }, active_cells);
+        TriangleMesh mesh = MakeTriangleAtX(0.5);
+        AddTriangle(mesh, { 2.5, 0.2, 0.2 }, { 2.5, 0.8, 0.2 }, { 2.5, 0.2, 0.8 });
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+
+        REQUIRE((embedder.GetParentCellIndices().size()) == (2));
+        CHECK((embedder.GetParentCellIndices()[0]) == (0));
+        CHECK((embedder.GetParentCellIndices()[1]) == (2));
+        if constexpr (!NOTDEBUG) { CHECK_THROWS_AS((void)embedder.TakeBoundarySection(1), queso::Exception); }
+    }
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Assigns All Six Faces To Canonical Or Fallback Parent")
+    {
+        const auto p_settings = MakeSettings({ 3, 3, 3 });
+        const GridIndexer indexer(*p_settings);
+        for (const SignedAxis face : EnumRange<SignedAxis>()) {
+            const IndexType face_index = static_cast<IndexType>(face);
+            const IndexType axis = face_index / 2;
+            const bool is_upper = face_index % 2 == 1;
+            Vector3i canonical_indices{ 1, 1, 1 };
+            if (is_upper) { ++canonical_indices[axis]; }
+            const IndexType canonical = indexer.GetVectorIndexFromMatrixIndices(canonical_indices);
+            const TriangleMesh mesh = MakeTriangleOnCenterCellFace(face);
+
+            const std::array canonical_active{ canonical };
+            const auto canonical_grid = MakeGrid({ 3, 3, 3 }, canonical_active);
+            embedding::BoundaryMeshEmbedder canonical_embedder(mesh.View(), canonical_grid);
+            REQUIRE((canonical_embedder.GetParentCellIndices().size()) == (1));
+            CHECK((canonical_embedder.GetParentCellIndices().front()) == (canonical));
+
+            Vector3i fallback_indices = canonical_indices;
+            --fallback_indices[axis];
+            const IndexType fallback = indexer.GetVectorIndexFromMatrixIndices(fallback_indices);
+            const std::array fallback_active{ fallback };
+            const auto fallback_grid = MakeGrid({ 3, 3, 3 }, fallback_active);
+            embedding::BoundaryMeshEmbedder fallback_embedder(mesh.View(), fallback_grid);
+            REQUIRE((fallback_embedder.GetParentCellIndices().size()) == (1));
+            CHECK((fallback_embedder.GetParentCellIndices().front()) == (fallback));
+        }
+    }
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Assigns Mixed Interior And Face Sections Independently")
+    {
+        constexpr std::array<IndexType, 2> active_cells{ 0, 1 };
+        const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
+        TriangleMesh mesh = MakeTriangleAtX(1.0);
+        AddTriangle(mesh, { 0.2, 0.2, 0.2 }, { 0.8, 0.3, 0.2 }, { 0.3, 0.8, 0.7 });
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+
+        REQUIRE((embedder.GetParentCellIndices().size()) == (2));
+        CHECK((embedder.GetParentCellIndices()[0]) == (0));
+        CHECK((embedder.GetParentCellIndices()[1]) == (1));
+        const auto interior = embedder.TakeBoundarySection(0);
+        const auto face = embedder.TakeBoundarySection(1);
+        CHECK((interior.NumOfTriangles()) == (1));
+        CHECK((face.NumOfTriangles()) == (1));
+    }
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Combines Interior And Face Sections For One Parent")
+    {
+        constexpr std::array<IndexType, 2> active_cells{ 0, 1 };
+        const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
+        TriangleMesh mesh = MakeTriangleAtX(1.0);
+        AddTriangle(mesh, { 1.2, 0.2, 0.2 }, { 1.8, 0.3, 0.2 }, { 1.3, 0.8, 0.7 });
+
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+        REQUIRE((embedder.GetParentCellIndices().size()) == (1));
+        CHECK((embedder.GetParentCellIndices().front()) == (1));
+        const auto section = embedder.TakeBoundarySection(1);
+        CHECK((section.NumOfTriangles()) == (IndexType{ 2 }));
+        CHECK((std::abs(MeshUtilities::Area(section.View()) - MeshUtilities::Area(mesh.View()))) < (1e-12));
+    }
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Assigns Exterior Face Sections To Only Adjacent Cells")
+    {
+        constexpr std::array<IndexType, 0> active_cells{};
+        const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
+        TriangleMesh mesh = MakeTriangleAtX(0.0);
+        AddTriangle(mesh, { 2.0, 0.2, 0.2 }, { 2.0, 0.8, 0.2 }, { 2.0, 0.2, 0.8 });
+
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+        REQUIRE((embedder.GetParentCellIndices().size()) == (2));
+        CHECK((embedder.GetParentCellIndices()[0]) == (0));
+        CHECK((embedder.GetParentCellIndices()[1]) == (1));
+        double area{};
+        for (const IndexType cell_index : embedder.GetParentCellIndices()) {
+            const auto section = embedder.TakeBoundarySection(cell_index);
+            CHECK((section.NumOfTriangles()) == (IndexType{ 1 }));
+            area += MeshUtilities::Area(section.View());
+        }
+        CHECK((std::abs(area - MeshUtilities::Area(mesh.View()))) < (1e-12));
+    }
+
+    TEST_CASE("BoundaryMeshEmbedderTestSuite - Assigns Asymmetric Split Pieces Exactly Once")
+    {
+        constexpr std::array<IndexType, 0> active_cells{};
+        const auto grid = MakeGrid({ 2, 1, 1 }, active_cells);
+        TriangleMesh mesh;
+        AddTriangle(mesh, { 0.25, 0.2, 0.5 }, { 1.75, 0.2, 0.5 }, { 0.5, 0.8, 0.5 });
+
+        embedding::BoundaryMeshEmbedder embedder(mesh.View(), grid);
+        REQUIRE((embedder.GetParentCellIndices().size()) == (2));
+        CHECK((embedder.GetParentCellIndices()[0]) == (0));
+        CHECK((embedder.GetParentCellIndices()[1]) == (1));
+        const auto left = embedder.TakeBoundarySection(0);
+        const auto right = embedder.TakeBoundarySection(1);
+        CHECK((std::abs(MeshUtilities::Area(left.View()) - 0.315)) < (1e-12));
+        CHECK((std::abs(MeshUtilities::Area(right.View()) - 0.135)) < (1e-12));
+        CHECK(
+            (std::abs(
+                MeshUtilities::Area(left.View()) + MeshUtilities::Area(right.View()) - MeshUtilities::Area(mesh.View())
+            ))
+            < (1e-12)
+        );
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing

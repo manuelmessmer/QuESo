@@ -12,16 +12,16 @@
 //  Authors:    Manuel Messmer
 
 //// External includes
-#include <boost/test/unit_test.hpp>
+#include <doctest/doctest.h>
 //// Project includes
-#include "queso/includes/checks.hpp"
+#include "helpers/numerical_checks.hpp"
 #include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 #include "queso/utilities/polynomial_utilities.hpp"
 
 // This suite tests the templated Legendre polynomial utilities used by moment-fitting assembly. Related coverage:
 // test_moment_fitting_assembly.cpp checks how these basis functions are assembled into matrix/RHS entries.
 
-namespace queso::Testing {
+namespace queso::testing {
 
 /// @brief Checks numerical orthogonality of two different Legendre basis functions on an interval.
 /// @details Uses tensor-product Gauss quadrature with enough points for the selected orders.
@@ -43,7 +43,7 @@ void CheckLegendreOrthogonality()
                                   * polynomial::f_x<Order2>(position2, lower_bound, upper_bound) * point2[1];
         }
     }
-    QuESo_CHECK_LT(std::abs(numerical_integral), 1e-12);
+    CHECK((std::abs(numerical_integral)) < (1e-12));
 }
 
 /// @brief Checks that the analytical antiderivative matches numerical Gauss integration.
@@ -62,66 +62,67 @@ void CheckLegendreIntegral()
     }
     double analytical_int = polynomial::f_x_int<Order>(upper_bound, lower_bound, upper_bound)
                             - polynomial::f_x_int<Order>(lower_bound, lower_bound, upper_bound);
-    QuESo_CHECK_LT(std::abs(analytical_int - numerical_integral), 1e-12);
+    CHECK((std::abs(analytical_int - numerical_integral)) < (1e-12));
 }
 
-BOOST_AUTO_TEST_SUITE(PolynomialTestSuite)
-
-BOOST_AUTO_TEST_CASE(LegendreBasisFunctionsAreOrthogonal)
+TEST_SUITE("PolynomialTestSuite")
 {
-    QuESo_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 1" << std::endl;
-    CheckLegendreOrthogonality<0, 1>();
-    CheckLegendreOrthogonality<0, 2>();
-    CheckLegendreOrthogonality<0, 3>();
-    CheckLegendreOrthogonality<0, 4>();
-    CheckLegendreOrthogonality<0, 5>();
-    CheckLegendreOrthogonality<0, 6>();
-    CheckLegendreOrthogonality<0, 7>();
-    CheckLegendreOrthogonality<0, 8>();
-    CheckLegendreOrthogonality<1, 2>();
-    CheckLegendreOrthogonality<1, 3>();
-    CheckLegendreOrthogonality<1, 4>();
-    CheckLegendreOrthogonality<1, 5>();
-    CheckLegendreOrthogonality<1, 6>();
-    CheckLegendreOrthogonality<1, 7>();
-    CheckLegendreOrthogonality<1, 8>();
-    CheckLegendreOrthogonality<2, 3>();
-    CheckLegendreOrthogonality<2, 4>();
-    CheckLegendreOrthogonality<2, 5>();
-    CheckLegendreOrthogonality<2, 6>();
-    CheckLegendreOrthogonality<2, 7>();
-    CheckLegendreOrthogonality<2, 8>();
-    CheckLegendreOrthogonality<3, 4>();
-    CheckLegendreOrthogonality<3, 5>();
-    CheckLegendreOrthogonality<3, 6>();
-    CheckLegendreOrthogonality<3, 7>();
-    CheckLegendreOrthogonality<3, 8>();
-    CheckLegendreOrthogonality<4, 5>();
-    CheckLegendreOrthogonality<4, 6>();
-    CheckLegendreOrthogonality<4, 7>();
-    CheckLegendreOrthogonality<4, 8>();
-    CheckLegendreOrthogonality<5, 6>();
-    CheckLegendreOrthogonality<5, 7>();
-    CheckLegendreOrthogonality<5, 8>();
-    CheckLegendreOrthogonality<6, 7>();
-    CheckLegendreOrthogonality<6, 8>();
-    CheckLegendreOrthogonality<7, 8>();
-}
 
-BOOST_AUTO_TEST_CASE(LegendreAntiderivativesMatchGaussIntegration)
-{
-    QuESo_INFO << "Testing :: Test Polynomials :: Legendre Polynomials 2" << std::endl;
-    CheckLegendreIntegral<0>();
-    CheckLegendreIntegral<1>();
-    CheckLegendreIntegral<2>();
-    CheckLegendreIntegral<3>();
-    CheckLegendreIntegral<4>();
-    CheckLegendreIntegral<5>();
-    CheckLegendreIntegral<6>();
-    CheckLegendreIntegral<7>();
-    CheckLegendreIntegral<8>();
-}
+    TEST_CASE("PolynomialTestSuite - Legendre Basis Functions Are Orthogonal")
+    {
 
-BOOST_AUTO_TEST_SUITE_END()
+        CheckLegendreOrthogonality<0, 1>();
+        CheckLegendreOrthogonality<0, 2>();
+        CheckLegendreOrthogonality<0, 3>();
+        CheckLegendreOrthogonality<0, 4>();
+        CheckLegendreOrthogonality<0, 5>();
+        CheckLegendreOrthogonality<0, 6>();
+        CheckLegendreOrthogonality<0, 7>();
+        CheckLegendreOrthogonality<0, 8>();
+        CheckLegendreOrthogonality<1, 2>();
+        CheckLegendreOrthogonality<1, 3>();
+        CheckLegendreOrthogonality<1, 4>();
+        CheckLegendreOrthogonality<1, 5>();
+        CheckLegendreOrthogonality<1, 6>();
+        CheckLegendreOrthogonality<1, 7>();
+        CheckLegendreOrthogonality<1, 8>();
+        CheckLegendreOrthogonality<2, 3>();
+        CheckLegendreOrthogonality<2, 4>();
+        CheckLegendreOrthogonality<2, 5>();
+        CheckLegendreOrthogonality<2, 6>();
+        CheckLegendreOrthogonality<2, 7>();
+        CheckLegendreOrthogonality<2, 8>();
+        CheckLegendreOrthogonality<3, 4>();
+        CheckLegendreOrthogonality<3, 5>();
+        CheckLegendreOrthogonality<3, 6>();
+        CheckLegendreOrthogonality<3, 7>();
+        CheckLegendreOrthogonality<3, 8>();
+        CheckLegendreOrthogonality<4, 5>();
+        CheckLegendreOrthogonality<4, 6>();
+        CheckLegendreOrthogonality<4, 7>();
+        CheckLegendreOrthogonality<4, 8>();
+        CheckLegendreOrthogonality<5, 6>();
+        CheckLegendreOrthogonality<5, 7>();
+        CheckLegendreOrthogonality<5, 8>();
+        CheckLegendreOrthogonality<6, 7>();
+        CheckLegendreOrthogonality<6, 8>();
+        CheckLegendreOrthogonality<7, 8>();
+    }
 
-}  // namespace queso::Testing
+    TEST_CASE("PolynomialTestSuite - Legendre Antiderivatives Match Gauss Integration")
+    {
+
+        CheckLegendreIntegral<0>();
+        CheckLegendreIntegral<1>();
+        CheckLegendreIntegral<2>();
+        CheckLegendreIntegral<3>();
+        CheckLegendreIntegral<4>();
+        CheckLegendreIntegral<5>();
+        CheckLegendreIntegral<6>();
+        CheckLegendreIntegral<7>();
+        CheckLegendreIntegral<8>();
+    }
+
+}  // TEST_SUITE
+
+}  // namespace queso::testing
