@@ -21,7 +21,6 @@
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/quadrature/moment_fitting_types.hpp"
-#include "queso/solvers/nnls.h"
 #include "queso/utilities/polynomial_utilities.hpp"
 
 namespace queso {
@@ -203,13 +202,13 @@ std::vector<double> ComputeConstantTerms(
 
 /// @brief Assembles the NNLS fitting matrix with compile-time polynomial orders.
 /// @details Optimized path for supported orders. Uses stack-allocated basis arrays and templated polynomial evaluation.
-/// The matrix is serialized column-first as expected by `NNLS::solve`.
+/// The matrix is serialized column-first as expected by `nnls::Solve`.
 /// @param[out] rFittingMatrix Serialized fitting matrix.
 /// @param rIntegrationPoints Candidate integration points in parametric coordinates.
 /// @param rBoundsParam Parametric element-cell bounds.
 template<typename TIntegrationPointVectorType, IndexType OrderU, IndexType OrderV, IndexType OrderW>
 void AssembleFittingMatrixFixedOrder(
-    NNLS::MatrixType& rFittingMatrix,
+    std::vector<double>& rFittingMatrix,
     const TIntegrationPointVectorType& rIntegrationPoints,
     const BoundingBoxType& rBoundsParam
 )
@@ -252,7 +251,7 @@ void AssembleFittingMatrixFixedOrder(
 /// @param rOrderInfo Moment-fitting order metadata.
 template<typename TIntegrationPointVectorType>
 void AssembleFittingMatrix(
-    NNLS::MatrixType& rFittingMatrix,
+    std::vector<double>& rFittingMatrix,
     const TIntegrationPointVectorType& rIntegrationPoints,
     const BoundingBoxType& rBoundsParam,
     const IntegrationOrderInfo& rOrderInfo
@@ -282,7 +281,7 @@ extern template std::vector<double> ComputeConstantTerms<std::vector<BoundaryInt
 );
 
 extern template void AssembleFittingMatrix<std::vector<IntegrationPoint>>(
-    NNLS::MatrixType& rFittingMatrix,
+    std::vector<double>& rFittingMatrix,
     const std::vector<IntegrationPoint>& rIntegrationPoints,
     const BoundingBoxType& rBoundsParam,
     const IntegrationOrderInfo& rOrderInfo

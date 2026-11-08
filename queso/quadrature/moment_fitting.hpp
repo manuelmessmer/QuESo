@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <utility>
 #include <vector>
 
 //// Project includes
@@ -43,7 +44,6 @@ namespace detail {
     struct PointEliminationState
     {
         double residual = MIND;
-        double previous_residual = 0.0;
         SizeType iteration = 0UL;
         bool point_was_eliminated = false;
     };
@@ -198,26 +198,30 @@ namespace detail {
 
     /// @brief Solves the moment-fitting equation and assigns non-negative weights.
     /// @details Assembles the fitting matrix, solves the NNLS problem, writes the solved weights to the integration
-    /// points and collects weight statistics for point elimination.
+    /// points only on convergence and collects weight statistics for point elimination. Invalid input throws.
     /// @param rIntegrationPoint Candidate integration points whose weights are overwritten.
     /// @param rGeometry Parametric geometry and Jacobian determinant for weight scaling.
     /// @param rOrderInfo Moment-fitting order metadata.
     /// @param rProblem Constant terms and cached RHS norm.
     /// @param rScratch Reusable buffers for matrix assembly and NNLS solve.
-    /// @return Relative residual and solved-weight statistics.
-    template<typename TElementType>
+    /// @param rSolve Internal NNLS callable, replaceable for deterministic failure tests.
+    /// @return Solve status, relative residual and converged-weight statistics.
+    template<typename TElementType, typename TSolver = decltype(&nnls::Solve)>
     MomentFittingResult MomentFitting(
         typename TElementType::IntegrationPointVectorType& rIntegrationPoint,
         const IntegrationGeometry& rGeometry,
         const IntegrationOrderInfo& rOrderInfo,
         const MomentFittingProblem& rProblem,
-        MomentFittingScratch& rScratch
+        MomentFittingScratch& rScratch,
+        const TSolver& rSolve = nnls::Solve
     )
     {
         const IndexType number_reduced_points = rIntegrationPoint.size();
         QuESo_ERROR_IF(number_reduced_points == 0) << "Moment fitting requires at least one integration point.\n";
-        QuESo_ERROR_IF(rProblem.constant_terms_l2_norm <= detail::MinimumConstantTermsL2Norm)
-            << "Moment-fitting constant terms must have a non-zero L2 norm.\n";
+        QuESo_ERROR_IF(
+            !std::isfinite(rProblem.constant_terms_l2_norm)
+            || rProblem.constant_terms_l2_norm <= detail::MinimumConstantTermsL2Norm
+        ) << "Moment-fitting constant terms must have a finite, non-zero L2 norm.\n";
         QuESo_ERROR_IF(std::abs(rGeometry.det_j) <= rGeometry.minimum_det_j)
             << "Moment fitting requires a non-zero Jacobian determinant.\n";
 
@@ -226,9 +230,20 @@ namespace detail {
 
         // Solve non-negative Least-Square-Error problem.
         rScratch.weights.resize(number_reduced_points);
-        rScratch.rhs = rProblem.constant_terms;  // NNLS::solve does modify input. Therefore, copy is required.
-        const double rel_residual =
-            NNLS::solve(rScratch.fitting_matrix, rScratch.rhs, rScratch.weights) / rProblem.constant_terms_l2_norm;
+        rScratch.rhs = rProblem.constant_terms;  // The in-place solver overwrites its RHS.
+        const auto solve_result = rSolve(
+            nnls::Parameters{ .lhs = rScratch.fitting_matrix,
+                              .rhs = rScratch.rhs,
+                              .solution = rScratch.weights,
+                              .r_workspace = rScratch.nnls_workspace }
+        );
+        QuESo_ERROR_IF(solve_result.status == nnls::Status::InvalidInput)
+            << "Moment-fitting NNLS failed with status " << static_cast<int>(solve_result.status) << " after "
+            << solve_result.iterations << " iterations.\n";
+        if (solve_result.status != nnls::Status::Converged) {
+            return { .status = solve_result.status, .iterations = solve_result.iterations };
+        }
+        const double rel_residual = solve_result.residual_norm / rProblem.constant_terms_l2_norm;
 
         // Write computed weights onto integration points
         const double det_j_inv = 1.0 / rGeometry.det_j;
@@ -240,46 +255,58 @@ namespace detail {
             weight_stats.Update(new_weight, point_index++);
         }
 
-        return MomentFittingResult{ .residual = rel_residual, .weight_stats = weight_stats };
+        return { .status = solve_result.status,
+                 .iterations = solve_result.iterations,
+                 .residual = rel_residual,
+                 .weight_stats = weight_stats };
     }
 
     /// @brief Runs iterative point elimination on a candidate quadrature rule.
     /// @details Repeatedly solves moment fitting, removes low-weight points and restores the previous accepted point
-    /// set if the latest reduction overshoots the target residual.
+    /// set if the latest reduction fails or overshoots the target residual.
     /// @param rIntegrationPoints Candidate integration points mutated in place.
     /// @param rGeometry Parametric geometry and Jacobian determinant for weight scaling.
     /// @param rOrderInfo Moment-fitting order metadata.
     /// @param rProblem Constant terms and cached RHS norm.
     /// @param TargetResidual Target relative residual.
-    /// @return Achieved relative residual.
-    template<typename TElementType>
-    double PointElimination(
+    /// @param rSolve Internal NNLS callable.
+    /// @return Last verified fit, or a failed solve if no verified rule exists.
+    template<typename TElementType, typename TSolver = decltype(&nnls::Solve)>
+    MomentFittingResult PointElimination(
         typename TElementType::IntegrationPointVectorType& rIntegrationPoints,
         const IntegrationGeometry& rGeometry,
         const IntegrationOrderInfo& rOrderInfo,
         const MomentFittingProblem& rProblem,
-        double TargetResidual
+        double TargetResidual,
+        const TSolver& rSolve = nnls::Solve
     )
     {
         constexpr SizeType max_iteration = 10;
         PointEliminationState state;
         MomentFittingScratch scratch{};
+        MomentFittingResult fitting_result{}, previous_result{};
         typename TElementType::IntegrationPointVectorType previous_integration_points{};
         previous_integration_points.reserve(rIntegrationPoints.size());
 
         // If any point is eliminated, we must run another moment fitting loop, to guarantee that the weights are
         // correct. Also keep iterating, until TargetResidual is stepped over.
-        while (ContinuePointElimination(state, TargetResidual, max_iteration)) {
+        while (!rIntegrationPoints.empty() && ContinuePointElimination(state, TargetResidual, max_iteration)) {
             state.point_was_eliminated = false;
-            const auto fitting_result =
-                MomentFitting<TElementType>(rIntegrationPoints, rGeometry, rOrderInfo, rProblem, scratch);
+            fitting_result =
+                MomentFitting<TElementType>(rIntegrationPoints, rGeometry, rOrderInfo, rProblem, scratch, rSolve);
+            if (fitting_result.status != nnls::Status::Converged) { break; }
             state.residual = fitting_result.residual;
 
             if (state.iteration == 0 || state.residual < TargetResidual) {
-                // Store the last accepted reduced rule before attempting another elimination.
-                if (state.iteration > 0) {
-                    previous_integration_points = rIntegrationPoints;
-                    state.previous_residual = state.residual;
+                // Save the verified rule without zero-weight candidates.
+                previous_integration_points.clear();
+                previous_result = fitting_result;
+                previous_result.weight_stats = {};
+                for (const auto& r_point : rIntegrationPoints) {
+                    if (r_point.Weight() == 0.0) { continue; }
+
+                    previous_result.weight_stats.Update(r_point.Weight(), previous_integration_points.size());
+                    previous_integration_points.push_back(r_point);
                 }
                 state.point_was_eliminated =
                     EliminatePoints(rIntegrationPoints, rOrderInfo, state, fitting_result.weight_stats);
@@ -287,23 +314,22 @@ namespace detail {
             state.iteration++;
         }
 
-        if (state.point_was_eliminated && !rIntegrationPoints.empty()) {
-            const auto fitting_result =
-                MomentFitting<TElementType>(rIntegrationPoints, rGeometry, rOrderInfo, rProblem, scratch);
+        if (state.point_was_eliminated && !rIntegrationPoints.empty()
+            && fitting_result.status == nnls::Status::Converged) {
+            fitting_result =
+                MomentFitting<TElementType>(rIntegrationPoints, rGeometry, rOrderInfo, rProblem, scratch, rSolve);
             state.residual = fitting_result.residual;
         }
 
-        if (rIntegrationPoints.empty() && !previous_integration_points.empty()) {
+        // Restore the last verified rule if reduction failed, removed all points or reached the residual limit.
+        if (!previous_integration_points.empty()
+            && (fitting_result.status != nnls::Status::Converged || rIntegrationPoints.empty()
+                || state.residual >= TargetResidual)) {
             rIntegrationPoints = std::move(previous_integration_points);
-            return state.previous_residual;
+            return previous_result;
         }
 
-        if (state.residual >= TargetResidual && !previous_integration_points.empty()) {
-            rIntegrationPoints = std::move(previous_integration_points);
-            return state.previous_residual;
-        }
-
-        return state.residual;
+        return fitting_result;
     }
 
     /// @brief Adds tensor-product quadrature points in the fictitious domain.
@@ -359,6 +385,11 @@ namespace detail {
         }
     }
 
+    /// Internal computation entry point with an injectable NNLS callable.
+    template<typename TElementType, typename TSolver>
+    std::optional<double>
+        ComputeWithSolver(TElementType& rElement, const Parameters& rParameters, const TSolver& rSolve);
+
 }  // namespace detail
 
 /// @brief Creates moment-fitting quadrature points for a trimmed element.
@@ -369,9 +400,11 @@ namespace detail {
 ///      Comput. Methods Appl. Mech. Engrg. 400 (2022) 115584, https://doi.org/10.1016/j.cma.2022.115584.
 /// @param rElement Trimmed element whose integration points are replaced.
 /// @param rParameters Moment-fitting parameters.
+/// @param rSolve Internal NNLS callable.
 /// @return Achieved relative moment-fitting residual, or `std::nullopt` if no valid integration points remain.
-template<typename TElementType>
-std::optional<double> Compute(TElementType& rElement, const Parameters& rParameters)
+template<typename TElementType, typename TSolver>
+std::optional<double>
+    detail::ComputeWithSolver(TElementType& rElement, const Parameters& rParameters, const TSolver& rSolve)
 {
     QuESo_ERROR_IF(
         rParameters.fictitious_domain_alpha
@@ -391,10 +424,12 @@ std::optional<double> Compute(TElementType& rElement, const Parameters& rParamet
     const SizeType max_iteration = (Math::Max(rParameters.integration_order) == 2) ? 3 : 2;
     constexpr double min_residual = 1e-2;
     double residual = MAXD;
+    std::optional<MomentFittingResult> last_failure;
     auto& el_integration_points = rElement.GetIntegrationPoints();
     el_integration_points.clear();
     // If residual can not be satisfied, try with more points in initial set.
     for (SizeType iteration = 0; residual > rParameters.residual && iteration < max_iteration; ++iteration) {
+        auto previous_points = el_integration_points;
         // Distribute initial points via an octree.
         const SizeType min_num_points = order_info.number_of_functions * (iteration + 1);
         detail::DistributeIntegrationPoints<TElementType>(
@@ -405,16 +440,27 @@ std::optional<double> Compute(TElementType& rElement, const Parameters& rParamet
         if (el_integration_points.empty()) { continue; }
 
         // Run point elimination.
-        residual = detail::PointElimination<TElementType>(
-            el_integration_points, geometry, order_info, problem, rParameters.residual
+        const auto fitting_result = detail::PointElimination<TElementType>(
+            el_integration_points, geometry, order_info, problem, rParameters.residual, rSolve
         );
+        if (fitting_result.status != nnls::Status::Converged) {
+            last_failure = fitting_result;
+            el_integration_points = std::move(previous_points);
+            continue;
+        }
+        residual = fitting_result.residual;
 
         // If residual is very high, remove all points. Note, elements without points will be neglected.
         if (residual > min_residual) { el_integration_points.clear(); }
     }
 
     if (el_integration_points.empty()) {
-        if (rParameters.echo_level > 2) {
+        if (last_failure && rParameters.echo_level > 2) {
+            QuESo_INFO << "Warning :: Moment Fitting :: Element id: " << rElement.GetId()
+                       << " excluded after NNLS retries. Last failed status: "
+                       << (last_failure->status == nnls::Status::IterationLimit ? "IterationLimit" : "NumericalFailure")
+                       << " after " << last_failure->iterations << " iterations.\n";
+        } else if (rParameters.echo_level > 2) {
             QuESo_INFO << "Warning :: Moment Fitting :: Element id: " << rElement.GetId()
                        << " neglected because no integration points remain. Residual: " << residual << ".\n";
         }
@@ -432,5 +478,13 @@ std::optional<double> Compute(TElementType& rElement, const Parameters& rParamet
     }
     return residual;
 }
+
+/// @brief Creates moment-fitting quadrature, retrying recoverable NNLS failures before excluding the element.
+/// @param rElement Trimmed element whose integration points are replaced.
+/// @param rParameters Moment-fitting parameters.
+/// @return Achieved relative residual, or `std::nullopt` if no usable rule remains.
+template<typename TElementType>
+std::optional<double> Compute(TElementType& rElement, const Parameters& rParameters)
+{ return detail::ComputeWithSolver(rElement, rParameters, nnls::Solve); }
 
 }  // namespace queso::quadrature::moment_fitting

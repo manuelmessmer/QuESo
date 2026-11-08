@@ -16,12 +16,36 @@
 
 /// STL includes
 #include <cmath>
+#include <span>
 //// Project includes
 #include "queso/includes/define.hpp"
 
 namespace queso {
 
 namespace Math {
+
+    /// @brief Computes the Euclidean norm without directly squaring unscaled values.
+    /// @param Values Non-owning input vector.
+    /// @return Stable L2 norm, zero for an empty vector. Nonfinite input or an unrepresentable norm stays nonfinite.
+    [[nodiscard]] inline double L2Norm(std::span<const double> Values) noexcept
+    {
+        double scale = 0.0;
+        double sum = 1.0;
+        for (const double value : Values) {
+            if (!std::isfinite(value)) { return std::abs(value); }
+            const double magnitude = std::abs(value);
+            if (magnitude == 0.0) { continue; }
+            if (magnitude > scale) {
+                const double ratio = scale / magnitude;
+                sum = 1.0 + sum * ratio * ratio;
+                scale = magnitude;
+            } else {
+                const double ratio = magnitude / scale;
+                sum += ratio * ratio;
+            }
+        }
+        return scale * std::sqrt(sum);
+    }
 
     ///@brief Simple Power function
     ///@param x Value

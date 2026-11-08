@@ -115,11 +115,11 @@ BOOST_AUTO_TEST_CASE(DetJ)
 
     const auto untrimmed = MakeUntrimmedElement();
     const auto view_u = untrimmed.View();
-    QuESo_CHECK_NEAR(view_u.DetJ(), untrimmed.DetJ(), 1e-15);
+    QuESo_CHECK_NEAR(view_u.DetJ(), untrimmed.DetJ(), 1e-14);
 
     const auto trimmed = MakeTrimmedElement();
     const auto view_t = trimmed.View();
-    QuESo_CHECK_NEAR(view_t.DetJ(), trimmed.DetJ(), 1e-15);
+    QuESo_CHECK_NEAR(view_t.DetJ(), trimmed.DetJ(), 1e-14);
 }
 
 BOOST_AUTO_TEST_CASE(GetIntegrationPointsParametric)

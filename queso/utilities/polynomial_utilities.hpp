@@ -59,7 +59,7 @@ template<IndexType Order>
                * (6435.0 * power<8>(tmp_x) - 12012.0 * power<6>(tmp_x) + 6930.0 * power<4>(tmp_x)
                   - 1260.0 * power<2>(tmp_x) + 35.0);
     } else {
-        static_assert(always_false_v<std::integral_constant<IndexType, Order>>, "Supported Legendre orders are 0..8.");
+        static_assert(always_false_v<Order>, "Supported Legendre orders are 0..8.");
     }
 }
 
@@ -98,7 +98,7 @@ template<IndexType Order>
                + (429.0 * power<7>(shifted_x)) / (64.0 * power<6>(length))
                - (715.0 * power<9>(shifted_x)) / (256.0 * power<8>(length));
     } else {
-        static_assert(always_false_v<std::integral_constant<IndexType, Order>>, "Supported Legendre orders are 0..8.");
+        static_assert(always_false_v<Order>, "Supported Legendre orders are 0..8.");
     }
 }
 

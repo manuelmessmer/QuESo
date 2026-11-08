@@ -16,14 +16,14 @@
 //// STL includes
 #include <algorithm>
 #include <cmath>
-#include <functional>
-#include <numeric>
+#include <limits>
 #include <utility>
 #include <vector>
 
 //// Project includes
 #include "queso/includes/define.hpp"
 #include "queso/solvers/nnls.h"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso::quadrature::moment_fitting::detail {
 
@@ -69,16 +69,6 @@ struct IntegrationGeometry
     double minimum_det_j;
 };
 
-/// @brief Computes the Euclidean norm of a vector.
-/// @param rValues Values whose L2 norm is computed.
-/// @return `sqrt(sum(value_i^2))`.
-[[nodiscard]] inline double L2Norm(const std::vector<double>& rValues)
-{
-    return std::sqrt(std::transform_reduce(rValues.begin(), rValues.end(), 0.0, std::plus<>{}, [](double Value) {
-        return Value * Value;
-    }));
-}
-
 /// @brief Immutable right-hand-side data for one moment-fitting problem.
 /// @details The constructor stores the constant terms and caches their L2 norm because the same RHS is used across
 /// repeated NNLS solves during point elimination.
@@ -87,7 +77,7 @@ struct MomentFittingProblem
     /// @brief Constructs the problem from already assembled constant terms.
     /// @param ConstantTerms Moment-fitting right-hand side.
     explicit MomentFittingProblem(std::vector<double> ConstantTerms)
-        : constant_terms(std::move(ConstantTerms)), constant_terms_l2_norm(L2Norm(constant_terms))
+        : constant_terms(std::move(ConstantTerms)), constant_terms_l2_norm(Math::L2Norm(constant_terms))
     {}
 
     std::vector<double> constant_terms;
@@ -100,8 +90,9 @@ struct MomentFittingProblem
 struct MomentFittingScratch
 {
     std::vector<double> weights;
-    NNLS::MatrixType fitting_matrix;
+    std::vector<double> fitting_matrix;
     std::vector<double> rhs;
+    nnls::Workspace nnls_workspace;
 };
 
 /// @brief Statistics of solved integration weights from one moment-fitting solve.
@@ -130,9 +121,12 @@ struct WeightStats
 /// @brief Result of one moment-fitting solve.
 struct MomentFittingResult
 {
-    /// Relative residual `||Ax-b||_2 / ||b||_2` returned by the NNLS solve.
-    double residual = 0.0;
-    /// Weight statistics for the solved integration points.
+    /// Only converged solves publish integration weights and weight statistics.
+    nnls::Status status = nnls::Status::InvalidInput;
+    IndexType iterations = 0;
+    /// Relative residual `||Ax-b||_2 / ||b||_2`, unavailable unless converged.
+    double residual = std::numeric_limits<double>::infinity();
+    /// Weight statistics for converged integration points.
     WeightStats weight_stats{};
 };
 

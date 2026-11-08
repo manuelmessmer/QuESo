@@ -15,7 +15,9 @@
 #include <boost/test/unit_test.hpp>
 
 //// STL includes
+#include <cmath>
 #include <string_view>
+#include <vector>
 
 //// Project includes
 #include "queso/containers/boundary_integration_point.hpp"
@@ -92,6 +94,19 @@ namespace {
         );
 
         const quadrature::moment_fitting::detail::MomentFittingProblem problem(constant_terms);
+        std::vector<double> matrix;
+        quadrature::moment_fitting::detail::AssembleFittingMatrix(
+            matrix, rReferencePoints, rElement.GetCellBounds<CoordinateSpace::parametric>(), order_info
+        );
+        long double moment_residual = 0.0L;
+        for (IndexType i = 0; i < constant_terms.size(); ++i) {
+            long double error = -static_cast<long double>(constant_terms[i]);
+            for (IndexType j = 0; j < rReferencePoints.size(); ++j) {
+                error += static_cast<long double>(matrix[j * constant_terms.size() + i]) * rReferencePoints[j].Weight()
+                         * rElement.DetJ();
+            }
+            moment_residual = std::hypot(moment_residual, error / problem.constant_terms_l2_norm);
+        }
         quadrature::moment_fitting::detail::MomentFittingScratch scratch{};
         const quadrature::moment_fitting::detail::IntegrationGeometry geometry{
             rElement.GetCellBounds<CoordinateSpace::parametric>(), rElement.DetJ()
@@ -105,7 +120,8 @@ namespace {
             QuESo_CHECK_RELATIVE_NEAR(rPoints[i].Weight(), rReferencePoints[i].Weight(), EPS2);
         }
 
-        return fitting_result.residual;
+        QuESo_CHECK_NEAR(fitting_result.residual, static_cast<double>(moment_residual), 1e-14);
+        return static_cast<double>(moment_residual);
     }
 
     double IntegratedVolume(const ElementType& rElement)

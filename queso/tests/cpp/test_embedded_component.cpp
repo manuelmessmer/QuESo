@@ -1096,13 +1096,14 @@ namespace Testing {
         auto p_settings = CreateBaseSettings(filename);
         auto& r_settings = *p_settings;
 
+        const Vector3i integration_order{ 2, 2, 2 };
         ConfigureBackgroundGrid(
             r_settings,
             grid_type,
             MakeBox({ -130.0, -110.0, -110.0 }, { 20.0, 190.0, 190.0 }),
             MakeBox({ 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 }),
             num_elements,
-            Vector3i{ 2, 2, 2 }
+            integration_order
         );
         r_settings[MainSettings::trimmed_quadrature_rule_settings].SetValue(
             TrimmedQuadratureRuleSettings::min_element_volume_ratio, 0.0
@@ -1133,7 +1134,17 @@ namespace Testing {
         )
             QuESo_CHECK_RELATIVE_NEAR(
                 r_quad_info.GetRequiredValue<double>(QuadratureInfo::percentage_of_geometry_volume), 100.0, 1e-5
-            ) QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), 9506);
+            );
+        // Check that quadrature statistics match the generated integration rules.
+        const IndexType max_support =
+            (integration_order[0] + 1) * (integration_order[1] + 1) * (integration_order[2] + 1);
+        IndexType actual_num_points = 0;
+        for (const auto element : embedded_component.GetElementViews()) {
+            const auto& r_points = element.GetIntegrationPoints();
+            actual_num_points += r_points.size();
+            if (element.IsTrimmed()) { QuESo_CHECK(r_points.size() <= max_support); }
+        }
+        QuESo_CHECK_EQUAL(r_quad_info.GetRequiredValue<IndexType>(QuadratureInfo::tot_num_points), actual_num_points);
         QuESo_CHECK_RELATIVE_NEAR(
             r_quad_info.GetRequiredValue<double>(QuadratureInfo::num_of_points_per_full_element), 25.2, 1e-5
         ) const double num_of_points_per_trimmed_element =
