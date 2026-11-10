@@ -300,6 +300,20 @@ def _inject_embedded_geometry_output_processes(
         for component in geometry["queso_components"]:
             component_name = component["component_name"]
             embedded_name = embedded_model_part_name(component_name)
+            postprocessing = component.get("postprocessing")
+            if postprocessing is None:
+                nodal_solution_step_data_variables = ["DISPLACEMENT"]
+                nodal_data_value_variables = [
+                    "CAUCHY_STRESS_VECTOR",
+                    "VON_MISES_STRESS",
+                ]
+            else:
+                nodal_solution_step_data_variables = postprocessing.get(
+                    "nodal_results", ["DISPLACEMENT"]
+                )
+                nodal_data_value_variables = postprocessing.get(
+                    "gauss_point_results", ["CAUCHY_STRESS_VECTOR","VON_MISES_STRESS"]
+                )
             vtk_processes.append(
                 {
                     "python_module": "vtk_embedded_geometry_output_process",
@@ -323,11 +337,10 @@ def _inject_embedded_geometry_output_processes(
                             "output_sub_model_parts": False,
                             "output_path": f"kratos_output/{component_name}",
                             "save_output_files_in_folder": True,
-                            "nodal_solution_step_data_variables": ["DISPLACEMENT"],
-                            "nodal_data_value_variables": [
-                                "CAUCHY_STRESS_VECTOR",
-                                "VON_MISES_STRESS",
-                            ],
+                            "nodal_solution_step_data_variables": (
+                                nodal_solution_step_data_variables
+                            ),
+                            "nodal_data_value_variables": nodal_data_value_variables,
                             "nodal_flags": [],
                             "element_data_value_variables": [],
                             "element_flags": [],
